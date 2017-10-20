@@ -31,9 +31,7 @@ import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 import org.renjin.gcc.link.LinkSymbol;
-import org.renjin.gcc.runtime.Builtins;
-import org.renjin.gcc.runtime.Mathlib;
-import org.renjin.gcc.runtime.Stdlib;
+import org.renjin.gcc.runtime.*;
 import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Maps;
@@ -90,12 +88,12 @@ public class GlobalSymbolTable implements SymbolTable {
         functions.put(mangledName, generator);
       }
     }
-    
+
     // Otherwise return a generator that will throw an error at runtime
     if(generator == null) {
       generator = new UnsatisfiedLinkCallGenerator(mangledName);
       functions.put(mangledName, generator);
-      
+
       System.err.println("Warning: undefined function " + mangledName + "; may throw exception at runtime");
     }
     
@@ -128,9 +126,13 @@ public class GlobalSymbolTable implements SymbolTable {
 
     addFunction("__builtin_malloc__", new MallocCallGenerator(typeOracle));
     addFunction("__builtin_free__", new MallocCallGenerator(typeOracle));
-    addFunction("__builtin_memcpy", new MemCopyCallGenerator(typeOracle, false));
-    addFunction("__builtin_memcpy__", new MemCopyCallGenerator(typeOracle, false));
+    addFunction("__builtin_memcpy", new MemCopyCallGenerator(false));
+    addFunction("__builtin_memcpy__", new MemCopyCallGenerator(false));
     addFunction("__builtin_memset__", new MemSetGenerator(typeOracle));
+    addFunction("__memset_chk", new MemSetGenerator(typeOracle));
+
+    addFunction(BuiltinConstantPredicate.NAME, new BuiltinConstantPredicate());
+    addFunction(BuiltinObjectSize.NAME, new BuiltinObjectSize());
 
     addFunction(BuiltinExpectGenerator.NAME, new BuiltinExpectGenerator());
     addFunction(BuiltinClzGenerator.NAME, new BuiltinClzGenerator());
@@ -140,17 +142,20 @@ public class GlobalSymbolTable implements SymbolTable {
     addFunction(ThrowCallGenerator.NAME, new ThrowCallGenerator());
     addFunction(BeginCatchCallGenerator.NAME, new BeginCatchCallGenerator());
     addFunction(EndCatchGenerator.NAME, new EndCatchGenerator());
+    addFunction(RethrowGenerator.NAME, new RethrowGenerator());
     
     addMethod("__builtin_log10__", Math.class, "log10");
 
-    addFunction("memcpy", new MemCopyCallGenerator(typeOracle, false));
-    addFunction(MemCopyCallGenerator.MEMMOVE, new MemCopyCallGenerator(typeOracle, true));
+    addFunction("memcpy", new MemCopyCallGenerator(false));
+    addFunction(MemCopyCallGenerator.MEMMOVE, new MemCopyCallGenerator(true));
     addFunction("memcmp", new MemCmpCallGenerator(typeOracle));
     addFunction("memset", new MemSetGenerator(typeOracle));
     
     addMethods(Builtins.class);
     addMethods(Stdlib.class);
+    addMethods(Stdlib2.class);
     addMethods(Mathlib.class);
+    addMethods(Std.class);
   }
 
   public void addLibrary(SymbolLibrary lib) {

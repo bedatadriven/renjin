@@ -22,7 +22,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-public class BytePtr implements Ptr {
+public class BytePtr extends AbstractPtr {
   
   public static final BytePtr NULL = new BytePtr();
   
@@ -41,6 +41,10 @@ public class BytePtr implements Ptr {
   public BytePtr(byte[] array, int offset) {
     this.array = array;
     this.offset = offset;
+  }
+
+  public static Ptr of(int value) {
+    return NULL.pointerPlus(value);
   }
   
   public byte get() {
@@ -96,6 +100,14 @@ public class BytePtr implements Ptr {
   }
 
 
+  public static BytePtr malloc(int bytes) {
+    return new BytePtr(new byte[bytes]);
+  }
+
+  public static BytePtr fromString(String string) {
+    return new BytePtr(string.getBytes(), 0);
+  }
+
   /**
    * Copies the character c (an unsigned char) to 
    * the first n characters of the string pointed to, by the argument str.
@@ -106,7 +118,7 @@ public class BytePtr implements Ptr {
    * @param n the number of bytes to set
    */
   public static void memset(byte[] str, int strOffset, int c, int n) {
-    Arrays.fill(str, strOffset, strOffset + (c / Double.SIZE), (byte)c);
+    Arrays.fill(str, strOffset, strOffset + (n / Double.SIZE), (byte)c);
   }
 
   public static byte memset(int c) {
@@ -124,13 +136,41 @@ public class BytePtr implements Ptr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    return offset;
+  }
+
+  @Override
   public BytePtr realloc(int newSizeInBytes) {
     return new BytePtr(Realloc.realloc(array, offset, newSizeInBytes));
   }
 
   @Override
   public Ptr pointerPlus(int bytes) {
-    return new BytePtr(array, offset + 1);
+    if(bytes == 0) {
+      return this;
+    }
+    return new BytePtr(array, offset + bytes);
+  }
+
+  @Override
+  public byte getByte(int offset) {
+    return this.array[this.offset + offset];
+  }
+
+  @Override
+  public void setByte(int offset, byte value) {
+    this.array[this.offset + offset] = value;
+  }
+
+  @Override
+  public int toInt() {
+    return offset;
+  }
+
+  @Override
+  public boolean isNull() {
+    return array == null && offset == 0;
   }
 
   public static BytePtr cast(Object voidPointer) {

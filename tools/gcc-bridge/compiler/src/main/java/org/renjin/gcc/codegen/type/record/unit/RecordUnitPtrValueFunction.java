@@ -26,6 +26,12 @@ import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.Memset;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordLayout;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
+import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.runtime.RecordUnitPtrPtr;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
@@ -33,16 +39,28 @@ import java.util.Collections;
 import java.util.List;
 
 public class RecordUnitPtrValueFunction implements ValueFunction {
-  
-  private Type recordType;
 
-  public RecordUnitPtrValueFunction(Type recordType) {
-    this.recordType = recordType;
+  private GimpleRecordType gimpleType;
+  private RecordLayout layout;
+
+  public RecordUnitPtrValueFunction(GimpleRecordType gimpleType, RecordLayout layout) {
+    this.gimpleType = gimpleType;
+    this.layout = layout;
+  }
+
+  public RecordUnitPtrValueFunction(RecordClassTypeStrategy strategy) {
+    this.gimpleType = strategy.getGimpleType();
+    this.layout = strategy.getLayout();
   }
 
   @Override
   public Type getValueType() {
-    return recordType;
+    return layout.getType();
+  }
+
+  @Override
+  public GimpleType getGimpleValueType() {
+    return gimpleType;
   }
 
   @Override
@@ -61,17 +79,25 @@ public class RecordUnitPtrValueFunction implements ValueFunction {
   }
 
   @Override
+  public VPtrExpr toVPtr(JExpr array, JExpr offset) {
+    return new VPtrExpr(Expressions.newObject(Type.getType(RecordUnitPtrPtr.class),
+        Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object[].class), Type.INT_TYPE),
+        array,
+        offset));
+  }
+
+  @Override
   public GExpr dereference(JExpr array, JExpr offset) {
     JExpr pointerValue = Expressions.elementAt(array, offset);
-    JExpr castedPointerValue = Expressions.cast(pointerValue, recordType);
+    JExpr castedPointerValue = Expressions.cast(pointerValue, layout.getType());
     FatPtrPair pointerAddress = new FatPtrPair(this, array, offset);
     
-    return new RecordUnitPtr(castedPointerValue, pointerAddress);
+    return new RecordUnitPtrExpr(layout, castedPointerValue, pointerAddress);
   }
 
   @Override
   public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
-    return new RecordUnitPtr(wrapperInstance.valueExpr(), wrapperInstance);
+    return new RecordUnitPtrExpr(layout, wrapperInstance.valueExpr(), wrapperInstance);
   }
 
   @Override
@@ -91,6 +117,6 @@ public class RecordUnitPtrValueFunction implements ValueFunction {
 
   @Override
   public String toString() {
-    return "RecordUnitPtr[" + recordType + "]";
+    return "RecordUnitPtr[" + layout.getType() + "]";
   }
 }

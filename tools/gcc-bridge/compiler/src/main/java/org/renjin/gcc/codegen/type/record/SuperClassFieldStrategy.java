@@ -22,8 +22,8 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
-import org.renjin.gcc.codegen.type.TypeStrategy;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Type;
 
@@ -48,7 +48,7 @@ public class SuperClassFieldStrategy extends FieldStrategy {
   }
 
   @Override
-  public GExpr memberExpr(MethodGenerator mv, final JExpr instance, final int offset, int size, TypeStrategy expectedType) {
+  public GExpr memberExpr(MethodGenerator mv, final JExpr instance, final int offset, int size, GimpleType expectedType) {
 
     if(offset != 0) {
       throw new IllegalStateException("offset = " + offset);
@@ -67,22 +67,8 @@ public class SuperClassFieldStrategy extends FieldStrategy {
       }
     };
 
-    RecordValue fieldValue = new RecordValue(superInstance, new RecordUnitPtr(superInstance));
-
-    if(expectedType == null) {
-      return fieldValue;
-    }
-
-    if(expectedType instanceof RecordClassTypeStrategy) {
-      RecordClassTypeStrategy expectedRecordType = (RecordClassTypeStrategy) expectedType;
-      if(expectedRecordType.equals(fieldTypeStrategy)) {
-        return fieldValue;
-      } else {
-        throw new UnsupportedOperationException("expected type: " + expectedRecordType);
-      }
-    }
-
-    return fieldTypeStrategy.memberOf(mv, fieldValue, 0, size, expectedType);
+    return new RecordValue(fieldTypeStrategy.getLayout(), superInstance,
+        new RecordUnitPtrExpr(fieldTypeStrategy.getLayout(), superInstance));
   }
 
   @Override

@@ -29,7 +29,10 @@ import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Package namespace.
@@ -249,6 +252,7 @@ public class Namespace {
     try {
       library = loadDynamicLibrary(context, entry.getLibraryName());
     } catch (Exception e) {
+      e.printStackTrace();
       context.warn("Could not load compiled Fortran/C/C++ sources class for package " + pkg.getName() + ".\n" +
           "This is most likely because Renjin's compiler is not yet able to handle the sources for this\n" +
           "particular package. As a result, some functions may not work.\n");

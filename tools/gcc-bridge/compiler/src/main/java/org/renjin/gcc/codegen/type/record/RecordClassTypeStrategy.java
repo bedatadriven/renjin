@@ -22,9 +22,12 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
-import org.renjin.gcc.codegen.fatptr.*;
+import org.renjin.gcc.codegen.fatptr.AddressableField;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
+import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -36,7 +39,6 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Maps;
 
-import java.lang.reflect.Field;
 import java.util.Map;
 
 /**
@@ -44,13 +46,11 @@ import java.util.Map;
  */
 public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> implements SimpleTypeStrategy<RecordValue> {
 
-  private TypeOracle typeOracle;
   private boolean unitPointer;
   private RecordLayout layout;
 
-  public RecordClassTypeStrategy(TypeOracle typeOracle, GimpleRecordTypeDef recordTypeDef, RecordLayout layout) {
+  public RecordClassTypeStrategy(GimpleRecordTypeDef recordTypeDef, RecordLayout layout) {
     super(recordTypeDef);
-    this.typeOracle = typeOracle;
     this.layout = layout;
   }
 
@@ -60,7 +60,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
 
   @Override
   public RecordValue wrap(JExpr expr) {
-    return new RecordValue(expr);
+    return new RecordValue(layout, expr);
   }
   
 
@@ -94,22 +94,22 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
 
     if(isUnitPointer()) {
       // If we are using the RecordUnitPtr strategy, then the record value is also it's address
-      return new RecordValue(instance, new RecordUnitPtr(instance));
+      return new RecordValue(layout, instance, new RecordUnitPtrExpr(layout, instance));
 
     } else if(decl.isAddressable()) {
       JLValue unitArray = allocator.reserveUnitArray(decl.getName(), layout.getType(), Optional.of((JExpr)instance));
       FatPtrPair address = new FatPtrPair(new RecordClassValueFunction(this), unitArray);
       JExpr value = Expressions.elementAt(address.getArray(), 0);
-      return new RecordValue(value, address);
+      return new RecordValue(layout, value, address);
 
     } else {
       
-      return new RecordValue(instance);
+      return new RecordValue(layout, instance);
     }
   }
 
   @Override
-  public RecordValue providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+  public RecordValue providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -135,13 +135,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
       GExpr fieldValue = exprFactory.findGenerator(element.getValue());
       fields.put((GimpleFieldRef) element.getField(), fieldValue);
     }
-    return new RecordValue(new RecordConstructor(typeOracle, this, fields));
-  }
-  
-
-  @Override
-  public GExpr memberOf(MethodGenerator mv, RecordValue instance, int offset, int size, TypeStrategy fieldTypeStrategy) {
-    return layout.memberOf(mv, instance, offset, size, fieldTypeStrategy);
+    return new RecordValue(layout, new RecordConstructor(this, fields));
   }
 
   public RecordValue clone(MethodGenerator mv, RecordValue recordValue) {
@@ -154,8 +148,8 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
   }
 
   @Override
-  public RecordValue cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
-    if(typeStrategy instanceof RecordClassTypeStrategy) {
+  public RecordValue cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
+    if(value instanceof RecordValue) {
       return (RecordValue) value;
     
     } 
@@ -178,5 +172,9 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
   @Override
   public String toString() {
     return "RecordClassTypeStrategy[" + recordTypeDef.getName() + "]";
+  }
+
+  public RecordLayout getLayout() {
+    return layout;
   }
 }

@@ -23,7 +23,9 @@ import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
@@ -46,6 +48,11 @@ public class ArrayValueFunction implements ValueFunction {
   }
 
   @Override
+  public GimpleType getGimpleValueType() {
+    return arrayType;
+  }
+
+  @Override
   public int getElementLength() {
     return elementValueFunction.getElementLength() * arrayType.getElementCount();
   }
@@ -57,12 +64,12 @@ public class ArrayValueFunction implements ValueFunction {
 
   @Override
   public GExpr dereference(JExpr array, JExpr offset) {
-    return new ArrayExpr(elementValueFunction, arrayType.getElementCount(), array, offset);
+    return new FatArrayExpr(arrayType, elementValueFunction, arrayType.getElementCount(), array, offset);
   }
 
   @Override
   public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
-    return new ArrayExpr(elementValueFunction, arrayType.getElementCount(), 
+    return new FatArrayExpr(arrayType, elementValueFunction, arrayType.getElementCount(),
         wrapperInstance.getArray(),
         wrapperInstance.getOffset());
   }
@@ -89,6 +96,11 @@ public class ArrayValueFunction implements ValueFunction {
   @Override
   public Optional<JExpr> getValueConstructor() {
     return elementValueFunction.getValueConstructor();
+  }
+
+  @Override
+  public VPtrExpr toVPtr(JExpr array, JExpr offset) {
+    return elementValueFunction.toVPtr(array, offset);
   }
 
   @Override

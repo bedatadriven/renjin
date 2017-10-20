@@ -27,6 +27,7 @@ import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
@@ -38,15 +39,15 @@ import java.util.List;
  */
 public class PrimitiveParamStrategy implements ParamStrategy {
   
-  private Type type;
+  private GimplePrimitiveType type;
 
-  public PrimitiveParamStrategy(Type type) {
+  public PrimitiveParamStrategy(GimplePrimitiveType type) {
     this.type = type;
   }
 
   @Override
   public List<Type> getParameterTypes() {
-    return Collections.singletonList(type);
+    return Collections.singletonList(type.jvmType());
   }
 
   @Override
@@ -65,14 +66,14 @@ public class PrimitiveParamStrategy implements ParamStrategy {
     if(parameter.isAddressable()) {
       // if this parameter is addressed, then we need to allocate a unit array that can hold the value
       // and be addressed as needed.
-      JLValue unitArray = localVars.reserveUnitArray(parameter.getName(), type, Optional.of(paramValue));
+      JLValue unitArray = localVars.reserveUnitArray(parameter.getName(), type.jvmType(), Optional.of(paramValue));
       FatPtrPair address = new FatPtrPair(new PrimitiveValueFunction(type), unitArray);
       JExpr value = Expressions.elementAt(address.getArray(), 0);
-      return new PrimitiveValue(value, address);
+      return new PrimitiveValue(type, value, address);
     } else {
       
       // Otherwise we can just reference the value of the parameter
-      return new PrimitiveValue(paramValue);
+      return new PrimitiveValue(type, paramValue);
     }
   }
 
@@ -81,7 +82,7 @@ public class PrimitiveParamStrategy implements ParamStrategy {
     if(argument.isPresent()) {
       ((PrimitiveValue) argument.get()).getExpr().load(mv);
     } else {
-      new ConstantValue(type, 0).load(mv);
+      new ConstantValue(type.jvmType(), 0).load(mv);
     }
   }
 }

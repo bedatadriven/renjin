@@ -18,8 +18,12 @@
  */
 package org.renjin.gcc.peephole;
 
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.tree.AbstractInsnNode;
+import org.renjin.repackaged.asm.tree.IntInsnNode;
+import org.renjin.repackaged.asm.tree.MethodInsnNode;
 
 /**
  * Pattern-matching for byte-code instructions.
@@ -116,10 +120,32 @@ public enum Pattern {
       return node.getOpcode() == Opcodes.IADD;
     }
   },
+
+  IMUL {
+    @Override
+    public boolean match(AbstractInsnNode node) {
+      return node.getOpcode() == Opcodes.IMUL;
+    }
+  },
+
   ZERO {
     @Override
     public boolean match(AbstractInsnNode node) {
       return node.getOpcode() == Opcodes.ICONST_0;
+    }
+  },
+
+  EIGHT {
+    @Override
+    public boolean match(AbstractInsnNode node) {
+      if (node instanceof IntInsnNode) {
+        IntInsnNode intNode = (IntInsnNode) node;
+        if(intNode.getOpcode() == Opcodes.BIPUSH &&
+            intNode.operand == 8) {
+          return true;
+        }
+      }
+      return false;
     }
   },
 
@@ -155,6 +181,31 @@ public enum Pattern {
         default:
           return false;
       }
+    }
+  },
+
+  POINTER_PLUS {
+    @Override
+    public boolean match(AbstractInsnNode node) {
+      if(node instanceof MethodInsnNode) {
+        MethodInsnNode methodInsnNode = (MethodInsnNode) node;
+        return methodInsnNode.owner.equals(Type.getType(Ptr.class).getInternalName()) &&
+              methodInsnNode.name.equals("pointerPlus");
+      }
+      return false;
+    }
+  },
+
+  POINTER_ACCESS_AT {
+    @Override
+    public boolean match(AbstractInsnNode node) {
+      if(node instanceof MethodInsnNode) {
+        MethodInsnNode methodInsnNode = (MethodInsnNode) node;
+        return methodInsnNode.owner.equals(Type.getType(Ptr.class).getInternalName()) &&
+            methodInsnNode.name.startsWith("get") &&
+            methodInsnNode.desc.startsWith("(I)");
+      }
+      return false;
     }
   };
 

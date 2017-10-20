@@ -23,12 +23,11 @@ import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.*;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.var.VarAllocator;
+import org.renjin.gcc.codegen.vptr.VPtrStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
@@ -36,14 +35,13 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Lists;
 
-import java.lang.reflect.Field;
 import java.util.List;
 
 
 /**
  * Strategy for arrays with a fixed length, known at compile time.
  */
-public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
+public class ArrayTypeStrategy implements TypeStrategy<FatArrayExpr> {
 
   private static final int MAX_UNROLL = 5;
   private final int arrayLength;
@@ -85,9 +83,8 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
   }
   
   @Override
-  public FatPtrStrategy pointerTo() {
-    return new FatPtrStrategy(arrayValueFunction, 1)
-        .setParametersWrapped(parameterWrapped);
+  public VPtrStrategy pointerTo() {
+    return new VPtrStrategy(arrayType);
   }
 
   @Override
@@ -102,11 +99,8 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
   }
 
   @Override
-  public ArrayExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
-    if(value instanceof ArrayExpr) {
-      return (ArrayExpr) value;
-    }
-    throw new UnsupportedCastException();
+  public FatArrayExpr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
+    return value.toArrayExpr();
   }
 
   @Override
@@ -114,41 +108,20 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
     return fieldGenerator(className, fieldName);
   }
 
-
   @Override
-  public ArrayExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
+  public FatArrayExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
     Type arrayType = Wrappers.valueArrayType(elementValueFunction.getValueType());
 
     JExpr array = allocator.reserve(decl.getNameIfPresent(), arrayType, allocArray(arrayLength));
     JExpr offset = Expressions.zero();
 
-    return new ArrayExpr(elementValueFunction, arrayLength, array, offset);
+    return new FatArrayExpr(this.arrayType, elementValueFunction, arrayLength, array, offset);
   }
 
   @Override
-  public ArrayExpr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+  public FatArrayExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
     throw new UnsupportedOperationException("TODO");
   }
-
-  public GExpr elementAt(GExpr array, GExpr index) {
-    ArrayExpr arrayFatPtr = (ArrayExpr) array;
-    JExpr indexValue = ((PrimitiveValue) index).unwrap();
-    if(indexValue.getType().equals(Type.LONG_TYPE)) {
-      indexValue = Expressions.castPrimitive(indexValue, Type.INT_TYPE);
-    }
-
-    // New offset  = ptr.offset + (index * value.length)
-    // for arrays of doubles, for example, this will be the same as ptr.offset + index
-    // but for arrays of complex numbers, this will be ptr.offset + (index * 2)
-    JExpr newOffset = Expressions.sum(
-        arrayFatPtr.getOffset(),
-        Expressions.product(
-            Expressions.difference(indexValue, arrayType.getLbound()),
-            elementValueFunction.getElementLength()));
-
-    return elementValueFunction.dereference(arrayFatPtr.getArray(), newOffset);
-  }
-
 
   private JExpr allocArray(int arrayLength) {
     Preconditions.checkArgument(arrayLength >= 0);
@@ -186,14 +159,14 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
 
 
   @Override
-  public ArrayExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor constructor) {
+  public FatArrayExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor constructor) {
     List<JExpr> values = Lists.newArrayList();
     addElementConstructors(values, exprFactory, constructor);
 
     JExpr array = Expressions.newArray(elementValueFunction.getValueType(), arrayLength, values);
     JExpr offset = Expressions.zero();
 
-    return new ArrayExpr(elementValueFunction, arrayLength, array, offset);
+    return new FatArrayExpr(arrayType, elementValueFunction, arrayLength, array, offset);
   }
 
   private void addElementConstructors(List<JExpr> values, ExprFactory exprFactory, GimpleConstructor constructor) {
@@ -214,7 +187,10 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
 
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) {
-    return new ArrayField(className, fieldName, arrayLength, elementValueFunction);
+    return new ArrayField(className, fieldName, arrayLength, arrayType, elementValueFunction);
   }
 
+  public GimpleArrayType getGimpleType() {
+    return arrayType;
+  }
 }

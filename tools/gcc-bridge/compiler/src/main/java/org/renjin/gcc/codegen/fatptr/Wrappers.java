@@ -59,6 +59,8 @@ public class Wrappers {
       return Type.DOUBLE_TYPE;
     } else if(wrapperType.equals(Type.getType(ObjectPtr.class))) {
       return Type.getType(Object.class);
+    } else if(wrapperType.equals(Type.getType(PointerPtr.class))) {
+      return Type.getType(Ptr.class);
     }
     throw new IllegalArgumentException("not a wrapper type: " + wrapperType);
   }
@@ -118,7 +120,7 @@ public class Wrappers {
       case Type.DOUBLE:
         return Type.getType(DoublePtr.class);
       case Type.OBJECT:
-        return Type.getType(ObjectPtr.class);
+        return Type.getType(PointerPtr.class);
     }
     throw new UnsupportedOperationException("No wrapper for type: " + valueType);
   }

@@ -89,6 +89,8 @@ void Endpoints::R_print() const {
 }
 
 extern "C" Endpoint*  test_endpoints() {
+
+   ASSERT(sizeof(bool) == 1);
     
    double e[] = { 1, 2, 3, 4, 3, 3, 6, 8 };
    int n = 4;
@@ -105,6 +107,8 @@ extern "C" Endpoint*  test_endpoints() {
    ep.R_print();
 
    Endpoint::set_state_array( reduce_order );
+
+   printf("about to sort\n");
    sort( ep.begin(), ep.end() );
    
    printf("sorted:\n\n");

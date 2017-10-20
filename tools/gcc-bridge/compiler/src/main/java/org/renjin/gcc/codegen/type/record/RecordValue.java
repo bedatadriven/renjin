@@ -20,30 +20,46 @@ package org.renjin.gcc.codegen.type.record;
 
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.GSimpleExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
+import org.renjin.gcc.codegen.type.UnsupportedCastException;
+import org.renjin.gcc.codegen.type.fun.FunPtr;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
+import org.renjin.gcc.codegen.vptr.VArrayExpr;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Preconditions;
 
 import static org.renjin.gcc.codegen.expr.Expressions.elementAt;
 
 
-public class RecordValue implements GSimpleExpr {
+public class RecordValue implements GSimpleExpr, RecordExpr {
   
   private final JExpr ref;
-  private GExpr address;
-  
-  public RecordValue(JExpr ref) {
+  private final GExpr address;
+  private RecordLayout layout;
+
+  public RecordValue(RecordLayout layout, JExpr ref) {
+    this.layout = layout;
     this.ref = ref;
     this.address = null;
   }
 
-  public RecordValue(JExpr ref, GExpr address) {
+  public RecordValue(RecordLayout layout, JExpr ref, GExpr address) {
+    this.layout = layout;
     this.ref = ref;
     this.address = address;
   }
@@ -63,8 +79,8 @@ public class RecordValue implements GSimpleExpr {
     JExpr rhsRef;
     if(rhs instanceof RecordValue) {
       rhsRef = ((RecordValue) rhs).unwrap();
-    } else if(rhs instanceof RecordUnitPtr) {
-      rhsRef = ((RecordUnitPtr) rhs).unwrap();
+    } else if(rhs instanceof RecordUnitPtrExpr) {
+      rhsRef = ((RecordUnitPtrExpr) rhs).unwrap();
     } else if(rhs instanceof FatPtrPair) {
       FatPtrPair fatPtrExpr = (FatPtrPair) rhs;
       rhsRef =  Expressions.cast(elementAt(fatPtrExpr.getArray(), fatPtrExpr.getOffset()), getJvmType());
@@ -87,8 +103,71 @@ public class RecordValue implements GSimpleExpr {
   }
 
   @Override
+  public FunPtr toFunPtr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public FatArrayExpr toArrayExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VoidPtrExpr toVoidPtrExpr() throws UnsupportedCastException {
+    throw new UnsupportedCastException();
+  }
+
+  @Override
+  public RecordArrayExpr toRecordArrayExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
+    throw new UnsupportedCastException();
+  }
+
+  @Override
+  public RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public FatPtr toFatPtrExpr(ValueFunction valueFunction) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VPtrRecordExpr toVPtrRecord(GimpleRecordType recordType) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VArrayExpr toVArray(GimpleArrayType arrayType) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public JExpr unwrap() {
     return ref;
   }
 
+  @Override
+  public GExpr memberOf(MethodGenerator mv, int fieldOffsetBits, int size, GimpleType type) {
+    return layout.memberOf(mv, this, fieldOffsetBits, size, type);
+  }
+
+  public RecordValue doClone(MethodGenerator mv) {
+    LocalVarAllocator.LocalVar clone = mv.getLocalVarAllocator().reserve(getJvmType());
+    ref.load(mv);
+    mv.invokevirtual(layout.getType(), "clone", Type.getMethodDescriptor(layout.getType()), false);
+    clone.store(mv);
+
+    return new RecordValue(layout, clone);
+  }
 }

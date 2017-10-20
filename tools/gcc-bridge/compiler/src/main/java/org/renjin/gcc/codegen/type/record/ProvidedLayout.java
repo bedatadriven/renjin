@@ -22,9 +22,9 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
-import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
 
 import java.io.File;
@@ -66,16 +66,16 @@ public class ProvidedLayout implements RecordLayout {
   }
 
   @Override
-  public GExpr memberOf(MethodGenerator mv, RecordValue instance, int offset, int size, TypeStrategy fieldTypeStrategy) {
+  public GExpr memberOf(MethodGenerator mv, RecordValue instance, int offset, int size, GimpleType type) {
     FieldStrategy fieldStrategy = fieldMap.get(offset);
     if(fieldStrategy == null) {
       throw new IllegalStateException("Cannot find field at offset " + offset);
     }
-    return fieldStrategy.memberExpr(mv, instance.unwrap(), 0, size, fieldTypeStrategy);
+    return fieldStrategy.memberExpr(mv, instance.unwrap(), 0, size, type);
   }
 
   @Override
   public RecordValue clone(MethodGenerator mv, RecordValue recordValue) {
-    return RecordClassLayout.doClone(mv, recordValue);
+    return recordValue.doClone(mv);
   }
 }

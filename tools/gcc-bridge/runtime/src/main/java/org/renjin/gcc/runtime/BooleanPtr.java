@@ -19,12 +19,17 @@
 package org.renjin.gcc.runtime;
 
 
-public class BooleanPtr implements Ptr {
+public class BooleanPtr extends AbstractPtr implements Ptr {
 
   public static final BooleanPtr NULL = new BooleanPtr();
 
   public final boolean[] array;
   public final int offset;
+
+
+  public static BooleanPtr malloc(int bytes) {
+    return new BooleanPtr(new boolean[bytes]);
+  }
 
   private BooleanPtr() {
     array = null;
@@ -56,6 +61,11 @@ public class BooleanPtr implements Ptr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    return offset;
+  }
+
+  @Override
   public BooleanPtr realloc(int newSizeInBytes) {
     return new BooleanPtr(Realloc.realloc(array, offset, newSizeInBytes));
   }
@@ -63,6 +73,26 @@ public class BooleanPtr implements Ptr {
   @Override
   public Ptr pointerPlus(int bytes) {
     return new BooleanPtr(array, offset + bytes);
+  }
+
+  @Override
+  public byte getByte(int offset) {
+    return array[offset] ? (byte)1 : (byte)0;
+  }
+
+  @Override
+  public void setByte(int offset, byte value) {
+    array[offset] = (value != 0);
+  }
+
+  @Override
+  public int toInt() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public boolean isNull() {
+    return array == null && offset == 0;
   }
 
   public static BooleanPtr cast(Object voidPointer) {

@@ -30,7 +30,7 @@ import org.renjin.repackaged.asm.Type;
  * we have to be sometimes creative in returning things like fat pointers, which
  * we represent using an array <i>and</i> and integer offset.</p>
  * 
- * @see org.renjin.gcc.codegen.fatptr.FatPtrReturnStrategy
+ * @see org.renjin.gcc.codegen.vptr.VPtrReturnStrategy
  * @see org.renjin.gcc.codegen.type.complex.ComplexReturnStrategy
  */
 public interface ReturnStrategy {
@@ -51,9 +51,7 @@ public interface ReturnStrategy {
   /**
    * Converts a function call return value to an expression if necessary.
    */
-  GExpr unmarshall(MethodGenerator mv, JExpr returnValue, TypeStrategy lhsTypeStrategy);
-
-  GExpr unmarshall(JExpr returnValue);
+  GExpr unmarshall(MethodGenerator mv, JExpr callExpr, TypeStrategy lhsTypeStrategy);
 
   /**
    * Sometimes C code doesn't return a value despite having a non-void return type. In this case, 

@@ -70,6 +70,9 @@ public abstract class VarAllocator {
   
 
   public static String toJavaSafeName(String name) {
+    if(name.equals("this")) {
+      return "_this";
+    }
     return name.replace('.', '$');
   }
 

@@ -3,6 +3,7 @@
 #include <math.h>
 #include "assert.h"
 
+void putd(double x);
 
 double Square(double x) {
   return x * x;
@@ -16,7 +17,10 @@ double cube(double x) {
 double sum_transform_array(double* values, int length, double (*fn)(double) ) {
   double sum = 0;
   int i=0;
+  double x;
   for(i=0;i!=length;++i) {
+    x = values[i];
+    putd(x);
     sum += (*fn)(values[i]);
   }
   return sum;

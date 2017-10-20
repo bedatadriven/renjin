@@ -162,14 +162,12 @@ public class FieldTypeSet {
     } else if(addressableValueTypes.size() == 1) {
       Type type = Iterables.getOnlyElement(addressableValueTypes);
 
-      // Check to see if we've implemented the casting yet
       Set<Type> dissonantTypes = Sets.difference(valueTypes, addressableValueTypes);
-      for (Type dissonantType : dissonantTypes) {
-        if(!castingSupported(type, dissonantType)) {
-          return Optional.absent();
-        }
+      if(dissonantTypes.isEmpty()) {
+        return Optional.of(type);
+      } else {
+        return Optional.absent();
       }
-      return Optional.of(type);
     }
 
     // If we have exactly one value type, that's the obvious choice for the 
@@ -194,13 +192,6 @@ public class FieldTypeSet {
     }
 
     return Optional.absent();
-  }
-
-  private static boolean castingSupported(Type arrayElementType, Type valueType) {
-    if(arrayElementType.equals(Type.BYTE_TYPE) && valueType.equals(Type.INT_TYPE)) {
-      return true;
-    }
-    return false;
   }
 
   private static GimpleType findUltimateComponentType(GimpleArrayType arrayType) {

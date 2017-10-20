@@ -40,6 +40,13 @@
               <mainClass>Appl</mainClass>
             </configuration>
           </execution>
+          <execution>
+            <id>soot-classes</id>
+            <goals>
+              <goal>soot</goal>
+            </goals>
+            <phase>process-classes</phase>
+          </execution>
         </executions>
       </plugin>
       <plugin>

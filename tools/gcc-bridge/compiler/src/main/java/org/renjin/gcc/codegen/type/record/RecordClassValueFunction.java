@@ -28,6 +28,9 @@ import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.runtime.RecordPtr;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
@@ -55,6 +58,11 @@ public class RecordClassValueFunction implements ValueFunction {
   }
 
   @Override
+  public GimpleType getGimpleValueType() {
+    return strategy.getGimpleType();
+  }
+
+  @Override
   public int getElementLength() {
     return 1;
   }
@@ -69,12 +77,12 @@ public class RecordClassValueFunction implements ValueFunction {
     JExpr castedElement = elementAt(array, offset);
     FatPtrPair address = new FatPtrPair(this, array, offset);
     
-    return new RecordValue(castedElement, address);
+    return new RecordValue(strategy.getLayout(), castedElement, address);
   }
 
   @Override
   public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
-    return new RecordValue(wrapperInstance.valueExpr(), wrapperInstance);
+    return new RecordValue(strategy.getLayout(), wrapperInstance.valueExpr(), wrapperInstance);
   }
 
   private JExpr elementAt(JExpr array, JExpr offset) {
@@ -161,6 +169,17 @@ public class RecordClassValueFunction implements ValueFunction {
   @Override
   public Optional<JExpr> getValueConstructor() {
     return Optional.<JExpr>of(new RecordConstructor(strategy));
+  }
+
+  @Override
+  public VPtrExpr toVPtr(JExpr array, JExpr offset) {
+    JExpr vptrRef = Expressions.newObject(RecordPtr.class,
+              Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object[].class), Type.INT_TYPE, Type.INT_TYPE),
+              array,
+              offset,
+              Expressions.constantInt(getArrayElementBytes()));
+
+    return new VPtrExpr(vptrRef);
   }
 
   @Override

@@ -19,13 +19,25 @@
 package org.renjin.gcc.codegen.type.complex;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.array.FatArrayExpr;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
+import org.renjin.gcc.codegen.type.UnsupportedCastException;
+import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.primitive.op.NegativeValue;
+import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
+import org.renjin.gcc.codegen.type.record.RecordLayout;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
+import org.renjin.gcc.codegen.vptr.VArrayExpr;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleRealType;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.repackaged.asm.Type;
 
 
@@ -33,12 +45,12 @@ import org.renjin.repackaged.asm.Type;
  * Complex numerical value
  */
 public class ComplexValue implements GExpr {
-  private FatPtr address;
+  private PtrExpr address;
   private JExpr realValue;
   private JExpr imaginaryValue;
   private Type componentType;
   
-  public ComplexValue(FatPtr address, JExpr realValue, JExpr imaginaryValue) {
+  public ComplexValue(PtrExpr address, JExpr realValue, JExpr imaginaryValue) {
     this.address = address;
     this.realValue = realValue;
     this.imaginaryValue = imaginaryValue;
@@ -48,6 +60,10 @@ public class ComplexValue implements GExpr {
           realValue.getType(), imaginaryValue.getType()));
     }
     this.componentType = realValue.getType();
+  }
+
+  public GimpleRealType getGimpleComponentType() {
+    return ((GimpleRealType) GimplePrimitiveType.fromJvmType(componentType));
   }
 
   public ComplexValue(JExpr realValue, JExpr imaginaryValue) {
@@ -72,7 +88,7 @@ public class ComplexValue implements GExpr {
   }
   
   public GExpr getRealGExpr() {
-    return new PrimitiveValue(realValue);
+    return new PrimitiveValue(getGimpleComponentType(), realValue);
   }
 
   public JExpr getImaginaryJExpr() {
@@ -80,7 +96,7 @@ public class ComplexValue implements GExpr {
   }
   
   public GExpr getImaginaryGExpr() {
-    return new PrimitiveValue(imaginaryValue);
+    return new PrimitiveValue(getGimpleComponentType(), imaginaryValue);
   }
   
   @Override
@@ -103,10 +119,60 @@ public class ComplexValue implements GExpr {
   }
 
   @Override
-  public FatPtr addressOf() {
+  public PtrExpr addressOf() {
     if(address == null) {
       throw new UnsupportedOperationException("not addressable");
     }
     return address;
+  }
+
+  @Override
+  public FunPtr toFunPtr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public FatArrayExpr toArrayExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException {
+    return getRealGExpr().toPrimitiveExpr(targetType);
+  }
+
+  @Override
+  public VoidPtrExpr toVoidPtrExpr() throws UnsupportedCastException {
+    throw new UnsupportedCastException();
+  }
+
+  @Override
+  public RecordArrayExpr toRecordArrayExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public FatPtr toFatPtrExpr(ValueFunction valueFunction) {
+    throw new UnsupportedCastException();
+  }
+
+  @Override
+  public VPtrRecordExpr toVPtrRecord(GimpleRecordType recordType) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VArrayExpr toVArray(GimpleArrayType arrayType) {
+    throw new UnsupportedOperationException("TODO");
   }
 }

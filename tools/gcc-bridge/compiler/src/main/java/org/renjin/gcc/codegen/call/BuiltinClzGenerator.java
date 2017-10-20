@@ -25,6 +25,7 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.gimple.statement.GimpleCall;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.repackaged.guava.base.Preconditions;
 
 /**
@@ -51,7 +52,9 @@ public class BuiltinClzGenerator implements CallGenerator {
     }
     
     PrimitiveValue argument = (PrimitiveValue) value;
-    PrimitiveValue result = new PrimitiveValue(Expressions.numberOfLeadingZeros(argument.unwrap()));
+    PrimitiveValue result = new PrimitiveValue(
+        new GimpleIntegerType(32),
+        Expressions.numberOfLeadingZeros(argument.unwrap()));
     
     lhs.store(mv, result);
   }

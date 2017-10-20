@@ -21,8 +21,8 @@ package org.renjin.gcc.codegen.type.voidt;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.SingleFieldStrategy;
-import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.FieldValue;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
 
 /**
@@ -37,14 +37,14 @@ public class VoidPtrField extends SingleFieldStrategy {
   }
 
   @Override
-  public VoidPtr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, TypeStrategy expectedType) {
+  public VoidPtrExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, GimpleType expectedType) {
 
     if(offset != 0) {
       throw new IllegalStateException("offset = " + offset);
     }
     
     FieldValue ref = new FieldValue(instance, fieldName, VoidPtrStrategy.OBJECT_TYPE);
-    return new VoidPtr(ref);
+    return new VoidPtrExpr(ref);
   }
 
   @Override

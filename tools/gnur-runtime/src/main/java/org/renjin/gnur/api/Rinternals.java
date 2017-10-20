@@ -564,7 +564,10 @@ public final class Rinternals {
   }
 
   public static BytePtr RAW(SEXP x) {
-    throw new UnimplementedGnuApiMethod("RAW");
+    if(x instanceof RawVector) {
+      return new BytePtr(((RawVector) x).toByteArrayUnsafe());
+    }
+    throw new EvalException("RAW(): Expected raw vector, found %s", x.getTypeName());
   }
 
   public static DoublePtr REAL(SEXP x) {
@@ -1558,7 +1561,7 @@ public final class Rinternals {
     return Native.currentContext().evaluate(e, (Environment) rho);
   }
 
-  public static SEXP Rf_findFun(SEXP rho, SEXP symbol) {
+  public static SEXP Rf_findFun(SEXP symbol, SEXP rho) {
     return ((Environment) rho).findFunction(Native.currentContext(), ((Symbol) symbol));
   }
 
@@ -1982,7 +1985,7 @@ public final class Rinternals {
    * @return Pointer to a string object representing the specified
    *         text in the specified encoding.
    */
-  public static SEXP Rf_mkCharCE (BytePtr str, Object encoding) {
+  public static SEXP Rf_mkCharCE (BytePtr str, int encoding) {
     throw new UnimplementedGnuApiMethod("Rf_mkCharCE");
   }
 
@@ -2393,6 +2396,11 @@ public final class Rinternals {
     return value;
   }
 
+  @Deprecated
+  public static int R_check_class_and_super (SEXP x, ObjectPtr<BytePtr> valid, SEXP rho) {
+    return R_check_class_and_super(x, new PointerPtr((Ptr[])valid.array, valid.offset), rho);
+  }
+
   /**
    * Return the 0-based index of an is() match in a vector of class-name
    * strings terminated by an empty string.  Returns -1 for no match.
@@ -2403,15 +2411,15 @@ public final class Rinternals {
    *
    * @return index of match or -1 for no match
    */
-  public static int R_check_class_and_super (SEXP x, ObjectPtr<BytePtr> valid, SEXP rho) {
+  public static int R_check_class_and_super (SEXP x, Ptr valid, SEXP rho) {
     int ans;
     SEXP cl = Rf_asChar(Rf_getAttrib(x, R_ClassSymbol));
     BytePtr class_ = R_CHAR(cl);
     for (ans = 0; ; ans++) {
-      if (Stdlib.strlen(valid.get(ans)) == 0) { // empty string
+      if (Stdlib.strlen(valid.getAlignedPointer(ans)) == 0) { // empty string
         break;
       }
-      if (Stdlib.strcmp(class_, valid.get(ans)) == 0) {
+      if (Stdlib.strcmp(class_, valid.getAlignedPointer(ans)) == 0) {
         return ans;
       }
     }
@@ -2430,10 +2438,10 @@ public final class Rinternals {
       for(int i=0; i < LENGTH(superCl); i++) {
         BytePtr s_class = R_CHAR(STRING_ELT(superCl, i));
         for (ans = 0; ; ans++) {
-          if (Stdlib.strlen(valid.get(ans)) == 0) {
+          if (Stdlib.strlen(valid.getAlignedPointer(ans)) == 0) {
             break;
           }
-          if (Stdlib.strcmp(s_class, valid.get(ans)) == 0) {
+          if (Stdlib.strcmp(s_class, valid.getAlignedPointer(ans)) == 0) {
             return ans;
           }
         }
@@ -2442,9 +2450,14 @@ public final class Rinternals {
     return -1;
   }
 
+  @Deprecated
   public static int R_check_class_etc (SEXP x, ObjectPtr<BytePtr> valid) {
+    return R_check_class_etc(x, new PointerPtr((Ptr[]) valid.array, valid.offset));
+  }
+
+  public static int R_check_class_etc (SEXP x, Ptr valid) {
     SEXP cl = Rf_getAttrib(x, R_ClassSymbol);
-    SEXP rho = R_GlobalEnv;
+    SEXP rho = R_GlobalEnv();
     SEXP pkg;
     Symbol meth_classEnv = Symbol.get(".classEnv");
 
@@ -2740,12 +2753,17 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_listAppend");
   }
 
+  @Deprecated
   public static SEXP Rf_mkNamed (int sexpType, ObjectPtr<BytePtr> names) {
+    return Rf_mkNamed(sexpType, new PointerPtr((Ptr[]) names.array, names.offset));
+  }
+
+  public static SEXP Rf_mkNamed (int sexpType, Ptr names) {
     if(sexpType == SexpType.VECSXP) {
       ListVector.NamedBuilder list = new ListVector.NamedBuilder();
       int i = 0;
       while(true) {
-        String name = names.get(i).nullTerminatedString();
+        String name = Stdlib.nullTerminatedString(names.getAlignedPointer(i));
         if(name.isEmpty()) {
           break;
         }

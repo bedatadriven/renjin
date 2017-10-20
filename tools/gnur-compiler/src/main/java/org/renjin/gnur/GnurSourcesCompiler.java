@@ -23,6 +23,7 @@ import org.apache.commons.math.special.Erf;
 import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GccException;
 import org.renjin.gcc.GimpleCompiler;
+import org.renjin.gcc.HtmlTreeLogger;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gnur.api.*;
 import org.renjin.gnur.api.Error;
@@ -46,7 +47,7 @@ public class GnurSourcesCompiler {
   private File outputDirectory = new File("target/classes");
   private List<File> includeDirs = Lists.newArrayList();
   private ClassLoader linkClassLoader = getClass().getClassLoader();
-  
+  private File loggingDir;
 
   public void setPackageName(String packageName) {
     this.packageName = packageName;
@@ -70,6 +71,10 @@ public class GnurSourcesCompiler {
 
   public void setWorkDirectory(File workDir) {
     this.workDirectory = workDir;
+  }
+
+  public void setLoggingDir(File loggingDir) {
+    this.loggingDir = loggingDir;
   }
 
   public void addSources(File src) {
@@ -136,7 +141,6 @@ public class GnurSourcesCompiler {
 
       GimpleCompiler compiler = new GimpleCompiler();
       compiler.setOutputDirectory(outputDirectory);
-    
       compiler.setPackageName(packageName);
       compiler.setClassName(className);
       compiler.setVerbose(verbose);
@@ -145,7 +149,11 @@ public class GnurSourcesCompiler {
       compiler.addMathLibrary();
 
       setupCompiler(compiler);
-      
+
+      if(loggingDir != null) {
+        compiler.setLogger(new HtmlTreeLogger(loggingDir));
+      }
+
       compiler.compile(units);
     }
   }
@@ -173,7 +181,6 @@ public class GnurSourcesCompiler {
     compiler.addReferenceClass(GraphicsEngine.class);
     compiler.addReferenceClass(Internal.class);
     compiler.addReferenceClass(Memory.class);
-    compiler.addReferenceClass(MethodDef.class);
     compiler.addReferenceClass(Parse.class);
     compiler.addReferenceClass(Print.class);
     compiler.addReferenceClass(PrtUtil.class);
@@ -202,7 +209,7 @@ public class GnurSourcesCompiler {
 
     compiler.addReferenceClass(Rdynload.class);
     compiler.addRecordClass("_DllInfo", DllInfo.class);
-    compiler.addRecordClass("__MethodDef", MethodDef.class);
+    compiler.addRecordClass("__MethodDef", MethodDef2.class);
   }
 
   private boolean checkUpToDate() {

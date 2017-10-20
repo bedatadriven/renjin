@@ -139,7 +139,7 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
   private void emitLongJump(MethodGenerator mv, Label trueLabel) {
 
     mv.visitInsn(LCMP);
-    jumpOnComparison(mv, trueLabel);
+    jumpOnComparison(mv, op, trueLabel);
 
   }
 
@@ -175,10 +175,10 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
     }
 
     // Now we jump based on the comparison of the above result to zero
-    jumpOnComparison(mv, trueLabel);
+    jumpOnComparison(mv, op, trueLabel);
   }
 
-  private void jumpOnComparison(MethodGenerator mv, Label trueLabel) {
+  static void jumpOnComparison(MethodGenerator mv, GimpleOp op, Label trueLabel) {
     switch (op) {
       case LT_EXPR:
         // 1: x < y

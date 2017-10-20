@@ -19,17 +19,15 @@
 package org.renjin.gcc.codegen.type;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.repackaged.asm.Type;
-
-import java.lang.reflect.Field;
 
 /**
  *  Provides strategies for code generation for a specific {@code GimpleType}
@@ -60,7 +58,7 @@ public interface TypeStrategy<ExprT extends GExpr> {
    * Provides an expression generator for a global variable of this type which is defined
    * in an external Java field.
    */
-  ExprT providedGlobalVariable(GimpleVarDecl decl, Field javaField);
+  ExprT providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly);
 
   /**
    * Creates an expression generator for constructors of this type.
@@ -87,14 +85,14 @@ public interface TypeStrategy<ExprT extends GExpr> {
    * @param arrayType 
    * @return a strategy for arrays of this type
    */
-  ArrayTypeStrategy arrayOf(GimpleArrayType arrayType);
+  TypeStrategy arrayOf(GimpleArrayType arrayType);
 
   /**
    * 
    * Casts the given {@code value}, compield with the given {@code typeStrategy}, 
    * to a value of this strategy.
    */
-  ExprT cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException;
+  ExprT cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException;
 
 
 }

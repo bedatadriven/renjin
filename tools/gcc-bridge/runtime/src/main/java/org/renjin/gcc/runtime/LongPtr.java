@@ -21,8 +21,10 @@ package org.renjin.gcc.runtime;
 
 import java.util.Arrays;
 
-public class LongPtr implements Ptr {
-  
+public class LongPtr extends AbstractPtr {
+
+  public static final int BYTES = 8;
+
   public static final LongPtr NULL = new LongPtr();
   
   public final long[] array;
@@ -54,13 +56,65 @@ public class LongPtr implements Ptr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public LongPtr realloc(int newSizeInBytes) {
     return new LongPtr(Realloc.realloc(array, offset, newSizeInBytes / 8));
   }
 
   @Override
   public Ptr pointerPlus(int bytes) {
-    return new LongPtr(array, offset + (bytes / 8));
+    if(bytes == 0) {
+      return this;
+    }
+    if(bytes % BYTES == 0) {
+      return new LongPtr(array, offset + (bytes / BYTES));
+    } else {
+      return new OffsetPtr(this, this.offset * BYTES + bytes);
+    }
+  }
+
+  @Override
+  public byte getByte(int offset) {
+    int bytes = (this.offset * BYTES) + offset;
+    int index = bytes / BYTES;
+    long elementBits = array[index];
+    int shift = (bytes % BYTES) * 8;
+
+    return (byte)(elementBits >>> shift);
+  }
+
+  @Override
+  public void setByte(int offset, byte value) {
+    int bytes = (this.offset * BYTES) + offset;
+    int index = bytes / BYTES;
+    int shift = (bytes % BYTES) * BITS_PER_BYTE;
+
+    long element = array[index];
+
+    long updateMask = 0xFF << shift;
+
+    // Zero out the bits in the byte we are going to update
+    element = element & ~updateMask;
+
+    // Shift our byte into position
+    long update = (((long)value) << shift) & updateMask;
+
+    // Merge the original long and updated bits together
+    array[index] = element | update;
+  }
+
+  @Override
+  public int toInt() {
+    return offset * BYTES;
+  }
+
+  @Override
+  public boolean isNull() {
+    return array == null && offset == 0;
   }
 
   public long unwrap() {

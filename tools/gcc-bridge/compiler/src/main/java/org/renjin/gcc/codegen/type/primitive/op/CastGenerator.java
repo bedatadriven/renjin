@@ -485,7 +485,8 @@ public class CastGenerator implements JExpr {
   }
   
   public static void castInt64ToUnsignedInt8(MethodGenerator mv) {
-    throw new UnsupportedOperationException();
+    mv.visitInsn(Opcodes.L2I);
+    castInt32ToUnsignedInt8(mv);
   }
  
   public static void castInt64ToInt16(MethodGenerator mv) { 
@@ -493,8 +494,9 @@ public class CastGenerator implements JExpr {
     mv.visitInsn(Opcodes.I2S);
   }
   
-  public static void castInt64ToUnsignedInt16(MethodGenerator mv) { 
-    throw new UnsupportedOperationException();
+  public static void castInt64ToUnsignedInt16(MethodGenerator mv) {
+    mv.visitInsn(Opcodes.L2I);
+    mv.visitInsn(Opcodes.I2C);
   }
   
   public static void castInt64ToInt32(MethodGenerator mv) { 
@@ -657,5 +659,13 @@ public class CastGenerator implements JExpr {
   public static void castReal64ToReal64(MethodGenerator mv) {
     // NOOP
     // May be invoked when casting from long double -> double
+  }
+
+  public static JExpr cast(JExpr expr, GimplePrimitiveType sourceType, GimplePrimitiveType targetType) {
+    if(sourceType.equals(targetType)) {
+      return expr;
+    } else {
+      return new CastGenerator(expr, sourceType, targetType);
+    }
   }
 }

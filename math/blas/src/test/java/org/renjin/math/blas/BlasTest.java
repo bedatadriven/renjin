@@ -12,7 +12,7 @@ public class BlasTest {
 
   @Test
   public void testDcabs() {
-    org.renjin.math.Blas.dcabs1_(new double[4], 0);
+    org.renjin.math.Blas.dcabs1_(new DoublePtr(new double[4], 0));
   }
 
   @Test

@@ -18,34 +18,20 @@
  */
 package org.renjin.gcc.codegen.fatptr;
 
-import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
-import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.*;
-import org.renjin.gcc.codegen.type.primitive.ConstantValue;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
-import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
-import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
-import org.renjin.gcc.codegen.type.record.RecordValue;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
-import org.renjin.gcc.codegen.type.voidt.VoidPtr;
-import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.codegen.var.VarAllocator;
-import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.codegen.vptr.VPtrParamStrategy;
+import org.renjin.gcc.codegen.vptr.VPtrReturnStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.repackaged.asm.Type;
 
-import java.lang.reflect.Field;
-
 import static org.renjin.gcc.codegen.expr.Expressions.constantInt;
-import static org.renjin.repackaged.asm.Type.OBJECT;
 
 /**
  * Strategy for pointer types that uses a combination of an array value and an offset value
@@ -143,22 +129,8 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
   }
 
   @Override
-  public FatPtr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+  public FatPtr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
     throw new UnsupportedOperationException("TODO");
-  }
-
-  public PrimitiveValue toInt(MethodGenerator mv, FatPtr fatPtrExpr) {
-    // Converting pointers to integers and vice-versa is implementation-defined
-    // So we will define an implementation that supports at least one useful case spotted in S4Vectors:
-    // double a[] = {1,2,3,4};
-    // double *start = a;
-    // double *end = p+4;
-    // int length = (start-end)
-    FatPtrPair pair = fatPtrExpr.toPair(mv);
-    JExpr offset = pair.getOffset();
-    JExpr offsetInBytes = Expressions.product(offset, valueFunction.getArrayElementBytes());
-
-    return new PrimitiveValue(offsetInBytes);
   }
 
   @Override
@@ -178,19 +150,12 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
 
   @Override
   public ParamStrategy getParamStrategy() {
-    if(isParametersWrapped()) {
-      if(valueFunction.getValueType().getSort() == OBJECT) {
-        
-      }
-      return new WrappedFatPtrParamStrategy(valueFunction);
-    } else {
-      return new FatPtrParamStrategy(valueFunction);
-    }
+    return new VPtrParamStrategy();
   }
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new FatPtrReturnStrategy(valueFunction);
+    return new VPtrReturnStrategy();
   }
 
   @Override
@@ -204,16 +169,6 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
   }
 
   @Override
-  public FatPtr realloc(MethodGenerator mv, FatPtr pointer, JExpr newSizeInBytes) {
-    JExpr sizeInElements = Expressions.divide(newSizeInBytes, valueFunction.getArrayElementBytes());
-    JExpr array = new FatPtrRealloc(pointer.toPair(mv), sizeInElements);
-    JExpr offset = Expressions.zero();
-    
-    return new FatPtrPair(valueFunction, array, offset);
-  }
-  
-
-  @Override
   public FatPtrStrategy pointerTo() {
     return new FatPtrStrategy(new FatPtrValueFunction(valueFunction), indirectionLevel + 1);
   }
@@ -224,152 +179,13 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
   }
 
   @Override
-  public FatPtr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
-    if(value instanceof VoidPtr) {
-      VoidPtr ptrExpr = (VoidPtr) value;
-      JExpr wrapperInstance = Wrappers.cast(valueFunction.getValueType(), ptrExpr.unwrap());
-
-      JExpr arrayField = Wrappers.arrayField(wrapperInstance);
-      JExpr offsetField = Wrappers.offsetField(wrapperInstance);
-
-      return new FatPtrPair(valueFunction, arrayField, offsetField);
-      
-    
-    } else if(value instanceof FatPtr) {
-      // allow any casts between FatPtrs. though runtime errors may occur
-      // (The JVM simply won't allow us to cast an int* to a double*)
-      FatPtrPair ptrExpr = ((FatPtr) value).toPair(mv);
-      GExpr address = null;
-      if (ptrExpr.isAddressable()) {
-        address = ptrExpr.addressOf();
-      }
-      JExpr castedArray = Expressions.uncheckedCast(ptrExpr.getArray(), arrayType);
-      JExpr offset = ptrExpr.getOffset();
-
-      return new FatPtrPair(valueFunction, address, castedArray, offset);
-
-    } else if(typeStrategy instanceof RecordUnitPtrStrategy) {
-
-      // Object -> ObjectPtr
-      // in most cases this will fail at runtime, becuase you can't cast a PersonRecord, for example,
-      // to an ObjectPtr, but this will scuceed in the case of an empty record where the java class is
-      // java.lang.Object
-
-      RecordUnitPtr ptr = (RecordUnitPtr) value;
-      JExpr castedRef = Expressions.cast(ptr.unwrap(), getWrapperType());
-
-      LocalVarAllocator.LocalVar wrapperVar = mv.getLocalVarAllocator().reserve(getWrapperType());
-      wrapperVar.store(mv, castedRef);
-
-      return new WrappedFatPtrExpr(valueFunction, wrapperVar);
-
-    } else if(typeStrategy instanceof RecordTypeStrategy) {
-
-      // We can make this cast work if the first field of the record type is a compatible pointer type
-      RecordTypeStrategy recordTypeStrategy = (RecordTypeStrategy) typeStrategy;
-      return (FatPtr) recordTypeStrategy.memberOf(mv, value, 0, 32, this);
-    }
-    
-    throw new UnsupportedCastException();
+  public FatPtr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
+    return value.toFatPtrExpr(this.valueFunction);
   }
-
-  @Override
-  public FatPtr pointerPlus(MethodGenerator mv, FatPtr pointer, JExpr offsetInBytes) {
-    FatPtrPair pointerPair = pointer.toPair(mv);
-    JExpr offsetInArrayElements = Expressions.divide(offsetInBytes, valueFunction.getArrayElementBytes());
-    JExpr newOffset = Expressions.sum(pointerPair.getOffset(), offsetInArrayElements);
-    return new FatPtrPair(valueFunction, pointerPair.getArray(), newOffset);
-  }
-
-  @Override
-  public ConditionGenerator comparePointers(MethodGenerator mv, GimpleOp op, FatPtr x, FatPtr y) {
-    return new FatPtrConditionGenerator(op, x.toPair(mv), y.toPair(mv));
-  }
-
-  @Override
-  public JExpr memoryCompare(MethodGenerator mv, FatPtr p1, FatPtr p2, JExpr n) {
-    return new FatPtrMemCmp(p1.toPair(mv), p2.toPair(mv), n);
-  }
-
-  @Override
-  public void memoryCopy(MethodGenerator mv, FatPtr destination, FatPtr source, JExpr lengthBytes, boolean buffer) {
-    
-    FatPtrPair destinationPair = destination.toPair(mv);
-    FatPtrPair sourcePair = source.toPair(mv);
-    
-    // Convert bytes -> value counts
-    JExpr valueCount = computeElementsToCopy(lengthBytes);
-    
-    valueFunction.memoryCopy(mv,
-        destinationPair.getArray(), destinationPair.getOffset(),
-        sourcePair.getArray(), sourcePair.getOffset(), valueCount);
-  }
-
-  private JExpr computeElementsToCopy(JExpr lengthBytes) {
-    if(lengthBytes instanceof ConstantValue) {
-      // It can be that the actual storage size of a record (struct)
-      // is smaller than it's declared size, for example, a struct
-      // with a 3 booleans will still have a size of 4 bytes for alignment purposes.
-      
-      // When COPYING a SINGLE element however, sometimes GCC it's infinite cleverness, 
-      // will copy ONLY the actual number of bytes stored. 
-      
-      // Dividing this number by the declared size of the struct will result 
-      // in ZERO and nothing will be copied. For this reason, we need a little
-      // hack here for this very particular case.
-      
-      int numBytes = ((ConstantValue) lengthBytes).getIntValue();
-      if(numBytes < valueFunction.getArrayElementBytes()) {
-        return Expressions.constantInt(1);
-      } 
-    }
-    
-    return Expressions.divide(lengthBytes, valueFunction.getArrayElementBytes());
-  }
-
-  @Override
-  public void memorySet(MethodGenerator mv, FatPtr pointer, JExpr byteValue, JExpr length) {
-
-    // Delegate to the value function.
-    FatPtrPair pointerPair = pointer.toPair(mv);
-    valueFunction.memorySet(mv, 
-        pointerPair.getArray(), 
-        pointerPair.getOffset(), byteValue, length);
-  }
-
-  @Override
-  public VoidPtr toVoidPointer(FatPtr ptrExpr) {
-    return new VoidPtr(ptrExpr.wrap());
-  }
-
 
   @Override
   public FatPtr nullPointer() {
     return FatPtrPair.nullPtr(valueFunction);
-  }
-
-  @Override
-  public FatPtr unmarshallVoidPtrReturnValue(MethodGenerator mv, JExpr voidPointer) {
-
-    // cast the result to the wrapper type, e.g. ObjectPtr or DoublePtr
-    Type wrapperType = getWrapperType();
-    JExpr wrapperPtr = Wrappers.cast(valueFunction.getValueType(), voidPointer);
-
-    // Reserve a local variable to hold the result
-    JLValue retVal = mv.getLocalVarAllocator().reserve(wrapperType);
-
-    // store the result of the call to the temp variable
-    retVal.store(mv, wrapperPtr);
-
-    // Now unpack the array and offset into seperate local variables
-    Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
-    JLValue arrayVar = mv.getLocalVarAllocator().reserve(arrayType);
-    JLValue offsetVar = mv.getLocalVarAllocator().reserve(Type.INT_TYPE);
-    
-    arrayVar.store(mv, Wrappers.arrayField(retVal, valueFunction.getValueType()));
-    offsetVar.store(mv, Wrappers.offsetField(retVal));
-    
-    return new FatPtrPair(valueFunction, arrayVar, offsetVar);
   }
 
   private Type getWrapperType() {

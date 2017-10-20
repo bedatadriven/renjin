@@ -26,6 +26,10 @@ import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.Memset;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.gimple.type.GimpleFunctionType;
+import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.runtime.FunctionPtr;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
@@ -40,8 +44,7 @@ public class FunPtrValueFunction implements ValueFunction {
 
   /**
    *
-   * @param functionType
-   * @param pointerSize the size, in bytes, of the function pointer as understood by GCC. 
+   * @param pointerSize the size, in bytes, of the function pointer as understood by GCC.
    */
   public FunPtrValueFunction(int pointerSize) {
     this.pointerSize = pointerSize;
@@ -50,6 +53,11 @@ public class FunPtrValueFunction implements ValueFunction {
   @Override
   public Type getValueType() {
     return Type.getType(MethodHandle.class);
+  }
+
+  @Override
+  public GimpleType getGimpleValueType() {
+    return new GimpleFunctionType();
   }
 
   @Override
@@ -92,6 +100,11 @@ public class FunPtrValueFunction implements ValueFunction {
   @Override
   public Optional<JExpr> getValueConstructor() {
     return Optional.absent();
+  }
+
+  @Override
+  public VPtrExpr toVPtr(JExpr array, JExpr offset) {
+    return new VPtrExpr(Expressions.newObject(Type.getType(FunctionPtr.class), array, offset));
   }
 
   @Override

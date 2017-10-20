@@ -18,6 +18,7 @@
  */
 package org.renjin.gcc.gimple.type;
 
+import org.renjin.gcc.gimple.expr.GimplePrimitiveConstant;
 import org.renjin.repackaged.asm.Type;
 
 public abstract class GimplePrimitiveType extends AbstractGimpleType {
@@ -65,4 +66,9 @@ public abstract class GimplePrimitiveType extends AbstractGimpleType {
     }
   }
 
+
+  /**
+   * @return constant expression of this type with the zero value.
+   */
+  public abstract GimplePrimitiveConstant zero();
 }

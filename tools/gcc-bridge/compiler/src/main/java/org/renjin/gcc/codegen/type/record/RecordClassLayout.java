@@ -20,7 +20,6 @@ package org.renjin.gcc.codegen.type.record;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.RecordClassGenerator;
-import org.renjin.gcc.codegen.array.ArrayField;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
@@ -31,10 +30,10 @@ import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.fun.FunPtrField;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveFieldStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrValueFunction;
-import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
@@ -194,15 +193,15 @@ public class RecordClassLayout implements RecordLayout {
 
 
   @Override
-  public GExpr memberOf(MethodGenerator mv, RecordValue instance, int offset, int size, TypeStrategy fieldTypeStrategy) {
+  public GExpr memberOf(MethodGenerator mv, RecordValue instance, int offset, int size, GimpleType type) {
     
     // If this field is a unioned record type, then return a pointer to ourselves
-    if(offset == 0 && fieldTypeStrategy instanceof RecordClassTypeStrategy && 
-        ((RecordClassTypeStrategy) fieldTypeStrategy).getJvmType().equals(type)) {
+    if(offset == 0 && type instanceof RecordClassTypeStrategy &&
+        ((RecordClassTypeStrategy) type).getJvmType().equals(this.type)) {
       return instance;
     }
 
-    JExpr instanceRef = Expressions.cast(instance.unwrap(), type);
+    JExpr instanceRef = Expressions.cast(instance.unwrap(), this.type);
     JExpr instanceVar = mv.getLocalVarAllocator().tempIfNeeded(mv, instanceRef);
 
     // Find the logical field that contains this bit range
@@ -213,24 +212,15 @@ public class RecordClassLayout implements RecordLayout {
     FieldStrategy fieldStrategy = fieldMap.get(fieldStart);
 
     if(fieldStrategy == null) {
-      throw new IllegalStateException(type + " has no field at offset " + offset);
+      throw new IllegalStateException(this.type + " has no field at offset " + offset);
     }
     
-    return fieldStrategy.memberExpr(mv, instanceVar, offset - fieldStart, size, fieldTypeStrategy);
+    return fieldStrategy.memberExpr(mv, instanceVar, offset - fieldStart, size, type);
   }
 
   @Override
   public RecordValue clone(MethodGenerator mv, RecordValue recordValue) {
-    return doClone(mv, recordValue);
-  }
-
-  public static RecordValue doClone(MethodGenerator mv, RecordValue recordValue) {
-    LocalVarAllocator.LocalVar clone = mv.getLocalVarAllocator().reserve(recordValue.getJvmType());
-    recordValue.getRef().load(mv);
-    mv.invokevirtual(recordValue.getJvmType(), "clone", Type.getMethodDescriptor(recordValue.getJvmType()), false);
-    clone.store(mv);
-
-    return new RecordValue(clone);
+    return recordValue.doClone(mv);
   }
 
   @Override

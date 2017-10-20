@@ -21,8 +21,10 @@ package org.renjin.gcc.runtime;
 import java.util.Arrays;
 
 
-public class ShortPtr implements Ptr {
-  
+public class ShortPtr extends AbstractPtr {
+
+  public static final int BYTES = 2;
+
   public static final ShortPtr NULL = new ShortPtr();
   
   public final short[] array;
@@ -43,6 +45,10 @@ public class ShortPtr implements Ptr {
     this.offset = 0;
   }
 
+  public static ShortPtr malloc(int bytes) {
+    return new ShortPtr(new short[AbstractPtr.mallocSize(bytes, BYTES)]);
+  }
+
   @Override
   public short[] getArray() {
     return array;
@@ -54,6 +60,11 @@ public class ShortPtr implements Ptr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    return offset * BYTES;
+  }
+
+  @Override
   public Ptr realloc(int newSizeInBytes) {
     return new ShortPtr(Realloc.realloc(array, offset, newSizeInBytes / 2));
   }
@@ -61,6 +72,26 @@ public class ShortPtr implements Ptr {
   @Override
   public Ptr pointerPlus(int bytes) {
     return new ShortPtr(array, offset + (bytes / 2));
+  }
+
+  @Override
+  public byte getByte(int offset) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void setByte(int offset, byte value) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public int toInt() {
+    return offset * BYTES;
+  }
+
+  @Override
+  public boolean isNull() {
+    return array == null && offset != 0;
   }
 
   public short unwrap() {

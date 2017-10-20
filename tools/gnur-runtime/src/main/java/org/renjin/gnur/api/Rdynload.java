@@ -21,6 +21,7 @@ package org.renjin.gnur.api;
 
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.ObjectPtr;
+import org.renjin.gcc.runtime.RecordPtr;
 import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.primitives.packaging.DllSymbol;
 
@@ -36,6 +37,7 @@ public final class Rdynload {
   private Rdynload() { }
 
 
+  @Deprecated
   public static int R_registerRoutines (DllInfo info,
                                         ObjectPtr<MethodDef> croutines,
                                         ObjectPtr<MethodDef> callRoutines,
@@ -50,11 +52,42 @@ public final class Rdynload {
     return 0;
   }
 
+
+  public static int R_registerRoutines (DllInfo info,
+                                        RecordPtr<MethodDef2> croutines,
+                                        RecordPtr<MethodDef2> callRoutines,
+                                        RecordPtr<MethodDef2> fortranRoutines,
+                                        RecordPtr<MethodDef2> externalRoutines) {
+
+    addTo(info, DllSymbol.Convention.C, croutines);
+    addTo(info, DllSymbol.Convention.CALL, callRoutines);
+    addTo(info, DllSymbol.Convention.FORTRAN, fortranRoutines);
+    addTo(info, DllSymbol.Convention.EXTERNAL, externalRoutines);
+
+    return 0;
+  }
+
+
+
+  @Deprecated
   private static void addTo(DllInfo library, DllSymbol.Convention convention, ObjectPtr<MethodDef> methods) {
 
     if(methods != null && methods.array != null) {
       for(int i=0; ; i++) {
         MethodDef def = methods.get(i);
+        if (def.fun == null) {
+          break;
+        }
+        library.register(new DllSymbol(def.getName(), def.fun, convention));
+      }
+    }
+  }
+
+  private static void addTo(DllInfo library, DllSymbol.Convention convention, RecordPtr<MethodDef2> methods) {
+
+    if(!methods.isNull()) {
+      for(int i=0; ; i++) {
+        MethodDef2 def = methods.get(i);
         if (def.fun == null) {
           break;
         }

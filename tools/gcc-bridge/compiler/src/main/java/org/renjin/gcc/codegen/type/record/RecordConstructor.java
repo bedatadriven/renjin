@@ -22,8 +22,6 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.type.TypeOracle;
-import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 import org.renjin.repackaged.asm.Opcodes;
@@ -34,19 +32,17 @@ import java.util.Collections;
 import java.util.Map;
 
 public class RecordConstructor implements JExpr {
-  
-  private final TypeOracle typeOracle;
+
   private RecordClassTypeStrategy strategy;
   private Map<GimpleFieldRef, GExpr> fields;
 
-  public RecordConstructor(TypeOracle typeOracle, RecordClassTypeStrategy strategy, Map<GimpleFieldRef, GExpr> fields) {
-    this.typeOracle = typeOracle;
+  public RecordConstructor(RecordClassTypeStrategy strategy, Map<GimpleFieldRef, GExpr> fields) {
     this.strategy = strategy;
     this.fields = fields;
   }
 
   public RecordConstructor(RecordClassTypeStrategy strategy) {
-    this(null, strategy, Collections.<GimpleFieldRef, GExpr>emptyMap());
+    this(strategy, Collections.<GimpleFieldRef, GExpr>emptyMap());
   }
 
   @Nonnull
@@ -70,13 +66,12 @@ public class RecordConstructor implements JExpr {
       for (Map.Entry<GimpleFieldRef, GExpr> field : fields.entrySet()) {
         // Push the value onto the stack and save to the field
         GimpleFieldRef fieldRef = field.getKey();
-        TypeStrategy fieldTypeStrategy = typeOracle.forType(fieldRef.getType());
 
-        GExpr fieldExpr = strategy.memberOf(mv,
-            new RecordValue(instanceVar),
+        GExpr fieldExpr =
+            new RecordValue(strategy.getLayout(), instanceVar).memberOf(mv,
             fieldRef.getOffset(),
             fieldRef.getSize(),
-            fieldTypeStrategy);
+            fieldRef.getType());
 
         try {
           fieldExpr.store(mv, field.getValue());

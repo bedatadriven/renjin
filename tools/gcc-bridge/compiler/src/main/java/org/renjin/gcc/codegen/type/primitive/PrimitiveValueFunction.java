@@ -26,7 +26,10 @@ import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.Memset;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
+import org.renjin.gcc.codegen.vptr.PointerType;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
@@ -60,6 +63,11 @@ public class PrimitiveValueFunction implements ValueFunction {
   }
 
   @Override
+  public GimpleType getGimpleValueType() {
+    return gimpleType;
+  }
+
+  @Override
   public int getElementLength() {
     return 1;
   }
@@ -74,12 +82,12 @@ public class PrimitiveValueFunction implements ValueFunction {
     FatPtrPair address = new FatPtrPair(this, array, offset);
     JExpr value = Expressions.elementAt(array, offset);
 
-    return new PrimitiveValue(value, address);
+    return new PrimitiveValue(gimpleType, value, address);
   }
 
   @Override
   public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
-    return new PrimitiveValue(wrapperInstance.valueExpr(), wrapperInstance);
+    return new PrimitiveValue(gimpleType, wrapperInstance.valueExpr(), wrapperInstance);
   }
 
   @Override
@@ -104,6 +112,15 @@ public class PrimitiveValueFunction implements ValueFunction {
   @Override
   public Optional<JExpr> getValueConstructor() {
     return Optional.absent();
+  }
+
+  @Override
+  public VPtrExpr toVPtr(JExpr array, JExpr offset) {
+
+    PointerType pointerType = PointerType.ofPrimitiveType(gimpleType);
+    JExpr newWrapper = Expressions.newObject(pointerType.alignedImpl(), array, offset);
+
+    return new VPtrExpr(newWrapper);
   }
 
   @Override

@@ -22,15 +22,16 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
+import org.renjin.gcc.codegen.vptr.VPtrStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.repackaged.asm.Type;
-
-import java.lang.reflect.Field;
 
 /**
  * Creates generators for void value types. Only used for return types.
@@ -58,7 +59,7 @@ public class VoidTypeStrategy implements TypeStrategy<GExpr> {
   }
 
   @Override
-  public GExpr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+  public GExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
     throw new UnsupportedOperationException("variables cannot have 'void' type");
   }
 
@@ -79,7 +80,7 @@ public class VoidTypeStrategy implements TypeStrategy<GExpr> {
 
   @Override
   public PointerTypeStrategy pointerTo() {
-    return new VoidPtrStrategy();
+    return new VPtrStrategy(new GimpleVoidType());
   }
 
   @Override
@@ -88,7 +89,7 @@ public class VoidTypeStrategy implements TypeStrategy<GExpr> {
   }
 
   @Override
-  public GExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public GExpr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
     throw new UnsupportedCastException();
   }
 

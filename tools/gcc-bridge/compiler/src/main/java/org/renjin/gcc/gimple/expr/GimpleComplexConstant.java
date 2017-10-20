@@ -27,6 +27,14 @@ public class GimpleComplexConstant extends GimpleConstant {
   private GimpleRealConstant real;
   private GimpleRealConstant im;
 
+  public GimpleComplexConstant() {
+  }
+
+  public GimpleComplexConstant(GimpleRealConstant real, GimpleRealConstant im) {
+    this.real = real;
+    this.im = im;
+  }
+
   public GimpleRealConstant getReal() {
     return real;
   }

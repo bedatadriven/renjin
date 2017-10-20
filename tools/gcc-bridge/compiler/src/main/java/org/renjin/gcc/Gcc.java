@@ -50,6 +50,8 @@ public class Gcc {
 
   private boolean debug;
   private File gimpleOutputDir;
+
+  private boolean link = false;
   
   private List<String> cFlags = Lists.newArrayList();
   
@@ -76,7 +78,7 @@ public class Gcc {
     this.gimpleOutputDir.mkdirs();
   }
 
-  public void addCFlags(List<String> flags) {
+  public void   addCFlags(List<String> flags) {
     cFlags.addAll(flags);
   }
   
@@ -105,8 +107,11 @@ public class Gcc {
     arguments.add("_GCC_BRIDGE");
     arguments.add("-D");
     arguments.add("_RENJIN");
-    arguments.add("-c"); // compile only, do not link
-    arguments.add("-S"); // stop at assembly generation
+
+    if(!link) {
+      arguments.add("-c"); // compile only, do not link
+      arguments.add("-S"); // stop at assembly generation
+    }
     arguments.addAll(Arrays.asList(compilerFlags));
 //    arguments.add("-O9"); // highest optimization
 
@@ -132,7 +137,7 @@ public class Gcc {
 
     arguments.add(source.getAbsolutePath());
 
-    LOGGER.fine("Executing " + Joiner.on(" ").join(arguments));
+    LOGGER.info("Executing " + Joiner.on(" ").join(arguments));
 
     callGcc(arguments);
     
@@ -140,6 +145,14 @@ public class Gcc {
     GimpleCompilationUnit unit = parser.parse(gimpleFile);
     unit.setSourceFile(gimpleFile);
     return unit;
+  }
+
+  public boolean isLink() {
+    return link;
+  }
+
+  public void setLink(boolean link) {
+    this.link = link;
   }
 
   /**

@@ -70,7 +70,11 @@ public class GimpleAssignment extends GimpleStatement {
     sb.append(lhs).append(" = ").append(operator.format(operands));
     if(getLineNumber() != null) {
       sb.append("\t\t\t#").append(getLineNumber());
+      if(getSourceFile() != null) {
+        sb.append(" (").append(getSourceFile()).append(")");
+      }
     }
+
     return sb.toString();
   }
 

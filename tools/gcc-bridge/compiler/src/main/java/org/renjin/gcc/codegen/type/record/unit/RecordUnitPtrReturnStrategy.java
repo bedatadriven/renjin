@@ -24,65 +24,34 @@ import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
-import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
-import org.renjin.gcc.codegen.type.voidt.VoidPtr;
-import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
+import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.repackaged.asm.Type;
 
 
 public class RecordUnitPtrReturnStrategy implements ReturnStrategy {
-  private Type jvmType;
+  private RecordLayout layout;
 
-  public RecordUnitPtrReturnStrategy(Type jvmType) {
-    this.jvmType = jvmType;
+  public RecordUnitPtrReturnStrategy(RecordLayout layout) {
+    this.layout = layout;
   }
 
   @Override
   public Type getType() {
-    return jvmType;
+    return layout.getType();
   }
 
   @Override
   public JExpr marshall(GExpr expr) {
-    return ((RecordUnitPtr) expr).unwrap();
+    return ((RecordUnitPtrExpr) expr).unwrap();
   }
 
   @Override
-  public GExpr unmarshall(MethodGenerator mv, JExpr returnValue, TypeStrategy lhsTypeStrategy) {
-    if(lhsTypeStrategy instanceof RecordUnitPtrStrategy) {
-      RecordUnitPtrStrategy lhsUnitPtrStrategy = (RecordUnitPtrStrategy) lhsTypeStrategy;
-      return new RecordUnitPtr(Expressions.cast(returnValue, lhsUnitPtrStrategy.getJvmType()));
-
-    } else if(lhsTypeStrategy instanceof RecordClassTypeStrategy) {
-      // In some cases, when you have a function like this:
-      //    MyClass& do_something(MyClass& x);
-      //
-      // and an assignment like this:
-      //
-      //    MyClass x = do_something(y);
-      //
-      // GCC does not generate an intermediate pointer value and a mem_ref like you
-      // would expect. I can't seem to reproduce this in a test case, so here is a workaround:
-      RecordClassTypeStrategy lhsValueTypeStrategy = (RecordClassTypeStrategy) lhsTypeStrategy;
-      return new RecordUnitPtr(Expressions.cast(returnValue, lhsValueTypeStrategy.getJvmType()));
-
-    } else if(lhsTypeStrategy instanceof VoidPtrStrategy) {
-      return new VoidPtr(returnValue);
-
-    } else {
-      throw new UnsupportedOperationException(
-          String.format("Unsupported cast from return value %s to record unit pointer [%s]", 
-              lhsTypeStrategy.getClass().getName(), jvmType));
-    }
-  }
-
-  @Override
-  public GExpr unmarshall(JExpr returnValue) {
-    return new RecordUnitPtr(Expressions.cast(returnValue, jvmType));
+  public GExpr unmarshall(MethodGenerator mv, JExpr callExpr, TypeStrategy lhsTypeStrategy) {
+    return lhsTypeStrategy.cast(mv, new RecordUnitPtrExpr(layout, callExpr));
   }
 
   @Override
   public JExpr getDefaultReturnValue() {
-    return Expressions.nullRef(jvmType);
+    return Expressions.nullRef(layout.getType());
   }
 }

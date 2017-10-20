@@ -658,10 +658,18 @@ static void dump_ops(gimple stmt) {
   }
 }
 
+static void dump_srcref(gimple stmt) {
+  json_int_field("line", gimple_lineno(stmt));
+
+  if(gimple_filename(stmt)) {
+    json_string_field("file", gimple_filename(stmt));
+  }
+}
+
 static void dump_assignment(gimple stmt) {
   json_start_object();
   json_string_field("type", "assign");
-  json_int_field("line", gimple_lineno(stmt));
+  dump_srcref(stmt);
 
   json_string_field("operator", tree_code_name[gimple_assign_rhs_code(stmt)]);
 
@@ -685,7 +693,7 @@ static void dump_cond(basic_block bb, gimple stmt) {
 
   json_start_object();
   json_string_field("type", "conditional");
-  json_int_field("line", gimple_lineno(stmt));
+  dump_srcref(stmt);
 
   json_string_field("operator", tree_code_name[gimple_assign_rhs_code(stmt)]);
   
@@ -702,7 +710,7 @@ static void dump_cond(basic_block bb, gimple stmt) {
 static void dump_nop(gimple stmt) {
   json_start_object();
   json_string_field("type", "nop");
-  json_int_field("line", gimple_lineno(stmt));
+  dump_srcref(stmt);
 
   json_end_object();
 }
@@ -710,8 +718,8 @@ static void dump_nop(gimple stmt) {
 static void dump_predict(gimple stmt) {
   json_start_object();
   json_string_field("type", "predict");
-  json_int_field("line", gimple_lineno(stmt));
-//  json_int_field("hassub", gimple_has_substatements(stmt));
+  dump_srcref(stmt);
+  //  json_int_field("hassub", gimple_has_substatements(stmt));
 //  json_string_field("name", predictor_name(gimple_predict_predictor(stmt)));
   json_end_object();
 }
@@ -719,14 +727,14 @@ static void dump_predict(gimple stmt) {
 static void dump_resx(basic_block bb, gimple stmt) {
   json_start_object();
   json_string_field("type", "resx");
-  json_int_field("line", gimple_lineno(stmt));
+  dump_srcref(stmt);
   json_int_field("region", gimple_resx_region(stmt));
   json_end_object();
 }
 static void dump_eh_dispatch(gimple stmt) {
   json_start_object();
   json_string_field("type", "eh_dispatch");
-  json_int_field("line", gimple_lineno(stmt));
+  dump_srcref(stmt);
   json_int_field("region", gimple_eh_dispatch_region(stmt));
   json_end_object();
 }
@@ -734,14 +742,14 @@ static void dump_eh_dispatch(gimple stmt) {
 static void dump_label(gimple stmt) {
   json_start_object();
   json_string_field("type", "label");
-  json_int_field("line", gimple_lineno(stmt));
+  dump_srcref(stmt);
   json_end_object();
 }
 
 static void dump_return(gimple stmt) {
   json_start_object();
   json_string_field("type", "return");
-  json_int_field("line", gimple_lineno(stmt));
+  dump_srcref(stmt);
 
   tree retval = gimple_return_retval(stmt);
   if(retval) {
@@ -754,8 +762,7 @@ static void dump_return(gimple stmt) {
 static void dump_call(gimple stmt) {
   json_start_object();
   json_string_field("type", "call");
-  json_int_field("line", gimple_lineno(stmt));
-
+  dump_srcref(stmt);
   
   json_field("lhs");
   dump_op(gimple_call_lhs(stmt));
@@ -782,8 +789,7 @@ static void dump_switch(gimple stmt) {
   int num_ops = gimple_num_ops(stmt);
   
   json_string_field("type", "switch");
-  json_int_field("line", gimple_lineno(stmt));
-
+  dump_srcref(stmt);
   
   json_field("value");
   dump_op(gimple_op(stmt, 0));

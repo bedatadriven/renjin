@@ -19,20 +19,11 @@
 package org.renjin.gcc.codegen.type.record;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.*;
-import org.renjin.gcc.codegen.fatptr.*;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.SingleFieldStrategy;
-import org.renjin.gcc.codegen.type.TypeStrategy;
-import org.renjin.gcc.codegen.type.fun.FunPtr;
-import org.renjin.gcc.codegen.type.fun.FunPtrStrategy;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
-import org.renjin.gcc.codegen.type.voidt.VoidPtr;
-import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
-import org.renjin.repackaged.asm.Label;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
-
-import java.lang.invoke.MethodHandle;
 
 /**
  * A field that is the union of more than one pointer types.
@@ -47,35 +38,13 @@ public class PointerUnionField extends SingleFieldStrategy {
   }
 
   @Override
-  public GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, TypeStrategy expectedType) {
+  public GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, GimpleType expectedType) {
 
     if(offset != 0) {
       throw new UnsupportedOperationException("TODO: offset = " + offset);
     }
-    
-    JLValue fieldExpr = Expressions.field(instance, Type.getType(Object.class), fieldName);
 
-    if(expectedType == null) {
-      return new VoidPtr(fieldExpr);
-    }
-
-    if(expectedType instanceof FatPtrStrategy) {
-      return new FatPtrMemberExpr(fieldExpr, expectedType.getValueFunction());
-    }
-
-    if(expectedType instanceof RecordUnitPtrStrategy) {
-      return new RecordUnitPtr(Expressions.cast(fieldExpr, ((RecordUnitPtrStrategy) expectedType).getJvmType()));
-    }
-
-    if(expectedType instanceof VoidPtrStrategy) {
-      return new VoidPtr(fieldExpr);
-    }
-
-    if(expectedType instanceof FunPtrStrategy) {
-      return new FunPtr(Expressions.cast(fieldExpr, Type.getType(MethodHandle.class)));
-    }
-
-    throw new UnsupportedOperationException(String.format("TODO: strategy = %s", expectedType));
+    throw new UnsupportedOperationException(String.format("TODO: type = %s", expectedType));
   }
 
   @Override
@@ -83,62 +52,4 @@ public class PointerUnionField extends SingleFieldStrategy {
     memsetReference(mv, instance, byteValue, byteCount);
   }
 
-  private class FatPtrMemberExpr implements FatPtr {
-
-    private JLValue fieldExpr;
-    private ValueFunction valueFunction;
-
-    public FatPtrMemberExpr(JLValue fieldExpr, ValueFunction valueFunction) {
-      this.fieldExpr = fieldExpr;
-      this.valueFunction = valueFunction;
-    }
-
-    @Override
-    public Type getValueType() {
-      return valueFunction.getValueType();
-    }
-
-    @Override
-    public boolean isAddressable() {
-      return false;
-    }
-
-    @Override
-    public JExpr wrap() {
-      return fieldExpr;
-    }
-
-    @Override
-    public FatPtrPair toPair(MethodGenerator mv) {
-      Type wrapperType = Wrappers.wrapperType(valueFunction.getValueType());
-      JExpr wrapper = Expressions.cast(fieldExpr, wrapperType);
-
-      return Wrappers.toPair(mv, valueFunction, wrapper);
-    }
-
-    @Override
-    public void store(MethodGenerator mv, GExpr rhs) {
-      if(rhs instanceof FatPtr) {
-        fieldExpr.store(mv, ((FatPtr) rhs).wrap());
-      } else {
-        throw new UnsupportedOperationException("TODO: " + rhs.getClass().getName());
-      }
-    }
-
-    @Override
-    public GExpr addressOf() {
-      throw new NotAddressableException();
-    }
-
-    @Override
-    public void jumpIfNull(MethodGenerator mv, Label label) {
-      throw new UnsupportedOperationException("TODO");
-    }
-
-    @Override
-    public GExpr valueOf() {
-      throw new UnsupportedOperationException("TODO");
-    }
-  }
-  
 }

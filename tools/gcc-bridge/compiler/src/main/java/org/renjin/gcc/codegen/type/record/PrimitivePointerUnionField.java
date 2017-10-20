@@ -28,9 +28,11 @@ import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.FieldStrategy;
-import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrValueFunction;
+import org.renjin.gcc.gimple.type.GimpleIndirectType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
@@ -59,7 +61,7 @@ public class PrimitivePointerUnionField extends FieldStrategy {
   }
 
   @Override
-  public GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, TypeStrategy expectedType) {
+  public GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, GimpleType expectedType) {
 
     if(offset != 0) {
       throw new IllegalStateException("offset = " + offset);
@@ -71,11 +73,10 @@ public class PrimitivePointerUnionField extends FieldStrategy {
     if(expectedType == null) {
       return new FatPtrPair(new VoidPtrValueFunction(), arrayExpr, offsetExpr);
 
-    } else if(expectedType instanceof FatPtrStrategy) {
-      ValueFunction valueFunction = expectedType.getValueFunction();
-      if(valueFunction instanceof PrimitiveValueFunction) {
-        Type baseType = valueFunction.getValueType();
-        Type expectedArrayType = Wrappers.valueArrayType(baseType);
+    } else if(expectedType instanceof GimpleIndirectType) {
+      if(expectedType.getBaseType() instanceof GimplePrimitiveType) {
+        GimplePrimitiveType baseType = expectedType.getBaseType();
+        Type expectedArrayType = Wrappers.valueArrayType(baseType.jvmType());
         JExpr castedArrayExpr = Expressions.cast(arrayExpr, expectedArrayType);
 
         return new FatPtrPair(new PrimitiveValueFunction(baseType), castedArrayExpr, offsetExpr);

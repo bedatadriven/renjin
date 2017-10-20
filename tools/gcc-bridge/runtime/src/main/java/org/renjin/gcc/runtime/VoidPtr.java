@@ -18,6 +18,8 @@
  */
 package org.renjin.gcc.runtime;
 
+import java.lang.invoke.MethodHandle;
+
 /**
  * Runtime methods for operations on void pointers.
  */
@@ -47,16 +49,7 @@ public final class VoidPtr {
   }
 
   public static void memcpy(Object x, Object y, int numBytes) {
-    if(x instanceof DoublePtr && y instanceof DoublePtr) {
-      DoublePtr.memcpy(((DoublePtr) x), ((DoublePtr) y), numBytes);
-    } else if(x instanceof LongPtr && y instanceof LongPtr) {
-      LongPtr.memcpy(((LongPtr) x), ((LongPtr) y), numBytes);
-    } else if(x instanceof IntPtr && y instanceof IntPtr) {
-      IntPtr.memcpy(((IntPtr) x), ((IntPtr) y), numBytes);
-    } else {
-      throw new UnsupportedOperationException("Not implemented: memcpy(" +
-        x.getClass().getName() + ", " + y.getClass().getName() + ", " + numBytes + ")");
-    }
+    throw new UnsupportedOperationException("TODO: Implement VoidPtr.memcpy");
   }
   
   public static void memset(Object p, int value, int length) {
@@ -96,6 +89,16 @@ public final class VoidPtr {
     }
 
     return Integer.compare(System.identityHashCode(x), System.identityHashCode(y));
+  }
+
+  public static Ptr toPtr(Object voidPtr) {
+    if(voidPtr instanceof Ptr) {
+      return ((Ptr) voidPtr);
+    } else if(voidPtr instanceof MethodHandle) {
+      return FunctionPtr1.malloc(((MethodHandle) voidPtr));
+    } else {
+      throw new UnsupportedOperationException("TODO: " + voidPtr.getClass().getName());
+    }
   }
 
   public static void assign(Object[] array, int offset, Object value) throws NoSuchMethodException {

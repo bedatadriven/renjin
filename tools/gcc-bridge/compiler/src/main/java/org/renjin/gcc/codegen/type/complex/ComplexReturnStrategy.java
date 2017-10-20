@@ -54,20 +54,15 @@ public class ComplexReturnStrategy implements ReturnStrategy {
   }
 
   @Override
-  public GExpr unmarshall(MethodGenerator mv, JExpr returnValue, TypeStrategy lhsTypeStrategy) {
+  public GExpr unmarshall(MethodGenerator mv, JExpr callExpr, TypeStrategy lhsTypeStrategy) {
     // Allocate a temporary variable for the array so that it's 
     // components can be accessed
-    JLValue array = mv.getLocalVarAllocator().reserve("retval", returnValue.getType());
-    array.store(mv, returnValue);
+    JLValue array = mv.getLocalVarAllocator().reserve("retval", callExpr.getType());
+    array.store(mv, callExpr);
     JExpr realValue = Expressions.elementAt(array, 0);
     JExpr imaginaryValue = Expressions.elementAt(array, 1);
     
     return new ComplexValue(realValue, imaginaryValue);
-  }
-
-  @Override
-  public GExpr unmarshall(JExpr returnValue) {
-    throw new UnsupportedOperationException("TODO");
   }
 
   @Override

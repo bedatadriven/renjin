@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.renjin.repackaged.asm.Type.getMethodDescriptor;
+import static org.renjin.repackaged.asm.Type.*;
 
 /**
  * Static utility methods pertaining to create and compose {@link GExpr}s
@@ -204,7 +204,13 @@ public class Expressions {
   }
 
   public static JExpr product(JExpr x, JExpr y) {
-    return new PrimitiveBinOpGenerator(GimpleOp.MULT_EXPR, x, y);
+    if(x instanceof ConstantValue && y instanceof ConstantValue) {
+      return constantInt(
+            ((ConstantValue) x).getIntValue() *
+            ((ConstantValue) y).getIntValue());
+    } else {
+      return new PrimitiveBinOpGenerator(GimpleOp.MULT_EXPR, x, y);
+    }
   }
   
   public static JExpr product(JExpr x, int y) {
@@ -500,8 +506,17 @@ public class Expressions {
       }
     };
   }
+  public static JExpr newObject(final Class<?> classType, final JExpr... constructorArguments) {
+    return newObject(Type.getType(classType), constructorArguments);
+  }
 
-  public static JExpr newObject(final Type classType) {
+  public static JExpr newObject(final Type classType, final JExpr... constructorArguments) {
+
+    final Type argumentTypes[] = new Type[constructorArguments.length];
+    for (int i = 0; i < constructorArguments.length; i++) {
+      argumentTypes[i] = constructorArguments[i].getType();
+    }
+
     return new JExpr() {
       @Nonnull
       @Override
@@ -513,11 +528,41 @@ public class Expressions {
       public void load(@Nonnull MethodGenerator mv) {
         mv.anew(classType);
         mv.dup();
-        mv.invokeconstructor(classType);
+
+        for (JExpr constructorArgument : constructorArguments) {
+          constructorArgument.load(mv);
+        }
+
+        mv.invokeconstructor(classType, argumentTypes);
       }
     };
   }
-  
+  public static JExpr newObject(final Class classType, final String constructorDescriptor, final JExpr... constructorArguments) {
+    return newObject(Type.getType(classType), constructorDescriptor, constructorArguments);
+  }
+
+  public static JExpr newObject(final Type classType, final String constructorDescriptor, final JExpr... constructorArguments) {
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return classType;
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        mv.anew(classType);
+        mv.dup();
+
+        for (JExpr constructorArgument : constructorArguments) {
+          constructorArgument.load(mv);
+        }
+
+        mv.invokespecial(classType.getInternalName(), "<init>", constructorDescriptor, false);
+      }
+    };
+  }
+
   public static JExpr shiftRight(final JExpr x, int bits) {
     if(bits == 0) {
       return x;
@@ -580,6 +625,34 @@ public class Expressions {
     
     return staticMethodCall(Type.getType(Integer.class), "numberOfLeadingZeros", 
         getMethodDescriptor(Type.INT_TYPE, Type.INT_TYPE), value);
+  }
+
+  public static JExpr methodCall(final JExpr instance,
+                                 final Class declaringType,
+                                 final String methodName,
+                                 final String descriptor,
+                                 final JExpr... arguments) {
+
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return Type.getReturnType(descriptor);
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        instance.load(mv);
+        for (JExpr argument : arguments) {
+          argument.load(mv);
+        }
+        if(declaringType.isInterface()) {
+          mv.invokeinterface(Type.getInternalName(declaringType), methodName, descriptor);
+        } else {
+          mv.invokevirtual(Type.getType(declaringType), methodName, descriptor, false);
+        }
+      }
+    };
   }
 
   public static JExpr staticMethodCall(final Class declaringType, final String methodName,
@@ -706,6 +779,46 @@ public class Expressions {
         mv.invokestatic(Math.class, "max", Type.getMethodDescriptor(type, type, type));
       }
     };
+  }
+
+  public static boolean requiresCast(Type fromType, Type toType) {
+    if (fromType.equals(toType)) {
+      return false;
+    }
+
+    if(toType.equals(Type.getType(Object.class))) {
+      if(fromType.getSort() == ARRAY || fromType.getSort() == OBJECT) {
+        return false;
+      }
+    }
+
+    if(fromType.getSort() == Type.OBJECT && toType.getSort() == Type.OBJECT) {
+      return !isDefinitelySubclass(fromType, toType);
+    }
+
+    if(fromType.getSort() == Type.ARRAY && toType.getSort() == Type.ARRAY) {
+      return true;
+    }
+
+    throw new IllegalStateException(fromType + " will never be assignable to " + toType);
+  }
+
+  private static boolean isDefinitelySubclass(Type fromType, Type toType) {
+    Class fromClass;
+    try {
+      fromClass = Class.forName(fromType.getClassName());
+    } catch (ClassNotFoundException e) {
+      return false;
+    }
+
+    Class toClass;
+    try {
+      toClass = Class.forName(toType.getClassName());
+    } catch (ClassNotFoundException e) {
+      return false;
+    }
+
+    return toClass.isAssignableFrom(fromClass);
   }
 
 

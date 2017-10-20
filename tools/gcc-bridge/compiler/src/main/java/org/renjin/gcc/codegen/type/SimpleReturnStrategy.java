@@ -50,18 +50,13 @@ public final class SimpleReturnStrategy implements ReturnStrategy {
   }
 
   @Override
-  public GExpr unmarshall(MethodGenerator mv, JExpr returnValue, TypeStrategy lhsTypeStrategy) {
-    GExpr result = strategy.wrap(Expressions.cast(returnValue, type));
+  public GExpr unmarshall(MethodGenerator mv, JExpr callExpr, TypeStrategy lhsTypeStrategy) {
+    GExpr result = strategy.wrap(Expressions.cast(callExpr, type));
     try {
-      return lhsTypeStrategy.cast(mv, result, strategy);
+      return lhsTypeStrategy.cast(mv, result);
     } catch (UnsupportedCastException e) {
       throw new InternalCompilerException("Cannot cast from " + strategy + " to " + lhsTypeStrategy, e);
     }
-  }
-
-  @Override
-  public GExpr unmarshall(JExpr returnValue) {
-    throw new UnsupportedOperationException("TODO");
   }
 
   @Override

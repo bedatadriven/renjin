@@ -23,7 +23,11 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimplePointerType;
+import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.runtime.PointerPtr;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
@@ -49,6 +53,11 @@ public class FatPtrValueFunction implements ValueFunction {
   @Override
   public Type getValueType() {
     return Wrappers.wrapperType(baseValueFunction.getValueType());
+  }
+
+  @Override
+  public GimpleType getGimpleValueType() {
+    return baseValueFunction.getGimpleValueType().pointerTo();
   }
 
   @Override
@@ -111,6 +120,13 @@ public class FatPtrValueFunction implements ValueFunction {
   @Override
   public Optional<JExpr> getValueConstructor() {
     return Optional.of(FatPtrPair.nullPtr(baseValueFunction).wrap());
+  }
+
+  @Override
+  public VPtrExpr toVPtr(JExpr array, JExpr offset) {
+    return new VPtrExpr(Expressions.staticMethodCall(PointerPtr.class, "wrap",
+        Type.getMethodDescriptor(Type.getType(PointerPtr.class), Type.getType(Ptr[].class), Type.INT_TYPE),
+        array, offset));
   }
 
   @Override

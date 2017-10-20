@@ -78,6 +78,8 @@ public class FunctionGenerator implements InvocationStrategy {
   
   private MethodGenerator mv;
 
+  private boolean compilationFailed = false;
+
   public FunctionGenerator(String className, GimpleFunction function, TypeOracle typeOracle,
                            GlobalVarAllocator globalVarAllocator, UnitSymbolTable symbolTable) {
     this.className = className;
@@ -198,6 +200,8 @@ public class FunctionGenerator implements InvocationStrategy {
 
       writeRuntimeStub(cw);
 
+      compilationFailed = true;
+
     }
   }
 
@@ -296,6 +300,10 @@ public class FunctionGenerator implements InvocationStrategy {
   }
 
   public void emitLocalStaticVarInitialization(MethodGenerator mv) {
+
+    if(compilationFailed) {
+      return;
+    }
 
     for (GimpleVarDecl decl : function.getVariableDeclarations()) {
       if(decl.isStatic()) {

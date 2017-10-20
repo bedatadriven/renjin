@@ -1496,6 +1496,8 @@ public final class Rinternals {
       return new ComplexArrayVector((ComplexVector) sexp);
     } else if(sexp instanceof StringVector) {
       return new StringArrayVector((StringVector) sexp);
+    } else if(sexp instanceof RawVector) {
+      return new RawVector(((RawVector) sexp).toByteArrayUnsafe(), sexp.getAttributes());
     } else if(sexp instanceof S4Object) {
       return new S4Object(sexp.getAttributes());
     } else if(sexp instanceof ListVector) {

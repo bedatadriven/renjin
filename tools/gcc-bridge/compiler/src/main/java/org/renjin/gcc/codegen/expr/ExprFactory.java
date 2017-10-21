@@ -314,6 +314,7 @@ public class ExprFactory {
 
       case LSHIFT_EXPR:
       case RSHIFT_EXPR:
+      case LROTATE_EXPR:
         return new PrimitiveValue(
             ((GimplePrimitiveType) operands.get(0).getType()),
             new BitwiseShift(

@@ -163,9 +163,9 @@ void json_string_field2(const char *name, const char *value, int length) {
 }
 
 
-void json_int(int value) {
+void json_int(long value) {
   json_pre_value();
-  fprintf(json_f, "%d", value);
+  fprintf(json_f, "%ld", value);
 }
 
 void json_string_value(const char * value) {
@@ -178,7 +178,7 @@ void json_ptr(void *p) {
   fprintf(json_f, "\"%p\"", p);
 }
 
-void json_int_field(const char *name, int value) {
+void json_int_field(const char *name, long value) {
   json_field(name);
   json_int(value);
 }

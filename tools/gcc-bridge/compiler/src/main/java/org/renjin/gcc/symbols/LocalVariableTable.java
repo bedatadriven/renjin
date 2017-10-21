@@ -32,13 +32,13 @@ import java.util.Map;
 public class LocalVariableTable implements SymbolTable {
 
   private final UnitSymbolTable parent;
-  private Map<Integer, GExpr> variableMap = Maps.newHashMap();
+  private Map<Long, GExpr> variableMap = Maps.newHashMap();
 
   public LocalVariableTable(UnitSymbolTable parent) {
     this.parent = parent;
   }
 
-  public void addVariable(Integer gimpleId, GExpr variable) {
+  public void addVariable(Long gimpleId, GExpr variable) {
     Preconditions.checkNotNull(variable);
     Preconditions.checkState(!variableMap.containsKey(gimpleId), "variable already registered with id " + gimpleId);
 

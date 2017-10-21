@@ -26,6 +26,8 @@ import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Preconditions;
+import org.renjin.repackaged.guava.primitives.Chars;
+import org.renjin.repackaged.guava.primitives.Shorts;
 import org.renjin.repackaged.guava.primitives.UnsignedBytes;
 
 import javax.annotation.Nonnull;
@@ -34,41 +36,18 @@ public class ConstantValue implements JExpr {
 
   private Number value;
   private Type type;
+  private boolean unsigned;
 
   public ConstantValue(GimplePrimitiveConstant constant) {
     GimplePrimitiveType primitiveType = (GimplePrimitiveType) constant.getType();
     this.type =  primitiveType.jvmType();
-    value = computeValue(constant);
-  }
-  
-  private static Number computeValue(GimplePrimitiveConstant constant) {
+    this.value = constant.getNumberValue();
 
-    if(constant.getType() instanceof GimpleIntegerType) {
-      GimpleIntegerType integerType = (GimpleIntegerType) constant.getType();
-      if(integerType.isUnsigned()) {
-        switch (integerType.getSize()) {
-          case 8:
-            return UnsignedBytes.checkedCast(constant.getNumberValue().longValue());
-          case 16:
-            return constant.getNumberValue().intValue();
-          case 32:
-            if(constant.getNumberValue().longValue() <= Integer.MAX_VALUE) {
-              return constant.getNumberValue().intValue();
-            } else {
-              throw new UnsupportedOperationException("TODO: " + constant.getNumberValue());
-            }
-          case 64:
-            return constant.getNumberValue().longValue();
-          
-          default:
-            throw new UnsupportedOperationException("TODO: " + constant.getType());
-        }
-      }
+    if(constant.getType() instanceof GimpleIntegerType && ((GimpleIntegerType) constant.getType()).isUnsigned()) {
+      unsigned = true;
     }
-
-    // For signed integers and floats, no special handling is required
-    return constant.getNumberValue();
   }
+
 
   public ConstantValue(Type type, Number value) {
     this.type = type;
@@ -93,25 +72,46 @@ public class ConstantValue implements JExpr {
 
   @Override
   public void load(@Nonnull MethodGenerator mv) {
-    switch (type.getSort()) {
-      case Type.BOOLEAN:
-      case Type.BYTE:
-      case Type.CHAR:
-      case Type.SHORT:
-      case Type.INT:
-        mv.iconst(value.intValue());
-        break;
-      case Type.LONG:
-        mv.lconst(value.longValue());
-        break;
-      case Type.FLOAT:
-        mv.fconst(value.floatValue());
-        break;
-      case Type.DOUBLE:
-        mv.dconst(value.doubleValue());
-        break;
-      default:
-        throw new IllegalStateException("type: " + type);
+    if(type.equals(Type.FLOAT_TYPE)) {
+      mv.fconst(value.floatValue());
+
+    } else if (type.equals(Type.DOUBLE_TYPE)) {
+      mv.dconst(value.doubleValue());
+
+    } else {
+      long longValue = value.longValue();
+      switch (type.getSort()) {
+        case Type.BOOLEAN:
+          mv.iconst( (longValue != 0L) ? 1 : 0);
+          break;
+
+        case Type.BYTE:
+          if(unsigned) {
+            mv.iconst(UnsignedBytes.checkedCast(longValue));
+          } else {
+            mv.iconst((byte)longValue);
+          }
+          break;
+
+        case Type.CHAR:
+          mv.iconst( Chars.checkedCast(longValue) );
+          break;
+
+        case Type.SHORT:
+          mv.iconst(Shorts.checkedCast(longValue));
+          break;
+
+        case Type.INT:
+          mv.iconst((int)longValue);
+          break;
+
+        case Type.LONG:
+          mv.lconst(longValue);
+          break;
+
+        default:
+          throw new IllegalStateException("type: " + type);
+      }
     }
   }
 

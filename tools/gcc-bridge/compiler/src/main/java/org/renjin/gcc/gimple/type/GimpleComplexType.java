@@ -49,7 +49,7 @@ public class GimpleComplexType extends AbstractGimpleType {
   }
 
   @Override
-  public void setSize(int size) {
+  public void setSize(long size) {
     Preconditions.checkArgument(size == 64 || size == 128, "Invalid size: " + size);
     super.setSize(size);
   }

@@ -348,8 +348,6 @@ public class FunctionGenerator implements InvocationStrategy {
   private void emitBasicBlock(GimpleBasicBlock basicBlock) {
     mv.visitLabel(labels.of(basicBlock));
 
-    Integer currentLineNumber = null;
-
     for (GimpleStatement ins : basicBlock.getStatements()) {
       Label insLabel = new Label();
       mv.visitLabel(insLabel);
@@ -374,10 +372,9 @@ public class FunctionGenerator implements InvocationStrategy {
         throw new InternalCompilerException("Exception compiling instruction " + ins, e);
       }
       
-      if(ins.getLineNumber() != null && !Objects.equals(ins.getLineNumber(), currentLineNumber)) {
-        mv.visitLineNumber(ins.getLineNumber(), insLabel);
-        currentLineNumber = ins.getLineNumber();
-      }
+//      if(ins.getLineNumber() != null) {
+//        mv.visitLineNumber(ins.getLineNumber(), insLabel);
+//      }
     }
   }
 

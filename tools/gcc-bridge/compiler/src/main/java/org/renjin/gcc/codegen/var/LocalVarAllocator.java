@@ -127,7 +127,7 @@ public class LocalVarAllocator extends VarAllocator {
       }
     }
   }
-
+  
   public LocalVar tempIfNeeded(MethodGenerator mv, JExpr expr) {
     LocalVarAllocator.LocalVar instanceVar;
     if(expr instanceof LocalVarAllocator.LocalVar) {

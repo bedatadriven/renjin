@@ -24,9 +24,11 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.gimple.expr.GimplePrimitiveConstant;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
-import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Preconditions;
+import org.renjin.repackaged.guava.primitives.Chars;
+import org.renjin.repackaged.guava.primitives.Shorts;
+import org.renjin.repackaged.guava.primitives.UnsignedBytes;
 
 import javax.annotation.Nonnull;
 
@@ -78,21 +80,37 @@ public class ConstantValue implements JExpr {
 
     } else {
       long longValue = value.longValue();
+      switch (type.getSort()) {
+        case Type.BOOLEAN:
+          mv.iconst( (longValue != 0L) ? 1 : 0);
+          break;
 
-      if (type.equals(Type.LONG_TYPE)) {
-        mv.lconst(longValue);
+        case Type.BYTE:
+          if(unsigned) {
+            mv.iconst(UnsignedBytes.checkedCast(longValue));
+          } else {
+            mv.iconst((byte)longValue);
+          }
+          break;
 
-      } else {
-        int intValue = (int)longValue;
-        mv.iconst(intValue);
+        case Type.CHAR:
+          mv.iconst( Chars.checkedCast(longValue) );
+          break;
 
-        switch (type.getSort()) {
-          case Type.BYTE:
+        case Type.SHORT:
+          mv.iconst(Shorts.checkedCast(longValue));
+          break;
 
-            // truncate *and* extend sign
-            mv.visitInsn(Opcodes.I2B);
-            break;
-        }
+        case Type.INT:
+          mv.iconst((int)longValue);
+          break;
+
+        case Type.LONG:
+          mv.lconst(longValue);
+          break;
+
+        default:
+          throw new IllegalStateException("type: " + type);
       }
     }
   }

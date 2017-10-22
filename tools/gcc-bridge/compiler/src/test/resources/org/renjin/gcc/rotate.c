@@ -23,14 +23,11 @@ void test_rotate_long() {
 
 int first_digit() {
     u_int8_t d = 0xef;
-    u_int8_t d1 = (d >> 4);
+    u_int8_t d1 = (d >> 4) ;
     return d1;
 }
 
 void test_shift_byte() {
-    int x = first_digit();
-    int y = 14;
-    ASSERT(x == y);
     printf("d = %x\n", first_digit());
     ASSERT(first_digit(0xEF) == 14);
 }

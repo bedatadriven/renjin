@@ -315,7 +315,13 @@ public class ExprFactory {
       case LSHIFT_EXPR:
       case RSHIFT_EXPR:
       case LROTATE_EXPR:
-        return shift(op, operands);
+        return new PrimitiveValue(
+            ((GimplePrimitiveType) operands.get(0).getType()),
+            new BitwiseShift(
+              op,
+              operands.get(0).getType(),
+              findPrimitiveGenerator(operands.get(0)),
+              findPrimitiveGenerator(operands.get(1))));
 
       case MEM_REF:
         // Cast the pointer type first, then dereference
@@ -414,32 +420,6 @@ public class ExprFactory {
       default:
         throw new UnsupportedOperationException("op: " + op);
     }
-  }
-
-  private GExpr shift(GimpleOp op, List<GimpleExpr> operands) {
-    GimpleIntegerType integerType = (GimpleIntegerType) operands.get(0).getType();
-    PrimitiveValue bits = findGenerator(operands.get(1)).toPrimitiveExpr(new GimpleIntegerType(32));
-
-    if(integerType.getPrecision() == 64) {
-      PrimitiveValue longValue = findGenerator(operands.get(0)).toPrimitiveExpr(integerType);
-
-      return new PrimitiveValue(integerType,
-          new BitwiseShift(op, integerType, longValue.getExpr(), bits.getExpr()));
-
-    } else {
-
-      // Bytes are stored as integers on the stack, but are "sign extended". This means
-      // that a byte value of 0xFF will be stored as 0xFFFFFFFFF on the stack.
-      // So before we apply the shift we need to get rid of the sign extension
-      PrimitiveValue intValue = findGenerator(operands.get(0)).toPrimitiveExpr(integerType.withPrecision(32));
-      BitwiseShift shiftedValue = new BitwiseShift(op, integerType.withPrecision(32), intValue.getExpr(), bits.getExpr());
-
-      // Then this needs to be casted back to the original type (byte, char, etc)
-      CastGenerator recastedShifted = new CastGenerator(shiftedValue, integerType.withPrecision(32), integerType);
-
-      return new PrimitiveValue(integerType, recastedShifted);
-    }
-
   }
 
   private GimplePrimitiveType primitiveType(List<GimpleExpr> operands) {

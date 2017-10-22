@@ -22,7 +22,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.gcc.runtime.*;
 import org.renjin.repackaged.guava.base.Charsets;
-import org.renjin.repackaged.guava.primitives.UnsignedBytes;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -1251,9 +1250,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
 
   @Test
-  @Ignore
   public void leftRotate() throws Exception {
-    assertThat(UnsignedBytes.checkedCast(239), equalTo((byte)-17));
     compileAndTest("rotate.c");
   }
 }

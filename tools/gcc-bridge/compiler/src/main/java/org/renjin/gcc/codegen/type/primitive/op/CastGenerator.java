@@ -117,7 +117,7 @@ public class CastGenerator implements JExpr {
   }
 
 
-  /**
+  /*
    * Most of the time there is no need to use larger numeric types for simulating unsigned types in Java. 
    *
    * For addition, subtraction, multiplication, shift left, the logical operations, equality and casting to a smaller numeric type it doesn't matter whether the operands are signed or unsigned, the result will be the same regardless, viewed as a bit pattern.
@@ -533,7 +533,8 @@ public class CastGenerator implements JExpr {
 
   public static void castUnsignedInt64ToUnsignedInt8(MethodGenerator mv) {
     mv.visitInsn(Opcodes.L2I);
-    mv.visitInsn(Opcodes.I2B);
+    mv.visitLdcInsn(0xFF);
+    mv.visitInsn(Opcodes.IAND);
   }
   public static void castUnsignedInt64ToInt16(MethodGenerator mv) {
     mv.visitInsn(Opcodes.L2I);

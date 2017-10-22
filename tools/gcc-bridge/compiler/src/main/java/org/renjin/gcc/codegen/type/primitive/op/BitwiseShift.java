@@ -42,18 +42,6 @@ public class BitwiseShift implements JExpr {
     this.type = (GimpleIntegerType) type;
     this.x = x;
     this.y = y;
-
-//    if(!checkTypes()) {
-//      throw new UnsupportedOperationException("Shift operations require types (int, int) or (long, int), found: " +
-//          this.x.getType() + ", " + this.y.getType());
-//    }
-  }
-
-  private boolean checkTypes() {
-    Type tx = x.getType();
-    Type ty = y.getType();
-
-    return (tx.equals(Type.INT_TYPE) || tx.equals(Type.LONG_TYPE)) && ty.equals(tx);
   }
 
   @Nonnull
@@ -82,6 +70,17 @@ public class BitwiseShift implements JExpr {
 
         } else {
           mv.shr(type);
+        }
+        break;
+
+      case LROTATE_EXPR:
+        if(!y.getType().equals(Type.INT_TYPE)) {
+          throw new UnsupportedOperationException("number of bits to shift must be an int. Found: " + y.getType());
+        }
+        if(x.getType().equals(Type.LONG_TYPE)) {
+          mv.invokestatic(Long.class, "rotateLeft", "(JI)J");
+        } else {
+          mv.invokestatic(Integer.class, "rotateLeft", "(II)I");
         }
         break;
       

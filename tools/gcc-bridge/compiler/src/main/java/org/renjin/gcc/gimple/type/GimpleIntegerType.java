@@ -50,6 +50,12 @@ public class GimpleIntegerType extends GimplePrimitiveType {
     this.unsigned = unsigned;
   }
 
+  public GimpleIntegerType withPrecision(int bits) {
+    GimpleIntegerType type = new GimpleIntegerType(bits);
+    type.setUnsigned(this.isUnsigned());
+    return type;
+  }
+
   @Override
   public String toString() {
     StringBuilder s = new StringBuilder();

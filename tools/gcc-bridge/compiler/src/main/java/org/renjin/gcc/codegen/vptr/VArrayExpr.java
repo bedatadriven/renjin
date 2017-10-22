@@ -29,14 +29,14 @@ import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.record.ProvidedPtrExpr;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
-import org.renjin.gcc.codegen.type.record.RecordLayout;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.repackaged.asm.Type;
 
 /**
  * An array expression backed by a Virtual Pointer.
@@ -100,7 +100,7 @@ public class VArrayExpr implements ArrayExpr {
   }
 
   @Override
-  public RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout) {
+  public ProvidedPtrExpr toProvidedPtrExpr(Type jvmType) {
     throw new UnsupportedOperationException("TODO");
   }
 

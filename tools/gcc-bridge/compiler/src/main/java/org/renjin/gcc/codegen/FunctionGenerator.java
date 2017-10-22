@@ -202,6 +202,8 @@ public class FunctionGenerator implements InvocationStrategy {
 
       compilationFailed = true;
 
+      throw new InternalCompilerException(e);
+
     }
   }
 

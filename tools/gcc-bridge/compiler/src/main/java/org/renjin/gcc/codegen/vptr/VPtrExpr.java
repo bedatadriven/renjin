@@ -30,9 +30,8 @@ import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.CompareToCmpGenerator;
 import org.renjin.gcc.codegen.type.primitive.ObjectEqualsCmpGenerator;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.record.ProvidedPtrExpr;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
-import org.renjin.gcc.codegen.type.record.RecordLayout;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.*;
@@ -165,14 +164,14 @@ public class VPtrExpr implements PtrExpr {
   }
 
   @Override
-  public RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout) {
+  public ProvidedPtrExpr toProvidedPtrExpr(Type jvmType) {
     // The only way we can cast back is if this is a RecordUnitPtr. Let's try.
     JExpr arrayObject = Expressions.methodCall(getRef(), Ptr.class, "getArray",
           Type.getMethodDescriptor(Type.getType(Object.class)));
 
-    JExpr recordUnitPtr = Expressions.cast(arrayObject, layout.getType());
+    JExpr recordUnitPtr = Expressions.cast(arrayObject, jvmType);
 
-    return new RecordUnitPtrExpr(layout, recordUnitPtr);
+    return new ProvidedPtrExpr(recordUnitPtr);
   }
 
   @Override

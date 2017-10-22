@@ -34,7 +34,8 @@ import org.renjin.gcc.codegen.type.record.RecordArrayReturnStrategy;
 import org.renjin.gcc.codegen.type.record.RecordArrayValueFunction;
 import org.renjin.gcc.codegen.type.record.RecordTypeDefMap;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
-import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrParamStrategy;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrReturnStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidReturnStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidTypeStrategy;
 import org.renjin.gcc.codegen.vptr.VPtrParamStrategy;
@@ -46,6 +47,7 @@ import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Lists;
 
@@ -169,7 +171,7 @@ public class TypeOracle {
       return new VoidReturnStrategy();
 
     } else if(returnType.isPrimitive()) {
-      return new SimpleReturnStrategy(new PrimitiveTypeStrategy(returnType));
+      return new PrimitiveTypeStrategy(returnType).getReturnStrategy();
 
     } else if(Ptr.class.isAssignableFrom(returnType)) {
       return new VPtrReturnStrategy();
@@ -178,7 +180,7 @@ public class TypeOracle {
       return recordTypes.getPointerStrategyFor(returnType).getReturnStrategy();
 
     } else if(returnType.equals(Object.class)) {
-      return new SimpleReturnStrategy(new VoidPtrStrategy());
+      return new VoidPtrReturnStrategy();
 
     } else if(method.isAnnotationPresent(Struct.class)) {
       Type arrayType = Type.getReturnType(method);
@@ -242,7 +244,7 @@ public class TypeOracle {
         index++;
         
       } else if(paramClass.equals(Object.class)) {
-        strategies.add(new VoidPtrStrategy().getParamStrategy());
+        strategies.add(new VoidPtrParamStrategy());
         index++;
         
       } else {
@@ -291,6 +293,7 @@ public class TypeOracle {
   }
   
   public static String getMethodDescriptor(ReturnStrategy returnStrategy, List<ParamStrategy> paramStrategies) {
+    Preconditions.checkNotNull(returnStrategy, "returnStrategy is null");
     List<Type> types = Lists.newArrayList();
     for (ParamStrategy paramStrategy : paramStrategies) {
       types.addAll(paramStrategy.getParameterTypes());

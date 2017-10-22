@@ -25,19 +25,28 @@ import java.lang.invoke.MethodHandle;
 
 
 public class MethodDef2 {
-  public Ptr name;
+
+  public static final int BYTES = 20;
+
+  public String name;
   public Ptr types;
   public int numArgs;
   public MethodHandle fun;
 
-  public String getName() {
-    return Stdlib.nullTerminatedString(name);
+  @Deprecated
+  public MethodDef2() {
+    throw new RuntimeException("Please recompile this package with the latest version of Renjin.");
   }
 
-  public void set(MethodDef2 o) {
-    this.name = o.name;
-    this.types = o.types;
-    this.numArgs = o.numArgs;
-    this.fun = o.fun;
+  public MethodDef2(Ptr ptr) {
+    Ptr namePtr = ptr.getPointer(0);
+    this.name =  namePtr.isNull() ? null : Stdlib.nullTerminatedString(namePtr);
+    this.fun = ptr.getPointer(4).toMethodHandle();
+    this.numArgs = ptr.getInt(8);
+    this.types = ptr.getPointer(12);
+  }
+
+  public String getName() {
+    return name;
   }
 }

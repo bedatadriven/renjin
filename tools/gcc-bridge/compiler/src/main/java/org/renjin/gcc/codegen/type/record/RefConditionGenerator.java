@@ -16,7 +16,7 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.codegen.type.record.unit;
+package org.renjin.gcc.codegen.type.record;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;

@@ -19,37 +19,38 @@
 package org.renjin.gcc.codegen.type.record;
 
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.type.SingleFieldStrategy;
-import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.codegen.type.ReturnStrategy;
+import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.repackaged.asm.Type;
 
-/**
- * A field that is the union of more than one pointer types.
- * We store the value as a single Object instance.
- */
-public class PointerUnionField extends SingleFieldStrategy {
 
-  private static final Type OBJECT_TYPE = Type.getType(Object.class);
-  
-  public PointerUnionField(Type declaringClass, String fieldName) {
-    super(declaringClass, fieldName, OBJECT_TYPE);
+public class ProvidedPtrReturnStrategy implements ReturnStrategy {
+  private Type jvmType;
+
+  public ProvidedPtrReturnStrategy(Type jvmType) {
+    this.jvmType = jvmType;
   }
 
   @Override
-  public GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, GimpleType expectedType) {
-
-    if(offset != 0) {
-      throw new UnsupportedOperationException("TODO: offset = " + offset);
-    }
-
-    throw new UnsupportedOperationException(String.format("TODO: type = %s", expectedType));
+  public Type getType() {
+    return jvmType;
   }
 
   @Override
-  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr byteCount) {
-    memsetReference(mv, instance, byteValue, byteCount);
+  public JExpr marshall(GExpr expr) {
+    return ((ProvidedPtrExpr) expr).unwrap();
   }
 
+  @Override
+  public GExpr unmarshall(MethodGenerator mv, JExpr callExpr, TypeStrategy lhsTypeStrategy) {
+    return lhsTypeStrategy.cast(mv, new ProvidedPtrExpr(callExpr));
+  }
+
+  @Override
+  public JExpr getDefaultReturnValue() {
+    return Expressions.nullRef(jvmType);
+  }
 }

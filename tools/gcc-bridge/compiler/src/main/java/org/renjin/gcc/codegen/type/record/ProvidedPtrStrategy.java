@@ -16,9 +16,8 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.codegen.type.record.unit;
+package org.renjin.gcc.codegen.type.record;
 
-import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
@@ -27,10 +26,6 @@ import org.renjin.gcc.codegen.fatptr.AddressableField;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
-import org.renjin.gcc.codegen.type.primitive.ConstantValue;
-import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
-import org.renjin.gcc.codegen.type.record.RecordConstructor;
-import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.codegen.vptr.VPtrStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -41,14 +36,14 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
 
-public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtrExpr>, SimpleTypeStrategy<RecordUnitPtrExpr> {
+public class ProvidedPtrStrategy implements PointerTypeStrategy<ProvidedPtrExpr>, SimpleTypeStrategy<ProvidedPtrExpr> {
   
-  private RecordClassTypeStrategy strategy;
-  private RecordUnitPtrValueFunction valueFunction;
+  private ProvidedTypeStrategy strategy;
+  private ProvidedPtrValueFunction valueFunction;
   
-  public RecordUnitPtrStrategy(RecordClassTypeStrategy strategy) {
+  public ProvidedPtrStrategy(ProvidedTypeStrategy strategy) {
     this.strategy = strategy;
-    this.valueFunction = new RecordUnitPtrValueFunction(strategy);
+    this.valueFunction = new ProvidedPtrValueFunction(strategy);
   }
 
   public boolean isEmpty() {
@@ -57,20 +52,16 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtrE
 
   @Override
   public ParamStrategy getParamStrategy() {
-    if(strategy.getJvmType().equals(Type.getType(Object.class))) {
-      return new EmptyRecordPtrParam(this);
-    } else {
-      return new RecordUnitPtrParam(this);
-    }
+    return new ProvidedPtrParamStrategy(this);
   }
 
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) {
-    return new RecordUnitPtrField(className, fieldName, strategy.getLayout());
+    return new ProvidedPtrField(className, fieldName, strategy.getJvmType());
   }
 
   @Override
-  public RecordUnitPtrExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
+  public ProvidedPtrExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -90,13 +81,13 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtrE
   }
 
   @Override
-  public RecordUnitPtrExpr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
-    return value.toRecordUnitPtrExpr(strategy.getLayout());
+  public ProvidedPtrExpr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
+    return value.toProvidedPtrExpr(getJvmType());
   }
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new RecordUnitPtrReturnStrategy(strategy.getLayout());
+    return new ProvidedPtrReturnStrategy(strategy.getJvmType());
   }
 
   @Override
@@ -105,7 +96,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtrE
   }
 
   @Override
-  public RecordUnitPtrExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
+  public ProvidedPtrExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
 
       // Declare this as a Unit array so that we can get a FatPtrExpr if needed
@@ -114,15 +105,15 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtrE
       FatPtrPair address = new FatPtrPair(valueFunction, unitArray);
       ArrayElement instance = Expressions.elementAt(unitArray, 0);
       
-      return new RecordUnitPtrExpr(getLayout(), instance, address);
+      return new ProvidedPtrExpr(instance, address);
       
     } else {
-      return new RecordUnitPtrExpr(getLayout(), allocator.reserve(decl.getNameIfPresent(), strategy.getJvmType()));
+      return new ProvidedPtrExpr(allocator.reserve(decl.getNameIfPresent(), strategy.getJvmType()));
     }
   }
 
   @Override
-  public RecordUnitPtrExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
+  public ProvidedPtrExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
     Type javaFieldType = expr.getType();
     if(!javaFieldType.equals(this.strategy.getJvmType())) {
       throw new UnsupportedOperationException("Cannot map global variable " + decl + " to existing field " + expr + ". " +
@@ -133,35 +124,21 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtrE
       // If it's final, then we can make this variable addressable by creating an array on
       // demand. Changes to the pointer's value by C code will have no effect, but that's a good thing??
       FatPtrPair fakeAddress = new FatPtrPair(valueFunction, Expressions.newArray(expr));
-      return new RecordUnitPtrExpr(getLayout(), expr, fakeAddress);
+      return new ProvidedPtrExpr(expr, fakeAddress);
     }
 
-    return new RecordUnitPtrExpr(getLayout(), expr);
+    return new ProvidedPtrExpr(expr);
   }
 
   @Override
-  public RecordUnitPtrExpr malloc(MethodGenerator mv, JExpr sizeInBytes) {
-
-    if (isUnitConstant(sizeInBytes)) {
-      throw new InternalCompilerException(getClass().getSimpleName() + " does not support (T)malloc(size) where " +
-          "size != sizeof(T). This is probably because of a mistake in the choice of strategy by the compiler.");
-    }
-    return new RecordUnitPtrExpr(getLayout(), new RecordConstructor(strategy));
+  public ProvidedPtrExpr malloc(MethodGenerator mv, JExpr sizeInBytes) {
+    throw new UnsupportedOperationException(
+        String.format("Type '%s' is provided and may not be allocated by compiled code.", getJvmType()));
   }
-
 
   @Override
-  public RecordUnitPtrExpr nullPointer() {
-    return new RecordUnitPtrExpr(getLayout(), Expressions.nullRef(strategy.getJvmType()));
-  }
-
-
-  private boolean isUnitConstant(JExpr length) {
-    if(!(length instanceof ConstantValue)) {
-      return false;
-    }
-    ConstantValue constantValue = (ConstantValue) length;
-    return constantValue.getType().equals(Type.INT_TYPE) && constantValue.getIntValue() == 1;
+  public ProvidedPtrExpr nullPointer() {
+    return new ProvidedPtrExpr(Expressions.nullRef(strategy.getJvmType()));
   }
 
   public Type getJvmType() {
@@ -169,8 +146,8 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtrE
   }
 
   @Override
-  public RecordUnitPtrExpr wrap(JExpr expr) {
-    return new RecordUnitPtrExpr(getLayout(), expr);
+  public ProvidedPtrExpr wrap(JExpr expr) {
+    return new ProvidedPtrExpr(expr);
   }
 
   @Override
@@ -182,7 +159,4 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtrE
     return strategy.getRecordType();
   }
 
-  public RecordLayout getLayout() {
-    return strategy.getLayout();
-  }
 }

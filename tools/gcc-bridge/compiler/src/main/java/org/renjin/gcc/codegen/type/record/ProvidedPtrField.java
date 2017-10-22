@@ -16,24 +16,23 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.codegen.type.record.unit;
+package org.renjin.gcc.codegen.type.record;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.SingleFieldStrategy;
-import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
 
 
-public class RecordUnitPtrField extends SingleFieldStrategy {
+public class ProvidedPtrField extends SingleFieldStrategy {
 
   private RecordLayout layout;
 
-  public RecordUnitPtrField(Type ownerClass, String fieldName, RecordLayout layout) {
-    super(ownerClass, fieldName, layout.getType());
+  public ProvidedPtrField(Type ownerClass, String fieldName, Type jvmType) {
+    super(ownerClass, fieldName, jvmType);
   }
 
   @Override
@@ -41,7 +40,7 @@ public class RecordUnitPtrField extends SingleFieldStrategy {
     if(offset != 0) {
       throw new IllegalStateException("offset = " + offset);
     }
-    return new RecordUnitPtrExpr(layout, Expressions.field(instance, fieldType, fieldName));
+    return new ProvidedPtrExpr(Expressions.field(instance, fieldType, fieldName));
   }
 
   @Override

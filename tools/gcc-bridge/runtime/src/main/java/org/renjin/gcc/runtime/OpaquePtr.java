@@ -20,13 +20,17 @@ package org.renjin.gcc.runtime;
 
 import java.lang.invoke.MethodHandle;
 
-public class RecordPtr<T> implements Ptr {
+/**
+ * A {@link Ptr} implementation that wraps an "opaque" pointer.
+ * @param <T>
+ */
+public class OpaquePtr<T> implements Ptr {
 
   private T[] array;
   private int recordSize;
   private int offset;
 
-  public RecordPtr(T[] array, int offset, int recordSize) {
+  public OpaquePtr(T[] array, int offset, int recordSize) {
     this.array = array;
     this.recordSize = recordSize;
   }

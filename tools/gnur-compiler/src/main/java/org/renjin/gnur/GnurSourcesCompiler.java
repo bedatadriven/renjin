@@ -209,7 +209,7 @@ public class GnurSourcesCompiler {
 
     compiler.addReferenceClass(Rdynload.class);
     compiler.addRecordClass("_DllInfo", DllInfo.class);
-    compiler.addRecordClass("__MethodDef", MethodDef2.class);
+//    compiler.addRecordClass("__MethodDef", MethodDef2.class);
   }
 
   private boolean checkUpToDate() {

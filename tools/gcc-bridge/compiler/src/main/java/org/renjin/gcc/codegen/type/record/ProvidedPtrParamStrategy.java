@@ -16,7 +16,7 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.codegen.type.record.unit;
+package org.renjin.gcc.codegen.type.record;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
@@ -35,11 +35,11 @@ import java.util.Collections;
 import java.util.List;
 
 
-class RecordUnitPtrParam implements ParamStrategy {
+class ProvidedPtrParamStrategy implements ParamStrategy {
 
-  private RecordUnitPtrStrategy strategy;
+  private ProvidedPtrStrategy strategy;
 
-  public RecordUnitPtrParam(RecordUnitPtrStrategy strategy) {
+  public ProvidedPtrParamStrategy(ProvidedPtrStrategy strategy) {
     this.strategy = strategy;
   }
 
@@ -64,9 +64,9 @@ class RecordUnitPtrParam implements ParamStrategy {
 
       JExpr value = Expressions.elementAt(address.getArray(), 0);
 
-      return new RecordUnitPtrExpr(strategy.getLayout(), value, address);
+      return new ProvidedPtrExpr(value, address);
     }
-    return new RecordUnitPtrExpr(strategy.getLayout(), unitPtr);
+    return new ProvidedPtrExpr(unitPtr);
   }
 
   @Override
@@ -77,7 +77,7 @@ class RecordUnitPtrParam implements ParamStrategy {
       return;
     }
 
-    RecordUnitPtrExpr unitPtrExpr = argument.get().toRecordUnitPtrExpr(strategy.getLayout());
+    ProvidedPtrExpr unitPtrExpr = argument.get().toProvidedPtrExpr(strategy.getJvmType());
 
     unitPtrExpr.unwrap().load(mv);
   }

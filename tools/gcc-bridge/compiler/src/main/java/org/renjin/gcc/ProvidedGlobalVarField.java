@@ -23,8 +23,6 @@ import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
-import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 
 import java.lang.reflect.Field;
@@ -42,8 +40,7 @@ public class ProvidedGlobalVarField implements ProvidedGlobalVar  {
 
     TypeStrategy strategy;
     if(typeOracle.getRecordTypes().isMappedToRecordType(field.getType())) {
-      strategy = new RecordUnitPtrStrategy((RecordClassTypeStrategy)
-          typeOracle.getRecordTypes().getStrategyFor(field.getType()));
+      strategy = typeOracle.getRecordTypes().getPointerStrategyFor(field.getType());
     } else if(field.getType().isPrimitive()) {
       strategy = new PrimitiveTypeStrategy(field.getType());
     } else {

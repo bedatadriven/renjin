@@ -24,6 +24,7 @@ import java.lang.invoke.MethodHandle;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
 import java.util.TimeZone;
@@ -342,8 +343,28 @@ public class Stdlib {
     return BytePtr.nullTerminatedString(CTIME_FORMAT.format(date) + "\n", StandardCharsets.US_ASCII);
   }
 
+  @Deprecated
   public static tm localtime(IntPtr time) {
     return new tm(time.unwrap());
+  }
+
+  public static Ptr localtime(Ptr time) {
+    int instant = time.getInt();
+    Calendar instance = Calendar.getInstance();
+    instance.setTimeInMillis(instant);
+
+    int[] tm = new int[9];
+    tm[0] = instance.get(Calendar.SECOND);
+    tm[1] = instance.get(Calendar.MINUTE);
+    tm[2] = instance.get(Calendar.HOUR);
+    tm[3] = instance.get(Calendar.DAY_OF_MONTH);
+    tm[4] = instance.get(Calendar.MONTH);
+    tm[5] = instance.get(Calendar.YEAR);
+    tm[6] = instance.get(Calendar.DAY_OF_WEEK);
+    tm[7] = instance.get(Calendar.DAY_OF_YEAR);
+    tm[8] = instance.getTimeZone().inDaylightTime(new Date(instant)) ? 1 : 0;
+
+    return new IntPtr(tm);
   }
 
 
@@ -377,6 +398,7 @@ public class Stdlib {
   private static final int CLOCK_MONOTONIC = 1;
   private static final int CLOCK_REALTIME_COARSE = 5;
 
+  @Deprecated
   public static int clock_gettime(int clockId, timespec tp) {
 
     switch (clockId) {
@@ -395,6 +417,42 @@ public class Stdlib {
         // ClockId not supported
         return -1;
     }
+  }
+
+  public static int clock_gettime(int clockId, Ptr tp) {
+
+    long duration;
+    TimeUnit timeUnit;
+
+    switch (clockId) {
+      case CLOCK_REALTIME:
+      case CLOCK_REALTIME_COARSE:
+        // Return the current time since 1970-01-01
+        duration = System.currentTimeMillis();
+        timeUnit = TimeUnit.MILLISECONDS;
+        break;
+
+      case CLOCK_MONOTONIC:
+        // Return a high precision time from some arbitrary offset
+        duration = System.nanoTime();
+        timeUnit = TimeUnit.NANOSECONDS;
+        break;
+
+      default:
+        // ClockId not supported
+        return -1;
+    }
+
+    // the timespec struct has two int members:
+    // 0: number of seconds
+    // 4: number of nanoseconds
+    int seconds = (int) timeUnit.toSeconds(duration);
+    int nanoseconds = (int) (timeUnit.toNanos(duration) - TimeUnit.SECONDS.toNanos(seconds));
+
+    tp.setAlignedInt(0, seconds);
+    tp.setAlignedInt(1, nanoseconds);
+
+    return 0;
   }
 
   public static Object fopen() {

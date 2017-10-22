@@ -16,7 +16,7 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.codegen.type.record.unit;
+package org.renjin.gcc.codegen.type.record;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
@@ -27,9 +27,6 @@ import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
-import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
-import org.renjin.gcc.codegen.type.record.RecordLayout;
-import org.renjin.gcc.codegen.type.record.RecordValue;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
@@ -42,19 +39,16 @@ import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nonnull;
 
-public class RecordUnitPtrExpr implements RefPtrExpr {
+public class ProvidedPtrExpr implements RefPtrExpr {
 
-  private RecordLayout layout;
   private JExpr ref;
   private FatPtr address;
 
-  public RecordUnitPtrExpr(RecordLayout layout, JExpr ref) {
-    this.layout = layout;
+  public ProvidedPtrExpr(JExpr ref) {
     this.ref = ref;
   }
 
-  public RecordUnitPtrExpr(RecordLayout layout, JExpr ref, FatPtr address) {
-    this.layout = layout;
+  public ProvidedPtrExpr(JExpr ref, FatPtr address) {
     this.ref = ref;
     this.address = address;
   }
@@ -65,7 +59,7 @@ public class RecordUnitPtrExpr implements RefPtrExpr {
   
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
-    ((JLValue) ref).store(mv, rhs.toRecordUnitPtrExpr(layout).unwrap());
+    ((JLValue) ref).store(mv, rhs.toProvidedPtrExpr(ref.getType()).unwrap());
   }
 
   @Override
@@ -96,7 +90,7 @@ public class RecordUnitPtrExpr implements RefPtrExpr {
     unwrap().load(mv);
     byteValue.load(mv);
     length.load(mv);
-    mv.invokevirtual(layout.getType(), "memset",
+    mv.invokevirtual(getJvmType(), "memset",
         Type.getMethodDescriptor(Type.VOID_TYPE, Type.INT_TYPE, Type.INT_TYPE), false);
   }
 
@@ -114,7 +108,7 @@ public class RecordUnitPtrExpr implements RefPtrExpr {
       @Nonnull
       @Override
       public Type getType() {
-        return layout.getType();
+        return getJvmType();
       }
 
       @Override
@@ -127,21 +121,22 @@ public class RecordUnitPtrExpr implements RefPtrExpr {
         mv.invokeconstructor(Type.getType(ArrayIndexOutOfBoundsException.class));
         mv.athrow();
         mv.mark(zero);
-        RecordUnitPtrExpr.this.ref.load(mv);
+        ProvidedPtrExpr.this.ref.load(mv);
       }
     };
 
-    return new RecordUnitPtrExpr(layout, expr);
+    return new ProvidedPtrExpr(expr);
   }
 
   @Override
   public GExpr valueOf(GimpleType expectedType) {
-    return new RecordValue(layout, ref);
+    throw new UnsupportedOperationException(
+        String.format("Provided type '%s' is opaque and may not be dereferenced.", getJvmType()));
   }
 
   @Override
   public ConditionGenerator comparePointer(MethodGenerator mv, GimpleOp op, GExpr otherPointer) {
-    return new RefConditionGenerator(op, unwrap(), otherPointer.toRecordUnitPtrExpr(layout).unwrap());
+    return new RefConditionGenerator(op, unwrap(), otherPointer.toProvidedPtrExpr(getJvmType()).unwrap());
   }
 
   @Override
@@ -176,8 +171,8 @@ public class RecordUnitPtrExpr implements RefPtrExpr {
   }
 
   @Override
-  public RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout) {
-    return new RecordUnitPtrExpr(this.layout, Expressions.cast(unwrap(), layout.getType()));
+  public ProvidedPtrExpr toProvidedPtrExpr(Type jvmType) {
+    return new ProvidedPtrExpr(Expressions.cast(unwrap(), jvmType));
   }
 
   @Override
@@ -187,7 +182,6 @@ public class RecordUnitPtrExpr implements RefPtrExpr {
 
   @Override
   public VPtrRecordExpr toVPtrRecord(GimpleRecordType recordType) {
-
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -198,9 +192,8 @@ public class RecordUnitPtrExpr implements RefPtrExpr {
 
   @Override
   public void memoryCopy(MethodGenerator mv, PtrExpr source, JExpr length, boolean buffer) {
-
     ref.load(mv);
-    source.toRecordUnitPtrExpr(layout).unwrap().load(mv);
-    mv.invokevirtual(layout.getType(), "set", Type.getMethodDescriptor(Type.VOID_TYPE, layout.getType()), false);
+    source.toProvidedPtrExpr(getJvmType()).unwrap().load(mv);
+    mv.invokevirtual(getJvmType(), "set", Type.getMethodDescriptor(Type.VOID_TYPE, getJvmType()), false);
   }
 }

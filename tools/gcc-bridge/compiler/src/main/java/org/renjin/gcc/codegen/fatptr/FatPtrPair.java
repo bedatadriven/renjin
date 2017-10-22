@@ -27,11 +27,8 @@ import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.record.ProvidedPtrExpr;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
-import org.renjin.gcc.codegen.type.record.RecordClassValueFunction;
-import org.renjin.gcc.codegen.type.record.RecordLayout;
-import org.renjin.gcc.codegen.type.record.RecordValue;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
@@ -185,13 +182,7 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
   }
 
   @Override
-  public RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout) {
-    if(valueFunction instanceof RecordClassValueFunction) {
-      RecordClassValueFunction recordClassValueFunction = (RecordClassValueFunction) valueFunction;
-      RecordValue firstRecord = recordClassValueFunction.dereference(this.array, this.offset);
-      return new RecordUnitPtrExpr(layout,
-          Expressions.cast(firstRecord.getRef(), layout.getType()));
-    }
+  public ProvidedPtrExpr toProvidedPtrExpr(Type jvmType) {
     throw new UnsupportedOperationException("Unsupported cast");
   }
 

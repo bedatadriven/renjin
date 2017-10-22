@@ -27,9 +27,8 @@ import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.record.ProvidedPtrExpr;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
-import org.renjin.gcc.codegen.type.record.RecordLayout;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
@@ -112,7 +111,7 @@ public class DereferencedWrappedFatPtr implements FatPtr {
   }
 
   @Override
-  public RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout) {
+  public ProvidedPtrExpr toProvidedPtrExpr(Type jvmType) {
     throw new UnsupportedOperationException("TODO");
   }
 

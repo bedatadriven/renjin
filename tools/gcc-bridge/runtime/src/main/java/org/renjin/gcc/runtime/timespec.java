@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Declared in the time.h header.
  */
+@Deprecated
 public class timespec {
   public int tv_sec;
   public int tv_nsec;
@@ -31,5 +32,5 @@ public class timespec {
     tv_sec = (int) timeUnit.toSeconds(duration);
     tv_nsec = (int) timeUnit.toNanos(duration - timeUnit.convert(tv_sec, TimeUnit.SECONDS));
   }
-  
+
 }

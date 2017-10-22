@@ -97,8 +97,6 @@ public class GimpleCompiler  {
     functionBodyTransformers.add(LocalVariableInitializer.INSTANCE);
     globalSymbolTable = new GlobalSymbolTable(typeOracle);
     globalSymbolTable.addDefaults();
-    providedRecordTypes.put("tm", org.renjin.gcc.runtime.tm.class);
-    providedRecordTypes.put("timespec", org.renjin.gcc.runtime.timespec.class);
   }
 
   public TreeLogger getLogger() {

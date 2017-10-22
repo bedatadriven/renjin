@@ -24,10 +24,6 @@ import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.PtrExpr;
-import org.renjin.gcc.codegen.type.PointerTypeStrategy;
-import org.renjin.gcc.codegen.type.TypeOracle;
-import org.renjin.gcc.codegen.type.UnsupportedCastException;
-import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 

@@ -30,7 +30,6 @@ import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
@@ -101,7 +100,7 @@ public final class RecordArrayExpr implements RecordExpr {
   }
 
   @Override
-  public RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout) {
+  public ProvidedPtrExpr toProvidedPtrExpr(Type jvmType) {
     throw new UnsupportedOperationException("TODO");
   }
 

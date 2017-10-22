@@ -26,9 +26,8 @@ import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.record.ProvidedPtrExpr;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
-import org.renjin.gcc.codegen.type.record.RecordLayout;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
@@ -36,6 +35,7 @@ import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
+import org.renjin.repackaged.asm.Type;
 
 /**
  * Interface for generators which can emit load/store operations for {@code GimpleExpr}s
@@ -77,9 +77,9 @@ public interface GExpr {
 
   /**
    * Cast or transform this expression to a record unit pointer.
-   * @param layout
+   * @param jvmType
    */
-  RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout);
+  ProvidedPtrExpr toProvidedPtrExpr(Type jvmType);
 
   /**
    * Cast or transform this expression to a FatPtr
@@ -90,4 +90,5 @@ public interface GExpr {
   VPtrRecordExpr toVPtrRecord(GimpleRecordType recordType);
 
   VArrayExpr toVArray(GimpleArrayType arrayType);
+
 }

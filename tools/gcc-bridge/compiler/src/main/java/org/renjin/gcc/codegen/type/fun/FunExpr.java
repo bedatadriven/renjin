@@ -26,9 +26,8 @@ import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.record.ProvidedPtrExpr;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
-import org.renjin.gcc.codegen.type.record.RecordLayout;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
@@ -36,6 +35,7 @@ import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
+import org.renjin.repackaged.asm.Type;
 
 public class FunExpr implements GExpr {
   
@@ -86,7 +86,7 @@ public class FunExpr implements GExpr {
   }
 
   @Override
-  public RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout) {
+  public ProvidedPtrExpr toProvidedPtrExpr(Type jvmType) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -104,4 +104,5 @@ public class FunExpr implements GExpr {
   public VArrayExpr toVArray(GimpleArrayType arrayType) {
     throw new UnsupportedOperationException("TODO");
   }
+
 }

@@ -19,6 +19,7 @@
 package org.renjin.gcc.symbols;
 
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.ProvidedGlobalVarField;
 import org.renjin.gcc.annotations.GlobalVar;
 import org.renjin.gcc.codegen.call.*;
 import org.renjin.gcc.codegen.cpp.*;
@@ -28,8 +29,10 @@ import org.renjin.gcc.codegen.lib.SymbolFunction;
 import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.lib.SymbolMethod;
 import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
+import org.renjin.gcc.gimple.expr.GimpleVariableRef;
 import org.renjin.gcc.link.LinkSymbol;
 import org.renjin.gcc.runtime.*;
 import org.renjin.repackaged.guava.base.Optional;
@@ -38,6 +41,7 @@ import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.repackaged.guava.collect.Sets;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Map;
@@ -71,18 +75,13 @@ public class GlobalSymbolTable implements SymbolTable {
   @Override
   public CallGenerator findCallGenerator(GimpleFunctionRef ref) {
     String mangledName = ref.getName();
-   
+
     CallGenerator generator = functions.get(mangledName);
 
     // Try to find the symbol on the classpath
-    if(generator == null) {
-      Optional<LinkSymbol> linkSymbol = null;
-      try {
-        linkSymbol = LinkSymbol.lookup(linkClassLoader, mangledName);
-      } catch (IOException e) {
-        throw new InternalCompilerException("Exception loading link symbol " + mangledName, e);
-      }
-      if(linkSymbol.isPresent()) {
+    if (generator == null) {
+      Optional<LinkSymbol> linkSymbol = findLinkSymbol(mangledName);
+      if (linkSymbol.isPresent()) {
         Method method = linkSymbol.get().loadMethod(linkClassLoader);
         generator = new FunctionCallGenerator(new StaticMethodStrategy(typeOracle, method));
         functions.put(mangledName, generator);
@@ -90,16 +89,16 @@ public class GlobalSymbolTable implements SymbolTable {
     }
 
     // Otherwise return a generator that will throw an error at runtime
-    if(generator == null) {
+    if (generator == null) {
       generator = new UnsatisfiedLinkCallGenerator(mangledName);
       functions.put(mangledName, generator);
 
       System.err.println("Warning: undefined function " + mangledName + "; may throw exception at runtime");
     }
-    
+
     return generator;
   }
-  
+
   @Override
   public JExpr findHandle(GimpleFunctionRef ref) {
     CallGenerator callGenerator = findCallGenerator(ref);
@@ -221,6 +220,19 @@ public class GlobalSymbolTable implements SymbolTable {
     } else {
       GExpr expr = globalVariables.get(ref.getName());
       if(expr == null) {
+        Optional<LinkSymbol> linkSymbol = findLinkSymbol(ref.getName());
+        if(linkSymbol.isPresent()) {
+          Field field = linkSymbol.get().loadField(linkClassLoader);
+          ProvidedGlobalVarField globalField = new ProvidedGlobalVarField(field);
+          GimpleVarDecl varDecl = new GimpleVarDecl();
+          varDecl.setName(ref.getName());
+          varDecl.setMangledName(ref.getName());
+          varDecl.setType(ref.getType());
+          GExpr varExpr = globalField.createExpr(varDecl, typeOracle);
+
+          globalVariables.put(ref.getName(), varExpr);
+          return varExpr;
+        }
         throw new InternalCompilerException("No such variable: " + ref);
       }
       return expr;
@@ -233,5 +245,16 @@ public class GlobalSymbolTable implements SymbolTable {
   
   public Set<Map.Entry<String, CallGenerator>> getFunctions() {
     return functions.entrySet();
+  }
+
+
+  private Optional<LinkSymbol> findLinkSymbol(String mangledName) {
+    Optional<LinkSymbol> linkSymbol = null;
+    try {
+      linkSymbol = LinkSymbol.lookup(linkClassLoader, mangledName);
+    } catch (IOException e) {
+      throw new InternalCompilerException("Exception loading link symbol " + mangledName, e);
+    }
+    return linkSymbol;
   }
 }

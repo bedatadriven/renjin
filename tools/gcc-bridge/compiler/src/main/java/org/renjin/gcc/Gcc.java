@@ -101,8 +101,6 @@ public class Gcc {
 //    arguments.add("-E");
 //    arguments.add("-P");
 
-    arguments.add("-fno-rtti");
-
     arguments.add("-D");
     arguments.add("_GCC_BRIDGE");
     arguments.add("-D");

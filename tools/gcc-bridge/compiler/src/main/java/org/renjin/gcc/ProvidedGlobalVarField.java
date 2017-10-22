@@ -22,9 +22,15 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.codegen.type.fun.FunPtr;
+import org.renjin.gcc.codegen.type.fun.FunPtrStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimpleFunctionType;
+import org.renjin.repackaged.asm.Type;
 
+import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
@@ -41,8 +47,14 @@ public class ProvidedGlobalVarField implements ProvidedGlobalVar  {
     TypeStrategy strategy;
     if(typeOracle.getRecordTypes().isMappedToRecordType(field.getType())) {
       strategy = typeOracle.getRecordTypes().getPointerStrategyFor(field.getType());
+
     } else if(field.getType().isPrimitive()) {
       strategy = new PrimitiveTypeStrategy(field.getType());
+
+    } else if (field.getType().equals(MethodHandle[].class) && decl.getType() instanceof GimpleArrayType) {
+      GimpleArrayType arrayType = (GimpleArrayType) decl.getType();
+      strategy = new FunPtrStrategy().arrayOf(arrayType);
+
     } else {
       throw new UnsupportedOperationException("Strategy for " + field.getType());
     }

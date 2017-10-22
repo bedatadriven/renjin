@@ -85,6 +85,8 @@ public class GimpleCompiler  {
   private String recordClassPrefix = "record";
 
   private TreeLogger rootLogger = new NullTreeLogger();
+
+  private boolean pruneUnusedSymbols = true;
   
   private Predicate<GimpleFunction> entryPointPredicate = new DefaultEntryPointPredicate();
 
@@ -137,6 +139,10 @@ public class GimpleCompiler  {
 
   public void setEntryPointPredicate(Predicate<GimpleFunction> entryPointPredicate) {
     this.entryPointPredicate = entryPointPredicate;
+  }
+
+  public void setPruneUnusedSymbols(boolean pruneUnusedSymbols) {
+    this.pruneUnusedSymbols = pruneUnusedSymbols;
   }
 
   /**
@@ -196,13 +202,12 @@ public class GimpleCompiler  {
       PmfRewriter.rewrite(units);
       GlobalVarMerger.merge(units);
 
-      // Prune unused functions 
-      SymbolPruner.prune(rootLogger, units, entryPointPredicate);
-
+      // Prune unused functions
+      if(pruneUnusedSymbols) {
+        SymbolPruner.prune(rootLogger, units, entryPointPredicate);
+      }
 
       typeOracle.initRecords(units, providedRecordTypes);
-
-
 
       // First apply any transformations needed by the code generation process
       transform(units);
@@ -238,7 +243,7 @@ public class GimpleCompiler  {
       }
 
       // Write link metadata to META-INF/org.renjin.gcc.symbols
-      writeLinkMetadata();
+      writeLinkMetadata(unitClassGenerators);
 
       // If requested, generate a single class that wraps all exported functions
       if (trampolineClassName != null) {
@@ -255,7 +260,7 @@ public class GimpleCompiler  {
     }
   }
 
-  private void writeLinkMetadata() throws IOException {
+  private void writeLinkMetadata(List<UnitClassGenerator> unitClassGenerators) throws IOException {
 
     for (Map.Entry<String, CallGenerator> entry : globalSymbolTable.getFunctions()) {
       if (entry.getValue() instanceof FunctionCallGenerator) {
@@ -273,6 +278,13 @@ public class GimpleCompiler  {
         }
       }
     }
+
+    for (UnitClassGenerator unit : unitClassGenerators) {
+      for (LinkSymbol symbol : unit.getGlobalVariableSymbols()) {
+        symbol.write(outputDirectory);
+      }
+    }
+
   }
 
 

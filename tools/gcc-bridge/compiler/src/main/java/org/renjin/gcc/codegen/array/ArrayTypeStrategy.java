@@ -120,7 +120,7 @@ public class ArrayTypeStrategy implements TypeStrategy<FatArrayExpr> {
 
   @Override
   public FatArrayExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
-    throw new UnsupportedOperationException("TODO");
+    return new FatArrayExpr(this.arrayType, elementValueFunction, arrayLength, expr, Expressions.zero());
   }
 
   private JExpr allocArray(int arrayLength) {

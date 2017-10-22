@@ -80,7 +80,11 @@ public class GimpleVarDecl implements GimpleDecl {
   }
   
   public String getNameIfPresent() {
-    return name;
+    if(mangledName != null) {
+      return mangledName;
+    } else {
+      return name;
+    }
   }
 
   public String getMangledName() {

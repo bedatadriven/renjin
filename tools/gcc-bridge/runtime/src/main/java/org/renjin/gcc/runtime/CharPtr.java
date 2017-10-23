@@ -136,4 +136,17 @@ public class CharPtr extends AbstractPtr {
   public static char memset(int byteValue) {
     throw new UnsupportedOperationException("TODO");
   }
+
+  public static void memcpy(CharPtr x, CharPtr y, int numBytes) {
+    char[] arrayS = y.getArray();
+    int offsetS = y.getOffset();
+    int restY = arrayS.length - offsetS;
+    if(restY > 0) {
+      char[] carray = new char[numBytes];
+      for(int i = 0, j = offsetS; j < arrayS.length && i < numBytes; j++, i++) {
+        carray[i] = arrayS[j];
+      }
+      x = new CharPtr(carray);
+    }
+  }
 }

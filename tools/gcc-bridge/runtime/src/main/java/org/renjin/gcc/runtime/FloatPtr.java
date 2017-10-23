@@ -202,4 +202,17 @@ public class FloatPtr extends AbstractPtr {
     }
     return (FloatPtr) voidPointer;
   }
+
+  public static void memcpy(FloatPtr x, FloatPtr y, int numBytes) {
+    float[] arrayS = y.getArray();
+    int offsetS = y.getOffset();
+    int restY = arrayS.length - offsetS;
+    if(restY > 0) {
+      float[] carray = new float[numBytes];
+      for(int i = 0, j = offsetS; j < arrayS.length && i < numBytes; j++, i++) {
+        carray[i] = arrayS[j];
+      }
+      x = new FloatPtr(carray);
+    }
+  }
 }

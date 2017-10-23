@@ -195,4 +195,17 @@ public class BytePtr extends AbstractPtr {
     }
     return 0;
   }
+
+  public static void memcpy(BytePtr x, BytePtr y, int numBytes) {
+    byte[] arrayS = y.getArray();
+    int offsetS = y.getOffset();
+    int restY = arrayS.length - offsetS;
+    if(restY > 0) {
+      byte[] carray = new byte[numBytes];
+      for(int i = 0, j = offsetS; j < arrayS.length && i < numBytes; j++, i++) {
+        carray[i] = arrayS[j];
+      }
+      x = new BytePtr(carray);
+    }
+  }
 }

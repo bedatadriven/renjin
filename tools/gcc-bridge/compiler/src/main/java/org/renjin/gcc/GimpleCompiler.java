@@ -29,6 +29,7 @@ import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
+import org.renjin.gcc.gimple.GimpleParser;
 import org.renjin.gcc.link.LinkSymbol;
 import org.renjin.gcc.symbols.GlobalSymbolTable;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
@@ -45,6 +46,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -190,7 +192,21 @@ public class GimpleCompiler  {
     providedRecordTypes.put(typeName, recordClass);
   }
 
-  
+
+  public void compileSources(List<File> sourceFiles) throws Exception {
+    GimpleParser parser = new GimpleParser();
+
+    List<GimpleCompilationUnit> units = new ArrayList<>();
+    for (File sourceFile : sourceFiles) {
+      try {
+        units.add(parser.parse(sourceFile));
+      } catch (Exception e) {
+        throw new IOException("Exception parsing gimple file " + sourceFile.getName(), e);
+      }
+    }
+    compile(units);
+  }
+
   
   /**
    * Compiles the given {@link GimpleCompilationUnit}s to JVM class files.

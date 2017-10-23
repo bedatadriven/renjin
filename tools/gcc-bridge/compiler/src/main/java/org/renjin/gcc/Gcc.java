@@ -30,7 +30,6 @@ import org.renjin.repackaged.guava.io.Resources;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
@@ -93,7 +92,7 @@ public class Gcc {
   }
 
   public GimpleCompilationUnit compileToGimple(File source, String... compilerFlags) throws IOException {
-    
+
     checkEnvironment();
     
     List<String> arguments = Lists.newArrayList();
@@ -164,6 +163,10 @@ public class Gcc {
     this.link = link;
   }
 
+  private String callGcc(String... arguments) throws IOException {
+    return callGcc(Arrays.asList(arguments));
+  }
+
   /**
    * Executes GCC and returns the standard output and error
    * @param arguments
@@ -175,6 +178,8 @@ public class Gcc {
     List<String> command = Lists.newArrayList();
     command.add("gcc-4.7");
     command.addAll(arguments);
+
+    System.err.println("EXECUTING: " + Joiner.on(" ").join(arguments));
 
     Process gcc = new ProcessBuilder().command(command).directory(workingDirectory).redirectErrorStream(true).start();
 
@@ -234,22 +239,38 @@ public class Gcc {
     pluginLibrary.deleteOnExit();
   }
 
-  public static void extractPluginTo(File pluginLibrary) throws IOException {
+  public synchronized static void extractPluginTo(File pluginLibrary) throws IOException {
     Preconditions.checkArgument(pluginLibrary.getName().endsWith(".so"), "plugin name must end in .so");
 
-    String libraryName = PlatformUtils.getPortableLibraryName("gcc-bridge");
-    
-    URL pluginResource;
-    try {
-      pluginResource = Resources.getResource("org/renjin/gcc/" + libraryName);
-    } catch(IllegalArgumentException e) {
-      throw new GccException("Could not find a bundled version of the gcc plugin for your platform.\n" +
-              "(Was expecting: /org/renjin/gcc/" +  libraryName + " on the classpath.)\n" +
-              "You will need to build it yourself and specify the path to the binary. ");
+    if(pluginLibrary.exists()) {
+      return;
     }
 
-    Resources.asByteSource(pluginResource).copyTo(Files.asByteSink(pluginLibrary));
+    if(!pluginLibrary.getParentFile().exists()) {
+      boolean created = pluginLibrary.getParentFile().mkdirs();
+      if(!created) {
+        throw new IOException("Could not create directory " + pluginLibrary.getParentFile());
+      }
+    }
+
+    File workingDir = Files.createTempDir();
+    Gcc gcc = new Gcc(workingDir);
+
+    // Extract source
+    File sourceFile = new File(workingDir, "plugin.c");
+    Resources.asByteSource(Resources.getResource(Gcc.class, "plugin.c")).copyTo(Files.asByteSink(sourceFile));
+
+    // Compile and link source
+    String pluginDir = gcc.callGcc("-print-file-name=plugin").trim();
+    gcc.callGcc(
+        "-shared",
+        "-xc++", "-I" + pluginDir + "/include", "-fPIC", "-fno-rtti", "-O2",
+        "plugin.c",
+        "-lstdc++", "-shared-libgcc",
+        "-o", pluginLibrary.getAbsolutePath());
+
   }
+
 
   public void checkVersion() {
     try {

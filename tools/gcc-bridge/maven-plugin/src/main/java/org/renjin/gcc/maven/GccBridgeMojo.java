@@ -102,6 +102,9 @@ public class GccBridgeMojo extends AbstractMojo {
   @Parameter
   private List<String> cFlags;
 
+  @Parameter
+  private List<String> cxxFlags;
+
   @Parameter(defaultValue = "true")
   private boolean pruneUnusedSymbols = true;
 
@@ -164,6 +167,10 @@ public class GccBridgeMojo extends AbstractMojo {
 
     if(cFlags != null) {
       gcc.addCFlags(cFlags);
+    }
+
+    if(cxxFlags != null) {
+      gcc.addCxxFlags(cxxFlags);
     }
     
     

@@ -54,6 +54,8 @@ public class Gcc {
   private boolean link = false;
   
   private List<String> cFlags = Lists.newArrayList();
+
+  private List<String> cxxFlags = Lists.newArrayList();
   
   public Gcc() {
     workingDirectory = Files.createTempDir();
@@ -78,8 +80,12 @@ public class Gcc {
     this.gimpleOutputDir.mkdirs();
   }
 
-  public void   addCFlags(List<String> flags) {
+  public void addCFlags(List<String> flags) {
     cFlags.addAll(flags);
+  }
+
+  public void addCxxFlags(List<String> flags) {
+    cxxFlags.addAll(flags);
   }
   
   public File getGimpleOutputDir() {
@@ -131,6 +137,11 @@ public class Gcc {
     
     if(source.getName().toLowerCase().endsWith(".c")) {
       arguments.addAll(cFlags);
+    }
+
+    if(source.getName().toLowerCase().endsWith(".cc") ||
+        source.getName().toLowerCase().endsWith(".cpp")) {
+      arguments.addAll(cxxFlags);
     }
 
     arguments.add(source.getAbsolutePath());
@@ -252,7 +263,7 @@ public class Gcc {
     }
   }
 
-  
+
 
   private static class OutputCollector implements Runnable {
 

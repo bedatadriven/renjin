@@ -79,6 +79,10 @@ public class TypeOracle {
     recordTypes.init(this, units, providedRecordTypes);
   }
 
+  public GimpleRecordTypeDef getRecordTypeDef(GimpleRecordType recordType) {
+    return recordTypes.getRecordTypeDef(recordType);
+  }
+
   public PointerTypeStrategy forPointerType(GimpleType type) {
     if(!(type instanceof GimpleIndirectType)) {
       throw new IllegalArgumentException("not a pointer type: " + type);
@@ -189,7 +193,7 @@ public class TypeOracle {
 
     } else if(returnType.equals(MethodHandle.class)) {
       return new FunPtrStrategy().getReturnStrategy();
-      
+
     } else {
       throw new UnsupportedOperationException(String.format(
           "Unsupported return type %s in method %s.%s",

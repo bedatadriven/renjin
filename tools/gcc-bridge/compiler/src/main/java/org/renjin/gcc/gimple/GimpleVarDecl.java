@@ -88,6 +88,9 @@ public class GimpleVarDecl implements GimpleDecl {
   }
 
   public String getMangledName() {
+    if(mangledName == null) {
+      return name;
+    }
     return mangledName;
   }
 

@@ -147,7 +147,8 @@ public class FatArrayExpr implements ArrayExpr {
 
   @Override
   public VArrayExpr toVArray(GimpleArrayType arrayType) {
-    throw new UnsupportedOperationException("TODO");
+    VPtrExpr vptr = valueFunction.toVPtr(array, offset);
+    return new VArrayExpr(arrayType, vptr);
   }
 
   @Override

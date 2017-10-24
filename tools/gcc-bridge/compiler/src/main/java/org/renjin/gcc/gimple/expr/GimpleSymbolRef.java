@@ -18,8 +18,12 @@
  */
 package org.renjin.gcc.gimple.expr;
 
+import org.renjin.gcc.gimple.type.GimpleType;
+
 public interface GimpleSymbolRef {
   long getId();
 
   String getName();
+
+  GimpleType getType();
 }

@@ -22,6 +22,7 @@ import org.renjin.gcc.codegen.type.PointerTypeStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.vptr.VPtrRecordTypeStrategy;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Preconditions;
@@ -60,18 +61,27 @@ public class RecordTypeDefMap {
     }
   }
 
+  public GimpleRecordTypeDef getRecordTypeDef(GimpleRecordType type) {
+    return getRecordTypeDef(type.getId());
+  }
+
   public RecordTypeStrategy get(String recordTypeId) {
 
-    GimpleRecordTypeDef def = typeDefMap.get(recordTypeId);
-    if(def == null) {
-      throw new IllegalStateException("Cannot find type def for " + recordTypeId);
-    }
+    GimpleRecordTypeDef def = getRecordTypeDef(recordTypeId);
 
     if(recordNameMap.containsKey(def.getName())) {
       return recordNameMap.get(def.getName());
     }
 
     return new VPtrRecordTypeStrategy(def);
+  }
+
+  private GimpleRecordTypeDef getRecordTypeDef(String recordTypeId) {
+    GimpleRecordTypeDef def = typeDefMap.get(recordTypeId);
+    if(def == null) {
+      throw new IllegalStateException("Cannot find type def for " + recordTypeId);
+    }
+    return def;
   }
 
   public boolean isMappedToRecordType(Class<?> type) {

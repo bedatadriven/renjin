@@ -304,6 +304,11 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
 
   @Override
   public JExpr memoryCompare(MethodGenerator mv, PtrExpr otherPointer, JExpr n) {
+    // We can convert from FatPtrPair -> VPtr but not the other way around
+    if(otherPointer instanceof VPtrExpr) {
+      return toVPtrExpr().memoryCompare(mv, otherPointer, n);
+    }
+
     return new FatPtrMemCmp(this, otherPointer.toFatPtrExpr(valueFunction).toPair(mv), n);
   }
 

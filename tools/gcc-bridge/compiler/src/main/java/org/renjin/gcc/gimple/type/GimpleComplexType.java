@@ -20,7 +20,6 @@ package org.renjin.gcc.gimple.type;
 
 import org.renjin.gcc.gimple.expr.GimpleComplexConstant;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Preconditions;
 
 /**
  * Type representing complex numbers
@@ -50,7 +49,6 @@ public class GimpleComplexType extends AbstractGimpleType {
 
   @Override
   public void setSize(long size) {
-    Preconditions.checkArgument(size == 64 || size == 128, "Invalid size: " + size);
     super.setSize(size);
   }
 

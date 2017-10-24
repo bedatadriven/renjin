@@ -41,6 +41,7 @@ import org.renjin.gcc.codegen.type.record.RecordExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.type.*;
+import org.renjin.gcc.runtime.LongPtr;
 import org.renjin.gcc.symbols.SymbolTable;
 import org.renjin.repackaged.asm.Type;
 
@@ -547,6 +548,12 @@ public class ExprFactory {
             return new PrimitiveValue(
                 dividendType,
                 new UnsignedIntDiv(findPrimitiveGenerator(x), findPrimitiveGenerator(y)));
+          case 64:
+            return new PrimitiveValue(
+                dividendType,
+                Expressions.staticMethodCall(LongPtr.class, "unsignedDivide", "(JJ)J",
+                    findPrimitiveGenerator(x),
+                    findPrimitiveGenerator(y)));
           default:
             throw new UnsupportedOperationException("unsigned integer division, size = " + dividendType.getSize());
         }

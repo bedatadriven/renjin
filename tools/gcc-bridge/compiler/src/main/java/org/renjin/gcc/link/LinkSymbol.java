@@ -25,6 +25,7 @@ import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Optional;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Properties;
@@ -84,6 +85,15 @@ public class LinkSymbol {
     return symbol;
   }
 
+  public static LinkSymbol forGlobalVariable(String name, Type declaringClass) {
+    LinkSymbol symbol = new LinkSymbol();
+    symbol.type = SymbolType.FIELD;
+    symbol.name = name;
+    symbol.className = declaringClass.getInternalName();
+    symbol.memberName = name;
+    return symbol;
+  }
+
   public String getName() {
     return name;
   }
@@ -101,11 +111,6 @@ public class LinkSymbol {
   }
 
 
-  
-  public Method loadMethod() {
-    return loadMethod(getClass().getClassLoader());
-  }
-  
   /**
    * Loads the {@code java.lang.reflect.Method} object referenced by this 
    * {@code LinkSymbol}.
@@ -119,27 +124,13 @@ public class LinkSymbol {
           String.format("Invalid link: Tried to link name '%s' to function, found symbol of type %s", name, type));
     }
 
-    Class<?> owner;
-    try {
-      owner = classLoader.loadClass(className.replace("/", "."));
-    } catch (ClassNotFoundException e) {
-      throw new InternalCompilerException(String.format("Could not load class %s referenced by symbol '%s'",
-          className, type));
-    }
+    Class<?> owner = loadClass(classLoader);
 
     for (java.lang.reflect.Method method : owner.getMethods()) {
       if(method.getName().equals(memberName) &&
           Type.getMethodDescriptor(method).equals(descriptor)) {
-        
-        if(!Modifier.isPublic(method.getModifiers())) {
-          throw new InternalCompilerException(
-              String.format("Symbol '%s' references non-public method %s", name, method));
-        }
 
-        if(!Modifier.isStatic(method.getModifiers())) {
-          throw new InternalCompilerException(
-              String.format("Symbol '%s' references non-static method %s", name, method));
-        }
+        assertPublicStatic(method.getModifiers(), "method " + method.toString());
 
         return method;
       }
@@ -148,7 +139,54 @@ public class LinkSymbol {
     throw new InternalCompilerException(String.format("Symbol '%s' references non-existant method %s.%s (%s)",
         name, className, memberName, descriptor));
   }
-  
+
+
+  public Field loadField(ClassLoader linkClassLoader) {
+    if(type != SymbolType.FIELD) {
+      throw new IllegalStateException(
+          String.format("Invalid link: Tried to link name '%s' to field, found symbol of type %s", name, type));
+    }
+
+    Class<?> owner = loadClass(linkClassLoader);
+
+    Field field;
+    try {
+      field = owner.getField(memberName);
+    } catch (NoSuchFieldException e) {
+      throw new InternalCompilerException(String.format("Symbol '%s' references non-existant field %s.%s",
+          name, className, memberName));
+
+
+    }
+    assertPublicStatic(field.getModifiers(), "field " + field);
+
+    return field;
+  }
+
+  private Class<?> loadClass(ClassLoader classLoader) {
+    Class<?> owner;
+    try {
+      owner = classLoader.loadClass(className.replace("/", "."));
+    } catch (ClassNotFoundException e) {
+      throw new InternalCompilerException(String.format("Could not load class %s referenced by symbol '%s'",
+          className, type));
+    }
+    return owner;
+  }
+
+
+  private void assertPublicStatic(int modifiers, String memberName) {
+    if(!Modifier.isPublic(modifiers)) {
+      throw new InternalCompilerException(
+          String.format("Symbol '%s' references non-public %s", name, memberName));
+    }
+
+    if(!Modifier.isStatic(modifiers)) {
+      throw new InternalCompilerException(
+          String.format("Symbol '%s' references non-static %s", name, memberName));
+    }
+  }
+
 
   /**
    * Writes this symbol out to an output.
@@ -176,9 +214,12 @@ public class LinkSymbol {
     
     if(type == SymbolType.FIELD || type == SymbolType.METHOD) {
       properties.setProperty("member", memberName);
+    }
+
+    if(type == SymbolType.METHOD) {
       properties.setProperty("descriptor", descriptor);
     }
-    
+
     try(Writer out = new OutputStreamWriter(new FileOutputStream(symbolFile), Charsets.UTF_8)) {
       properties.store(out, name);      
     }
@@ -195,7 +236,12 @@ public class LinkSymbol {
       symbol.memberName = properties.getProperty("member");
       symbol.descriptor = properties.getProperty("descriptor");
     }
-    
+
+    if(symbol.type == SymbolType.METHOD) {
+      symbol.descriptor = properties.getProperty("descriptor");
+    }
+
+
     return symbol;
   }
 

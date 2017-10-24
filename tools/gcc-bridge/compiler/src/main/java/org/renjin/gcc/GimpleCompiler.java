@@ -29,6 +29,7 @@ import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
+import org.renjin.gcc.gimple.GimpleParser;
 import org.renjin.gcc.link.LinkSymbol;
 import org.renjin.gcc.symbols.GlobalSymbolTable;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
@@ -45,6 +46,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -85,6 +87,8 @@ public class GimpleCompiler  {
   private String recordClassPrefix = "record";
 
   private TreeLogger rootLogger = new NullTreeLogger();
+
+  private boolean pruneUnusedSymbols = true;
   
   private Predicate<GimpleFunction> entryPointPredicate = new DefaultEntryPointPredicate();
 
@@ -139,6 +143,10 @@ public class GimpleCompiler  {
     this.entryPointPredicate = entryPointPredicate;
   }
 
+  public void setPruneUnusedSymbols(boolean pruneUnusedSymbols) {
+    this.pruneUnusedSymbols = pruneUnusedSymbols;
+  }
+
   /**
    * Sets the name of the trampoline class that contains a static wrapper method for all 'extern' functions.
    */
@@ -184,7 +192,21 @@ public class GimpleCompiler  {
     providedRecordTypes.put(typeName, recordClass);
   }
 
-  
+
+  public void compileSources(List<File> sourceFiles) throws Exception {
+    GimpleParser parser = new GimpleParser();
+
+    List<GimpleCompilationUnit> units = new ArrayList<>();
+    for (File sourceFile : sourceFiles) {
+      try {
+        units.add(parser.parse(sourceFile));
+      } catch (Exception e) {
+        throw new IOException("Exception parsing gimple file " + sourceFile.getName(), e);
+      }
+    }
+    compile(units);
+  }
+
   
   /**
    * Compiles the given {@link GimpleCompilationUnit}s to JVM class files.
@@ -196,13 +218,12 @@ public class GimpleCompiler  {
       PmfRewriter.rewrite(units);
       GlobalVarMerger.merge(units);
 
-      // Prune unused functions 
-      SymbolPruner.prune(rootLogger, units, entryPointPredicate);
-
+      // Prune unused functions
+      if(pruneUnusedSymbols) {
+        SymbolPruner.prune(rootLogger, units, entryPointPredicate);
+      }
 
       typeOracle.initRecords(units, providedRecordTypes);
-
-
 
       // First apply any transformations needed by the code generation process
       transform(units);
@@ -238,7 +259,7 @@ public class GimpleCompiler  {
       }
 
       // Write link metadata to META-INF/org.renjin.gcc.symbols
-      writeLinkMetadata();
+      writeLinkMetadata(unitClassGenerators);
 
       // If requested, generate a single class that wraps all exported functions
       if (trampolineClassName != null) {
@@ -255,7 +276,7 @@ public class GimpleCompiler  {
     }
   }
 
-  private void writeLinkMetadata() throws IOException {
+  private void writeLinkMetadata(List<UnitClassGenerator> unitClassGenerators) throws IOException {
 
     for (Map.Entry<String, CallGenerator> entry : globalSymbolTable.getFunctions()) {
       if (entry.getValue() instanceof FunctionCallGenerator) {
@@ -273,6 +294,13 @@ public class GimpleCompiler  {
         }
       }
     }
+
+    for (UnitClassGenerator unit : unitClassGenerators) {
+      for (LinkSymbol symbol : unit.getGlobalVariableSymbols()) {
+        symbol.write(outputDirectory);
+      }
+    }
+
   }
 
 

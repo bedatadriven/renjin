@@ -36,6 +36,7 @@ import org.renjin.gcc.gimple.type.GimpleComplexType;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.link.LinkSymbol;
 import org.renjin.gcc.symbols.GlobalSymbolTable;
 import org.renjin.gcc.symbols.UnitSymbolTable;
 import org.renjin.repackaged.asm.ClassVisitor;
@@ -50,9 +51,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
@@ -69,7 +68,10 @@ public class UnitClassGenerator {
   private final TypeOracle typeOracle;
   
   private final GlobalVarAllocator globalVarAllocator;
+
   private final List<GimpleVarDecl> varToGenerate = Lists.newArrayList();
+
+  private final List<LinkSymbol> globalVariableSymbols = new ArrayList<>();
 
   private ClassWriter cw;
   private ClassVisitor cv;
@@ -89,25 +91,32 @@ public class UnitClassGenerator {
     this.symbolTable = new UnitSymbolTable(functionTable);
 
     // Setup global variables that have global scoping
+    Set<String> visited = new HashSet<>();
     for (GimpleVarDecl decl : unit.getGlobalVariables()) {
-      if(!isIgnored(decl)) {
-        GExpr varGenerator;
-
-        if (isProvided(providedVariables, decl)) {
-          ProvidedGlobalVar providedField = providedVariables.get(decl.getName());
-          varGenerator = providedField.createExpr(decl, typeOracle);
-
-        } else {
-          try {
-            TypeStrategy typeStrategy = typeOracle.forType(decl.getType());
-            varGenerator = typeStrategy.variable(decl, globalVarAllocator);
-          } catch (Exception e) {
-            throw new InternalCompilerException("Global variable " + decl.getName() + " in " + unit.getSourceName(), e);
-          }
-          varToGenerate.add(decl);
-        }
-        symbolTable.addGlobalVariable(decl, varGenerator);
+      if(!visited.add(decl.getMangledName())) {
+        continue;
       }
+      GExpr varGenerator;
+
+      if (isProvided(providedVariables, decl)) {
+        ProvidedGlobalVar providedField = providedVariables.get(decl.getName());
+        varGenerator = providedField.createExpr(decl, typeOracle);
+
+      } else {
+        try {
+          TypeStrategy typeStrategy = typeOracle.forType(decl.getType());
+          varGenerator = typeStrategy.variable(decl, globalVarAllocator);
+
+        } catch (Exception e) {
+          throw new InternalCompilerException("Global variable " + decl.getName() + " in " + unit.getSourceName(), e);
+        }
+        varToGenerate.add(decl);
+
+        if(!decl.isStatic()) {
+          globalVariableSymbols.add(LinkSymbol.forGlobalVariable(decl.getMangledName(), Type.getType(className)));
+        }
+      }
+      symbolTable.addGlobalVariable(decl, varGenerator);
     }
 
     for (GimpleFunction function : unit.getFunctions()) {
@@ -128,7 +137,10 @@ public class UnitClassGenerator {
     for (GimpleAlias alias : unit.getAliases()) {
       symbolTable.addAlias(alias);
     }
+  }
 
+  public List<LinkSymbol> getGlobalVariableSymbols() {
+    return globalVariableSymbols;
   }
 
   private boolean isExcluded(GimpleFunction function) {
@@ -137,14 +149,6 @@ public class UnitClassGenerator {
     }
 
     return false;
-  }
-
-  private boolean isIgnored(GimpleVarDecl decl) {
-    if(decl.getMangledName() == null) {
-      return false;
-    }
-    return decl.getMangledName().equals("_ZTVN10__cxxabiv117__class_type_infoE") ||
-        decl.getMangledName().equals("_ZTVN10__cxxabiv120__si_class_type_infoE");
   }
 
   private boolean isProvided(Map<String, ProvidedGlobalVar> providedVariables, GimpleVarDecl decl) {
@@ -210,10 +214,6 @@ public class UnitClassGenerator {
     globalVarAllocator.writeFieldInitialization(mv);
   
     for (GimpleVarDecl decl : varToGenerate) {
-      if(decl.getName().startsWith("_ZTI")) {
-        // Skip rtti tables for now...
-        continue;
-      }
       try {
         GExpr varGenerator = symbolTable.getGlobalVariable(decl);
         GimpleExpr initialValue = decl.getValue();

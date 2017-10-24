@@ -26,6 +26,7 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
+import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
@@ -149,6 +150,11 @@ public class FatArrayExpr implements ArrayExpr {
   public VArrayExpr toVArray(GimpleArrayType arrayType) {
     VPtrExpr vptr = valueFunction.toVPtr(array, offset);
     return new VArrayExpr(arrayType, vptr);
+  }
+
+  @Override
+  public NumericExpr toNumericExpr() {
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override

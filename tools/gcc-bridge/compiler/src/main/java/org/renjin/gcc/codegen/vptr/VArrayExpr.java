@@ -26,6 +26,7 @@ import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
+import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
@@ -117,6 +118,11 @@ public class VArrayExpr implements ArrayExpr {
   @Override
   public VArrayExpr toVArray(GimpleArrayType arrayType) {
     return new VArrayExpr(arrayType, pointer);
+  }
+
+  @Override
+  public NumericExpr toNumericExpr() {
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override

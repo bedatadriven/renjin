@@ -27,13 +27,9 @@ import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.condition.ConstConditionGenerator;
 import org.renjin.gcc.codegen.condition.NullCheckGenerator;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
-import org.renjin.gcc.codegen.type.PointerTypeStrategy;
-import org.renjin.gcc.codegen.type.TypeOracle;
-import org.renjin.gcc.codegen.type.TypeStrategy;
-import org.renjin.gcc.codegen.type.UnsupportedCastException;
+import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.complex.ComplexCmpGenerator;
 import org.renjin.gcc.codegen.type.complex.ComplexValue;
-import org.renjin.gcc.codegen.type.complex.ComplexValues;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.*;
 import org.renjin.gcc.codegen.type.primitive.op.*;
@@ -41,7 +37,6 @@ import org.renjin.gcc.codegen.type.record.RecordExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.type.*;
-import org.renjin.gcc.runtime.LongPtr;
 import org.renjin.gcc.symbols.SymbolTable;
 import org.renjin.repackaged.asm.Type;
 
@@ -294,29 +289,46 @@ public class ExprFactory {
   public GExpr findGenerator(GimpleOp op, List<GimpleExpr> operands, GimpleType expectedType) {
     switch (op) {
       case PLUS_EXPR:
+        return findGenerator(operands.get(0)).toNumericExpr().plus(findGenerator(operands.get(1)));
+
       case MINUS_EXPR:
+        return findGenerator(operands.get(0)).toNumericExpr().minus(findGenerator(operands.get(1)));
+
       case MULT_EXPR:
+        return findGenerator(operands.get(0)).toNumericExpr().multiply(findGenerator(operands.get(1)));
+
       case RDIV_EXPR:
       case TRUNC_DIV_EXPR:
       case EXACT_DIV_EXPR:
+        return findGenerator(operands.get(0)).toNumericExpr().divide(findGenerator(operands.get(1)));
+
       case TRUNC_MOD_EXPR:
+        return findGenerator(operands.get(0)).toNumericExpr().remainder(findGenerator(operands.get(1)));
+
       case BIT_IOR_EXPR:
+        return findGenerator(operands.get(0)).toNumericExpr().divide(findGenerator(operands.get(1)));
+
       case BIT_XOR_EXPR:
+        return findGenerator(operands.get(0)).toNumericExpr().bitwiseExclusiveOr(findGenerator(operands.get(1)));
+
       case BIT_AND_EXPR:
-        return findBinOpGenerator(op, operands);
+        return findGenerator(operands.get(0)).toNumericExpr().bitwiseAnd(findGenerator(operands.get(1)));
 
       case POINTER_PLUS_EXPR:
         return pointerPlus(operands.get(0), operands.get(1), expectedType);
 
       case BIT_NOT_EXPR:
-        return new PrimitiveValue(
-            ((GimplePrimitiveType) operands.get(0).getType()),
-            new BitwiseNot(findPrimitiveGenerator(operands.get(0))));
+        return findGenerator(operands.get(0)).toNumericExpr().bitwiseNot(findGenerator(operands.get(1)));
+
 
       case LSHIFT_EXPR:
+        return findGenerator(operands.get(0)).toNumericExpr().shiftLeft(findGenerator(operands.get(1)));
+
       case RSHIFT_EXPR:
+        return findGenerator(operands.get(0)).toNumericExpr().shiftRight(findGenerator(operands.get(1)));
+
       case LROTATE_EXPR:
-        return shift(op, operands);
+        return findGenerator(operands.get(0)).toNumericExpr().circularShiftLeft(findGenerator(operands.get(1)));
 
       case MEM_REF:
         // Cast the pointer type first, then dereference
@@ -346,37 +358,24 @@ public class ExprFactory {
         return new ComplexValue(findPrimitiveGenerator(operands.get(0)));
 
       case NEGATE_EXPR:
-        return new PrimitiveValue(
-             primitiveType(operands),
-             new NegativeValue(findPrimitiveGenerator(operands.get(0))));
+        return findGenerator(operands.get(0)).toNumericExpr().negative(findGenerator(operands.get(1)));
 
       case TRUTH_NOT_EXPR:
-        return new PrimitiveValue(
-            primitiveType(operands),
-            new LogicalNot(findPrimitiveGenerator(operands.get(0))));
+        return findGenerator(operands.get(0)).toNumericExpr().logicalNot(findGenerator(operands.get(1)));
 
       case TRUTH_AND_EXPR:
-        return new PrimitiveValue(
-            primitiveType(operands),
-            new LogicalAnd(
-              findPrimitiveGenerator(operands.get(0)),
-              findPrimitiveGenerator(operands.get(1))));
+        return findGenerator(operands.get(0)).toNumericExpr().logicalAnd(findGenerator(operands.get(1)));
 
       case TRUTH_OR_EXPR:
-        return new PrimitiveValue(
-            primitiveType(operands),
-            new LogicalOr(
-              findPrimitiveGenerator(operands.get(0)),
-              findPrimitiveGenerator(operands.get(1))));
-      
+        return findGenerator(operands.get(0)).toNumericExpr().logicalOr(findGenerator(operands.get(1)));
+
       case TRUTH_XOR_EXPR:
-        return new PrimitiveValue(
-            primitiveType(operands),
-            new LogicalXor(
-              findPrimitiveGenerator(operands.get(0)),
-              findPrimitiveGenerator(operands.get(1))));
+        return findGenerator(operands.get(0)).toNumericExpr().logicalExclusiveOr(findGenerator(operands.get(1)));
+
 
       case EQ_EXPR:
+        return findGenerator(operands.get(0)).toNumericExpr().equalTo(findGenerator(operands.get(1)));
+
       case LT_EXPR:
       case LE_EXPR:
       case NE_EXPR:
@@ -395,18 +394,15 @@ public class ExprFactory {
               findComparisonGenerator(op,operands.get(0), operands.get(1))));
 
       case MAX_EXPR:
+        return findGenerator(operands.get(0)).toNumericExpr().min(findGenerator(operands.get(1)));
+
       case MIN_EXPR:
-        return new PrimitiveValue(
-            primitiveType(operands),
-            new MinMaxValue(op,
-              findPrimitiveGenerator(operands.get(0)),
-              findPrimitiveGenerator(operands.get(1))));
+        return findGenerator(operands.get(0)).toNumericExpr().max(findGenerator(operands.get(1)));
+
 
       case ABS_EXPR:
-        return new PrimitiveValue(
-            primitiveType(operands),
-            new AbsValue(
-             findPrimitiveGenerator(operands.get(0))));
+        return findGenerator(operands.get(0)).toNumericExpr().absoluteValue();
+
 
       case CONJ_EXPR:
         return findComplexGenerator(operands.get(0)).conjugate();
@@ -441,10 +437,6 @@ public class ExprFactory {
       return new PrimitiveValue(integerType, recastedShifted);
     }
 
-  }
-
-  private GimplePrimitiveType primitiveType(List<GimpleExpr> operands) {
-    return ((GimplePrimitiveType) operands.get(0).getType());
   }
 
   private GExpr memRef(GimpleMemRef gimpleExpr, GimpleType expectedType) {
@@ -535,94 +527,6 @@ public class ExprFactory {
 
   private ComplexValue findComplexGenerator(GimpleExpr gimpleExpr) {
     return findGenerator(gimpleExpr, ComplexValue.class);
-  }
-  
-  private GExpr findBinOpGenerator(GimpleOp op, List<GimpleExpr> operands) {
-    GimpleExpr x = operands.get(0);
-    GimpleExpr y = operands.get(1);
-
-
-    if( x.getType() instanceof GimpleComplexType && 
-        y.getType() instanceof GimpleComplexType) {
-
-      return complexBinOp(op, findComplexGenerator(x), findComplexGenerator(y));
-      
-    } else if(
-        x.getType() instanceof GimplePrimitiveType &&
-        y.getType() instanceof GimplePrimitiveType) {
-
-
-      // Unsigned integer division needs to be handled specially on the JVM
-      if((isUnsignedInt(x.getType()) || isUnsignedInt(y.getType())) &&
-          isDivisionOperator(op)) {
-
-        GimpleIntegerType dividendType = (GimpleIntegerType) x.getType();
-        GimpleIntegerType divisorType = (GimpleIntegerType) y.getType();
-
-        if(!dividendType.equals(divisorType)) {
-          throw new UnsupportedOperationException("TODO: " + dividendType + " / " + divisorType);
-        }
-
-        switch (dividendType.getSize()) {
-          case 32:
-            return new PrimitiveValue(
-                dividendType,
-                new UnsignedIntDiv(findPrimitiveGenerator(x), findPrimitiveGenerator(y)));
-          case 64:
-            return new PrimitiveValue(
-                dividendType,
-                Expressions.staticMethodCall(LongPtr.class, "unsignedDivide", "(JJ)J",
-                    findPrimitiveGenerator(x),
-                    findPrimitiveGenerator(y)));
-          default:
-            throw new UnsupportedOperationException("unsigned integer division, size = " + dividendType.getSize());
-        }
-      }
-
-      // Otherwise we can use builtin JVM operators
-
-      return new PrimitiveValue(
-          primitiveType(operands),
-          new PrimitiveBinOpGenerator(op,
-              findPrimitiveGenerator(x),
-              findPrimitiveGenerator(y)));
-
-    }
-
-    throw new UnsupportedOperationException(op.name() + ": " + x.getType() + ", " + y.getType());
-  }
-
-  private boolean isDivisionOperator(GimpleOp op) {
-    switch (op) {
-      case RDIV_EXPR:
-      case TRUNC_DIV_EXPR:
-      case EXACT_DIV_EXPR:
-        return true;
-
-      default:
-        return false;
-    }
-  }
-
-  private boolean isUnsignedInt(GimpleType type) {
-    if(type instanceof GimpleIntegerType) {
-      GimpleIntegerType integerType = (GimpleIntegerType) type;
-      return integerType.isUnsigned();
-    }
-    return false;
-  }
-
-  private GExpr complexBinOp(GimpleOp op, ComplexValue cx, ComplexValue cy) {
-    switch (op) {
-      case PLUS_EXPR:
-        return ComplexValues.add(cx, cy);
-      case MINUS_EXPR:
-        return ComplexValues.subtract(cx, cy);
-      case MULT_EXPR:
-        return ComplexValues.multiply(cx, cy);
-      default:
-        throw new UnsupportedOperationException("complex operation: " + op);
-    }
   }
 
   public GExpr forConstant(GimpleConstant constant) {

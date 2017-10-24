@@ -1,0 +1,67 @@
+/*
+ * Renjin : JVM-based interpreter for the R language for the statistical analysis
+ * Copyright © 2010-${year} BeDataDriven Groep B.V. and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, a copy is available at
+ *  https://www.gnu.org/licenses/gpl-2.0.txt
+ *
+ */
+
+package org.renjin.gcc.codegen.type;
+
+import org.renjin.gcc.codegen.expr.GExpr;
+
+public interface NumericExpr extends GExpr {
+
+  GExpr plus(GExpr generator);
+
+  GExpr minus(GExpr numericExpr);
+
+  GExpr multiply(GExpr generator);
+
+  GExpr divide(GExpr generator);
+
+  GExpr remainder(GExpr generator);
+
+  GExpr bitwiseExclusiveOr(GExpr generator);
+
+  GExpr bitwiseNot(GExpr generator);
+
+  GExpr bitwiseAnd(GExpr generator);
+
+  GExpr shiftLeft(GExpr generator);
+
+  GExpr shiftRight(GExpr generator);
+
+  GExpr circularShiftLeft(GExpr generator);
+
+  GExpr logicalNot(GExpr generator);
+
+  GExpr negative(GExpr generator);
+
+  GExpr logicalAnd(GExpr generator);
+
+  GExpr logicalOr(GExpr generator);
+
+  GExpr logicalExclusiveOr(GExpr generator);
+
+  GExpr equalTo(GExpr generator);
+
+  GExpr min(GExpr generator);
+
+  GExpr max(GExpr generator);
+
+  GExpr absoluteValue();
+
+}

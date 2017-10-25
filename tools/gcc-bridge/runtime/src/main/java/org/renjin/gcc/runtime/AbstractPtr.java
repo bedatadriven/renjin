@@ -54,7 +54,7 @@ public abstract class AbstractPtr implements Ptr {
 
   @Override
   public void setShort(short value) {
-    throw new UnsupportedOperationException("TODO");
+    setShort(0, value);
   }
 
   @Override
@@ -247,7 +247,13 @@ public abstract class AbstractPtr implements Ptr {
 
   @Override
   public void setChar(int offset, char value) {
-    throw new UnsupportedOperationException("TODO");
+
+    int intValue = value;
+
+    setByte(offset, (byte)(intValue & 0xff));
+    intValue >>= BITS_PER_BYTE;
+
+    setByte(offset + 1, (byte)(intValue & 0xff));
   }
 
   @Override

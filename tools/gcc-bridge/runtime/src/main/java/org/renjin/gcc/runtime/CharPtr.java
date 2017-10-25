@@ -74,6 +74,44 @@ public class CharPtr extends AbstractPtr {
   }
 
   @Override
+  public char getChar() {
+    return array[this.offset];
+  }
+
+  @Override
+  public void setAlignedChar(int index, char value) {
+    this.array[this.offset + index] = value;
+  }
+
+  @Override
+  public char getChar(int offset) {
+    if(offset % BYTES == 0) {
+      return this.array[this.offset + (offset / BYTES)];
+    } else {
+      return super.getChar(offset);
+    }
+  }
+
+  @Override
+  public void setChar(char value) {
+    this.array[this.offset] = value;
+  }
+
+  @Override
+  public void setChar(int offset, char value) {
+    if(offset % BYTES == 0) {
+      this.array[this.offset + (offset / BYTES)] = value;
+    } else {
+      super.setChar(offset, value);
+    }
+  }
+
+  @Override
+  public char getAlignedChar(int index) {
+    return this.array[this.offset + index];
+  }
+
+  @Override
   public byte getByte(int offset) {
     int byteIndex = this.offset * BYTES + offset;
     int index = byteIndex / BYTES;

@@ -21,6 +21,8 @@
 package org.renjin.gcc.codegen.type.primitive;
 
 import org.renjin.gcc.codegen.array.FatArrayExpr;
+import org.renjin.gcc.codegen.expr.ConstantValue;
+import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
@@ -35,6 +37,8 @@ import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.repackaged.asm.Type;
+
+import java.lang.invoke.MethodHandle;
 
 public abstract class AbstractPrimitiveExpr implements PrimitiveExpr {
 
@@ -61,6 +65,9 @@ public abstract class AbstractPrimitiveExpr implements PrimitiveExpr {
 
   @Override
   public FunPtrExpr toFunPtr() throws UnsupportedCastException {
+    if(ConstantValue.isZero(jexpr())) {
+      return new FunPtrExpr(Expressions.nullRef(Type.getType(MethodHandle.class)));
+    }
     throw new UnsupportedCastException();
   }
 

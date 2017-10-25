@@ -96,7 +96,7 @@ public class ConstantValue implements JExpr {
     return result;
   }
 
-  public static boolean isZero(GExpr expr) {
+  public static boolean isZero(JExpr expr) {
     if(expr instanceof ConstantValue) {
       ConstantValue constantValue = (ConstantValue) expr;
       if(constantValue.getIntValue() == 0) {

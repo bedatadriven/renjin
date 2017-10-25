@@ -71,10 +71,6 @@ public class ExprFactory {
     
     TypeStrategy leftStrategy = typeOracle.forType(lhsType);
     TypeStrategy rightStrategy = typeOracle.forType(rhsType);
-
-    if(ConstantValue.isZero(rhs) && leftStrategy instanceof PointerTypeStrategy) {
-      return ((PointerTypeStrategy) leftStrategy).nullPointer();
-    }
     
     try {
       return leftStrategy.cast(mv, rhs);

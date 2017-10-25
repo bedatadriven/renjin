@@ -71,13 +71,16 @@ public class UnsignedLongExpr extends AbstractIntExpr {
 
   @Override
   public NumericExpr divide(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+    return lift(Expressions.staticMethodCall(LongPtr.class, "unsignedDivide", "(JJ)J"));
   }
 
   @Override
   public NumericExpr negative() {
-    throw new UnsupportedOperationException("unsigned values cannot be negative.");
+    // Negative operation on an unsigned int doesn't make any sense to me,
+    // but it does occur in Gimple output and seems to work if we use the signed negative operator.
+    return lift(Expressions.negative(jexpr()));
   }
+
 
   @Override
   public NumericExpr min(GExpr operand) {

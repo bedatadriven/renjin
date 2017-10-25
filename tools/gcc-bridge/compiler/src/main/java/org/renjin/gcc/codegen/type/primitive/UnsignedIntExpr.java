@@ -85,7 +85,9 @@ public class UnsignedIntExpr extends AbstractIntExpr {
 
   @Override
   public NumericExpr negative() {
-    throw new UnsupportedOperationException("Unsigned negative??");
+    // Negative operation on an unsigned int doesn't make any sense to me,
+    // but it does occur in Gimple output and seems to work if we use the signed negative operator.
+    return lift(Expressions.negative(jexpr()));
   }
 
   @Override

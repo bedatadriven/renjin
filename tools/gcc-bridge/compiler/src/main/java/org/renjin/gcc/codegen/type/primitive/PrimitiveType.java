@@ -312,12 +312,12 @@ public enum PrimitiveType {
 
     @Override
     public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable GExpr address) {
-      return new UnsignedInt32Expr(jExpr, address);
+      return new UnsignedIntExpr(jExpr, address);
     }
 
     @Override
     public GExpr constantExpr(GimpleConstant expr) {
-      return new UnsignedInt32Expr(constantInt((int) longValue(expr)));
+      return new UnsignedIntExpr(constantInt((int) longValue(expr)));
     }
   },
   UINT64 {

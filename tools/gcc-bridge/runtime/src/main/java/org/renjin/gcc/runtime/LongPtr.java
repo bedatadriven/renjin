@@ -294,4 +294,26 @@ public class LongPtr extends AbstractPtr {
   public static int compareUnsigned(long a, long b) {
     return Long.compare(flip(a), flip(b));
   }
+
+  public static long unsignedMax(long a, long b) {
+    if(a == b) {
+      return a;
+    }
+    if(flip(a) > flip(b)) {
+      return a;
+    } else {
+      return b;
+    }
+  }
+
+  public static long unsignedMin(long a, long b) {
+    if(a == b) {
+      return a;
+    }
+    if(flip(a) < flip(b)) {
+      return a;
+    } else {
+      return b;
+    }
+  }
 }

@@ -145,7 +145,7 @@ public class ExprFactory {
       GimpleArrayRef arrayRef = (GimpleArrayRef) expr;
       ArrayExpr array = (ArrayExpr)findGenerator(arrayRef.getArray());
       GExpr index = findGenerator(arrayRef.getIndex());
-      JExpr jvmIndex = index.toPrimitiveExpr().jexpr();
+      JExpr jvmIndex = index.toPrimitiveExpr().toSignedInt(32).jexpr();
 
       return array.elementAt(expr.getType(), jvmIndex);
 
@@ -324,7 +324,7 @@ public class ExprFactory {
         return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().shiftRight(findGenerator(operands.get(1)));
 
       case LROTATE_EXPR:
-        return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().circularShiftLeft(findGenerator(operands.get(1)));
+        return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().rotateLeft(findGenerator(operands.get(1)));
 
       case MEM_REF:
         // Cast the pointer type first, then dereference
@@ -385,10 +385,10 @@ public class ExprFactory {
         return booleanValue(findComparisonGenerator(op,operands.get(0), operands.get(1)));
 
       case MAX_EXPR:
-        return findGenerator(operands.get(0)).toNumericExpr().min(findGenerator(operands.get(1)));
+        return findGenerator(operands.get(0)).toNumericExpr().max(findGenerator(operands.get(1)));
 
       case MIN_EXPR:
-        return findGenerator(operands.get(0)).toNumericExpr().max(findGenerator(operands.get(1)));
+        return findGenerator(operands.get(0)).toNumericExpr().min(findGenerator(operands.get(1)));
 
 
       case ABS_EXPR:

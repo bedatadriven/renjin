@@ -28,7 +28,7 @@ import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtrExpr;
 import org.renjin.gcc.codegen.expr.ConstantValue;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveExpr;
-import org.renjin.gcc.codegen.type.primitive.UnsignedInt32Expr;
+import org.renjin.gcc.codegen.type.primitive.UnsignedIntExpr;
 import org.renjin.gcc.codegen.type.record.ProvidedPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
@@ -285,7 +285,7 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
     // int length = (start-end)
     JExpr offsetInBytes = Expressions.product(offset, valueFunction.getArrayElementBytes());
 
-    PrimitiveExpr primitiveExpr = new UnsignedInt32Expr(offsetInBytes);
+    PrimitiveExpr primitiveExpr = new UnsignedIntExpr(offsetInBytes);
 
     return primitiveExpr.toPrimitiveExpr();
   }

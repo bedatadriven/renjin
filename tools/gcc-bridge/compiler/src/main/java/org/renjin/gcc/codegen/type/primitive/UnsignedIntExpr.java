@@ -34,22 +34,24 @@ import org.renjin.gcc.runtime.IntPtr;
 
 import javax.annotation.Nullable;
 
-import java.util.function.IntPredicate;
-
 import static org.renjin.gcc.codegen.expr.Expressions.constantLong;
 import static org.renjin.gcc.codegen.expr.Expressions.i2l;
 
-public class UnsignedInt32Expr extends AbstractIntExpr {
-  public UnsignedInt32Expr(JExpr jexpr, @Nullable GExpr address) {
+/**
+ * 32-bit unsigned integer
+ */
+public class UnsignedIntExpr extends AbstractIntExpr {
+
+  public UnsignedIntExpr(JExpr jexpr, @Nullable GExpr address) {
     super(jexpr, address);
   }
 
-  public UnsignedInt32Expr(JExpr jexpr) {
+  public UnsignedIntExpr(JExpr jexpr) {
     this(jexpr, null);
   }
 
-  private UnsignedInt32Expr lift(JExpr expr) {
-    return new UnsignedInt32Expr(expr);
+  private UnsignedIntExpr lift(JExpr expr) {
+    return new UnsignedIntExpr(expr);
   }
 
   @Override
@@ -88,12 +90,12 @@ public class UnsignedInt32Expr extends AbstractIntExpr {
 
   @Override
   public NumericExpr min(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+    return lift(Expressions.staticMethodCall(IntPtr.class, "unsignedMin", "(II)I", jexpr(), jexpr(operand)));
   }
 
   @Override
   public NumericExpr max(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+    return lift(Expressions.staticMethodCall(IntPtr.class, "unsignedMax", "(II)I", jexpr(), jexpr(operand)));
   }
 
   @Override
@@ -137,7 +139,7 @@ public class UnsignedInt32Expr extends AbstractIntExpr {
   }
 
   @Override
-  public GExpr circularShiftLeft(GExpr operand) {
+  public GExpr rotateLeft(GExpr operand) {
     throw new UnsupportedOperationException("TODO");
   }
 

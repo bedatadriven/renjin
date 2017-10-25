@@ -50,4 +50,9 @@ public abstract class AbstractIntExpr extends AbstractPrimitiveExpr implements I
   public final ComplexExpr toComplexExpr() {
     return toRealExpr().toComplexExpr();
   }
+
+
+  protected static JExpr bits(GExpr operand) {
+    return operand.toPrimitiveExpr().toSignedInt(32).jexpr();
+  }
 }

@@ -135,7 +135,7 @@ public class SignedByteExpr extends AbstractIntExpr implements IntExpr {
   }
 
   @Override
-  public IntExpr circularShiftLeft(GExpr operand) {
+  public IntExpr rotateLeft(GExpr operand) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -168,7 +168,7 @@ public class SignedByteExpr extends AbstractIntExpr implements IntExpr {
       case 16:
         return new UnsignedSmallIntExpr(16, Expressions.i2c(jexpr()));
       case 32:
-        return new UnsignedInt32Expr(jexpr());
+        return new UnsignedIntExpr(jexpr());
     }
     throw new UnsupportedOperationException("unsigned" + precision);
   }

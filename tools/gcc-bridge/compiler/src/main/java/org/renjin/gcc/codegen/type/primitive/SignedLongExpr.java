@@ -123,8 +123,8 @@ public class SignedLongExpr extends AbstractIntExpr {
   }
 
   @Override
-  public GExpr circularShiftLeft(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+  public GExpr rotateLeft(GExpr operand) {
+    return lift(Expressions.staticMethodCall(Long.class, "rotateLeft", "(JI)J", jexpr(), bits(operand)));
   }
 
   public IntExpr toSignedInt32() {
@@ -151,7 +151,7 @@ public class SignedLongExpr extends AbstractIntExpr {
     if(precision == 64) {
       return this;
     } else if(precision <= 32) {
-      return new UnsignedInt32Expr(Expressions.l2i(jexpr())).toUnsignedInt(precision);
+      return new UnsignedIntExpr(Expressions.l2i(jexpr())).toUnsignedInt(precision);
     } else {
       throw new UnsupportedOperationException("precision: " + precision);
     }
@@ -183,9 +183,6 @@ public class SignedLongExpr extends AbstractIntExpr {
     return rhs.toPrimitiveExpr().toSignedInt(64).jexpr();
   }
 
-  private JExpr bits(GExpr operand) {
-    return operand.toPrimitiveExpr().toSignedInt(32).jexpr();
-  }
 
   private IntExpr lift(JExpr expr) {
     return new SignedLongExpr(expr);

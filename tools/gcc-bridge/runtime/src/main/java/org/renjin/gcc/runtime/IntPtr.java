@@ -278,6 +278,29 @@ public class IntPtr extends AbstractPtr implements Ptr {
     return Integer.compare(flip(a), flip(b));
   }
 
+  public static int unsignedMax(int a, int b) {
+    if(a==b) {
+      return a;
+    }
+    if(flip(a) > flip(b)) {
+      return a;
+    } else {
+      return b;
+    }
+  }
+
+  public static int unsignedMin(int a, int b) {
+    if(a==b) {
+      return a;
+    }
+    if(flip(a) < flip(b)) {
+      return a;
+    } else {
+      return b;
+    }
+  }
+
+
   public static int unsignedDivide(int dividend, int divisor) {
     // In lieu of tricky code, for now just use long arithmetic.
     return (int)((dividend & 0xFFFFFFFFL) /  (divisor & 0xFFFFFFFFL));

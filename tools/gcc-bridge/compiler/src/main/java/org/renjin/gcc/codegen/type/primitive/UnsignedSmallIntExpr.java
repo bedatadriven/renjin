@@ -149,7 +149,7 @@ public class UnsignedSmallIntExpr extends AbstractIntExpr {
   }
 
   @Override
-  public GExpr circularShiftLeft(GExpr operand) {
+  public GExpr rotateLeft(GExpr operand) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -174,7 +174,7 @@ public class UnsignedSmallIntExpr extends AbstractIntExpr {
     if(precision < 32) {
       return new UnsignedSmallIntExpr(precision, jexpr());
     } else if(precision == 32) {
-      return new UnsignedInt32Expr(jexpr());
+      return new UnsignedIntExpr(jexpr());
     }
     throw new UnsupportedOperationException("TODO");
   }

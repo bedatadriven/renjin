@@ -254,14 +254,12 @@ public class Expressions {
   }
   
   public static JExpr product(JExpr x, int y) {
-    Preconditions.checkArgument(x.getType().equals(Type.INT_TYPE));
-    
     if(y == 0) {
       return zero(x.getType());
     } else if(y == 1) {
       return x;
     } else {
-      return product(x, constantInt(y));
+      return product(x, new ConstantValue(x.getType(), y));
     }
   }
 
@@ -1069,7 +1067,7 @@ public class Expressions {
 
   public static JExpr compareTo(JExpr x, JExpr y) {
     return methodCall(x, Comparable.class, "compareTo",
-        Type.getMethodDescriptor(Type.INT_TYPE, Type.getType(Comparable.class)), y);
+        Type.getMethodDescriptor(Type.INT_TYPE, Type.getType(Object.class)), y);
   }
 
   public static JExpr objectEquals(JExpr x, JExpr y) {

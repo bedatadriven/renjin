@@ -29,7 +29,6 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.gimple.GimpleOp;
-import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.type.GimpleRealType;
 import org.renjin.gcc.runtime.LongPtr;
 import org.renjin.repackaged.asm.Type;
@@ -82,12 +81,12 @@ public class UnsignedLongExpr extends AbstractIntExpr {
 
   @Override
   public NumericExpr min(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+    return lift(Expressions.staticMethodCall(LongPtr.class, "unsignedMin", "(JJ)J", jexpr(), jexpr(operand)));
   }
 
   @Override
   public NumericExpr max(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+    return lift(Expressions.staticMethodCall(LongPtr.class, "unsignedMax", "(JJ)J", jexpr(), jexpr(operand)));
   }
 
   @Override
@@ -131,10 +130,9 @@ public class UnsignedLongExpr extends AbstractIntExpr {
   }
 
   @Override
-  public GExpr circularShiftLeft(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+  public GExpr rotateLeft(GExpr operand) {
+    return lift(Expressions.staticMethodCall(Long.class, "rotateLeft", "(JI)J", jexpr(), bits(operand)));
   }
-
 
   @Override
   public IntExpr toSignedInt(int precision) {
@@ -157,7 +155,7 @@ public class UnsignedLongExpr extends AbstractIntExpr {
       case 32:
       case 16:
       case 8:
-        return new UnsignedInt32Expr(Expressions.l2i(jexpr())).toUnsignedInt(precision);
+        return new UnsignedIntExpr(Expressions.l2i(jexpr())).toUnsignedInt(precision);
     }
     throw new UnsupportedOperationException("precision: " + precision);
   }

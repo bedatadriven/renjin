@@ -42,7 +42,7 @@ public interface IntExpr extends NumericExpr, PrimitiveExpr {
 
   GExpr shiftRight(GExpr operand);
 
-  GExpr circularShiftLeft(GExpr operand);
+  GExpr rotateLeft(GExpr operand);
 
   IntExpr toSignedInt(int precision);
 

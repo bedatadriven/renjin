@@ -59,7 +59,13 @@ public abstract class AbstractPtr implements Ptr {
 
   @Override
   public void setShort(int offset, short value) {
-    throw new UnsupportedOperationException("TODO");
+
+    int intValue = value;
+
+    setByte(offset, (byte)(intValue & 0xff));
+    intValue >>= BITS_PER_BYTE;
+
+    setByte(offset + 1, (byte)(intValue & 0xff));
   }
 
   @Override
@@ -69,7 +75,9 @@ public abstract class AbstractPtr implements Ptr {
 
   @Override
   public short getShort(int offset) {
-    return (short) ((getByte(offset) << 8) | (getByte(offset + 1) & 0xFF));
+    return (short)(
+        ((getByte(offset + 1) & 0xff) <<  8L) |
+        ((getByte(offset    ) & 0xff)));
   }
 
   @Override

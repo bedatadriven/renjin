@@ -372,9 +372,9 @@ public class FunctionGenerator implements InvocationStrategy {
         throw new InternalCompilerException("Exception compiling instruction " + ins, e);
       }
       
-//      if(ins.getLineNumber() != null) {
-//        mv.visitLineNumber(ins.getLineNumber(), insLabel);
-//      }
+      if(ins.getLineNumber() != null) {
+        mv.visitLineNumber(ins.getLineNumber(), insLabel);
+      }
     }
   }
 

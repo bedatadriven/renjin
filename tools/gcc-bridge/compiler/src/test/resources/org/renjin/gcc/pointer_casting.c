@@ -15,10 +15,11 @@ void test_case1() {
 
     long x = 234342342L;
 
-    // Because we know that
     long *px = &x;
 
     uint8_t *p = (uint8_t *)px;
+
+    uint8_t b1 = p[0];
 
     ASSERT( p[0] == 198 );
     ASSERT( p[1] == 199 );

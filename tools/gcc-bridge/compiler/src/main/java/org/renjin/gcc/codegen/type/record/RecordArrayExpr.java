@@ -28,8 +28,9 @@ import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
-import org.renjin.gcc.codegen.type.fun.FunPtr;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.fun.FunPtrExpr;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveExpr;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveType;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
@@ -71,7 +72,7 @@ public final class RecordArrayExpr implements RecordExpr {
   }
 
   @Override
-  public FunPtr toFunPtr() throws UnsupportedCastException {
+  public FunPtrExpr toFunPtr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -81,18 +82,13 @@ public final class RecordArrayExpr implements RecordExpr {
   }
 
   @Override
-  public PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException {
+  public PrimitiveExpr toPrimitiveExpr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
   public VoidPtrExpr toVoidPtrExpr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
-  public RecordArrayExpr toRecordArrayExpr() throws UnsupportedCastException {
-    return this;
   }
 
   @Override
@@ -174,12 +170,12 @@ public final class RecordArrayExpr implements RecordExpr {
     Type fieldType = valueFunction.getValueType();
 
     if(memberType instanceof GimplePrimitiveType) {
-      GimplePrimitiveType expectedType = (GimplePrimitiveType) memberType;
+      PrimitiveType expectedType = PrimitiveType.of((GimplePrimitiveType) memberType);
 
       // Return a single primitive value
       if(expectedType.jvmType().equals(fieldType)) {
         JExpr value = elementAt(array, offset);
-        return new PrimitiveValue(expectedType, value, address);
+        return expectedType.fromStackValue(value, address);
 
       } else {
         throw new UnsupportedOperationException("TODO: " + fieldType + " -> " + expectedType);

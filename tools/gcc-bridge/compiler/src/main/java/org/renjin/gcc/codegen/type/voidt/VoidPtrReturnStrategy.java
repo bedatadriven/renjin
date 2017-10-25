@@ -37,7 +37,7 @@ public class VoidPtrReturnStrategy implements ReturnStrategy {
 
   @Override
   public JExpr marshall(GExpr expr) {
-    return expr.toVoidPtrExpr().unwrap();
+    return expr.toVoidPtrExpr().jexpr();
   }
 
   @Override

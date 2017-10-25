@@ -31,11 +31,11 @@ import org.renjin.repackaged.asm.Type;
 public class ComplexCmpGenerator implements ConditionGenerator {
 
   private GimpleOp op;
-  private ComplexValue x;
-  private ComplexValue y;
+  private ComplexExpr x;
+  private ComplexExpr y;
   private Type type;
   
-  public ComplexCmpGenerator(GimpleOp op, ComplexValue x, ComplexValue y) {
+  public ComplexCmpGenerator(GimpleOp op, ComplexExpr x, ComplexExpr y) {
     this.op = op;
     this.x = x;
     this.y = y;

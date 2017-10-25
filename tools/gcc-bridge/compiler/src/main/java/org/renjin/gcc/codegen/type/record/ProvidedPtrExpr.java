@@ -26,14 +26,17 @@ import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
-import org.renjin.gcc.codegen.type.fun.FunPtr;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.fun.FunPtrExpr;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveExpr;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveType;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.GimpleOp;
-import org.renjin.gcc.gimple.type.*;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.RecordUnitPtr;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
@@ -60,7 +63,7 @@ public class ProvidedPtrExpr implements RefPtrExpr {
   
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
-    ((JLValue) ref).store(mv, rhs.toProvidedPtrExpr(ref.getType()).unwrap());
+    ((JLValue) ref).store(mv, rhs.toProvidedPtrExpr(ref.getType()).jexpr());
   }
 
   @Override
@@ -71,7 +74,7 @@ public class ProvidedPtrExpr implements RefPtrExpr {
     return address;
   }
 
-  public JExpr unwrap() {
+  public JExpr jexpr() {
     return ref;
   }
 
@@ -88,7 +91,7 @@ public class ProvidedPtrExpr implements RefPtrExpr {
 
   @Override
   public void memorySet(MethodGenerator mv, JExpr byteValue, JExpr length) {
-    unwrap().load(mv);
+    jexpr().load(mv);
     byteValue.load(mv);
     length.load(mv);
     mv.invokevirtual(getJvmType(), "memset",
@@ -137,12 +140,12 @@ public class ProvidedPtrExpr implements RefPtrExpr {
 
   @Override
   public ConditionGenerator comparePointer(MethodGenerator mv, GimpleOp op, GExpr otherPointer) {
-    return new RefConditionGenerator(op, unwrap(), otherPointer.toProvidedPtrExpr(getJvmType()).unwrap());
+    return ReferenceConditions.compare(op, jexpr(), otherPointer.toProvidedPtrExpr(getJvmType()).jexpr());
   }
 
   @Override
-  public FunPtr toFunPtr() {
-    return FunPtr.NULL_PTR;
+  public FunPtrExpr toFunPtr() {
+    return FunPtrExpr.NULL_PTR;
   }
 
   @Override
@@ -151,18 +154,13 @@ public class ProvidedPtrExpr implements RefPtrExpr {
   }
 
   @Override
-  public PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException {
-    return new PrimitiveValue(GimpleIntegerType.unsigned(32), Expressions.identityHash(ref)).toPrimitiveExpr(targetType);
+  public PrimitiveExpr toPrimitiveExpr() throws UnsupportedCastException {
+    return PrimitiveType.UINT32.fromStackValue(Expressions.identityHash(ref));
   }
 
   @Override
   public VoidPtrExpr toVoidPtrExpr() throws UnsupportedCastException {
     return new VoidPtrExpr(ref);
-  }
-
-  @Override
-  public RecordArrayExpr toRecordArrayExpr() throws UnsupportedCastException {
-    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
@@ -173,7 +171,7 @@ public class ProvidedPtrExpr implements RefPtrExpr {
 
   @Override
   public ProvidedPtrExpr toProvidedPtrExpr(Type jvmType) {
-    return new ProvidedPtrExpr(Expressions.cast(unwrap(), jvmType));
+    return new ProvidedPtrExpr(Expressions.cast(jexpr(), jvmType));
   }
 
   @Override
@@ -199,7 +197,7 @@ public class ProvidedPtrExpr implements RefPtrExpr {
   @Override
   public void memoryCopy(MethodGenerator mv, PtrExpr source, JExpr length, boolean buffer) {
     ref.load(mv);
-    source.toProvidedPtrExpr(getJvmType()).unwrap().load(mv);
+    source.toProvidedPtrExpr(getJvmType()).jexpr().load(mv);
     mv.invokevirtual(getJvmType(), "set", Type.getMethodDescriptor(Type.VOID_TYPE, getJvmType()), false);
   }
 }

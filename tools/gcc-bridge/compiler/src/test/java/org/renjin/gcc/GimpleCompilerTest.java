@@ -858,48 +858,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
   @Test
   public void unsignedToSigned() throws Exception {
-    Class clazz = compile("to_signed.c");
-    Method charToUnsigned16 = clazz.getMethod("charToUnsigned16", byte.class);
-
-    assertThat((Integer) charToUnsigned16.invoke(null, (byte) 0), equalTo(0));
-    assertThat((Integer) charToUnsigned16.invoke(null, (byte) 120), equalTo(120));
-    assertThat((Integer) charToUnsigned16.invoke(null, (byte) -62), equalTo(65474));
-
-
-    Method int16ToUnsigned32 = clazz.getMethod("int16ToUnsigned32", short.class);
-    assertThat((Integer) int16ToUnsigned32.invoke(null, (short) 0), equalTo(0));
-    assertThat((Integer) int16ToUnsigned32.invoke(null, (short) 4096), equalTo(0x1000));
-    assertThat((Integer) int16ToUnsigned32.invoke(null, (short) -34), equalTo(0xffffffde));
-    assertThat((Integer) int16ToUnsigned32.invoke(null, (short) -4142), equalTo(0xffffefd2));
-
-    Method uint32ToInt8 = clazz.getMethod("uint32ToInt8", int.class);
-    assertThat((Byte) uint32ToInt8.invoke(null, 0), equalTo((byte) 0));
-    assertThat((Byte) uint32ToInt8.invoke(null, 3000), equalTo((byte) -72));
-    assertThat((Byte) uint32ToInt8.invoke(null, 4096), equalTo((byte) 0));
-    assertThat((Byte) uint32ToInt8.invoke(null, 0xffffffff), equalTo((byte) -1));
-    assertThat((Byte) uint32ToInt8.invoke(null, 0xfffffffe), equalTo((byte) -2));
-
-    Method uint32ToInt16 = clazz.getMethod("uint32ToInt16", int.class);
-    assertThat((Short) uint32ToInt16.invoke(null, 0), equalTo((short) 0));
-    assertThat((Short) uint32ToInt16.invoke(null, 0xbb8), equalTo((short) 3000));
-    assertThat((Short) uint32ToInt16.invoke(null, 0x40000), equalTo((short) 0));
-
-    Method uint32ToUint16 = clazz.getMethod("uint32ToUint16", int.class);
-    assertThat((Character) uint32ToUint16.invoke(null, 0), equalTo((char) 0));
-    assertThat((Character) uint32ToUint16.invoke(null, 0x402), equalTo((char) 1026));
-    assertThat((Character) uint32ToUint16.invoke(null, 0x1000), equalTo((char) 4096));
-    assertThat((Character) uint32ToUint16.invoke(null, 0xFFFF), equalTo((char) 65535));
-    assertThat((Character) uint32ToUint16.invoke(null, 0x10003), equalTo((char) 3));
-
-    Method uint32ToUint64 = clazz.getMethod("uint32ToUint64", int.class);
-    assertThat((Long) uint32ToUint64.invoke(null, 0), equalTo((long) 0));
-    assertThat((Long) uint32ToUint64.invoke(null, 0xFF), equalTo(0xFFL));
-    assertThat((Long) uint32ToUint64.invoke(null, 0xFFFFFFFF), equalTo(0xFFFFFFFFL));
-
-    Method uint16ToUint64 = clazz.getMethod("uint32ToUint64", int.class);
-    assertThat((Long) uint16ToUint64.invoke(null, 0), equalTo((long) 0));
-    assertThat((Long) uint16ToUint64.invoke(null, 0xFF), equalTo(0xFFL));
-    assertThat((Long) uint16ToUint64.invoke(null, 0xFFFFFFFF), equalTo(0xFFFFFFFFL));
+    compileAndTest("to_signed.c");
   }
 
   @Test

@@ -21,47 +21,28 @@
 package org.renjin.gcc.codegen.type;
 
 import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.type.complex.ComplexExpr;
 
+/**
+ * Common interface to Complex, Integer, and Real
+ */
 public interface NumericExpr extends GExpr {
 
-  GExpr plus(GExpr generator);
+  NumericExpr plus(GExpr operand);
 
-  GExpr minus(GExpr numericExpr);
+  NumericExpr minus(GExpr numericExpr);
 
-  GExpr multiply(GExpr generator);
+  NumericExpr multiply(GExpr operand);
 
-  GExpr divide(GExpr generator);
+  NumericExpr divide(GExpr operand);
 
-  GExpr remainder(GExpr generator);
+  NumericExpr negative();
 
-  GExpr bitwiseExclusiveOr(GExpr generator);
+  NumericExpr min(GExpr operand);
 
-  GExpr bitwiseNot(GExpr generator);
+  NumericExpr max(GExpr operand);
 
-  GExpr bitwiseAnd(GExpr generator);
+  NumericExpr absoluteValue();
 
-  GExpr shiftLeft(GExpr generator);
-
-  GExpr shiftRight(GExpr generator);
-
-  GExpr circularShiftLeft(GExpr generator);
-
-  GExpr logicalNot(GExpr generator);
-
-  GExpr negative(GExpr generator);
-
-  GExpr logicalAnd(GExpr generator);
-
-  GExpr logicalOr(GExpr generator);
-
-  GExpr logicalExclusiveOr(GExpr generator);
-
-  GExpr equalTo(GExpr generator);
-
-  GExpr min(GExpr generator);
-
-  GExpr max(GExpr generator);
-
-  GExpr absoluteValue();
-
+  ComplexExpr toComplexExpr();
 }

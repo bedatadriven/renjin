@@ -47,10 +47,10 @@ public class ComplexReturnStrategy implements ReturnStrategy {
 
   @Override
   public JExpr marshall(GExpr expr) {
-    ComplexValue complexValue = (ComplexValue) expr;
+    ComplexExpr complexExpr = (ComplexExpr) expr;
     return Expressions.newArray(
-        complexValue.getRealJExpr(),
-        complexValue.getImaginaryJExpr());
+        complexExpr.getRealJExpr(),
+        complexExpr.getImaginaryJExpr());
   }
 
   @Override
@@ -62,7 +62,7 @@ public class ComplexReturnStrategy implements ReturnStrategy {
     JExpr realValue = Expressions.elementAt(array, 0);
     JExpr imaginaryValue = Expressions.elementAt(array, 1);
     
-    return new ComplexValue(realValue, imaginaryValue);
+    return new ComplexExpr(realValue, imaginaryValue);
   }
 
   @Override

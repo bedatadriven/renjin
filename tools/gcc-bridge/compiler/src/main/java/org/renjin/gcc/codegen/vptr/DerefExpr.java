@@ -22,30 +22,25 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
-import org.renjin.gcc.codegen.type.primitive.ConstantValue;
-import org.renjin.gcc.codegen.type.primitive.op.PrimitiveBinOpGenerator;
+import org.renjin.gcc.codegen.expr.ConstantValue;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.Ptr;
-import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nonnull;
 
 class DerefExpr implements JLValue {
 
-  private JExpr pointer;
-  private JExpr offsetBytes;
-  private PointerType pointerType;
+  private final JExpr pointer;
+  private final JExpr offsetBytes;
+  private final PointerType pointerType;
 
   public DerefExpr(JExpr pointer, JExpr offsetBytes, PointerType pointerType) {
     this.pointer = pointer;
     this.offsetBytes = offsetBytes;
     this.pointerType = pointerType;
   }
-
-  public DerefExpr(JExpr pointer, PointerType pointerType) {
-    this(pointer, Expressions.zero(), pointerType);
-  }
-
 
   @Nonnull
   @Override
@@ -113,18 +108,18 @@ class DerefExpr implements JLValue {
       }
     }
 
-    if(offsetBytes instanceof PrimitiveBinOpGenerator) {
-      PrimitiveBinOpGenerator op = (PrimitiveBinOpGenerator) offsetBytes;
-      if(op.getOpCode() == Opcodes.IMUL) {
-
-        if(isConstantEqualTo(op.getX(), pointerType.getSize())) {
-          return op.getY();
-        }
-        if(isConstantEqualTo(op.getY(), pointerType.getSize())) {
-          return op.getX();
-        }
-      }
-    }
+//    if(offsetBytes instanceof PrimitiveBinOpGenerator) {
+//      PrimitiveBinOpGenerator op = (PrimitiveBinOpGenerator) offsetBytes;
+//      if(op.getOpCode() == Opcodes.IMUL) {
+//
+//        if(isConstantEqualTo(op.getX(), pointerType.getSize())) {
+//          return op.getY();
+//        }
+//        if(isConstantEqualTo(op.getY(), pointerType.getSize())) {
+//          return op.getX();
+//        }
+//      }
+//    }
     return null;
   }
 

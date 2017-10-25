@@ -24,16 +24,13 @@ import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
-import org.renjin.gcc.codegen.type.primitive.op.CastGenerator;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
-import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
 
 public class PrimitiveReturnStrategy implements ReturnStrategy {
 
-  private final GimplePrimitiveType type;
+  private final PrimitiveType type;
 
-  public PrimitiveReturnStrategy(GimplePrimitiveType type) {
+  public PrimitiveReturnStrategy(PrimitiveType type) {
     this.type = type;
   }
 
@@ -44,12 +41,12 @@ public class PrimitiveReturnStrategy implements ReturnStrategy {
 
   @Override
   public JExpr marshall(GExpr expr) {
-    return expr.toPrimitiveExpr(type).unwrap();
+    return expr.toPrimitiveExpr().jexpr();
   }
 
   @Override
   public GExpr unmarshall(MethodGenerator mv, JExpr callExpr, TypeStrategy lhsTypeStrategy) {
-    return new PrimitiveValue(type, Expressions.castPrimitive(callExpr, type.jvmType()));
+    return type.fromNonStackValue(Expressions.castPrimitive(callExpr, type.jvmType()));
   }
 
   @Override

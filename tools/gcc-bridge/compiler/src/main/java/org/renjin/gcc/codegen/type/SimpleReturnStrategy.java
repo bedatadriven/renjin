@@ -46,7 +46,7 @@ public final class SimpleReturnStrategy implements ReturnStrategy {
 
   @Override
   public JExpr marshall(GExpr expr) {
-    return ((GSimpleExpr) expr).unwrap();
+    return ((GSimpleExpr) expr).jexpr();
   }
 
   @Override

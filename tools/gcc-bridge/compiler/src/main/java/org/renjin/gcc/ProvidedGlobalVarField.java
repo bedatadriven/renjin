@@ -28,6 +28,7 @@ import org.renjin.gcc.codegen.vptr.VPtrRecordTypeStrategy;
 import org.renjin.gcc.codegen.vptr.VPtrStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.runtime.Ptr;
 
@@ -50,7 +51,7 @@ public class ProvidedGlobalVarField implements ProvidedGlobalVar  {
       strategy = typeOracle.getRecordTypes().getPointerStrategyFor(field.getType());
 
     } else if(field.getType().isPrimitive()) {
-      strategy = new PrimitiveTypeStrategy(field.getType());
+      strategy = new PrimitiveTypeStrategy((GimplePrimitiveType) decl.getType());
 
     } else if (field.getType().equals(MethodHandle[].class) && decl.getType() instanceof GimpleArrayType) {
       GimpleArrayType arrayType = (GimpleArrayType) decl.getType();

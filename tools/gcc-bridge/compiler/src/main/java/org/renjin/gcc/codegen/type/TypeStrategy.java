@@ -94,5 +94,4 @@ public interface TypeStrategy<ExprT extends GExpr> {
    */
   ExprT cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException;
 
-
 }

@@ -27,17 +27,15 @@ import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveExpr;
 import org.renjin.gcc.codegen.type.record.ProvidedPtrExpr;
-import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
-import org.renjin.gcc.codegen.type.record.RefConditionGenerator;
+import org.renjin.gcc.codegen.type.record.ReferenceConditions;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.FunctionPtr1;
@@ -48,28 +46,28 @@ import org.renjin.repackaged.asm.Type;
 import java.lang.invoke.MethodHandle;
 
 
-public class FunPtr implements RefPtrExpr {
+public class FunPtrExpr implements RefPtrExpr {
 
-  public static final FunPtr NULL_PTR = new FunPtr();
+  public static final FunPtrExpr NULL_PTR = new FunPtrExpr();
 
   private JExpr methodHandleExpr;
   private FatPtr address;
 
-  private FunPtr() {
+  private FunPtrExpr() {
     this.methodHandleExpr = Expressions.nullRef(Type.getType(MethodHandle.class));
   }
 
-  public FunPtr(JExpr methodHandleExpr) {
+  public FunPtrExpr(JExpr methodHandleExpr) {
     this.methodHandleExpr = methodHandleExpr;
     this.address = null;
   }
 
-  public FunPtr(JExpr methodHandleExpr, FatPtr address) {
+  public FunPtrExpr(JExpr methodHandleExpr, FatPtr address) {
     this.methodHandleExpr = methodHandleExpr;
     this.address = address;
   }
 
-  public JExpr unwrap() {
+  public JExpr jexpr() {
     return methodHandleExpr;
   }
 
@@ -87,7 +85,7 @@ public class FunPtr implements RefPtrExpr {
   }
 
   @Override
-  public FunPtr toFunPtr() {
+  public FunPtrExpr toFunPtr() {
     return this;
   }
 
@@ -97,18 +95,13 @@ public class FunPtr implements RefPtrExpr {
   }
 
   @Override
-  public PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException {
+  public PrimitiveExpr toPrimitiveExpr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
   public VoidPtrExpr toVoidPtrExpr() throws UnsupportedCastException {
     return new VoidPtrExpr(methodHandleExpr, address);
-  }
-
-  @Override
-  public RecordArrayExpr toRecordArrayExpr() throws UnsupportedCastException {
-    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
@@ -181,6 +174,6 @@ public class FunPtr implements RefPtrExpr {
 
   @Override
   public ConditionGenerator comparePointer(MethodGenerator mv, GimpleOp op, GExpr otherPointer) {
-    return new RefConditionGenerator(op, unwrap(), otherPointer.toFunPtr().unwrap());
+    return ReferenceConditions.compare(op, jexpr(), otherPointer.toFunPtr().jexpr());
   }
 }

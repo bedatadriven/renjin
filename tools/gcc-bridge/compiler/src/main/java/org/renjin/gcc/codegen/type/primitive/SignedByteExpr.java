@@ -1,0 +1,189 @@
+/*
+ * Renjin : JVM-based interpreter for the R language for the statistical analysis
+ * Copyright © 2010-${year} BeDataDriven Groep B.V. and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, a copy is available at
+ *  https://www.gnu.org/licenses/gpl-2.0.txt
+ *
+ */
+
+package org.renjin.gcc.codegen.type.primitive;
+
+import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.condition.ConditionGenerator;
+import org.renjin.gcc.codegen.condition.IntegerComparison;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimpleRealType;
+
+import javax.annotation.Nullable;
+
+import static org.renjin.gcc.codegen.expr.Expressions.i2b;
+import static org.renjin.gcc.codegen.expr.Expressions.i2l;
+
+/**
+ * Signed 8-bit value
+ */
+public class SignedByteExpr extends AbstractIntExpr implements IntExpr {
+
+  public SignedByteExpr(JExpr expr, @Nullable GExpr address) {
+    super(expr, address);
+  }
+
+  public SignedByteExpr(JExpr expr) {
+    this(expr, null);
+  }
+
+  @Override
+  public void store(MethodGenerator mv, GExpr rhs) {
+    ((JLValue) jexpr()).store(mv, jexpr(rhs));
+  }
+
+  @Override
+  public IntExpr plus(GExpr operand) {
+    return lift(i2b(Expressions.sum(jexpr(), jexpr(operand))));
+  }
+
+  @Override
+  public IntExpr minus(GExpr operand) {
+    return lift(i2b(Expressions.difference(jexpr(), jexpr(operand))));
+  }
+
+  @Override
+  public IntExpr multiply(GExpr operand) {
+    return lift(i2b(Expressions.product(jexpr(), jexpr(operand))));
+  }
+
+  @Override
+  public IntExpr divide(GExpr operand) {
+    return lift(i2b(Expressions.divide(jexpr(), jexpr(operand))));
+  }
+
+  @Override
+  public IntExpr negative() {
+    return lift(i2b(Expressions.negative(jexpr())));
+
+  }
+
+  @Override
+  public IntExpr min(GExpr operand) {
+    return lift(Expressions.staticMethodCall(Math.class, "min", "(II)I"));
+  }
+
+  @Override
+  public IntExpr max(GExpr operand) {
+    return lift(Expressions.staticMethodCall(Math.class, "max", "(II)I"));
+  }
+
+  @Override
+  public IntExpr absoluteValue() {
+    return lift(Expressions.staticMethodCall(Math.class, "abs", "(I)I"));
+  }
+
+  @Override
+  public IntExpr remainder(GExpr operand) {
+    return lift(i2b(Expressions.remainder(jexpr(), jexpr(operand))));
+  }
+
+  @Override
+  public ConditionGenerator compareTo(GimpleOp op, GExpr operand) {
+    return new IntegerComparison(op, jexpr(), jexpr(operand));
+  }
+
+  @Override
+  public IntExpr bitwiseExclusiveOr(GExpr operand) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public IntExpr bitwiseNot() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public IntExpr bitwiseAnd(GExpr operand) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public IntExpr bitwiseOr(GExpr operand) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public IntExpr shiftLeft(GExpr operand) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public IntExpr shiftRight(GExpr operand) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public IntExpr circularShiftLeft(GExpr operand) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+
+  @Override
+  public RealExpr toRealExpr() {
+    return toReal(32);
+  }
+
+  @Override
+  public IntExpr toSignedInt(int precision) {
+    switch (precision) {
+      case 8:
+        return this;
+      case 16:
+        return new ShortExpr(jexpr());
+      case 32:
+        return new SignedIntExpr(jexpr());
+      case 64:
+        return new SignedLongExpr(i2l(jexpr()));
+    }
+    throw new IllegalArgumentException("signed" + precision);
+  }
+
+  @Override
+  public IntExpr toUnsignedInt(int precision) {
+    switch (precision) {
+      case 8:
+        return new UnsignedSmallIntExpr(8, Expressions.bitwiseAnd(jexpr(), 0xFF));
+      case 16:
+        return new UnsignedSmallIntExpr(16, Expressions.i2c(jexpr()));
+      case 32:
+        return new UnsignedInt32Expr(jexpr());
+    }
+    throw new UnsupportedOperationException("unsigned" + precision);
+  }
+
+  @Override
+  public RealExpr toReal(int precision) {
+    return new RealExpr(new GimpleRealType(32), Expressions.i2f(jexpr())).toReal(precision);
+  }
+
+  private JExpr jexpr(GExpr operand) {
+    return operand.toPrimitiveExpr().toSignedInt(8).jexpr();
+  }
+
+  private IntExpr lift(JExpr expr) {
+    return new SignedByteExpr(expr);
+  }
+
+}

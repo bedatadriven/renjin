@@ -27,7 +27,6 @@ import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
-import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
@@ -61,18 +60,13 @@ public class DereferencedVoidPtr extends VoidPtrExpr {
       
       JExpr call = Expressions.staticMethodCall(Type.getType(org.renjin.gcc.runtime.VoidPtr.class),
           "assign", assignDescriptor,
-          array, offset, ((VoidPtrExpr) rhs).unwrap());
+          array, offset, ((VoidPtrExpr) rhs).jexpr());
       
       call.load(mv);
 
     } else {
       super.store(mv, rhs); 
     }
-  }
-
-  @Override
-  public RecordArrayExpr toRecordArrayExpr() throws UnsupportedCastException {
-    throw new UnsupportedOperationException("TODO");
   }
 
   @Override

@@ -36,7 +36,7 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
 
-public class ProvidedPtrStrategy implements PointerTypeStrategy<ProvidedPtrExpr>, SimpleTypeStrategy<ProvidedPtrExpr> {
+public class ProvidedPtrStrategy implements PointerTypeStrategy<ProvidedPtrExpr> {
   
   private ProvidedTypeStrategy strategy;
   private ProvidedPtrValueFunction valueFunction;
@@ -143,11 +143,6 @@ public class ProvidedPtrStrategy implements PointerTypeStrategy<ProvidedPtrExpr>
 
   public Type getJvmType() {
     return strategy.getJvmType();
-  }
-
-  @Override
-  public ProvidedPtrExpr wrap(JExpr expr) {
-    return new ProvidedPtrExpr(expr);
   }
 
   @Override

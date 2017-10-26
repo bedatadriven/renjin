@@ -239,7 +239,7 @@ public class UnitClassGenerator {
     }
 
     for (FunctionGenerator function : symbolTable.getFunctions()) {
-      function.emitLocalStaticVarInitialization(mv);
+      function.emitLocalStaticVarInitialization(mv, new ExprFactory(typeOracle, symbolTable, mv));
     }
 
     mv.visitInsn(RETURN);
@@ -284,7 +284,6 @@ public class UnitClassGenerator {
     } catch (Exception e) {
       System.err.println("Warning: could not generate code for global variable " + decl.getMangledName() +
           ": " + e.getMessage());
-      throw new InternalCompilerException(e);
     }
   }
 

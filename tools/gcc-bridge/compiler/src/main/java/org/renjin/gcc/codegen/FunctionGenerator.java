@@ -301,7 +301,7 @@ public class FunctionGenerator implements InvocationStrategy {
     }
   }
 
-  public void emitLocalStaticVarInitialization(MethodGenerator mv) {
+  public void emitLocalStaticVarInitialization(MethodGenerator mv, ExprFactory exprFactory) {
 
     if(compilationFailed) {
       return;

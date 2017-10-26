@@ -136,11 +136,11 @@ public class NativeSourceBuilder {
       if(!source.isCXX11()) {
         System.out.println("Checking wether in Makevars CXX_STD is set to CXX11... yes");
       }
-      commandLine.add("CXX=g++-4.7 -std=gnu++11");
-      commandLine.add("CXXFLAGS=${RENJIN_FLAGS} -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g $(LTO)");
-      commandLine.add("CXXPICFLAGS=-fpic");
-      commandLine.add("SHLIB_LDFLAGS=-shared# $(CFLAGS) $(CPICFLAGS)");
-      commandLine.add("SHLIB_LD=$(CC)");
+      commandLine.add("CXX=$(CXX11) $(CXX11STD)");
+      commandLine.add("CXXFLAGS=$(CXX11FLAGS)");
+      commandLine.add("CXXPICFLAGS=$(CXX11PICFLAGS)");
+      commandLine.add("SHLIB_LDFLAGS=$(SHLIB_CXX11LDFLAGS)");
+      commandLine.add("SHLIB_LD=$(SHLIB_CXX11LD)");
     } else {
       System.out.println("Checking wether in Makevars CXX_STD is set to CXX11... no");
     }

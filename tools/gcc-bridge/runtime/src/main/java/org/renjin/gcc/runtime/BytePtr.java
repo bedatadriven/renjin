@@ -118,7 +118,7 @@ public class BytePtr extends AbstractPtr {
    * @param n the number of bytes to set
    */
   public static void memset(byte[] str, int strOffset, int c, int n) {
-    Arrays.fill(str, strOffset, strOffset + (n / Double.SIZE), (byte)c);
+    Arrays.fill(str, strOffset, strOffset + n, (byte)c);
   }
 
   public static byte memset(int c) {

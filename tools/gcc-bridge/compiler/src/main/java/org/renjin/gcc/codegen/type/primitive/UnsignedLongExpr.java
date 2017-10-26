@@ -121,12 +121,12 @@ public class UnsignedLongExpr extends AbstractIntExpr {
 
   @Override
   public UnsignedLongExpr shiftLeft(GExpr operand) {
-    return lift(Expressions.shiftLeft(jexpr(), jexpr(operand)));
+    return lift(Expressions.shiftLeft(jexpr(), bits(operand)));
   }
 
   @Override
   public UnsignedLongExpr shiftRight(GExpr operand) {
-    return lift(Expressions.unsignedShiftRight(jexpr(), jexpr(operand)));
+    return lift(Expressions.unsignedShiftRight(jexpr(), bits(operand)));
   }
 
   @Override
@@ -179,7 +179,8 @@ public class UnsignedLongExpr extends AbstractIntExpr {
       case NE_EXPR:
         return new Comparison(op, Expressions.lcmp(jexpr(), jexpr(operand)));
       default:
-        throw new UnsupportedOperationException("TODO");
+        return new Comparison(op, Expressions.staticMethodCall(LongPtr.class, "compareUnsigned", "(JJ)I",
+            jexpr(), jexpr(operand)));
     }
   }
 

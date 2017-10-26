@@ -621,7 +621,7 @@ public class Expressions {
   }
 
   public static JExpr unsignedShiftRight(JExpr jexpr, JExpr bits) {
-    return binary(Opcodes.ISHR, jexpr, bits, promoteSmallInts(jexpr.getType()));
+    return binary(Opcodes.IUSHR, jexpr, bits, promoteSmallInts(jexpr.getType()));
   }
 
   public static JLValue localVariable(final Type type, final int index) {

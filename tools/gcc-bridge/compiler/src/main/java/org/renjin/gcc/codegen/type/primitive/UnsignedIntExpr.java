@@ -140,7 +140,7 @@ public class UnsignedIntExpr extends AbstractIntExpr {
 
   @Override
   public GExpr rotateLeft(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+    return lift(Expressions.staticMethodCall(Integer.class, "rotateLeft", "(II)I", jexpr(), bits(operand)));
   }
 
   @Override

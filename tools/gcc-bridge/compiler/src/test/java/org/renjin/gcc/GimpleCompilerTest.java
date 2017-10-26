@@ -1217,5 +1217,10 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void fortranBooleanArg() throws Exception {
     compileAndTest("const_bool_arg.f");
   }
+
+  @Test
+  public void sha256() throws Exception {
+    compileAndTest("sha256.c");
+  }
 }
 

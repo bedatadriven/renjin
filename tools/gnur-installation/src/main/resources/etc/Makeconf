@@ -51,15 +51,15 @@ CXXCPP = $(CXX) -E
 CXXFLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g $(LTO)
 CXXPICFLAGS = -fpic
 CXX98 = g++-4.7
-CXX98FLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -g
+CXX98FLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g
 CXX98PICFLAGS = -fpic
 CXX98STD =
 CXX11 = g++-4.7
-CXX11FLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS}  -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -g
+CXX11FLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS}  -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g
 CXX11PICFLAGS = -fpic
 CXX11STD = -std=gnu++11
 CXX14 = g++-4.7
-CXX14FLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -g
+CXX14FLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g
 CXX14PICFLAGS = -fpic
 CXX14STD = -std=gnu++14
 CXX17 =
@@ -163,7 +163,7 @@ YACC = bison -y
 
 ## legacy
 CXX1X = g++-4.7
-CXX1XFLAGS = ${RENJIN_FLAGS} -g -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -g
+CXX1XFLAGS = ${RENJIN_FLAGS} -g -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g
 CXX1XPICFLAGS = -fpic
 CXX1XSTD = -std=gnu++11
 SHLIB_CXX1XLD = $(CXX11) $(CXX11STD)

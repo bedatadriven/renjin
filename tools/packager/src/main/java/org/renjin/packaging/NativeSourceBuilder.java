@@ -120,10 +120,30 @@ public class NativeSourceBuilder {
 
     commandLine.add("SHLIB='dummy.so'");
 
-    if(!objectsDefinedByMakeVars(makevars)) {
+    if(!definedByMakeVars(makevars, "^OBJECTS\\s*=")) {
       commandLine.add("OBJECTS=" + findObjectFiles());
     }
     commandLine.add("BRIDGE_PLUGIN=" + buildContext.getGccBridgePlugin().getAbsolutePath());
+
+    // Packages using native code can defined the C++ standard in DESCRIPTION file
+    // SystemRequirements fields or in Makevars file as CXX_STD variable. Using this
+    // information, GNU R (src/library/tools/R/install.R), overwrites the flags as
+    // defined in Makeconf. In Renjin, we check whether if the CXX11 flag is set in
+    // DESCRIPTION or Makevars and overwrite the flags that install.R would otherwise
+    // overwrite. We should add other cases from install.R ones we move to new version
+    // of gcc that supports C++14 and C++17.
+    if(definedByMakeVars(makevars, "(CXX_STD)\\W+(CXX11)") || source.isCXX11()) {
+      if(!source.isCXX11()) {
+        System.out.println("Checking wether in Makevars CXX_STD is set to CXX11... yes");
+      }
+      commandLine.add("CXX=g++-4.7 -std=gnu++11");
+      commandLine.add("CXXFLAGS=${RENJIN_FLAGS} -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g $(LTO)");
+      commandLine.add("CXXPICFLAGS=-fpic");
+      commandLine.add("SHLIB_LDFLAGS=-shared# $(CFLAGS) $(CPICFLAGS)");
+      commandLine.add("SHLIB_LD=$(CC)");
+    } else {
+      System.out.println("Checking wether in Makevars CXX_STD is set to CXX11... no");
+    }
 
     buildContext.getLogger().debug("Executing " + Joiner.on(" ").join(commandLine));
 
@@ -202,12 +222,12 @@ public class NativeSourceBuilder {
     }
   }
 
-  private boolean objectsDefinedByMakeVars(File makevars) throws IOException {
+  private boolean definedByMakeVars(File makevars, String pattern) throws IOException {
     if(!makevars.exists()) {
       return false;
     }
 
-    final Pattern definitionRegexp = Pattern.compile("^OBJECTS\\s*=");
+    final Pattern definitionRegexp = Pattern.compile(pattern);
 
     return Files.readLines(makevars, Charsets.UTF_8, new LineProcessor<Boolean>() {
 

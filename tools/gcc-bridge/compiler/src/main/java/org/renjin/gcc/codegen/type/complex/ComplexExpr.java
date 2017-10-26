@@ -39,9 +39,7 @@ import org.renjin.gcc.gimple.type.GimpleRealType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.repackaged.asm.Type;
 
-import static org.renjin.gcc.codegen.expr.Expressions.difference;
-import static org.renjin.gcc.codegen.expr.Expressions.product;
-import static org.renjin.gcc.codegen.expr.Expressions.sum;
+import static org.renjin.gcc.codegen.expr.Expressions.*;
 
 
 /**
@@ -216,6 +214,11 @@ public class ComplexExpr implements NumericExpr {
   }
 
   @Override
+  public NumericExpr remainder(GExpr operand) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public NumericExpr negative() {
     throw new UnsupportedOperationException("TODO");
   }
@@ -238,5 +241,10 @@ public class ComplexExpr implements NumericExpr {
   @Override
   public ComplexExpr toComplexExpr() {
     return this;
+  }
+
+  @Override
+  public RealExpr toRealExpr() {
+    return new RealExpr(getGimpleComponentType(), getRealJExpr());
   }
 }

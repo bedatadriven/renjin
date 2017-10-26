@@ -88,35 +88,35 @@ public class UnsignedSmallIntExpr extends AbstractIntExpr {
     throw new UnsupportedOperationException("Negative value of unsigned integer??");
   }
   @Override
-  public IntExpr min(GExpr operand) {
+  public UnsignedSmallIntExpr min(GExpr operand) {
     // No need to truncate - result will be in range if both arguments are in range
     return lift(Expressions.staticMethodCall(Math.class, "min", "(II)I"));
   }
 
   @Override
-  public IntExpr max(GExpr operand) {
+  public UnsignedSmallIntExpr max(GExpr operand) {
     // No need to truncate - result will be in range if both arguments are in range
     return lift(Expressions.staticMethodCall(Math.class, "max", "(II)I"));
   }
 
   @Override
-  public IntExpr absoluteValue() {
+  public UnsignedSmallIntExpr absoluteValue() {
     return this;
   }
 
   @Override
-  public GExpr remainder(GExpr operand) {
+  public UnsignedSmallIntExpr remainder(GExpr operand) {
     return lift(truncate(Expressions.remainder(jexpr(), jexpr(operand))));
   }
 
   @Override
-  public GExpr bitwiseExclusiveOr(GExpr operand) {
+  public UnsignedSmallIntExpr bitwiseXor(GExpr operand) {
     // No truncation needed
     return lift(Expressions.bitwiseXor(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public GExpr bitwiseNot() {
+  public UnsignedSmallIntExpr bitwiseNot() {
     switch (precision) {
       case 8:
         return lift(Expressions.bitwiseXor(jexpr(), 0xFF));
@@ -127,33 +127,38 @@ public class UnsignedSmallIntExpr extends AbstractIntExpr {
   }
 
   @Override
-  public GExpr bitwiseAnd(GExpr operand) {
+  public UnsignedSmallIntExpr bitwiseAnd(GExpr operand) {
     return lift(Expressions.bitwiseAnd(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public GExpr bitwiseOr(GExpr operand) {
+  public UnsignedSmallIntExpr bitwiseOr(GExpr operand) {
     return lift(Expressions.bitwiseOr(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public GExpr shiftLeft(GExpr operand) {
+  public UnsignedSmallIntExpr shiftLeft(GExpr operand) {
     return lift(truncate(Expressions.shiftLeft(jexpr(), operand.toPrimitiveExpr().toSignedInt(32).jexpr())));
   }
 
   @Override
-  public GExpr shiftRight(GExpr operand) {
+  public UnsignedSmallIntExpr shiftRight(GExpr operand) {
     return lift(truncate(Expressions.shiftRight(jexpr(), operand.toPrimitiveExpr().toSignedInt(32).jexpr())));
   }
 
   @Override
-  public GExpr rotateLeft(GExpr operand) {
+  public UnsignedSmallIntExpr rotateLeft(GExpr operand) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
   public RealExpr toRealExpr() {
     return toReal(precision);
+  }
+
+  @Override
+  public BooleanExpr toBooleanExpr() {
+    return BooleanExpr.fromInt(jexpr());
   }
 
   @Override
@@ -171,10 +176,9 @@ public class UnsignedSmallIntExpr extends AbstractIntExpr {
   public IntExpr toUnsignedInt(int precision) {
     if(precision < 32) {
       return new UnsignedSmallIntExpr(precision, jexpr());
-    } else if(precision == 32) {
-      return new UnsignedIntExpr(jexpr());
+    } else {
+      return new UnsignedIntExpr(jexpr()).toUnsignedInt(precision);
     }
-    throw new UnsupportedOperationException("TODO");
   }
 
   @Override

@@ -52,48 +52,47 @@ public class SignedByteExpr extends AbstractIntExpr implements IntExpr {
   }
 
   @Override
-  public IntExpr plus(GExpr operand) {
+  public SignedByteExpr plus(GExpr operand) {
     return lift(i2b(Expressions.sum(jexpr(), jexpr(operand))));
   }
 
   @Override
-  public IntExpr minus(GExpr operand) {
+  public SignedByteExpr minus(GExpr operand) {
     return lift(i2b(Expressions.difference(jexpr(), jexpr(operand))));
   }
 
   @Override
-  public IntExpr multiply(GExpr operand) {
+  public SignedByteExpr multiply(GExpr operand) {
     return lift(i2b(Expressions.product(jexpr(), jexpr(operand))));
   }
 
   @Override
-  public IntExpr divide(GExpr operand) {
+  public SignedByteExpr divide(GExpr operand) {
     return lift(i2b(Expressions.divide(jexpr(), jexpr(operand))));
   }
 
   @Override
-  public IntExpr negative() {
+  public SignedByteExpr negative() {
     return lift(i2b(Expressions.negative(jexpr())));
-
   }
 
   @Override
-  public IntExpr min(GExpr operand) {
+  public SignedByteExpr min(GExpr operand) {
     return lift(Expressions.staticMethodCall(Math.class, "min", "(II)I"));
   }
 
   @Override
-  public IntExpr max(GExpr operand) {
+  public SignedByteExpr max(GExpr operand) {
     return lift(Expressions.staticMethodCall(Math.class, "max", "(II)I"));
   }
 
   @Override
-  public IntExpr absoluteValue() {
+  public SignedByteExpr absoluteValue() {
     return lift(Expressions.staticMethodCall(Math.class, "abs", "(I)I"));
   }
 
   @Override
-  public IntExpr remainder(GExpr operand) {
+  public SignedByteExpr remainder(GExpr operand) {
     return lift(i2b(Expressions.remainder(jexpr(), jexpr(operand))));
   }
 
@@ -103,37 +102,37 @@ public class SignedByteExpr extends AbstractIntExpr implements IntExpr {
   }
 
   @Override
-  public IntExpr bitwiseExclusiveOr(GExpr operand) {
+  public SignedByteExpr bitwiseXor(GExpr operand) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public IntExpr bitwiseNot() {
+  public SignedByteExpr bitwiseNot() {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public IntExpr bitwiseAnd(GExpr operand) {
+  public SignedByteExpr bitwiseAnd(GExpr operand) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public IntExpr bitwiseOr(GExpr operand) {
+  public SignedByteExpr bitwiseOr(GExpr operand) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public IntExpr shiftLeft(GExpr operand) {
+  public SignedByteExpr shiftLeft(GExpr operand) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public IntExpr shiftRight(GExpr operand) {
+  public SignedByteExpr shiftRight(GExpr operand) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public IntExpr rotateLeft(GExpr operand) {
+  public SignedByteExpr rotateLeft(GExpr operand) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -180,8 +179,12 @@ public class SignedByteExpr extends AbstractIntExpr implements IntExpr {
     return operand.toPrimitiveExpr().toSignedInt(8).jexpr();
   }
 
-  private IntExpr lift(JExpr expr) {
+  private SignedByteExpr lift(JExpr expr) {
     return new SignedByteExpr(expr);
   }
 
+  @Override
+  public BooleanExpr toBooleanExpr() {
+    return BooleanExpr.fromInt(jexpr());
+  }
 }

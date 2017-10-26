@@ -46,82 +46,82 @@ public class SignedLongExpr extends AbstractIntExpr {
   }
 
   @Override
-  public IntExpr plus(GExpr operand) {
+  public SignedLongExpr plus(GExpr operand) {
     return lift(Expressions.sum(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public IntExpr minus(GExpr operand) {
+  public SignedLongExpr minus(GExpr operand) {
     return lift(Expressions.difference(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public IntExpr multiply(GExpr operand) {
+  public SignedLongExpr multiply(GExpr operand) {
     return lift(Expressions.product(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public IntExpr divide(GExpr operand) {
+  public SignedLongExpr divide(GExpr operand) {
     return lift(Expressions.divide(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public IntExpr negative() {
+  public SignedLongExpr negative() {
     return lift(Expressions.negative(jexpr()));
   }
 
   @Override
-  public IntExpr min(GExpr operand) {
+  public SignedLongExpr min(GExpr operand) {
     return lift(Expressions.staticMethodCall(Math.class, "min", "(JJ)J", jexpr(), jexpr(operand)));
   }
 
   @Override
-  public IntExpr max(GExpr operand) {
+  public SignedLongExpr max(GExpr operand) {
     return lift(Expressions.staticMethodCall(Math.class, "max", "(JJ)J", jexpr(), jexpr(operand)));
   }
 
   @Override
-  public IntExpr absoluteValue() {
+  public SignedLongExpr absoluteValue() {
     return lift(Expressions.staticMethodCall(Math.class, "abs", "(J)J", jexpr()));
   }
 
   @Override
-  public GExpr remainder(GExpr operand) {
+  public SignedLongExpr remainder(GExpr operand) {
     return lift(Expressions.remainder(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public GExpr bitwiseExclusiveOr(GExpr operand) {
+  public SignedLongExpr bitwiseXor(GExpr operand) {
     return lift(Expressions.bitwiseXor(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public GExpr bitwiseNot() {
+  public SignedLongExpr bitwiseNot() {
     return lift(Expressions.bitwiseXor(jexpr(), Expressions.constantLong(-1L)));
   }
 
   @Override
-  public GExpr bitwiseAnd(GExpr operand) {
+  public SignedLongExpr bitwiseAnd(GExpr operand) {
     return lift(Expressions.bitwiseAnd(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public GExpr bitwiseOr(GExpr operand) {
+  public SignedLongExpr bitwiseOr(GExpr operand) {
     return lift(Expressions.bitwiseOr(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public GExpr shiftLeft(GExpr operand) {
+  public SignedLongExpr shiftLeft(GExpr operand) {
     return lift(Expressions.shiftLeft(jexpr(), bits(operand)));
   }
 
   @Override
-  public GExpr shiftRight(GExpr operand) {
+  public SignedLongExpr shiftRight(GExpr operand) {
     return lift(Expressions.shiftRight(jexpr(), bits(operand)));
   }
 
   @Override
-  public GExpr rotateLeft(GExpr operand) {
+  public SignedLongExpr rotateLeft(GExpr operand) {
     return lift(Expressions.staticMethodCall(Long.class, "rotateLeft", "(JI)J", jexpr(), bits(operand)));
   }
 
@@ -182,8 +182,12 @@ public class SignedLongExpr extends AbstractIntExpr {
   }
 
 
-  private IntExpr lift(JExpr expr) {
+  private SignedLongExpr lift(JExpr expr) {
     return new SignedLongExpr(expr);
   }
 
+  @Override
+  public BooleanExpr toBooleanExpr() {
+    return toSignedInt32().toBooleanExpr();
+  }
 }

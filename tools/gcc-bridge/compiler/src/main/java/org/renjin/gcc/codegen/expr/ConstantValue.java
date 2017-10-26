@@ -62,6 +62,10 @@ public class ConstantValue implements JExpr {
       case Type.LONG:
         mv.lconst(value.longValue());
         break;
+      case Type.BOOLEAN:
+      case Type.BYTE:
+      case Type.SHORT:
+      case Type.CHAR:
       case Type.INT:
         mv.iconst(value.intValue());
         break;

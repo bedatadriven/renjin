@@ -24,7 +24,8 @@ import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.complex.ComplexExpr;
 
 
-public abstract class AbstractIntExpr extends AbstractPrimitiveExpr implements IntExpr {
+public abstract class AbstractIntExpr extends AbstractPrimitiveExpr implements IntExpr, NumericExpr {
+
   protected AbstractIntExpr(JExpr expr, GExpr address) {
     super(expr, address);
   }
@@ -37,11 +38,6 @@ public abstract class AbstractIntExpr extends AbstractPrimitiveExpr implements I
   @Override
   public final IntExpr toIntExpr() {
     return this;
-  }
-
-  @Override
-  public final BooleanExpr toBooleanExpr() {
-    return new BooleanExpr(toSignedInt(32).jexpr());
   }
 
   @Override

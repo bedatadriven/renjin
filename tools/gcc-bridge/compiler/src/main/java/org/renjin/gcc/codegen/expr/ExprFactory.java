@@ -27,7 +27,6 @@ import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.condition.ConstConditionGenerator;
 import org.renjin.gcc.codegen.condition.NullCheckGenerator;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
-import org.renjin.gcc.codegen.type.PointerTypeStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
@@ -41,6 +40,7 @@ import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.symbols.SymbolTable;
 
+import java.util.Collections;
 import java.util.List;
 
 
@@ -57,7 +57,6 @@ public class ExprFactory {
     this.symbolTable = symbolTable;
     this.mv = mv;
   }
-  
 
   public GExpr findGenerator(GimpleExpr expr, GimpleType expectedType) {
     return maybeCast(findGenerator(expr), expectedType, expr.getType());
@@ -148,9 +147,10 @@ public class ExprFactory {
     } else if(expr instanceof GimpleConstantRef) {
       GimpleConstant constant = ((GimpleConstantRef) expr).getValue();
       JExpr constantValue = findPrimitiveGenerator(constant);
+      PrimitiveType primitiveType = PrimitiveType.of((GimplePrimitiveType) constant.getType());
       FatPtrPair address = new FatPtrPair(
-          new PrimitiveValueFunction(PrimitiveType.of((GimplePrimitiveType) constant.getType())),
-          Expressions.newArray(constantValue));
+          new PrimitiveValueFunction(primitiveType),
+          Expressions.newArray(primitiveType.jvmType(), Collections.singletonList(constantValue)));
       
       return PrimitiveType.of((GimplePrimitiveType) expr.getType()).fromStackValue(constantValue, address);
 
@@ -296,19 +296,16 @@ public class ExprFactory {
         return findGenerator(operands.get(0)).toNumericExpr().divide(findGenerator(operands.get(1)));
 
       case TRUNC_MOD_EXPR:
-        return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().remainder(findGenerator(operands.get(1)));
+        return findGenerator(operands.get(0)).toPrimitiveExpr().toNumericExpr().remainder(findGenerator(operands.get(1)));
 
       case BIT_IOR_EXPR:
         return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().bitwiseOr(findGenerator(operands.get(1)));
 
       case BIT_XOR_EXPR:
-        return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().bitwiseExclusiveOr(findGenerator(operands.get(1)));
+        return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().bitwiseXor(findGenerator(operands.get(1)));
 
       case BIT_AND_EXPR:
         return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().bitwiseAnd(findGenerator(operands.get(1)));
-
-      case POINTER_PLUS_EXPR:
-        return pointerPlus(operands.get(0), operands.get(1), expectedType);
 
       case BIT_NOT_EXPR:
         return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().bitwiseNot();
@@ -321,6 +318,9 @@ public class ExprFactory {
 
       case LROTATE_EXPR:
         return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().rotateLeft(findGenerator(operands.get(1)));
+
+      case POINTER_PLUS_EXPR:
+        return pointerPlus(operands.get(0), operands.get(1), expectedType);
 
       case MEM_REF:
         // Cast the pointer type first, then dereference
@@ -353,17 +353,16 @@ public class ExprFactory {
         return findGenerator(operands.get(0)).toNumericExpr().negative();
 
       case TRUTH_NOT_EXPR:
-        return findGenerator(operands.get(0)).toPrimitiveExpr().toBooleanExpr().logicalNot(findGenerator(operands.get(1)));
+        return findGenerator(operands.get(0)).toPrimitiveExpr().toBooleanExpr().bitwiseNot();
 
       case TRUTH_AND_EXPR:
-        return findGenerator(operands.get(0)).toPrimitiveExpr().toBooleanExpr().logicalAnd(findGenerator(operands.get(1)));
+        return findGenerator(operands.get(0)).toPrimitiveExpr().toBooleanExpr().bitwiseAnd(findGenerator(operands.get(1)));
 
       case TRUTH_OR_EXPR:
-        return findGenerator(operands.get(0)).toPrimitiveExpr().toBooleanExpr().logicalOr(findGenerator(operands.get(1)));
+        return findGenerator(operands.get(0)).toPrimitiveExpr().toBooleanExpr().bitwiseOr(findGenerator(operands.get(1)));
 
       case TRUTH_XOR_EXPR:
-        return findGenerator(operands.get(0)).toPrimitiveExpr().toBooleanExpr().logicalExclusiveOr(findGenerator(operands.get(1)));
-
+        return findGenerator(operands.get(0)).toPrimitiveExpr().toBooleanExpr().bitwiseXor(findGenerator(operands.get(1)));
 
       case ORDERED_EXPR:
       case UNORDERED_EXPR:

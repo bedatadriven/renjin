@@ -36,7 +36,7 @@ import static org.renjin.gcc.codegen.expr.Expressions.staticMethodCall;
 /**
  * Signed 32-bit integers.
  */
-public class SignedIntExpr extends AbstractIntExpr implements IntExpr {
+public class SignedIntExpr extends AbstractIntExpr {
 
 
   public SignedIntExpr(JExpr expr, @Nullable GExpr address) {
@@ -54,47 +54,47 @@ public class SignedIntExpr extends AbstractIntExpr implements IntExpr {
 
 
   @Override
-  public IntExpr plus(GExpr operand) {
+  public SignedIntExpr plus(GExpr operand) {
     return lift(Expressions.sum(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public IntExpr minus(GExpr operand) {
+  public SignedIntExpr minus(GExpr operand) {
     return lift(Expressions.difference(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public IntExpr multiply(GExpr operand) {
+  public SignedIntExpr multiply(GExpr operand) {
     return lift(Expressions.product(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public IntExpr divide(GExpr operand) {
+  public SignedIntExpr divide(GExpr operand) {
     return lift(Expressions.divide(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public IntExpr negative() {
+  public SignedIntExpr negative() {
     return lift(Expressions.negative(jexpr()));
   }
 
   @Override
-  public IntExpr min(GExpr operand) {
+  public SignedIntExpr min(GExpr operand) {
     return lift(staticMethodCall(Math.class, "min", "(II)I", jexpr(), jexpr(operand)));
   }
 
   @Override
-  public IntExpr max(GExpr operand) {
+  public SignedIntExpr max(GExpr operand) {
     return lift(staticMethodCall(Math.class, "max", "(II)I", jexpr(), jexpr(operand)));
   }
 
   @Override
-  public IntExpr absoluteValue() {
+  public SignedIntExpr absoluteValue() {
     return lift(staticMethodCall(Math.class, "abs", "(I)I", jexpr()));
   }
 
   @Override
-  public IntExpr remainder(GExpr operand) {
+  public SignedIntExpr remainder(GExpr operand) {
     return lift(Expressions.remainder(jexpr(), jexpr(operand)));
   }
 
@@ -104,7 +104,7 @@ public class SignedIntExpr extends AbstractIntExpr implements IntExpr {
   }
 
   @Override
-  public IntExpr bitwiseExclusiveOr(GExpr operand) {
+  public IntExpr bitwiseXor(GExpr operand) {
     return lift(Expressions.bitwiseXor(jexpr(), jexpr(operand)));
   }
 
@@ -137,7 +137,6 @@ public class SignedIntExpr extends AbstractIntExpr implements IntExpr {
   public IntExpr rotateLeft(GExpr operand) {
     return lift(Expressions.staticMethodCall(Integer.class, "rotateLeft", "(II)I", jexpr(), jexpr(operand)));
   }
-
 
   @Override
   public RealExpr toRealExpr() {
@@ -183,8 +182,12 @@ public class SignedIntExpr extends AbstractIntExpr implements IntExpr {
     return operand.toPrimitiveExpr().toSignedInt(32).jexpr();
   }
 
-  private IntExpr lift(JExpr expr) {
+  private SignedIntExpr lift(JExpr expr) {
     return new SignedIntExpr(expr);
   }
 
+  @Override
+  public BooleanExpr toBooleanExpr() {
+    return BooleanExpr.fromInt(jexpr());
+  }
 }

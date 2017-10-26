@@ -21,6 +21,7 @@ package org.renjin.gcc.codegen.type.primitive;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.condition.IntegerComparison;
+import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
@@ -33,7 +34,7 @@ import javax.annotation.Nullable;
  * Logical boolean. Stored as 32-bit signed integer on the stack, something
  * else in arrays and fields...
  */
-public class BooleanExpr extends AbstractPrimitiveExpr {
+public class BooleanExpr extends AbstractPrimitiveExpr implements IntExpr {
 
 
   public BooleanExpr(JExpr expr, @Nullable GExpr address) {
@@ -44,14 +45,18 @@ public class BooleanExpr extends AbstractPrimitiveExpr {
     this(jexpr, null);
   }
 
+  public static BooleanExpr fromInt(JExpr expr) {
+    return new BooleanExpr(Expressions.bitwiseAnd(expr, 0x1));
+  }
+
   @Override
   public IntExpr toIntExpr() {
-    return new SignedIntExpr(jexpr());
+    return this;
   }
 
   @Override
   public RealExpr toRealExpr() {
-    return toIntExpr().toRealExpr();
+    return toNumericExpr().toRealExpr();
   }
 
   @Override
@@ -60,18 +65,57 @@ public class BooleanExpr extends AbstractPrimitiveExpr {
   }
 
   @Override
+  public GExpr bitwiseXor(GExpr operand) {
+    return lift(Expressions.bitwiseXor(jexpr(), jexpr(operand)));
+  }
+
+  @Override
+  public GExpr bitwiseNot() {
+    return lift(Expressions.bitwiseXor(jexpr(), 0x1));
+  }
+
+  @Override
+  public GExpr bitwiseAnd(GExpr operand) {
+    return lift(Expressions.bitwiseAnd(jexpr(), jexpr(operand)));
+  }
+
+  @Override
+  public GExpr bitwiseOr(GExpr operand) {
+    return lift(Expressions.bitwiseOr(jexpr(), jexpr(operand)));
+  }
+
+  @Override
+  public GExpr shiftLeft(GExpr operand) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public GExpr shiftRight(GExpr operand) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public GExpr rotateLeft(GExpr operand) {
+    throw new UnsupportedOperationException();
+  }
+
+  public UnsignedSmallIntExpr toUnsignedByteExpr() {
+    return new UnsignedSmallIntExpr(8, jexpr());
+  }
+
+  @Override
   public IntExpr toSignedInt(int precision) {
-    return toIntExpr().toSignedInt(precision);
+    return toUnsignedByteExpr().toSignedInt(precision);
   }
 
   @Override
   public IntExpr toUnsignedInt(int precision) {
-    return toIntExpr().toUnsignedInt(precision);
+    return toUnsignedByteExpr().toSignedInt(precision);
   }
 
   @Override
   public RealExpr toReal(int precision) {
-    return toIntExpr().toReal(precision);
+    return toUnsignedByteExpr().toReal(precision);
   }
 
   @Override
@@ -90,24 +134,12 @@ public class BooleanExpr extends AbstractPrimitiveExpr {
 
   @Override
   public NumericExpr toNumericExpr() {
-    return toIntExpr();
+    return new SignedIntExpr(jexpr());
   }
 
 
-  public GExpr logicalNot(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  public GExpr logicalAnd(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  public GExpr logicalOr(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  public GExpr logicalExclusiveOr(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+  private BooleanExpr lift(JExpr jExpr) {
+    return new BooleanExpr(jExpr);
   }
 
 }

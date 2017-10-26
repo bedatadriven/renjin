@@ -104,12 +104,12 @@ public class UnsignedIntExpr extends AbstractIntExpr {
   }
 
   @Override
-  public GExpr remainder(GExpr operand) {
+  public SignedLongExpr remainder(GExpr operand) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public GExpr bitwiseExclusiveOr(GExpr operand) {
+  public GExpr bitwiseXor(GExpr operand) {
     return lift(Expressions.bitwiseXor(jexpr(), jexpr(operand)));
   }
 
@@ -146,6 +146,11 @@ public class UnsignedIntExpr extends AbstractIntExpr {
   @Override
   public RealExpr toRealExpr() {
     return toReal(32);
+  }
+
+  @Override
+  public BooleanExpr toBooleanExpr() {
+    return BooleanExpr.fromInt(jexpr());
   }
 
   @Override

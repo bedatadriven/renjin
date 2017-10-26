@@ -1212,4 +1212,10 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void leftRotate() throws Exception {
     compileAndTest("rotate.c");
   }
+
+  @Test
+  public void fortranBooleanArg() throws Exception {
+    compileAndTest("const_bool_arg.f");
+  }
 }
+

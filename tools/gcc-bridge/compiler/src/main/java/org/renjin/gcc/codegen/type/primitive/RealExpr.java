@@ -39,7 +39,7 @@ import static org.renjin.gcc.codegen.expr.Expressions.staticMethodCall;
 import static org.renjin.gcc.codegen.expr.Expressions.zero;
 
 /**
- * 32-bit and 64-bit floating point values.
+ * 32-bit and 64-bit floating point expressions.
  */
 public class RealExpr extends AbstractPrimitiveExpr implements NumericExpr {
 
@@ -78,6 +78,11 @@ public class RealExpr extends AbstractPrimitiveExpr implements NumericExpr {
   @Override
   public RealExpr divide(GExpr operand) {
     return lift(Expressions.divide(jexpr(), jexpr(operand)));
+  }
+
+  @Override
+  public NumericExpr remainder(GExpr operand) {
+    return lift(Expressions.remainder(jexpr(), jexpr()));
   }
 
   @Override

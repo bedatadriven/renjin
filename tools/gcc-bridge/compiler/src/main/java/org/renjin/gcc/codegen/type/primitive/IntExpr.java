@@ -20,15 +20,12 @@ package org.renjin.gcc.codegen.type.primitive;
 
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.type.NumericExpr;
 
-public interface IntExpr extends NumericExpr, PrimitiveExpr {
+public interface IntExpr extends PrimitiveExpr {
 
   JExpr jexpr();
 
-  GExpr remainder(GExpr operand);
-
-  GExpr bitwiseExclusiveOr(GExpr operand);
+  GExpr bitwiseXor(GExpr operand);
 
   GExpr bitwiseNot();
 

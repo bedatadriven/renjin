@@ -52,48 +52,48 @@ public class ShortExpr extends AbstractIntExpr implements IntExpr {
   }
 
   @Override
-  public IntExpr plus(GExpr operand) {
+  public ShortExpr plus(GExpr operand) {
     return lift(i2s(Expressions.sum(jexpr(), jexpr(operand))));
   }
 
   @Override
-  public IntExpr minus(GExpr operand) {
+  public ShortExpr minus(GExpr operand) {
     return lift(i2s(Expressions.difference(jexpr(), jexpr(operand))));
   }
 
   @Override
-  public IntExpr multiply(GExpr operand) {
+  public ShortExpr multiply(GExpr operand) {
     return lift(i2s(Expressions.product(jexpr(), jexpr(operand))));
   }
 
   @Override
-  public IntExpr divide(GExpr operand) {
+  public ShortExpr divide(GExpr operand) {
     return lift(i2s(Expressions.divide(jexpr(), jexpr(operand))));
   }
 
   @Override
-  public IntExpr negative() {
+  public ShortExpr negative() {
     return lift(i2s(Expressions.negative(jexpr())));
 
   }
 
   @Override
-  public IntExpr min(GExpr operand) {
+  public ShortExpr min(GExpr operand) {
     return lift(Expressions.staticMethodCall(Math.class, "min", "(II)I"));
   }
 
   @Override
-  public IntExpr max(GExpr operand) {
+  public ShortExpr max(GExpr operand) {
     return lift(Expressions.staticMethodCall(Math.class, "max", "(II)I"));
   }
 
   @Override
-  public IntExpr absoluteValue() {
+  public ShortExpr absoluteValue() {
     return lift(Expressions.staticMethodCall(Math.class, "abs", "(I)I"));
   }
 
   @Override
-  public IntExpr remainder(GExpr operand) {
+  public ShortExpr remainder(GExpr operand) {
     return lift(i2s(Expressions.remainder(jexpr(), jexpr(operand))));
   }
 
@@ -103,44 +103,48 @@ public class ShortExpr extends AbstractIntExpr implements IntExpr {
   }
 
   @Override
-  public IntExpr bitwiseExclusiveOr(GExpr operand) {
+  public ShortExpr bitwiseNot() {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public IntExpr bitwiseNot() {
+  public ShortExpr bitwiseAnd(GExpr operand) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public IntExpr bitwiseAnd(GExpr operand) {
+  public ShortExpr bitwiseOr(GExpr operand) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public IntExpr bitwiseOr(GExpr operand) {
+  public ShortExpr bitwiseXor(GExpr operand) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public IntExpr shiftLeft(GExpr operand) {
+  public ShortExpr shiftLeft(GExpr operand) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public IntExpr shiftRight(GExpr operand) {
+  public ShortExpr shiftRight(GExpr operand) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public IntExpr rotateLeft(GExpr operand) {
+  public ShortExpr rotateLeft(GExpr operand) {
     throw new UnsupportedOperationException("TODO");
   }
-
 
   @Override
   public RealExpr toRealExpr() {
     return toReal(32);
+  }
+
+  @Override
+  public BooleanExpr toBooleanExpr() {
+    return BooleanExpr.fromInt(jexpr());
   }
 
   @Override
@@ -180,7 +184,7 @@ public class ShortExpr extends AbstractIntExpr implements IntExpr {
     return operand.toPrimitiveExpr().toSignedInt(16).jexpr();
   }
 
-  private IntExpr lift(JExpr expr) {
+  private ShortExpr lift(JExpr expr) {
     return new ShortExpr(expr);
   }
 

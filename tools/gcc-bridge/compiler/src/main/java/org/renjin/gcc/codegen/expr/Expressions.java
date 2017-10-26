@@ -106,7 +106,7 @@ public class Expressions {
     // check the types now
     for (int i = 0; i < values.size(); i++) {
       Type elementType = values.get(i).getType();
-      if(elementType.getSort() != componentType.getSort()) {
+      if(promoteSmallInts(elementType).getSort() != promoteSmallInts(componentType).getSort()) {
         throw new IllegalArgumentException(String.format("Invalid type at element %d: %s, expected %s",
             i, elementType, componentType));
       }
@@ -162,6 +162,10 @@ public class Expressions {
 
   public static JExpr constantInt(final int value) {
     return new ConstantValue(Type.INT_TYPE, value);
+  }
+
+  public static JExpr constantBoolean(final boolean value) {
+    return new ConstantValue(Type.BOOLEAN_TYPE, value ? 1 : 0);
   }
 
   public static JExpr constantLong(final long value) {

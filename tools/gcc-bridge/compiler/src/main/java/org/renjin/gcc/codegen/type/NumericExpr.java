@@ -20,6 +20,7 @@ package org.renjin.gcc.codegen.type;
 
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.complex.ComplexExpr;
+import org.renjin.gcc.codegen.type.primitive.RealExpr;
 
 /**
  * Common interface to Complex, Integer, and Real
@@ -28,11 +29,13 @@ public interface NumericExpr extends GExpr {
 
   NumericExpr plus(GExpr operand);
 
-  NumericExpr minus(GExpr numericExpr);
+  NumericExpr minus(GExpr operand);
 
   NumericExpr multiply(GExpr operand);
 
   NumericExpr divide(GExpr operand);
+
+  NumericExpr remainder(GExpr operand);
 
   NumericExpr negative();
 
@@ -43,4 +46,6 @@ public interface NumericExpr extends GExpr {
   NumericExpr absoluteValue();
 
   ComplexExpr toComplexExpr();
+
+  RealExpr toRealExpr();
 }

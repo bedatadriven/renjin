@@ -30,6 +30,7 @@ import org.renjin.gcc.codegen.vptr.PointerType;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.runtime.Double96Ptr;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
@@ -112,8 +113,14 @@ public class PrimitiveValueFunction implements ValueFunction {
   public VPtrExpr toVPtr(JExpr array, JExpr offset) {
 
     PointerType pointerType = PointerType.ofPrimitiveType(type.gimpleType());
-    JExpr newWrapper = Expressions.newObject(pointerType.alignedImpl(), array, offset);
 
+    // Special handling for double[] -> Real96
+    if(pointerType == PointerType.REAL96 && array.getType().getElementType().equals(Type.DOUBLE_TYPE)) {
+      JExpr newWrapper = Expressions.newObject(Type.getType(Double96Ptr.class), array, offset);
+      return new VPtrExpr(newWrapper);
+    }
+
+    JExpr newWrapper = Expressions.newObject(pointerType.alignedImpl(), array, offset);
     return new VPtrExpr(newWrapper);
   }
 

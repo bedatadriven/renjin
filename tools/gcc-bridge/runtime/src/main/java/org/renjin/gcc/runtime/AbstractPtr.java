@@ -110,6 +110,40 @@ public abstract class AbstractPtr implements Ptr {
     setDouble(index * DoublePtr.BYTES, value);
   }
 
+
+  @Override
+  public double getReal96() {
+    return getReal96(0);
+  }
+
+
+  @Override
+  public double getAlignedReal96(int index) {
+    return getReal96(index * 12);
+  }
+
+  @Override
+  public double getReal96(int offset) {
+    return Double.longBitsToDouble(getLong(offset));
+  }
+
+
+  @Override
+  public void setReal96(double value) {
+    setReal96(0, value);
+  }
+
+  @Override
+  public void setAlignedReal96(int index, double value) {
+    setReal96(index * 12, value);
+  }
+
+  @Override
+  public void setReal96(int offset, double value) {
+    setLong(offset, Double.doubleToRawLongBits(value));
+  }
+
+
   @Override
   public char getChar() {
     return getChar(0);

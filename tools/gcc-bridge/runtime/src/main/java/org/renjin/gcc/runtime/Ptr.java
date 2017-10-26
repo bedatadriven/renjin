@@ -150,6 +150,41 @@ public interface Ptr extends Comparable<Ptr> {
   void setAlignedDouble(int index, double value);
 
 
+
+  /**
+   *
+   * @return the value at the beginning of the pointer region as a double
+   */
+  double getReal96();
+
+  /**
+   *
+   * @param offset the offset from the beginning of the pointer, in bytes.
+   * @return the float at the given offset from the beginning of the pointer region.
+   */
+  double getReal96(int offset);
+
+  /**
+   * @param index the index of the 8-byte double, from the beginning of the pointer.
+   */
+  double getAlignedReal96(int index);
+
+  /**
+   * Sets the given {@code value} at the beginning of the pointer.
+   */
+  void setReal96(double value);
+
+
+  /**
+   * Sets the given {@code value} at the offset from the beginning of the pointer.
+   * @param offset  the offset from the beginning of the pointer, in bytes.
+   */
+  void setReal96(int offset, double value);
+
+
+  void setAlignedReal96(int index, double value);
+
+
   /**
    *
    * @return the value at the beginning of the pointer region as a float

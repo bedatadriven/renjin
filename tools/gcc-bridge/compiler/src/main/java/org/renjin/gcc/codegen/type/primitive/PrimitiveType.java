@@ -90,6 +90,33 @@ public enum PrimitiveType {
       return new RealExpr(gimpleType(), Expressions.constantDouble(((GimpleRealConstant) expr).getValue()));
     }
   },
+  REAL96 {
+
+    @Override
+    public GimpleRealType gimpleType() {
+      return new GimpleRealType(96);
+    }
+
+    @Override
+    public Type jvmType() {
+      return Type.DOUBLE_TYPE;
+    }
+
+    @Override
+    public PrimitiveExpr cast(PrimitiveExpr x) {
+      return x.toReal(96);
+    }
+
+    @Override
+    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable GExpr address) {
+      return new RealExpr(gimpleType(), jExpr, address);
+    }
+
+    @Override
+    public GExpr constantExpr(GimpleConstant expr) {
+      return new RealExpr(gimpleType(), Expressions.constantDouble(((GimpleRealConstant) expr).getValue()));
+    }
+  },
   BOOL {
     @Override
     public GimplePrimitiveType gimpleType() {
@@ -383,6 +410,8 @@ public enum PrimitiveType {
           return REAL32;
         case 64:
           return REAL64;
+        case 96:
+          return REAL96;
       }
     } else if(type instanceof GimpleIntegerType) {
       GimpleIntegerType integerType = (GimpleIntegerType) type;

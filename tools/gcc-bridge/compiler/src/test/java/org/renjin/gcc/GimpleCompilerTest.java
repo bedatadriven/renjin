@@ -1225,5 +1225,10 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void sha256() throws Exception {
     compileAndTest("sha256.c");
   }
+
+  @Test
+  public void real96() throws Exception {
+    compileAndTest("real96.c");
+  }
 }
 

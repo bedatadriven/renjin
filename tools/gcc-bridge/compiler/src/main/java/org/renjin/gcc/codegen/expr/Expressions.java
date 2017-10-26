@@ -192,20 +192,7 @@ public class Expressions {
   }
 
   private static JExpr binary(final int opcode, final JExpr x, final JExpr y, final Type resultType) {
-    return new JExpr() {
-      @Nonnull
-      @Override
-      public Type getType() {
-        return resultType;
-      }
-
-      @Override
-      public void load(@Nonnull MethodGenerator mv) {
-        x.load(mv);
-        y.load(mv);
-        mv.visitInsn(x.getType().getOpcode(opcode));
-      }
-    };
+    return new BinaryOpExpr(opcode, resultType, x, y);
   }
 
   private static Type promoteSmallInts(Type type) {
@@ -763,7 +750,7 @@ public class Expressions {
   }
   
   public static JExpr bitwiseXor(JExpr x, JExpr y) {
-    return new BinaryOp(Opcodes.IXOR, x, y);
+    return new BinaryOpExpr(Opcodes.IXOR, x, y);
   }
   
   public static JExpr flip(JExpr value) {
@@ -1109,39 +1096,4 @@ public class Expressions {
     };
   }
 
-  private static class BinaryOp implements JExpr {
-
-    private int opcode;
-    private Type resultType;
-    private JExpr x;
-    private JExpr y;
-
-
-    public BinaryOp(int opcode, JExpr x, JExpr y) {
-      this.opcode = opcode;
-      this.resultType = x.getType();
-      this.x = x;
-      this.y = y;
-    }
-    
-    public BinaryOp(int opcode, Type resultType, JExpr x, JExpr y) {
-      this.opcode = opcode;
-      this.resultType = resultType;
-      this.x = x;
-      this.y = y;
-    }
-
-    @Nonnull
-    @Override
-    public Type getType() {
-      return resultType;
-    }
-
-    @Override
-    public void load(@Nonnull MethodGenerator mv) {
-      x.load(mv);
-      y.load(mv);
-      mv.visitInsn(x.getType().getOpcode(opcode));
-    }
-  }
 }

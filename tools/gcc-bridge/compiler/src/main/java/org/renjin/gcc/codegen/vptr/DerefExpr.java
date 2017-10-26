@@ -19,11 +19,9 @@
 package org.renjin.gcc.codegen.vptr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.ConstantValue;
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.runtime.Ptr;
+import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nonnull;
@@ -106,18 +104,18 @@ class DerefExpr implements JLValue {
       }
     }
 
-//    if(offsetBytes instanceof PrimitiveBinOpGenerator) {
-//      PrimitiveBinOpGenerator op = (PrimitiveBinOpGenerator) offsetBytes;
-//      if(op.getOpCode() == Opcodes.IMUL) {
-//
-//        if(isConstantEqualTo(op.getX(), pointerType.getSize())) {
-//          return op.getY();
-//        }
-//        if(isConstantEqualTo(op.getY(), pointerType.getSize())) {
-//          return op.getX();
-//        }
-//      }
-//    }
+    if(offsetBytes instanceof BinaryOpExpr) {
+      BinaryOpExpr op = (BinaryOpExpr) offsetBytes;
+      if(op.getOpcode() == Opcodes.IMUL) {
+
+        if(isConstantEqualTo(op.getX(), pointerType.getSize())) {
+          return op.getY();
+        }
+        if(isConstantEqualTo(op.getY(), pointerType.getSize())) {
+          return op.getX();
+        }
+      }
+    }
     return null;
   }
 

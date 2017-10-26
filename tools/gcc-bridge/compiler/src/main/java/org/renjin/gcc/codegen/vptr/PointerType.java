@@ -19,6 +19,7 @@
 package org.renjin.gcc.codegen.vptr;
 
 import org.renjin.gcc.gimple.type.*;
+import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 
@@ -37,6 +38,12 @@ public enum PointerType {
   LONG(Type.LONG_TYPE, PointerKind.INTEGRAL, 8),
   FLOAT(Type.FLOAT_TYPE, PointerKind.FLOAT, 4),
   DOUBLE(Type.DOUBLE_TYPE, PointerKind.FLOAT, 8),
+  REAL96(Type.DOUBLE_TYPE, PointerKind.INTEGRAL, 12) {
+    @Override
+    public Type alignedImpl() {
+      return Type.getType(IntPtr.class);
+    }
+  },
   POINTER(Type.getType(Ptr.class), PointerKind.POINTER, 4),
   FUNCTION(Type.getType(MethodHandle.class), PointerKind.FUNCTION, 4);
 
@@ -69,6 +76,11 @@ public enum PointerType {
   }
 
   public static PointerType ofPrimitiveType(GimplePrimitiveType primitiveType) {
+    if(primitiveType.equals(new GimpleRealType(96))) {
+      return REAL96;
+    } else if(primitiveType.equals(new GimpleRealType(64))) {
+      return DOUBLE;
+    }
     for (PointerType pointerType : values()) {
       if(pointerType.getJvmType().equals(primitiveType.jvmType())) {
         return pointerType;

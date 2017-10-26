@@ -37,14 +37,14 @@ public class InputSource {
   private int minLine = Integer.MAX_VALUE;
   private int maxLine = Integer.MIN_VALUE;
 
-  public InputSource(GimpleFunction gimpleFunction, String sourceFile) {
-    this.lines = loadLines(new File(sourceFile));
-    this.sourceFile = sourceFile;
+  public InputSource(GimpleFunction gimpleFunction, File sourceFile, String sourcePath) {
+    this.lines = loadLines(sourceFile);
+    this.sourceFile = sourcePath;
 
     // Find min/max line
     for (GimpleBasicBlock basicBlock : gimpleFunction.getBasicBlocks()) {
       for (GimpleStatement statement : basicBlock.getStatements()) {
-        if(sourceFile.equals(statement.getSourceFile())) {
+        if(sourcePath.equals(statement.getSourceFile())) {
           if(statement.getLineNumber() != null) {
             int lineNumber = statement.getLineNumber();
             compiledLines.add(lineNumber);
@@ -68,10 +68,18 @@ public class InputSource {
     Set<String> sourceFiles = findSources(function);
     List<InputSource> sources = new ArrayList<>();
     for (String sourceFile : sourceFiles) {
-      sources.add(new InputSource(function, sourceFile));
+      sources.add(new InputSource(function, resolveSourceFile(function, sourceFile), sourceFile));
     }
 
     return sources;
+  }
+
+  private static File resolveSourceFile(GimpleFunction function, String sourceFile) {
+    if(sourceFile.startsWith("..")) {
+      return new File(function.getUnit().getSourceFile().getParentFile(), sourceFile);
+    } else {
+      return new File(sourceFile);
+    }
   }
 
   private static List<String> loadLines(File file) {

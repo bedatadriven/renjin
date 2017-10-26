@@ -38,6 +38,7 @@ import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.statement.*;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
+import org.renjin.gcc.peephole.PeepholeOptimizer;
 import org.renjin.gcc.runtime.Stdlib;
 import org.renjin.gcc.symbols.LocalVariableTable;
 import org.renjin.gcc.symbols.UnitSymbolTable;
@@ -170,7 +171,7 @@ public class FunctionGenerator implements InvocationStrategy {
       logger.dump(function.getUnit().getSourceName(), function.getSafeMangledName(), "j", toString(methodNode));
 
       // Reduce the size of the bytecode by applying simple optimizations
-     // PeepholeOptimizer.INSTANCE.optimize(methodNode);
+      PeepholeOptimizer.INSTANCE.optimize(methodNode);
 
       int estimatedSize = BytecodeSizeEstimator.estimateSize(methodNode);
       if (estimatedSize > 40_000) {

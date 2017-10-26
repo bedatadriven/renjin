@@ -521,6 +521,11 @@ public class Stdlib {
 
   }
 
+  public static int posix_memalign(Ptr memPtr, int aligment, int size) {
+    memPtr.setPointer(MixedPtr.malloc(size));
+    return 0;
+  }
+
   public static void inlineAssembly() {
     throw new UnsupportedOperationException("Compilation of inline assembly not supported");
   }

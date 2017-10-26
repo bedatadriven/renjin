@@ -26,15 +26,15 @@ import java.io.*;
  * Connection to a character vector.
  *
  */
-public class TextConnection implements Connection {
+public class ReadTextConnection implements Connection {
 
-  private final String objectName;
+  private String objectName;
   private PushbackBufferedReader reader;
   
-  public TextConnection(String objectName, String text) {
+  public ReadTextConnection(String objectName, String text) {
     super();
-    this.objectName = objectName;
     this.reader = new PushbackBufferedReader(new StringReader(text));
+    this.objectName = objectName;
   }
 
   @Override

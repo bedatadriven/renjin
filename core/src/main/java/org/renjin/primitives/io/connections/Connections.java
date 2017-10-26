@@ -149,9 +149,14 @@ public class Connections {
   
   @Internal
   public static IntVector textConnection(@Current final Context context,
-      String objectName, StringVector text, String open, Environment env, String type) throws IOException {
-    
-    return newConnection(context, open, new TextConnection(objectName, Joiner.on('\n').join(text)));
+      String objectName, StringVector object, String open, Environment env, String type) throws IOException {
+
+    OpenSpec openSpec = new OpenSpec(open);
+    if(openSpec.forWriting()) {
+      return newConnection(context, open, new WriteTextConnection(Symbol.get(object.asString()), env));
+    } else {
+      return newConnection(context, open, new ReadTextConnection(objectName, Joiner.on('\n').join(object)));
+    }
   }
   
   

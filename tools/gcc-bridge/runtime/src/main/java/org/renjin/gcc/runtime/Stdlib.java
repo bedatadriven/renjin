@@ -79,6 +79,10 @@ public class Stdlib {
     return strncmp(x, y, Integer.MAX_VALUE);
   }
 
+  public static double strtod(Ptr string) {
+    return Double.parseDouble(nullTerminatedString(string));
+  }
+
   public static Ptr strdup(Ptr s) {
     int strlen = strlen(s);
     BytePtr dup = BytePtr.malloc(strlen + 1);

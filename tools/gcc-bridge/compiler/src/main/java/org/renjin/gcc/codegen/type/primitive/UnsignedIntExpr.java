@@ -26,7 +26,6 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
-import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.runtime.IntPtr;
 
@@ -53,7 +52,7 @@ public class UnsignedIntExpr extends AbstractIntExpr {
   }
 
   @Override
-  public NumericExpr plus(GExpr operand) {
+  public UnsignedIntExpr plus(GExpr operand) {
     return lift(Expressions.sum(jexpr(), jexpr(operand)));
   }
 
@@ -67,79 +66,79 @@ public class UnsignedIntExpr extends AbstractIntExpr {
   }
 
   @Override
-  public NumericExpr minus(GExpr operand) {
+  public UnsignedIntExpr minus(GExpr operand) {
     return lift(Expressions.difference(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public NumericExpr multiply(GExpr operand) {
+  public UnsignedIntExpr multiply(GExpr operand) {
     return lift(Expressions.product(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public NumericExpr divide(GExpr operand) {
+  public UnsignedIntExpr divide(GExpr operand) {
     return lift(Expressions.staticMethodCall(IntPtr.class, "unsignedDivide", "(II)I", jexpr(), jexpr(operand)));
   }
 
   @Override
-  public NumericExpr negative() {
+  public UnsignedIntExpr negative() {
     // Negative operation on an unsigned int doesn't make any sense to me,
     // but it does occur in Gimple output and seems to work if we use the signed negative operator.
     return lift(Expressions.negative(jexpr()));
   }
 
   @Override
-  public NumericExpr min(GExpr operand) {
+  public UnsignedIntExpr min(GExpr operand) {
     return lift(Expressions.staticMethodCall(IntPtr.class, "unsignedMin", "(II)I", jexpr(), jexpr(operand)));
   }
 
   @Override
-  public NumericExpr max(GExpr operand) {
+  public UnsignedIntExpr max(GExpr operand) {
     return lift(Expressions.staticMethodCall(IntPtr.class, "unsignedMax", "(II)I", jexpr(), jexpr(operand)));
   }
 
   @Override
-  public NumericExpr absoluteValue() {
+  public UnsignedIntExpr absoluteValue() {
     return this;
   }
 
   @Override
-  public SignedLongExpr remainder(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+  public UnsignedIntExpr remainder(GExpr operand) {
+    return lift(Expressions.staticMethodCall(IntPtr.class, "unsignedRemainder", "(II)I", jexpr(), jexpr(operand)));
   }
 
   @Override
-  public GExpr bitwiseXor(GExpr operand) {
+  public UnsignedIntExpr bitwiseXor(GExpr operand) {
     return lift(Expressions.bitwiseXor(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public GExpr bitwiseNot() {
+  public UnsignedIntExpr bitwiseNot() {
     return lift(Expressions.bitwiseXor(jexpr(), -1));
   }
 
   @Override
-  public GExpr bitwiseAnd(GExpr operand) {
+  public UnsignedIntExpr bitwiseAnd(GExpr operand) {
     return lift(Expressions.bitwiseAnd(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public GExpr bitwiseOr(GExpr operand) {
+  public UnsignedIntExpr bitwiseOr(GExpr operand) {
     return lift(Expressions.bitwiseOr(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public GExpr shiftLeft(GExpr operand) {
+  public UnsignedIntExpr shiftLeft(GExpr operand) {
     return lift(Expressions.shiftLeft(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public GExpr shiftRight(GExpr operand) {
+  public UnsignedIntExpr shiftRight(GExpr operand) {
     return lift(Expressions.unsignedShiftRight(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public GExpr rotateLeft(GExpr operand) {
+  public UnsignedIntExpr rotateLeft(GExpr operand) {
     return lift(Expressions.staticMethodCall(Integer.class, "rotateLeft", "(II)I", jexpr(), bits(operand)));
   }
 

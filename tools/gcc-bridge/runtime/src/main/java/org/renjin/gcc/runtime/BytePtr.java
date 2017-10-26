@@ -146,6 +146,21 @@ public class BytePtr extends AbstractPtr {
   }
 
   @Override
+  public BytePtr copyOf(int numBytes) {
+    return new BytePtr(Arrays.copyOf(array, numBytes));
+  }
+
+  @Override
+  public void memcpy(Ptr source, int numBytes) {
+    if(source instanceof BytePtr) {
+      BytePtr sourceBytePtr = (BytePtr) source;
+      System.arraycopy(sourceBytePtr.array, sourceBytePtr.offset, this.array, this.offset, numBytes);
+    } else {
+      super.memcpy(source, numBytes);
+    }
+  }
+
+  @Override
   public Ptr pointerPlus(int bytes) {
     if(bytes == 0) {
       return this;

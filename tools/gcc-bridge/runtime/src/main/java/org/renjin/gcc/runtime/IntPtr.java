@@ -306,6 +306,11 @@ public class IntPtr extends AbstractPtr implements Ptr {
     return (int)((dividend & 0xFFFFFFFFL) /  (divisor & 0xFFFFFFFFL));
   }
 
+  public static int unsignedRemainder(int dividend, int divisor) {
+    // In lieu of tricky code, for now just use long arithmetic.
+    return (int)((dividend & 0xFFFFFFFFL) %  (divisor & 0xFFFFFFFFL));
+  }
+
   public static void memcpy(IntPtr x, IntPtr y, int numBytes) {
     int[] arrayS = y.getArray();
     int offsetS = y.getOffset();

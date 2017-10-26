@@ -1894,7 +1894,9 @@ public final class Rinternals {
    * @return The text of {@code x} rendered in UTF8 encoding.
    */
   public static BytePtr Rf_translateCharUTF8(SEXP x) {
-    throw new UnimplementedGnuApiMethod("Rf_translateCharUTF8");
+    // Renjin strings are always UTF-8 encoded.
+    GnuCharSexp charsexp = (GnuCharSexp) x;
+    return charsexp.getValue();
   }
 
   /** Name of type within R.
@@ -1969,7 +1971,20 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_cycle_detected");
   }
 
-  // cetype_t Rf_getCharCE (SEXP)
+  public static int Rf_getCharCE(SEXP s) {
+    return 1; // Always UTF8!
+  }
+
+  @Deprecated
+  public static SEXP Rf_mkCharCE (BytePtr str, int encoding) {
+    return Rf_mkCharCE((Ptr)str, encoding);
+  }
+
+  @Deprecated
+  public static SEXP Rf_mkCharLenCE (BytePtr text, int length, int encoding) {
+    return Rf_mkCharLenCE((Ptr)text, length, encoding);
+  }
+
 
   /**
    *  Get a pointer to a CHARSXP object.
@@ -1987,8 +2002,8 @@ public final class Rinternals {
    * @return Pointer to a string object representing the specified
    *         text in the specified encoding.
    */
-  public static SEXP Rf_mkCharCE (BytePtr str, int encoding) {
-    throw new UnimplementedGnuApiMethod("Rf_mkCharCE");
+  public static SEXP Rf_mkCharCE (Ptr str, int encoding) {
+    return Rf_mkCharLenCE(str, Stdlib.strlen(str), encoding);
   }
 
   /** Create a CHARSXP object for specified text and
@@ -2012,8 +2027,8 @@ public final class Rinternals {
    *
    * @return Pointer to the created string.
    */
-  public static SEXP Rf_mkCharLenCE (BytePtr text, int length, int encoding) {
-    if(text.array == null) {
+  public static SEXP Rf_mkCharLenCE (Ptr text, int length, int encoding) {
+    if(text.isNull()) {
       return GnuCharSexp.NA_STRING;
     }
 
@@ -2025,10 +2040,10 @@ public final class Rinternals {
       throw new UnsupportedOperationException("encoding: " + encoding);
     }
 
-    byte[] copy = new byte[length+1];
-    System.arraycopy(text.array, text.offset, copy, 0, length);
+    BytePtr copy = BytePtr.malloc(length + 1);
+    copy.memcpy(text, length);
 
-    return new GnuCharSexp(copy);
+    return new GnuCharSexp(copy.array);
   }
 
   // const char* Rf_reEnc (const char *x, cetype_t ce_in, cetype_t ce_out, int subst)

@@ -68,7 +68,7 @@ public class UnsignedLongExpr extends AbstractIntExpr {
 
   @Override
   public UnsignedLongExpr divide(GExpr operand) {
-    return lift(Expressions.staticMethodCall(LongPtr.class, "unsignedDivide", "(JJ)J"));
+    return lift(Expressions.staticMethodCall(LongPtr.class, "unsignedDivide", "(JJ)J", jexpr(), jexpr(operand)));
   }
 
   @Override
@@ -96,7 +96,7 @@ public class UnsignedLongExpr extends AbstractIntExpr {
 
   @Override
   public UnsignedLongExpr remainder(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+    return lift(Expressions.staticMethodCall(LongPtr.class, "unsignedRemainder", "(JJ)J", jexpr(), jexpr(operand)));
   }
 
   @Override

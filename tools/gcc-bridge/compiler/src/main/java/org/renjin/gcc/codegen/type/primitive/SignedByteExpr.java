@@ -103,32 +103,32 @@ public class SignedByteExpr extends AbstractIntExpr implements IntExpr {
 
   @Override
   public SignedByteExpr bitwiseXor(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+    return lift(i2b(Expressions.bitwiseXor(jexpr(), jexpr(operand))));
   }
 
   @Override
   public SignedByteExpr bitwiseNot() {
-    throw new UnsupportedOperationException("TODO");
+    return lift(i2b(Expressions.bitwiseXor(jexpr(), 0xFF)));
   }
 
   @Override
   public SignedByteExpr bitwiseAnd(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+    return lift(i2b(Expressions.bitwiseAnd(jexpr(), jexpr(operand))));
   }
 
   @Override
   public SignedByteExpr bitwiseOr(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+    return lift(i2b(Expressions.bitwiseOr(jexpr(), jexpr(operand))));
   }
 
   @Override
   public SignedByteExpr shiftLeft(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+    return lift(i2b(Expressions.shiftLeft(jexpr(), jexpr(operand))));
   }
 
   @Override
   public SignedByteExpr shiftRight(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+    return lift(i2b(Expressions.shiftRight(jexpr(), jexpr(operand))));
   }
 
   @Override

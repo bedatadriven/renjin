@@ -175,7 +175,13 @@ public class SignedIntExpr extends AbstractIntExpr {
 
   @Override
   public RealExpr toReal(int precision) {
-    return new RealExpr(new GimpleRealType(32), Expressions.i2f(jexpr())).toReal(precision);
+    switch (precision) {
+      case 32:
+        return new RealExpr(new GimpleRealType(32), Expressions.i2f(jexpr()));
+      case 64:
+        return new RealExpr(new GimpleRealType(64), Expressions.i2d(jexpr()));
+    }
+    throw new UnsupportedOperationException("real" + precision);
   }
 
   private JExpr jexpr(GExpr operand) {

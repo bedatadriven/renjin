@@ -19,10 +19,7 @@
 package org.renjin.gcc.codegen.type.primitive;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
@@ -39,10 +36,14 @@ import java.util.List;
  */
 public class PrimitiveParamStrategy implements ParamStrategy {
   
-  private GimplePrimitiveType type;
+  private PrimitiveType type;
 
-  public PrimitiveParamStrategy(GimplePrimitiveType type) {
+  public PrimitiveParamStrategy(PrimitiveType type) {
     this.type = type;
+  }
+
+  public PrimitiveParamStrategy(GimplePrimitiveType primitiveType) {
+    this(PrimitiveType.of(primitiveType));
   }
 
   @Override
@@ -69,18 +70,18 @@ public class PrimitiveParamStrategy implements ParamStrategy {
       JLValue unitArray = localVars.reserveUnitArray(parameter.getName(), type.jvmType(), Optional.of(paramValue));
       FatPtrPair address = new FatPtrPair(new PrimitiveValueFunction(type), unitArray);
       JExpr value = Expressions.elementAt(address.getArray(), 0);
-      return new PrimitiveValue(type, value, address);
+      return type.fromNonStackValue(value, address);
     } else {
       
       // Otherwise we can just reference the value of the parameter
-      return new PrimitiveValue(type, paramValue);
+      return type.fromNonStackValue(paramValue);
     }
   }
 
   @Override
   public void loadParameter(MethodGenerator mv, Optional<GExpr> argument) {
     if(argument.isPresent()) {
-      ((PrimitiveValue) argument.get()).getExpr().load(mv);
+      type.cast(argument.get().toPrimitiveExpr()).jexpr().load(mv);
     } else {
       new ConstantValue(type.jvmType(), 0).load(mv);
     }

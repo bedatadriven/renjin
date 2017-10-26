@@ -23,7 +23,7 @@ import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveExpr;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
@@ -97,11 +97,11 @@ public class FunctionCallGenerator implements CallGenerator, MethodHandleGenerat
   private JExpr wrapVarArg(GExpr varArgExpr) {
     // TODO: generalize
     // This is quite specific to printf()
-    if(varArgExpr instanceof PrimitiveValue) {
-      return box(((PrimitiveValue) varArgExpr).unwrap());
+    if(varArgExpr instanceof PrimitiveExpr) {
+      return box(((PrimitiveExpr) varArgExpr).jexpr());
 
     } else if(varArgExpr instanceof GSimpleExpr) {
-      return ((GSimpleExpr) varArgExpr).unwrap();
+      return ((GSimpleExpr) varArgExpr).jexpr();
 
     } else if(varArgExpr instanceof PtrExpr) {
       return varArgExpr.toVPtrExpr().getRef();

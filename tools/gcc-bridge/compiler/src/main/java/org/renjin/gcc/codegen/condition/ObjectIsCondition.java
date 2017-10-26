@@ -16,57 +16,35 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.codegen.type.primitive.op;
+package org.renjin.gcc.codegen.condition;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.gimple.GimpleOp;
-import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.Opcodes;
 
-import javax.annotation.Nonnull;
+/**
+ * Jumps to true if the two object references are the same (x==y)
+ */
+public class ObjectIsCondition implements ConditionGenerator {
 
-
-public class MinMaxValue implements JExpr {
-
-  private GimpleOp op;
   private JExpr x;
   private JExpr y;
 
-  public MinMaxValue(GimpleOp op, JExpr x, JExpr y) {
-    this.op = op;
+  public ObjectIsCondition(JExpr x, JExpr y) {
     this.x = x;
     this.y = y;
   }
 
-  @Nonnull
   @Override
-  public Type getType() {
-    return x.getType();
-  }
-
-  @Override
-  public void load(@Nonnull MethodGenerator mv) {
+  public void emitJump(MethodGenerator mv, Label trueLabel, Label falseLabel) {
     x.load(mv);
     y.load(mv);
+    mv.visitJumpInsn(Opcodes.IF_ACMPEQ, trueLabel);
+    mv.goTo(falseLabel);
+  }
 
-    Type type = x.getType();
-    if(!type.equals(y.getType())) {
-      throw new UnsupportedOperationException(String.format(
-          "Types must be the same: %s != %s", x.getType(), y.getType()));
-    }
-    
-    String methodName;
-    switch (op) {
-      case MIN_EXPR:
-        methodName = "min";
-        break;
-      case MAX_EXPR:
-        methodName = "max";
-        break;
-      default:
-        throw new IllegalArgumentException("op: " + op);
-    }
-
-    mv.invokestatic(Math.class, methodName, Type.getMethodDescriptor(type, type, type));
+  public ConditionGenerator inverse() {
+    return new InverseConditionGenerator(this);
   }
 }

@@ -16,32 +16,36 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.codegen.type.primitive.op;
+package org.renjin.gcc.codegen.type;
 
-import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.repackaged.asm.Type;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.type.complex.ComplexExpr;
+import org.renjin.gcc.codegen.type.primitive.RealExpr;
 
-import javax.annotation.Nonnull;
+/**
+ * Common interface to Complex, Integer, and Real
+ */
+public interface NumericExpr extends GExpr {
 
+  NumericExpr plus(GExpr operand);
 
-public class AbsValue implements JExpr {
+  NumericExpr minus(GExpr operand);
 
-  private JExpr x;
+  NumericExpr multiply(GExpr operand);
 
-  public AbsValue(JExpr x) {
-    this.x = x;
-  }
+  NumericExpr divide(GExpr operand);
 
-  @Nonnull
-  @Override
-  public Type getType() {
-    return x.getType();
-  }
+  NumericExpr remainder(GExpr operand);
 
-  @Override
-  public void load(@Nonnull MethodGenerator mv) {
-    x.load(mv);
-    mv.invokestatic(Math.class, "abs", Type.getMethodDescriptor(x.getType(), x.getType()));
-  }
+  NumericExpr negative();
+
+  NumericExpr min(GExpr operand);
+
+  NumericExpr max(GExpr operand);
+
+  NumericExpr absoluteValue();
+
+  ComplexExpr toComplexExpr();
+
+  RealExpr toRealExpr();
 }

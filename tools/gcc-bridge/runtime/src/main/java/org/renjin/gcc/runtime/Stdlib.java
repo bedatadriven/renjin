@@ -229,6 +229,11 @@ public class Stdlib {
     return 0;
   }
 
+  public static int putchar(int character) {
+    System.out.println((char)character);
+    return character;
+  }
+
   public static int sprintf(BytePtr string, BytePtr format, Object... arguments) {
     return snprintf(string, Integer.MAX_VALUE, format, arguments);
   }

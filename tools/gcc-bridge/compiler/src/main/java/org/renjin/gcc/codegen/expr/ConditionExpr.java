@@ -16,27 +16,24 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.codegen.type.primitive.op;
+package org.renjin.gcc.codegen.expr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.repackaged.asm.Label;
-import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nonnull;
 
 /**
- * Logical binary operator, such as TRUTH_OR, TRUTH_AND
+ * Generates a boolean value based on a condition
  */
-public class LogicalOr implements JExpr {
+public class ConditionExpr implements JExpr {
   
-  private JExpr x;
-  private JExpr y;
+  private ConditionGenerator condition;
 
-  public LogicalOr(JExpr x, JExpr y) {
-    this.x = x;
-    this.y = y;
+  public ConditionExpr(ConditionGenerator condition) {
+    this.condition = condition;
   }
 
   @Nonnull
@@ -47,30 +44,26 @@ public class LogicalOr implements JExpr {
 
   @Override
   public void load(@Nonnull MethodGenerator mv) {
+    
+    // Push this value as a boolean on the stack.
+    // Requires a jump
     Label trueLabel = new Label();
+    Label falseLabel = new Label();
     Label exitLabel = new Label();
-    
-    x.load(mv);
-    
-    // if x is true, then can jump right away to true
-    jumpIfTrue(mv, trueLabel);
 
-    // Otherwise need to check y
-    y.load(mv);
-    jumpIfTrue(mv, trueLabel);
-    
-    // FALSE: emit 0
+    condition.emitJump(mv, trueLabel, falseLabel);
+
+    // if false
+    mv.mark(falseLabel);
     mv.iconst(0);
     mv.goTo(exitLabel);
-    
-    // TRUE: emit 1
+
+    // if true
     mv.mark(trueLabel);
     mv.iconst(1);
-    
+
+    // done
     mv.mark(exitLabel);
   }
 
-  private void jumpIfTrue(MethodGenerator mv, Label trueLabel) {
-    mv.visitJumpInsn(Opcodes.IFNE, trueLabel);
-  }
 }

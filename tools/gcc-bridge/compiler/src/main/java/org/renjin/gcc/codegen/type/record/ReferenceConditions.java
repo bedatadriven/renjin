@@ -16,36 +16,35 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.codegen.type.primitive;
+package org.renjin.gcc.codegen.type.record;
 
-import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
-import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.condition.IntegerComparison;
+import org.renjin.gcc.codegen.condition.ObjectIsCondition;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.gimple.GimpleOp;
-import org.renjin.repackaged.asm.Label;
-import org.renjin.repackaged.asm.Type;
 
-public class CompareToCmpGenerator implements ConditionGenerator {
+import static org.renjin.gcc.codegen.expr.Expressions.identityHash;
 
-  private GimpleOp op;
-  private JExpr x;
-  private JExpr y;
+/**
+ * Compares two JVM reference expressions.
+ * 
+ * <p>For EQ_EXPR and NE_EXPR, we use standard {@code IF_ACMPEQ} and {@code IF_ACMPNE} bytecode instructions.</p>
+ * 
+ * <p>For LT_EXPR and GT_EXPR, we compare the result of {@link System#identityHashCode(Object)}</p>
+ * 
+ */
+public class ReferenceConditions {
 
-  public CompareToCmpGenerator(GimpleOp op, JExpr x, JExpr y) {
-    this.op = op;
-    this.x = x;
-    this.y = y;
-  }
 
-  @Override
-  public void emitJump(MethodGenerator mv, Label trueLabel, Label falseLabel) {
-
-    x.load(mv);
-    y.load(mv);
-    mv.invokeinterface(Comparable.class, "compareTo", Type.INT_TYPE, Type.getType(Object.class));
-
-    PrimitiveCmpGenerator.jumpOnComparison(mv, op, trueLabel);
-    mv.goTo(falseLabel);
+  public static ConditionGenerator compare(GimpleOp op, JExpr x, JExpr y) {
+    switch (op) {
+      case EQ_EXPR:
+        return new ObjectIsCondition(x, y);
+      case NE_EXPR:
+        return new ObjectIsCondition(x, y).inverse();
+      default:
+        return new IntegerComparison(op, identityHash(x), identityHash(y));
+    }
   }
 }

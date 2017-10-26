@@ -81,13 +81,13 @@ public class ComplexValueFunction implements ValueFunction {
     JExpr real = Expressions.elementAt(array, realOffset);
     JExpr imaginary = Expressions.elementAt(array, imaginaryOffset);
 
-    return new ComplexValue(address, real, imaginary);
+    return new ComplexExpr(address, real, imaginary);
   }
 
 
   @Override
   public List<JExpr> toArrayValues(GExpr expr) {
-    ComplexValue value = (ComplexValue) expr;
+    ComplexExpr value = (ComplexExpr) expr;
     return Lists.newArrayList(value.getRealJExpr(), value.getImaginaryJExpr());
   }
 

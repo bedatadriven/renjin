@@ -24,18 +24,17 @@ import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.PtrExpr;
+import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
-import org.renjin.gcc.codegen.type.fun.FunPtr;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.fun.FunPtrExpr;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveExpr;
 import org.renjin.gcc.codegen.type.record.ProvidedPtrExpr;
-import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Label;
@@ -54,7 +53,7 @@ public class DereferencedWrappedFatPtr implements FatPtr {
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
     if(rhs instanceof VoidPtrExpr) {
-      invokeSet(mv, ((VoidPtrExpr) rhs).unwrap());
+      invokeSet(mv, ((VoidPtrExpr) rhs).jexpr());
       
     } else if(rhs instanceof FatPtr) {
       invokeSet(mv, ((FatPtr) rhs).wrap());
@@ -81,7 +80,7 @@ public class DereferencedWrappedFatPtr implements FatPtr {
   }
 
   @Override
-  public FunPtr toFunPtr() throws UnsupportedCastException {
+  public FunPtrExpr toFunPtr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -91,17 +90,12 @@ public class DereferencedWrappedFatPtr implements FatPtr {
   }
 
   @Override
-  public PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException {
+  public PrimitiveExpr toPrimitiveExpr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
   public VoidPtrExpr toVoidPtrExpr() throws UnsupportedCastException {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
-  public RecordArrayExpr toRecordArrayExpr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -127,6 +121,11 @@ public class DereferencedWrappedFatPtr implements FatPtr {
 
   @Override
   public VArrayExpr toVArray(GimpleArrayType arrayType) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public NumericExpr toNumericExpr() {
     throw new UnsupportedOperationException("TODO");
   }
 

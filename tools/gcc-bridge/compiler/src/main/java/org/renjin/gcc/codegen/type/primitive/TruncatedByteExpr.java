@@ -16,40 +16,39 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.codegen.type.primitive.op;
+package org.renjin.gcc.codegen.type.primitive;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Preconditions;
 
 import javax.annotation.Nonnull;
 
-/**
- * Generates the logical exclusive or of two operands
- */
-public class LogicalXor implements JExpr {
-  
-  private final JExpr x;
-  private final JExpr y;
+public class TruncatedByteExpr implements JLValue {
 
-  public LogicalXor(JExpr x, JExpr y) {
-    this.y = y;
-    this.x = x;
-    Preconditions.checkArgument(x.getType().equals(Type.BOOLEAN_TYPE) &&
-                                y.getType().equals(Type.BOOLEAN_TYPE));
+  private JExpr expr;
+
+  public TruncatedByteExpr(JExpr expr) {
+    this.expr = expr;
+  }
+
+  @Override
+  public void store(MethodGenerator mv, JExpr expr) {
+    ((JLValue) this.expr).store(mv, expr);
   }
 
   @Nonnull
   @Override
   public Type getType() {
-    return Type.BOOLEAN_TYPE;
+    return Type.BYTE_TYPE;
   }
 
   @Override
   public void load(@Nonnull MethodGenerator mv) {
-    x.load(mv);
-    y.load(mv);
-    mv.xor(Type.INT_TYPE);
+    expr.load(mv);
+    mv.iconst(0xFF);
+    mv.visitInsn(Opcodes.IAND);
   }
 }

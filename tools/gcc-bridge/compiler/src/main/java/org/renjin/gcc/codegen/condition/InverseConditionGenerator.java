@@ -16,34 +16,24 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.codegen.type.primitive.op;
+package org.renjin.gcc.codegen.condition;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.repackaged.asm.Type;
-
-import javax.annotation.Nonnull;
+import org.renjin.repackaged.asm.Label;
 
 /**
- * Generates the bytecode to negate a numeric value
+ * Inverts a condition
  */
-public class NegativeValue implements JExpr {
-  
-  private JExpr operand;
+public class InverseConditionGenerator implements ConditionGenerator {
 
-  public NegativeValue(JExpr operand) {
-    this.operand = operand;
-  }
+  private ConditionGenerator condition;
 
-  @Nonnull
-  @Override
-  public Type getType() {
-    return operand.getType();
+  public InverseConditionGenerator(ConditionGenerator condition) {
+    this.condition = condition;
   }
 
   @Override
-  public void load(@Nonnull MethodGenerator mv) {
-    operand.load(mv);
-    mv.neg(operand.getType());
+  public void emitJump(MethodGenerator mv, Label trueLabel, Label falseLabel) {
+    condition.emitJump(mv, falseLabel, trueLabel);
   }
 }

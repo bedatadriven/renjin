@@ -79,6 +79,6 @@ class ProvidedPtrParamStrategy implements ParamStrategy {
 
     ProvidedPtrExpr unitPtrExpr = argument.get().toProvidedPtrExpr(strategy.getJvmType());
 
-    unitPtrExpr.unwrap().load(mv);
+    unitPtrExpr.jexpr().load(mv);
   }
 }

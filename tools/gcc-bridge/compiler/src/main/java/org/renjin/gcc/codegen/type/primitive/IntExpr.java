@@ -16,41 +16,29 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.codegen.type.primitive.op;
+package org.renjin.gcc.codegen.type.primitive;
 
-import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.repackaged.asm.Opcodes;
-import org.renjin.repackaged.asm.Type;
 
-import javax.annotation.Nonnull;
+public interface IntExpr extends PrimitiveExpr {
 
-/**
- * Divides two unsigned ints via long
- */
-public class UnsignedIntDiv implements JExpr {
+  JExpr jexpr();
 
-  private JExpr dividend;
-  private JExpr divisor;
+  GExpr bitwiseXor(GExpr operand);
 
-  public UnsignedIntDiv(JExpr dividend, JExpr divisor) {
-    this.dividend = dividend;
-    this.divisor = divisor;
-  }
+  GExpr bitwiseNot();
 
-  @Nonnull
-  @Override
-  public Type getType() {
-    return Type.INT_TYPE;
-  }
+  GExpr bitwiseAnd(GExpr operand);
 
-  @Override
-  public void load(@Nonnull MethodGenerator mv) {
-    dividend.load(mv);
-    CastGenerator.castUnsignedInt32ToInt64(mv);
-    divisor.load(mv);
-    CastGenerator.castUnsignedInt32ToInt64(mv);
-    mv.visitInsn(Opcodes.LDIV);
-    CastGenerator.castInt64ToUnsignedInt32(mv);
-  }
+  GExpr bitwiseOr(GExpr operand);
+
+  GExpr shiftLeft(GExpr operand);
+
+  GExpr shiftRight(GExpr operand);
+
+  GExpr rotateLeft(GExpr operand);
+
+  IntExpr toSignedInt(int precision);
+
 }

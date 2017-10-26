@@ -16,49 +16,65 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.codegen.type.primitive;
+package org.renjin.gcc.codegen.condition;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.repackaged.asm.Label;
-import org.renjin.repackaged.asm.Type;
 
-public class ObjectEqualsCmpGenerator implements ConditionGenerator {
+import static org.renjin.repackaged.asm.Opcodes.*;
 
-  private GimpleOp op;
-  private JExpr x;
-  private JExpr y;
+/**
+ * Jumps on the basis of a comparison result.
+ */
+public class Comparison implements ConditionGenerator {
 
-  public ObjectEqualsCmpGenerator(GimpleOp op, JExpr x, JExpr y) {
+  private final GimpleOp op;
+  private final JExpr flag;
+
+  public Comparison(GimpleOp op, JExpr flag) {
     this.op = op;
-    this.x = x;
-    this.y = y;
+    this.flag = flag;
   }
 
   @Override
   public void emitJump(MethodGenerator mv, Label trueLabel, Label falseLabel) {
 
-    x.load(mv);
-    y.load(mv);
-    mv.invokevirtual(Object.class, "equals", Type.BOOLEAN_TYPE, Type.getType(Object.class));
+    flag.load(mv);
 
     switch (op) {
+      case LT_EXPR:
+        // 1: x < y
+        mv.visitJumpInsn(IFLT, trueLabel);
+        break;
+      case LE_EXPR:
+        // 1 : x < y
+        // 0 : x == y
+        mv.visitJumpInsn(IFLE, trueLabel);
+        break;
       case EQ_EXPR:
-        // If the two are equal, then 1 will on the stack
-        // If eq zero, then jump
-        mv.ifeq(falseLabel); // = 0, not equal, FALSE
-        mv.goTo(trueLabel);  // = 1, equal,     TRUE
+        // 0 : x == y
+        mv.visitJumpInsn(IFEQ, trueLabel);
         break;
 
       case NE_EXPR:
-        mv.ifeq(trueLabel);
-        mv.goTo(falseLabel);
+        mv.visitJumpInsn(IFNE, trueLabel);
+        break;
+
+      case UNGT_EXPR:
+      case GT_EXPR:
+        mv.visitJumpInsn(IFGT, trueLabel);
+        break;
+
+      case GE_EXPR:
+        mv.visitJumpInsn(IFGE, trueLabel);
         break;
 
       default:
-        throw new UnsupportedOperationException("TODO: " + op);
+        throw new UnsupportedOperationException("op: " + op);
     }
+
+    mv.goTo(falseLabel);
   }
 }

@@ -24,8 +24,8 @@ import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
+import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
-import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
@@ -47,7 +47,7 @@ public class DereferencedWrappedVoidPtr extends VoidPtrExpr {
   public void store(MethodGenerator mv, GExpr rhs) {
     if(rhs instanceof VoidPtrExpr) {
       wrapperInstance.wrap().load(mv);
-      ((VoidPtrExpr) rhs).unwrap().load(mv);
+      ((VoidPtrExpr) rhs).jexpr().load(mv);
       mv.invokevirtual(wrapperInstance.wrap().getType(), "set",
           Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class)), false);
     
@@ -55,11 +55,6 @@ public class DereferencedWrappedVoidPtr extends VoidPtrExpr {
       throw new UnsupportedOperationException("TODO: rhs = " + rhs.getClass().getName());
     }
     
-  }
-
-  @Override
-  public RecordArrayExpr toRecordArrayExpr() throws UnsupportedCastException {
-    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
@@ -74,6 +69,11 @@ public class DereferencedWrappedVoidPtr extends VoidPtrExpr {
 
   @Override
   public VArrayExpr toVArray(GimpleArrayType arrayType) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public NumericExpr toNumericExpr() {
     throw new UnsupportedOperationException("TODO");
   }
 

@@ -29,8 +29,6 @@ import org.renjin.repackaged.asm.Type;
 
 public class ProvidedPtrField extends SingleFieldStrategy {
 
-  private RecordLayout layout;
-
   public ProvidedPtrField(Type ownerClass, String fieldName, Type jvmType) {
     super(ownerClass, fieldName, jvmType);
   }

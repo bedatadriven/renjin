@@ -16,17 +16,20 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.codegen.type;
+package org.renjin.gcc;
 
-import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
+import org.junit.Test;
 
+/**
+ * Created by alex on 24-10-17.
+ */
+public class IntTest {
 
-public interface PointerTypeStrategy<ExprT extends GExpr> extends TypeStrategy<ExprT> {
-  
-  ExprT malloc(MethodGenerator mv, JExpr sizeInBytes);
-
-  ExprT nullPointer();
+  @Test
+  public void testShort() {
+    short s1 = 3000;
+    short s2 = 4000;
+    short s3 = (short) -s2;
+  }
 
 }

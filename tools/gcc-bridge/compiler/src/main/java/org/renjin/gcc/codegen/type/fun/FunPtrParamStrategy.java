@@ -53,7 +53,7 @@ public class FunPtrParamStrategy implements ParamStrategy {
     if(!argument.isPresent()) {
       mv.aconst(null);
     } else {
-      argument.get().toFunPtr().unwrap().load(mv);
+      argument.get().toFunPtr().jexpr().load(mv);
     }
   }
 }

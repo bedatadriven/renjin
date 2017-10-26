@@ -87,19 +87,19 @@
         </executions>
       </plugin>
 
-      <plugin>
-        <groupId>org.renjin</groupId>
-        <artifactId>gcc-bridge-maven-plugin</artifactId>
-        <version>${project.version}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>soot</goal>
-            </goals>
-            <phase>process-classes</phase>
-          </execution>
-        </executions>
-      </plugin>
+      <!--<plugin>-->
+        <!--<groupId>org.renjin</groupId>-->
+        <!--<artifactId>gcc-bridge-maven-plugin</artifactId>-->
+        <!--<version>${project.version}</version>-->
+        <!--<executions>-->
+          <!--<execution>-->
+            <!--<goals>-->
+              <!--<goal>soot</goal>-->
+            <!--</goals>-->
+            <!--<phase>process-classes</phase>-->
+          <!--</execution>-->
+        <!--</executions>-->
+      <!--</plugin>-->
       <plugin>
         <groupId>com.mycila</groupId>
         <artifactId>license-maven-plugin</artifactId>

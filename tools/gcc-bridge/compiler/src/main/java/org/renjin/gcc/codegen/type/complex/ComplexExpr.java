@@ -23,12 +23,12 @@ import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
+import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
-import org.renjin.gcc.codegen.type.fun.FunPtr;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
-import org.renjin.gcc.codegen.type.primitive.op.NegativeValue;
+import org.renjin.gcc.codegen.type.fun.FunPtrExpr;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveExpr;
+import org.renjin.gcc.codegen.type.primitive.RealExpr;
 import org.renjin.gcc.codegen.type.record.ProvidedPtrExpr;
-import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
@@ -39,17 +39,19 @@ import org.renjin.gcc.gimple.type.GimpleRealType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.repackaged.asm.Type;
 
+import static org.renjin.gcc.codegen.expr.Expressions.*;
+
 
 /**
  * Complex numerical value
  */
-public class ComplexValue implements GExpr {
+public class ComplexExpr implements NumericExpr {
   private PtrExpr address;
   private JExpr realValue;
   private JExpr imaginaryValue;
   private Type componentType;
   
-  public ComplexValue(PtrExpr address, JExpr realValue, JExpr imaginaryValue) {
+  public ComplexExpr(PtrExpr address, JExpr realValue, JExpr imaginaryValue) {
     this.address = address;
     this.realValue = realValue;
     this.imaginaryValue = imaginaryValue;
@@ -65,15 +67,15 @@ public class ComplexValue implements GExpr {
     return ((GimpleRealType) GimplePrimitiveType.fromJvmType(componentType));
   }
 
-  public ComplexValue(JExpr realValue, JExpr imaginaryValue) {
+  public ComplexExpr(JExpr realValue, JExpr imaginaryValue) {
     this(null, realValue, imaginaryValue);
   }
   
-  public ComplexValue(GExpr realValue, GExpr imaginaryValue) {
-    this(null, ((PrimitiveValue) realValue).unwrap(), ((PrimitiveValue) imaginaryValue).unwrap());
+  public ComplexExpr(GExpr realValue, GExpr imaginaryValue) {
+    this(null, ((PrimitiveExpr) realValue).jexpr(), ((PrimitiveExpr) imaginaryValue).jexpr());
   }
 
-  public ComplexValue(JExpr realValue) {
+  public ComplexExpr(JExpr realValue) {
     this.realValue = realValue;
     this.imaginaryValue = Expressions.zero(realValue.getType());
   }
@@ -86,22 +88,22 @@ public class ComplexValue implements GExpr {
     return realValue;
   }
   
-  public GExpr getRealGExpr() {
-    return new PrimitiveValue(getGimpleComponentType(), realValue);
+  public RealExpr getRealGExpr() {
+    return new RealExpr(getGimpleComponentType(), realValue);
   }
 
   public JExpr getImaginaryJExpr() {
     return imaginaryValue;
   }
   
-  public GExpr getImaginaryGExpr() {
-    return new PrimitiveValue(getGimpleComponentType(), imaginaryValue);
+  public RealExpr getImaginaryGExpr() {
+    return new RealExpr(getGimpleComponentType(), imaginaryValue);
   }
   
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
     
-    ComplexValue complexRhs = (ComplexValue) rhs;
+    ComplexExpr complexRhs = (ComplexExpr) rhs;
     
     ((JLValue) realValue).store(mv, complexRhs.getRealJExpr());
     ((JLValue) imaginaryValue).store(mv, complexRhs.getImaginaryJExpr());
@@ -113,8 +115,8 @@ public class ComplexValue implements GExpr {
    * <p>The conjugate is the number with equal real part and imaginary part equal in magnitude but opposite in sign. 
    * For example, the complex conjugate of 3 + 4i is 3 − 4i.
    */
-  public ComplexValue conjugate() {
-    return new ComplexValue(address, realValue, new NegativeValue(imaginaryValue));
+  public ComplexExpr conjugate() {
+    return new ComplexExpr(address, realValue, Expressions.negative(imaginaryValue));
   }
 
   @Override
@@ -126,7 +128,7 @@ public class ComplexValue implements GExpr {
   }
 
   @Override
-  public FunPtr toFunPtr() throws UnsupportedCastException {
+  public FunPtrExpr toFunPtr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -136,18 +138,13 @@ public class ComplexValue implements GExpr {
   }
 
   @Override
-  public PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException {
-    return getRealGExpr().toPrimitiveExpr(targetType);
+  public PrimitiveExpr toPrimitiveExpr() throws UnsupportedCastException {
+    return getRealGExpr().toPrimitiveExpr();
   }
 
   @Override
   public VoidPtrExpr toVoidPtrExpr() throws UnsupportedCastException {
     throw new UnsupportedCastException();
-  }
-
-  @Override
-  public RecordArrayExpr toRecordArrayExpr() throws UnsupportedCastException {
-    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
@@ -175,4 +172,79 @@ public class ComplexValue implements GExpr {
     throw new UnsupportedOperationException("TODO");
   }
 
+  @Override
+  public NumericExpr toNumericExpr() {
+    return this;
+  }
+
+  @Override
+  public NumericExpr plus(GExpr operand) {
+    JExpr real = sum(realValue, operand.toNumericExpr().toComplexExpr().getRealJExpr());
+    JExpr im = sum(imaginaryValue, operand.toNumericExpr().toComplexExpr().getImaginaryJExpr());
+    return new ComplexExpr(real, im);
+  }
+
+  @Override
+  public NumericExpr minus(GExpr operand) {
+    JExpr real = difference(realValue, operand.toNumericExpr().toComplexExpr().getRealJExpr());
+    JExpr im = difference(imaginaryValue, operand.toNumericExpr().toComplexExpr().getImaginaryJExpr());
+    return new ComplexExpr(real, im);
+  }
+
+  @Override
+  public NumericExpr multiply(GExpr operand) {
+    //(a + bi)(c + di) = (ac - bd) + (bc + ad)i
+    ComplexExpr x = this;
+    ComplexExpr y = operand.toNumericExpr().toComplexExpr();
+
+    JExpr a = x.realValue;
+    JExpr b = x.imaginaryValue;
+    JExpr c = y.realValue;
+    JExpr d = y.imaginaryValue;
+
+    JExpr real = difference(product(a, c), product(b, d));
+    JExpr im = sum(product(b, c), product(a, d));
+
+    return new ComplexExpr(real, im);
+  }
+
+  @Override
+  public NumericExpr divide(GExpr operand) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public NumericExpr remainder(GExpr operand) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public NumericExpr negative() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public NumericExpr min(GExpr operand) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public NumericExpr max(GExpr operand) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public NumericExpr absoluteValue() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public ComplexExpr toComplexExpr() {
+    return this;
+  }
+
+  @Override
+  public RealExpr toRealExpr() {
+    return new RealExpr(getGimpleComponentType(), getRealJExpr());
+  }
 }

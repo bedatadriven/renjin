@@ -16,55 +16,29 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.codegen.type.primitive.op;
+package org.renjin.gcc.codegen.condition;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.repackaged.asm.Label;
-import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.Opcodes;
 
-import javax.annotation.Nonnull;
+public class BooleanCondition implements ConditionGenerator {
 
-/**
- * Generates a boolean value based on a condition
- */
-public class ConditionExpr implements JExpr {
-  
-  private ConditionGenerator condition;
+  private JExpr booleanValue;
 
-  public ConditionExpr(ConditionGenerator condition) {
-    this.condition = condition;
-  }
-
-  @Nonnull
-  @Override
-  public Type getType() {
-    return Type.BOOLEAN_TYPE;
+  public BooleanCondition(JExpr booleanValue) {
+    this.booleanValue = booleanValue;
   }
 
   @Override
-  public void load(@Nonnull MethodGenerator mv) {
-    
-    // Push this value as a boolean on the stack.
-    // Requires a jump
-    Label trueLabel = new Label();
-    Label falseLabel = new Label();
-    Label exitLabel = new Label();
-
-    condition.emitJump(mv, trueLabel, falseLabel);
-
-    // if false
-    mv.mark(falseLabel);
-    mv.iconst(0);
-    mv.goTo(exitLabel);
-
-    // if true
-    mv.mark(trueLabel);
-    mv.iconst(1);
-
-    // done
-    mv.mark(exitLabel);
+  public void emitJump(MethodGenerator mv, Label trueLabel, Label falseLabel) {
+    booleanValue.load(mv);
+    mv.visitJumpInsn(Opcodes.IFNE, trueLabel);
+    mv.goTo(falseLabel);
   }
 
+  public ConditionGenerator inverse() {
+    return new InverseConditionGenerator(this);
+  }
 }

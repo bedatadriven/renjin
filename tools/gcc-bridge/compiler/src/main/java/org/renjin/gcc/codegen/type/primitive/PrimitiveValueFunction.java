@@ -39,32 +39,26 @@ import java.util.List;
 
 public class PrimitiveValueFunction implements ValueFunction {
 
-  private GimplePrimitiveType gimpleType;
-  private Type type;
+  private PrimitiveType type;
   private int byteSize;
 
-  public PrimitiveValueFunction(GimplePrimitiveType type) {
-    this.gimpleType = type;
-    this.type = type.jvmType();
-    this.byteSize = type.sizeOf();
-  }
-  
-  public PrimitiveValueFunction(Type type) {
-    this(GimplePrimitiveType.fromJvmType(type));
+  public PrimitiveValueFunction(PrimitiveType type) {
+    this.type = type;
+    this.byteSize = type.gimpleType().sizeOf();
   }
 
-  public GimplePrimitiveType getGimpleType() {
-    return gimpleType;
+  public PrimitiveValueFunction(GimplePrimitiveType primitiveType) {
+    this(PrimitiveType.of(primitiveType));
   }
 
   @Override
   public Type getValueType() {
-    return type;
+    return type.jvmType();
   }
 
   @Override
   public GimpleType getGimpleValueType() {
-    return gimpleType;
+    return type.gimpleType();
   }
 
   @Override
@@ -82,18 +76,18 @@ public class PrimitiveValueFunction implements ValueFunction {
     FatPtrPair address = new FatPtrPair(this, array, offset);
     JExpr value = Expressions.elementAt(array, offset);
 
-    return new PrimitiveValue(gimpleType, value, address);
+    return type.fromNonStackValue(value, address);
   }
 
   @Override
   public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
-    return new PrimitiveValue(gimpleType, wrapperInstance.valueExpr(), wrapperInstance);
+    return type.fromNonStackValue(wrapperInstance.valueExpr(), wrapperInstance);
   }
 
   @Override
   public List<JExpr> toArrayValues(GExpr expr) {
-    PrimitiveValue primitiveValue = (PrimitiveValue) expr;
-    return Collections.singletonList(primitiveValue.getExpr());
+    PrimitiveExpr primitiveExpr = (PrimitiveExpr) expr;
+    return Collections.singletonList(primitiveExpr.jexpr());
   }
 
   @Override
@@ -106,7 +100,7 @@ public class PrimitiveValueFunction implements ValueFunction {
 
   @Override
   public void memorySet(MethodGenerator mv, JExpr array, JExpr offset, JExpr byteValue, JExpr length) {
-    Memset.primitiveMemset(mv, type, array, offset, byteValue, length);
+    Memset.primitiveMemset(mv, type.jvmType(), array, offset, byteValue, length);
   }
 
   @Override
@@ -117,7 +111,7 @@ public class PrimitiveValueFunction implements ValueFunction {
   @Override
   public VPtrExpr toVPtr(JExpr array, JExpr offset) {
 
-    PointerType pointerType = PointerType.ofPrimitiveType(gimpleType);
+    PointerType pointerType = PointerType.ofPrimitiveType(type.gimpleType());
     JExpr newWrapper = Expressions.newObject(pointerType.alignedImpl(), array, offset);
 
     return new VPtrExpr(newWrapper);

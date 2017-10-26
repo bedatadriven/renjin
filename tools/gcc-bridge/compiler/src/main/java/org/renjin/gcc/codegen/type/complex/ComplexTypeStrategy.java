@@ -50,7 +50,7 @@ import org.renjin.repackaged.asm.Type;
  * to return a complex value. This is something we could eliminate with aggressive inlining.</p>
  * 
  */
-public class ComplexTypeStrategy implements TypeStrategy<ComplexValue> {
+public class ComplexTypeStrategy implements TypeStrategy<ComplexExpr> {
 
   private GimpleComplexType type;
 
@@ -59,25 +59,25 @@ public class ComplexTypeStrategy implements TypeStrategy<ComplexValue> {
   }
 
   @Override
-  public ComplexValue variable(GimpleVarDecl decl, VarAllocator allocator) {
+  public ComplexExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
 //      return new AddressableComplexVarGenerator(type,
 //          allocator.reserveArrayRef(decl.getName(), type.getJvmPartType()));
       throw new UnsupportedOperationException("TODO");
     } else {
-      return new ComplexValue(
+      return new ComplexExpr(
           allocator.reserve(decl.getName() + "$real", type.getJvmPartType()),
           allocator.reserve(decl.getName() + "$im", type.getJvmPartType()));
     }
   }
 
   @Override
-  public ComplexValue providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
+  public ComplexExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public ComplexValue constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
+  public ComplexExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -118,7 +118,9 @@ public class ComplexTypeStrategy implements TypeStrategy<ComplexValue> {
   }
 
   @Override
-  public ComplexValue cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
+  public ComplexExpr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
     throw new UnsupportedCastException();
   }
+
 }
+

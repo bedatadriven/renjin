@@ -37,7 +37,7 @@ public class FunPtrField extends SingleFieldStrategy {
     if(offset != 0) {
       throw new IllegalStateException("offset = " + offset);
     }
-    return new FunPtr(Expressions.field(instance, FunPtrStrategy.METHOD_HANDLE_TYPE, fieldName));
+    return new FunPtrExpr(Expressions.field(instance, FunPtrStrategy.METHOD_HANDLE_TYPE, fieldName));
   }
 
   @Override

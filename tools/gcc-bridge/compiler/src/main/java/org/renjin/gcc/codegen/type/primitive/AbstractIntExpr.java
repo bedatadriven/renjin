@@ -16,27 +16,37 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.codegen.type.record;
+package org.renjin.gcc.codegen.type.primitive;
 
-import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.type.TypeOracle;
-import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.repackaged.asm.Type;
-
-import java.io.File;
-import java.io.IOException;
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.type.NumericExpr;
+import org.renjin.gcc.codegen.type.complex.ComplexExpr;
 
 
-public interface RecordLayout {
-  
-  Type getType();
+public abstract class AbstractIntExpr extends AbstractPrimitiveExpr implements IntExpr, NumericExpr {
 
-  void linkFields(TypeOracle typeOracle);
-  
-  void writeClassFiles(File outputDir) throws IOException;
-  
-  GExpr memberOf(MethodGenerator mv, RecordValue instance, int offset, int size, GimpleType type);
+  protected AbstractIntExpr(JExpr expr, GExpr address) {
+    super(expr, address);
+  }
 
-  RecordValue clone(MethodGenerator mv, RecordValue recordValue);
+  @Override
+  public final NumericExpr toNumericExpr() {
+    return this;
+  }
+
+  @Override
+  public final IntExpr toIntExpr() {
+    return this;
+  }
+
+  @Override
+  public final ComplexExpr toComplexExpr() {
+    return toRealExpr().toComplexExpr();
+  }
+
+
+  protected static JExpr bits(GExpr operand) {
+    return operand.toPrimitiveExpr().toSignedInt(32).jexpr();
+  }
 }

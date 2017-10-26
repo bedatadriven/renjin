@@ -16,7 +16,29 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-/**
- * Code generation for operations on primitive types
- */
-package org.renjin.gcc.codegen.type.primitive.op;
+package org.renjin.gcc.codegen.type.primitive;
+
+import org.renjin.gcc.codegen.condition.ConditionGenerator;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.gimple.GimpleOp;
+
+
+public interface PrimitiveExpr extends GExpr {
+
+  IntExpr toIntExpr();
+
+  RealExpr toRealExpr();
+
+  BooleanExpr toBooleanExpr();
+
+  IntExpr toSignedInt(int precision);
+
+  IntExpr toUnsignedInt(int precision);
+
+  RealExpr toReal(int precision);
+
+  JExpr jexpr();
+
+  ConditionGenerator compareTo(GimpleOp op, GExpr generator);
+}

@@ -101,32 +101,33 @@ public class ShortExpr extends AbstractIntExpr implements IntExpr {
 
   @Override
   public ShortExpr bitwiseNot() {
-    throw new UnsupportedOperationException("TODO");
+    return lift(i2s(Expressions.bitwiseXor(jexpr(), 0xFFFF)));
   }
 
   @Override
   public ShortExpr bitwiseAnd(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+    return lift(i2s(Expressions.bitwiseAnd(jexpr(), jexpr(operand))));
+
   }
 
   @Override
   public ShortExpr bitwiseOr(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+    return lift(i2s(Expressions.bitwiseOr(jexpr(), jexpr(operand))));
   }
 
   @Override
   public ShortExpr bitwiseXor(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+    return lift(i2s(Expressions.bitwiseXor(jexpr(), jexpr(operand))));
   }
 
   @Override
   public ShortExpr shiftLeft(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+    return lift(i2s(Expressions.shiftLeft(jexpr(), bits(operand))));
   }
 
   @Override
   public ShortExpr shiftRight(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+    return lift(i2s(Expressions.shiftRight(jexpr(), bits(operand))));
   }
 
   @Override

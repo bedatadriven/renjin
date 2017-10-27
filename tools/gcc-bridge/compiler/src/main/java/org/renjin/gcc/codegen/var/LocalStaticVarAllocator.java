@@ -22,11 +22,15 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.repackaged.asm.Type;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 public class LocalStaticVarAllocator extends VarAllocator {
 
   private String prefix;
   private GlobalVarAllocator globalVarAllocator;
+  private Map<String, Integer> nextIndex = new HashMap<>();
 
   public LocalStaticVarAllocator(String prefix, GlobalVarAllocator globalVarAllocator) {
     this.prefix = prefix;
@@ -35,11 +39,30 @@ public class LocalStaticVarAllocator extends VarAllocator {
 
   @Override
   public JLValue reserve(String name, Type type) {
-    return globalVarAllocator.reserve(prefix + name, type);
+
+    return globalVarAllocator.reserve(uniqueName(name), type);
   }
+
+
 
   @Override
   public JLValue reserve(String name, Type type, JExpr initialValue) {
-    return globalVarAllocator.reserve(prefix + name, type, initialValue);
+    return globalVarAllocator.reserve(uniqueName(name), type, initialValue);
+  }
+
+  private String uniqueName(String name) {
+    // Multiple static variables with the same name can be declared in the same function
+    // but in different
+    String fieldName = prefix + name;
+    Integer index = nextIndex.get(fieldName);
+    if(index == null) {
+      // Fieldname, first of it's name.
+      nextIndex.put(fieldName, 2);
+      return fieldName;
+
+    } else {
+      nextIndex.put(fieldName, index + 1);
+      return fieldName + "$" + index;
+    }
   }
 }

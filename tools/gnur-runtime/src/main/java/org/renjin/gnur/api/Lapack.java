@@ -23,7 +23,7 @@ import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 
-@SuppressWarnings("unused")
+@Deprecated
 public final class Lapack {
 
   private Lapack() { }

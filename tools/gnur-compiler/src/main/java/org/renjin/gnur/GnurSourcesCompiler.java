@@ -161,7 +161,6 @@ public class GnurSourcesCompiler {
   public static void setupCompiler(GimpleCompiler compiler) throws ClassNotFoundException {
     compiler.addReferenceClass(Class.forName("org.renjin.appl.Appl"));
     compiler.addReferenceClass(Class.forName("org.renjin.math.Blas"));
-    compiler.addReferenceClass(Lapack.class);
     Class distributionsClass = Class.forName("org.renjin.stats.internals.Distributions");
     compiler.addReferenceClass(distributionsClass);
     compiler.addMethod("Rf_dbeta", distributionsClass, "dbeta");

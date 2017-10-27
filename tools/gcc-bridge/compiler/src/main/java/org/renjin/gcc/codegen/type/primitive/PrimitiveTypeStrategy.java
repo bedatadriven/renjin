@@ -35,6 +35,8 @@ import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
+import java.util.Collections;
+
 /**
  * Strategy for dealing with primitive types.
  * 
@@ -98,7 +100,11 @@ public class PrimitiveTypeStrategy implements TypeStrategy<PrimitiveExpr> {
           "Expected static field of type " + this.type.jvmType());
     }
 
-    return type.fromStackValue(expr);
+    PtrExpr address = null;
+    if(readOnly) {
+      address = new FatPtrPair(valueFunction(), Expressions.newArray(type.jvmType(), Collections.singletonList(expr)));
+    }
+    return type.fromStackValue(expr, address);
   }
 
   @Override

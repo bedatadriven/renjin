@@ -19,6 +19,7 @@
 package org.renjin.gcc.runtime;
 
 
+import java.math.BigInteger;
 import java.util.Arrays;
 
 public class LongPtr extends AbstractPtr {
@@ -272,6 +273,54 @@ public class LongPtr extends AbstractPtr {
     return quotient + (compareUnsigned(rem, divisor) >= 0 ? 1 : 0);
   }
 
+  /**
+   * Returns the unsigned remainder from dividing the first argument
+   * by the second where each argument and the result is interpreted
+   * as an unsigned value. (Copied from OpenJDK 1.8)
+   *
+   * @param dividend the value to be divided
+   * @param divisor the value doing the dividing
+   * @return the unsigned remainder of the first argument divided by
+   * the second argument
+   * @see #divideUnsigned
+   * @since 1.8
+   */
+  public static long unsignedRemainder(long dividend, long divisor) {
+    if (dividend > 0 && divisor > 0) { // signed comparisons
+      return dividend % divisor;
+    } else {
+      if (compareUnsigned(dividend, divisor) < 0) {
+        // Avoid explicit check for 0 divisor
+        return dividend;
+      } else {
+        return toUnsignedBigInteger(dividend).
+            remainder(toUnsignedBigInteger(divisor)).longValue();
+      }
+    }
+  }
+
+
+  /**
+   * Return a BigInteger equal to the unsigned value of the
+   * argument. (Copied from OpenJDK 1.8)
+   */
+  private static BigInteger toUnsignedBigInteger(long i) {
+    if (i >= 0L) {
+      return BigInteger.valueOf(i);
+    } else {
+      int upper = (int) (i >>> 32);
+      int lower = (int) i;
+
+      // return (upper << 32) + lower
+      return (BigInteger.valueOf(toUnsignedLong(upper))).shiftLeft(32).
+          add(BigInteger.valueOf(toUnsignedLong(lower)));
+    }
+  }
+
+  private static long toUnsignedLong(int x) {
+    return x & 0xFFFFFFFFL;
+  }
+
 
   /**
    * A (self-inverse) bijection which converts the ordering on unsigned longs to the ordering on
@@ -293,5 +342,27 @@ public class LongPtr extends AbstractPtr {
    */
   public static int compareUnsigned(long a, long b) {
     return Long.compare(flip(a), flip(b));
+  }
+
+  public static long unsignedMax(long a, long b) {
+    if(a == b) {
+      return a;
+    }
+    if(flip(a) > flip(b)) {
+      return a;
+    } else {
+      return b;
+    }
+  }
+
+  public static long unsignedMin(long a, long b) {
+    if(a == b) {
+      return a;
+    }
+    if(flip(a) < flip(b)) {
+      return a;
+    } else {
+      return b;
+    }
   }
 }

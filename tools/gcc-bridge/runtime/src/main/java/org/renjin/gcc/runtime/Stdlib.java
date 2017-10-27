@@ -20,6 +20,9 @@ package org.renjin.gcc.runtime;
 
 import org.renjin.gcc.annotations.Struct;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.lang.invoke.MethodHandle;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
@@ -74,6 +77,10 @@ public class Stdlib {
 
   public static int strcmp(Ptr x, Ptr y) {
     return strncmp(x, y, Integer.MAX_VALUE);
+  }
+
+  public static double strtod(Ptr string) {
+    return Double.parseDouble(nullTerminatedString(string));
   }
 
   public static Ptr strdup(Ptr s) {
@@ -229,6 +236,11 @@ public class Stdlib {
     return 0;
   }
 
+  public static int putchar(int character) {
+    System.out.println((char)character);
+    return character;
+  }
+
   public static int sprintf(BytePtr string, BytePtr format, Object... arguments) {
     return snprintf(string, Integer.MAX_VALUE, format, arguments);
   }
@@ -277,7 +289,14 @@ public class Stdlib {
       convertedArgs[i] = convertFormatArg(arguments[i]);
     }
 
-    return String.format(nullTerminatedString(format), convertedArgs);
+    String formatString = nullTerminatedString(format);
+    if(formatString.equals("%2.2x")) {
+      return String.format("%02x", convertedArgs);
+    } else if(formatString.equals("%016llx")) {
+      return String.format("%016x", convertedArgs);
+    } else {
+      return String.format(formatString, convertedArgs);
+    }
   }
 
   private static Object convertFormatArg(Object argument) {
@@ -455,9 +474,76 @@ public class Stdlib {
     return 0;
   }
 
+  @Deprecated
   public static Object fopen() {
-    throw new UnsupportedOperationException("fopen() not implemented");
+    throw new UnsupportedOperationException("Please recompile with the latest version of Renjin.");
   }
+
+  public static Ptr fopen(Ptr filename, Ptr mode) {
+    String filenameString = nullTerminatedString(filename);
+    String modeString = nullTerminatedString(mode);
+
+    switch (modeString) {
+      case "rb":
+        try {
+          return new RecordUnitPtr<>(new FileHandleImpl(new RandomAccessFile(filenameString, "r")));
+        } catch (FileNotFoundException e) {
+          return BytePtr.NULL;
+        }
+      default:
+        throw new UnsupportedOperationException("Not implemented. Mode = " + modeString);
+    }
+  }
+
+  public static int fread(Ptr ptr, int size, int count, Ptr stream) throws IOException {
+
+    FileHandle handle = (FileHandle) stream.getArray();
+
+    int bytesRead = 0;
+
+    // Super naive implementation.
+    // Performance to be improved...
+    for(int i=0;i<(count*size);++i) {
+      int b = handle.read();
+      if(b == -1) {
+        break;
+      }
+      ptr.setByte(i, (byte)b);
+      bytesRead++;
+    }
+
+    return bytesRead;
+  }
+
+  public static int fseek(Ptr stream, long offset, int whence) {
+    FileHandle fileHandle = (FileHandle) stream.getArray();
+    try {
+      switch (whence) {
+        case FileHandle.SEEK_SET:
+          fileHandle.seekSet(offset);
+          break;
+        case FileHandle.SEEK_CURRENT:
+          fileHandle.seekCurrent(offset);
+          break;
+        case FileHandle.SEEK_END:
+          fileHandle.seekEnd(offset);
+          break;
+      }
+      return 0;
+    } catch (IOException e) {
+      return -1;
+    }
+  }
+
+  public static int fclose(Ptr stream) {
+    try {
+      ((FileHandle) stream.getArray()).close();
+      return 0;
+    } catch (IOException e) {
+      return -1;
+    }
+  }
+
 
   /**
    * test for infinity.

@@ -74,17 +74,17 @@ public class FunPtrValueFunction implements ValueFunction {
   public GExpr dereference(JExpr array, JExpr offset) {
     JExpr ptr = Expressions.cast(Expressions.elementAt(array, offset), Type.getType(MethodHandle.class));
     FatPtrPair address = new FatPtrPair(this, array, offset);
-    return new FunPtr(ptr, address);
+    return new FunPtrExpr(ptr, address);
   }
 
   @Override
   public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
-    return new FunPtr(wrapperInstance.valueExpr(), wrapperInstance);
+    return new FunPtrExpr(wrapperInstance.valueExpr(), wrapperInstance);
   }
 
   @Override
   public List<JExpr> toArrayValues(GExpr expr) {
-    return Collections.singletonList(((FunPtr) expr).unwrap());
+    return Collections.singletonList(((FunPtrExpr) expr).jexpr());
   }
 
   @Override

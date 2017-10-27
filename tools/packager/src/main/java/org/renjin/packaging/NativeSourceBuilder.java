@@ -118,7 +118,7 @@ public class NativeSourceBuilder {
     commandLine.add("-f");
     commandLine.add(shlibMk.getAbsolutePath());
 
-    commandLine.add("SHLIB='dummy.so'");
+    commandLine.add("SHLIB='" + source.getPackageName() + ".so'");
 
     if(!definedByMakeVars(makevars, "^OBJECTS\\s*=")) {
       commandLine.add("OBJECTS=" + findObjectFiles());
@@ -193,8 +193,7 @@ public class NativeSourceBuilder {
     compiler.setOutputDirectory(buildContext.getOutputDir());
     compiler.setPackageName(source.getGroupId() + "." +
         Namespace.sanitizePackageNameForClassFiles(source.getPackageName()));
-    compiler.setClassName(
-        Namespace.sanitizePackageNameForClassFiles(source.getPackageName()));
+    compiler.setClassName(findLibraryName());
 
     if (buildContext.getCompileLogDir() != null) {
       compiler.setLogger(new HtmlTreeLogger(buildContext.getCompileLogDir()));
@@ -221,6 +220,23 @@ public class NativeSourceBuilder {
       throw new BuildException("Failed to compile Gimple", e);
     }
   }
+
+  private String findLibraryName() {
+    // Packages can rename the shared library after it's build.
+    // (Yes, looking at you data.table!!)
+
+    for (File file : source.getNativeSourceDir().listFiles()) {
+      String filename = file.getName();
+      if(filename.endsWith(".so")) {
+        return Namespace.sanitizePackageNameForClassFiles(filename.substring(0, filename.length() - ".so".length()));
+      }
+    }
+
+    // Otherwise assume it's the same as the package name
+    return Namespace.sanitizePackageNameForClassFiles(source.getPackageName());
+
+  }
+
 
   private boolean definedByMakeVars(File makevars, String pattern) throws IOException {
     if(!makevars.exists()) {

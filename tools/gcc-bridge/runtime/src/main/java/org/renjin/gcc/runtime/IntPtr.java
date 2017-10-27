@@ -260,6 +260,57 @@ public class IntPtr extends AbstractPtr implements Ptr {
     }
   }
 
+
+  static int flip(int value) {
+    return value ^ Integer.MIN_VALUE;
+  }
+
+  /**
+   * Compares the two specified {@code int} values, treating them as unsigned values between
+   * {@code 0} and {@code 2^32 - 1} inclusive. (Copied from Guava 17.0)
+   *
+   * @param a the first unsigned {@code int} to compare
+   * @param b the second unsigned {@code int} to compare
+   * @return a negative value if {@code a} is less than {@code b}; a positive value if {@code a} is
+   *         greater than {@code b}; or zero if they are equal
+   */
+  public static int unsignedCompare(int a, int b) {
+    return Integer.compare(flip(a), flip(b));
+  }
+
+  public static int unsignedMax(int a, int b) {
+    if(a==b) {
+      return a;
+    }
+    if(flip(a) > flip(b)) {
+      return a;
+    } else {
+      return b;
+    }
+  }
+
+  public static int unsignedMin(int a, int b) {
+    if(a==b) {
+      return a;
+    }
+    if(flip(a) < flip(b)) {
+      return a;
+    } else {
+      return b;
+    }
+  }
+
+
+  public static int unsignedDivide(int dividend, int divisor) {
+    // In lieu of tricky code, for now just use long arithmetic.
+    return (int)((dividend & 0xFFFFFFFFL) /  (divisor & 0xFFFFFFFFL));
+  }
+
+  public static int unsignedRemainder(int dividend, int divisor) {
+    // In lieu of tricky code, for now just use long arithmetic.
+    return (int)((dividend & 0xFFFFFFFFL) %  (divisor & 0xFFFFFFFFL));
+  }
+
   public static void memcpy(IntPtr x, IntPtr y, int numBytes) {
     int[] arrayS = y.getArray();
     int offsetS = y.getOffset();

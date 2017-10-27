@@ -175,7 +175,7 @@ public class TypeOracle {
       return new VoidReturnStrategy();
 
     } else if(returnType.isPrimitive()) {
-      return new PrimitiveTypeStrategy(returnType).getReturnStrategy();
+      return new PrimitiveTypeStrategy(GimplePrimitiveType.fromJvmType(Type.getType(returnType))).getReturnStrategy();
 
     } else if(Ptr.class.isAssignableFrom(returnType)) {
       return new VPtrReturnStrategy();

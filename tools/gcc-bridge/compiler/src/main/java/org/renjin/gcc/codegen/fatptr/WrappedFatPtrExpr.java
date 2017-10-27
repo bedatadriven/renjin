@@ -22,18 +22,17 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
-import org.renjin.gcc.codegen.type.fun.FunPtr;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.fun.FunPtrExpr;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveExpr;
 import org.renjin.gcc.codegen.type.record.ProvidedPtrExpr;
-import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.ObjectPtr;
@@ -95,12 +94,12 @@ public class WrappedFatPtrExpr implements FatPtr {
   }
 
   @Override
-  public GExpr addressOf() {
+  public PtrExpr addressOf() {
     throw new NotAddressableException();
   }
 
   @Override
-  public FunPtr toFunPtr() throws UnsupportedCastException {
+  public FunPtrExpr toFunPtr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -110,18 +109,13 @@ public class WrappedFatPtrExpr implements FatPtr {
   }
 
   @Override
-  public PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException {
+  public PrimitiveExpr toPrimitiveExpr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
   public VoidPtrExpr toVoidPtrExpr() throws UnsupportedCastException {
     return new VoidPtrExpr(ref);
-  }
-
-  @Override
-  public RecordArrayExpr toRecordArrayExpr() throws UnsupportedCastException {
-    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
@@ -146,6 +140,11 @@ public class WrappedFatPtrExpr implements FatPtr {
 
   @Override
   public VArrayExpr toVArray(GimpleArrayType arrayType) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public NumericExpr toNumericExpr() {
     throw new UnsupportedOperationException("TODO");
   }
 

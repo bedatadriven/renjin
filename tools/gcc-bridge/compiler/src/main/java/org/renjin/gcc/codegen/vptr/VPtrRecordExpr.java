@@ -26,12 +26,13 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
+import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
-import org.renjin.gcc.codegen.type.fun.FunPtr;
+import org.renjin.gcc.codegen.type.fun.FunPtrExpr;
 import org.renjin.gcc.codegen.type.primitive.BitFieldExpr;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveExpr;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveType;
 import org.renjin.gcc.codegen.type.record.ProvidedPtrExpr;
-import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.record.RecordExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.gimple.type.*;
@@ -72,12 +73,12 @@ public class VPtrRecordExpr implements RecordExpr {
   }
 
   @Override
-  public GExpr addressOf() {
+  public PtrExpr addressOf() {
     return pointer;
   }
 
   @Override
-  public FunPtr toFunPtr() throws UnsupportedCastException {
+  public FunPtrExpr toFunPtr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -87,17 +88,12 @@ public class VPtrRecordExpr implements RecordExpr {
   }
 
   @Override
-  public PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException {
+  public PrimitiveExpr toPrimitiveExpr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
   public VoidPtrExpr toVoidPtrExpr() throws UnsupportedCastException {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
-  public RecordArrayExpr toRecordArrayExpr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -113,6 +109,11 @@ public class VPtrRecordExpr implements RecordExpr {
 
   @Override
   public VArrayExpr toVArray(GimpleArrayType arrayType) {
+    return new VArrayExpr(arrayType, pointer);
+  }
+
+  @Override
+  public NumericExpr toNumericExpr() {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -144,8 +145,10 @@ public class VPtrRecordExpr implements RecordExpr {
           PointerType.BYTE);
 
       BitFieldExpr bitFieldExpr = new BitFieldExpr(byteValue, fieldOffsetBits % 8, size);
+      GimplePrimitiveType gimplePrimitiveType = (GimplePrimitiveType) type;
+      PrimitiveType primitiveType = PrimitiveType.of(gimplePrimitiveType);
 
-      return new PrimitiveValue((GimplePrimitiveType) type, bitFieldExpr);
+      return primitiveType.fromStackValue(bitFieldExpr);
     }
 
     throw new UnsupportedOperationException("TODO: bitfield, expectedType = " + type);

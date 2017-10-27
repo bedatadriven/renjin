@@ -28,6 +28,12 @@ uint16_t downcast_u16(uint64_t x) {
 
 
 void testu_8() {
+
+    uint8_t b1 = downcast_u8(0xFF);
+    uint8_t b2 = 0xFF;
+    ASSERT(b1 == b2);
+
+
     ASSERT(downcast_u8(0) == 0);
     ASSERT(downcast_u8(12) == 12);
     ASSERT(downcast_u8(0xFF) == 0xFF);

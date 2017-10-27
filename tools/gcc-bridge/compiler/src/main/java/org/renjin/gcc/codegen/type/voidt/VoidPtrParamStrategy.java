@@ -56,6 +56,6 @@ public class VoidPtrParamStrategy implements ParamStrategy {
       return;
     }
     VoidPtrExpr voidPtrExpr = argument.get().toVoidPtrExpr();
-    voidPtrExpr.unwrap().load(mv);
+    voidPtrExpr.jexpr().load(mv);
   }
 }

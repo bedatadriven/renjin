@@ -64,6 +64,7 @@
                 <flag>-I</flag>
                 <flag>.</flag>
               </cFlags>
+              <loggingDirectory>${basedir}/target/gcc-bridge-logs</loggingDirectory>
             </configuration>
           </execution>
           <execution>

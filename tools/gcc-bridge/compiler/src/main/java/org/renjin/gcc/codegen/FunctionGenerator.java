@@ -301,7 +301,7 @@ public class FunctionGenerator implements InvocationStrategy {
     }
   }
 
-  public void emitLocalStaticVarInitialization(MethodGenerator mv) {
+  public void emitLocalStaticVarInitialization(MethodGenerator mv, ExprFactory exprFactory) {
 
     if(compilationFailed) {
       return;
@@ -348,6 +348,8 @@ public class FunctionGenerator implements InvocationStrategy {
   private void emitBasicBlock(GimpleBasicBlock basicBlock) {
     mv.visitLabel(labels.of(basicBlock));
 
+    Integer currentLineNumber = null;
+
     for (GimpleStatement ins : basicBlock.getStatements()) {
       Label insLabel = new Label();
       mv.visitLabel(insLabel);
@@ -372,8 +374,9 @@ public class FunctionGenerator implements InvocationStrategy {
         throw new InternalCompilerException("Exception compiling instruction " + ins, e);
       }
       
-      if(ins.getLineNumber() != null) {
+      if(ins.getLineNumber() != null && !Objects.equals(ins.getLineNumber(), currentLineNumber)) {
         mv.visitLineNumber(ins.getLineNumber(), insLabel);
+        currentLineNumber = ins.getLineNumber();
       }
     }
   }
@@ -448,7 +451,6 @@ public class FunctionGenerator implements InvocationStrategy {
     CallGenerator callGenerator = exprFactory.findCallGenerator(ins.getFunction());
     callGenerator.emitCall(mv, exprFactory, ins);
   }
-
 
   private void emitReturn(GimpleReturn ins) {
     if(function.getReturnType() instanceof GimpleVoidType) {

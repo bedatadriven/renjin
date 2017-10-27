@@ -136,7 +136,11 @@ public class GimpleIntegerType extends GimplePrimitiveType {
   }
 
 
-  public static GimpleType signed(int bits) {
+  public static GimpleIntegerType signed(int bits) {
     return new GimpleIntegerType(bits);
+  }
+
+  public boolean isSigned() {
+    return !isUnsigned();
   }
 }

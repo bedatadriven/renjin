@@ -10,6 +10,7 @@ all: $(SHLIB)
 # Note that for Renjin, we don't actually need to link the shared library
 
 $(SHLIB): $(OBJECTS)
+	touch $@
 
 .PHONY: all shlib-clean
 

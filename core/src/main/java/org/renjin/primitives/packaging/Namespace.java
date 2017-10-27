@@ -318,6 +318,7 @@ public class Namespace {
     String className = packageName.getGroupId() + "." +
         Namespace.sanitizePackageNameForClassFiles(packageName.getPackageName()) + "." +
         Namespace.sanitizePackageNameForClassFiles(libraryName);
+
     libraryClass = pkg.loadClass(className);
 
 

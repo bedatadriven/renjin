@@ -103,4 +103,5 @@ public class ProvidedTypeStrategy extends RecordTypeStrategy<GExpr> {
   public GExpr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
     throw new UnsupportedOperationException(unsupportedMessage());
   }
+
 }

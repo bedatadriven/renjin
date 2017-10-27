@@ -445,6 +445,29 @@ import java.util.Vector;
  */
 public class Formatter {
 
+  private static final int DOUBLE_SIGNIFICAND_WIDTH = 53;
+
+
+  /**
+   * Bit mask to isolate the significand field of a
+   * <code>double</code>.
+   */
+  public static final long    DOUBLE_SIGNIF_BIT_MASK = 0x000FFFFFFFFFFFFFL;
+
+
+  /**
+   * Bit mask to isolate the sign bit of a <code>double</code>.
+   */
+  public static final long    DOUBLE_SIGN_BIT_MASK   = 0x8000000000000000L;
+
+
+  /**
+   * Bit mask to isolate the exponent field of a
+   * <code>double</code>.
+   */
+  public static final long    DOUBLE_EXP_BIT_MASK    = 0x7FF0000000000000L;
+
+
   /**
    * The input format string
    */
@@ -495,6 +518,9 @@ public class Formatter {
                     ePos++) {
         char c=0;
         c = fmtArg.charAt(ePos);
+        if (c == 'a') {
+          break;
+        }
         if (c == 'i') {
           break;
         }
@@ -923,6 +949,8 @@ public class Formatter {
           s2 = printDFormat(s);
         }
         break;
+      case 'a':
+      case 'A':
       case 'f':
       case 'E':
       case 'e':
@@ -985,6 +1013,9 @@ public class Formatter {
         case 'G':
         case 'g':
           return printGFormat(value);
+        case 'A':
+        case 'a':
+          return printAFormat(value);
       }
       
       if(isInteger(value)) {
@@ -1978,6 +2009,278 @@ public class Formatter {
       precision=savePrecision;
       return new String(ca5);
     }
+
+    private String printAFormat(double x) {
+      int savePrecision=precision;
+      int i;
+      char[] ca4,ca5;
+      boolean noDigits=false;
+      if (Double.isInfinite(x)) {
+        if (x==Double.POSITIVE_INFINITY) {
+          if (leadingSign) {
+            ca4 = "+Inf".toCharArray();
+          } else if (leadingSpace) {
+            ca4 = " Inf".toCharArray();
+          } else {
+            ca4 = "Inf".toCharArray();
+          }
+        }
+        else {
+          ca4 = "-Inf".toCharArray();
+        }
+        noDigits = true;
+      }
+      else if (Double.isNaN(x)) {
+        if (leadingSign) {
+          ca4 = "+NaN".toCharArray();
+        } else if (leadingSpace) {
+          ca4 = " NaN".toCharArray();
+        } else {
+          ca4 = "NaN".toCharArray();
+        }
+        noDigits = true;
+      }
+      else {
+        if (!precisionSet) {
+          precision = 15;
+        }
+        if (precision==0) {
+          precision = 1;
+        }
+
+        String hexString = "0x" + hexDouble(x, precision);
+        if(conversionCharacter == 'A') {
+          hexString = hexString.toUpperCase();
+        }
+        ca4 = hexString.toCharArray();
+      }
+      // Pad with blanks or zeros.
+      ca5 = applyFloatPadding(ca4,false);
+      precision=savePrecision;
+      return new String(ca5);
+    }
+
+    // Method assumes that d > 0.
+    private String hexDouble(double d, int prec) {
+
+      double scaleUp;
+
+      // Let Double.toHexString handle simple cases
+      if(!DoubleVector.isFinite(d) || d == 0.0 || prec == 0 || prec >= 13)
+        return toHexString(d).substring(2);
+      else {
+      //  assert(prec >= 1 && prec <= 12);
+
+        int exponent  = Math.getExponent(d);
+        boolean subnormal
+            = (exponent == Double.MIN_EXPONENT - 1);
+
+        // If this is subnormal input so normalize (could be faster to
+        // do as integer operation).
+        if (subnormal) {
+          scaleUp = Math.scalb(1.0, 54);
+          d *= scaleUp;
+          // Calculate the exponent.  This is not just exponent + 54
+          // since the former is not the normalized exponent.
+          exponent = Math.getExponent(d);
+          assert exponent >= Double.MIN_EXPONENT &&
+              exponent <= Double.MAX_EXPONENT: exponent;
+        }
+
+        int precision = 1 + prec*4;
+        int shiftDistance
+            =  DOUBLE_SIGNIFICAND_WIDTH - precision;
+        assert(shiftDistance >= 1 && shiftDistance < DOUBLE_SIGNIFICAND_WIDTH);
+
+        long doppel = Double.doubleToLongBits(d);
+        // Deterime the number of bits to keep.
+        long newSignif
+            = (doppel & (DOUBLE_EXP_BIT_MASK
+            | DOUBLE_SIGNIF_BIT_MASK))
+            >> shiftDistance;
+        // Bits to round away.
+        long roundingBits = doppel & ~(~0L << shiftDistance);
+
+        // To decide how to round, look at the low-order bit of the
+        // working significand, the highest order discarded bit (the
+        // round bit) and whether any of the lower order discarded bits
+        // are nonzero (the sticky bit).
+
+        boolean leastZero = (newSignif & 0x1L) == 0L;
+        boolean round
+            = ((1L << (shiftDistance - 1) ) & roundingBits) != 0L;
+        boolean sticky  = shiftDistance > 1 &&
+            (~(1L<< (shiftDistance - 1)) & roundingBits) != 0;
+        if((leastZero && round && sticky) || (!leastZero && round)) {
+          newSignif++;
+        }
+
+        long signBit = doppel & DOUBLE_SIGN_BIT_MASK;
+        newSignif = signBit | (newSignif << shiftDistance);
+        double result = Double.longBitsToDouble(newSignif);
+
+        if (Double.isInfinite(result) ) {
+          // Infinite result generated by rounding
+          return "1.0p+1024";
+        } else {
+          String res = toHexString(result).substring(2);
+          if (!subnormal)
+            return res;
+          else {
+            // Create a normalized subnormal string.
+            int idx = res.indexOf('p');
+            if (idx == -1) {
+              // No 'p' character in hex string.
+              assert false;
+              return null;
+            } else {
+              // Get exponent and append at the end.
+              String exp = res.substring(idx + 1);
+              int iexp = Integer.parseInt(exp) -54;
+              return res.substring(0, idx) + "p"
+                  + (iexp < 0 ? "" : "+")
+                  + Integer.toString(iexp);
+            }
+          }
+        }
+      }
+    }
+
+    /**
+     * Returns a hexadecimal string representation of the
+     * {@code double} argument. All characters mentioned below
+     * are ASCII characters.
+     *
+     * <ul>
+     * <li>If the argument is NaN, the result is the string
+     *     "{@code NaN}".
+     * <li>Otherwise, the result is a string that represents the sign
+     * and magnitude of the argument. If the sign is negative, the
+     * first character of the result is '{@code -}'
+     * ({@code '\u005Cu002D'}); if the sign is positive, no sign
+     * character appears in the result. As for the magnitude <i>m</i>:
+     *
+     * <ul>
+     * <li>If <i>m</i> is infinity, it is represented by the string
+     * {@code "Infinity"}; thus, positive infinity produces the
+     * result {@code "Infinity"} and negative infinity produces
+     * the result {@code "-Infinity"}.
+     *
+     * <li>If <i>m</i> is zero, it is represented by the string
+     * {@code "0x0.0p0"}; thus, negative zero produces the result
+     * {@code "-0x0.0p0"} and positive zero produces the result
+     * {@code "0x0.0p0"}.
+     *
+     * <li>If <i>m</i> is a {@code double} value with a
+     * normalized representation, substrings are used to represent the
+     * significand and exponent fields.  The significand is
+     * represented by the characters {@code "0x1."}
+     * followed by a lowercase hexadecimal representation of the rest
+     * of the significand as a fraction.  Trailing zeros in the
+     * hexadecimal representation are removed unless all the digits
+     * are zero, in which case a single zero is used. Next, the
+     * exponent is represented by {@code "p"} followed
+     * by a decimal string of the unbiased exponent as if produced by
+     * a call to {@link Integer#toString(int) Integer.toString} on the
+     * exponent value.
+     *
+     * <li>If <i>m</i> is a {@code double} value with a subnormal
+     * representation, the significand is represented by the
+     * characters {@code "0x0."} followed by a
+     * hexadecimal representation of the rest of the significand as a
+     * fraction.  Trailing zeros in the hexadecimal representation are
+     * removed. Next, the exponent is represented by
+     * {@code "p-1022"}.  Note that there must be at
+     * least one nonzero digit in a subnormal significand.
+     *
+     * </ul>
+     *
+     * </ul>
+     *
+     * <table border>
+     * <caption>Examples</caption>
+     * <tr><th>Floating-point Value</th><th>Hexadecimal String</th>
+     * <tr><td>{@code 1.0}</td> <td>{@code 0x1.0p0}</td>
+     * <tr><td>{@code -1.0}</td>        <td>{@code -0x1.0p0}</td>
+     * <tr><td>{@code 2.0}</td> <td>{@code 0x1.0p1}</td>
+     * <tr><td>{@code 3.0}</td> <td>{@code 0x1.8p1}</td>
+     * <tr><td>{@code 0.5}</td> <td>{@code 0x1.0p-1}</td>
+     * <tr><td>{@code 0.25}</td>        <td>{@code 0x1.0p-2}</td>
+     * <tr><td>{@code Double.MAX_VALUE}</td>
+     *     <td>{@code 0x1.fffffffffffffp1023}</td>
+     * <tr><td>{@code Minimum Normal Value}</td>
+     *     <td>{@code 0x1.0p-1022}</td>
+     * <tr><td>{@code Maximum Subnormal Value}</td>
+     *     <td>{@code 0x0.fffffffffffffp-1022}</td>
+     * <tr><td>{@code Double.MIN_VALUE}</td>
+     *     <td>{@code 0x0.0000000000001p-1022}</td>
+     * </table>
+     * @param   d   the {@code double} to be converted.
+     * @return a hex string representation of the argument.
+     * @since 1.5
+     * @author Joseph D. Darcy
+     */
+    public String toHexString(double d) {
+        /*
+         * Modeled after the "a" conversion specifier in C99, section
+         * 7.19.6.1; however, the output of this method is more
+         * tightly specified.
+         */
+      assert DoubleVector.isFinite(d);
+      // Initialized to maximum size of output.
+      StringBuilder answer = new StringBuilder(24);
+
+      if (Math.copySign(1.0, d) == -1.0)    // value is negative,
+        answer.append("-");                  // so append sign info
+
+      answer.append("0x");
+
+      d = Math.abs(d);
+
+      if(d == 0.0) {
+        answer.append("0.0p+0");
+      } else {
+        boolean subnormal = (d < Double.MIN_NORMAL);
+
+        // Isolate significand bits and OR in a high-order bit
+        // so that the string representation has a known
+        // length.
+        long signifBits = (Double.doubleToLongBits(d)
+            & DOUBLE_SIGNIF_BIT_MASK) |
+            0x1000000000000000L;
+
+        // Subnormal values have a 0 implicit bit; normal
+        // values have a 1 implicit bit.
+        answer.append(subnormal ? "0." : "1.");
+
+        // Isolate the low-order 13 digits of the hex
+        // representation.  If all the digits are zero,
+        // replace with a single 0; otherwise, remove all
+        // trailing zeros.
+        String signif = Long.toHexString(signifBits).substring(3,16);
+        answer.append(signif.equals("0000000000000") ? // 13 zeros
+            "0":
+            signif.replaceFirst("0{1,12}$", ""));
+
+        answer.append('p');
+        // If the value is subnormal, use the E_min exponent
+        // value for double; otherwise, extract and report d's
+        // exponent (the representation of a subnormal uses
+        // E_min -1).
+        int exponent = subnormal ?
+            Double.MIN_EXPONENT :
+            Math.getExponent(d);
+
+        if(exponent >= 0) {
+          answer.append("+");
+        }
+
+        answer.append(exponent);
+      }
+      return answer.toString();
+    }
+
+
     /**
      * Format method for the d conversion specifer and
      * short argument.
@@ -2922,7 +3225,7 @@ public class Formatter {
       conversionCharacter='\0';
       if (pos < fmt.length()) {
         char c = fmt.charAt(pos);
-        if (c=='i'||c=='d'||c=='f'||c=='g'||c=='G'
+        if (c == 'a' || c=='A' || c=='i'|| c=='d'||c=='f'||c=='g'||c=='G'
         || c=='o' || c=='x' || c=='X' || c=='e'
         || c=='E' || c=='c' || c=='s' || c=='%') {
           conversionCharacter = c;

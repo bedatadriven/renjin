@@ -41,7 +41,7 @@ public class ProvidedPtrReturnStrategy implements ReturnStrategy {
 
   @Override
   public JExpr marshall(GExpr expr) {
-    return ((ProvidedPtrExpr) expr).unwrap();
+    return ((ProvidedPtrExpr) expr).jexpr();
   }
 
   @Override

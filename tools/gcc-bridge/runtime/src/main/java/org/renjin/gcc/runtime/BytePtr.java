@@ -118,7 +118,7 @@ public class BytePtr extends AbstractPtr {
    * @param n the number of bytes to set
    */
   public static void memset(byte[] str, int strOffset, int c, int n) {
-    Arrays.fill(str, strOffset, strOffset + (n / Double.SIZE), (byte)c);
+    Arrays.fill(str, strOffset, strOffset + n, (byte)c);
   }
 
   public static byte memset(int c) {
@@ -143,6 +143,21 @@ public class BytePtr extends AbstractPtr {
   @Override
   public BytePtr realloc(int newSizeInBytes) {
     return new BytePtr(Realloc.realloc(array, offset, newSizeInBytes));
+  }
+
+  @Override
+  public BytePtr copyOf(int numBytes) {
+    return new BytePtr(Arrays.copyOf(array, numBytes));
+  }
+
+  @Override
+  public void memcpy(Ptr source, int numBytes) {
+    if(source instanceof BytePtr) {
+      BytePtr sourceBytePtr = (BytePtr) source;
+      System.arraycopy(sourceBytePtr.array, sourceBytePtr.offset, this.array, this.offset, numBytes);
+    } else {
+      super.memcpy(source, numBytes);
+    }
   }
 
   @Override

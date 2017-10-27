@@ -28,6 +28,11 @@ substring <- function(text, first, last=1000000L)
     .Internal(substr(text, as.integer(first), as.integer(last)))
 }
 
+startsWith <- function(x, prefix)
+{
+    substr(x, 1, nchar(prefix)) == prefix
+}
+
 `substr<-` <- function(x, start, stop, value)
     .Internal(`substr<-`(x, as.integer(start), as.integer(stop), value))
 

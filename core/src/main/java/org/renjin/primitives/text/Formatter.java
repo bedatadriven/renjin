@@ -29,7 +29,6 @@ package org.renjin.primitives.text;
 
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
-import sun.misc.DoubleConsts;
 
 import java.text.DecimalFormatSymbols;
 import java.util.Enumeration;
@@ -445,6 +444,29 @@ import java.util.Vector;
  *              round up/down when last digits are 50000...
  */
 public class Formatter {
+
+  private static final int DOUBLE_SIGNIFICAND_WIDTH = 53;
+
+
+  /**
+   * Bit mask to isolate the significand field of a
+   * <code>double</code>.
+   */
+  public static final long    DOUBLE_SIGNIF_BIT_MASK = 0x000FFFFFFFFFFFFFL;
+
+
+  /**
+   * Bit mask to isolate the sign bit of a <code>double</code>.
+   */
+  public static final long    DOUBLE_SIGN_BIT_MASK   = 0x8000000000000000L;
+
+
+  /**
+   * Bit mask to isolate the exponent field of a
+   * <code>double</code>.
+   */
+  public static final long    DOUBLE_EXP_BIT_MASK    = 0x7FF0000000000000L;
+
 
   /**
    * The input format string
@@ -2051,7 +2073,7 @@ public class Formatter {
 
         int exponent  = Math.getExponent(d);
         boolean subnormal
-            = (exponent == DoubleConsts.MIN_EXPONENT - 1);
+            = (exponent == Double.MIN_EXPONENT - 1);
 
         // If this is subnormal input so normalize (could be faster to
         // do as integer operation).
@@ -2061,20 +2083,20 @@ public class Formatter {
           // Calculate the exponent.  This is not just exponent + 54
           // since the former is not the normalized exponent.
           exponent = Math.getExponent(d);
-          assert exponent >= DoubleConsts.MIN_EXPONENT &&
-              exponent <= DoubleConsts.MAX_EXPONENT: exponent;
+          assert exponent >= Double.MIN_EXPONENT &&
+              exponent <= Double.MAX_EXPONENT: exponent;
         }
 
         int precision = 1 + prec*4;
         int shiftDistance
-            =  DoubleConsts.SIGNIFICAND_WIDTH - precision;
-        assert(shiftDistance >= 1 && shiftDistance < DoubleConsts.SIGNIFICAND_WIDTH);
+            =  DOUBLE_SIGNIFICAND_WIDTH - precision;
+        assert(shiftDistance >= 1 && shiftDistance < DOUBLE_SIGNIFICAND_WIDTH);
 
         long doppel = Double.doubleToLongBits(d);
         // Deterime the number of bits to keep.
         long newSignif
-            = (doppel & (DoubleConsts.EXP_BIT_MASK
-            | DoubleConsts.SIGNIF_BIT_MASK))
+            = (doppel & (DOUBLE_EXP_BIT_MASK
+            | DOUBLE_SIGNIF_BIT_MASK))
             >> shiftDistance;
         // Bits to round away.
         long roundingBits = doppel & ~(~0L << shiftDistance);
@@ -2093,7 +2115,7 @@ public class Formatter {
           newSignif++;
         }
 
-        long signBit = doppel & DoubleConsts.SIGN_BIT_MASK;
+        long signBit = doppel & DOUBLE_SIGN_BIT_MASK;
         newSignif = signBit | (newSignif << shiftDistance);
         double result = Double.longBitsToDouble(newSignif);
 
@@ -2218,13 +2240,13 @@ public class Formatter {
       if(d == 0.0) {
         answer.append("0.0p+0");
       } else {
-        boolean subnormal = (d < DoubleConsts.MIN_NORMAL);
+        boolean subnormal = (d < Double.MIN_NORMAL);
 
         // Isolate significand bits and OR in a high-order bit
         // so that the string representation has a known
         // length.
         long signifBits = (Double.doubleToLongBits(d)
-            & DoubleConsts.SIGNIF_BIT_MASK) |
+            & DOUBLE_SIGNIF_BIT_MASK) |
             0x1000000000000000L;
 
         // Subnormal values have a 0 implicit bit; normal
@@ -2246,7 +2268,7 @@ public class Formatter {
         // exponent (the representation of a subnormal uses
         // E_min -1).
         int exponent = subnormal ?
-            DoubleConsts.MIN_EXPONENT :
+            Double.MIN_EXPONENT :
             Math.getExponent(d);
 
         if(exponent >= 0) {

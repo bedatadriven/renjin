@@ -23,6 +23,8 @@ import org.renjin.gcc.codegen.condition.Comparison;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRealType;
 import org.renjin.gcc.runtime.LongPtr;
 import org.renjin.repackaged.asm.Type;
@@ -157,6 +159,11 @@ public class UnsignedLongExpr extends AbstractIntExpr {
     throw new UnsupportedOperationException("precision: " + precision);
   }
 
+
+  @Override
+  public GimplePrimitiveType getType() {
+    return GimpleIntegerType.unsigned(64);
+  }
 
   @Override
   public RealExpr toRealExpr() {

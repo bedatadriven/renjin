@@ -89,6 +89,16 @@ public class FatArrayExpr implements ArrayExpr {
     } else if(rhs instanceof VArrayExpr) {
       toVArray(arrayType).store(mv, rhs);
 
+    } else if(rhs instanceof PrimitiveExpr) {
+      PrimitiveExpr primitiveRhs = (PrimitiveExpr) rhs;
+      if(primitiveRhs.jexpr().getType().equals(valueFunction.getValueType())) {
+        Expressions.elementAt(array, offset).store(mv, primitiveRhs.jexpr());
+
+      } else {
+        JExpr arrayLengthBytes = Expressions.constantInt(this.length * valueFunction.getArrayElementBytes());
+        addressOf().toVPtrExpr().memoryCopy(mv, primitiveRhs.addressOfReadOnly(), arrayLengthBytes, false);
+      }
+
     } else {
 
       FatArrayExpr rhsExpr = (FatArrayExpr) rhs;

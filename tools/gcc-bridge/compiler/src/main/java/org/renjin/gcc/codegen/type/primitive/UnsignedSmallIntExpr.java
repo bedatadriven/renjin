@@ -24,6 +24,8 @@ import org.renjin.gcc.codegen.condition.IntegerComparison;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRealType;
 
 /**
@@ -144,6 +146,11 @@ public class UnsignedSmallIntExpr extends AbstractIntExpr {
   @Override
   public UnsignedSmallIntExpr rotateLeft(GExpr operand) {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public GimplePrimitiveType getType() {
+    return GimpleIntegerType.unsigned(precision);
   }
 
   @Override

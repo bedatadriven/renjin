@@ -26,6 +26,7 @@ import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.complex.ComplexExpr;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRealType;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
@@ -149,6 +150,11 @@ public class RealExpr extends AbstractPrimitiveExpr implements NumericExpr {
         return new SignedLongExpr(Expressions.d2l(jexpr()));
     }
     throw new IllegalStateException("precision: " + getPrecision());
+  }
+
+  @Override
+  public GimplePrimitiveType getType() {
+    return realType;
   }
 
   @Override

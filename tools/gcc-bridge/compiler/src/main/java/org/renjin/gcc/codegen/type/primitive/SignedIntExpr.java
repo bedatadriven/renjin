@@ -23,6 +23,8 @@ import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.condition.IntegerComparison;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRealType;
 
 import javax.annotation.Nullable;
@@ -133,6 +135,11 @@ public class SignedIntExpr extends AbstractIntExpr {
   @Override
   public IntExpr rotateLeft(GExpr operand) {
     return lift(Expressions.staticMethodCall(Integer.class, "rotateLeft", "(II)I", jexpr(), jexpr(operand)));
+  }
+
+  @Override
+  public GimplePrimitiveType getType() {
+    return new GimpleIntegerType(32);
   }
 
   @Override

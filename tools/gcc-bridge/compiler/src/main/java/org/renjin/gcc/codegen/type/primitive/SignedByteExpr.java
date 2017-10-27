@@ -23,6 +23,8 @@ import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.condition.IntegerComparison;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRealType;
 
 import javax.annotation.Nullable;
@@ -133,6 +135,11 @@ public class SignedByteExpr extends AbstractIntExpr implements IntExpr {
     throw new UnsupportedOperationException("TODO");
   }
 
+
+  @Override
+  public GimplePrimitiveType getType() {
+    return new GimpleIntegerType(8);
+  }
 
   @Override
   public RealExpr toRealExpr() {

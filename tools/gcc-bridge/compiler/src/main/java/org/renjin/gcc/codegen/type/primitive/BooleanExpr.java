@@ -24,6 +24,8 @@ import org.renjin.gcc.codegen.condition.IntegerComparison;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimpleBooleanType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 
 import javax.annotation.Nullable;
 
@@ -44,6 +46,11 @@ public class BooleanExpr extends AbstractPrimitiveExpr implements IntExpr {
 
   public static BooleanExpr fromInt(JExpr expr) {
     return new BooleanExpr(Expressions.bitwiseAnd(expr, 0x1));
+  }
+
+  @Override
+  public GimplePrimitiveType getType() {
+    return new GimpleBooleanType();
   }
 
   @Override

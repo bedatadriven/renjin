@@ -23,6 +23,8 @@ import org.renjin.gcc.codegen.condition.Comparison;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRealType;
 import org.renjin.repackaged.asm.Type;
 
@@ -126,6 +128,11 @@ public class SignedLongExpr extends AbstractIntExpr {
     return new SignedIntExpr(Expressions.l2i(jexpr()));
   }
 
+
+  @Override
+  public GimplePrimitiveType getType() {
+    return new GimpleIntegerType(64);
+  }
 
   @Override
   public RealExpr toRealExpr() {

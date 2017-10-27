@@ -22,10 +22,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.Comparison;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.condition.InverseConditionGenerator;
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.complex.ComplexExpr;
 import org.renjin.gcc.gimple.GimpleOp;
@@ -46,7 +43,7 @@ public class RealExpr extends AbstractPrimitiveExpr implements NumericExpr {
   private GimpleRealType realType;
   private Type jvmType;
 
-  public RealExpr(GimpleRealType realType, JExpr expr, @Nullable GExpr address) {
+  public RealExpr(GimpleRealType realType, JExpr expr, @Nullable PtrExpr address) {
     super(expr, address);
     this.realType = realType;
     this.jvmType = realType.jvmType();

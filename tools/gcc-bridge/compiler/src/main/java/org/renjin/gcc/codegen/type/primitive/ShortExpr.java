@@ -21,10 +21,7 @@ package org.renjin.gcc.codegen.type.primitive;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.condition.IntegerComparison;
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleRealType;
 
@@ -38,7 +35,7 @@ import static org.renjin.gcc.codegen.expr.Expressions.i2s;
  */
 public class ShortExpr extends AbstractIntExpr implements IntExpr {
 
-  public ShortExpr(JExpr expr, @Nullable GExpr address) {
+  public ShortExpr(JExpr expr, @Nullable PtrExpr address) {
     super(expr, address);
   }
 

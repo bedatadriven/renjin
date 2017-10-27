@@ -20,8 +20,8 @@ package org.renjin.gcc.codegen.type.primitive;
 
 import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.expr.ConstantValue;
-import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
@@ -38,9 +38,9 @@ import org.renjin.repackaged.asm.Type;
 public abstract class AbstractPrimitiveExpr implements PrimitiveExpr {
 
   private final JExpr expr;
-  private final GExpr address;
+  private final PtrExpr address;
 
-  protected AbstractPrimitiveExpr(JExpr expr, GExpr address) {
+  protected AbstractPrimitiveExpr(JExpr expr, PtrExpr address) {
     this.expr = expr;
     this.address = address;
   }
@@ -51,7 +51,7 @@ public abstract class AbstractPrimitiveExpr implements PrimitiveExpr {
   }
 
   @Override
-  public final GExpr addressOf() {
+  public final PtrExpr addressOf() {
     if(address == null) {
       throw new UnsupportedOperationException("Not addressable");
     }

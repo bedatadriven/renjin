@@ -21,10 +21,7 @@ package org.renjin.gcc.codegen.type.primitive;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.condition.IntegerComparison;
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleRealType;
@@ -37,7 +34,7 @@ public class UnsignedSmallIntExpr extends AbstractIntExpr {
 
   private final int precision;
 
-  public UnsignedSmallIntExpr(int precision, JExpr expr, GExpr address) {
+  public UnsignedSmallIntExpr(int precision, JExpr expr, PtrExpr address) {
     super(expr, address);
     this.precision = precision;
   }

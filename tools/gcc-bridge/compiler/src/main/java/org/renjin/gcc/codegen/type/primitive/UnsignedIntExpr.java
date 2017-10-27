@@ -22,10 +22,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.Comparison;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.condition.IntegerComparison;
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.runtime.IntPtr;
 
@@ -39,7 +36,7 @@ import static org.renjin.gcc.codegen.expr.Expressions.i2l;
  */
 public class UnsignedIntExpr extends AbstractIntExpr {
 
-  public UnsignedIntExpr(JExpr jexpr, @Nullable GExpr address) {
+  public UnsignedIntExpr(JExpr jexpr, @Nullable PtrExpr address) {
     super(jexpr, address);
   }
 

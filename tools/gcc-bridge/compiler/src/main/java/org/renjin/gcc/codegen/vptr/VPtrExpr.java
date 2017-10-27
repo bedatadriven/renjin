@@ -55,7 +55,7 @@ public class VPtrExpr implements PtrExpr {
   /**
    * This pointer's address.
    */
-  private final GExpr address;
+  private final PtrExpr address;
 
   /**
    * An expression containing an additional offset, in bytes, relative to {@code baseRef}.
@@ -74,7 +74,7 @@ public class VPtrExpr implements PtrExpr {
     this.address = null;
   }
 
-  public VPtrExpr(JExpr ptr, GExpr address) {
+  public VPtrExpr(JExpr ptr, PtrExpr address) {
     this.baseRef = ptr;
     this.address = address;
     this.offset = Optional.absent();
@@ -120,7 +120,7 @@ public class VPtrExpr implements PtrExpr {
   }
 
   @Override
-  public GExpr addressOf() {
+  public PtrExpr addressOf() {
     if(address == null) {
       throw new NotAddressableException();
     }

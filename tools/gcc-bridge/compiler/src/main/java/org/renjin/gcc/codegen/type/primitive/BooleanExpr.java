@@ -21,10 +21,7 @@ package org.renjin.gcc.codegen.type.primitive;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.condition.IntegerComparison;
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 
@@ -37,7 +34,7 @@ import javax.annotation.Nullable;
 public class BooleanExpr extends AbstractPrimitiveExpr implements IntExpr {
 
 
-  public BooleanExpr(JExpr expr, @Nullable GExpr address) {
+  public BooleanExpr(JExpr expr, @Nullable PtrExpr address) {
     super(expr, address);
   }
 

@@ -54,9 +54,9 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
   private ValueFunction valueFunction;
   private JExpr array;
   private JExpr offset;
-  private GExpr address;
+  private PtrExpr address;
 
-  public FatPtrPair(ValueFunction valueFunction, @Nullable GExpr address, @Nonnull JExpr array, @Nonnull JExpr offset) {
+  public FatPtrPair(ValueFunction valueFunction, @Nullable PtrExpr address, @Nonnull JExpr array, @Nonnull JExpr offset) {
     this.valueFunction = valueFunction;
     Preconditions.checkNotNull(array, "array");
     Preconditions.checkNotNull(offset, "offset");
@@ -257,7 +257,7 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
   }
 
   @Override
-  public GExpr addressOf() {
+  public PtrExpr addressOf() {
     if(address == null) {
       throw new UnsupportedOperationException("Not addressable");
     }

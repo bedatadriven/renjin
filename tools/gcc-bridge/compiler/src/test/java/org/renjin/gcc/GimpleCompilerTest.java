@@ -1230,5 +1230,10 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void real96() throws Exception {
     compileAndTest("real96.c");
   }
+
+  @Test
+  public void arrayAssignFromRecord() throws Exception {
+    compileAndTest("array_assign_from_record.c");
+  }
 }
 

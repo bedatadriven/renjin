@@ -21,10 +21,7 @@ package org.renjin.gcc.codegen.type.primitive;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.Comparison;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleRealType;
 import org.renjin.repackaged.asm.Type;
@@ -36,7 +33,7 @@ import javax.annotation.Nullable;
  */
 public class SignedLongExpr extends AbstractIntExpr {
 
-  public SignedLongExpr(JExpr expr, @Nullable GExpr address) {
+  public SignedLongExpr(JExpr expr, @Nullable PtrExpr address) {
     super(expr, address);
     assert expr.getType().equals(Type.LONG_TYPE);
   }

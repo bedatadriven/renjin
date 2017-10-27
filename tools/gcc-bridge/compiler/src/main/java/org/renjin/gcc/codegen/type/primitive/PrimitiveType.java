@@ -21,6 +21,7 @@ package org.renjin.gcc.codegen.type.primitive;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.gimple.expr.GimpleConstant;
 import org.renjin.gcc.gimple.expr.GimpleIntegerConstant;
 import org.renjin.gcc.gimple.expr.GimpleRealConstant;
@@ -54,7 +55,7 @@ public enum PrimitiveType {
     }
 
     @Override
-    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable GExpr address) {
+    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable PtrExpr address) {
       return new RealExpr(gimpleType(), jExpr, address);
     }
 
@@ -81,7 +82,7 @@ public enum PrimitiveType {
     }
 
     @Override
-    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable GExpr address) {
+    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable PtrExpr address) {
       return new RealExpr(gimpleType(), jExpr, address);
     }
 
@@ -108,7 +109,7 @@ public enum PrimitiveType {
     }
 
     @Override
-    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable GExpr address) {
+    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable PtrExpr address) {
       return new RealExpr(gimpleType(), jExpr, address);
     }
 
@@ -134,7 +135,7 @@ public enum PrimitiveType {
     }
 
     @Override
-    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable GExpr address) {
+    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable PtrExpr address) {
       return new BooleanExpr(jExpr, address);
     }
 
@@ -161,7 +162,7 @@ public enum PrimitiveType {
     }
 
     @Override
-    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable GExpr address) {
+    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable PtrExpr address) {
       return new SignedByteExpr(jExpr, address);
     }
 
@@ -188,7 +189,7 @@ public enum PrimitiveType {
     }
 
     @Override
-    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable GExpr address) {
+    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable PtrExpr address) {
       return new ShortExpr(jExpr, address);
     }
 
@@ -217,7 +218,7 @@ public enum PrimitiveType {
     }
 
     @Override
-    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable GExpr address) {
+    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable PtrExpr address) {
       return new SignedIntExpr(jExpr, address);
     }
 
@@ -244,7 +245,7 @@ public enum PrimitiveType {
     }
 
     @Override
-    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable GExpr address) {
+    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable PtrExpr address) {
       return new SignedLongExpr(jExpr, address);
     }
 
@@ -272,12 +273,12 @@ public enum PrimitiveType {
     }
 
     @Override
-    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable GExpr address) {
+    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable PtrExpr address) {
       return new UnsignedSmallIntExpr(8, jExpr, address);
     }
 
     @Override
-    public PrimitiveExpr fromNonStackValue(JExpr jExpr, @Nullable GExpr address) {
+    public PrimitiveExpr fromNonStackValue(JExpr jExpr, @Nullable PtrExpr address) {
       return fromStackValue(new TruncatedByteExpr(jExpr), address);
     }
 
@@ -309,7 +310,7 @@ public enum PrimitiveType {
     }
 
     @Override
-    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable GExpr address) {
+    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable PtrExpr address) {
       return new UnsignedSmallIntExpr(16, jExpr, address);
     }
 
@@ -336,7 +337,7 @@ public enum PrimitiveType {
     }
 
     @Override
-    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable GExpr address) {
+    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable PtrExpr address) {
       return new UnsignedIntExpr(jExpr, address);
     }
 
@@ -363,7 +364,7 @@ public enum PrimitiveType {
     }
 
     @Override
-    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable GExpr address) {
+    public PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable PtrExpr address) {
       return new UnsignedLongExpr(jExpr, address);
     }
 
@@ -388,13 +389,13 @@ public enum PrimitiveType {
     return jvmType();
   }
 
-  public abstract PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable GExpr address);
+  public abstract PrimitiveExpr fromStackValue(JExpr jExpr, @Nullable PtrExpr address);
 
   public final PrimitiveExpr fromStackValue(JExpr jExpr) {
     return fromStackValue(jExpr, null);
   }
 
-  public PrimitiveExpr fromNonStackValue(JExpr jExpr, GExpr address) {
+  public PrimitiveExpr fromNonStackValue(JExpr jExpr, PtrExpr address) {
     return fromStackValue(jExpr, address);
   }
 

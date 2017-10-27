@@ -21,6 +21,8 @@ package org.renjin.gnur.api;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.StringVector;
 
+import java.util.Arrays;
+
 /**
  * StringVector implementation backed by BytePtrs
  */
@@ -39,6 +41,18 @@ public class GnuStringVector extends StringVector {
   public GnuStringVector(GnuCharSexp[] values, AttributeMap attributes) {
     super(attributes);
     this.values = values;
+  }
+
+  public static GnuStringVector copyOf(StringVector vector) {
+    if(vector instanceof GnuStringVector) {
+      return new GnuStringVector(Arrays.copyOf(((GnuStringVector) vector).values, vector.length()));
+    } else {
+      GnuCharSexp values[] = new GnuCharSexp[vector.length()];
+      for (int i = 0; i < values.length; i++) {
+        values[i] = GnuCharSexp.valueOf(vector.getElementAsString(i));
+      }
+      return new GnuStringVector(values);
+    }
   }
 
   @Override

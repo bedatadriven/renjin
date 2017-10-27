@@ -2261,6 +2261,10 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_bcDecode");
   }
 
+  public static boolean R_ToplevelExec(MethodHandle fun, Ptr data) throws Throwable {
+    fun.invoke(data);
+    return true;
+  }
   // Rboolean R_ToplevelExec (void(*fun)(void *), void *data)
 
   // SEXP R_ExecWithCleanup (SEXP(*fun)(void *), void *data, void(*cleanfun)(void *), void *cleandata)

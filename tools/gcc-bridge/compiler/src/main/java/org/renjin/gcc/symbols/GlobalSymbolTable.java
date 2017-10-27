@@ -134,6 +134,7 @@ public class GlobalSymbolTable implements SymbolTable {
 
     addFunction(BuiltinConstantPredicate.NAME, new BuiltinConstantPredicate());
     addFunction(BuiltinObjectSize.NAME, new BuiltinObjectSize());
+    addFunction(BuiltinAssumeAlignedGenerator.NAME, new BuiltinAssumeAlignedGenerator());
 
     addFunction(BuiltinExpectGenerator.NAME, new BuiltinExpectGenerator());
     addFunction(BuiltinClzGenerator.NAME, new BuiltinClzGenerator());

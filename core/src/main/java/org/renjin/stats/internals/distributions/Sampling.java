@@ -130,7 +130,7 @@ public class Sampling {
     boolean probabilitiesGiven = (probabilityWeights != org.renjin.sexp.Null.INSTANCE);
     
     if(!probabilitiesGiven) {
-      if (withReplacement) {
+      if (withReplacement || sampleSize == 1) {
         return uniformSampleWithReplacement(context, populationSize, sampleSize);
       } else {
         return uniformSampleWithoutReplacement(context, populationSize, sampleSize);

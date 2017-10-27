@@ -32,7 +32,6 @@ import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
-import org.renjin.gcc.gimple.expr.GimpleVariableRef;
 import org.renjin.gcc.link.LinkSymbol;
 import org.renjin.gcc.runtime.*;
 import org.renjin.repackaged.guava.base.Optional;
@@ -132,6 +131,7 @@ public class GlobalSymbolTable implements SymbolTable {
 
     addFunction(BuiltinConstantPredicate.NAME, new BuiltinConstantPredicate());
     addFunction(BuiltinObjectSize.NAME, new BuiltinObjectSize());
+    addFunction(BuiltinAssumeAlignedGenerator.NAME, new BuiltinAssumeAlignedGenerator());
 
     addFunction(BuiltinExpectGenerator.NAME, new BuiltinExpectGenerator());
     addFunction(BuiltinClzGenerator.NAME, new BuiltinClzGenerator());

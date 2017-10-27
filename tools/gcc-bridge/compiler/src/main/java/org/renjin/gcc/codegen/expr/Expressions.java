@@ -929,7 +929,7 @@ public class Expressions {
   }
 
   public static JExpr remainder(JExpr x, JExpr y) {
-    return binary(Opcodes.IREM, x, y, Type.INT_TYPE);
+    return binary(Opcodes.IREM, x, y, promoteSmallInts(x.getType()));
   }
 
 

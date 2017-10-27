@@ -75,7 +75,7 @@ public class DereferencedWrappedFatPtr implements FatPtr {
   }
 
   @Override
-  public GExpr addressOf() {
+  public PtrExpr addressOf() {
     return address;
   }
 

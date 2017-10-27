@@ -20,13 +20,14 @@ package org.renjin.gcc.codegen.type.primitive;
 
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.complex.ComplexExpr;
 
 
 public abstract class AbstractIntExpr extends AbstractPrimitiveExpr implements IntExpr, NumericExpr {
 
-  protected AbstractIntExpr(JExpr expr, GExpr address) {
+  protected AbstractIntExpr(JExpr expr, PtrExpr address) {
     super(expr, address);
   }
 

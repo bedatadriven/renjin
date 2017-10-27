@@ -19,10 +19,7 @@
 package org.renjin.gcc.codegen.array;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.ArrayExpr;
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
@@ -85,17 +82,37 @@ public class FatArrayExpr implements ArrayExpr {
 
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
-    FatArrayExpr rhsExpr = (FatArrayExpr) rhs;
-    int copyLength = Math.min(rhsExpr.length, length);
-    
-    valueFunction.memoryCopy(mv, 
-        array, offset, 
-        rhsExpr.getArray(), rhsExpr.getOffset(), 
-        Expressions.constantInt(copyLength));
+
+    if(rhs instanceof VPtrRecordExpr) {
+      toVArray(arrayType).store(mv, rhs);
+
+    } else if(rhs instanceof VArrayExpr) {
+      toVArray(arrayType).store(mv, rhs);
+
+    } else if(rhs instanceof PrimitiveExpr) {
+      PrimitiveExpr primitiveRhs = (PrimitiveExpr) rhs;
+      if(primitiveRhs.jexpr().getType().equals(valueFunction.getValueType())) {
+        Expressions.elementAt(array, offset).store(mv, primitiveRhs.jexpr());
+
+      } else {
+        JExpr arrayLengthBytes = Expressions.constantInt(this.length * valueFunction.getArrayElementBytes());
+        addressOf().toVPtrExpr().memoryCopy(mv, primitiveRhs.addressOfReadOnly(), arrayLengthBytes, false);
+      }
+
+    } else {
+
+      FatArrayExpr rhsExpr = (FatArrayExpr) rhs;
+      int copyLength = Math.min(rhsExpr.length, length);
+
+      valueFunction.memoryCopy(mv,
+          array, offset,
+          rhsExpr.getArray(), rhsExpr.getOffset(),
+          Expressions.constantInt(copyLength));
+    }
   }
 
   @Override
-  public GExpr addressOf() {
+  public PtrExpr addressOf() {
     return new FatPtrPair(valueFunction, array, offset);
   }
 

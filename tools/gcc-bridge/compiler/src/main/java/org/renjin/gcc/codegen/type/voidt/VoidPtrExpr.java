@@ -69,7 +69,7 @@ public class VoidPtrExpr implements RefPtrExpr {
   }
   
   @Override
-  public GExpr addressOf() {
+  public PtrExpr addressOf() {
     if(address == null) {
       throw new NotAddressableException();
     }

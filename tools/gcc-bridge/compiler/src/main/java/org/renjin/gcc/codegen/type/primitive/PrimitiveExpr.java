@@ -21,10 +21,14 @@ package org.renjin.gcc.codegen.type.primitive;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 
 
 public interface PrimitiveExpr extends GExpr {
+
+  GimplePrimitiveType getType();
 
   IntExpr toIntExpr();
 
@@ -41,4 +45,6 @@ public interface PrimitiveExpr extends GExpr {
   JExpr jexpr();
 
   ConditionGenerator compareTo(GimpleOp op, GExpr generator);
+
+  PtrExpr addressOfReadOnly();
 }

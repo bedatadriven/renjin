@@ -22,13 +22,11 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.Comparison;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.condition.InverseConditionGenerator;
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.complex.ComplexExpr;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRealType;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
@@ -46,7 +44,7 @@ public class RealExpr extends AbstractPrimitiveExpr implements NumericExpr {
   private GimpleRealType realType;
   private Type jvmType;
 
-  public RealExpr(GimpleRealType realType, JExpr expr, @Nullable GExpr address) {
+  public RealExpr(GimpleRealType realType, JExpr expr, @Nullable PtrExpr address) {
     super(expr, address);
     this.realType = realType;
     this.jvmType = realType.jvmType();
@@ -152,6 +150,11 @@ public class RealExpr extends AbstractPrimitiveExpr implements NumericExpr {
         return new SignedLongExpr(Expressions.d2l(jexpr()));
     }
     throw new IllegalStateException("precision: " + getPrecision());
+  }
+
+  @Override
+  public GimplePrimitiveType getType() {
+    return realType;
   }
 
   @Override

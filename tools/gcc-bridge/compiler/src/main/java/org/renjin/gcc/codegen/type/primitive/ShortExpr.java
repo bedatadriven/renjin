@@ -21,11 +21,10 @@ package org.renjin.gcc.codegen.type.primitive;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.condition.IntegerComparison;
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRealType;
 
 import javax.annotation.Nullable;
@@ -38,7 +37,7 @@ import static org.renjin.gcc.codegen.expr.Expressions.i2s;
  */
 public class ShortExpr extends AbstractIntExpr implements IntExpr {
 
-  public ShortExpr(JExpr expr, @Nullable GExpr address) {
+  public ShortExpr(JExpr expr, @Nullable PtrExpr address) {
     super(expr, address);
   }
 
@@ -104,37 +103,43 @@ public class ShortExpr extends AbstractIntExpr implements IntExpr {
 
   @Override
   public ShortExpr bitwiseNot() {
-    throw new UnsupportedOperationException("TODO");
+    return lift(i2s(Expressions.bitwiseXor(jexpr(), 0xFFFF)));
   }
 
   @Override
   public ShortExpr bitwiseAnd(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+    return lift(i2s(Expressions.bitwiseAnd(jexpr(), jexpr(operand))));
+
   }
 
   @Override
   public ShortExpr bitwiseOr(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+    return lift(i2s(Expressions.bitwiseOr(jexpr(), jexpr(operand))));
   }
 
   @Override
   public ShortExpr bitwiseXor(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+    return lift(i2s(Expressions.bitwiseXor(jexpr(), jexpr(operand))));
   }
 
   @Override
   public ShortExpr shiftLeft(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+    return lift(i2s(Expressions.shiftLeft(jexpr(), bits(operand))));
   }
 
   @Override
   public ShortExpr shiftRight(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+    return lift(i2s(Expressions.shiftRight(jexpr(), bits(operand))));
   }
 
   @Override
   public ShortExpr rotateLeft(GExpr operand) {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public GimplePrimitiveType getType() {
+    return new GimpleIntegerType(16);
   }
 
   @Override

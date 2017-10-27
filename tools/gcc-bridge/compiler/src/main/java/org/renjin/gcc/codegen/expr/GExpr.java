@@ -48,7 +48,7 @@ public interface GExpr {
   
   void store(MethodGenerator mv, GExpr rhs);
   
-  GExpr addressOf();
+  PtrExpr addressOf();
 
   /**
    * Cast or transform this expression to a Function Pointer expression.

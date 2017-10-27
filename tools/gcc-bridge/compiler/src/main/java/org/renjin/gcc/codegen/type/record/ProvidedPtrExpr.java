@@ -67,7 +67,7 @@ public class ProvidedPtrExpr implements RefPtrExpr {
   }
 
   @Override
-  public GExpr addressOf() {
+  public PtrExpr addressOf() {
     if(address == null) {
       throw new NotAddressableException();
     }

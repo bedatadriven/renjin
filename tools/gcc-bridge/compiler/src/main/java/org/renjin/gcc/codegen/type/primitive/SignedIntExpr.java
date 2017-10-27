@@ -21,11 +21,10 @@ package org.renjin.gcc.codegen.type.primitive;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.condition.IntegerComparison;
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRealType;
 
 import javax.annotation.Nullable;
@@ -39,7 +38,7 @@ import static org.renjin.gcc.codegen.expr.Expressions.staticMethodCall;
 public class SignedIntExpr extends AbstractIntExpr {
 
 
-  public SignedIntExpr(JExpr expr, @Nullable GExpr address) {
+  public SignedIntExpr(JExpr expr, @Nullable PtrExpr address) {
     super(expr, address);
   }
 
@@ -139,6 +138,11 @@ public class SignedIntExpr extends AbstractIntExpr {
   }
 
   @Override
+  public GimplePrimitiveType getType() {
+    return new GimpleIntegerType(32);
+  }
+
+  @Override
   public RealExpr toRealExpr() {
     return toReal(32);
   }
@@ -179,7 +183,9 @@ public class SignedIntExpr extends AbstractIntExpr {
       case 32:
         return new RealExpr(new GimpleRealType(32), Expressions.i2f(jexpr()));
       case 64:
-        return new RealExpr(new GimpleRealType(64), Expressions.i2d(jexpr()));
+      case 96:
+        return new RealExpr(new GimpleRealType(precision), Expressions.i2d(jexpr()));
+
     }
     throw new UnsupportedOperationException("real" + precision);
   }

@@ -94,7 +94,7 @@ public class WrappedFatPtrExpr implements FatPtr {
   }
 
   @Override
-  public GExpr addressOf() {
+  public PtrExpr addressOf() {
     throw new NotAddressableException();
   }
 

@@ -21,11 +21,10 @@ package org.renjin.gcc.codegen.type.primitive;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.Comparison;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRealType;
 import org.renjin.gcc.runtime.LongPtr;
 import org.renjin.repackaged.asm.Type;
@@ -34,7 +33,7 @@ import javax.annotation.Nullable;
 
 public class UnsignedLongExpr extends AbstractIntExpr {
 
-  public UnsignedLongExpr(JExpr jexpr, @Nullable GExpr address) {
+  public UnsignedLongExpr(JExpr jexpr, @Nullable PtrExpr address) {
     super(jexpr, address);
   }
 
@@ -160,6 +159,11 @@ public class UnsignedLongExpr extends AbstractIntExpr {
     throw new UnsupportedOperationException("precision: " + precision);
   }
 
+
+  @Override
+  public GimplePrimitiveType getType() {
+    return GimpleIntegerType.unsigned(64);
+  }
 
   @Override
   public RealExpr toRealExpr() {

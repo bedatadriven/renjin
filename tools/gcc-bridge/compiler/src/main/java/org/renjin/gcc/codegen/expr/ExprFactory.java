@@ -408,9 +408,9 @@ public class ExprFactory {
     GimpleExpr pointer = gimpleExpr.getPointer();
     
     // Case of *&x, which can be simplified to x
-    if(pointer instanceof GimpleAddressOf) {
+    if(pointer instanceof GimpleAddressOf && gimpleExpr.isOffsetZero()) {
       GimpleAddressOf addressOf = (GimpleAddressOf) pointer;
-      return findGenerator(addressOf.getValue(), expectedType);
+      return findGenerator(addressOf.getValue());
     }
     
     GimpleIndirectType pointerType = (GimpleIndirectType) pointer.getType();
@@ -443,8 +443,6 @@ public class ExprFactory {
   
   private GExpr dereferenceThenCast(GimpleMemRef gimpleExpr, GimpleType expectedType) {
     GimpleExpr pointer = gimpleExpr.getPointer();
-    GimpleIndirectType pointerType = (GimpleIndirectType) pointer.getType();
-
     PtrExpr ptrExpr = (PtrExpr) findGenerator(pointer);
 
     if(!gimpleExpr.isOffsetZero()) {
@@ -452,9 +450,7 @@ public class ExprFactory {
       ptrExpr =  ptrExpr.pointerPlus(mv, offsetInBytes);
     }
     
-    GExpr valueExpr = ptrExpr.valueOf(expectedType);
-
-    return maybeCast(valueExpr, expectedType, pointerType.getBaseType());
+    return ptrExpr.valueOf(expectedType);
   }
 
   private GExpr pointerPlus(GimpleExpr pointerExpr, GimpleExpr offsetExpr, GimpleType expectedType) {

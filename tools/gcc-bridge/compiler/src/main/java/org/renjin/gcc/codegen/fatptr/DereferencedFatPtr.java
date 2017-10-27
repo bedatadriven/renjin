@@ -77,7 +77,7 @@ public class DereferencedFatPtr implements RefPtrExpr, FatPtr {
   }
 
   @Override
-  public GExpr addressOf() {
+  public PtrExpr addressOf() {
     return new FatPtrPair(valueFunction, array, offset);
   }
 

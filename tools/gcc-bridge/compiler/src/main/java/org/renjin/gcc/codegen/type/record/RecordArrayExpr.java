@@ -23,6 +23,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
@@ -67,7 +68,7 @@ public final class RecordArrayExpr implements RecordExpr {
   }
   
   @Override
-  public GExpr addressOf() {
+  public PtrExpr addressOf() {
     return new FatPtrPair(valueFunction, array, offset);
   }
 

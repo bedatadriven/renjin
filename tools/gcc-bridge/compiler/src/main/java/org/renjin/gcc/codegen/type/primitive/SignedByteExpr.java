@@ -21,11 +21,10 @@ package org.renjin.gcc.codegen.type.primitive;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.condition.IntegerComparison;
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRealType;
 
 import javax.annotation.Nullable;
@@ -38,7 +37,7 @@ import static org.renjin.gcc.codegen.expr.Expressions.i2l;
  */
 public class SignedByteExpr extends AbstractIntExpr implements IntExpr {
 
-  public SignedByteExpr(JExpr expr, @Nullable GExpr address) {
+  public SignedByteExpr(JExpr expr, @Nullable PtrExpr address) {
     super(expr, address);
   }
 
@@ -136,6 +135,11 @@ public class SignedByteExpr extends AbstractIntExpr implements IntExpr {
     throw new UnsupportedOperationException("TODO");
   }
 
+
+  @Override
+  public GimplePrimitiveType getType() {
+    return new GimpleIntegerType(8);
+  }
 
   @Override
   public RealExpr toRealExpr() {

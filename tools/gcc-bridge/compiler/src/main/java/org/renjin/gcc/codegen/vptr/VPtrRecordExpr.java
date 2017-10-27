@@ -73,7 +73,7 @@ public class VPtrRecordExpr implements RecordExpr {
   }
 
   @Override
-  public GExpr addressOf() {
+  public PtrExpr addressOf() {
     return pointer;
   }
 
@@ -109,7 +109,7 @@ public class VPtrRecordExpr implements RecordExpr {
 
   @Override
   public VArrayExpr toVArray(GimpleArrayType arrayType) {
-    throw new UnsupportedOperationException("TODO");
+    return new VArrayExpr(arrayType, pointer);
   }
 
   @Override

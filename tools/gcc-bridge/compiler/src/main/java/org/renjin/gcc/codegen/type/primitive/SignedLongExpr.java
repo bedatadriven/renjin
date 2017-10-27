@@ -21,11 +21,10 @@ package org.renjin.gcc.codegen.type.primitive;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.Comparison;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRealType;
 import org.renjin.repackaged.asm.Type;
 
@@ -36,7 +35,7 @@ import javax.annotation.Nullable;
  */
 public class SignedLongExpr extends AbstractIntExpr {
 
-  public SignedLongExpr(JExpr expr, @Nullable GExpr address) {
+  public SignedLongExpr(JExpr expr, @Nullable PtrExpr address) {
     super(expr, address);
     assert expr.getType().equals(Type.LONG_TYPE);
   }
@@ -131,6 +130,11 @@ public class SignedLongExpr extends AbstractIntExpr {
 
 
   @Override
+  public GimplePrimitiveType getType() {
+    return new GimpleIntegerType(64);
+  }
+
+  @Override
   public RealExpr toRealExpr() {
     return toReal(64);
   }
@@ -161,7 +165,8 @@ public class SignedLongExpr extends AbstractIntExpr {
       case 32:
         return new RealExpr(new GimpleRealType(32), Expressions.l2f(jexpr()));
       case 64:
-        return new RealExpr(new GimpleRealType(64), Expressions.l2d(jexpr()));
+      case 96:
+        return new RealExpr(new GimpleRealType(precision), Expressions.l2d(jexpr()));
       default:
         throw new IllegalArgumentException("precision: " + precision);
     }

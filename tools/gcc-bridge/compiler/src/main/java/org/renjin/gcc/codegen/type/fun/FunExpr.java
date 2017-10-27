@@ -22,6 +22,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.NumericExpr;
@@ -50,7 +51,7 @@ public class FunExpr implements GExpr {
   }
 
   @Override
-  public GExpr addressOf() {
+  public PtrExpr addressOf() {
     return new FunPtrExpr(methodHandle);
   }
 

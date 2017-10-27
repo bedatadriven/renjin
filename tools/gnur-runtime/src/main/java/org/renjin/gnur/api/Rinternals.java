@@ -415,6 +415,8 @@ public final class Rinternals {
       return SexpType.PROMSXP;
     } else if(s instanceof Symbol) {
       return SexpType.SYMSXP;
+    } else if(s instanceof GnuCharSexp) {
+      return SexpType.CHARSXP;
     } else {
       throw new UnsupportedOperationException("Unknown SEXP Type: " + s.getClass().getName());
     }
@@ -483,7 +485,7 @@ public final class Rinternals {
    *         table.
    */
   public static int TRUELENGTH(SEXP x) {
-    throw new UnimplementedGnuApiMethod("TRUELENGTH");
+    return 0;
   }
 
   public static void SETLENGTH(SEXP x, int v) {
@@ -641,10 +643,14 @@ public final class Rinternals {
    * @param v Pointer to CHARSXP representing the new value.
    */
   public static void SET_STRING_ELT(SEXP x, /*R_xlen_t*/ int i, SEXP v) {
-    GnuStringVector stringVector = (GnuStringVector) x;
-    GnuCharSexp charValue = (GnuCharSexp) v;
+    if(x instanceof GnuStringVector) {
+      GnuStringVector stringVector = (GnuStringVector) x;
+      GnuCharSexp charValue = (GnuCharSexp) v;
 
-    stringVector.set(i, charValue);
+      stringVector.set(i, charValue);
+    } else {
+      throw new IllegalStateException("Attempt to modify a shared SEXP");
+    }
   }
 
 
@@ -675,7 +681,19 @@ public final class Rinternals {
   }
 
   public static SEXP CAR(SEXP e) {
-    return ((PairList.Node) e).getValue();
+
+    if(e == Null.INSTANCE) {
+      return Null.INSTANCE;
+    }
+
+    // Other SEXPRECs share a similar structure to PairList
+    if(e instanceof Symbol) {
+      return new GnuCharSexp((Symbol) e);
+    } else if(e instanceof Closure) {
+      return ((Closure) e).getFormals();
+    } else {
+      return ((PairList.Node) e).getValue();
+    }
   }
 
   public static SEXP CDR(SEXP e) {
@@ -744,7 +762,7 @@ public final class Rinternals {
       throw new EvalException("bad value");
     }
 
-    ((PairList.Node) x).setNextNode((PairList.Node) y);
+    ((PairList.Node) x).setNextNode((PairList)y);
     return y;
   }
 
@@ -1495,7 +1513,7 @@ public final class Rinternals {
     } else if (sexp instanceof ComplexVector) {
       return new ComplexArrayVector((ComplexVector) sexp);
     } else if(sexp instanceof StringVector) {
-      return new StringArrayVector((StringVector) sexp);
+      return GnuStringVector.copyOf((StringVector) sexp);
     } else if(sexp instanceof RawVector) {
       return new RawVector(((RawVector) sexp).toByteArrayUnsafe(), sexp.getAttributes());
     } else if(sexp instanceof S4Object) {
@@ -1850,14 +1868,18 @@ public final class Rinternals {
     if(name == null) {
       throw new IllegalArgumentException("attributeName is NULL");
     }
-    Symbol attributeSymbol = (Symbol) name;
+    Symbol attributeSymbol;
+    if(name instanceof StringVector) {
+      attributeSymbol = Symbol.get(((StringVector) name).getElementAsString(0));
+    } else {
+      attributeSymbol = (Symbol) name;
+    }
     AbstractSEXP abstractSEXP = (AbstractSEXP) vec;
     abstractSEXP.unsafeSetAttributes(vec.getAttributes().copy().set(attributeSymbol, val));
     return vec;
   }
 
   // void Rf_setSVector (SEXP *, int, SEXP)
-
   public static void Rf_setVar(SEXP p0, SEXP p1, SEXP p2) {
     throw new UnimplementedGnuApiMethod("Rf_setVar");
   }
@@ -1866,8 +1888,37 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_stringSuffix");
   }
 
+  @Deprecated
   public static /*SEXPTYPE*/ int Rf_str2type(BytePtr p0) {
-    throw new UnimplementedGnuApiMethod("Rf_str2type");
+    return Rf_str2type((Ptr)p0);
+  }
+
+  public static int Rf_str2type(Ptr string) {
+    switch (Stdlib.nullTerminatedString(string)) {
+      case Null.TYPE_NAME:
+        return SexpType.NILSXP;
+      case PairList.TYPE_NAME:
+        return SexpType.LISTSXP;
+      case FunctionCall.TYPE_NAME:
+        return SexpType.LANGSXP;
+      case ListVector.TYPE_NAME:
+        return SexpType.VECSXP;
+      case StringVector.TYPE_NAME:
+        return SexpType.STRSXP;
+      case IntVector.TYPE_NAME:
+        return SexpType.INTSXP;
+      case RawVector.TYPE_NAME:
+        return SexpType.RAWSXP;
+      case LogicalVector.TYPE_NAME:
+        return SexpType.LGLSXP;
+      case Environment.TYPE_NAME:
+        return SexpType.ENVSXP;
+      case Promise.TYPE_NAME:
+        return SexpType.PROMSXP;
+      case Symbol.TYPE_NAME:
+        return SexpType.SYMSXP;
+    }
+    throw new UnimplementedGnuApiMethod("Rf_str2type: " + Stdlib.nullTerminatedString(string));
   }
 
   public static boolean Rf_StringBlank(SEXP p0) {
@@ -2046,7 +2097,9 @@ public final class Rinternals {
     return new GnuCharSexp(copy.array);
   }
 
-  // const char* Rf_reEnc (const char *x, cetype_t ce_in, cetype_t ce_out, int subst)
+  public static Ptr Rf_reEnc(BytePtr x, int ce_in, int ce_out, int subst) {
+    throw new UnsupportedOperationException("Rf_reEnc");
+  }
 
   public static SEXP R_forceAndCall(SEXP e, int n, SEXP rho) {
     throw new UnimplementedGnuApiMethod("R_forceAndCall");

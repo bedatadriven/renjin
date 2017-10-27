@@ -20,9 +20,11 @@ package org.renjin.gcc.codegen.type.primitive;
 
 import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.expr.ConstantValue;
-import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtrExpr;
@@ -35,12 +37,14 @@ import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.repackaged.asm.Type;
 
+import java.util.Collections;
+
 public abstract class AbstractPrimitiveExpr implements PrimitiveExpr {
 
   private final JExpr expr;
-  private final GExpr address;
+  private final PtrExpr address;
 
-  protected AbstractPrimitiveExpr(JExpr expr, GExpr address) {
+  protected AbstractPrimitiveExpr(JExpr expr, PtrExpr address) {
     this.expr = expr;
     this.address = address;
   }
@@ -50,8 +54,21 @@ public abstract class AbstractPrimitiveExpr implements PrimitiveExpr {
     return expr;
   }
 
+
+
   @Override
-  public final GExpr addressOf() {
+  public PtrExpr addressOfReadOnly() {
+    if(address != null) {
+      return address;
+    }
+    // Otherwise create a temporary array which we can address
+    PrimitiveType type = PrimitiveType.of(getType());
+    JExpr tempArray = Expressions.newArray(type.jvmType(), Collections.singletonList(jexpr()));
+    return new FatPtrPair(new PrimitiveValueFunction(type), tempArray);
+  }
+
+  @Override
+  public final PtrExpr addressOf() {
     if(address == null) {
       throw new UnsupportedOperationException("Not addressable");
     }

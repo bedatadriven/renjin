@@ -415,6 +415,8 @@ public final class Rinternals {
       return SexpType.PROMSXP;
     } else if(s instanceof Symbol) {
       return SexpType.SYMSXP;
+    } else if(s instanceof GnuCharSexp) {
+      return SexpType.CHARSXP;
     } else {
       throw new UnsupportedOperationException("Unknown SEXP Type: " + s.getClass().getName());
     }
@@ -483,7 +485,7 @@ public final class Rinternals {
    *         table.
    */
   public static int TRUELENGTH(SEXP x) {
-    throw new UnimplementedGnuApiMethod("TRUELENGTH");
+    return 0;
   }
 
   public static void SETLENGTH(SEXP x, int v) {
@@ -1850,7 +1852,12 @@ public final class Rinternals {
     if(name == null) {
       throw new IllegalArgumentException("attributeName is NULL");
     }
-    Symbol attributeSymbol = (Symbol) name;
+    Symbol attributeSymbol;
+    if(name instanceof StringVector) {
+      attributeSymbol = Symbol.get(((StringVector) name).getElementAsString(0));
+    } else {
+      attributeSymbol = (Symbol) name;
+    }
     AbstractSEXP abstractSEXP = (AbstractSEXP) vec;
     abstractSEXP.unsafeSetAttributes(vec.getAttributes().copy().set(attributeSymbol, val));
     return vec;

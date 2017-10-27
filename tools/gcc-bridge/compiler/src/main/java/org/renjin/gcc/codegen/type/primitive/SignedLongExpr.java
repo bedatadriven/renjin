@@ -161,7 +161,8 @@ public class SignedLongExpr extends AbstractIntExpr {
       case 32:
         return new RealExpr(new GimpleRealType(32), Expressions.l2f(jexpr()));
       case 64:
-        return new RealExpr(new GimpleRealType(64), Expressions.l2d(jexpr()));
+      case 96:
+        return new RealExpr(new GimpleRealType(precision), Expressions.l2d(jexpr()));
       default:
         throw new IllegalArgumentException("precision: " + precision);
     }

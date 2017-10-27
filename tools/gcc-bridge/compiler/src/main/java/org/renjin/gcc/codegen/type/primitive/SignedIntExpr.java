@@ -179,7 +179,9 @@ public class SignedIntExpr extends AbstractIntExpr {
       case 32:
         return new RealExpr(new GimpleRealType(32), Expressions.i2f(jexpr()));
       case 64:
-        return new RealExpr(new GimpleRealType(64), Expressions.i2d(jexpr()));
+      case 96:
+        return new RealExpr(new GimpleRealType(precision), Expressions.i2d(jexpr()));
+
     }
     throw new UnsupportedOperationException("real" + precision);
   }

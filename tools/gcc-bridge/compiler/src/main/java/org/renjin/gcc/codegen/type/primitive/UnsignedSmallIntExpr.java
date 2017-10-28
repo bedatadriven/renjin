@@ -82,8 +82,9 @@ public class UnsignedSmallIntExpr extends AbstractIntExpr {
 
   @Override
   public NumericExpr negative() {
-    throw new UnsupportedOperationException("Negative value of unsigned integer??");
+    return lift(truncate(Expressions.negative(jexpr())));
   }
+
   @Override
   public UnsignedSmallIntExpr min(GExpr operand) {
     // No need to truncate - result will be in range if both arguments are in range

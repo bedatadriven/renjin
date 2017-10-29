@@ -194,6 +194,7 @@ public class FunctionGenerator implements InvocationStrategy {
     } catch (Exception e) {
       System.err.println("COMPILATION FAILED: " + getMangledName() + " in " +
           getCompilationUnit().getSourceName());
+      e.printStackTrace(System.err);
 
       parentLogger.dump(function.getUnit().getSourceName(), function.getSafeMangledName(), "error",
           Throwables.getStackTraceAsString(e));
@@ -201,9 +202,6 @@ public class FunctionGenerator implements InvocationStrategy {
       writeRuntimeStub(cw);
 
       compilationFailed = true;
-
-      throw new InternalCompilerException(e);
-
     }
   }
 

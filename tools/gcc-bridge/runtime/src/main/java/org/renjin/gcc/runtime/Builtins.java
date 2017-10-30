@@ -290,4 +290,13 @@ public class Builtins {
     __sync_synchronize_value++;
   }
 
+  public static void _gfortran_concat_string(int resultLength, Ptr result, int arg1Length, Ptr arg1, int arg2Length, Ptr arg2) {
+    int resultPos = 0;
+    for(int i=0;i<arg1Length;++i) {
+      result.setByte(resultPos++, arg1.getByte(i));
+    }
+    for (int i=0;i<arg2Length;++i) {
+      result.setByte(resultPos++, arg2.getByte(i));
+    }
+  }
 }

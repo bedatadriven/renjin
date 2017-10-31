@@ -119,6 +119,8 @@ public class UnitClassGenerator {
       symbolTable.addGlobalVariable(decl, varGenerator);
     }
 
+    Set<String> functionNames = new HashSet<>();
+
     for (GimpleFunction function : unit.getFunctions()) {
       if (!isExcluded(function)) {
         try {
@@ -260,7 +262,7 @@ public class UnitClassGenerator {
                                  GExpr varGenerator,
                                  GimpleExpr initialValue) {
 
-    String initMethodName = VarAllocator.toJavaSafeName(decl.getName()) + "$$clinit";
+    String initMethodName = VarAllocator.toJavaSafeName(decl.getMangledName()) + "$$clinit";
     MethodGenerator mv = new MethodGenerator(cv.visitMethod(ACC_STATIC, initMethodName, "()V", null, null));
     ExprFactory exprFactory = new ExprFactory(typeOracle, symbolTable, mv);
     mv.visitCode();

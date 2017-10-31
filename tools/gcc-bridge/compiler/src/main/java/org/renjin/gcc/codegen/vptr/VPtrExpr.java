@@ -36,6 +36,7 @@ import org.renjin.gcc.codegen.type.record.ProvidedPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.*;
+import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
@@ -142,12 +143,10 @@ public class VPtrExpr implements PtrExpr {
 
   @Override
   public PrimitiveExpr toPrimitiveExpr() throws UnsupportedCastException {
-
-    GimpleIntegerType pointerType = new GimpleIntegerType(32);
-    pointerType.setUnsigned(true);
-
     return PrimitiveType.UINT32.fromStackValue(
-        Expressions.methodCall(getRef(), Ptr.class, "toInt", Type.getMethodDescriptor(Type.INT_TYPE)));
+        Expressions.staticMethodCall(IntPtr.class, "fromPtr",
+            Type.getMethodDescriptor(Type.INT_TYPE, Type.getType(Ptr.class)),
+                getRef()));
   }
 
   @Override

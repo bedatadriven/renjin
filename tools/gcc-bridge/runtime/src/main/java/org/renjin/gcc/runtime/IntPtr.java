@@ -49,6 +49,22 @@ public class IntPtr extends AbstractPtr implements Ptr {
     return new IntPtr(new int[AbstractPtr.mallocSize(bytes, BYTES)]);
   }
 
+  public static Ptr toPtr(int i) {
+    if(i == 0) {
+      return NULL;
+    } else {
+      throw new UnsupportedOperationException(String.format("Cannot cast integer %x to pointer", i));
+    }
+  }
+
+  public static int fromPtr(Ptr ptr) {
+    if(ptr.isNull()) {
+      return 0;
+    } else {
+      return ptr.toInt();
+    }
+  }
+
   @Override
   public int[] getArray() {
     return array;

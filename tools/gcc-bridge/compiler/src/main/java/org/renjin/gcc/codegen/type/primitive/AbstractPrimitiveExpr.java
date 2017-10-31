@@ -35,6 +35,8 @@ import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
+import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 
 import java.util.Collections;
@@ -96,7 +98,9 @@ public abstract class AbstractPrimitiveExpr implements PrimitiveExpr {
 
   @Override
   public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
-    throw new UnsupportedCastException();
+    return new VPtrExpr(Expressions.staticMethodCall(IntPtr.class, "toPtr",
+        Type.getMethodDescriptor(Type.getType(Ptr.class), Type.INT_TYPE),
+        toUnsignedInt(32).jexpr()));
   }
 
   @Override

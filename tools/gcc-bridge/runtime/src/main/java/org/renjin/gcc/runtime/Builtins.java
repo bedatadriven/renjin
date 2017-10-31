@@ -283,4 +283,12 @@ public class Builtins {
     result.setByte((byte)res);
     return result;
   }
+
+  public static int _gfortran_pow_i4_i4(int base, int power) {
+    int result = 1;
+    for (int i = 1; i <= power; i++) {
+      result *= base;
+    }
+    return result;
+  }
 }

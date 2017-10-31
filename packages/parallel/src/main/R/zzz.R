@@ -1,7 +1,7 @@
-#  File src/library/parallel/R/detectCores.R
+#  File src/library/parallel/R/zzz.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2016 The R Core Team
+#  Copyright (C) 1995-2014 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,9 +16,19 @@
 #  A copy of the GNU General Public License is available at
 #  https://www.R-project.org/Licenses/
 
+.noGenerics <- TRUE
 
-detectCores <- function(all.tests = FALSE, logical = FALSE) {
-    import(java.lang.Runtime)
+## dummy, just so we can register a finalizer
+.fin.env <- new.env()
 
-    return(Runtime$getRuntime()$availableProcessors())
+.onLoad <- function(libname, pkgname)
+{
+    initDefaultClusterOptions(libname)
+    cores <- getOption("mc.cores", NULL)
+    if(is.null(cores) && !is.na(nc <- as.integer(Sys.getenv("MC_CORES"))))
+        options("mc.cores" = nc)
 }
+
+.onUnload <-
+function(libpath)
+    library.dynam.unload("parallel", libpath)

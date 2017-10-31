@@ -82,8 +82,9 @@ public class UnsignedSmallIntExpr extends AbstractIntExpr {
 
   @Override
   public NumericExpr negative() {
-    throw new UnsupportedOperationException("Negative value of unsigned integer??");
+    return lift(truncate(Expressions.negative(jexpr())));
   }
+
   @Override
   public UnsignedSmallIntExpr min(GExpr operand) {
     // No need to truncate - result will be in range if both arguments are in range
@@ -167,17 +168,15 @@ public class UnsignedSmallIntExpr extends AbstractIntExpr {
   public IntExpr toSignedInt(int precision) {
     if(precision == 64) {
       return new SignedLongExpr(Expressions.i2l(jexpr()));
-    } else if(this.precision <= precision) {
-      // widening to int32
-      return new SignedIntExpr(jexpr());
+    } else {
+      return new SignedIntExpr(jexpr()).toSignedInt(precision);
     }
-    throw new UnsupportedOperationException("unsigned" + this.precision + " => " + "signed" + precision);
   }
 
   @Override
   public IntExpr toUnsignedInt(int precision) {
-    if(precision < 32) {
-      return new UnsignedSmallIntExpr(precision, jexpr());
+    if(this.precision == precision) {
+      return this;
     } else {
       return new UnsignedIntExpr(jexpr()).toUnsignedInt(precision);
     }

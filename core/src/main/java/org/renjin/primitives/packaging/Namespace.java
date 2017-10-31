@@ -50,6 +50,11 @@ public class Namespace {
 
   protected final List<DllInfo> libraries = new ArrayList<>(0);
 
+  /**
+   * True if this namespace has completed loading
+   */
+  boolean loaded;
+
   public Namespace(Package pkg, Environment namespaceEnvironment) {
     this.pkg = pkg;
     this.namespaceEnvironment = namespaceEnvironment;
@@ -449,5 +454,9 @@ public class Namespace {
             genericName, genericFunction.getTypeName());
       }
     }
+  }
+
+  public boolean isLoaded() {
+    return loaded;
   }
 }

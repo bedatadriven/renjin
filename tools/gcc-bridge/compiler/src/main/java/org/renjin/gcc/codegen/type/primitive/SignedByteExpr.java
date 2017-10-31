@@ -170,6 +170,8 @@ public class SignedByteExpr extends AbstractIntExpr implements IntExpr {
         return new UnsignedSmallIntExpr(16, Expressions.i2c(jexpr()));
       case 32:
         return new UnsignedIntExpr(jexpr());
+      case 64:
+        return new UnsignedLongExpr(Expressions.i2l(jexpr()));
     }
     throw new UnsupportedOperationException("unsigned" + precision);
   }

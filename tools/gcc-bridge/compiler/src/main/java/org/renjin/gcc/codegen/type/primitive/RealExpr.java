@@ -191,7 +191,11 @@ public class RealExpr extends AbstractPrimitiveExpr implements NumericExpr {
   public IntExpr toUnsignedInt(int precision) {
     // Always start with conversion to 64-bit long to avoid loss of magnitude
     // for unsigned 32-bit integers.
-    return new UnsignedLongExpr(Expressions.d2l(jexpr())).toUnsignedInt(precision);
+    if(jvmType.equals(Type.FLOAT_TYPE)) {
+      return new UnsignedLongExpr(Expressions.f2l(jexpr())).toUnsignedInt(precision);
+    } else {
+      return new UnsignedLongExpr(Expressions.d2l(jexpr())).toUnsignedInt(precision);
+    }
   }
 
   @Override

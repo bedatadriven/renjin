@@ -28,6 +28,32 @@ substring <- function(text, first, last=1000000L)
     .Internal(substr(text, as.integer(first), as.integer(last)))
 }
 
+startsWith <- function(x, prefix)
+{
+    if(!is.character(x) || !is.character(prefix)) {
+        stop("non-character object(s)")
+    }
+
+    if( length(x) == 0 || length(prefix) == 0) {
+        return(logical(0))
+    }
+
+    substr(x, 1, nchar(prefix)) == prefix
+}
+
+endsWith <- function(x, suffix)
+{
+    if(!is.character(x) || !is.character(suffix)) {
+        stop("non-character object(s)")
+    }
+
+    if( length(x) == 0 || length(suffix) == 0) {
+        return(logical(0))
+    }
+
+    substr(x, nchar(x)-nchar(suffix)+1, nchar(x)) == suffix
+}
+
 `substr<-` <- function(x, start, stop, value)
     .Internal(`substr<-`(x, as.integer(start), as.integer(stop), value))
 

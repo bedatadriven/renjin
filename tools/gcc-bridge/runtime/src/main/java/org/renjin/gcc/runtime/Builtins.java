@@ -277,4 +277,10 @@ public class Builtins {
       result.setByte(resultPos++, arg2.getByte(i));
     }
   }
+
+  public static Ptr __atomic_fetch_add_4(Ptr result, int value) {
+    int res = value + 4;
+    result.setByte((byte)res);
+    return result;
+  }
 }

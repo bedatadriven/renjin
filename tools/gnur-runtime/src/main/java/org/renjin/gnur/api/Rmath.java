@@ -607,14 +607,14 @@ public final class Rmath {
   }
 
   public static double cospi(double p0) {
-    return cospi(p0);
+    return org.renjin.nmath.cospi.cospi(p0);
   }
 
   public static double sinpi(double p0) {
-    return sinpi(p0);
+    return org.renjin.nmath.cospi.sinpi(p0);
   }
 
   public static double tanpi(double p0) {
-    return tanpi(p0);
+    return org.renjin.nmath.cospi.tanpi(p0);
   }
 }

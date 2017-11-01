@@ -300,10 +300,9 @@ public class Builtins {
     }
   }
 
-  public static Ptr __atomic_fetch_add_4(Ptr result, int value) {
-    int res = value + 4;
-    result.setByte((byte)res);
-    return result;
+  public static int __atomic_fetch_add_4(Ptr result, int value) {
+    result.setInt(result.getInt() + value);
+    return value;
   }
 
   public static int _gfortran_pow_i4_i4(int base, int power) {

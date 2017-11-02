@@ -301,8 +301,9 @@ public class Builtins {
   }
 
   public static int __atomic_fetch_add_4(Ptr result, int value) {
-    result.setInt(result.getInt() + value);
-    return value;
+    int previous = result.getInt();
+    result.setInt(previous + value);
+    return previous;
   }
 
   public static int _gfortran_pow_i4_i4(int base, int power) {

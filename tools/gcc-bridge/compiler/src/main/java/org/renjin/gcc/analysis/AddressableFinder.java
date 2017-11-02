@@ -77,8 +77,6 @@ public class AddressableFinder {
         Optional<GimpleVarDecl> decl = scope.lookupVariable((GimpleVariableRef) expr);
         if (decl.isPresent()) {
           decl.get().setAddressable(true);
-        } else {
-          throw new IllegalStateException("Could not resolve " + expr);
         }
       } else if(expr instanceof GimpleParamRef) {
         GimpleParameter param = scope.lookupParameter((GimpleParamRef) expr);

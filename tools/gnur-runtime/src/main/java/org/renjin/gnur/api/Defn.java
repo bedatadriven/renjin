@@ -23,6 +23,7 @@ import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbol;
 
 /**
@@ -307,7 +308,15 @@ public final class Defn {
   }
 
   public static SEXP Rf_deparse1line(SEXP p0, boolean p1) {
-    throw new UnimplementedGnuApiMethod("Rf_deparse1line");
+    String result = "";
+    for(int i = 0; i < p0.length(); i++) {
+      result = result.concat(p0.getElementAsSEXP(i).asString());
+    }
+    if(p1) {
+      return StringVector.valueOf(result.substring(0,12));
+    } else {
+      return StringVector.valueOf(result);
+    }
   }
 
   public static SEXP Rf_deparse1s(SEXP call) {

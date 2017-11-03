@@ -1126,7 +1126,8 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_PairToVectorList(SEXP x) {
-    throw new UnimplementedGnuApiMethod("Rf_PairToVectorList");
+    PairList pairList = (PairList) x;
+    return pairList.toVector();
   }
 
   public static SEXP Rf_VectorToPairList(SEXP x) {

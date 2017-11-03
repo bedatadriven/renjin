@@ -27,6 +27,19 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     cov,
     cor,
     lowess,
+
+    loess_raw,
+    loess_free,
+    loess_dfit,
+    loess_dfitse,
+    loess_ifit,
+    loess_ise,
+    loess_workspace,
+    loess_prune,
+    loess_grow,
+
+
+
     optim,
     optimhess,
     HoltWinters,
@@ -45,7 +58,14 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     eureka = eureka_,
     Burg,
     rbart = rbart_,
-    bvalus = bvalus_
+    bvalus = bvalus_,
+
+    modelframe,
+    modelmatrix,
+    termsform,
+    updateform,
+
+
     )
 
 # exportPattern("^[^\\.]")
@@ -73,7 +93,7 @@ export(add.scope, add1, addmargins, aggregate, aggregate.data.frame,
        hasTsp, hat, hatvalues, hatvalues.lm, influence,
        influence.measures, integrate, interaction.plot,
        inverse.gaussian, IQR, is.empty.model, is.mts, is.ts, lines.ts,
-       lm, lm.fit, lm.influence, lm.wfit, logLik, loglin, lowess,
+       lm, lm.fit, lm.influence, lm.wfit, logLik, loglin, lowess, loess_raw,
        ls.diag, ls.print, lsfit, mad, mahalanobis, make.link,
        makepredictcall, manova, mauchly.test, median, model.extract,
        model.frame, model.frame.aovlist, model.frame.default,

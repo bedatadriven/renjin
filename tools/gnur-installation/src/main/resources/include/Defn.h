@@ -114,7 +114,7 @@ extern0 SEXP	R_StringHash;       /* Global hash of CHARSXPs */
 #define HASHASH_MASK 1
 /**** HASHASH uses the first bit -- see HASHASH_MASK defined below */
 
-#ifdef USE_RINTERNALS
+#ifdef USE_RINTERNALS_NOO_NEVER_NOT_ON_MY_WATCH
 # define IS_BYTES(x) ((x)->sxpinfo.gp & BYTES_MASK)
 # define SET_BYTES(x) (((x)->sxpinfo.gp) |= BYTES_MASK)
 # define IS_LATIN1(x) ((x)->sxpinfo.gp & LATIN1_MASK)

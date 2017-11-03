@@ -19,12 +19,17 @@
 // Initial template generated from Defn.h from R 3.2.2
 package org.renjin.gnur.api;
 
+import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Vector;
+import org.renjin.util.CDefines;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * GNU R API methods defined in the "Defn.h" header file
@@ -855,8 +860,18 @@ public final class Defn {
 
   // size_t Rf_wcstoutf8 (char *s, const wchar_t *wc, size_t n)
 
-  public static SEXP Rf_installTrChar(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_installTrChar");
+  public static SEXP Rf_installTrChar(SEXP x) {
+    if(!(x instanceof GnuCharSexp)) {
+      throw new EvalException("'installTrChar' must be called on 'CHARSXP'");
+    }
+    BytePtr ptr = ((GnuCharSexp) x).getValue();
+    byte[] allBytes = ptr.getArray();
+    byte[] minusLast = new byte[allBytes.length-1];
+    for(int i = 0; i < minusLast.length; i++) {
+      minusLast[i] = allBytes[i];
+    }
+    String name = new String(minusLast, StandardCharsets.UTF_8);
+    return Symbol.get(name);
   }
 
   // const wchar_t* Rf_wtransChar (SEXP x)

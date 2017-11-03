@@ -455,7 +455,7 @@ public final class Rinternals {
 
 
   public static void SET_ATTRIB(SEXP x, SEXP v) {
-    throw new UnimplementedGnuApiMethod("SET_ATTRIB");
+    ((AbstractSEXP)x).unsafeSetAttributes(v.getAttributes());
   }
 
   public static void DUPLICATE_ATTRIB(SEXP to, SEXP from) {

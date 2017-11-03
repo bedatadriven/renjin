@@ -442,7 +442,9 @@ public final class Rinternals {
   }
 
   public static void SET_OBJECT(SEXP x, int v) {
-    throw new UnimplementedGnuApiMethod("SET_OBJECT");
+    if(x.isObject() && v == 0) {
+      throw new EvalException("SET_OBJECT: value SEXP Object field doesn't match expected value");
+    }
   }
 
   public static void SET_TYPEOF(SEXP x, int v) {

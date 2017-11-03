@@ -1650,6 +1650,7 @@ static int TermCode(SEXP termlist, SEXP thisterm, int whichbit, SEXP term)
 
 SEXP termsform(SEXP args)
 {
+    printf("start: SEXP termsform(SEXP args)\n");
     SEXP a, ans, v, pattern, formula, varnames, term, termlabs, ord;
     SEXP specials, t, data, rhs, call;
     int i, j, k, l, n, keepOrder, allowDot;

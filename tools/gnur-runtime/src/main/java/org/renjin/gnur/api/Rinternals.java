@@ -1258,7 +1258,11 @@ public final class Rinternals {
    * @return The constructed list, or R_NilValue if {@code n} is zero.
    */
   public static SEXP Rf_allocList(int n) {
-    throw new UnimplementedGnuApiMethod("Rf_allocList");
+    PairList.Builder list = new PairList.Builder();
+    for(int i = 0; i < n; i++) {
+      list.add(R_NilValue, R_NilValue);
+    }
+    return list.build();
   }
 
   /** Create an S4 object.

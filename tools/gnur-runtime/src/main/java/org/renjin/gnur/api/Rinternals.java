@@ -32,6 +32,8 @@ import org.renjin.sexp.*;
 import java.lang.System;
 import java.lang.invoke.MethodHandle;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * GNU R API methods defined in the "Rinternals.h" header file.
@@ -1565,7 +1567,21 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_duplicated(SEXP p0, boolean p1) {
-    throw new UnimplementedGnuApiMethod("Rf_duplicated");
+    LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
+    if(!(p0.getElementAsSEXP(0) instanceof IntArrayVector)) {
+      throw new UnsupportedOperationException("argument to internal function 'Rf_duplicated' is not of type 'IntArrayVector'");
+    }
+    Set<IntArrayVector> elementsHash = new HashSet<>();
+    for(int i = 0; i < p0.length(); i++) {
+      IntArrayVector element = p0.getElementAsSEXP(i);
+      if (elementsHash.contains(element)) {
+        result.add(LogicalVector.TRUE);
+      } else {
+        result.add(LogicalVector.FALSE);
+        elementsHash.add(element);
+      }
+    }
+    return result.build();
   }
 
   public static boolean R_envHasNoSpecialSymbols(SEXP p0) {

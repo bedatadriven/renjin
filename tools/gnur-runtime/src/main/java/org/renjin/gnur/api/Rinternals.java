@@ -2868,8 +2868,15 @@ public final class Rinternals {
                         new PairList.Node(p4, Null.INSTANCE)))));
   }
 
-  public static SEXP Rf_listAppend(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_listAppend");
+  public static SEXP Rf_listAppend(SEXP s, SEXP t) {
+    SEXP r;
+    if (s == R_NilValue)
+      return t;
+    r = s;
+    while (CDR(r) != R_NilValue)
+      r = CDR(r);
+    SETCDR(r, t);
+    return s;
   }
 
   @Deprecated

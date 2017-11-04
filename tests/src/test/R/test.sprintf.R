@@ -29,4 +29,10 @@ assertThat(sprintf("%G", 1L), identicalTo("1"))
 assertThat(sprintf("%g", 102400000L), identicalTo("1.024e+08"))
 assertThat(sprintf("%G", 102400000L), identicalTo("1.024E+08"))
 
+assertThat(sprintf('%.f', 3 ), identicalTo("3"))
+assertThat(sprintf('%0.f', 3 ), identicalTo("3"))
+assertThat(sprintf('%0.f', 3.1 ), identicalTo("3"))
+assertThat(sprintf('%0.f', 3.5 ), identicalTo("4"))
+assertThat(sprintf('%0.f', 3.75 ), identicalTo("4"))
+
 

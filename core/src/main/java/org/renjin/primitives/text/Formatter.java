@@ -3281,7 +3281,11 @@ public class Formatter {
               break;
             }
           }
-          if (pos > firstPos+1) {
+          if (pos == firstPos+1) {
+            precision = 0;
+            precisionSet = true;
+
+          } else if (pos > firstPos+1) {
             String sz = fmt.substring(firstPos+1,pos);
             precision = Integer.parseInt(sz);
             precisionSet = true;

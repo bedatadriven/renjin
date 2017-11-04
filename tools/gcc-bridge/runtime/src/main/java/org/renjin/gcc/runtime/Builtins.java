@@ -20,6 +20,8 @@ package org.renjin.gcc.runtime;
 
 public class Builtins {
 
+  private static final ThreadLocal<IntPtr> ERRNO = new ThreadLocal<>();
+
   public static double __builtin_powi__(double base, int exponent) {
     return powi(base, exponent);
   }
@@ -32,6 +34,18 @@ public class Builtins {
     } else {
       return Math.pow(base, (double)exponent);
     }
+  }
+
+  /**
+   * The __errno_location() function shall return the address of the errno variable for the current thread.
+   */
+  public static Ptr __errno_location() {
+    IntPtr intPtr = ERRNO.get();
+    if(intPtr == null) {
+      intPtr = new IntPtr(0);
+      ERRNO.set(intPtr);
+    }
+    return intPtr;
   }
 
   public static float  __builtin_logf__(float x) {
@@ -49,7 +63,7 @@ public class Builtins {
   public static double __builtin_exp__(double x) {
     return Math.exp(x);
   }
-  
+
   public static float  __builtin_sqrtf__(float f) {
     return (float) Math.sqrt(f);
   }
@@ -265,7 +279,7 @@ public class Builtins {
   }
 
   public static void _gfortran_runtime_error_at(Ptr position, Ptr format, Object... arguments) {
-    throw new RuntimeException(Stdlib.doFormat(format, arguments));
+    throw new RuntimeException(Stdlib.format(format, arguments));
   }
 
   private static volatile int __sync_synchronize_value = 0;

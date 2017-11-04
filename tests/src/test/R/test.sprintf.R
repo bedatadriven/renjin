@@ -35,4 +35,7 @@ assertThat(sprintf('%0.f', 3.1 ), identicalTo("3"))
 assertThat(sprintf('%0.f', 3.5 ), identicalTo("4"))
 assertThat(sprintf('%0.f', 3.75 ), identicalTo("4"))
 
+assertThat(sprintf("0x%x", 64), identicalTo("0x40"))
+
+
 

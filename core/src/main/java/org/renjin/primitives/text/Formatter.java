@@ -635,8 +635,6 @@ public class Formatter {
    * arguments are treated as wrappers for primitive
    * types.
    * @param o The array of objects to format.
-   * @param rho 
-   * @param context 
    * @return  The formatted String.
    */
   public String sprintf(AtomicVector[] o, int cycleIndex) {
@@ -1016,6 +1014,9 @@ public class Formatter {
         case 'A':
         case 'a':
           return printAFormat(value);
+        case 'x':
+        case 'X':
+          return printXFormat((long)value);
       }
       
       if(isInteger(value)) {

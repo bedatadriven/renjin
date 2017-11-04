@@ -194,25 +194,31 @@ public class Stdlib {
     }
   }
 
+  @Deprecated
+  public static BytePtr strcat(BytePtr dest, BytePtr src) {
+    return (BytePtr)strcat((Ptr)dest, (Ptr)src);
+  }
+
   /**
    * Appends the string pointed to by src to the end of the string pointed to by dest.
    *
    * @return pointer to the resulting string dest.
    */
-  public static BytePtr strcat(BytePtr dest, BytePtr src) {
+  public static Ptr strcat(Ptr dest, Ptr src) {
     // Find the end of the dest null-terminated string
-    int start = dest.offset;
-    while(dest.array[start] != 0) {
-      start++;
+    int destPos = 0;
+    while(dest.getByte(destPos) != 0) {
+      destPos++;
     }
-    // Find the length of the src string
-    int srcLen = strlen(src);
-
     // Copy into the dest buffer
-    System.arraycopy(src.array, src.offset, dest.array, start, srcLen);
-
-    // Null terminate the concatenated string
-    dest.array[start+srcLen] = 0;
+    int srcPos = 0;
+    for(;;) {
+      byte srcByte = src.getByte(srcPos++);
+      dest.setByte(destPos++, srcByte);
+      if(srcByte == 0) {
+        break;
+      }
+    }
 
     return dest;
   }
@@ -221,7 +227,7 @@ public class Stdlib {
     String outputString;
 
     try {
-      outputString = doFormat(format, arguments);
+      outputString = format(format, arguments);
     } catch (Exception e) {
       return -1;
     }
@@ -250,7 +256,7 @@ public class Stdlib {
     String outputString;
 
     try {
-      outputString = doFormat(format, arguments);
+      outputString = format(format, arguments);
     } catch (Exception e) {
       return -1;
     }
@@ -283,7 +289,7 @@ public class Stdlib {
     return Character.toUpperCase(c);
   }
 
-  static String doFormat(Ptr format, Object[] arguments) {
+  public static String format(Ptr format, Object[] arguments) {
     Object[] convertedArgs = new Object[arguments.length];
     for (int i = 0; i < arguments.length; i++) {
       convertedArgs[i] = convertFormatArg(arguments[i]);
@@ -300,8 +306,8 @@ public class Stdlib {
   }
 
   private static Object convertFormatArg(Object argument) {
-    if(argument instanceof BytePtr) {
-      return ((BytePtr) argument).nullTerminatedString();
+    if(argument instanceof BytePtr || argument instanceof MixedPtr) {
+      return Stdlib.nullTerminatedString((Ptr) argument);
     } else {
       return argument;
     }

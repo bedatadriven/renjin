@@ -16,40 +16,33 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.codegen.call;
+package org.renjin.gcc.codegen.type;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.type.ParamStrategy;
-import org.renjin.gcc.codegen.type.ReturnStrategy;
-import org.renjin.gcc.codegen.type.VariadicStrategy;
-import org.renjin.repackaged.asm.Handle;
+import org.renjin.gcc.codegen.expr.ExprFactory;
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.tree.AnnotationNode;
 
 import java.util.List;
 
 /**
- * Defines a strategy for invoking a JVM method
+ * Defines a strategy for handling variadic functions
  */
-public interface InvocationStrategy {
+public interface VariadicStrategy {
 
   /**
-   * 
-   * @return a JVM method handle that can be used to construct a function pointer
+   * @return zero or more JVM types used to represent this parameter.
    */
-  Handle getMethodHandle();
-  
-  List<ParamStrategy> getParamStrategies();
+  List<Type> getParameterTypes();
 
-  VariadicStrategy getVariadicStrategy();
-
-
-  ReturnStrategy getReturnStrategy();
 
   /**
-   * Generates the bytecode instructions to invoke the method. 
-   * 
-   * <p>The method's parameters must already be on the stack, and after the generated instructions,
-   * the method's return value, if any will be on the stack.</p>
+   * Prepares a list of "extra" arguments to be passed to a variadic function.
    */
-  void invoke(MethodGenerator mv);
+  List<JExpr> marshallVarArgs(MethodGenerator mv, ExprFactory exprFactory, List<GimpleExpr> extraArgs);
 
+
+  List<AnnotationNode> getParameterAnnotations();
 }

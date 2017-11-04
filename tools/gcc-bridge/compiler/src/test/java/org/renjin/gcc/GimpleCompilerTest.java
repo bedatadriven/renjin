@@ -787,13 +787,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
   @Test
   public void varArgsCalls() throws Exception {
-    Class clazz = compile("varargs.c");
-
-    Method test = clazz.getMethod("test_sprintf", Ptr.class, int.class);
-
-    BytePtr message = (BytePtr) test.invoke(null, BytePtr.nullTerminatedString("Bob", Charsets.US_ASCII), 99);
-
-    assertThat(message.nullTerminatedString(), equalTo("Hello Bob, you have 99 messages"));
+    compileAndTest("varargs.c");
   }
 
   @Test

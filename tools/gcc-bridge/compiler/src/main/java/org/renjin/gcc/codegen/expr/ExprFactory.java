@@ -35,10 +35,12 @@ import org.renjin.gcc.codegen.type.complex.ComplexExpr;
 import org.renjin.gcc.codegen.type.fun.FunPtrExpr;
 import org.renjin.gcc.codegen.type.primitive.*;
 import org.renjin.gcc.codegen.type.record.RecordExpr;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.symbols.SymbolTable;
+import org.renjin.repackaged.guava.base.Optional;
 
 import java.util.Collections;
 import java.util.List;
@@ -51,11 +53,21 @@ public class ExprFactory {
   private final TypeOracle typeOracle;
   private final SymbolTable symbolTable;
   private MethodGenerator mv;
+  private Optional<VPtrExpr> varArgsPtr;
 
-  public ExprFactory(TypeOracle typeOracle, SymbolTable symbolTable, MethodGenerator mv) {
+  public ExprFactory(TypeOracle typeOracle, SymbolTable symbolTable, MethodGenerator mv, Optional<VPtrExpr> varArgsPtr) {
     this.typeOracle = typeOracle;
     this.symbolTable = symbolTable;
     this.mv = mv;
+    this.varArgsPtr = varArgsPtr;
+  }
+
+  public ExprFactory(TypeOracle typeOracle, SymbolTable symbolTable, MethodGenerator mv) {
+    this(typeOracle, symbolTable, mv, Optional.<VPtrExpr>absent());
+  }
+
+  public Optional<VPtrExpr> getVarArgsPtr() {
+    return varArgsPtr;
   }
 
   public GExpr findGenerator(GimpleExpr expr, GimpleType expectedType) {

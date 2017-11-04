@@ -16,40 +16,34 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.codegen.call;
+package org.renjin.gcc.codegen.type;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.type.ParamStrategy;
-import org.renjin.gcc.codegen.type.ReturnStrategy;
-import org.renjin.gcc.codegen.type.VariadicStrategy;
-import org.renjin.repackaged.asm.Handle;
+import org.renjin.gcc.codegen.expr.ExprFactory;
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.tree.AnnotationNode;
 
+import java.util.Collections;
 import java.util.List;
 
-/**
- * Defines a strategy for invoking a JVM method
- */
-public interface InvocationStrategy {
 
-  /**
-   * 
-   * @return a JVM method handle that can be used to construct a function pointer
-   */
-  Handle getMethodHandle();
-  
-  List<ParamStrategy> getParamStrategies();
+public class NullVariadicStrategy implements VariadicStrategy {
+  @Override
+  public List<Type> getParameterTypes() {
+    return Collections.emptyList();
+  }
 
-  VariadicStrategy getVariadicStrategy();
+  @Override
+  public List<AnnotationNode> getParameterAnnotations() {
+    return Collections.emptyList();
+  }
 
+  @Override
+  public List<JExpr> marshallVarArgs(MethodGenerator mv, ExprFactory exprFactory, List<GimpleExpr> extraArgs) {
+    return Collections.emptyList();
+  }
 
-  ReturnStrategy getReturnStrategy();
-
-  /**
-   * Generates the bytecode instructions to invoke the method. 
-   * 
-   * <p>The method's parameters must already be on the stack, and after the generated instructions,
-   * the method's return value, if any will be on the stack.</p>
-   */
-  void invoke(MethodGenerator mv);
 
 }

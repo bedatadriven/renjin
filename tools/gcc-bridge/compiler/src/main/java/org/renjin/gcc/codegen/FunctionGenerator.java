@@ -24,28 +24,27 @@ import org.renjin.gcc.TreeLogger;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.InvocationStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
-import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
-import org.renjin.gcc.codegen.type.ParamStrategy;
-import org.renjin.gcc.codegen.type.ReturnStrategy;
-import org.renjin.gcc.codegen.type.TypeOracle;
-import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.GlobalVarAllocator;
 import org.renjin.gcc.codegen.var.LocalStaticVarAllocator;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.codegen.vptr.VPtrVariadicStrategy;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.statement.*;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.gcc.peephole.PeepholeOptimizer;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.gcc.runtime.Stdlib;
 import org.renjin.gcc.symbols.LocalVariableTable;
 import org.renjin.gcc.symbols.UnitSymbolTable;
 import org.renjin.repackaged.asm.*;
+import org.renjin.repackaged.asm.tree.AnnotationNode;
 import org.renjin.repackaged.asm.tree.MethodNode;
 import org.renjin.repackaged.asm.util.Textifier;
 import org.renjin.repackaged.asm.util.TraceMethodVisitor;
+import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.base.Throwables;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
@@ -64,6 +63,9 @@ public class FunctionGenerator implements InvocationStrategy {
   private String className;
   private GimpleFunction function;
   private final List<String> aliases = new ArrayList<>();
+
+  private boolean variadic;
+  private VariadicStrategy variadicStrategy;
   private Map<GimpleParameter, ParamStrategy> params = Maps.newHashMap();
   private ReturnStrategy returnStrategy;
   
@@ -75,7 +77,7 @@ public class FunctionGenerator implements InvocationStrategy {
   
   private Label beginLabel = new Label();
   private Label endLabel = new Label();
-  
+
   private MethodGenerator mv;
 
   private boolean compilationFailed = false;
@@ -86,9 +88,18 @@ public class FunctionGenerator implements InvocationStrategy {
     this.function = function;
     this.typeOracle = typeOracle;
     this.params = this.typeOracle.forParameters(function.getParameters());
+
+    if(function.isVariadic()) {
+      this.variadic = true;
+      this.variadicStrategy = new VPtrVariadicStrategy();
+    } else {
+      this.variadicStrategy = new NullVariadicStrategy();
+    }
+
     this.returnStrategy = this.typeOracle.returnStrategyFor(function.getReturnType());
     this.staticVarAllocator = new LocalStaticVarAllocator("$" + function.getSafeMangledName() + "$", globalVarAllocator);
     this.symbolTable = new LocalVariableTable(symbolTable);
+
   }
 
   public String getMangledName() {
@@ -134,8 +145,19 @@ public class FunctionGenerator implements InvocationStrategy {
           function.getSafeMangledName(),
           getFunctionDescriptor(), null, null);
 
+      methodNode.visibleParameterAnnotations = parameterAnnotations();
+
+      Optional<VPtrExpr> varArgsPtr;
+      if(variadic) {
+        int varArgIndex = getVarArgIndex();
+        varArgsPtr = Optional.of(new VPtrExpr(Expressions.localVariable(Type.getType(Ptr.class), varArgIndex)));
+      } else {
+        varArgsPtr = Optional.absent();
+      }
+
+
       mv = new MethodGenerator(methodNode);
-      this.exprFactory = new ExprFactory(typeOracle, this.symbolTable, mv);
+      this.exprFactory = new ExprFactory(typeOracle, this.symbolTable, mv, varArgsPtr);
 
       mv.visitCode();
       mv.visitLabel(beginLabel);
@@ -205,6 +227,32 @@ public class FunctionGenerator implements InvocationStrategy {
     }
   }
 
+  private List<AnnotationNode>[] parameterAnnotations() {
+    List<AnnotationNode>[] parameters = new List[countJvmParameters()];
+    int i=0;
+    for (ParamStrategy paramStrategy : getParamStrategies()) {
+      for (Type type : paramStrategy.getParameterTypes()) {
+        i++;
+      }
+    }
+    for (AnnotationNode annotationNode : variadicStrategy.getParameterAnnotations()) {
+      if(annotationNode != null) {
+        parameters[i] = Collections.singletonList(annotationNode);
+      }
+      i++;
+    }
+    return parameters;
+  }
+
+  private int countJvmParameters() {
+    int count = 0;
+    for (ParamStrategy paramStrategy : getParamStrategies()) {
+      count += paramStrategy.getParameterTypes().size();
+    }
+    count += variadicStrategy.getParameterTypes().size();
+    return count;
+  }
+
   private void writeRuntimeStub(ClassVisitor cw) {
 
     MethodNode methodNode = new MethodNode(ACC_PUBLIC | ACC_STATIC,
@@ -265,15 +313,17 @@ public class FunctionGenerator implements InvocationStrategy {
       List<Type> parameterTypes = paramStrategy.getParameterTypes();
       if(parameterTypes.size() == 1) {
         paramVars.add(mv.getLocalVarAllocator().reserve(param.getName(), parameterTypes.get(0)));
-//        mv.visitParameter(param.getName(), 0);
       } else {
         for (int typeIndex = 0; typeIndex < parameterTypes.size(); typeIndex++) {
           String name = param.getName() + "$" + typeIndex;
           paramVars.add(mv.getLocalVarAllocator().reserve(name, parameterTypes.get(typeIndex)));
-//          mv.visitParameter(name, 0);
         }
       }
       paramIndexes.add(paramVars);
+    }
+
+    if(variadic) {
+      mv.getLocalVarAllocator().reserve(Type.getType(Ptr.class));
     }
 
     // Now do any required initialization
@@ -467,7 +517,15 @@ public class FunctionGenerator implements InvocationStrategy {
   }
 
   public String getFunctionDescriptor() {
-    return TypeOracle.getMethodDescriptor(returnStrategy, getParamStrategies());
+    return TypeOracle.getMethodDescriptor(returnStrategy, getParamStrategies(), getVariadicStrategy());
+  }
+
+  private int getVarArgIndex() {
+    int fixedArgCount = 0;
+    for (ParamStrategy paramStrategy : getParamStrategies()) {
+      fixedArgCount += paramStrategy.getParameterTypes().size();
+    }
+    return fixedArgCount;
   }
   
   @Override
@@ -481,8 +539,8 @@ public class FunctionGenerator implements InvocationStrategy {
   }
 
   @Override
-  public boolean isVarArgs() {
-    return false;
+  public VariadicStrategy getVariadicStrategy() {
+    return variadicStrategy;
   }
 
   public Type returnType() {

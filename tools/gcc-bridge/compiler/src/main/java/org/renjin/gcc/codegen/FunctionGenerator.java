@@ -197,7 +197,8 @@ public class FunctionGenerator implements InvocationStrategy {
 
       int estimatedSize = BytecodeSizeEstimator.estimateSize(methodNode);
       if (estimatedSize > 40_000) {
-        System.err.println("WARNING: Method size of " + className + "." + function.getMangledName() + " may be exceeded.");
+        System.err.println("WARNING: Method size of " + className + "." + function.getMangledName() +
+            " may be exceeded. (Estimate: " + estimatedSize + ")");
       }
 
       logger.dump(function.getUnit().getSourceName(), function.getSafeMangledName(), "opt.j", toString(methodNode));

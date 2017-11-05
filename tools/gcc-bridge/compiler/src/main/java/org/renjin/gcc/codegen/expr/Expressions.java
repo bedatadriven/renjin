@@ -218,6 +218,21 @@ public class Expressions {
   }
 
   public static JExpr sum(final JExpr x, final JExpr y) {
+    if(ConstantValue.isZero(x)) {
+      return y;
+    }
+    if(ConstantValue.isZero(y)) {
+      return x;
+    }
+    if(x instanceof ConstantValue && y instanceof ConstantValue) {
+      ConstantValue cx = (ConstantValue) x;
+      ConstantValue cy = (ConstantValue) y;
+      if(x.getType().getSort() == INT) {
+        return new ConstantValue(Type.INT_TYPE, cx.getIntValue() + cy.getIntValue());
+      } else if(x.getType().getSort() == LONG) {
+        return new ConstantValue(Type.LONG_TYPE, cx.getValue().longValue() + cy.getValue().longValue());
+      }
+    }
     return binary(Opcodes.IADD, x, y, promoteSmallInts(x.getType()));
   }
 
@@ -977,6 +992,13 @@ public class Expressions {
   }
 
   public static JExpr bitwiseAnd(JExpr x, JExpr y) {
+    if(x instanceof ConstantValue && y instanceof ConstantValue) {
+      ConstantValue cx = (ConstantValue) x;
+      ConstantValue cy = (ConstantValue) y;
+      if(x.getType().equals(Type.INT_TYPE)) {
+        return Expressions.constantInt(cx.getIntValue() & cy.getIntValue());
+      }
+    }
     return bitwiseOp(Opcodes.IAND, x, y);
   }
 

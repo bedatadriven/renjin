@@ -19,6 +19,7 @@
 package org.renjin.gcc.peephole;
 
 import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.tree.*;
 import org.renjin.repackaged.asm.util.Textifier;
 import org.renjin.repackaged.asm.util.TraceMethodVisitor;
@@ -68,7 +69,10 @@ public class PeepholeOptimizer {
           }
         }
       } while (it.next());
-    //  propogateConstants(methodNode, jumpTargets);
+
+      if(propagateConstants(methodNode, jumpTargets)) {
+        changing = true;
+      }
     } while (changing);
   }
 
@@ -87,12 +91,19 @@ public class PeepholeOptimizer {
   }
 
 
-  private void propogateConstants(MethodNode methodNode, Set<Label> jumpTargets) {
+  private boolean propagateConstants(MethodNode methodNode, Set<Label> jumpTargets) {
 
     // First find all local variables which are stored only once
     Set<Integer> stores = new HashSet<>();
     Set<Integer> multipleStores = new HashSet<>();
 
+    // Exclude parameters...
+    int parameterIndex = 0;
+    for (Type parameterType : Type.getArgumentTypes(methodNode.desc)) {
+      for (int i = 0; i < parameterType.getSize(); i++) {
+        multipleStores.add(parameterIndex++);
+      }
+    }
     NodeIt it = new NodeIt(methodNode.instructions, jumpTargets);
     do {
       if(it.matches(Pattern.ISTORE)) {
@@ -123,6 +134,7 @@ public class PeepholeOptimizer {
 
 
     // And finally remove the constant stores and replace the loads with constants
+    boolean changed = false;
     it.reset();
     do {
       if(it.matches(Pattern.ICONST, Pattern.ISTORE)) {
@@ -134,9 +146,13 @@ public class PeepholeOptimizer {
         VarInsnNode load = it.get(0);
         Integer constantValue = constantStores.get(load.var);
         if(constantValue != null) {
-          it.replace(0, Instructions.constantNode(constantValue));
+          it.remove(1);
+          it.insert(Instructions.constantNode(constantValue));
+          changed = true;
         }
       }
     } while (it.next());
+
+    return changed;
   }
 }

@@ -157,6 +157,7 @@ public class GlobalSymbolTable implements SymbolTable {
     addMethods(Stdlib2.class);
     addMethods(Mathlib.class);
     addMethods(Std.class);
+    addMethods(PosixThreads.class);
   }
 
   public void addLibrary(SymbolLibrary lib) {

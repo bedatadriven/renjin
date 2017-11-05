@@ -1229,5 +1229,10 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void arrayAssignFromRecord() throws Exception {
     compileAndTest("array_assign_from_record.c");
   }
+
+  @Test
+  public void threadsTest() throws Exception {
+    compileAndTest("pthreads.c");
+  }
 }
 

@@ -46,6 +46,10 @@ public class LongPtr extends AbstractPtr {
     this.offset = 0;
   }
 
+  public static LongPtr malloc(int bytes) {
+    return new LongPtr(new long[mallocSize(bytes, BYTES)]);
+  }
+
   @Override
   public long[] getArray() {
     return array;

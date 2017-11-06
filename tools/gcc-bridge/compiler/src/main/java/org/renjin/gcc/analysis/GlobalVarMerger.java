@@ -50,7 +50,7 @@ public class GlobalVarMerger {
     // Otherwise, pick one site arbitrarily
     for (GimpleCompilationUnit unit : units) {
       for (GimpleVarDecl varDecl : unit.getGlobalVariables()) {
-        if(varDecl.isExtern()) {
+        if(varDecl.isExtern() && varDecl.getType().getSize() != 0) {
           if(!definitionSite.containsKey(varDecl.getMangledName())) {
             definitionSite.put(varDecl.getMangledName(), unit);
           }

@@ -78,17 +78,17 @@ public class ShortExpr extends AbstractIntExpr implements IntExpr {
 
   @Override
   public ShortExpr min(GExpr operand) {
-    return lift(Expressions.staticMethodCall(Math.class, "min", "(II)I"));
+    return lift(Expressions.staticMethodCall(Math.class, "min", "(II)I", jexpr(), jexpr(operand)));
   }
 
   @Override
   public ShortExpr max(GExpr operand) {
-    return lift(Expressions.staticMethodCall(Math.class, "max", "(II)I"));
+    return lift(Expressions.staticMethodCall(Math.class, "max", "(II)I", jexpr(), jexpr(operand)));
   }
 
   @Override
   public ShortExpr absoluteValue() {
-    return lift(Expressions.staticMethodCall(Math.class, "abs", "(I)I"));
+    return lift(Expressions.staticMethodCall(Math.class, "abs", "(I)I", jexpr()));
   }
 
   @Override

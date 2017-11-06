@@ -688,7 +688,13 @@ public class Expressions {
   public static JExpr staticMethodCall(final Type declaringType, final String methodName, 
                                        final String descriptor, final JExpr... arguments) {
 
-    assert Type.getArgumentTypes(descriptor).length == arguments.length : "wrong number of arguments";
+    if(Type.getArgumentTypes(descriptor).length != arguments.length) {
+      throw new IllegalArgumentException(String.format("Call to %s.%s(%s) with incorrect number of arguments [%d]",
+          declaringType.getInternalName(),
+          methodName,
+          Arrays.toString(Type.getArgumentTypes(descriptor)),
+          arguments.length));
+    }
 
     return new JExpr() {
       @Nonnull

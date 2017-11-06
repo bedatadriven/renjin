@@ -291,4 +291,12 @@ public class Builtins {
     }
     return result;
   }
+  private static volatile int __sync_synchronize_value = 0;
+
+  public static void __sync_synchronize() {
+    // The following volatile field access should convince the JVM to emit a memory fence instruction.
+    // https://www.infoq.com/articles/memory_barriers_jvm_concurrency
+    __sync_synchronize_value++;
+  }
+
 }

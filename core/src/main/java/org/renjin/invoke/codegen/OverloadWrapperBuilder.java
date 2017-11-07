@@ -28,12 +28,13 @@ import org.renjin.invoke.codegen.args.ArgConverterStrategies;
 import org.renjin.invoke.codegen.args.ArgConverterStrategy;
 import org.renjin.invoke.codegen.scalars.ScalarType;
 import org.renjin.invoke.codegen.scalars.ScalarTypes;
-import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
-import org.renjin.sexp.*;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.SEXP;
 
 import java.util.Collections;
 import java.util.List;
@@ -131,9 +132,12 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
   }
 
   private String typeMessageErrorFormat(int nargs) {
+
+    String escapedFunctionName = primitive.getName().replaceAll("%", "%%");
+
     StringBuilder message = new StringBuilder();
     message.append("Invalid argument:\n");
-    message.append("\t").append(primitive.getName()).append("(");
+    message.append("\t").append(escapedFunctionName).append("(");
 
     for(int i=0;i<nargs;++i) {
       if(i > 0) {
@@ -145,7 +149,7 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
     message.append("\tExpected:");
     for(JvmMethod method : primitive.getOverloads()) {
       message.append("\n\t");
-      method.appendFriendlySignatureTo(primitive.getName(), message);
+      method.appendFriendlySignatureTo(escapedFunctionName, message);
     }
     return message.toString();
   }

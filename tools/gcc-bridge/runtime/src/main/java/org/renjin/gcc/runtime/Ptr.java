@@ -263,6 +263,12 @@ public interface Ptr extends Comparable<Ptr> {
   long getLong(int offset);
 
   /**
+   *
+   * @param index the index of the 8-byte integer, from the beginning of the pointer.
+   */
+  long getAlignedLong(int index);
+
+  /**
    * Sets the given {@code value} at the beginning of the pointer.
    */
   void setLong(long value);

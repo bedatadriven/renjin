@@ -70,12 +70,54 @@ public class LongPtr extends AbstractPtr {
   public Ptr pointerPlus(int bytes) {
     if(bytes == 0) {
       return this;
-    }
-    if(bytes % BYTES == 0) {
+    } else if(bytes % BYTES == 0) {
       return new LongPtr(array, offset + (bytes / BYTES));
     } else {
       return new OffsetPtr(this, this.offset * BYTES + bytes);
     }
+  }
+
+  @Override
+  public long getLong() {
+    return array[offset];
+  }
+
+  @Override
+  public long getAlignedLong(int index) {
+    return array[offset + index];
+  }
+
+  @Override
+  public long getLong(int offset) {
+    if(offset % BYTES == 0) {
+      return array[this.offset + (offset / BYTES)];
+    } else {
+      return super.getLong(offset);
+    }
+  }
+
+  @Override
+  public void setAlignedLong(int index, long value) {
+    array[offset + index] = value;
+  }
+
+  @Override
+  public void setLong(int offset, long longValue) {
+    if(offset % BYTES == 0) {
+      array[this.offset + (offset / BYTES)] = longValue;
+    } else {
+      super.setLong(offset, longValue);
+    }
+  }
+
+  @Override
+  public double getDouble() {
+    return Double.longBitsToDouble(this.array[offset]);
+  }
+
+  @Override
+  public double getAlignedDouble(int index) {
+    return Double.longBitsToDouble(this.array[offset + index]);
   }
 
   @Override

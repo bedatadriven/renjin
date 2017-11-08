@@ -188,6 +188,36 @@ public class OffsetPtr implements Ptr {
   }
 
   @Override
+  public double getReal96() {
+    return ptr.getReal96(this.offset);
+  }
+
+  @Override
+  public double getReal96(int offset) {
+    return ptr.getReal96(this.offset + offset);
+  }
+
+  @Override
+  public double getAlignedReal96(int index) {
+    return ptr.getReal96(this.offset + (index * Double96Ptr.BYTES));
+  }
+
+  @Override
+  public void setReal96(double value) {
+    ptr.setReal96(this.offset, value);
+  }
+
+  @Override
+  public void setReal96(int offset, double value) {
+    ptr.setReal96(this.offset + offset, value);
+  }
+
+  @Override
+  public void setAlignedReal96(int index, double value) {
+    ptr.setReal96(this.offset + (index * Double96Ptr.BYTES), value);
+  }
+
+  @Override
   public float getFloat() {
     return ptr.getFloat(this.offset);
   }
@@ -255,6 +285,11 @@ public class OffsetPtr implements Ptr {
   @Override
   public long getLong(int offset) {
     return ptr.getLong(this.offset + offset);
+  }
+
+  @Override
+  public long getAlignedLong(int index) {
+    return ptr.getLong(this.offset + (index * LongPtr.BYTES));
   }
 
   @Override

@@ -24,13 +24,13 @@ import org.renjin.repackaged.guava.base.Predicate;
 
 public class GimpleParamRef extends GimpleLValue implements GimpleSymbolRef {
 
-  private int id;
+  private long id;
   private String name;
 
   public GimpleParamRef() {
   }
 
-  public GimpleParamRef(int id, String name) {
+  public GimpleParamRef(long id, String name) {
     this.id = id;
     this.name = name;
   }
@@ -49,11 +49,11 @@ public class GimpleParamRef extends GimpleLValue implements GimpleSymbolRef {
     this.name = name;
   }
 
-  public int getId() {
+  public long getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public void setId(long id) {
     this.id = id;
   }
   

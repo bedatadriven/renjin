@@ -168,4 +168,32 @@ public class ConnectionsTest extends EvalTestCase {
       eval("sink(type='output')");
     }
   }
+
+  @Test
+  public void textConnectionWriting() {
+    eval("zz <- textConnection(\"foo\", \"w\")");
+
+    assertThat(eval("foo"), elementsIdenticalTo(c(new String[0])));
+
+    eval("writeLines(c('testit1', 'testit2'), zz)");
+
+    assertThat(eval("foo"), elementsIdenticalTo(c("testit1", "testit2")));
+
+    eval("writeLines(c('a\nb\n', 'c'), zz)");
+
+    assertThat(eval("foo"), elementsIdenticalTo(c("testit1", "testit2", "a", "b", "", "c")));
+  }
+
+
+  @Test
+  public void textConnectionWritingExistingVar() {
+
+    eval("foo <- 33");
+
+    eval("zz <- textConnection(\"foo\", \"w\")");
+    eval("writeLines(c('testit1', 'testit2'), zz)");
+
+    assertThat(eval("foo"), elementsIdenticalTo(c("testit1", "testit2")));
+  }
+
 }

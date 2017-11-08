@@ -99,7 +99,7 @@ public class ArrayTypeStrategy implements TypeStrategy<FatArrayExpr> {
   }
 
   @Override
-  public FatArrayExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public FatArrayExpr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
     return value.toArrayExpr();
   }
 
@@ -120,7 +120,7 @@ public class ArrayTypeStrategy implements TypeStrategy<FatArrayExpr> {
 
   @Override
   public FatArrayExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
-    throw new UnsupportedOperationException("TODO");
+    return new FatArrayExpr(this.arrayType, elementValueFunction, arrayLength, expr, Expressions.zero());
   }
 
   private JExpr allocArray(int arrayLength) {

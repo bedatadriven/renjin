@@ -23,6 +23,7 @@ import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.sexp.AbstractSEXP;
 import org.renjin.sexp.SexpVisitor;
 import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
 
 /**
  * Internal character SEXP
@@ -37,6 +38,11 @@ public class GnuCharSexp extends AbstractSEXP {
   public GnuCharSexp(byte[] value) {
     this.value = value;
   }
+
+  public GnuCharSexp(Symbol symbol) {
+    this(symbol.getPrintName().getBytes(Charsets.UTF_8));
+  }
+
 
   public static GnuCharSexp valueOf(String value) {
     if(StringVector.isNA(value)) {

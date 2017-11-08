@@ -18,7 +18,7 @@
  */
 package org.renjin.gcc;
 
-import org.renjin.gcc.runtime.RecordPtr;
+import org.renjin.gcc.runtime.OpaquePtr;
 import org.renjin.gcc.runtime.RecordUnitPtr;
 
 /**
@@ -46,7 +46,7 @@ public class JvmRect {
     return rect.get().width * rect.get().height;
   }
   
-  public static int areas(RecordPtr<JvmRect> rects) {
+  public static int areas(OpaquePtr<JvmRect> rects) {
     int area = 0;
     int i = 0;
     // end of array is marked by rect with zero width

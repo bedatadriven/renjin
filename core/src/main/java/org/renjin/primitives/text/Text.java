@@ -1017,6 +1017,9 @@ public class Text {
   @Internal
   @DataParallel(PreserveAttributeStyle.NONE)
   public static int strtoi(@Recycle String x, @Recycle(false) int base) {
+    if(x.isEmpty()) {
+      return 0;
+    }
     if(base == 0) {
       // For the default ‘base = 0L’, the base chosen from the string
       // representation of that element of ‘x’. The standard C

@@ -58,7 +58,7 @@ public class LocalVariablePruner implements FunctionBodyTransformer {
   
   private class VariableRefFinder extends GimpleExprVisitor {
 
-    private Set<Integer> used = Sets.newHashSet();
+    private Set<Long> used = Sets.newHashSet();
     
     @Override
     public void visitVariableRef(GimpleVariableRef variableRef) {

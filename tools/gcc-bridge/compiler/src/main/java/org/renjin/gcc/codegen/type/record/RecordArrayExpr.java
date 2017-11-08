@@ -23,14 +23,16 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
+import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
-import org.renjin.gcc.codegen.type.fun.FunPtr;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.fun.FunPtrExpr;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveExpr;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveType;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
@@ -66,12 +68,12 @@ public final class RecordArrayExpr implements RecordExpr {
   }
   
   @Override
-  public GExpr addressOf() {
+  public PtrExpr addressOf() {
     return new FatPtrPair(valueFunction, array, offset);
   }
 
   @Override
-  public FunPtr toFunPtr() throws UnsupportedCastException {
+  public FunPtrExpr toFunPtr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -81,7 +83,7 @@ public final class RecordArrayExpr implements RecordExpr {
   }
 
   @Override
-  public PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException {
+  public PrimitiveExpr toPrimitiveExpr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -91,17 +93,12 @@ public final class RecordArrayExpr implements RecordExpr {
   }
 
   @Override
-  public RecordArrayExpr toRecordArrayExpr() throws UnsupportedCastException {
-    return this;
-  }
-
-  @Override
   public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout) {
+  public ProvidedPtrExpr toProvidedPtrExpr(Type jvmType) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -121,6 +118,11 @@ public final class RecordArrayExpr implements RecordExpr {
 
   @Override
   public VArrayExpr toVArray(GimpleArrayType arrayType) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public NumericExpr toNumericExpr() {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -169,12 +171,12 @@ public final class RecordArrayExpr implements RecordExpr {
     Type fieldType = valueFunction.getValueType();
 
     if(memberType instanceof GimplePrimitiveType) {
-      GimplePrimitiveType expectedType = (GimplePrimitiveType) memberType;
+      PrimitiveType expectedType = PrimitiveType.of((GimplePrimitiveType) memberType);
 
       // Return a single primitive value
       if(expectedType.jvmType().equals(fieldType)) {
         JExpr value = elementAt(array, offset);
-        return new PrimitiveValue(expectedType, value, address);
+        return expectedType.fromStackValue(value, address);
 
       } else {
         throw new UnsupportedOperationException("TODO: " + fieldType + " -> " + expectedType);

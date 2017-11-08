@@ -40,9 +40,9 @@ public class InitDataFlowAnalysis {
 
   private ControlFlowGraph cfg;
   
-  private Map<Integer, GimpleVarDecl> localVariables = Maps.newHashMap();
-  private Map<ControlFlowGraph.Node, Set<Integer>> entryState = new HashMap<>();
-  private Map<ControlFlowGraph.Node, Set<Integer>> exitState = new HashMap<>();
+  private Map<Long, GimpleVarDecl> localVariables = Maps.newHashMap();
+  private Map<ControlFlowGraph.Node, Set<Long>> entryState = new HashMap<>();
+  private Map<ControlFlowGraph.Node, Set<Long>> exitState = new HashMap<>();
   
   public InitDataFlowAnalysis(GimpleFunction function, ControlFlowGraph cfg) {
     this.cfg = cfg;
@@ -61,7 +61,7 @@ public class InitDataFlowAnalysis {
     // We know the initial state of all nodes includes
     // _at least_ those variables explicitly initialized
     
-    Set<Integer> initialState = new HashSet<>();
+    Set<Long> initialState = new HashSet<>();
     for (GimpleVarDecl decl : localVariables.values()) {
       if(decl.getValue() != null) {
         initialState.add(decl.getId());
@@ -87,14 +87,14 @@ public class InitDataFlowAnalysis {
       
       for (ControlFlowGraph.Node node : cfg.getBasicBlockNodes()) {
         // recalculate the node's input
-        Set<Integer> currentEntryState = entryState.get(node);
-        Set<Integer> updatedEntryState = applyJoin(node);
+        Set<Long> currentEntryState = entryState.get(node);
+        Set<Long> updatedEntryState = applyJoin(node);
 
         if (!updatedEntryState.equals(currentEntryState)) {
           entryState.put(node, updatedEntryState);
 
-          Set<Integer> currentExitState = exitState.get(node);
-          Set<Integer> updatedExitState = applyTransfer(updatedEntryState, node.getBasicBlock());
+          Set<Long> currentExitState = exitState.get(node);
+          Set<Long> updatedExitState = applyTransfer(updatedEntryState, node.getBasicBlock());
           if (!currentExitState.equals(updatedExitState)) {
             changed = true;
             exitState.put(node, updatedExitState);
@@ -110,7 +110,7 @@ public class InitDataFlowAnalysis {
     
     for (ControlFlowGraph.Node node : cfg.getBasicBlockNodes()) {
       // The set of variables that have been *definitely* initialized
-      Set<Integer> initialized = new HashSet<>(entryState.get(node));
+      Set<Long> initialized = new HashSet<>(entryState.get(node));
       
       // Now go statement-by-statement to see if there are any possible
       // uses before definition
@@ -134,13 +134,13 @@ public class InitDataFlowAnalysis {
   /**
    * Updates a node's entry state as a function of all the incoming node's states.
    */
-  private Set<Integer> applyJoin(ControlFlowGraph.Node node) {
+  private Set<Long> applyJoin(ControlFlowGraph.Node node) {
     
     // a local variable is known to be initialized if has been
     // initialized on all incoming paths
     Iterator<ControlFlowGraph.Node> incomingIt = node.getIncoming().iterator();
 
-    Set<Integer> state = new HashSet<>(exitState.get(incomingIt.next()));
+    Set<Long> state = new HashSet<>(exitState.get(incomingIt.next()));
     
     while(incomingIt.hasNext()) {
       state = Sets.intersection(state, exitState.get(incomingIt.next()));      
@@ -149,8 +149,8 @@ public class InitDataFlowAnalysis {
   }
   
 
-  private Set<Integer> applyTransfer(Set<Integer> initialState, GimpleBasicBlock basicBlock) {
-    Set<Integer> exitState = new HashSet<>(initialState);
+  private Set<Long> applyTransfer(Set<Long> initialState, GimpleBasicBlock basicBlock) {
+    Set<Long> exitState = new HashSet<>(initialState);
 
     if(basicBlock != null) {
       for (GimpleStatement ins : basicBlock.getStatements()) {
@@ -165,7 +165,7 @@ public class InitDataFlowAnalysis {
    * @param statement the statement
    * @param initializedVariables the set of variableIds that have definitely been initialized
    */
-  private void updateInitializedSet(GimpleStatement statement, Set<Integer> initializedVariables) {
+  private void updateInitializedSet(GimpleStatement statement, Set<Long> initializedVariables) {
     Optional<GimpleVariableRef> variableRef = Optional.absent();
     if (statement instanceof GimpleAssignment) {
       variableRef = findVariableRef(((GimpleAssignment) statement).getLHS());
@@ -203,10 +203,10 @@ public class InitDataFlowAnalysis {
     }
   }
 
-  private String toString(Set<Integer> variableIds) {
+  private String toString(Set<Long> variableIds) {
     StringBuilder sb = new StringBuilder("[");
     boolean needsComma = false;
-    for (Integer variableId : variableIds) {
+    for (Long variableId : variableIds) {
       if(needsComma) {
         sb.append(", ");
       } 

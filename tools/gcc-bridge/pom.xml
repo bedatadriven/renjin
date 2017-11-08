@@ -16,7 +16,6 @@
   <modules>
     <module>runtime</module>
     <module>compiler</module>
-    <module>gcc-plugin</module>
     <module>maven-plugin</module>
   </modules>
 

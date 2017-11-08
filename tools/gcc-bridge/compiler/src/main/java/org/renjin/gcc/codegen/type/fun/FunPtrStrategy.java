@@ -24,6 +24,7 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.AddressableField;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
@@ -33,14 +34,14 @@ import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleFunctionType;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Preconditions;
+import org.renjin.repackaged.guava.base.Optional;
 
 import java.lang.invoke.MethodHandle;
 
 /**
  * Strategy for function pointer types
  */
-public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeStrategy<FunPtr> {
+public class FunPtrStrategy implements PointerTypeStrategy<FunPtrExpr> {
   
   public static final Type METHOD_HANDLE_TYPE = Type.getType(MethodHandle.class);
 
@@ -53,14 +54,21 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
   }
 
   @Override
-  public FunPtr variable(GimpleVarDecl decl, VarAllocator allocator) {
-    return new FunPtr(allocator.reserve(decl.getNameIfPresent(), Type.getType(MethodHandle.class)));
+  public FunPtrExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
+    if(decl.isAddressable()) {
+      JLValue unitArray = allocator.reserveUnitArray(decl.getNameIfPresent(), Type.getType(MethodHandle.class), Optional.<JExpr>absent());
+      FatPtrPair address = new FatPtrPair(new FunPtrValueFunction(4), unitArray);
+      JExpr value = Expressions.elementAt(address.getArray(), 0);
+      return new FunPtrExpr(value, address);
+    } else {
+      return new FunPtrExpr(allocator.reserve(decl.getNameIfPresent(), Type.getType(MethodHandle.class)));
+    }
   }
 
   @Override
-  public FunPtr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
+  public FunPtrExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
     if(expr.getType().equals(METHOD_HANDLE_TYPE)) {
-      return new FunPtr(expr);
+      return new FunPtrExpr(expr);
     }
     throw new InternalCompilerException("Cannot map global variable " + decl + " to " + expr + ". " +
         "Field of type " + MethodHandle.class.getName() + " is required");
@@ -72,7 +80,7 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
   }
 
   @Override
-  public FunPtr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
+  public FunPtrExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
     throw new UnsupportedOperationException();
   }
 
@@ -83,7 +91,7 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new SimpleReturnStrategy(this);
+    return new FunPtrReturnStrategy();
   }
 
   @Override
@@ -102,17 +110,17 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
   }
 
   @Override
-  public FunPtr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public FunPtrExpr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
     return value.toFunPtr();
   }
 
   @Override
-  public FunPtr nullPointer() {
-    return FunPtr.NULL_PTR;
+  public FunPtrExpr nullPointer() {
+    return FunPtrExpr.NULL_PTR;
   }
 
   @Override
-  public FunPtr malloc(MethodGenerator mv, JExpr sizeInBytes) {
+  public FunPtrExpr malloc(MethodGenerator mv, JExpr sizeInBytes) {
     throw new UnsupportedOperationException("Cannot malloc function pointers");
   }
 
@@ -121,14 +129,4 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
     return "FunPtrStrategy";
   }
 
-  @Override
-  public Type getJvmType() {
-    return METHOD_HANDLE_TYPE;
-  }
-
-  @Override
-  public FunPtr wrap(JExpr expr) {
-    Preconditions.checkArgument(expr.getType().equals(METHOD_HANDLE_TYPE));
-    return new FunPtr(expr);
-  }
 }

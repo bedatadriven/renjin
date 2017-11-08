@@ -23,5 +23,5 @@ package org.renjin.gcc.codegen.expr;
  */
 public interface RefPtrExpr extends GSimpleExpr, PtrExpr {
   
-  JExpr unwrap();
+  JExpr jexpr();
 }

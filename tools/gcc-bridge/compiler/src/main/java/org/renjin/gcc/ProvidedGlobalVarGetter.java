@@ -22,6 +22,7 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.repackaged.asm.Type;
 
@@ -41,6 +42,13 @@ public class ProvidedGlobalVarGetter implements ProvidedGlobalVar {
     JExpr jexpr = Expressions.staticMethodCall(getterMethod.getDeclaringClass(), getterMethod.getName(),
         Type.getMethodDescriptor(getterMethod));
 
-    return typeOracle.forType(decl.getType()).providedGlobalVariable(decl, jexpr, true);
+    TypeStrategy strategy;
+    if(typeOracle.getRecordTypes().isMappedToRecordType(getterMethod.getReturnType())) {
+      strategy = typeOracle.getRecordTypes().getPointerStrategyFor(getterMethod.getReturnType());
+    } else {
+      throw new UnsupportedOperationException("TODO: " + getterMethod.getReturnType());
+    }
+
+    return strategy.providedGlobalVariable(decl, jexpr, true);
   }
 }

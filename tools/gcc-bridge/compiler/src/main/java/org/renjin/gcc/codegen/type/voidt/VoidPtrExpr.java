@@ -26,18 +26,16 @@ import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
+import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
-import org.renjin.gcc.codegen.type.fun.FunPtr;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
-import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
-import org.renjin.gcc.codegen.type.record.RecordLayout;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
+import org.renjin.gcc.codegen.type.fun.FunPtrExpr;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveExpr;
+import org.renjin.gcc.codegen.type.record.ProvidedPtrExpr;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.Ptr;
@@ -67,17 +65,11 @@ public class VoidPtrExpr implements RefPtrExpr {
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
     JLValue lhs = (JLValue) this.objectRef;
-
-    if(rhs instanceof FatPtr) {
-      FatPtr fatPtrExpr = (FatPtr) rhs;
-      lhs.store(mv, fatPtrExpr.wrap());
-    } else {
-      lhs.store(mv, ((RefPtrExpr) rhs).unwrap());
-    }
+    lhs.store(mv, rhs.toVoidPtrExpr().jexpr());
   }
   
   @Override
-  public GExpr addressOf() {
+  public PtrExpr addressOf() {
     if(address == null) {
       throw new NotAddressableException();
     }
@@ -85,8 +77,8 @@ public class VoidPtrExpr implements RefPtrExpr {
   }
 
   @Override
-  public FunPtr toFunPtr() {
-    return new FunPtr(Expressions.cast(objectRef, Type.getType(MethodHandle.class)));
+  public FunPtrExpr toFunPtr() {
+    return new FunPtrExpr(Expressions.cast(objectRef, Type.getType(MethodHandle.class)));
   }
 
   @Override
@@ -95,12 +87,12 @@ public class VoidPtrExpr implements RefPtrExpr {
   }
 
   @Override
-  public PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException {
+  public PrimitiveExpr toPrimitiveExpr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public JExpr unwrap() {
+  public JExpr jexpr() {
     return objectRef;
   }
 
@@ -112,7 +104,7 @@ public class VoidPtrExpr implements RefPtrExpr {
 
   @Override
   public JExpr memoryCompare(MethodGenerator mv, PtrExpr otherPointer, JExpr n) {
-    return new VoidPtrMemCmp(unwrap(), otherPointer.toVoidPtrExpr().unwrap(), n);
+    return new VoidPtrMemCmp(jexpr(), otherPointer.toVoidPtrExpr().jexpr(), n);
   }
 
   @Override
@@ -131,8 +123,8 @@ public class VoidPtrExpr implements RefPtrExpr {
   @Override
   public void memoryCopy(MethodGenerator mv, PtrExpr source, JExpr length, boolean buffer) {
 
-    unwrap().load(mv);
-    source.toVoidPtrExpr().unwrap().load(mv);
+    jexpr().load(mv);
+    source.toVoidPtrExpr().jexpr().load(mv);
     length.load(mv);
 
     mv.invokestatic(org.renjin.gcc.runtime.VoidPtr.class, "memcpy",
@@ -142,7 +134,7 @@ public class VoidPtrExpr implements RefPtrExpr {
 
   @Override
   public PtrExpr realloc(MethodGenerator mv, JExpr newSizeInBytes) {
-    return new VoidPtrExpr(new VoidPtrRealloc(unwrap(), newSizeInBytes));
+    return new VoidPtrExpr(new VoidPtrRealloc(jexpr(), newSizeInBytes));
   }
 
   @Override
@@ -175,17 +167,12 @@ public class VoidPtrExpr implements RefPtrExpr {
 
   @Override
   public ConditionGenerator comparePointer(MethodGenerator mv, GimpleOp op, GExpr otherPointer) {
-    return new VoidPtrComparison(op, unwrap(), otherPointer.toVoidPtrExpr().unwrap());
+    return new VoidPtrComparison(op, jexpr(), otherPointer.toVoidPtrExpr().jexpr());
   }
 
   @Override
   public VoidPtrExpr toVoidPtrExpr() throws UnsupportedCastException {
     return this;
-  }
-
-  @Override
-  public RecordArrayExpr toRecordArrayExpr() throws UnsupportedCastException {
-    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
@@ -195,8 +182,8 @@ public class VoidPtrExpr implements RefPtrExpr {
   }
 
   @Override
-  public RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout) {
-    return new RecordUnitPtrExpr(layout, Expressions.cast(unwrap(), layout.getType()));
+  public ProvidedPtrExpr toProvidedPtrExpr(Type jvmType) {
+    return new ProvidedPtrExpr(Expressions.cast(jexpr(), jvmType));
   }
 
   @Override
@@ -217,4 +204,10 @@ public class VoidPtrExpr implements RefPtrExpr {
   public VArrayExpr toVArray(GimpleArrayType arrayType) {
     throw new UnsupportedOperationException("TODO");
   }
+
+  @Override
+  public NumericExpr toNumericExpr() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
 }

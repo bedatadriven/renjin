@@ -23,7 +23,7 @@ import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 import org.renjin.repackaged.guava.base.Strings;
 
 public class GimpleField {
-  private int id;
+  private long id;
   private int offset;
   private int size;
   private String name;
@@ -76,11 +76,11 @@ public class GimpleField {
   }
 
 
-  public int getId() {
+  public long getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public void setId(long id) {
     this.id = id;
   }
 

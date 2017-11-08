@@ -32,27 +32,33 @@ import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
 import org.renjin.gcc.codegen.type.primitive.StringParamStrategy;
 import org.renjin.gcc.codegen.type.record.RecordArrayReturnStrategy;
 import org.renjin.gcc.codegen.type.record.RecordArrayValueFunction;
-import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordTypeDefMap;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
-import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrParamStrategy;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrReturnStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidReturnStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidTypeStrategy;
 import org.renjin.gcc.codegen.vptr.VPtrParamStrategy;
 import org.renjin.gcc.codegen.vptr.VPtrReturnStrategy;
+import org.renjin.gcc.codegen.vptr.VPtrVariadicStrategy;
+import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.repackaged.guava.collect.Maps;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Provides the {@link TypeStrategy} for each {@link GimpleType}
@@ -63,22 +69,19 @@ import java.util.*;
  */
 public class TypeOracle {
 
-  private final Map<String, RecordTypeStrategy> recordTypes = Maps.newHashMap();
+  private final RecordTypeDefMap recordTypes = new RecordTypeDefMap();
 
-  /**
-   * Map from internal JVM class name to a GimpleType
-   */
-  private final Map<String, GimpleRecordType> classTypes = Maps.newHashMap();
-
-  public void addRecordType(GimpleRecordTypeDef type, RecordTypeStrategy strategy) {
-    recordTypes.put(type.getId(), strategy);
-    if(strategy instanceof RecordClassTypeStrategy) {
-      classTypes.put(((RecordClassTypeStrategy) strategy).getJvmType().getInternalName(), strategy.getRecordType());
-    }
+  public RecordTypeDefMap getRecordTypes() {
+    return recordTypes;
   }
 
-  public Collection<RecordTypeStrategy> getRecordTypes() {
-    return recordTypes.values();
+
+  public void initRecords(List<GimpleCompilationUnit> units, Map<String, Class> providedRecordTypes) {
+    recordTypes.init(this, units, providedRecordTypes);
+  }
+
+  public GimpleRecordTypeDef getRecordTypeDef(GimpleRecordType recordType) {
+    return recordTypes.getRecordTypeDef(recordType);
   }
 
   public PointerTypeStrategy forPointerType(GimpleType type) {
@@ -173,17 +176,16 @@ public class TypeOracle {
       return new VoidReturnStrategy();
 
     } else if(returnType.isPrimitive()) {
-      return new SimpleReturnStrategy(new PrimitiveTypeStrategy(returnType));
+      return new PrimitiveTypeStrategy(GimplePrimitiveType.fromJvmType(Type.getType(returnType))).getReturnStrategy();
 
     } else if(Ptr.class.isAssignableFrom(returnType)) {
       return new VPtrReturnStrategy();
 
-    } else if(classTypes.containsKey(Type.getInternalName(returnType))) {
-      GimpleRecordType recordType = classTypes.get(Type.getInternalName(returnType));
-      return recordTypes.get(recordType.getId()).pointerTo().getReturnStrategy();
+    } else if(recordTypes.isMappedToRecordType(returnType)) {
+      return recordTypes.getPointerStrategyFor(returnType).getReturnStrategy();
 
     } else if(returnType.equals(Object.class)) {
-      return new SimpleReturnStrategy(new VoidPtrStrategy());
+      return new VoidPtrReturnStrategy();
 
     } else if(method.isAnnotationPresent(Struct.class)) {
       Type arrayType = Type.getReturnType(method);
@@ -192,7 +194,7 @@ public class TypeOracle {
 
     } else if(returnType.equals(MethodHandle.class)) {
       return new FunPtrStrategy().getReturnStrategy();
-      
+
     } else {
       throw new UnsupportedOperationException(String.format(
           "Unsupported return type %s in method %s.%s",
@@ -221,6 +223,11 @@ public class TypeOracle {
     
     int index = 0;
     while(index < numParams) {
+
+      if(VPtrVariadicStrategy.isVarArgsPtr(method, index)) {
+        break;
+      }
+
       Class<?> paramClass = method.getParameterTypes()[index];
       if(paramClass.equals(ObjectPtr.class)) {
         strategies.add(forObjectPtrParam(method.getGenericParameterTypes()[index]));
@@ -238,9 +245,8 @@ public class TypeOracle {
         strategies.add(new StringParamStrategy());
         index++;
 
-      } else if (classTypes.containsKey(Type.getInternalName(paramClass))) {
-        GimpleRecordType mappedType = classTypes.get(Type.getInternalName(paramClass));
-        strategies.add(((RecordClassTypeStrategy) forRecordType(mappedType)).pointerToUnit().getParamStrategy());
+      } else if (recordTypes.isMappedToRecordType(paramClass)) {
+        strategies.add(recordTypes.getPointerStrategyFor(paramClass).getParamStrategy());
         index++;
 
       } else if (paramClass.equals(MethodHandle.class)) {
@@ -248,7 +254,7 @@ public class TypeOracle {
         index++;
         
       } else if(paramClass.equals(Object.class)) {
-        strategies.add(new VoidPtrStrategy().getParamStrategy());
+        strategies.add(new VoidPtrParamStrategy());
         index++;
         
       } else {
@@ -275,13 +281,9 @@ public class TypeOracle {
     if(baseType.equals(BytePtr.class)) {
       return new WrappedFatPtrParamStrategy(new FatPtrValueFunction(new PrimitiveValueFunction(new GimpleIntegerType(8))));
     } else {
-      String baseTypeInternalName = Type.getInternalName((Class)baseType);
-      if(classTypes.containsKey(baseTypeInternalName)) {
-        GimpleRecordType mappedType = classTypes.get(baseTypeInternalName);
-        RecordTypeStrategy recordTypeStrategy = recordTypes.get(mappedType.getId());
-        if(recordTypeStrategy instanceof RecordClassTypeStrategy) {
-          return new WrappedFatPtrParamStrategy(recordTypeStrategy.getValueFunction());
-        }
+      if(recordTypes.isMappedToRecordType(baseType)) {
+        RecordTypeStrategy recordTypeStrategy = recordTypes.getStrategyFor(baseType);
+        return new WrappedFatPtrParamStrategy(recordTypeStrategy.getValueFunction());
       }
     }
     throw new UnsupportedOperationException("TODO: baseType = " + baseType);
@@ -300,11 +302,17 @@ public class TypeOracle {
     return map;
   }
   
-  public static String getMethodDescriptor(ReturnStrategy returnStrategy, List<ParamStrategy> paramStrategies) {
+  public static String getMethodDescriptor(
+      ReturnStrategy returnStrategy,
+      List<ParamStrategy> paramStrategies,
+      VariadicStrategy variadicStrategy) {
+
+    Preconditions.checkNotNull(returnStrategy, "returnStrategy is null");
     List<Type> types = Lists.newArrayList();
     for (ParamStrategy paramStrategy : paramStrategies) {
       types.addAll(paramStrategy.getParameterTypes());
     }
+    types.addAll(variadicStrategy.getParameterTypes());
 
     Type[] typesArray = types.toArray(new Type[types.size()]);
     

@@ -591,7 +591,7 @@ public class RuntimeState {
         for (S3.MethodRanking rankedMethod : rankedMethodsList) {
           String signature = rankedMethod.getSignature();
           double rank = rankedMethod.getRank();
-          int distance = rankedMethod.getTotalDist();
+          int[] distance = rankedMethod.getDistances();
           boolean has0 = rankedMethod.hasZeroDistanceArgument();
           Symbol signatureSymbol = Symbol.get(signature);
           SEXP function = methodTableList.get(i).getFrame().getVariable(signatureSymbol).force(context);

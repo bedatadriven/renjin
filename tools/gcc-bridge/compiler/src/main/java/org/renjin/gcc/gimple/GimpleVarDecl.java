@@ -26,14 +26,11 @@ import org.renjin.gcc.gimple.expr.GimpleVariableRef;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.guava.base.Predicate;
 
-import java.util.Collections;
-import java.util.List;
-
 /**
  * Gimple Variable Declaration
  */
 public class GimpleVarDecl implements GimpleDecl {
-  private int id;
+  private long id;
   private GimpleType type;
   private String name;
   private String mangledName;
@@ -59,11 +56,11 @@ public class GimpleVarDecl implements GimpleDecl {
   public GimpleVarDecl() {
   }
 
-  public int getId() {
+  public long getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public void setId(long id) {
     this.id = id;
   }
 
@@ -84,10 +81,17 @@ public class GimpleVarDecl implements GimpleDecl {
   }
   
   public String getNameIfPresent() {
-    return name;
+    if(mangledName != null) {
+      return mangledName;
+    } else {
+      return name;
+    }
   }
 
   public String getMangledName() {
+    if(mangledName == null) {
+      return name;
+    }
     return mangledName;
   }
 

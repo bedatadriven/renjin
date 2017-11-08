@@ -17,6 +17,6 @@
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
 /**
- * Code generation for record types, including C structs
+ * Code generation for record types, including C structs and C++ classes
  */
 package org.renjin.gcc.codegen.type.record;

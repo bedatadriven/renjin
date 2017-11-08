@@ -71,7 +71,8 @@ public class BitFieldExpr implements JLValue {
 
   @Override
   public void store(MethodGenerator mv, final JExpr rhs) {
-    Preconditions.checkArgument(rhs.getType().equals(Type.BYTE_TYPE));
+    Preconditions.checkArgument(rhs.getType().equals(Type.BYTE_TYPE) ||
+                                rhs.getType().equals(Type.INT_TYPE));
 
     // Store to the field
     byteValue.store(mv, new JExpr() {

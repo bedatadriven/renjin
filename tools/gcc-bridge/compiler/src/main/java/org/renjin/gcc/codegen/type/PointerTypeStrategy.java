@@ -19,10 +19,8 @@
 package org.renjin.gcc.codegen.type;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.gimple.GimpleOp;
 
 
 public interface PointerTypeStrategy<ExprT extends GExpr> extends TypeStrategy<ExprT> {

@@ -20,28 +20,31 @@ package org.renjin.gcc.codegen.vptr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
+import org.renjin.gcc.codegen.condition.BooleanCondition;
+import org.renjin.gcc.codegen.condition.Comparison;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
+import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
-import org.renjin.gcc.codegen.type.complex.ComplexValue;
-import org.renjin.gcc.codegen.type.fun.FunPtr;
-import org.renjin.gcc.codegen.type.primitive.CompareToCmpGenerator;
-import org.renjin.gcc.codegen.type.primitive.ObjectEqualsCmpGenerator;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
-import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
-import org.renjin.gcc.codegen.type.record.RecordLayout;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
+import org.renjin.gcc.codegen.type.complex.ComplexExpr;
+import org.renjin.gcc.codegen.type.fun.FunPtrExpr;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveExpr;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveType;
+import org.renjin.gcc.codegen.type.record.ProvidedPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.*;
+import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
 import java.lang.invoke.MethodHandle;
+
+import static org.renjin.gcc.codegen.expr.Expressions.objectEquals;
 
 public class VPtrExpr implements PtrExpr {
 
@@ -53,7 +56,7 @@ public class VPtrExpr implements PtrExpr {
   /**
    * This pointer's address.
    */
-  private final GExpr address;
+  private final PtrExpr address;
 
   /**
    * An expression containing an additional offset, in bytes, relative to {@code baseRef}.
@@ -72,7 +75,7 @@ public class VPtrExpr implements PtrExpr {
     this.address = null;
   }
 
-  public VPtrExpr(JExpr ptr, GExpr address) {
+  public VPtrExpr(JExpr ptr, PtrExpr address) {
     this.baseRef = ptr;
     this.address = address;
     this.offset = Optional.absent();
@@ -118,7 +121,7 @@ public class VPtrExpr implements PtrExpr {
   }
 
   @Override
-  public GExpr addressOf() {
+  public PtrExpr addressOf() {
     if(address == null) {
       throw new NotAddressableException();
     }
@@ -126,11 +129,11 @@ public class VPtrExpr implements PtrExpr {
   }
 
   @Override
-  public FunPtr toFunPtr() throws UnsupportedCastException {
+  public FunPtrExpr toFunPtr() throws UnsupportedCastException {
     JExpr funPtr = Expressions.methodCall(getRef(), Ptr.class, "toMethodHandle",
         Type.getMethodDescriptor(Type.getType(MethodHandle.class)));
 
-    return new FunPtr(funPtr);
+    return new FunPtrExpr(funPtr);
   }
 
   @Override
@@ -139,14 +142,11 @@ public class VPtrExpr implements PtrExpr {
   }
 
   @Override
-  public PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException {
-
-    GimpleIntegerType pointerType = new GimpleIntegerType(32);
-    pointerType.setUnsigned(true);
-
-    return new PrimitiveValue(pointerType,
-        Expressions.methodCall(getRef(), Ptr.class, "toInt", Type.getMethodDescriptor(Type.INT_TYPE)))
-        .toPrimitiveExpr(targetType);
+  public PrimitiveExpr toPrimitiveExpr() throws UnsupportedCastException {
+    return PrimitiveType.UINT32.fromStackValue(
+        Expressions.staticMethodCall(IntPtr.class, "fromPtr",
+            Type.getMethodDescriptor(Type.INT_TYPE, Type.getType(Ptr.class)),
+                getRef()));
   }
 
   @Override
@@ -155,24 +155,19 @@ public class VPtrExpr implements PtrExpr {
   }
 
   @Override
-  public RecordArrayExpr toRecordArrayExpr() throws UnsupportedCastException {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
   public VPtrExpr toVPtrExpr() {
     return this;
   }
 
   @Override
-  public RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout) {
+  public ProvidedPtrExpr toProvidedPtrExpr(Type jvmType) {
     // The only way we can cast back is if this is a RecordUnitPtr. Let's try.
     JExpr arrayObject = Expressions.methodCall(getRef(), Ptr.class, "getArray",
           Type.getMethodDescriptor(Type.getType(Object.class)));
 
-    JExpr recordUnitPtr = Expressions.cast(arrayObject, layout.getType());
+    JExpr recordUnitPtr = Expressions.cast(arrayObject, jvmType);
 
-    return new RecordUnitPtrExpr(layout, recordUnitPtr);
+    return new ProvidedPtrExpr(recordUnitPtr);
   }
 
   @Override
@@ -187,6 +182,11 @@ public class VPtrExpr implements PtrExpr {
 
   @Override
   public VArrayExpr toVArray(GimpleArrayType arrayType) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public NumericExpr toNumericExpr() {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -257,9 +257,9 @@ public class VPtrExpr implements PtrExpr {
     if(expectedType instanceof GimplePrimitiveType) {
       PointerType pointerType = PointerType.ofType(expectedType);
       DerefExpr derefExpr = new DerefExpr(baseRef, getOffset(), pointerType);
-      GimplePrimitiveType primitiveType = (GimplePrimitiveType) expectedType;
+      PrimitiveType primitiveType = PrimitiveType.of((GimplePrimitiveType) expectedType);
 
-      return new PrimitiveValue(primitiveType, derefExpr, this);
+      return primitiveType.fromNonStackValue(derefExpr, this);
     }
 
     if(expectedType instanceof GimpleComplexType) {
@@ -272,7 +272,7 @@ public class VPtrExpr implements PtrExpr {
       DerefExpr realExpr = new DerefExpr(baseRef, realOffset, pointerType);
       DerefExpr imaginaryExpr = new DerefExpr(baseRef, complexOffset, pointerType);
 
-      return new ComplexValue(this, realExpr, imaginaryExpr);
+      return new ComplexExpr(this, realExpr, imaginaryExpr);
     }
 
     if(expectedType instanceof GimpleIndirectType) {
@@ -289,13 +289,18 @@ public class VPtrExpr implements PtrExpr {
 
   @Override
   public ConditionGenerator comparePointer(MethodGenerator mv, GimpleOp op, GExpr otherPointer) {
-    switch (op) {
-      case EQ_EXPR:
-      case NE_EXPR:
-        return new ObjectEqualsCmpGenerator(op, getRef(), otherPointer.toVPtrExpr().getRef());
 
-      default:
-        return new CompareToCmpGenerator(op, getRef(), otherPointer.toVPtrExpr().getRef());
+    if(op == GimpleOp.EQ_EXPR || op == GimpleOp.NE_EXPR) {
+      BooleanCondition equalCondition = new BooleanCondition(objectEquals(
+          this.getRef(),
+          otherPointer.toVPtrExpr().getRef()));
+      if(op == GimpleOp.EQ_EXPR) {
+        return equalCondition;
+      } else {
+        return equalCondition.inverse();
+      }
     }
+
+    return new Comparison(op, Expressions.compareTo(getRef(), otherPointer.toVPtrExpr().getRef()));
   }
 }

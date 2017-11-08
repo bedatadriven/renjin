@@ -98,7 +98,7 @@ public class FunTypeStrategy implements TypeStrategy<FunExpr> {
   }
 
   @Override
-  public FunExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public FunExpr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
     throw new UnsupportedCastException();
   }
 

@@ -44,7 +44,7 @@ import java.util.Map;
 public class UnitSymbolTable implements SymbolTable {
   
   private final GlobalSymbolTable globalSymbolTable;
-  private final Map<Integer, GExpr> variableMap = Maps.newHashMap();
+  private final Map<Long, GExpr> variableMap = Maps.newHashMap();
   private final List<FunctionGenerator> functions = Lists.newArrayList();
   private final Map<String, FunctionGenerator> functionNameMap = Maps.newHashMap();
 

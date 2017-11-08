@@ -54,6 +54,14 @@ public class PointerPtr extends AbstractPtr {
     this.offset = offset;
   }
 
+  public static PointerPtr wrap(Ptr[] array, int offset) {
+    if(array == null) {
+      return NULL;
+    } else {
+      return new PointerPtr(array, offset);
+    }
+  }
+
   /**
    * Allocates a "memory block" of length 1 and initializes it to the given
    * value.
@@ -83,7 +91,14 @@ public class PointerPtr extends AbstractPtr {
 
   @Override
   public Ptr realloc(int newSizeInBytes) {
-    throw new UnsupportedOperationException("TODO");
+    if(this.array == null) {
+      return malloc(newSizeInBytes);
+    }
+
+    Ptr[] newArray = new Ptr[mallocSize(newSizeInBytes, BYTES)];
+    System.arraycopy(this.array, this.offset, newArray, 0, Math.min(this.array.length - this.offset, newArray.length));
+
+    return new PointerPtr(newArray);
   }
 
   @Override

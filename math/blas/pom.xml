@@ -48,6 +48,7 @@
         <configuration>
           <packageName>org.renjin.math</packageName>
           <mainClass>Blas</mainClass>
+          <loggingDirectory>target/gcc-bridge-logs</loggingDirectory>
         </configuration>
         <executions>
           <execution>

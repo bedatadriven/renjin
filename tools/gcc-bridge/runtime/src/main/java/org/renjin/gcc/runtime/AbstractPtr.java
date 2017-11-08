@@ -54,12 +54,18 @@ public abstract class AbstractPtr implements Ptr {
 
   @Override
   public void setShort(short value) {
-    throw new UnsupportedOperationException("TODO");
+    setShort(0, value);
   }
 
   @Override
   public void setShort(int offset, short value) {
-    throw new UnsupportedOperationException("TODO");
+
+    int intValue = value;
+
+    setByte(offset, (byte)(intValue & 0xff));
+    intValue >>= BITS_PER_BYTE;
+
+    setByte(offset + 1, (byte)(intValue & 0xff));
   }
 
   @Override
@@ -69,7 +75,9 @@ public abstract class AbstractPtr implements Ptr {
 
   @Override
   public short getShort(int offset) {
-    return (short) ((getByte(offset) << 8) | (getByte(offset + 1) & 0xFF));
+    return (short)(
+        ((getByte(offset + 1) & 0xff) <<  8L) |
+        ((getByte(offset    ) & 0xff)));
   }
 
   @Override
@@ -101,6 +109,40 @@ public abstract class AbstractPtr implements Ptr {
   public void setAlignedDouble(int index, double value) {
     setDouble(index * DoublePtr.BYTES, value);
   }
+
+
+  @Override
+  public double getReal96() {
+    return getReal96(0);
+  }
+
+
+  @Override
+  public double getAlignedReal96(int index) {
+    return getReal96(index * 12);
+  }
+
+  @Override
+  public double getReal96(int offset) {
+    return Double.longBitsToDouble(getLong(offset));
+  }
+
+
+  @Override
+  public void setReal96(double value) {
+    setReal96(0, value);
+  }
+
+  @Override
+  public void setAlignedReal96(int index, double value) {
+    setReal96(index * 12, value);
+  }
+
+  @Override
+  public void setReal96(int offset, double value) {
+    setLong(offset, Double.doubleToRawLongBits(value));
+  }
+
 
   @Override
   public char getChar() {
@@ -168,6 +210,11 @@ public abstract class AbstractPtr implements Ptr {
   @Override
   public long getLong() {
     return getLong(0);
+  }
+
+  @Override
+  public long getAlignedLong(int index) {
+    return getLong(index * LongPtr.BYTES);
   }
 
   @Override
@@ -239,7 +286,13 @@ public abstract class AbstractPtr implements Ptr {
 
   @Override
   public void setChar(int offset, char value) {
-    throw new UnsupportedOperationException("TODO");
+
+    int intValue = value;
+
+    setByte(offset, (byte)(intValue & 0xff));
+    intValue >>= BITS_PER_BYTE;
+
+    setByte(offset + 1, (byte)(intValue & 0xff));
   }
 
   @Override

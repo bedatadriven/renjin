@@ -24,10 +24,13 @@ import org.renjin.gcc.codegen.call.FunctionCallGenerator;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.statement.*;
+import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.symbols.SymbolTable;
 import org.renjin.repackaged.guava.html.HtmlEscapers;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class GimpleRenderer {
 
@@ -35,9 +38,16 @@ public class GimpleRenderer {
   private final GimpleFunction function;
   private final StringBuilder html = new StringBuilder();
 
+  private final Map<String, GimpleRecordTypeDef> typedefMap;
+
   public GimpleRenderer(SymbolTable symbolTable, GimpleFunction function) {
     this.symbolTable = symbolTable;
     this.function = function;
+
+    typedefMap = new HashMap<>();
+    for (GimpleRecordTypeDef recordTypeDef : function.getUnit().getRecordTypes()) {
+      typedefMap.put(recordTypeDef.getId(), recordTypeDef);
+    }
   }
 
   private void appendEscaped(String text) {
@@ -63,7 +73,7 @@ public class GimpleRenderer {
         symbol(", ");
       }
       GimpleParameter param = function.getParameters().get(i);
-      appendEscaped(param.getType().toString());
+      appendEscaped(renderType(param.getType()));
       appendHtml(" ");
       if(param.getName() == null) {
         appendEscaped("P" + param.getId());
@@ -325,7 +335,7 @@ public class GimpleRenderer {
   private void expr(final GimpleExpr expr) {
     html.append(String.format("<span class=\"gexpr %s\" title=\"%s\">",
         expr.getClass().getSimpleName(),
-        renderTypeTitle(expr)));
+        HtmlEscapers.htmlEscaper().escape(renderType(expr.getType()))));
 
     expr.accept(new GimpleExprVisitor() {
 
@@ -493,8 +503,21 @@ public class GimpleRenderer {
         expr instanceof GimpleParamRef;
   }
 
-  private String renderTypeTitle(GimpleExpr expr) {
-    return HtmlEscapers.htmlEscaper().escape(expr.getType().toString());
+  private String renderType(GimpleType type) {
+    if(type instanceof GimpleRecordType) {
+      GimpleRecordTypeDef recordTypeDef = typedefMap.get(((GimpleRecordType) type).getId());
+      if(recordTypeDef.getName() != null) {
+        return recordTypeDef.getName();
+      } else {
+        return "struct";
+      }
+    } else if(type instanceof GimpleIndirectType) {
+      return renderType(type.getBaseType()) + "*";
+    } else if(type instanceof GimpleFunctionType) {
+      return "FUN";
+    } else {
+      return type.toString();
+    }
   }
 
   public static String stringLiteral(String string) {

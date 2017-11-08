@@ -18,6 +18,7 @@
  */
 package org.renjin.gcc.gimple.expr;
 
+import org.renjin.gcc.gimple.type.GimpleBooleanType;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 
@@ -30,6 +31,11 @@ public class GimpleIntegerConstant extends GimplePrimitiveConstant {
   public GimpleIntegerConstant(GimpleIntegerType type, long value) {
     setType(type);
     this.value = value;
+  }
+
+  public GimpleIntegerConstant(GimpleBooleanType type, boolean value) {
+    setType(type);
+    this.value = value ? 1 : 0;
   }
   
   public Long getValue() {

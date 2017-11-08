@@ -75,6 +75,11 @@ public class GimpleCall extends GimpleStatement {
     return "";
   }
 
+
+  public boolean isFunctionNamed(String name) {
+    return findFunctionName().equals(name);
+  }
+
   public GimpleFunctionRef getFunctionRef() {
     if(function instanceof GimpleAddressOf) {
       GimpleAddressOf functionAddress = (GimpleAddressOf) function;

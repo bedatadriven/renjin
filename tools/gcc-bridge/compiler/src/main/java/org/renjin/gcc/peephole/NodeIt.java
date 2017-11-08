@@ -161,4 +161,8 @@ public class NodeIt {
 
     return false;
   }
+
+  public void reset() {
+    this.current = list.getFirst();
+  }
 }

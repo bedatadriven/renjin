@@ -19,6 +19,7 @@
 package org.renjin.gcc.runtime;
 
 
+import java.math.BigInteger;
 import java.util.Arrays;
 
 public class LongPtr extends AbstractPtr {
@@ -69,12 +70,54 @@ public class LongPtr extends AbstractPtr {
   public Ptr pointerPlus(int bytes) {
     if(bytes == 0) {
       return this;
-    }
-    if(bytes % BYTES == 0) {
+    } else if(bytes % BYTES == 0) {
       return new LongPtr(array, offset + (bytes / BYTES));
     } else {
       return new OffsetPtr(this, this.offset * BYTES + bytes);
     }
+  }
+
+  @Override
+  public long getLong() {
+    return array[offset];
+  }
+
+  @Override
+  public long getAlignedLong(int index) {
+    return array[offset + index];
+  }
+
+  @Override
+  public long getLong(int offset) {
+    if(offset % BYTES == 0) {
+      return array[this.offset + (offset / BYTES)];
+    } else {
+      return super.getLong(offset);
+    }
+  }
+
+  @Override
+  public void setAlignedLong(int index, long value) {
+    array[offset + index] = value;
+  }
+
+  @Override
+  public void setLong(int offset, long longValue) {
+    if(offset % BYTES == 0) {
+      array[this.offset + (offset / BYTES)] = longValue;
+    } else {
+      super.setLong(offset, longValue);
+    }
+  }
+
+  @Override
+  public double getDouble() {
+    return Double.longBitsToDouble(this.array[offset]);
+  }
+
+  @Override
+  public double getAlignedDouble(int index) {
+    return Double.longBitsToDouble(this.array[offset + index]);
   }
 
   @Override
@@ -237,5 +280,131 @@ public class LongPtr extends AbstractPtr {
     long upperLong = ((long) upper) & 0xffffffffL;
 
     return ((double)lowerLong) + ((double)upperLong) * 4294967296d;
+  }
+
+  /**
+   * Returns dividend / divisor, where the dividend and divisor are treated as unsigned 64-bit
+   * quantities. (Copied from Guava 17.0)
+   *
+   * @param dividend the dividend (numerator)
+   * @param divisor the divisor (denominator)
+   * @throws ArithmeticException if divisor is 0
+   */
+  public static long unsignedDivide(long dividend, long divisor) {
+    if (divisor < 0) { // i.e., divisor >= 2^63:
+      if (compareUnsigned(dividend, divisor) < 0) {
+        return 0; // dividend < divisor
+      } else {
+        return 1; // dividend >= divisor
+      }
+    }
+
+    // Optimization - use signed division if dividend < 2^63
+    if (dividend >= 0) {
+      return dividend / divisor;
+    }
+
+    /*
+     * Otherwise, approximate the quotient, check, and correct if necessary. Our approximation is
+     * guaranteed to be either exact or one less than the correct value. This follows from fact
+     * that floor(floor(x)/i) == floor(x/i) for any real x and integer i != 0. The proof is not
+     * quite trivial. (Copied from Guava 17.0)
+     */
+    long quotient = ((dividend >>> 1) / divisor) << 1;
+    long rem = dividend - quotient * divisor;
+    return quotient + (compareUnsigned(rem, divisor) >= 0 ? 1 : 0);
+  }
+
+  /**
+   * Returns the unsigned remainder from dividing the first argument
+   * by the second where each argument and the result is interpreted
+   * as an unsigned value. (Copied from OpenJDK 1.8)
+   *
+   * @param dividend the value to be divided
+   * @param divisor the value doing the dividing
+   * @return the unsigned remainder of the first argument divided by
+   * the second argument
+   * @see #divideUnsigned
+   * @since 1.8
+   */
+  public static long unsignedRemainder(long dividend, long divisor) {
+    if (dividend > 0 && divisor > 0) { // signed comparisons
+      return dividend % divisor;
+    } else {
+      if (compareUnsigned(dividend, divisor) < 0) {
+        // Avoid explicit check for 0 divisor
+        return dividend;
+      } else {
+        return toUnsignedBigInteger(dividend).
+            remainder(toUnsignedBigInteger(divisor)).longValue();
+      }
+    }
+  }
+
+
+  /**
+   * Return a BigInteger equal to the unsigned value of the
+   * argument. (Copied from OpenJDK 1.8)
+   */
+  private static BigInteger toUnsignedBigInteger(long i) {
+    if (i >= 0L) {
+      return BigInteger.valueOf(i);
+    } else {
+      int upper = (int) (i >>> 32);
+      int lower = (int) i;
+
+      // return (upper << 32) + lower
+      return (BigInteger.valueOf(toUnsignedLong(upper))).shiftLeft(32).
+          add(BigInteger.valueOf(toUnsignedLong(lower)));
+    }
+  }
+
+  private static long toUnsignedLong(int x) {
+    return x & 0xFFFFFFFFL;
+  }
+
+
+  /**
+   * A (self-inverse) bijection which converts the ordering on unsigned longs to the ordering on
+   * longs, that is, {@code a <= b} as unsigned longs if and only if {@code flip(a) <= flip(b)}
+   * as signed longs. (Copied from Guava 17.0)
+   */
+  private static long flip(long a) {
+    return a ^ Long.MIN_VALUE;
+  }
+
+  /**
+   * Compares the two specified {@code long} values, treating them as unsigned values between
+   * {@code 0} and {@code 2^64 - 1} inclusive. (Copied from Guava 17.0)
+   *
+   * @param a the first unsigned {@code long} to compare
+   * @param b the second unsigned {@code long} to compare
+   * @return a negative value if {@code a} is less than {@code b}; a positive value if {@code a} is
+   *         greater than {@code b}; or zero if they are equal
+   */
+  public static int compareUnsigned(long a, long b) {
+    return Long.compare(flip(a), flip(b));
+  }
+
+  public static long unsignedMax(long a, long b) {
+    if(a == b) {
+      return a;
+    }
+    if(flip(a) > flip(b)) {
+      return a;
+    } else {
+      return b;
+    }
+  }
+
+  public static long unsignedMin(long a, long b) {
+    if(a == b) {
+      return a;
+    }
+    if(flip(a) < flip(b)) {
+      return a;
+    } else {
+      return b;
+    }
   }
 }

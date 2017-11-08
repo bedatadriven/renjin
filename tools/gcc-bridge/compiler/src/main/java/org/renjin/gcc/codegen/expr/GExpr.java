@@ -23,37 +23,37 @@ import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
+import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
-import org.renjin.gcc.codegen.type.fun.FunPtr;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
-import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
-import org.renjin.gcc.codegen.type.record.RecordLayout;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
+import org.renjin.gcc.codegen.type.complex.ComplexExpr;
+import org.renjin.gcc.codegen.type.fun.FunPtrExpr;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveExpr;
+import org.renjin.gcc.codegen.type.record.ProvidedPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
+import org.renjin.repackaged.asm.Type;
 
 /**
  * Interface for generators which can emit load/store operations for {@code GimpleExpr}s
  * 
  * <p>{@code Expr}s can either be simple, meaning they are represented by a single JVM value, or 
- * composite expressions, like {@link org.renjin.gcc.codegen.type.complex.ComplexValue} or 
+ * composite expressions, like {@link ComplexExpr} or
  * {@link FatPtrPair} which are represented with multiple JVM values.</p>
  */
 public interface GExpr {
   
   void store(MethodGenerator mv, GExpr rhs);
   
-  GExpr addressOf();
+  PtrExpr addressOf();
 
   /**
    * Cast or transform this expression to a Function Pointer expression.
    */
-  FunPtr toFunPtr() throws UnsupportedCastException;
+  FunPtrExpr toFunPtr() throws UnsupportedCastException;
 
   /**
    * Cast or transform this expression to an Array expression.
@@ -61,14 +61,9 @@ public interface GExpr {
   FatArrayExpr toArrayExpr() throws UnsupportedCastException;
 
 
-  PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException;
+  PrimitiveExpr toPrimitiveExpr() throws UnsupportedCastException;
 
   VoidPtrExpr toVoidPtrExpr() throws UnsupportedCastException;
-
-  /**
-   * Cast or transform this expression to an Record Array expression.
-   */
-  RecordArrayExpr toRecordArrayExpr() throws UnsupportedCastException;
 
   /**
    * Cast or transform this expression to a Virtual Pointer expression.
@@ -77,9 +72,9 @@ public interface GExpr {
 
   /**
    * Cast or transform this expression to a record unit pointer.
-   * @param layout
+   * @param jvmType
    */
-  RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout);
+  ProvidedPtrExpr toProvidedPtrExpr(Type jvmType);
 
   /**
    * Cast or transform this expression to a FatPtr
@@ -90,4 +85,8 @@ public interface GExpr {
   VPtrRecordExpr toVPtrRecord(GimpleRecordType recordType);
 
   VArrayExpr toVArray(GimpleArrayType arrayType);
+
+  NumericExpr toNumericExpr();
+
+
 }

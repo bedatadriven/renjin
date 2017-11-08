@@ -21,7 +21,7 @@ package org.renjin.gnur.api;
 
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.ObjectPtr;
-import org.renjin.gcc.runtime.RecordPtr;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.primitives.packaging.DllSymbol;
 
@@ -54,10 +54,10 @@ public final class Rdynload {
 
 
   public static int R_registerRoutines (DllInfo info,
-                                        RecordPtr<MethodDef2> croutines,
-                                        RecordPtr<MethodDef2> callRoutines,
-                                        RecordPtr<MethodDef2> fortranRoutines,
-                                        RecordPtr<MethodDef2> externalRoutines) {
+                                        Ptr croutines,
+                                        Ptr callRoutines,
+                                        Ptr fortranRoutines,
+                                        Ptr externalRoutines) {
 
     addTo(info, DllSymbol.Convention.C, croutines);
     addTo(info, DllSymbol.Convention.CALL, callRoutines);
@@ -83,11 +83,11 @@ public final class Rdynload {
     }
   }
 
-  private static void addTo(DllInfo library, DllSymbol.Convention convention, RecordPtr<MethodDef2> methods) {
+  private static void addTo(DllInfo library, DllSymbol.Convention convention, Ptr methods) {
 
     if(!methods.isNull()) {
       for(int i=0; ; i++) {
-        MethodDef2 def = methods.get(i);
+        MethodDef2 def = new MethodDef2(methods.pointerPlus(i * MethodDef2.BYTES));
         if (def.fun == null) {
           break;
         }

@@ -147,7 +147,7 @@ public class VArrayStrategy implements TypeStrategy<VArrayExpr> {
   }
 
   @Override
-  public VArrayExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public VArrayExpr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 }

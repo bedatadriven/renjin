@@ -29,4 +29,6 @@ import java.lang.annotation.RetentionPolicy;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Generic {
+  boolean S3() default true;
+  boolean S4() default true;
 }

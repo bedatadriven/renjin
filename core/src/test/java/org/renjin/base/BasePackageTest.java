@@ -89,6 +89,64 @@ public class BasePackageTest extends EvalTestCase {
     assertThat(eval(" x >= y"), elementsIdenticalTo(c(true)));
   }
 
+  @Test
+  public void startsWith() throws IOException {
+    loadBasePackage();
+
+    eval(" x1 <- c('hel', 'lo w', 'orld', NA, NULL) ");
+    eval(" x2 <- logical(5) ");
+    eval(" x3 <- character(0) ");
+    eval(" v1 <- c('h', 'w') ");
+    eval(" v2 <- c('h', NA) ");
+    eval(" v3 <- c('h', NULL) ");
+    eval(" v4 <- NULL ");
+    eval(" v5 <- character(0) ");
+    eval(" v6 <- logical(0) ");
+    eval(" v7 <- numeric(0) ");
+
+    assertThat(eval(" startsWith(x1, v1) "), elementsIdenticalTo(c(Logical.TRUE, Logical.FALSE, Logical.FALSE, Logical.NA)));
+    assertThat(eval(" startsWith(x1, v2) "), elementsIdenticalTo(c(Logical.TRUE, Logical.NA, Logical.FALSE, Logical.NA)));
+    assertThat(eval(" startsWith(x1, v3) "), elementsIdenticalTo(c(Logical.TRUE, Logical.FALSE, Logical.FALSE, Logical.NA)));
+    assertThat(eval(" startsWith(x1, v5) "), elementsIdenticalTo(LogicalVector.EMPTY));
+    assertThat(eval(" startsWith(x3, v1) "), elementsIdenticalTo(LogicalVector.EMPTY));
+    assertThat(eval(" startsWith(x3, v2) "), elementsIdenticalTo(LogicalVector.EMPTY));
+    assertThat(eval(" startsWith(x3, v3) "), elementsIdenticalTo(LogicalVector.EMPTY));
+    assertThat(eval(" startsWith(x3, v5) "), elementsIdenticalTo(LogicalVector.EMPTY));
+//  assertThat( startsWith(x1, v4) , throwsError())
+//  assertThat( startsWith(x1, v6) , throwsError())
+//  assertThat( startsWith(x1, v7) , throwsError())
+//  assertThat( startsWith(x2, v1) , throwsError())
+//  assertThat( startsWith(x2, v2) , throwsError())
+//  assertThat( startsWith(x3, v4) , throwsError())
+//  assertThat( startsWith(x3, v6) , throwsError())
+//  assertThat( startsWith(x3, v7) , throwsError())
+  }
+
+  @Test
+  public void endsWith() throws IOException {
+    loadBasePackage();
+
+    eval(" x1 <- c('hel', 'lo w', 'orld', NA, NULL) ");
+    eval(" x2 <- logical(5) ");
+    eval(" x3 <- character(0) ");
+    eval(" v1 <- c('h', 'w') ");
+    eval(" v2 <- c('h', NA) ");
+    eval(" v3 <- c('h', NULL) ");
+    eval(" v4 <- NULL ");
+    eval(" v5 <- character(0) ");
+    eval(" v6 <- logical(0) ");
+    eval(" v7 <- numeric(0) ");
+
+    assertThat(eval(" endsWith(x1, v1) "), elementsIdenticalTo(c(Logical.FALSE, Logical.TRUE, Logical.FALSE, Logical.NA)));
+    assertThat(eval(" endsWith(x1, v2) "), elementsIdenticalTo(c(Logical.FALSE, Logical.NA, Logical.FALSE, Logical.NA)));
+    assertThat(eval(" endsWith(x1, v3) "), elementsIdenticalTo(c(Logical.FALSE, Logical.FALSE, Logical.FALSE, Logical.NA)));
+    assertThat(eval(" endsWith(x1, v5) "), elementsIdenticalTo(LogicalVector.EMPTY));
+    assertThat(eval(" endsWith(x3, v1) "), elementsIdenticalTo(LogicalVector.EMPTY));
+    assertThat(eval(" endsWith(x3, v2) "), elementsIdenticalTo(LogicalVector.EMPTY));
+    assertThat(eval(" endsWith(x3, v3) "), elementsIdenticalTo(LogicalVector.EMPTY));
+    assertThat(eval(" endsWith(x3, v5) "), elementsIdenticalTo(LogicalVector.EMPTY));
+  }
+
 
   @Test
   public void versionCompare2() throws IOException {

@@ -64,11 +64,13 @@ typedef int R_len_t;
 # define LONG_VECTOR_SUPPORT
 #endif
 
+# define R_SHORT_LEN_MAX 2147483647
+
+
 //#ifdef LONG_VECTOR_SUPPORT
 //    typedef ptrdiff_t R_xlen_t;
 //    typedef struct { R_xlen_t lv_length, lv_truelength; } R_long_vec_hdr_t;
 //# define R_XLEN_T_MAX 4503599627370496
-//# define R_SHORT_LEN_MAX 2147483647
 # define R_LONG_VEC_TOKEN -1
 //#else
     typedef int R_xlen_t;

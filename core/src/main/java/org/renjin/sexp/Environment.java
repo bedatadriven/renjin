@@ -269,25 +269,12 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   }
 
   /**
-   * set Variable without checking if variable is an 'active' binding.
-   * Only be used when it is absolutely certain that the Symbol is not used in any active binding.
+   * set Variable without checking if variable is an 'active' binding or if the binding is locked.
    *
    * @param symbol  the {@code SYMSXP} that should be looked up
    * @param value value to be assigned.
-   * @throws AssertionError when active bindings are present.
    */
   public void setVariableUnsafe(Symbol symbol, SEXP value) {
-    assert ( !isActiveBinding(symbol) );
-
-    if(value == Symbol.UNBOUND_VALUE) {
-      throw new EvalException("Unbound: " + symbol);
-    }
-
-    if(bindingIsLocked(symbol)) {
-      throw new EvalException("cannot change value of locked binding for '%s'", symbol.getPrintName());
-    } else if(locked && frame.getVariable(symbol) == Symbol.UNBOUND_VALUE) {
-      throw new EvalException("cannot add bindings to a locked environment");
-    }
     frame.setVariable(symbol, value);
   }
 

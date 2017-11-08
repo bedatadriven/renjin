@@ -30,8 +30,14 @@ public abstract class AbstractGimpleType implements GimpleType {
     return size;
   }
 
-  public void setSize(int size) {
-    this.size = size;
+  public void setSize(long size) {
+    if(size > Integer.MAX_VALUE) {
+      // The only time the size will be this large is for variable-length arrays
+      // which get pruned anyway
+      this.size = Integer.MAX_VALUE;
+    } else {
+      this.size = (int) size;
+    }
   }
 
   @Override

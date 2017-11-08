@@ -237,6 +237,10 @@ public interface PairList extends SEXP {
       this.nextNode = nextNode;
     }
 
+    public void setNextNode(PairList nextNode) {
+      this.nextNode = nextNode;
+    }
+
     @Override
     protected SEXP cloneWithNewAttributes(AttributeMap newAttributes) {
       return new PairList.Node(tag, value, newAttributes, nextNode);

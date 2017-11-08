@@ -42,7 +42,7 @@ class VectorIndexSelection implements SelectionStrategy {
   }
 
   public static Vector buildSelection(Vector source, Subscript subscript, boolean drop) {
-    
+
     IndexIterator it = subscript.computeIndexes();
 
     Vector.Builder result = source.getVectorType().newBuilder();
@@ -88,6 +88,9 @@ class VectorIndexSelection implements SelectionStrategy {
 
   @Override
   public SEXP getSingleListElement(ListVector source, boolean exact) {
+    if(subscript.isElementNA(0)) {
+      return Null.INSTANCE;
+    }
     IndexSubscript subscript = new IndexSubscript(this.subscript, source.length());
 
     // verify that we are selecting a single element

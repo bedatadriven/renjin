@@ -75,13 +75,69 @@ public class ShortPtr extends AbstractPtr {
   }
 
   @Override
+  public short getShort() {
+    return array[this.offset];
+  }
+
+  @Override
+  public short getAlignedShort(int index) {
+    return array[this.offset + index];
+  }
+
+  @Override
+  public short getShort(int offset) {
+    if(offset % BYTES == 0) {
+      return getAlignedShort(offset / BYTES);
+    } else {
+      return super.getShort(offset);
+    }
+  }
+
+  @Override
+  public void setAlignedShort(int index, short shortValue) {
+    array[this.offset + index] = shortValue;
+  }
+
+  @Override
+  public void setShort(short value) {
+    array[this.offset] = value;
+  }
+
+  @Override
+  public void setShort(int offset, short value) {
+    if(offset % BYTES == 0) {
+      setAlignedShort(offset / BYTES, value);
+    } else {
+      super.setShort(offset, value);
+    }
+  }
+
+  @Override
   public byte getByte(int offset) {
-    throw new UnsupportedOperationException("TODO");
+    int byteIndex = this.offset * BYTES + offset;
+    int index = byteIndex / BYTES;
+    int shift = (byteIndex % BYTES) * 8;
+    return (byte)(this.array[index] >>> shift);
   }
 
   @Override
   public void setByte(int offset, byte value) {
-    throw new UnsupportedOperationException("TODO");
+    int bytes = (this.offset * BYTES) + offset;
+    int index = bytes / BYTES;
+    int shift = (bytes % BYTES) * BITS_PER_BYTE;
+
+    int element = array[index];
+
+    int updateMask = 0xFF << shift;
+
+    // Zero out the bits in the byte we are going to update
+    element = element & ~updateMask;
+
+    // Shift our byte into position
+    int update = (((int)value) << shift) & updateMask;
+
+    // Merge the original long and updated bits together
+    array[index] = (short)(element | update);
   }
 
   @Override

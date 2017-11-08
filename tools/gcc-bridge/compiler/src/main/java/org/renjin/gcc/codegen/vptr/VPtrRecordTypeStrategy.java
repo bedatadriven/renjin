@@ -28,6 +28,7 @@ import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.gcc.runtime.MixedPtr;
 import org.renjin.gcc.runtime.Ptr;
@@ -73,7 +74,8 @@ public class VPtrRecordTypeStrategy extends RecordTypeStrategy<VPtrRecordExpr> {
 
   @Override
   public VPtrRecordExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
-    throw new UnsupportedOperationException("TODO");
+    assert expr.getType().equals(Type.getType(Ptr.class));
+    return new VPtrRecordExpr(((GimpleRecordType) decl.getType()), new VPtrExpr(expr));
   }
 
   @Override
@@ -117,7 +119,7 @@ public class VPtrRecordTypeStrategy extends RecordTypeStrategy<VPtrRecordExpr> {
   }
 
   @Override
-  public VPtrRecordExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
-    throw new UnsupportedOperationException("TODO");
+  public VPtrRecordExpr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
+    return value.toVPtrRecord(this.getRecordType());
   }
 }

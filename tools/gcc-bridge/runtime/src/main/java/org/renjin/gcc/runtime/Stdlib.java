@@ -20,10 +20,14 @@ package org.renjin.gcc.runtime;
 
 import org.renjin.gcc.annotations.Struct;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.lang.invoke.MethodHandle;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
 import java.util.TimeZone;
@@ -73,6 +77,10 @@ public class Stdlib {
 
   public static int strcmp(Ptr x, Ptr y) {
     return strncmp(x, y, Integer.MAX_VALUE);
+  }
+
+  public static double strtod(Ptr string) {
+    return Double.parseDouble(nullTerminatedString(string));
   }
 
   public static Ptr strdup(Ptr s) {
@@ -186,25 +194,31 @@ public class Stdlib {
     }
   }
 
+  @Deprecated
+  public static BytePtr strcat(BytePtr dest, BytePtr src) {
+    return (BytePtr)strcat((Ptr)dest, (Ptr)src);
+  }
+
   /**
    * Appends the string pointed to by src to the end of the string pointed to by dest.
    *
    * @return pointer to the resulting string dest.
    */
-  public static BytePtr strcat(BytePtr dest, BytePtr src) {
+  public static Ptr strcat(Ptr dest, Ptr src) {
     // Find the end of the dest null-terminated string
-    int start = dest.offset;
-    while(dest.array[start] != 0) {
-      start++;
+    int destPos = 0;
+    while(dest.getByte(destPos) != 0) {
+      destPos++;
     }
-    // Find the length of the src string
-    int srcLen = strlen(src);
-
     // Copy into the dest buffer
-    System.arraycopy(src.array, src.offset, dest.array, start, srcLen);
-
-    // Null terminate the concatenated string
-    dest.array[start+srcLen] = 0;
+    int srcPos = 0;
+    for(;;) {
+      byte srcByte = src.getByte(srcPos++);
+      dest.setByte(destPos++, srcByte);
+      if(srcByte == 0) {
+        break;
+      }
+    }
 
     return dest;
   }
@@ -213,7 +227,7 @@ public class Stdlib {
     String outputString;
 
     try {
-      outputString = doFormat(format, arguments);
+      outputString = format(format, arguments);
     } catch (Exception e) {
       return -1;
     }
@@ -228,6 +242,11 @@ public class Stdlib {
     return 0;
   }
 
+  public static int putchar(int character) {
+    System.out.println((char)character);
+    return character;
+  }
+
   public static int sprintf(BytePtr string, BytePtr format, Object... arguments) {
     return snprintf(string, Integer.MAX_VALUE, format, arguments);
   }
@@ -237,7 +256,7 @@ public class Stdlib {
     String outputString;
 
     try {
-      outputString = doFormat(format, arguments);
+      outputString = format(format, arguments);
     } catch (Exception e) {
       return -1;
     }
@@ -270,18 +289,25 @@ public class Stdlib {
     return Character.toUpperCase(c);
   }
 
-  static String doFormat(Ptr format, Object[] arguments) {
+  public static String format(Ptr format, Object[] arguments) {
     Object[] convertedArgs = new Object[arguments.length];
     for (int i = 0; i < arguments.length; i++) {
       convertedArgs[i] = convertFormatArg(arguments[i]);
     }
 
-    return String.format(nullTerminatedString(format), convertedArgs);
+    String formatString = nullTerminatedString(format);
+    if(formatString.equals("%2.2x")) {
+      return String.format("%02x", convertedArgs);
+    } else if(formatString.equals("%016llx")) {
+      return String.format("%016x", convertedArgs);
+    } else {
+      return String.format(formatString, convertedArgs);
+    }
   }
 
   private static Object convertFormatArg(Object argument) {
-    if(argument instanceof BytePtr) {
-      return ((BytePtr) argument).nullTerminatedString();
+    if(argument instanceof BytePtr || argument instanceof MixedPtr) {
+      return Stdlib.nullTerminatedString((Ptr) argument);
     } else {
       return argument;
     }
@@ -342,8 +368,28 @@ public class Stdlib {
     return BytePtr.nullTerminatedString(CTIME_FORMAT.format(date) + "\n", StandardCharsets.US_ASCII);
   }
 
+  @Deprecated
   public static tm localtime(IntPtr time) {
     return new tm(time.unwrap());
+  }
+
+  public static Ptr localtime(Ptr time) {
+    int instant = time.getInt();
+    Calendar instance = Calendar.getInstance();
+    instance.setTimeInMillis(instant);
+
+    int[] tm = new int[9];
+    tm[0] = instance.get(Calendar.SECOND);
+    tm[1] = instance.get(Calendar.MINUTE);
+    tm[2] = instance.get(Calendar.HOUR);
+    tm[3] = instance.get(Calendar.DAY_OF_MONTH);
+    tm[4] = instance.get(Calendar.MONTH);
+    tm[5] = instance.get(Calendar.YEAR);
+    tm[6] = instance.get(Calendar.DAY_OF_WEEK);
+    tm[7] = instance.get(Calendar.DAY_OF_YEAR);
+    tm[8] = instance.getTimeZone().inDaylightTime(new Date(instant)) ? 1 : 0;
+
+    return new IntPtr(tm);
   }
 
 
@@ -377,6 +423,7 @@ public class Stdlib {
   private static final int CLOCK_MONOTONIC = 1;
   private static final int CLOCK_REALTIME_COARSE = 5;
 
+  @Deprecated
   public static int clock_gettime(int clockId, timespec tp) {
 
     switch (clockId) {
@@ -397,9 +444,112 @@ public class Stdlib {
     }
   }
 
-  public static Object fopen() {
-    throw new UnsupportedOperationException("fopen() not implemented");
+  public static int clock_gettime(int clockId, Ptr tp) {
+
+    long duration;
+    TimeUnit timeUnit;
+
+    switch (clockId) {
+      case CLOCK_REALTIME:
+      case CLOCK_REALTIME_COARSE:
+        // Return the current time since 1970-01-01
+        duration = System.currentTimeMillis();
+        timeUnit = TimeUnit.MILLISECONDS;
+        break;
+
+      case CLOCK_MONOTONIC:
+        // Return a high precision time from some arbitrary offset
+        duration = System.nanoTime();
+        timeUnit = TimeUnit.NANOSECONDS;
+        break;
+
+      default:
+        // ClockId not supported
+        return -1;
+    }
+
+    // the timespec struct has two int members:
+    // 0: number of seconds
+    // 4: number of nanoseconds
+    int seconds = (int) timeUnit.toSeconds(duration);
+    int nanoseconds = (int) (timeUnit.toNanos(duration) - TimeUnit.SECONDS.toNanos(seconds));
+
+    tp.setAlignedInt(0, seconds);
+    tp.setAlignedInt(1, nanoseconds);
+
+    return 0;
   }
+
+  @Deprecated
+  public static Object fopen() {
+    throw new UnsupportedOperationException("Please recompile with the latest version of Renjin.");
+  }
+
+  public static Ptr fopen(Ptr filename, Ptr mode) {
+    String filenameString = nullTerminatedString(filename);
+    String modeString = nullTerminatedString(mode);
+
+    switch (modeString) {
+      case "rb":
+        try {
+          return new RecordUnitPtr<>(new FileHandleImpl(new RandomAccessFile(filenameString, "r")));
+        } catch (FileNotFoundException e) {
+          return BytePtr.NULL;
+        }
+      default:
+        throw new UnsupportedOperationException("Not implemented. Mode = " + modeString);
+    }
+  }
+
+  public static int fread(Ptr ptr, int size, int count, Ptr stream) throws IOException {
+
+    FileHandle handle = (FileHandle) stream.getArray();
+
+    int bytesRead = 0;
+
+    // Super naive implementation.
+    // Performance to be improved...
+    for(int i=0;i<(count*size);++i) {
+      int b = handle.read();
+      if(b == -1) {
+        break;
+      }
+      ptr.setByte(i, (byte)b);
+      bytesRead++;
+    }
+
+    return bytesRead;
+  }
+
+  public static int fseek(Ptr stream, long offset, int whence) {
+    FileHandle fileHandle = (FileHandle) stream.getArray();
+    try {
+      switch (whence) {
+        case FileHandle.SEEK_SET:
+          fileHandle.seekSet(offset);
+          break;
+        case FileHandle.SEEK_CURRENT:
+          fileHandle.seekCurrent(offset);
+          break;
+        case FileHandle.SEEK_END:
+          fileHandle.seekEnd(offset);
+          break;
+      }
+      return 0;
+    } catch (IOException e) {
+      return -1;
+    }
+  }
+
+  public static int fclose(Ptr stream) {
+    try {
+      ((FileHandle) stream.getArray()).close();
+      return 0;
+    } catch (IOException e) {
+      return -1;
+    }
+  }
+
 
   /**
    * test for infinity.
@@ -461,6 +611,11 @@ public class Stdlib {
    */
   public static void __cxa_guard_abort(LongPtr p) {
 
+  }
+
+  public static int posix_memalign(Ptr memPtr, int aligment, int size) {
+    memPtr.setPointer(MixedPtr.malloc(size));
+    return 0;
   }
 
   public static void inlineAssembly() {

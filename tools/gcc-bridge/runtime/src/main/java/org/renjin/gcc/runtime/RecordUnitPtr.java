@@ -220,6 +220,11 @@ public class RecordUnitPtr<T> implements Ptr {
   }
 
   @Override
+  public long getAlignedLong(int index) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public long getLong(int offset) {
     throw new UnsupportedOperationException("TODO");
   }
@@ -276,6 +281,36 @@ public class RecordUnitPtr<T> implements Ptr {
 
   @Override
   public void setAlignedDouble(int index, double value) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public double getReal96() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public double getReal96(int offset) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public double getAlignedReal96(int index) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void setReal96(double value) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void setReal96(int offset, double value) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void setAlignedReal96(int index, double value) {
     throw new UnsupportedOperationException("TODO");
   }
 

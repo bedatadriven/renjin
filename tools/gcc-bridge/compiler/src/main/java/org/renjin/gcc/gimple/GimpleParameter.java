@@ -26,17 +26,17 @@ import org.renjin.gcc.gimple.type.GimpleType;
 public class GimpleParameter {
   private GimpleType type;
   private String name;
-  private int id;
+  private long id;
   private boolean addressable;
   
   /**
    * Compiler-assigned unique identifier for this parameter.
    */
-  public int getId() {
+  public long getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public void setId(long id) {
     this.id = id;
   }
 

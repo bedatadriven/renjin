@@ -24,28 +24,28 @@ import org.renjin.gcc.TreeLogger;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.InvocationStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
-import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
-import org.renjin.gcc.codegen.type.ParamStrategy;
-import org.renjin.gcc.codegen.type.ReturnStrategy;
-import org.renjin.gcc.codegen.type.TypeOracle;
-import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.GlobalVarAllocator;
 import org.renjin.gcc.codegen.var.LocalStaticVarAllocator;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.codegen.vptr.VPtrVariadicStrategy;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.statement.*;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.gcc.peephole.PeepholeOptimizer;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.gcc.runtime.Stdlib;
 import org.renjin.gcc.symbols.LocalVariableTable;
 import org.renjin.gcc.symbols.UnitSymbolTable;
 import org.renjin.repackaged.asm.*;
+import org.renjin.repackaged.asm.tree.AnnotationNode;
 import org.renjin.repackaged.asm.tree.MethodNode;
 import org.renjin.repackaged.asm.util.Textifier;
 import org.renjin.repackaged.asm.util.TraceMethodVisitor;
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.guava.base.Throwables;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
 
@@ -63,6 +63,9 @@ public class FunctionGenerator implements InvocationStrategy {
   private String className;
   private GimpleFunction function;
   private final List<String> aliases = new ArrayList<>();
+
+  private boolean variadic;
+  private VariadicStrategy variadicStrategy;
   private Map<GimpleParameter, ParamStrategy> params = Maps.newHashMap();
   private ReturnStrategy returnStrategy;
   
@@ -74,8 +77,10 @@ public class FunctionGenerator implements InvocationStrategy {
   
   private Label beginLabel = new Label();
   private Label endLabel = new Label();
-  
+
   private MethodGenerator mv;
+
+  private boolean compilationFailed = false;
 
   public FunctionGenerator(String className, GimpleFunction function, TypeOracle typeOracle,
                            GlobalVarAllocator globalVarAllocator, UnitSymbolTable symbolTable) {
@@ -83,9 +88,18 @@ public class FunctionGenerator implements InvocationStrategy {
     this.function = function;
     this.typeOracle = typeOracle;
     this.params = this.typeOracle.forParameters(function.getParameters());
+
+    if(function.isVariadic()) {
+      this.variadic = true;
+      this.variadicStrategy = new VPtrVariadicStrategy();
+    } else {
+      this.variadicStrategy = new NullVariadicStrategy();
+    }
+
     this.returnStrategy = this.typeOracle.returnStrategyFor(function.getReturnType());
     this.staticVarAllocator = new LocalStaticVarAllocator("$" + function.getSafeMangledName() + "$", globalVarAllocator);
     this.symbolTable = new LocalVariableTable(symbolTable);
+
   }
 
   public String getMangledName() {
@@ -113,20 +127,136 @@ public class FunctionGenerator implements InvocationStrategy {
 
   public void emit(TreeLogger parentLogger, ClassVisitor cw) {
 
-    TreeLogger logger = parentLogger.branch("Generating bytecode for " +
-        function.getName() + " [" + function.getMangledName() + "]");
-    logger.debug("Sources:", findSourceFiles());
-    logger.debug("Aliases: " + aliases);
-    logger.debug("Gimple:", function);
+    try {
+      TreeLogger logger = parentLogger.branch("Generating bytecode for " +
+          function.getName() + " [" + function.getMangledName() + "]");
+      logger.debug("Sources:", findSourceFiles());
+      logger.debug("Aliases: " + aliases);
+      logger.debug("Gimple:", function);
 
-    logger.dump(function.getUnit().getSourceName(), function.getSafeMangledName(), "gimple", function);
+      logger.dump(function.getUnit().getSourceName(), function.getSafeMangledName(), "gimple", function);
 
 
-    if(GimpleCompiler.TRACE) {
-      System.out.println(function);
+      if (GimpleCompiler.TRACE) {
+        System.out.println(function);
+      }
+
+      MethodNode methodNode = new MethodNode(ACC_PUBLIC | ACC_STATIC,
+          function.getSafeMangledName(),
+          getFunctionDescriptor(), null, null);
+
+      methodNode.visibleParameterAnnotations = parameterAnnotations();
+
+      Optional<VPtrExpr> varArgsPtr;
+      if(variadic) {
+        int varArgIndex = getVarArgIndex();
+        varArgsPtr = Optional.of(new VPtrExpr(Expressions.localVariable(Type.getType(Ptr.class), varArgIndex)));
+      } else {
+        varArgsPtr = Optional.absent();
+      }
+
+
+      mv = new MethodGenerator(methodNode);
+      this.exprFactory = new ExprFactory(typeOracle, this.symbolTable, mv, varArgsPtr);
+
+      mv.visitCode();
+      mv.visitLabel(beginLabel);
+
+      emitParamInitialization();
+      scheduleLocalVariables();
+
+      emitLocalVarInitialization();
+
+      for (GimpleBasicBlock basicBlock : function.getBasicBlocks()) {
+        emitBasicBlock(basicBlock);
+      }
+
+      // Verify that GCC is not letting us fall through with out a return statement
+      if (function.isEmpty() || function.getLastBasicBlock().fallsThrough()) {
+        JExpr defaultReturnValue = returnStrategy.getDefaultReturnValue();
+        defaultReturnValue.load(mv);
+        mv.areturn(defaultReturnValue.getType());
+      }
+
+      mv.visitLabel(endLabel);
+
+      // Javac does not like our variable table
+      // https://bugs.openjdk.java.net/browse/JDK-8132697
+      // Bug is somewhere in ClassReader.java
+      // http://hg.openjdk.java.net/jdk8u/jdk8u/langtools/file/78f0aa619915/src/share/classes/com/sun/tools/javac/jvm/ClassReader.java
+
+      mv.getLocalVarAllocator().emitDebugging(mv, beginLabel, endLabel);
+
+      mv.visitMaxs(1, 1);
+      mv.visitEnd();
+
+      logger.dump(function.getUnit().getSourceName(), function.getSafeMangledName(), "j", toString(methodNode));
+
+      // Reduce the size of the bytecode by applying simple optimizations
+      PeepholeOptimizer.INSTANCE.optimize(methodNode);
+
+      int estimatedSize = BytecodeSizeEstimator.estimateSize(methodNode);
+      if (estimatedSize > 40_000) {
+        System.err.println("WARNING: Method size of " + className + "." + function.getMangledName() +
+            " may be exceeded. (Estimate: " + estimatedSize + ")");
+      }
+
+      logger.dump(function.getUnit().getSourceName(), function.getSafeMangledName(), "opt.j", toString(methodNode));
+      logger.dumpHtml(symbolTable, function, methodNode);
+
+      try {
+        methodNode.accept(cw);
+
+      } catch (Exception e) {
+
+        // Include the generated bytecode as part of the stack trace so we can
+        // see what went wrong
+        throw new InternalCompilerException("Error in generated byte code for " + function.getName() + "\n" +
+            "Offending bytecode:\n" + toString(methodNode), e);
+      }
+    } catch (Exception e) {
+      System.err.println("COMPILATION FAILED: " + getMangledName() + " in " +
+          getCompilationUnit().getSourceName());
+      e.printStackTrace(System.err);
+
+      parentLogger.dump(function.getUnit().getSourceName(), function.getSafeMangledName(), "error",
+          Throwables.getStackTraceAsString(e));
+
+      writeRuntimeStub(cw);
+
+      compilationFailed = true;
     }
-    
-    MethodNode methodNode = new MethodNode(ACC_PUBLIC | ACC_STATIC, 
+  }
+
+  private List<AnnotationNode>[] parameterAnnotations() {
+    List<AnnotationNode>[] parameters = new List[countJvmParameters()];
+    int i=0;
+    for (ParamStrategy paramStrategy : getParamStrategies()) {
+      for (Type type : paramStrategy.getParameterTypes()) {
+        i++;
+      }
+    }
+    for (AnnotationNode annotationNode : variadicStrategy.getParameterAnnotations()) {
+      if(annotationNode != null) {
+        parameters[i] = Collections.singletonList(annotationNode);
+      }
+      i++;
+    }
+    return parameters;
+  }
+
+  private int countJvmParameters() {
+    int count = 0;
+    for (ParamStrategy paramStrategy : getParamStrategies()) {
+      count += paramStrategy.getParameterTypes().size();
+    }
+    count += variadicStrategy.getParameterTypes().size();
+    return count;
+  }
+
+  private void writeRuntimeStub(ClassVisitor cw) {
+
+    MethodNode methodNode = new MethodNode(ACC_PUBLIC | ACC_STATIC,
         function.getSafeMangledName(),
         getFunctionDescriptor(), null, null);
 
@@ -134,61 +264,16 @@ public class FunctionGenerator implements InvocationStrategy {
     this.exprFactory = new ExprFactory(typeOracle, this.symbolTable, mv);
 
     mv.visitCode();
-    mv.visitLabel(beginLabel);
-    
-    emitParamInitialization();
-    scheduleLocalVariables();
-    
-    emitLocalVarInitialization();
-
-    for (GimpleBasicBlock basicBlock : function.getBasicBlocks()) {
-      emitBasicBlock(basicBlock);
-    }
-    
-    // Verify that GCC is not letting us fall through with out a return statement
-    GimpleBasicBlock lastBlock = function.getLastBasicBlock();
-    if (function.isEmpty() || function.getLastBasicBlock().fallsThrough()) {
-      JExpr defaultReturnValue = returnStrategy.getDefaultReturnValue();
-      defaultReturnValue.load(mv);
-      mv.areturn(defaultReturnValue.getType());
-    }
-
-    mv.visitLabel(endLabel);
-
-    // Javac does not like our variable table
-    // https://bugs.openjdk.java.net/browse/JDK-8132697
-    // Bug is somewhere in ClassReader.java
-    // http://hg.openjdk.java.net/jdk8u/jdk8u/langtools/file/78f0aa619915/src/share/classes/com/sun/tools/javac/jvm/ClassReader.java
-      
-    mv.getLocalVarAllocator().emitDebugging(mv, beginLabel, endLabel);
-
+    mv.anew(Type.getType(RuntimeException.class));
+    mv.dup();
+    mv.aconst("Compilation of " + getMangledName() + " in " + getCompilationUnit().getSourceName() +
+        " failed at build time. Please review build logs for more details.");
+    mv.invokeconstructor(Type.getType(RuntimeException.class), Type.getType(String.class));
+    mv.athrow();
     mv.visitMaxs(1, 1);
     mv.visitEnd();
 
-    logger.dump(function.getUnit().getSourceName(), function.getSafeMangledName(), "j", toString(methodNode));
-
-    // Reduce the size of the bytecode by applying simple optimizations
-    PeepholeOptimizer.INSTANCE.optimize(methodNode);
-
-    int estimatedSize = BytecodeSizeEstimator.estimateSize(methodNode);
-    if(estimatedSize > 60_000) {
-      System.err.println("WARNING: Method size of " + className + "." + function.getMangledName() + " may be exceeded.");
-    }
-
-    logger.dump(function.getUnit().getSourceName(), function.getSafeMangledName(), "opt.j", toString(methodNode));
-    logger.dumpHtml(symbolTable, function, methodNode);
-
-    try {
-      methodNode.accept(cw);
-
-    } catch (Exception e) {
-      
-      // Include the generated bytecode as part of the stack trace so we can
-      // see what went wrong
-      throw new InternalCompilerException("Error in generated byte code for " + function.getName() + "\n" + 
-          "Offending bytecode:\n" + toString(methodNode), e);
-    }
-
+    methodNode.accept(cw);
   }
 
   private Object findSourceFiles() {
@@ -229,15 +314,17 @@ public class FunctionGenerator implements InvocationStrategy {
       List<Type> parameterTypes = paramStrategy.getParameterTypes();
       if(parameterTypes.size() == 1) {
         paramVars.add(mv.getLocalVarAllocator().reserve(param.getName(), parameterTypes.get(0)));
-//        mv.visitParameter(param.getName(), 0);
       } else {
         for (int typeIndex = 0; typeIndex < parameterTypes.size(); typeIndex++) {
           String name = param.getName() + "$" + typeIndex;
           paramVars.add(mv.getLocalVarAllocator().reserve(name, parameterTypes.get(typeIndex)));
-//          mv.visitParameter(name, 0);
         }
       }
       paramIndexes.add(paramVars);
+    }
+
+    if(variadic) {
+      mv.getLocalVarAllocator().reserve(Type.getType(Ptr.class));
     }
 
     // Now do any required initialization
@@ -263,7 +350,11 @@ public class FunctionGenerator implements InvocationStrategy {
     }
   }
 
-  public void emitLocalStaticVarInitialization(MethodGenerator mv) {
+  public void emitLocalStaticVarInitialization(MethodGenerator mv, ExprFactory exprFactory) {
+
+    if(compilationFailed) {
+      return;
+    }
 
     for (GimpleVarDecl decl : function.getVariableDeclarations()) {
       if(decl.isStatic()) {
@@ -306,6 +397,8 @@ public class FunctionGenerator implements InvocationStrategy {
   private void emitBasicBlock(GimpleBasicBlock basicBlock) {
     mv.visitLabel(labels.of(basicBlock));
 
+    Integer currentLineNumber = null;
+
     for (GimpleStatement ins : basicBlock.getStatements()) {
       Label insLabel = new Label();
       mv.visitLabel(insLabel);
@@ -330,9 +423,10 @@ public class FunctionGenerator implements InvocationStrategy {
         throw new InternalCompilerException("Exception compiling instruction " + ins, e);
       }
       
-//      if(ins.getLineNumber() != null) {
-//        mv.visitLineNumber(ins.getLineNumber(), insLabel);
-//      }
+      if(ins.getLineNumber() != null && !Objects.equals(ins.getLineNumber(), currentLineNumber)) {
+        mv.visitLineNumber(ins.getLineNumber(), insLabel);
+        currentLineNumber = ins.getLineNumber();
+      }
     }
   }
 
@@ -407,7 +501,6 @@ public class FunctionGenerator implements InvocationStrategy {
     callGenerator.emitCall(mv, exprFactory, ins);
   }
 
-
   private void emitReturn(GimpleReturn ins) {
     if(function.getReturnType() instanceof GimpleVoidType) {
       mv.areturn(Type.VOID_TYPE);
@@ -425,7 +518,15 @@ public class FunctionGenerator implements InvocationStrategy {
   }
 
   public String getFunctionDescriptor() {
-    return TypeOracle.getMethodDescriptor(returnStrategy, getParamStrategies());
+    return TypeOracle.getMethodDescriptor(returnStrategy, getParamStrategies(), getVariadicStrategy());
+  }
+
+  private int getVarArgIndex() {
+    int fixedArgCount = 0;
+    for (ParamStrategy paramStrategy : getParamStrategies()) {
+      fixedArgCount += paramStrategy.getParameterTypes().size();
+    }
+    return fixedArgCount;
   }
   
   @Override
@@ -439,8 +540,8 @@ public class FunctionGenerator implements InvocationStrategy {
   }
 
   @Override
-  public boolean isVarArgs() {
-    return false;
+  public VariadicStrategy getVariadicStrategy() {
+    return variadicStrategy;
   }
 
   public Type returnType() {

@@ -102,6 +102,17 @@ public class PackageSource {
     return "yes".equals(description.getFirstProperty("NeedsCompilation"));
   }
 
+  public boolean isCXX11() {
+    String systemRequirements = Strings.nullToEmpty(description.getFirstProperty("SystemRequirements")).trim();
+    boolean isCXX11 = "C++11".equals(systemRequirements);
+    if(isCXX11) {
+      System.out.println("Checking whether in DESCRIPTION 'SystemRequirements' is set to 'C++11'... yes");
+    } else {
+      System.out.println("Checking whether in DESCRIPTION 'SystemRequirements' is set to 'C++11'... no");
+    }
+    return isCXX11;
+  }
+
   public PackageDescription getDescription() {
     return description;
   }

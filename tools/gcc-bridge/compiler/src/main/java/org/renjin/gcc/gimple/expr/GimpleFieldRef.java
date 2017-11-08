@@ -26,7 +26,7 @@ import org.renjin.repackaged.guava.base.Predicate;
  * Gimple expression which evaluates to the name of a field
  */
 public class GimpleFieldRef extends GimpleExpr {
-  private int id;
+  private long id;
   private int offset;
   private int size;
   private String name;
@@ -73,11 +73,11 @@ public class GimpleFieldRef extends GimpleExpr {
     this.name = name;
   }
 
-  public int getId() {
+  public long getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public void setId(long id) {
     this.id = id;
   }
 

@@ -290,89 +290,6 @@ public class Attributes {
     return StringVector.valueOf(exp.getImplicitClass());
   }
 
-  @Internal("comment")
-  public static SEXP getComment(SEXP exp) {
-    return exp.getAttribute(Symbols.COMMENT);
-  }
-
-  @Internal("comment<-")
-  public static SEXP setComment(StringVector exp) {
-    return exp.setAttribute(Symbols.COMMENT, exp);
-  }
-
-  @Builtin("class<-")
-  public static SEXP setClass(SEXP sexp, Vector classes) {
-
-    if(classes == Null.INSTANCE ||
-        (classes instanceof StringVector && classes.length() == 0)) {
-      return sexp.setAttribute(Symbols.CLASS, Null.INSTANCE);
-    }
-
-    // Coerce to a character vector WITHOUT invoking as.character()
-    if(!(classes instanceof StringVector)) {
-      classes = (Vector) Vectors.asVector(classes, "character").setAttributes(classes.getAttributes());
-    }
-
-    if(classes.length() == 0) {
-      throw new EvalException("attempt to set invalid 'class' attribute");
-
-    } else if(classes.length() > 1) {
-
-      // Note that we "unbless" S4 objects as they cannot
-      // have multiple classes.
-
-      return sexp.setAttributes(sexp.getAttributes().copy()
-        .setClass(classes)
-        .setS4(false));
-
-
-    } else {
-
-      String className = classes.getElementAsString(0);
-
-      // The "matrix" and "array" class names are subject to special
-      // validation and have the effect of clearing any explicit class attribute
-
-      if ("matrix".equals(className)) {
-        int numDims = sexp.getAttributes().getDim().length();
-        if(numDims != 2) {
-          throw new EvalException(
-              "invalid to set the class to matrix unless the dimension attribute is of length 2 (was %d)", numDims);
-        }
-        return sexp.setAttribute(Symbols.CLASS, Null.INSTANCE);
-
-      } else if("array".equals(className)) {
-        if(sexp.getAttributes().getDim().length() == 0) {
-          throw new EvalException("cannot set class to \"array\" unless the dimension attribute has length > 0");
-        }
-        return sexp.setAttribute(Symbols.CLASS, Null.INSTANCE);
-
-      } else if (sexp.getImplicitClass().equals(className)) {
-
-        // Invoking class(x) <- y
-        // Where y is the implicit class name like "numeric" or "integer" or "character"
-        // has the effect of clearing the explicit class attribute
-
-        return sexp.setAttribute(Symbols.CLASS, Null.INSTANCE);
-
-      } else {
-
-        return sexp.setAttribute(Symbols.CLASS, classes);
-      }
-    }
-  }
-
-  @Builtin("oldClass<-")
-  public static SEXP setOldClass(SEXP exp, Vector classes) {
-    /*
-     * checkArity(op, args); if (NAMED(CAR(args)) == 2) SETCAR(args,
-     * duplicate(CAR(args))); if (length(CADR(args)) == 0) SETCADR(args,
-     * R_NilValue); if(IS_S4_OBJECT(CAR(args))) UNSET_S4_OBJECT(CAR(args));
-     * setAttrib(CAR(args), R_ClassSymbol, CADR(args)); return CAR(args);
-     */
-    return exp.setAttribute(Symbols.CLASS, classes);
-  }
-
   @Builtin
   public static SEXP unclass(SEXP exp) {
     return exp.setAttributes(exp.getAttributes().copy().remove(Symbols.CLASS));
@@ -381,14 +298,6 @@ public class Attributes {
   @Builtin("attr<-")
   public static SEXP setAttribute(SEXP exp, String which, SEXP value) {
     return exp.setAttribute(which, value);
-  }
-
-  @Builtin
-  public static SEXP oldClass(SEXP exp) {
-    if (!exp.hasAttributes()) {
-      return Null.INSTANCE;
-    }
-    return exp.getAttribute(Symbols.CLASS);
   }
 
   @Internal

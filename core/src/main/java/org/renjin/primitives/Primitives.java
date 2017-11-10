@@ -198,13 +198,13 @@ public class Primitives {
 
     add(new AssignLeftFunction());
     add(new AssignFunction());
-    
+
     add(new ReassignLeftFunction());
     add(new BeginFunction());
     add(new ParenFunction());
-      
+
     add(new AssignSlotFunction());
-      
+
     f(".subset", Subsetting.class, 1);
     f(".subset2", Subsetting.class, 1);
     f("[",Subsetting.class, -1);
@@ -290,11 +290,8 @@ public class Primitives {
     addInternal("cbind", new ColumnBindFunction());
     addInternal("rbind", new RowBindFunction());
     f("drop", Vectors.class, 11);
-    f("oldClass", Attributes.class, 1);
-    f("oldClass<-", Attributes.class, 2);
     f("class", Attributes.class, "getClass", 1);
     f(".cache_class", Methods.class, 2);
-    f("class<-", Attributes.class, "setClass", 1);
     f("unclass", Attributes.class, 1);
     f("names", Attributes.class,  "getNames", 1);
     f("names<-", Attributes.class, "setNames", 1);
@@ -352,7 +349,7 @@ public class Primitives {
     f("sqrt", MathGroup.class, 1);
     f("sign", MathGroup.class, 1);
     f("trunc", MathGroup.class, 1);
-    
+
     f("exp", MathGroup.class, 1);
     f("expm1", MathGroup.class, 1);
     f("log1p", MathGroup.class, 1);
@@ -614,7 +611,7 @@ public class Primitives {
     f("iconv", Text.class, 11);
     f("strtrim", Text.class, 11);
     f("strtoi", Text.class, 11);
-    
+
 /* Type Checking (typically implemented in ./coerce.c ) */
 
     f("is.null", Types.class,   /*NILSXP*/ 1);
@@ -651,7 +648,7 @@ public class Primitives {
     f("is.nan", Types.class, 1);
     f("is.finite", Types.class, 1);
     f("is.infinite", Types.class, 1);
-      
+
     f("isS4", Types.class, 1);
     f("setS4Object", Types.class, 11);
     f(".isMethodsDispatchOn", Methods.class, 1);
@@ -899,7 +896,7 @@ public class Primitives {
     f("grconvertX", Graphics.class, 11);
     f("grconvertY", Graphics.class, 11);
 
-/* Objects */   
+/* Objects */
     f("inherits", Attributes.class, 11);
     f("UseMethod", S3.class, 200);
     f("NextMethod", S3.class, 210);
@@ -1004,9 +1001,9 @@ public class Primitives {
     f("getNamespaceName", Namespaces.class, 0);
     f("getNamespaceExports", Namespaces.class, 0);
     f("getNamespaceImports", Namespaces.class, 0);
-    
+
     f("getNamespaceRegistry", Namespaces.class, 11);
-      
+
    // hiding f("importIntoEnv", Namespaces.class, 0, 11, 4);
     f("env.profile", /*envprofile*/ null, 211);
     f(":::", Namespaces.class, 0);
@@ -1019,7 +1016,7 @@ public class Primitives {
     f("setTimeLimit", /*setTimeLimit*/ null, 111);
     f("setSessionTimeLimit", /*setSessionTimeLimit*/ null, 111);
     f("icuSetCollate", /*ICUset*/ null, 111) ;
-    
+
     // jvm specific
     f("import", Jvmi.class, 0);
     f("jload", Jvmi.class, 0);

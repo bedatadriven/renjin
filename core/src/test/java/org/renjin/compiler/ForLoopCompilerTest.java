@@ -76,6 +76,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
     assertThat(evalAndAssertCompiled("{ s <- 0; for(i in 1:10000) { s <- s + sqrt(i) }; s }"), closeTo(c(666716.5), 1d));
   }
 
+  @Ignore
   @Test
   public void loopWithS3Call() {
 

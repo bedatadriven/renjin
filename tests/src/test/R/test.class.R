@@ -182,3 +182,31 @@ test.set.empty.character <- function() {
 
     assertThat(class(x), identicalTo('integer'))
 }
+
+test.set.integer <- function() {
+
+    x <- 99.5
+    class(x) <- "integer"
+
+    assertThat(x, identicalTo(99L))
+
+}
+
+test.set.numeric <- function() {
+
+    x <- 99.5
+    y <- 99L
+
+    attr(x, 'foo') <- 'bar'
+
+    class(x) <- "numeric"
+    class(y) <- "numeric"
+
+    assertThat(typeof(x), identicalTo("double"))
+    assertThat(typeof(y), identicalTo("integer"))
+    assertThat(class(y), identicalTo("integer"))
+
+    assertThat(attr(x, 'foo'), identicalTo("bar"))
+
+
+}

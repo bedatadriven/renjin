@@ -119,8 +119,6 @@ public class UnitClassGenerator {
       symbolTable.addGlobalVariable(decl, varGenerator);
     }
 
-    Set<String> functionNames = new HashSet<>();
-
     for (GimpleFunction function : unit.getFunctions()) {
       if (!isExcluded(function)) {
         try {

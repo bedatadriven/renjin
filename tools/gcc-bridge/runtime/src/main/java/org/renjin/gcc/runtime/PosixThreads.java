@@ -132,4 +132,14 @@ public class PosixThreads {
   public static int pthread_mutexattr_destroy(Ptr attr) {
     return SUCCESS;
   }
+
+  public static int pthread_once(Ptr onceControl, MethodHandle initRoutine) throws Throwable {
+    synchronized (onceControl.getArray()) {
+      if(onceControl.getInt(0) == 0) {
+        onceControl.setInt(0, 1);
+        initRoutine.invoke();
+      }
+    }
+    return SUCCESS;
+  }
 }

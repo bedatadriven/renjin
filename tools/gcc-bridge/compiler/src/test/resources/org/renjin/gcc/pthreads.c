@@ -14,6 +14,14 @@ struct thread_info {    /* Used as argument to thread_start() */
    int       thread_num;       /* Application-defined thread # */
 };
 
+static int once_counter = 0;
+static pthread_once_t  once_control = PTHREAD_ONCE_INIT;
+
+static void once_fn() {
+    printf("Once called!");
+    once_counter ++;
+}
+
 /* Thread start function: display address near top of our stack,
   and return upper-cased copy of argv_string */
 
@@ -21,6 +29,8 @@ static void *
 thread_start(void *arg)
 {
    struct thread_info *tinfo = arg;
+
+   ASSERT(pthread_once(&once_control, once_fn) == 0);
 
    int *presult = malloc(sizeof(int));
    *presult = tinfo->thread_num * 2;
@@ -76,6 +86,8 @@ void test_threads()
        ASSERT(*presult == tinfo[tnum].thread_num * 2);
        free(presult);
    }
+
+   ASSERT(once_counter == 1);
 
    free(tinfo);
 }

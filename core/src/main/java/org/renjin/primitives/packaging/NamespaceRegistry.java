@@ -193,13 +193,14 @@ public class NamespaceRegistry {
         // and add them to our private namespace environment
         Namespace namespace = createNamespace(pkg);
 
-        // set up the namespace
-        namespace.populateNamespace(context);
-
-        // set up the imported symbols
         CharSource namespaceSource = pkg.getResource("NAMESPACE").asCharSource(Charsets.UTF_8);
         NamespaceFile namespaceFile = NamespaceFile.parse(context, namespaceSource);
 
+        // set up the namespace
+        namespace.populateNamespace(context);
+        namespace.initExports(namespaceFile);
+
+        // set up the imported symbols
         namespace.initImports(context, this, namespaceFile);
 
         // invoke the .onLoad hook
@@ -210,8 +211,6 @@ public class NamespaceRegistry {
               namespace.getNamespaceEnvironment());
         }
 
-        // finally export symbols from the namespace
-        namespace.initExports(namespaceFile);
         namespace.registerS3Methods(context, namespaceFile);
 
         // S4 classes are declared in a namespace, but once the namespace is loaded,

@@ -28,7 +28,6 @@ import org.renjin.repackaged.guava.collect.*;
 import org.renjin.repackaged.guava.io.CharSource;
 import org.renjin.sexp.*;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -195,7 +194,7 @@ public class NamespaceRegistry {
         Namespace namespace = createNamespace(pkg);
 
         // set up the namespace
-        populateNamespace(context, pkg, namespace);
+        namespace.populateNamespace(context);
 
         // set up the imported symbols
         CharSource namespaceSource = pkg.getResource("NAMESPACE").asCharSource(Charsets.UTF_8);
@@ -232,17 +231,6 @@ public class NamespaceRegistry {
   private boolean couldBeFullyQualified(Symbol name) {
     String string = name.getPrintName();
     return string.indexOf(':') != -1 || string.indexOf('.') != -1;
-  }
-
-  /**
-   * Populates the namespace from the R-language functions and expressions defined
-   * in this namespace.
-   *
-   */
-  private void populateNamespace(Context context, Package pkg, Namespace namespace) throws IOException {
-    for(NamedValue value : pkg.loadSymbols(context)) {
-      namespace.getNamespaceEnvironment().setVariable(context, Symbol.get(value.getName()), value.getValue());
-    }
   }
 
 

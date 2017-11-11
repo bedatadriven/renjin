@@ -29,6 +29,7 @@ import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -157,6 +158,26 @@ public class Namespace {
       }
     }
   }
+
+
+  /**
+   * Populates the namespace from the R-language functions and expressions defined
+   * in this namespace.
+   *
+   */
+  public void populateNamespace(Context context) throws IOException {
+    for(NamedValue value : pkg.loadSymbols(context)) {
+      namespaceEnvironment.setVariable(context, Symbol.get(value.getName()), value.getValue());
+    }
+    // Load dataset objects as promises
+    for(Dataset dataset : pkg.getDatasets()) {
+      for(String objectName : dataset.getObjectNames()) {
+        namespaceEnvironment.setVariable(context, objectName,
+            new DatasetObjectPromise(dataset, objectName));
+      }
+    }
+  }
+
 
   public void addExport(Symbol export) {
     exports.add(export);
@@ -379,6 +400,13 @@ public class Namespace {
     // .. And the S4 methods and their classes
     for (String methodName : file.getExportedS4Methods()) {
       exports.add(Symbol.get(methodName));
+    }
+
+    // .. Dataset objects are implicitly part of a namespace's exports
+    for (Dataset dataset : pkg.getDatasets()) {
+      for (String objectName : dataset.getObjectNames()) {
+        exports.add(Symbol.get(objectName));
+      }
     }
   }
 

@@ -64,7 +64,7 @@ public abstract class Package {
   /**
    * @return the list of datasets contained in this package
    */
-  public List<Dataset> getDatasets() throws IOException {
+  public List<Dataset> getDatasets() {
     return Collections.emptyList();
   }
 

@@ -22,6 +22,12 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
+import static org.renjin.sexp.FunctionCall.newCall;
+import static org.renjin.sexp.PairList.Node.newBuilder;
+import static org.renjin.sexp.Promise.repromise;
+import static org.renjin.sexp.SEXPType.LANGSXP;
+import static org.renjin.sexp.Symbol.get;
+
 
 public class AssignLeftFunction extends SpecialFunction {
 
@@ -57,19 +63,19 @@ public class AssignLeftFunction extends SpecialFunction {
     SEXP evaluatedValue = context.evaluate( value, rho);
     SEXP rhs = new Promise(value, evaluatedValue);
 
-    while(lhs instanceof FunctionCall) {
+    while (lhs.getType() == LANGSXP) {
       FunctionCall call = (FunctionCall) lhs;
       SEXP getter = call.getFunction();
       SEXP setter = setterFromGetter(getter);
 
-      PairList setterArgs = PairList.Node.newBuilder()
+      PairList setterArgs = newBuilder()
           .addAll(call.getArguments())
           .add("value", rhs)
           .build();
-      
+
       FunctionCall setterCall = new FunctionCall(setter, setterArgs);
-      
-      rhs = Promise.repromise(context.evaluate(setterCall, rho));
+
+      rhs = repromise(context.evaluate(setterCall, rho));
 
       lhs = call.getArgument(0);
     }
@@ -99,15 +105,15 @@ public class AssignLeftFunction extends SpecialFunction {
       return Symbol.get(((Symbol) getter).getPrintName() + "<-");
     }
 
-    if(getter instanceof FunctionCall) {
+    if (getter.getType() == LANGSXP) {
       FunctionCall call = (FunctionCall) getter;
-      if(call.getArguments().length() == 2 &&
-          (call.getFunction() == Symbol.get("::") ||
-           call.getFunction() == Symbol.get(":::"))) {
+      if (call.getArguments().length() == 2 &&
+          (call.getFunction() == get("::") ||
+           call.getFunction() == get(":::"))) {
         SEXP namespace = call.getArgument(0);
         SEXP namespacedGetter = call.getArgument(1);
         SEXP setter = setterFromGetter(namespacedGetter);
-        return FunctionCall.newCall(call.getFunction(), namespace, setter);
+        return newCall(call.getFunction(), namespace, setter);
       }
     }
     throw new EvalException("invalid function in complex assignment");

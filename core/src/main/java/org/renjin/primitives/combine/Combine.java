@@ -23,6 +23,8 @@ import org.renjin.repackaged.guava.base.Function;
 import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.sexp.*;
 
+import static org.renjin.sexp.SEXPType.LANGSXP;
+
 /**
  * Implementation of the combine-related functions, including c(), list(), unlist(),
  *  cbind(), rbind(), matrix(), and aperm()
@@ -60,7 +62,7 @@ public class Combine {
   @Internal
   public static SEXP unlist(SEXP sexp, boolean recursive, boolean useNames) {
 
-    if(sexp instanceof FunctionCall) {
+    if (sexp.getType() == LANGSXP) {
       return sexp;
     }
 

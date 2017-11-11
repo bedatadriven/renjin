@@ -228,6 +228,11 @@ public final class Symbol extends AbstractSEXP {
   }
 
   @Override
+  public SEXPType getType() {
+    return SEXPType.SYMSXP;
+  }
+
+  @Override
   public String getTypeName() {
     return TYPE_NAME;
   }

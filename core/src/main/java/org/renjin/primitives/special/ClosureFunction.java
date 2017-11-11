@@ -22,6 +22,8 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
+import static org.renjin.sexp.SEXPType.LANGSXP;
+
 /**
  * Provides the implementation of the `function` function, which creates
  * a closure from a pair list of formals and an unevaluated body.
@@ -38,7 +40,7 @@ public class ClosureFunction extends SpecialFunction {
       throw new EvalException("incorrect number of arguments to \"function\"");
     }
     SEXP formals = call.getArgument(0);
-    if(!(formals instanceof PairList) || formals instanceof FunctionCall) {
+    if(!(formals instanceof PairList) || formals.getType() == LANGSXP) {
       throw new EvalException("invalid formal argument list for \"function\"");
     }
 

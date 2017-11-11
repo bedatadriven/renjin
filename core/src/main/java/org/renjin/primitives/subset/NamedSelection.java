@@ -28,6 +28,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static org.renjin.sexp.FunctionCall.Builder;
+import static org.renjin.sexp.SEXPType.LANGSXP;
+
 
 /**
  * Selects elements from a {@code source} expression by name.
@@ -402,8 +405,8 @@ class NamedSelection implements SelectionStrategy {
     boolean found = false;
 
     PairList.Builder newList;
-    if(source instanceof FunctionCall) {
-      newList = new FunctionCall.Builder();
+    if (source.getType() == LANGSXP) {
+      newList = new Builder();
     } else {
       newList = new PairList.Builder();
     }

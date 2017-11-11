@@ -28,6 +28,8 @@ import org.rosuda.REngine.REXPReference;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.renjin.sexp.SEXPType.LANGSXP;
+
 /**
  * Lazily wraps pointers to SEXP in Renjin's SEXP classes
  */
@@ -278,7 +280,7 @@ public class Wrapper {
     if(sexp instanceof ListVector) {
       return withUnwrapAttributes(unwrapList((ListVector) sexp), sexp.getAttributes());
     }
-    if(sexp instanceof FunctionCall) {
+    if (sexp.getType() == LANGSXP) {
       return withUnwrapAttributes(unwrapPairList((PairList) sexp, true), sexp.getAttributes());
     }
     if(sexp instanceof PairList) {

@@ -43,6 +43,11 @@ public class CHARSEXP extends AbstractSEXP {
     return value.length();
   }
 
+  @Override
+  public SEXPType getType() {
+    return SEXPType.CHARSXP;
+  }
+
   public String getValue() {
     return value;
   }

@@ -22,6 +22,7 @@ package org.renjin.stats.internals.models;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.SEXPType;
 import org.renjin.sexp.Symbol;
 
 import java.util.List;
@@ -38,8 +39,8 @@ public class TermBuilder {
   }
 
   private void add(SEXP expr) {
-    if(expr instanceof FunctionCall) {
-      call((FunctionCall)expr);
+    if (expr.getType() == SEXPType.LANGSXP) {
+      call((FunctionCall) expr);
     } else {
       expressions.add(expr);
     }

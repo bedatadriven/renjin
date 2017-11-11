@@ -19,10 +19,11 @@
 package org.renjin.invoke.codegen;
 
 import org.renjin.eval.Context;
-import org.renjin.methods.S4;
-import org.renjin.primitives.Deparse;
-import org.renjin.primitives.Types;
 import org.renjin.sexp.*;
+
+import static org.renjin.primitives.Deparse.deparseExp;
+import static org.renjin.sexp.SEXPType.LANGSXP;
+import static org.renjin.sexp.StringVector.valueOf;
 
 
 /**
@@ -98,8 +99,8 @@ public class WrapperRuntime {
       return (Vector)exp;
     } else if(exp instanceof Symbol) {
       return new StringArrayVector( ((Symbol) exp).getPrintName() );
-    } else if(exp instanceof FunctionCall) {
-      return new StringArrayVector( Deparse.deparseExp(null, exp) );
+    } else if (exp.getType() == LANGSXP) {
+      return new StringArrayVector(deparseExp(null, exp));
     } else {
       throw new ArgumentException("expected vector");
     }
@@ -178,8 +179,8 @@ public class WrapperRuntime {
   public static SEXP maybeConvertToStringVector(Context context, SEXP vector) {
     if(vector instanceof Symbol) {
       return StringVector.valueOf(((Symbol)vector).getPrintName());
-    } else if(vector instanceof FunctionCall) {
-      return StringVector.valueOf(Deparse.deparseExp(context, vector));
+    } else if (vector.getType() == LANGSXP) {
+      return valueOf(deparseExp(context, vector));
     }
     return vector;
   }

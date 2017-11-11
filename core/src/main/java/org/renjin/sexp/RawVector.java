@@ -130,6 +130,11 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
   }
 
   @Override
+  public SEXPType getType() {
+    return SEXPType.RAWSXP;
+  }
+
+  @Override
   public int hashCode() {
     return Arrays.hashCode(this.toByteArray());
   }

@@ -32,6 +32,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.*;
 
+import static org.renjin.sexp.SEXPType.LANGSXP;
+
 /**
  * Parses directives in the NAMESPACE file.
  *
@@ -272,8 +274,8 @@ public class NamespaceFile {
     if(exp instanceof ExpressionVector) {
       parse(context, (ExpressionVector) exp);
 
-    } else if(exp instanceof FunctionCall) {
-      FunctionCall call = (FunctionCall)exp;
+    } else if (exp.getType() == LANGSXP) {
+      FunctionCall call = (FunctionCall) exp;
       parseCall(context, call);
 
     } else {

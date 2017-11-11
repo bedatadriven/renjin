@@ -43,6 +43,11 @@ public class MethodFunction extends AbstractSEXP implements Function {
   }
 
   @Override
+  public SEXPType getType() {
+    return SEXPType.BUILTIN;
+  }
+
+  @Override
   public String getTypeName() {
     return "method";
   }

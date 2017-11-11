@@ -30,6 +30,8 @@ import org.renjin.sexp.*;
 
 import java.util.*;
 
+import static org.renjin.sexp.SEXPType.LANGSXP;
+
 /**
  * Attempts to create an intermediate representation of the R code, partially
  * evaluating as it goes.
@@ -157,9 +159,9 @@ public class IRBodyBuilder {
   }
 
   private boolean isConstant(SEXP defaultValue) {
-    return ! ( defaultValue instanceof Symbol || 
-               defaultValue instanceof ExpressionVector ||
-               defaultValue instanceof FunctionCall);
+    return ! (defaultValue instanceof Symbol ||
+        defaultValue instanceof ExpressionVector ||
+        defaultValue.getType() == LANGSXP);
     
   }
 
@@ -211,7 +213,7 @@ public class IRBodyBuilder {
       } else {
         return getEnvironmentVariable((Symbol) exp);
       }
-    } else if(exp instanceof FunctionCall) {
+    } else if (exp.getType() == LANGSXP) {
       return translateCallExpression(context, (FunctionCall) exp);
     } else {
       // environments, pairlists, etc
@@ -229,13 +231,13 @@ public class IRBodyBuilder {
   }
 
   public void translateStatements(TranslationContext context, SEXP sexp) {
-    if(sexp instanceof FunctionCall) {
-      FunctionCall call = (FunctionCall)sexp;
+    if (sexp.getType() == LANGSXP) {
+      FunctionCall call = (FunctionCall) sexp;
       Function function = resolveFunction(call.getFunction());
-      builders.get( function ).addStatement(this, context, function, call);
+      builders.get(function).addStatement(this, context, function, call);
     } else {
       Expression expr = translateExpression(context, sexp);
-      if(!(expr instanceof Constant)) {
+      if (!(expr instanceof Constant)) {
         addStatement(new ExprStatement(expr));
       }
     }

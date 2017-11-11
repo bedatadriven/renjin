@@ -23,6 +23,8 @@ import org.renjin.eval.EvalException;
 import org.renjin.primitives.Primitives;
 import org.renjin.sexp.*;
 
+import static org.renjin.sexp.SEXPType.LANGSXP;
+
 public class InternalFunction extends SpecialFunction {
 
   public InternalFunction() {
@@ -33,7 +35,7 @@ public class InternalFunction extends SpecialFunction {
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     SEXP arg = call.getArgument(0);
     assert arg!=null;
-    if(!(arg instanceof FunctionCall)) {
+    if(!(arg.getType() == LANGSXP)) {
       throw new EvalException("invalid .Internal() argument");
     }
     FunctionCall internalCall = (FunctionCall) arg;

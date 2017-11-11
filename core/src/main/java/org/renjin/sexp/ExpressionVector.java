@@ -64,6 +64,11 @@ public class ExpressionVector extends ListVector {
   }
 
   @Override
+  public SEXPType getType() {
+    return SEXPType.EXPRSXP;
+  }
+
+  @Override
   public String getTypeName() {
     return TYPE_NAME;
   }

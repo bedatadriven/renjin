@@ -20,6 +20,9 @@ package org.renjin.primitives.combine;
 
 import org.renjin.sexp.*;
 
+import static org.renjin.sexp.PairList.Node;
+import static org.renjin.sexp.SEXPType.LANGSXP;
+
 
 /**
  * Combines a set of vectors and objects into a new array-backed
@@ -53,27 +56,27 @@ class Combiner {
   }
 
   private void addElement(String prefix, SEXP value) {
-    if(value instanceof FunctionCall) {
+    if (value.getType() == LANGSXP) {
       // even though we FunctionCalls are pairlists, we treat them specially in this context
       // and do not recurse into them, treating them as opaque objects
       builder.add(prefix, value);
 
-    } else if(value instanceof AtomicVector ||
+    } else if (value instanceof AtomicVector ||
         value instanceof ExpressionVector) {
 
       // Expression vectors are also treated atypically here
       builder.addElements(prefix, (Vector) value);
 
-    } else if(value instanceof ListVector) {
-      if(recursive) {
+    } else if (value instanceof ListVector) {
+      if (recursive) {
         add(prefix, ((ListVector) value));
       } else {
         builder.addElements(prefix, (ListVector) value);
       }
 
-    } else if(value instanceof PairList.Node) {
-      if(recursive) {
-        add(prefix,  ((PairList.Node) value).toVector());
+    } else if (value instanceof Node) {
+      if (recursive) {
+        add(prefix, ((Node) value).toVector());
       } else {
         builder.addElements(prefix, ((PairList) value).toVector());
       }

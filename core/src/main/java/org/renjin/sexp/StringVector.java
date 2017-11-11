@@ -182,6 +182,11 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
   public abstract int length();
 
   @Override
+  public final SEXPType getType() {
+    return SEXPType.STRSXP;
+  }
+
+  @Override
   protected abstract StringVector cloneWithNewAttributes(AttributeMap attributes);
 
   @Override

@@ -37,6 +37,11 @@ public class ConstructorFunction extends AbstractSEXP implements Function {
   }
 
   @Override
+  public SEXPType getType() {
+    return SEXPType.BUILTIN;
+  }
+
+  @Override
   public String getTypeName() {
     return "constructor";
   }

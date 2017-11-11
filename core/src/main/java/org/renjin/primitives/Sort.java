@@ -32,6 +32,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import static org.renjin.sexp.SEXPType.LANGSXP;
+
 public class Sort {
 
   @Internal
@@ -181,7 +183,7 @@ public class Sort {
 
   @Internal("is.unsorted")
   public static LogicalVector isUnsorted(PairList.Node pairlist, boolean strict) {
-    if(pairlist instanceof FunctionCall) {
+    if (pairlist.getType() == LANGSXP) {
       throw new EvalException("invalid argument (language)");
     }
     return isUnsorted(pairlist.toVector(), strict);

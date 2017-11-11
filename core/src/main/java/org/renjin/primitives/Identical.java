@@ -30,6 +30,9 @@ import org.renjin.sexp.*;
 import java.util.Iterator;
 import java.util.Set;
 
+import static org.renjin.sexp.PairList.Node;
+import static org.renjin.sexp.SEXPType.LANGSXP;
+
 /**
  * Implements the identical() function
  */
@@ -74,21 +77,21 @@ public class Identical {
       return identicalAttributes(x, y) &&
           identicalElements((ListVector)x, (ListVector)y, bitwiseComparisonNumbers, bitwiseComparisonNaN);
 
-    } else if(x instanceof FunctionCall) {
+    } else if (x.getType() == LANGSXP) {
       return identicalAttributes(x, y) &&
-          identicalElements((PairList)x, (PairList)y);
+          identicalElements((PairList) x, (PairList) y);
 
-    } else if(x instanceof PairList.Node) {
+    } else if (x instanceof Node) {
       return identicalAttributes(x, y) &&
-          identicalElements((PairList)x, (PairList)y);
+          identicalElements((PairList) x, (PairList) y);
 
-    } else if(x instanceof S4Object) {
+    } else if (x instanceof S4Object) {
       return identicalAttributes(x, y);
 
-    } else if(x instanceof ExternalPtr) {
+    } else if (x instanceof ExternalPtr) {
       return identicalPointers((ExternalPtr) x, (ExternalPtr) y);
 
-    } else if(x instanceof Symbol || x instanceof Environment || x instanceof Function) {
+    } else if (x instanceof Symbol || x instanceof Environment || x instanceof Function) {
       return x == y;
 
     } else {

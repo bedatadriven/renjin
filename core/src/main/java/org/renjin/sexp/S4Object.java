@@ -27,7 +27,12 @@ public class S4Object extends AbstractSEXP {
   public S4Object(AttributeMap attributes) {
     super(attributes);
   }
-  
+
+  @Override
+  public SEXPType getType() {
+    return SEXPType.S4SXP;
+  }
+
   @Override
   public String getTypeName() {
     return "S4";

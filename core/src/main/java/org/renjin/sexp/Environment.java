@@ -602,6 +602,11 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return length;
   }
 
+  @Override
+  public SEXPType getType() {
+    return SEXPType.ENVSXP;
+  }
+
   /**
    * Returns true if the given {@code symbol} is bound to either a normal value, or
    * to an active binding in this Environment.

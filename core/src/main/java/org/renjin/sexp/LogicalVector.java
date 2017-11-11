@@ -68,6 +68,11 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
   public abstract int length();
 
   @Override
+  public final SEXPType getType() {
+    return SEXPType.LGLSXP;
+  }
+
+  @Override
   public int getElementAsInt(int index) {
     return getElementAsRawLogical(index);
   }

@@ -26,6 +26,8 @@ import org.renjin.primitives.vector.IsNaVector;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
 
+import static org.renjin.sexp.SEXPType.LANGSXP;
+
 /**
  * Builtin type inspection and coercion functions
  */
@@ -105,7 +107,7 @@ public class Types {
   public static boolean isPairList(SEXP exp) {
     // strange, but true: 
     return exp instanceof PairList &&
-        !(exp instanceof FunctionCall);
+        !(exp.getType() == LANGSXP);
   }
 
   @Builtin("is.atomic")
@@ -172,12 +174,12 @@ public class Types {
 
   @Builtin("is.call")
   public static boolean isCall(SEXP exp) {
-    return exp instanceof FunctionCall;
+    return exp.getType() == LANGSXP;
   }
 
   @Builtin("is.language")
   public static boolean isLanguage(SEXP exp) {
-    return exp instanceof Symbol || exp instanceof FunctionCall
+    return exp instanceof Symbol || exp.getType() == LANGSXP
         || exp instanceof ExpressionVector;
 
   }
@@ -366,7 +368,7 @@ public class Types {
 
   @Builtin("as.call")
   public static FunctionCall asCall(PairList.Node call) {
-    if(call instanceof FunctionCall) {
+    if (call.getType() == LANGSXP) {
       return (FunctionCall) call;
     }
     return new FunctionCall(call.getValue(), call.getNext());

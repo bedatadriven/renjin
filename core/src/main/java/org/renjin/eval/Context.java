@@ -39,6 +39,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.renjin.sexp.Null.INSTANCE;
+import static org.renjin.sexp.SEXPType.LANGSXP;
+
 /**
  * Contexts are the internal mechanism used to keep track of where a
  * computation has got to (and from where),
@@ -278,11 +281,11 @@ public class Context {
       return evaluateSymbol((Symbol) expression, rho, allowMissing);
     } else if(expression instanceof ExpressionVector) {
       return evaluateExpressionVector((ExpressionVector) expression, rho);
-    } else if(expression instanceof FunctionCall) {
+    } else if (expression.getType() == LANGSXP) {
       return evaluateCall((FunctionCall) expression, rho);
-    } else if(expression instanceof Promise) {
+    } else if (expression instanceof Promise) {
       return expression.force(this);
-    } else if(expression != Null.INSTANCE && expression instanceof PromisePairList) {
+    } else if (expression != INSTANCE && expression instanceof PromisePairList) {
       throw new EvalException("'...' used in an incorrect context");
     } else {
       clearInvisibleFlag();

@@ -281,6 +281,11 @@ public interface PairList extends SEXP {
     }
 
     @Override
+    public SEXPType getType() {
+      return SEXPType.LISTSXP;
+    }
+
+    @Override
     public <X extends SEXP> X getElementAsSEXP(int i) {
       return (X) Iterators.get(valueIterator(), i);
     }

@@ -36,7 +36,12 @@ public abstract class BuiltinFunction extends PrimitiveFunction {
   public String getName() {
     return name;
   }
-  
+
+  @Override
+  public SEXPType getType() {
+    return SEXPType.BUILTIN;
+  }
+
   @Override
   public final String getTypeName() {
     return TYPE_NAME;

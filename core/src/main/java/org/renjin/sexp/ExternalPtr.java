@@ -49,6 +49,11 @@ public final class ExternalPtr<T> extends AbstractSEXP {
   }
 
   @Override
+  public SEXPType getType() {
+    return SEXPType.EXPRSXP;
+  }
+
+  @Override
   public String getTypeName() {
     return "externalptr";
   }

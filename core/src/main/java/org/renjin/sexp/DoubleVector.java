@@ -218,6 +218,11 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
   public abstract int length();
 
   @Override
+  public final SEXPType getType() {
+    return SEXPType.REALSXP;
+  }
+
+  @Override
   public boolean isNumeric() {
     return true;
   }

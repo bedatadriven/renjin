@@ -22,6 +22,8 @@ import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.repackaged.guava.base.Objects;
 
+import static org.renjin.sexp.SEXPType.LANGSXP;
+
 
 /**
  * The function closure data type.
@@ -44,7 +46,7 @@ public class Closure extends AbstractSEXP implements Function {
   
   public Closure(Environment enclosingEnvironment, PairList formals, SEXP body, AttributeMap attributes) {
     super(attributes);
-    assert !(formals instanceof FunctionCall);
+    assert !(formals.getType() == LANGSXP);
     this.enclosingEnvironment = enclosingEnvironment;
     this.body = body;
     this.formals = formals; 
@@ -52,6 +54,11 @@ public class Closure extends AbstractSEXP implements Function {
  
   public Closure(Environment environment, PairList formals, SEXP body) {
     this(environment, formals, body, AttributeMap.EMPTY);
+  }
+
+  @Override
+  public SEXPType getType() {
+    return SEXPType.CLOSXP;
   }
 
   @Override

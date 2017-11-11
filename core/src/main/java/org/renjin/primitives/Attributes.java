@@ -23,6 +23,8 @@ import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.sexp.*;
 
+import static org.renjin.sexp.SEXPType.LANGSXP;
+
 /**
  * 
  * Attributes are an R language feature that allow metadata to be attached to 
@@ -94,8 +96,8 @@ public class Attributes {
   @Builtin("dim<-")
   public static SEXP setDimensions(SEXP exp, AtomicVector vector) {
     
-    if((!(exp instanceof Vector) && 
-        !(exp instanceof PairList)) || exp instanceof FunctionCall) {
+    if((!(exp instanceof Vector) &&
+        !(exp instanceof PairList)) || exp.getType() == LANGSXP) {
       throw new EvalException("cannot set dim() on object of type '%s'", exp.getTypeName());
     }
     

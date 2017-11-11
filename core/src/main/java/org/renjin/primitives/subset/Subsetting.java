@@ -30,6 +30,10 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import static org.renjin.sexp.FunctionCall.newCallFromVector;
+import static org.renjin.sexp.PairList.Node;
+import static org.renjin.sexp.SEXPType.LANGSXP;
+
 /**
  * Implementations of the subset operators {@code [}, {@code [[}, {@code $}, and {@code @}
  * and their sub-assignment counterparts.
@@ -283,12 +287,12 @@ public class Subsetting {
     if(source instanceof Vector) {
       return selection.getVectorSubset(context, (Vector) source, drop);
 
-    } else if(source instanceof FunctionCall) {
-      return FunctionCall.newCallFromVector(
+    } else if (source.getType() == LANGSXP) {
+      return newCallFromVector(
           (ListVector) selection.getVectorSubset(context, ((FunctionCall) source).toVector(), drop));
-      
-    } else if(source instanceof PairList.Node) {
-      return selection.getVectorSubset(context, ((PairList.Node) source).toVector(), drop);
+
+    } else if (source instanceof Node) {
+      return selection.getVectorSubset(context, ((Node) source).toVector(), drop);
 
     } else {
       throw new EvalException("object of type '%s' is not subsettable", source.getTypeName());
@@ -325,14 +329,14 @@ public class Subsetting {
     if(source instanceof ListVector) {
       return selection.replaceListElements(context, (ListVector) source, replacement);
 
-    } else if(source instanceof FunctionCall) {
-      return FunctionCall.newCallFromVector(
-          selection.replaceListElements(context, ((PairList.Node) source).toVector(), replacement));
+    } else if (source.getType() == LANGSXP) {
+      return newCallFromVector(
+          selection.replaceListElements(context, ((Node) source).toVector(), replacement));
 
-    } else if(source instanceof PairList.Node) {
-      return selection.replaceListElements(context, ((PairList.Node) source).toVector(), replacement);
+    } else if (source instanceof Node) {
+      return selection.replaceListElements(context, ((Node) source).toVector(), replacement);
 
-    } else if(source instanceof AtomicVector) {
+    } else if (source instanceof AtomicVector) {
       return selection.replaceAtomicVectorElements(context, (AtomicVector) source, replacement);
 
     } else {

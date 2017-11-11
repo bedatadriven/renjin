@@ -97,7 +97,12 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   public int length() {
     return values.length;
   }
- 
+
+  @Override
+  public SEXPType getType() {
+    return SEXPType.LISTSXP;
+  }
+
   @Override
   public int indexOf(Vector vector, int vectorIndex, int startIndex) {
     for(int i=0;i!=values.length;++i) {

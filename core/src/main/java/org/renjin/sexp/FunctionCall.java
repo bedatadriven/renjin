@@ -38,6 +38,11 @@ public class FunctionCall extends PairList.Node {
   }
 
   @Override
+  public SEXPType getType() {
+    return SEXPType.LANGSXP;
+  }
+
+  @Override
   public String getTypeName() {
     return TYPE_NAME;
   }

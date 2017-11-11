@@ -32,7 +32,12 @@ public abstract class SpecialFunction extends PrimitiveFunction {
   protected SpecialFunction(String name) {
     this.name = name;
   }
-  
+
+  @Override
+  public SEXPType getType() {
+    return SEXPType.SPECIALSXP;
+  }
+
   @Override
   public String getTypeName() {
     return TYPE_NAME;

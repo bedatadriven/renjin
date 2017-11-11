@@ -27,6 +27,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import static org.renjin.sexp.FunctionCall.Builder;
+import static org.renjin.sexp.PairList.Node;
+import static org.renjin.sexp.SEXPType.LANGSXP;
+
 
 /**
  * Model formulas in R are defined with a Domain Specific Language (DSL)
@@ -84,15 +88,15 @@ public class FormulaInterpreter {
     if(!allowDotAsName && argument == DOT) {
       return expandRemainingVariables(parent);
         
-    } else if(argument instanceof FunctionCall) {
+    } else if (argument.getType() == LANGSXP) {
       FunctionCall call = (FunctionCall) argument;
-      FunctionCall.Builder expandedCall = new FunctionCall.Builder();
+      Builder expandedCall = new Builder();
       expandedCall.add(call.getFunction());
-      for (PairList.Node node : call.getArguments().nodes()) {
+      for (Node node : call.getArguments().nodes()) {
         expandedCall.add(node.getName(), expandPredictor(node.getValue(), call));
       }
       return expandedCall.build();
-      
+
     } else {
       return argument;
     }
@@ -144,7 +148,7 @@ public class FormulaInterpreter {
   private void findResponseVariables(Set<String> set, SEXP responseSexp) {
     if(responseSexp instanceof Symbol) {
       set.add(((Symbol) responseSexp).getPrintName());
-    } else if(responseSexp instanceof FunctionCall) {
+    } else if (responseSexp.getType() == LANGSXP) {
       FunctionCall call = (FunctionCall) responseSexp;
       for (SEXP argument : call.getArguments().values()) {
         findResponseVariables(set, argument);
@@ -173,15 +177,15 @@ public class FormulaInterpreter {
       list.add(new Term(argument));
     } else if(argument instanceof Vector) {
       intercept((Vector)argument, subtracting);
-    } else if(argument instanceof FunctionCall) {
-      FunctionCall call = (FunctionCall)argument;
-      if(call.getFunction() == UNION) {
+    } else if (argument.getType() == LANGSXP) {
+      FunctionCall call = (FunctionCall) argument;
+      if (call.getFunction() == UNION) {
         unionTerms(list, call);
-      } else if(call.getFunction() == EXPAND_TERMS) {
+      } else if (call.getFunction() == EXPAND_TERMS) {
         multiply(list, call);
-      } else if(call.getFunction() == DIFFERENCE) {
+      } else if (call.getFunction() == DIFFERENCE) {
         difference(list, call);
-      } else if(call.getFunction() == GROUP) {
+      } else if (call.getFunction() == GROUP) {
         add(list, call.getArgument(0), subtracting);
       } else {
         list.add(new TermBuilder().build(call));

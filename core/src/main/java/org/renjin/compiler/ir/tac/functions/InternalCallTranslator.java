@@ -25,10 +25,7 @@ import org.renjin.compiler.ir.tac.expressions.BuiltinCall;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.statements.ExprStatement;
 import org.renjin.primitives.Primitives;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
 import java.util.List;
 
@@ -39,7 +36,7 @@ public class InternalCallTranslator extends FunctionCallTranslator {
   public Expression translateToExpression(IRBodyBuilder builder,
                                           TranslationContext context, Function resolvedFunction, FunctionCall call) {
     SEXP argument = call.getArgument(0);
-    if(!(argument instanceof FunctionCall)) {
+    if(!(argument.getType() == SEXPType.LANGSXP)) {
       throw new InvalidSyntaxException(".Internal() expects a language object as its only argument");
     }
     

@@ -94,6 +94,11 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
   public abstract int length();
 
   @Override
+  public SEXPType getType() {
+    return SEXPType.CPLXSXP;
+  }
+
+  @Override
   public abstract Complex getElementAsComplex(int index);
 
   /**

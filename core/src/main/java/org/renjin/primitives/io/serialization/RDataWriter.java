@@ -31,6 +31,8 @@ import java.io.OutputStream;
 import java.util.Map;
 
 import static org.renjin.primitives.io.serialization.SerializationFormat.*;
+import static org.renjin.sexp.PairList.Node;
+import static org.renjin.sexp.SEXPType.LANGSXP;
 
 public class RDataWriter implements AutoCloseable {
 
@@ -163,29 +165,29 @@ public class RDataWriter implements AutoCloseable {
       writePromise((Promise)exp);
     } else if(exp instanceof ListVector) {
       writeList((ListVector) exp);
-    } else if(exp instanceof FunctionCall) {
-      writeFunctionCall((FunctionCall)exp);
-    } else if(exp instanceof PairList.Node) {
-      writePairList((PairList.Node) exp);
-    } else if(exp instanceof Symbol) {
+    } else if (exp.getType() == LANGSXP) {
+      writeFunctionCall((FunctionCall) exp);
+    } else if (exp instanceof Node) {
+      writePairList((Node) exp);
+    } else if (exp instanceof Symbol) {
       writeSymbol((Symbol) exp);
-    } else if(exp instanceof Closure) {
-      writeClosure((Closure)exp);
-    } else if(exp instanceof RawVector) {
+    } else if (exp instanceof Closure) {
+      writeClosure((Closure) exp);
+    } else if (exp instanceof RawVector) {
       writeRawVector((RawVector) exp);
-    } else if(exp instanceof Environment) {
-      writeEnvironment((Environment)exp);
-    } else if(exp instanceof PrimitiveFunction) {
-      writePrimitive((PrimitiveFunction)exp);
-    } else if(exp instanceof S4Object) {
-      writeS4((S4Object)exp);
-    } else if(exp instanceof ExternalPtr) {
-      writeExternalPtr((ExternalPtr)exp);
-    } else if(exp instanceof CHARSEXP) {
-      writeCharExp(((CHARSEXP)exp).getValue());
+    } else if (exp instanceof Environment) {
+      writeEnvironment((Environment) exp);
+    } else if (exp instanceof PrimitiveFunction) {
+      writePrimitive((PrimitiveFunction) exp);
+    } else if (exp instanceof S4Object) {
+      writeS4((S4Object) exp);
+    } else if (exp instanceof ExternalPtr) {
+      writeExternalPtr((ExternalPtr) exp);
+    } else if (exp instanceof CHARSEXP) {
+      writeCharExp(((CHARSEXP) exp).getValue());
     } else {
       throw new UnsupportedOperationException("serialization of " + exp.getClass().getName() + " not implemented: ["
-         + exp.toString() + "]");
+          + exp.toString() + "]");
     }
   }
 

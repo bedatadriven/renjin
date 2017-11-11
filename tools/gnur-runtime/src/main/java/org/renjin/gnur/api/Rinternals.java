@@ -33,6 +33,9 @@ import java.lang.System;
 import java.lang.invoke.MethodHandle;
 import java.util.Arrays;
 
+import static org.renjin.sexp.SEXPType.LANGSXP;
+import static org.renjin.sexp.SexpType.*;
+
 /**
  * GNU R API methods defined in the "Rinternals.h" header file.
  *
@@ -405,18 +408,18 @@ public final class Rinternals {
       return SexpType.CPLXSXP;
     } else if(s instanceof Closure) {
       return SexpType.CLOSXP;
-    } else if(s instanceof FunctionCall) {
+    } else if (s.getType() == LANGSXP) {
       return SexpType.LANGSXP;
-    } else if(s instanceof PairList) {
-      return SexpType.LISTSXP;
-    } else if(s instanceof S4Object) {
-      return SexpType.S4SXP;
-    } else if(s instanceof Promise) {
-      return SexpType.PROMSXP;
-    } else if(s instanceof Symbol) {
-      return SexpType.SYMSXP;
-    } else if(s instanceof GnuCharSexp) {
-      return SexpType.CHARSXP;
+    } else if (s instanceof PairList) {
+      return LISTSXP;
+    } else if (s instanceof S4Object) {
+      return S4SXP;
+    } else if (s instanceof Promise) {
+      return PROMSXP;
+    } else if (s instanceof Symbol) {
+      return SYMSXP;
+    } else if (s instanceof GnuCharSexp) {
+      return CHARSXP;
     } else {
       throw new UnsupportedOperationException("Unknown SEXP Type: " + s.getClass().getName());
     }
@@ -1525,13 +1528,13 @@ public final class Rinternals {
       }
       return new ListVector(elements, sexp.getAttributes());
 
-    } else if(sexp instanceof FunctionCall) {
+    } else if (sexp.getType() == LANGSXP) {
       return duplicateCall(((FunctionCall) sexp));
 
-    } else if(sexp instanceof PairList) {
+    } else if (sexp instanceof PairList) {
       return duplicatePairList(((PairList) sexp));
 
-    } else if(sexp instanceof Symbol) {
+    } else if (sexp instanceof Symbol) {
       return sexp;
     }
     throw new UnimplementedGnuApiMethod("Rf_duplicate: " + sexp.getTypeName());
@@ -2662,7 +2665,7 @@ public final class Rinternals {
   }
 
   public static boolean Rf_isLanguage(SEXP p0) {
-    return p0 instanceof FunctionCall;
+    return p0.getType() == LANGSXP;
   }
 
   public static boolean Rf_isList(SEXP s) {

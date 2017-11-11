@@ -20,10 +20,7 @@ package org.renjin.gnur.api;
 
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.repackaged.guava.base.Charsets;
-import org.renjin.sexp.AbstractSEXP;
-import org.renjin.sexp.SexpVisitor;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
 /**
  * Internal character SEXP
@@ -52,6 +49,11 @@ public class GnuCharSexp extends AbstractSEXP {
     } else {
       return new GnuCharSexp(BytePtr.nullTerminatedString(value, Charsets.UTF_8).array);
     }
+  }
+
+  @Override
+  public SEXPType getType() {
+    return SEXPType.CHARSXP;
   }
 
   @Override

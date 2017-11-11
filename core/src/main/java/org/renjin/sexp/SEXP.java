@@ -37,6 +37,8 @@ public interface SEXP {
 
   AttributeMap getAttributes();
 
+  SEXPType getType();
+
   String getTypeName();
 
   void accept(SexpVisitor visitor);

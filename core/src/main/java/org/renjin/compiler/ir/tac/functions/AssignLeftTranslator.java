@@ -28,6 +28,8 @@ import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
+import static org.renjin.sexp.SEXPType.LANGSXP;
+
 
 public class AssignLeftTranslator extends FunctionCallTranslator {
 
@@ -65,10 +67,10 @@ public class AssignLeftTranslator extends FunctionCallTranslator {
     // class(x$a[3]) <- "foo"
 
     SEXP lhs = assignment.getArgument(0);
-    
-    while(lhs instanceof FunctionCall) {
+
+    while (lhs.getType() == LANGSXP) {
       FunctionCall call = (FunctionCall) lhs;
-      
+
       rhs = builder.translateSetterCall(context, call, rhs);
       lhs = call.getArgument(0);
     }

@@ -29,6 +29,8 @@ import org.renjin.primitives.text.ReservedWords;
 import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.sexp.*;
 
+import static org.renjin.sexp.SEXPType.LANGSXP;
+
 public class Deparse {
 
   private static final char BACK_TICK = '`';
@@ -135,7 +137,7 @@ public class Deparse {
     private boolean requiresStructure(SEXP exp) {
       // for perhaps arbitrary reasons, attributes of 
       // function calls and S4 objects are not included in the deparse
-      if(exp instanceof FunctionCall || exp instanceof S4Object) {
+      if(exp.getType() == LANGSXP || exp instanceof S4Object) {
         return false;
       }
 

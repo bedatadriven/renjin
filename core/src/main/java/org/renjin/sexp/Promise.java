@@ -98,6 +98,11 @@ public class Promise extends AbstractSEXP implements Recursive {
   }
 
   @Override
+  public final SEXPType getType() {
+    return SEXPType.PROMSXP;
+  }
+
+  @Override
   public String getTypeName() {
     return TYPE_NAME;
   }

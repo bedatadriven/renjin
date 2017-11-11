@@ -64,6 +64,11 @@ public abstract class IntVector extends AbstractAtomicVector implements Iterable
   public abstract int length();
 
   @Override
+  public SEXPType getType() {
+    return SEXPType.INTSXP;
+  }
+
+  @Override
   public abstract int getElementAsInt(int i);
 
   @Override

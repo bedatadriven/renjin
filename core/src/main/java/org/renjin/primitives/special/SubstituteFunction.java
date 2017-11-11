@@ -60,7 +60,7 @@ public class SubstituteFunction extends SpecialFunction {
       if(ellipses == Null.INSTANCE) {
         expr = Null.INSTANCE;
       } else {
-        PromisePairList.Node promisePairList = (PromisePairList.Node) ellipses;
+        PairList.Node promisePairList = (PairList.Node) ellipses;
         Promise promisedArg = (Promise) promisePairList.getValue();
         expr = promisedArg.getExpression();
       }
@@ -132,7 +132,7 @@ public class SubstituteFunction extends SpecialFunction {
         if(node.getValue().equals(Symbols.ELLIPSES)) {
           SEXP extraArguments = context.getVariable(Symbols.ELLIPSES);
           if(extraArguments != Symbol.UNBOUND_VALUE) {
-            builder.addAll(unpackPromiseList((PromisePairList) extraArguments));
+            builder.addAll(unpackPromiseList((PairList) extraArguments));
           } else {
             builder.add(Symbols.ELLIPSES);
           }
@@ -180,7 +180,7 @@ public class SubstituteFunction extends SpecialFunction {
       }
     }
 
-    private PairList unpackPromiseList(PromisePairList dotExp) {
+    private PairList unpackPromiseList(PairList dotExp) {
       PairList.Builder unpacked = new PairList.Node.Builder();
       for(PairList.Node node : dotExp.nodes()) {
         unpacked.add(node.getRawTag(), unpromise(node.getValue()));

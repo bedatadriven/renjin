@@ -84,7 +84,7 @@ public class Calls {
         if(ellipsesValue == Symbol.UNBOUND_VALUE) {
           throw new EvalException("'...' used in an incorrect context");
         }
-        PromisePairList dotExp = (PromisePairList) ellipsesValue;
+        PairList dotExp = (PairList) ellipsesValue;
         for(PairList.Node dotNode : dotExp.nodes()) {
           list.add(dotNode.getRawTag(), dotNode.getValue());
         }

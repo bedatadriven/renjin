@@ -1554,8 +1554,8 @@ public class S3 {
 
     // unpack ... and match exactly
     for (PairList.Node node : actuals.nodes()) {
-      if(node.getValue() instanceof  PromisePairList) {
-        PromisePairList ellipses = (PromisePairList) node.getValue();
+      if(node.getValue().getType() == SEXPType.DOTSXP) {
+        PairList ellipses = (PairList) node.getValue();
         for(PairList.Node nestedNode : ellipses.nodes()) {
           actualNames.add(nestedNode.getRawTag());
           actualValues.add(nestedNode.getValue());

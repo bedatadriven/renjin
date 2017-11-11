@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.renjin.sexp.Null.INSTANCE;
+import static org.renjin.sexp.SEXPType.DOTSXP;
 import static org.renjin.sexp.SEXPType.LANGSXP;
 
 /**
@@ -285,7 +286,7 @@ public class Context {
       return evaluateCall((FunctionCall) expression, rho);
     } else if (expression instanceof Promise) {
       return expression.force(this);
-    } else if (expression != INSTANCE && expression instanceof PromisePairList) {
+    } else if (expression != INSTANCE && expression.getType() == DOTSXP) {
       throw new EvalException("'...' used in an incorrect context");
     } else {
       clearInvisibleFlag();

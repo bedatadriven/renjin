@@ -53,7 +53,7 @@ test.dependenciesLoadedOnClasspath <- function() {
 }
 
 test.definedDuringLoad <- function() {
-    assertThat(defined.during.load, identicalTo(84))
+    assertThat(alpha:::defined.during.load, identicalTo(84))
 }
 
 

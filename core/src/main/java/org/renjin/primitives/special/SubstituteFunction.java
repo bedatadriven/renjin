@@ -144,7 +144,7 @@ public class SubstituteFunction extends SpecialFunction {
     }
 
     @Override
-    public void visit(PairList.Node pairList) {
+    public void visitPairList(PairList.Node pairList) {
       PairList.Builder builder = PairList.Node.newBuilder();
       for(PairList.Node node : pairList.nodes()) {
         builder.add(node.getRawTag(), substitute(node.getValue()));
@@ -196,8 +196,8 @@ public class SubstituteFunction extends SpecialFunction {
     }
 
     @Override
-    public void visit(PromisePairList dotExp) {
-      super.visit(dotExp);
+    public void visitDot(PairList dotExp) {
+      super.visitDot(dotExp);
     }
 
     @Override

@@ -1896,32 +1896,14 @@ public final class Rinternals {
     return Rf_str2type((Ptr)p0);
   }
 
-  public static int Rf_str2type(Ptr string) {
-    switch (Stdlib.nullTerminatedString(string)) {
-      case Null.TYPE_NAME:
-        return SexpType.NILSXP;
-      case PairList.TYPE_NAME:
-        return SexpType.LISTSXP;
-      case FunctionCall.TYPE_NAME:
-        return SexpType.LANGSXP;
-      case ListVector.TYPE_NAME:
-        return SexpType.VECSXP;
-      case StringVector.TYPE_NAME:
-        return SexpType.STRSXP;
-      case IntVector.TYPE_NAME:
-        return SexpType.INTSXP;
-      case RawVector.TYPE_NAME:
-        return SexpType.RAWSXP;
-      case LogicalVector.TYPE_NAME:
-        return SexpType.LGLSXP;
-      case Environment.TYPE_NAME:
-        return SexpType.ENVSXP;
-      case Promise.TYPE_NAME:
-        return SexpType.PROMSXP;
-      case Symbol.TYPE_NAME:
-        return SexpType.SYMSXP;
+  public static int Rf_str2type(Ptr stringPtr) {
+    String string = Stdlib.nullTerminatedString(stringPtr);
+    for (SEXPType sexpType : SEXPType.values()) {
+      if(sexpType.typeName().equals(string)) {
+        return sexpType.code();
+      }
     }
-    throw new UnimplementedGnuApiMethod("Rf_str2type: " + Stdlib.nullTerminatedString(string));
+    throw new UnimplementedGnuApiMethod("Rf_str2type: " + string);
   }
 
   public static boolean Rf_StringBlank(SEXP p0) {

@@ -18,10 +18,6 @@
  */
 package org.renjin.primitives.io.serialization;
 
-import org.renjin.repackaged.guava.base.Charsets;
-import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.repackaged.guava.io.ByteSource;
-
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.parser.NumericLiterals;
@@ -29,6 +25,9 @@ import org.renjin.primitives.Primitives;
 import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.primitives.vector.ConvertingStringVector;
 import org.renjin.primitives.vector.RowNamesVector;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.io.ByteSource;
 import org.renjin.sexp.*;
 
 import java.io.*;
@@ -178,7 +177,7 @@ public class RDataReader implements AutoCloseable {
       case SexpType.ENVSXP:
         return readEnv(flags);
       case LISTSXP:
-        return readPairList(flags);
+        return readPairList(SEXPType.LISTSXP, flags);
       case LANGSXP:
         return readLangExp(flags);
       case SexpType.CLOSXP:
@@ -384,10 +383,10 @@ public class RDataReader implements AutoCloseable {
   }
 
   private SEXP readDotExp(int flags) throws IOException {
-    return PromisePairList.Builder.fromPairList(readPairList(flags));
+    return readPairList(SEXPType.DOTSXP, flags);
   }
 
-  private PairList readPairList(int flags) throws IOException {
+  private PairList readPairList(SEXPType type, int flags) throws IOException {
 
     PairList.Node head = null;
     PairList.Node tail = null;
@@ -413,7 +412,12 @@ public class RDataReader implements AutoCloseable {
       // read the next element in the list
       flags = in.readInt();
     }
-    return head == null ? Null.INSTANCE : head;
+    if(head == null) {
+      return Null.INSTANCE;
+    } else {
+      head.setType(type);
+      return head;
+    }
   }
 
   private SEXP readTag(int flags) throws IOException {

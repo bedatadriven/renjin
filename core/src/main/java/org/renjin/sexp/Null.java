@@ -35,7 +35,7 @@ import java.util.Collections;
  * There is only one immutable instance of {@code Null} that can be referenced at
  * {@code Null.INSTANCE}
  */
-public final class Null extends AbstractSEXP implements AtomicVector, PairList, PromisePairList {
+public final class Null extends AbstractSEXP implements AtomicVector, PairList {
 
   public static final String TYPE_NAME = "NULL";
 

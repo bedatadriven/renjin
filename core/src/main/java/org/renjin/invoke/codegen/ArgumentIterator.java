@@ -132,7 +132,7 @@ public class ArgumentIterator {
     SEXP arg = node.getValue();
     
     if(Symbols.ELLIPSES.equals(arg)) {
-      PromisePairList dotdot = (PromisePairList) context.evaluate(arg, rho);
+      PairList dotdot = (PairList) context.evaluate(arg, rho);
       ellipses = dotdot;
       return nextNode();
 
@@ -150,7 +150,7 @@ public class ArgumentIterator {
     if(args != Null.INSTANCE) {
       SEXP arg = ((PairList.Node)args).getValue();
       if(Symbols.ELLIPSES.equals(arg)) {
-        PromisePairList dotdot = (PromisePairList) context.evaluate(arg, rho);
+        PairList dotdot = (PairList) context.evaluate(arg, rho);
         ellipses = dotdot;
         args = ((PairList.Node)args).getNext();
 

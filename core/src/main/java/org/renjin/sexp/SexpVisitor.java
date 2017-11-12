@@ -56,7 +56,7 @@ public class SexpVisitor<R> {
     unhandled(call);
   }
 
-  public void visit(PairList.Node pairList) {
+  public void visitPairList(PairList.Node pairList) {
     unhandled(pairList);
   }
 
@@ -80,7 +80,7 @@ public class SexpVisitor<R> {
     unhandled(vector);
   }
 
-  public void visit(PromisePairList dotExp) {
+  public void visitDot(PairList dotExp) {
     unhandled(dotExp);
   }
 

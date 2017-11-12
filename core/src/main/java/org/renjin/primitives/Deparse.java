@@ -231,7 +231,7 @@ public class Deparse {
     }
 
     @Override
-    public void visit(PairList.Node pairList) {
+    public void visitPairList(PairList.Node pairList) {
       deparseList("pairlist", pairList.namedValues());
     }
 

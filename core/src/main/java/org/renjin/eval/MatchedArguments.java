@@ -18,10 +18,7 @@
  */
 package org.renjin.eval;
 
-import org.renjin.sexp.PromisePairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
+import org.renjin.sexp.*;
 
 /**
  * Matching between supplied arguments to a closure call and the
@@ -57,8 +54,8 @@ public class MatchedArguments {
     return matchedPositions.getFormalName(formalIndex);
   }
 
-  public PromisePairList buildExtraArgumentList() {
-    PromisePairList.Builder promises = new PromisePairList.Builder();
+  public PairList buildExtraArgumentList() {
+    PairList.Builder promises = new PairList.Builder(SEXPType.DOTSXP);
     for (int actualIndex = 0; actualIndex < actualValues.length; actualIndex++) {
       if(matchedPositions.isExtraArgument(actualIndex)) {
         promises.add( actualTags[actualIndex],  actualValues[actualIndex] );

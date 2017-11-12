@@ -36,20 +36,20 @@ class FriendlyTypesNames {
     names = new HashMap<Class, String>();
     names.put(SEXP[].class, "...");
     names.put(SEXP.class, "any");
-    names.put(LogicalArrayVector.class, LogicalVector.TYPE_NAME);
-    names.put(Logical.class, LogicalVector.TYPE_NAME);
-    names.put(Boolean.class, LogicalVector.TYPE_NAME);
-    names.put(Boolean.TYPE, LogicalVector.TYPE_NAME);
-    names.put(IntArrayVector.class, IntVector.TYPE_NAME);
-    names.put(Integer.class, IntVector.TYPE_NAME);
-    names.put(Integer.TYPE, IntVector.TYPE_NAME);
-    names.put(DoubleArrayVector.class, DoubleVector.TYPE_NAME);
-    names.put(Double.class, DoubleVector.TYPE_NAME);
-    names.put(Double.TYPE, DoubleVector.TYPE_NAME);
-    names.put(String.class, StringVector.TYPE_NAME);
-    names.put(StringVector.class, StringVector.TYPE_NAME);
-    names.put(ListVector.class, ListVector.TYPE_NAME);
-    names.put(PairList.Node.class, PairList.TYPE_NAME);
+    names.put(LogicalVector.class, SEXPType.LGLSXP.typeName());
+    names.put(Logical.class, SEXPType.LGLSXP.typeName());
+    names.put(Boolean.class, SEXPType.LGLSXP.typeName());
+    names.put(Boolean.TYPE, SEXPType.LGLSXP.typeName());
+    names.put(IntVector.class, SEXPType.INTSXP.typeName());
+    names.put(Integer.class, SEXPType.INTSXP.typeName());
+    names.put(Integer.TYPE, SEXPType.INTSXP.typeName());
+    names.put(DoubleVector.class, SEXPType.REALSXP.typeName());
+    names.put(Double.class,  SEXPType.REALSXP.typeName());
+    names.put(Double.TYPE, SEXPType.REALSXP.typeName());
+    names.put(String.class,  SEXPType.STRSXP.typeName());
+    names.put(StringVector.class, SEXPType.STRSXP.typeName());
+    names.put(ListVector.class, SEXPType.VECSXP.typeName());
+    names.put(PairList.Node.class, SEXPType.LISTSXP.typeName());
   }
 
   public static FriendlyTypesNames get() {

@@ -18,7 +18,6 @@
  */
 package org.renjin.sexp;
 
-import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Iterators;
 import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
@@ -34,7 +33,6 @@ import java.util.Objects;
  *
  */
 public interface PairList extends SEXP {
-  public String TYPE_NAME = "pairlist";
 
   <S extends SEXP> S getElementAsSEXP(int i);
   Iterable<Node> nodes();
@@ -73,6 +71,8 @@ public interface PairList extends SEXP {
   public class Node extends AbstractSEXP implements Recursive, PairList, NamedValue, HasNamedValues {
 
 
+    private SEXPType type;
+
     /**
      * The actual data for this node, .e.g {@code CAR} in
      * the C implementation
@@ -86,8 +86,11 @@ public interface PairList extends SEXP {
      */
     protected PairList nextNode = Null.INSTANCE;
 
-    public Node(SEXP tag, SEXP value, AttributeMap attributes, PairList nextNode) {
+
+
+    public Node(SEXPType type, SEXP tag, SEXP value, AttributeMap attributes, PairList nextNode) {
       super(attributes);
+      this.type = type;
       this.tag = tag;
       this.value = value;
       if (value==null) {
@@ -98,16 +101,12 @@ public interface PairList extends SEXP {
       }
     }
 
+    public Node(SEXP tag, SEXP value, AttributeMap attributes, PairList nextNode) {
+      this(SEXPType.LISTSXP, tag, value, attributes, nextNode);
+    }
+
     public Node(SEXP tag, SEXP value, PairList nextNode) {
-      super(AttributeMap.EMPTY);
-      this.tag = tag;
-      this.value = value;
-      if(nextNode instanceof Node) {
-        this.nextNode = nextNode;
-      }
-      if (value==null) {
-        throw new IllegalArgumentException("Node value can't be null");
-      }
+      this(tag, value, AttributeMap.EMPTY, nextNode);
     }
 
     public Node(SEXP value, PairList nextNode) {
@@ -116,7 +115,7 @@ public interface PairList extends SEXP {
 
     @Override
     public String getTypeName() {
-      return TYPE_NAME;
+      return type.typeName();
     }
 
     /**
@@ -282,7 +281,7 @@ public interface PairList extends SEXP {
 
     @Override
     public SEXPType getType() {
-      return SEXPType.LISTSXP;
+      return type;
     }
 
     @Override
@@ -391,6 +390,10 @@ public interface PairList extends SEXP {
       return new Node(Null.INSTANCE, value, Null.INSTANCE);
     }
 
+    public void setType(SEXPType type) {
+      this.type = type;
+    }
+
 
     /**
      * Iterator that iterators over the {@code ListExp}'s values
@@ -487,7 +490,15 @@ public interface PairList extends SEXP {
 
     @Override
     public void accept(SexpVisitor visitor) {
-      visitor.visit(this);
+      switch (type) {
+        case LISTSXP:
+          visitor.visitPairList(this);
+          break;
+        case DOTSXP:
+          visitor.visitDot(this);
+          break;
+
+      }
     }
 
     @Override
@@ -499,16 +510,19 @@ public interface PairList extends SEXP {
       }
       return Null.INSTANCE;
     }
-
- 
   }
 
   public class Builder implements ListBuilder {
+    protected SEXPType type = SEXPType.LISTSXP;
     protected Node head = null;
     protected Node tail;
     protected AttributeMap.Builder attributesBuilder = new AttributeMap.Builder();
 
     public Builder() {
+    }
+
+    public Builder(SEXPType type) {
+      this.type = type;
     }
     
     public Builder(Node head) {
@@ -706,47 +720,10 @@ public interface PairList extends SEXP {
       if(head == null) {
         throw new IllegalStateException("no SEXPs have been added");
       }
+      head.type = type;
       head.unsafeSetAttributes(attributesBuilder.build());
       return head;
     }
   }
 
-  abstract class Predicates {
-
-    public static Predicate<Node> hasTag() {
-      return new Predicate<Node>() {
-        @Override
-        public boolean apply(Node listExp) {
-          return listExp.hasTag();
-        }
-      };
-    }
-
-    public static Predicate<Node> matches(final String name) {
-      return new Predicate<Node>() {
-        @Override
-        public boolean apply(Node input) {
-          if(input.getRawTag() instanceof Symbol) {
-            return ((Symbol) input.getRawTag()).getPrintName().equals(name);
-          } else {
-            return false;
-          }
-        }
-      };
-    }
-
-    public static Predicate<Node> matches(SEXP tag) {
-      assert tag instanceof Symbol;
-      return matches( ((Symbol) tag).getPrintName() );
-    }
-
-    public static Predicate<Node> startsWith(final Symbol name) {
-      return new Predicate<Node>() {
-        @Override
-        public boolean apply(Node input) {
-          return input.hasTag() && input.getTag().getPrintName().startsWith(name.getPrintName());
-        }
-      };
-    }
-  }
 }

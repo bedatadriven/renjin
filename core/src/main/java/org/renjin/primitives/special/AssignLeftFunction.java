@@ -26,7 +26,6 @@ import static org.renjin.sexp.FunctionCall.newCall;
 import static org.renjin.sexp.PairList.Node.newBuilder;
 import static org.renjin.sexp.Promise.repromise;
 import static org.renjin.sexp.SEXPType.LANGSXP;
-import static org.renjin.sexp.Symbol.get;
 
 
 public class AssignLeftFunction extends SpecialFunction {
@@ -108,8 +107,8 @@ public class AssignLeftFunction extends SpecialFunction {
     if (getter.getType() == LANGSXP) {
       FunctionCall call = (FunctionCall) getter;
       if (call.getArguments().length() == 2 &&
-          (call.getFunction() == get("::") ||
-           call.getFunction() == get(":::"))) {
+          (call.getFunction() == Symbol.get("::") ||
+           call.getFunction() == Symbol.get(":::"))) {
         SEXP namespace = call.getArgument(0);
         SEXP namespacedGetter = call.getArgument(1);
         SEXP setter = setterFromGetter(namespacedGetter);

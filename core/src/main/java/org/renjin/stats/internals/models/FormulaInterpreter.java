@@ -146,12 +146,17 @@ public class FormulaInterpreter {
   }
 
   private void findResponseVariables(Set<String> set, SEXP responseSexp) {
-    if(responseSexp instanceof Symbol) {
-      set.add(((Symbol) responseSexp).getPrintName());
-    } else if (responseSexp.getType() == LANGSXP) {
-      FunctionCall call = (FunctionCall) responseSexp;
-      for (SEXP argument : call.getArguments().values()) {
-        findResponseVariables(set, argument);
+    if(responseSexp != null) {
+      switch (responseSexp.getType()) {
+        case SYMSXP:
+          set.add(((Symbol) responseSexp).getPrintName());
+          break;
+        case LANGSXP:
+          FunctionCall call = (FunctionCall) responseSexp;
+          for (SEXP argument : call.getArguments().values()) {
+            findResponseVariables(set, argument);
+          }
+          break;
       }
     }
   }

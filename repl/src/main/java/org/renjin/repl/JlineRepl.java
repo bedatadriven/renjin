@@ -29,7 +29,6 @@ import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.*;
 import org.renjin.parser.RParser.StatusResult;
-import org.renjin.primitives.Warning;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
 
@@ -244,7 +243,7 @@ public class JlineRepl {
       SEXP result = topLevelContext.evaluate(new ExpressionVector(exprList), topLevelContext.getGlobalEnvironment());
 
       if(!session.isInvisible()) {
-        topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), Promise.repromise(result)));
+        topLevelContext.evaluate(PairList.Node.newCall(Symbol.get("print"), Promise.repromise(result)));
       }
 
       session.printWarnings();

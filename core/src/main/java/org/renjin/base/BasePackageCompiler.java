@@ -54,7 +54,7 @@ public class BasePackageCompiler {
     File baseSourceRoot = new File("src/main/R/base");
     evalSources(evalContext, baseSourceRoot);
     
-    evalContext.evaluate(FunctionCall.newCall(Symbol.get(".onLoad")));  
+    evalContext.evaluate(PairList.Node.newCall(Symbol.get(".onLoad")));
     
     // now serialize them to a lazy-loadable frame
     

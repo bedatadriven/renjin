@@ -66,7 +66,7 @@ public class Print {
   }
 
   private static void printS4(Context context, SEXP expression) {
-    context.evaluate(FunctionCall.newCall(Symbol.get("show"), expression));
+    context.evaluate(PairList.Node.newCall(Symbol.get("show"), expression));
   }
 
   public static String doPrint(SEXP expression) {
@@ -146,7 +146,7 @@ public class Print {
     }
     
     @Override
-    public void visit(FunctionCall call) {
+    public void visitCall(FunctionCall call) {
       out.append(Deparse.deparseExp(context, call));
       out.append("\n");
     }

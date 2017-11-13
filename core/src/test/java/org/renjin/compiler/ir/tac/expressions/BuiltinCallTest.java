@@ -22,8 +22,8 @@ import org.junit.Test;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.primitives.Primitives;
 import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.PairList;
 import org.renjin.sexp.Symbol;
 
 import java.util.Arrays;
@@ -38,7 +38,7 @@ public class BuiltinCallTest {
   @Test
   public void testDoublePlusDouble() {
 
-    FunctionCall functionCall = FunctionCall.newCall(
+    FunctionCall functionCall = PairList.Node.newCall(
         Symbol.get("+"), Symbol.get("x"), Symbol.get("y"));
 
     Expression x = new EnvironmentVariable("x");
@@ -63,7 +63,7 @@ public class BuiltinCallTest {
   public void testDoublePlusInt() {
 
 
-    FunctionCall functionCall = FunctionCall.newCall(
+    FunctionCall functionCall = PairList.Node.newCall(
         Symbol.get("+"), Symbol.get("x"), Symbol.get("y"));
 
     

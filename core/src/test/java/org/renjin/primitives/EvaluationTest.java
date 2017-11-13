@@ -428,7 +428,7 @@ public class EvaluationTest extends EvalTestCase {
   public void substituteDotDot() {
     eval(" f<- function(...) substitute(list(...)) ");
 
-    assertThat( eval("f(a,b)"), identicalTo(new FunctionCall(Symbol.get("list"),
+    assertThat( eval("f(a,b)"), identicalTo(PairList.Node.newCall(Symbol.get("list"),
         PairList.Node.fromArray(Symbol.get("a"), Symbol.get("b")))));
   }
   
@@ -436,7 +436,7 @@ public class EvaluationTest extends EvalTestCase {
   public void substituteWithMissingEllipses() {
     eval(" f<- function(a=1) substitute(list(...)) ");
 
-    assertThat( eval("f()"), identicalTo(new FunctionCall(Symbol.get("list"),
+    assertThat( eval("f()"), identicalTo(PairList.Node.newCall(Symbol.get("list"),
             PairList.Node.fromArray(Symbols.ELLIPSES))));
   }
 

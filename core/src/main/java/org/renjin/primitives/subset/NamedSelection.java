@@ -406,7 +406,7 @@ class NamedSelection implements SelectionStrategy {
 
     PairList.Builder newList;
     if (source.getType() == LANGSXP) {
-      newList = new Builder();
+      newList = new Builder(LANGSXP);
     } else {
       newList = new PairList.Builder();
     }

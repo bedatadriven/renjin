@@ -40,7 +40,7 @@ public class AllNamesVisitor extends SexpVisitor<StringVector> {
   }
 
   @Override
-  public void visit(FunctionCall call) {
+  public void visitCall(FunctionCall call) {
     if(includeFunctionNames) {
       call.getFunction().accept(this);
     }

@@ -137,7 +137,7 @@ public abstract class AbstractBindFunction extends SpecialFunction {
 
     PairList buildArgs = args.build();
 
-    FunctionCall call = new FunctionCall(Symbol.get(bindFunctionName), buildArgs);
+    FunctionCall call = PairList.Node.newCall(Symbol.get(bindFunctionName), buildArgs);
     return foundFunction.apply(context, rho, call, buildArgs);
   }
 

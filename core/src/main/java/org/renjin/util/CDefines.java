@@ -20,7 +20,6 @@ package org.renjin.util;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.Native;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.sexp.*;
 
@@ -274,7 +273,7 @@ public class CDefines {
     Preconditions.checkNotNull(cdr);
 
     if (cdr == R_NilValue) {
-      return new PairList.Node(Null.INSTANCE, car, attributes, null);
+      return new PairList.Node(Null.INSTANCE, car, attributes, Null.INSTANCE);
     } else {
       return new PairList.Node(Null.INSTANCE, car, attributes, (PairList.Node) cdr);
     }
@@ -300,13 +299,13 @@ public class CDefines {
     return CONS(s, list3(t, u, v));
   }
 
-  public static FunctionCall LCONS(SEXP car, SEXP cdr) {
+  public static PairList.Node LCONS(SEXP car, SEXP cdr) {
     Preconditions.checkNotNull(car);
 
     if (cdr == R_NilValue) {
-      return new FunctionCall(car, null);
+      return PairList.Node.newCall(car);
     } else {
-      return new FunctionCall(car, (PairList.Node) cdr);
+      return PairList.Node.newCall(car, (PairList.Node) cdr);
     }
   }
 

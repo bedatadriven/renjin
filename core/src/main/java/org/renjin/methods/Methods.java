@@ -24,7 +24,6 @@ import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.methods.PrimitiveMethodTable.prim_methods_t;
-import org.renjin.primitives.Contexts;
 import org.renjin.primitives.Types;
 import org.renjin.primitives.special.SubstituteFunction;
 import org.renjin.repackaged.guava.base.Strings;
@@ -76,7 +75,7 @@ public class Methods {
       // the .Data slot actually refers to the object value itself, for 
       // example the double values contained in a double vector
       // So we copy the slots from 'object' to the new value
-      return context.evaluate(FunctionCall.newCall(Symbol.get("setDataPart"), object, value),
+      return context.evaluate(PairList.Node.newCall(Symbol.get("setDataPart"), object, value),
           context.getSingleton(MethodDispatch.class).getMethodsNamespace());
     } else {
       // When set via S4 methods, R attributes can contain
@@ -453,7 +452,7 @@ public class Methods {
 
 
   public static SEXP data_part(Context context, SEXP obj) {
-    SEXP val = context.evaluate(FunctionCall.newCall(MethodDispatch.s_getDataPart, obj),
+    SEXP val = context.evaluate(PairList.Node.newCall(MethodDispatch.s_getDataPart, obj),
         context.getSession().getSingleton(MethodDispatch.class).getMethodsNamespace());
 
     // Clear S4 object
@@ -535,7 +534,7 @@ public class Methods {
 //    SETCAR(e, fun);
     /* evaluate a call the non-generic with the same arguments and from
          the same environment as the call to the generic version */
-    return context.evaluate(FunctionCall.newCall(fun, cptr.getArguments(), cptr.getCallingEnvironment()));
+    return context.evaluate(PairList.Node.newCall(fun, cptr.getArguments(), cptr.getCallingEnvironment()));
   }
 
 

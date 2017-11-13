@@ -618,7 +618,7 @@ public class Context {
     BaseFrame baseFrame = (BaseFrame) session.getBaseEnvironment().getFrame();
     baseFrame.load(this);
     
-    evaluate(FunctionCall.newCall(Symbol.get(".onLoad")), session.getBaseNamespaceEnv());
+    evaluate(PairList.Node.newCall(Symbol.get(".onLoad")), session.getBaseNamespaceEnv());
   }
 
   public void setInvisibleFlag() {

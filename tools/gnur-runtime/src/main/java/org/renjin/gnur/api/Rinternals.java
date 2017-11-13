@@ -1549,7 +1549,7 @@ public final class Rinternals {
   }
 
   private static SEXP duplicateCall(FunctionCall call) {
-    FunctionCall.Builder copy = new FunctionCall.Builder();
+    PairList.Builder copy = new PairList.Builder(LANGSXP);
     for (PairList.Node node : call.nodes()) {
       copy.add(node.getRawTag(), Rf_duplicate(node.getValue()));
     }
@@ -2377,7 +2377,7 @@ public final class Rinternals {
       // the .Data slot actually refers to the object value itself, for
       // example the double values contained in a double vector
       // So we copy the slots from 'object' to the new value
-      return Native.currentContext().evaluate(FunctionCall.newCall(Symbol.get("setDataPart"), obj, value),
+      return Native.currentContext().evaluate(PairList.Node.newCall(Symbol.get("setDataPart"), obj, value),
         Native.currentContext().getSingleton(MethodDispatch.class).getMethodsNamespace());
     } else {
       // When set via S4 methods, R attributes can contain
@@ -2403,7 +2403,7 @@ public final class Rinternals {
     Context context = Native.currentContext();
     Namespace methodsNamespace = context.getNamespaceRegistry().getNamespace(context, "methods");
 
-    return context.evaluate(FunctionCall.newCall(Symbol.get("getClass"),
+    return context.evaluate(PairList.Node.newCall(Symbol.get("getClass"),
         StringVector.valueOf(what.nullTerminatedString())));
   }
 
@@ -2419,7 +2419,7 @@ public final class Rinternals {
     Context context = Native.currentContext();
     Namespace methodsNamespace = context.getNamespaceRegistry().getNamespace(context, "methods");
 
-    return context.evaluate(FunctionCall.newCall(Symbol.get("getClassDef"), what));
+    return context.evaluate(PairList.Node.newCall(Symbol.get("getClassDef"), what));
   }
 
   public static boolean R_has_methods_attached() {
@@ -2726,27 +2726,27 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_lang1(SEXP p0) {
-    return FunctionCall.newCall(p0);
+    return PairList.Node.newCall(p0);
   }
 
   public static SEXP Rf_lang2(SEXP p0, SEXP p1) {
-    return FunctionCall.newCall(p0, p1);
+    return PairList.Node.newCall(p0, p1);
   }
 
   public static SEXP Rf_lang3(SEXP p0, SEXP p1, SEXP p2) {
-    return FunctionCall.newCall(p0, p1, p2);
+    return PairList.Node.newCall(p0, p1, p2);
   }
 
   public static SEXP Rf_lang4(SEXP p0, SEXP p1, SEXP p2, SEXP p3) {
-    return FunctionCall.newCall(p0, p1, p2, p3);
+    return PairList.Node.newCall(p0, p1, p2, p3);
   }
 
   public static SEXP Rf_lang5(SEXP p0, SEXP p1, SEXP p2, SEXP p3, SEXP p4) {
-    return FunctionCall.newCall(p0, p1, p2, p3, p4);
+    return PairList.Node.newCall(p0, p1, p2, p3, p4);
   }
 
   public static SEXP Rf_lang6(SEXP p0, SEXP p1, SEXP p2, SEXP p3, SEXP p4, SEXP p5) {
-    return FunctionCall.newCall(p0, p1, p2, p3, p4, p5);
+    return PairList.Node.newCall(p0, p1, p2, p3, p4, p5);
   }
 
   public static SEXP Rf_lastElt(SEXP p0) {
@@ -2766,7 +2766,7 @@ public final class Rinternals {
    * @return Pointer to the constructed list.
    */
   public static SEXP Rf_lcons(SEXP cr, SEXP tl) {
-    return new FunctionCall(cr, (PairList) tl);
+    return PairList.Node.newCall(cr, (PairList) tl);
   }
 
   public static int Rf_length (SEXP sexp) {

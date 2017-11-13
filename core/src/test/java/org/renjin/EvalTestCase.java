@@ -73,7 +73,7 @@ public abstract class EvalTestCase {
   private void printWarnings() {
     SEXP warnings = topLevelContext.getBaseEnvironment().getVariable(topLevelContext, Warning.LAST_WARNING);
     if(warnings != Symbol.UNBOUND_VALUE) {
-      topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
+      topLevelContext.evaluate( PairList.Node.newCall(Symbol.get("print.warnings"), warnings),
           topLevelContext.getBaseEnvironment());
 
       System.out.println();

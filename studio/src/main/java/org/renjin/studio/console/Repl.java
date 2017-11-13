@@ -23,9 +23,8 @@ import org.renjin.RenjinVersion;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.parser.*;
-import org.renjin.primitives.Warning;
 import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 import org.renjin.studio.StudioSession;
@@ -89,7 +88,7 @@ public class Repl implements Runnable {
         SEXP result = topLevelContext.evaluate(exp, global);
 
         if(!topLevelContext.getSession().isInvisible()) {
-          topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), result));  
+          topLevelContext.evaluate(PairList.Node.newCall(Symbol.get("print"), result));
         }
         
         session.getSession().printWarnings();

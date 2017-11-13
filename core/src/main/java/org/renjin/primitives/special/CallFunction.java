@@ -51,6 +51,6 @@ public class CallFunction extends SpecialFunction {
       callArg = callArgNode.getNext();
     }
 
-    return new FunctionCall(function, evaluatedArguments.build());
+    return PairList.Node.newCall(function, evaluatedArguments.build());
   }
 }

@@ -22,7 +22,6 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
-import static org.renjin.sexp.FunctionCall.newCall;
 import static org.renjin.sexp.PairList.Node.newBuilder;
 import static org.renjin.sexp.Promise.repromise;
 import static org.renjin.sexp.SEXPType.LANGSXP;
@@ -72,7 +71,7 @@ public class AssignLeftFunction extends SpecialFunction {
           .add("value", rhs)
           .build();
 
-      FunctionCall setterCall = new FunctionCall(setter, setterArgs);
+      FunctionCall setterCall = PairList.Node.newCall(setter, setterArgs);
 
       rhs = repromise(context.evaluate(setterCall, rho));
 
@@ -112,7 +111,7 @@ public class AssignLeftFunction extends SpecialFunction {
         SEXP namespace = call.getArgument(0);
         SEXP namespacedGetter = call.getArgument(1);
         SEXP setter = setterFromGetter(namespacedGetter);
-        return newCall(call.getFunction(), namespace, setter);
+        return PairList.Node.newCall(call.getFunction(), namespace, setter);
       }
     }
     throw new EvalException("invalid function in complex assignment");

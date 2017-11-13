@@ -27,7 +27,6 @@ import org.renjin.primitives.io.serialization.HeadlessWriteContext;
 import org.renjin.primitives.io.serialization.RDataWriter;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.packaging.NamespaceFile;
-import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.primitives.time.DateTimeFormat;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Strings;
@@ -80,7 +79,7 @@ public class NamespaceBuilder2 {
     if(source.getDescription() != null) {
       for (PackageDescription.PackageDependency dependency : source.getDescription().getDepends()) {
         if(!dependency.getName().equals("R")) {
-          context.evaluate(FunctionCall.newCall(Symbol.get("library"), StringVector.valueOf(dependency.getName())));
+          context.evaluate(PairList.Node.newCall(Symbol.get("library"), StringVector.valueOf(dependency.getName())));
         }
       }
     }
@@ -100,7 +99,7 @@ public class NamespaceBuilder2 {
     
     Context context = builder.build().getTopLevelContext();
     for(String name : buildContext.getDefaultPackages()) {
-      context.evaluate(FunctionCall.newCall(Symbol.get("library"), StringVector.valueOf(name)));
+      context.evaluate(PairList.Node.newCall(Symbol.get("library"), StringVector.valueOf(name)));
     }
     return context;
   }
@@ -110,7 +109,7 @@ public class NamespaceBuilder2 {
     if (sysDataFile.exists()) {
       buildContext.getLogger().info("Loading " + sysDataFile.getName());
       try {
-        context.evaluate(FunctionCall.newCall(Symbol.get("load"), StringVector.valueOf(sysDataFile.getAbsolutePath())),
+        context.evaluate(PairList.Node.newCall(Symbol.get("load"), StringVector.valueOf(sysDataFile.getAbsolutePath())),
             namespace.getNamespaceEnvironment());
       } catch (EvalException e) {
         throw new IOException("Error evaluating sysdata.rda", e);

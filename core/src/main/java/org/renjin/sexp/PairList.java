@@ -68,7 +68,7 @@ public interface PairList extends SEXP {
 
   PairList clone();
 
-  public class Node extends AbstractSEXP implements Recursive, PairList, NamedValue, HasNamedValues {
+  public class Node extends AbstractSEXP implements Recursive, PairList, NamedValue, HasNamedValues, FunctionCall {
 
 
     private SEXPType type;
@@ -78,15 +78,14 @@ public interface PairList extends SEXP {
      * the C implementation
      */
     private SEXP tag = Null.INSTANCE;
+
     protected SEXP value = Null.INSTANCE;
 
     /**
      * The next node in the linked list, i.e. {@code CDR} in the
      * C implementation.
      */
-    protected PairList nextNode = Null.INSTANCE;
-
-
+    protected PairList nextNode;
 
     public Node(SEXPType type, SEXP tag, SEXP value, AttributeMap attributes, PairList nextNode) {
       super(attributes);
@@ -96,8 +95,10 @@ public interface PairList extends SEXP {
       if (value==null) {
         throw new IllegalArgumentException("Node value can't be null");
       }
-      if(nextNode instanceof Node) {
-        this.nextNode = (Node) nextNode;
+      if (nextNode != null) {
+        this.nextNode = nextNode;
+      } else {
+        this.nextNode = Null.INSTANCE;
       }
     }
 
@@ -112,6 +113,45 @@ public interface PairList extends SEXP {
     public Node(SEXP value, PairList nextNode) {
       this(Null.INSTANCE, value, nextNode);
     }
+
+    public Node(SEXPType type, SEXP value, PairList nextNode) {
+      this(type, Null.INSTANCE, value, AttributeMap.EMPTY, nextNode);
+    }
+
+    public Node(SEXPType type, SEXP value, PairList nextNode, AttributeMap attributes) {
+      this(type, Null.INSTANCE, value, attributes, nextNode);
+    }
+
+    public static PairList.Node newCall(SEXP function, PairList arguments) {
+      return new Node(SEXPType.LANGSXP, function, arguments);
+    }
+
+    public static PairList.Node newCall(SEXP function, PairList arguments, AttributeMap attributes) {
+      return new Node(SEXPType.LANGSXP, function, arguments, attributes);
+    }
+
+    public static SEXP newCallFromList(Node listExp) {
+      return newCall(listExp.getFunction(), listExp.nextNode);
+    }
+
+    public static PairList.Node newCall(SEXP function, SEXP... arguments) {
+      if(arguments.length == 0) {
+        return newCall(function, Null.INSTANCE);
+      } else {
+        return newCall(function, Node.fromArray(arguments));
+      }
+    }
+
+    public static PairList newCallFromVector(ListVector vector) {
+      Builder call = newBuilder(SEXPType.LANGSXP);
+      call.addAll(vector);
+      return call.build();
+    }
+
+    public static Builder newBuilder(SEXPType type) {
+      return new Builder(type);
+    }
+
 
     @Override
     public String getTypeName() {
@@ -135,10 +175,6 @@ public interface PairList extends SEXP {
 
     public boolean hasNextNode() {
       return nextNode != Null.INSTANCE;
-    }
-
-    public boolean tagEquals(String name) {
-      return hasTag() && getTag().getPrintName().equals(name);
     }
 
     public static PairList fromIterable(Iterable<? extends SEXP> values) {
@@ -242,7 +278,7 @@ public interface PairList extends SEXP {
 
     @Override
     protected SEXP cloneWithNewAttributes(AttributeMap newAttributes) {
-      return new PairList.Node(tag, value, newAttributes, nextNode);
+      return new PairList.Node(type, tag, value, newAttributes, nextNode);
     }
 
     @Override
@@ -282,6 +318,16 @@ public interface PairList extends SEXP {
     @Override
     public SEXPType getType() {
       return type;
+    }
+
+    @Override
+    public String getImplicitClass() {
+      switch (type) {
+        case LANGSXP:
+          return "call";
+        default:
+          return type.typeName();
+      }
     }
 
     @Override
@@ -371,7 +417,8 @@ public interface PairList extends SEXP {
     }
     
     public Builder newCopyBuilder() {
-      Builder builder = new Builder();
+      Builder builder = new Builder(type);
+      builder.setAttributes(getAttributes());
       for(Node node : nodes()) {
         builder.add(node.getRawTag(), node.getValue());
       }
@@ -392,6 +439,15 @@ public interface PairList extends SEXP {
 
     public void setType(SEXPType type) {
       this.type = type;
+    }
+
+    public SEXP getNamedArgument(String name) {
+      for(Node node : getArguments().nodes()) {
+        if(node.hasTag() && node.getTag().getPrintName().equals(name)) {
+          return node.getValue();
+        }
+      }
+      return Null.INSTANCE;
     }
 
 
@@ -417,9 +473,6 @@ public interface PairList extends SEXP {
         next = ((PairList.Node)next).nextNode;
         return value;
       }
-
-
-
     }
 
     private static class NodeIterator extends UnmodifiableIterator<Node> {
@@ -489,6 +542,21 @@ public interface PairList extends SEXP {
     }
 
     @Override
+    public SEXP getFunction() {
+      return value;
+    }
+
+    @Override
+    public PairList getArguments() {
+      return nextNode == null ? Null.INSTANCE : nextNode;
+    }
+
+    @Override
+    public <X extends SEXP> X getArgument(int index) {
+      return getArguments().<X>getElementAsSEXP(index);
+    }
+
+    @Override
     public void accept(SexpVisitor visitor) {
       switch (type) {
         case LISTSXP:
@@ -497,7 +565,9 @@ public interface PairList extends SEXP {
         case DOTSXP:
           visitor.visitDot(this);
           break;
-
+        case LANGSXP:
+          visitor.visitCall(this);
+          break;
       }
     }
 
@@ -512,11 +582,11 @@ public interface PairList extends SEXP {
     }
   }
 
-  public class Builder implements ListBuilder {
-    protected SEXPType type = SEXPType.LISTSXP;
-    protected Node head = null;
-    protected Node tail;
-    protected AttributeMap.Builder attributesBuilder = new AttributeMap.Builder();
+  final class Builder implements ListBuilder {
+    private SEXPType type = SEXPType.LISTSXP;
+    private Node head = null;
+    private Node tail;
+    private AttributeMap.Builder attributesBuilder = new AttributeMap.Builder();
 
     public Builder() {
     }
@@ -528,6 +598,7 @@ public interface PairList extends SEXP {
     public Builder(Node head) {
       this.head = head;
       this.tail = head;
+      this.type = head.getType();
     }
 
     public Builder setAttributes(AttributeMap attributes) {
@@ -612,7 +683,7 @@ public interface PairList extends SEXP {
 
     public Builder add(SEXP tag, SEXP s) {
       if (head == null) {
-        head = new Node(tag, s, attributesBuilder.build(), Null.INSTANCE);
+        head = new Node(type, tag, s, attributesBuilder.build(), Null.INSTANCE);
         tail = head;
       } else {
         Node next = new Node(tag, s, Null.INSTANCE);
@@ -720,7 +791,6 @@ public interface PairList extends SEXP {
       if(head == null) {
         throw new IllegalStateException("no SEXPs have been added");
       }
-      head.type = type;
       head.unsafeSetAttributes(attributesBuilder.build());
       return head;
     }

@@ -114,7 +114,7 @@ public class Formula {
     for(SEXP variable : uniqueVariables()) {
       args.add(variable);
     }
-    return new FunctionCall(Symbol.get("list"), args.build());
+    return PairList.Node.newCall(Symbol.get("list"), args.build());
   }
 
 

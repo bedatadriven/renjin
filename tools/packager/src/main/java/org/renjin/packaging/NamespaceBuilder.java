@@ -103,7 +103,7 @@ public class NamespaceBuilder {
     Context context = builder.build().getTopLevelContext();
     if(defaultPackages != null) {
       for(String name : defaultPackages) {
-        context.evaluate(FunctionCall.newCall(Symbol.get("library"), StringVector.valueOf(name)));
+        context.evaluate(PairList.Node.newCall(Symbol.get("library"), StringVector.valueOf(name)));
       }
     }
     return context;

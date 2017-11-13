@@ -30,8 +30,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.renjin.sexp.FunctionCall.newCallFromVector;
 import static org.renjin.sexp.PairList.Node;
+import static org.renjin.sexp.PairList.Node.newCallFromVector;
 import static org.renjin.sexp.SEXPType.LANGSXP;
 
 /**
@@ -63,7 +63,7 @@ public class Subsetting {
   public static SEXP getSlotValue(@Current Context context, @Current MethodDispatch methods, SEXP object,
                                   @Unevaluated Symbol slotName) {
     if(slotName.getPrintName().equals(".Data")) {
-      return context.evaluate(FunctionCall.newCall(Symbol.get("getDataPart"), object), methods.getMethodsNamespace());
+      return context.evaluate(Node.newCall(Symbol.get("getDataPart"), object), methods.getMethodsNamespace());
     }
     if(!Types.isS4(object)) {
       SEXP className = object.getAttribute(Symbols.CLASS_NAME);

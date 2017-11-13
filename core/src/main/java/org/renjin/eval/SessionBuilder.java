@@ -24,8 +24,8 @@ import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.util.concurrent.MoreExecutors;
 import org.renjin.sexp.Frame;
-import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.HashFrame;
+import org.renjin.sexp.PairList;
 import org.renjin.sexp.Symbol;
 import org.renjin.util.FileSystemUtils;
 
@@ -183,7 +183,7 @@ public class SessionBuilder {
       }
 
       for (int i = packagesToLoad.size()-1; i >= 0; i--) {
-        session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("library"),
+        session.getTopLevelContext().evaluate(PairList.Node.newCall(Symbol.get("library"),
             Symbol.get(packagesToLoad.get(i))));
       }
       return session;

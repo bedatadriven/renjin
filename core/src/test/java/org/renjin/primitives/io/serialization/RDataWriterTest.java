@@ -112,7 +112,7 @@ public class RDataWriterTest extends EvalTestCase {
     formals.add("x", new IntArrayVector(1));
     formals.add("y", new IntArrayVector(2));
     
-    FunctionCall body = FunctionCall.newCall(Symbol.get("+"), Symbol.get("x"), Symbol.get("y"));
+    FunctionCall body = PairList.Node.newCall(Symbol.get("+"), Symbol.get("x"), Symbol.get("y"));
     
     Closure closure = new Closure(topLevelContext.getGlobalEnvironment(), formals.build(), body);
     

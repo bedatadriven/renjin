@@ -421,7 +421,7 @@ public strictfp class TypesTest extends EvalTestCase {
     ListVector.NamedBuilder list = new ListVector.NamedBuilder();
     list.add("a", Symbol.MISSING_ARG);
     list.add("b", new DoubleArrayVector(2));
-    list.add(FunctionCall.newCall(Symbol.get("+"), Symbol.get("a"), Symbol.get("b")));
+    list.add(PairList.Node.newCall(Symbol.get("+"), Symbol.get("a"), Symbol.get("b")));
     global.setVariable(topLevelContext, Symbol.get("x"), list.build());
     
     eval("f <- .Internal(as.function.default(x, globalenv()))");

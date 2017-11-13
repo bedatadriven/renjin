@@ -322,7 +322,7 @@ public class Deparse {
     }
 
     @Override
-    public void visit(FunctionCall call) {
+    public void visitCall(FunctionCall call) {
       if(call.getFunction() instanceof Symbol) {
         String name = ((Symbol)call.getFunction()).getPrintName();
         if(name.equals("if")) {

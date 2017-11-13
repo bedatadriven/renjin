@@ -136,7 +136,7 @@ public class Attributes {
     dn.setAttribute(Symbols.NAMES, dimnames.getNames());
     for(SEXP names : dimnames) {
       if(names != Null.INSTANCE && !(names instanceof StringVector)) {
-        names = context.evaluate(FunctionCall.newCall(Symbol.get("as.character"), names));
+        names = context.evaluate(PairList.Node.newCall(Symbol.get("as.character"), names));
       }
       dn.add(names);
     }

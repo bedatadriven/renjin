@@ -285,7 +285,7 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
       argList.add(RuntimeConverter.INSTANCE.convertToR(argument));
     }
    
-    FunctionCall call = new FunctionCall(function, argList.build());
+    FunctionCall call = PairList.Node.newCall(function, argList.build());
   
     return topLevelContext.evaluate(call);
   }
@@ -297,7 +297,7 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
   public void printWarnings() {
     SEXP warnings = topLevelContext.getBaseEnvironment().getVariable(topLevelContext, Warning.LAST_WARNING);
     if(warnings != Symbol.UNBOUND_VALUE) {
-      topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
+      topLevelContext.evaluate( PairList.Node.newCall(Symbol.get("print.warnings"), warnings),
           topLevelContext.getBaseEnvironment());
     }
 
@@ -324,7 +324,7 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
     }
     
     public <S extends SEXP> S apply() {
-      FunctionCall call = new FunctionCall(function, arguments.build());
+      FunctionCall call = PairList.Node.newCall(function, arguments.build());
       return (S)topLevelContext.evaluate(call);
     }
   }

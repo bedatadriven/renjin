@@ -70,7 +70,7 @@ public class AssignSlotFunction extends SpecialFunction {
     SEXP valueClass = Attributes.getClass(rhs);
     SEXP objectClass = object.getS3Class();
 
-    FunctionCall checkCall = FunctionCall.newCall(Symbol.get("checkAtAssignment"),
+    FunctionCall checkCall = PairList.Node.newCall(Symbol.get("checkAtAssignment"),
         objectClass, new StringArrayVector(slotName), valueClass);
 
     context.evaluate(checkCall, rho);

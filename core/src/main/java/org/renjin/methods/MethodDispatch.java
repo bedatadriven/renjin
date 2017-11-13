@@ -304,7 +304,7 @@ public class MethodDispatch {
     }
 
     try {
-      return context.evaluate(new FunctionCall(s_MethodsListSelect, args.build()), methodsNamespace);
+      return context.evaluate(PairList.Node.newCall(s_MethodsListSelect, args.build()), methodsNamespace);
     } catch(EvalException e) {
       throw new EvalException(String.format("S language method selection got an error when called from" +
           " internal dispatch for function '%s'", fname), e);
@@ -348,7 +348,7 @@ public class MethodDispatch {
       return def;
     }
     if(found < attrib.length()) {
-      FunctionCall call = FunctionCall.newCall(R_loadMethod_name, def, StringArrayVector.valueOf(fname), ev);
+      FunctionCall call = PairList.Node.newCall(R_loadMethod_name, def, StringArrayVector.valueOf(fname), ev);
       return context.evaluate(call, ev);
 
       //      SEXP e, val;
@@ -573,7 +573,7 @@ public class MethodDispatch {
   private  SEXP do_inherited_table(Context context, SEXP class_objs, SEXP fdef, SEXP mtable, Environment ev) {
     SEXP fun = methodsNamespace.findFunction(context, Symbol.get(".InheritForDispatch"));
 
-    return context.evaluate(FunctionCall.newCall(fun, class_objs, fdef, mtable), ev);
+    return context.evaluate(PairList.Node.newCall(fun, class_objs, fdef, mtable), ev);
   }
 //
 //  static SEXP do_mtable(SEXP fdef, SEXP ev)

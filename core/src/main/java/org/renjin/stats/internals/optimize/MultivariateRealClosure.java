@@ -42,7 +42,7 @@ public class MultivariateRealClosure implements MultivariateRealFunction {
 
   @Override
   public double value(double[] x) throws FunctionEvaluationException, IllegalArgumentException {
-    FunctionCall call = FunctionCall.newCall(fn, new DoubleArrayVector(x));
+    FunctionCall call = PairList.Node.newCall(fn, new DoubleArrayVector(x));
     Vector y = (Vector) context.evaluate(call, rho);
     return y.getElementAsDouble(0) / scale;
   }

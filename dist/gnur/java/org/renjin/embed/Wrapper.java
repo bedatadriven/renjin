@@ -334,7 +334,7 @@ public class Wrapper {
     long function = engine.rniCAR(sexp);
     long arguments = engine.rniCDR(sexp);
 
-    return new FunctionCall(wrap(function), wrapPairList(arguments));
+    return PairList.Node.newCall(wrap(function), wrapPairList(arguments));
   }
 
   private PairList wrapPairList(long node) {

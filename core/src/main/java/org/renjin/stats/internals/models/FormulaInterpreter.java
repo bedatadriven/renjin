@@ -27,7 +27,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import static org.renjin.sexp.FunctionCall.Builder;
 import static org.renjin.sexp.PairList.Node;
 import static org.renjin.sexp.SEXPType.LANGSXP;
 
@@ -67,12 +66,12 @@ public class FormulaInterpreter {
     if(call.getArguments().length() == 1) {
       response = null;
       predictor = expandPredictor(call.getArgument(0), null);
-      expandedFormula = FunctionCall.newCall(TILDE, predictor);
+      expandedFormula = Node.newCall(TILDE, predictor);
       
     } else if(call.getArguments().length() == 2) {
       response = call.getArgument(0);
       predictor = expandPredictor(call.getArgument(1), null);
-      expandedFormula = FunctionCall.newCall(TILDE, response, predictor);
+      expandedFormula = Node.newCall(TILDE, response, predictor);
       
     } else {
       throw new EvalException("Expected at most two arguments to `~` operator");
@@ -90,7 +89,7 @@ public class FormulaInterpreter {
         
     } else if (argument.getType() == LANGSXP) {
       FunctionCall call = (FunctionCall) argument;
-      Builder expandedCall = new Builder();
+      PairList.Builder expandedCall = new PairList.Builder(LANGSXP);
       expandedCall.add(call.getFunction());
       for (Node node : call.getArguments().nodes()) {
         expandedCall.add(node.getName(), expandPredictor(node.getValue(), call));
@@ -126,7 +125,7 @@ public class FormulaInterpreter {
       // In the context of x + .
       // If there are multiple variables, group with parens: x + (y + z)
       if(parent != null && remainingVariables.size() > 1) {
-        return FunctionCall.newCall(GROUP, expandRemainingVariables(remainingVariables));
+        return Node.newCall(GROUP, expandRemainingVariables(remainingVariables));
       } 
       // If we are not nested, or have a single variable, no grouping neccessary
       return expandRemainingVariables(remainingVariables);
@@ -139,7 +138,7 @@ public class FormulaInterpreter {
     SEXP expansion = Symbol.get(it.next());
     
     while(it.hasNext()) {
-      expansion = FunctionCall.newCall(UNION, expansion, Symbol.get(it.next()));
+      expansion = Node.newCall(UNION, expansion, Symbol.get(it.next()));
     }
     
     return expansion;

@@ -52,7 +52,7 @@ public class SexpVisitor<R> {
     unhandled(vector);
   }
 
-  public void visit(FunctionCall call) {
+  public void visitCall(FunctionCall call) {
     unhandled(call);
   }
 

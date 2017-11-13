@@ -489,7 +489,7 @@ public class S3 {
     boolean genericExact = "generic".equals(method.getGroup()) && method.getTotalDist() == 0;
     
     if (!opName.contains("<-") && (genericExact || hasS3Class)) {
-      SEXP call = new FunctionCall(function, promisedArgs.build());
+      SEXP call = PairList.Node.newCall(function, promisedArgs.build());
       return context.evaluate( call );
     } else {
       Map<Symbol, SEXP> metadata = new HashMap<>();
@@ -517,7 +517,7 @@ public class S3 {
         }
       }
   
-      FunctionCall call = new FunctionCall(function, expandedArgs);
+      FunctionCall call = PairList.Node.newCall(function, expandedArgs);
       return ClosureDispatcher.apply(context, rho, call, function, promisedArgs.build(), metadata);
     }
   }
@@ -1014,7 +1014,7 @@ public class S3 {
     }
     PairList newArgs = newArgsBuilder.build();
 
-    FunctionCall newCall = new FunctionCall(chain.getMethodSymbol(), newArgs);
+    FunctionCall newCall = PairList.Node.newCall(chain.getMethodSymbol(), newArgs);
 
     ClosureDispatcher dispatcher = new ClosureDispatcher(context, rho, newCall);
     return dispatcher.apply(chain, newArgs);
@@ -1439,7 +1439,7 @@ public class S3 {
 
       // For example, if you have a stack which looks like foo(x) -> UseMethod('foo') -> foo.default(x) then
       // the foo.default function will have a call of foo.default(x) visible to sys.call() and match.call()
-      FunctionCall newCall = new FunctionCall(method, call.getArguments());
+      FunctionCall newCall = PairList.Node.newCall(method, call.getArguments());
 
       callContext.setState(GenericMethod.class, this);
 

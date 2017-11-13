@@ -109,11 +109,11 @@ public class FormulaInterpreterTest {
   }
   
   private Formula formula(String response, List<Term> terms) {
-    return new Formula(FunctionCall.newCall(Symbol.get("~") ,Symbol.get(response), Null.INSTANCE), 1, terms);
+    return new Formula(PairList.Node.newCall(Symbol.get("~") ,Symbol.get(response), Null.INSTANCE), 1, terms);
   }
   
   private Formula formula(String response, int intercept, List<Term> terms) {
-    return new Formula(FunctionCall.newCall(Symbol.get("~") ,Symbol.get(response), Null.INSTANCE), intercept, terms);
+    return new Formula(PairList.Node.newCall(Symbol.get("~") ,Symbol.get(response), Null.INSTANCE), intercept, terms);
   }
   
   

@@ -28,7 +28,7 @@ public class FunctionCallTest {
   
   @Test
   public void doClone() {
-    FunctionCall call = FunctionCall.newCall(Symbol.get("+"), new DoubleArrayVector(1), new DoubleArrayVector(1));
+    FunctionCall call = PairList.Node.newCall(Symbol.get("+"), new DoubleArrayVector(1), new DoubleArrayVector(1));
     assertThat( call, equalTo( call.clone() ) );
     
   }

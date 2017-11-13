@@ -373,7 +373,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     if(activeBindings != null && activeBindings.containsKey(symbol)) {
       Closure fun = activeBindings.get(symbol);
       PairList.Builder args = new PairList.Builder().add(value);
-      return context.evaluate(new FunctionCall(fun, args.build()));
+      return context.evaluate(PairList.Node.newCall(fun, args.build()));
     }
 
     if(locked && frame.getVariable(symbol) == Symbol.UNBOUND_VALUE) {
@@ -935,7 +935,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   private SEXP evaluateFunction(Context context, Symbol symbol) {
     Closure fun = activeBindings.get(symbol);
     PairList.Builder args = new PairList.Builder();
-    return context.evaluate(new FunctionCall(fun, args.build()));
+    return context.evaluate(PairList.Node.newCall(fun, args.build()));
   }
 
 }

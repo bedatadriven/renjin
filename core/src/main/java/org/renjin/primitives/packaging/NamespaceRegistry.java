@@ -207,7 +207,7 @@ public class NamespaceRegistry {
         // (Before we export symbols!)
         if(namespace.getNamespaceEnvironment().hasVariable(Symbol.get(".onLoad"))) {
           StringVector nameArgument = StringVector.valueOf(pkg.getName().getPackageName());
-          context.evaluate(FunctionCall.newCall(Symbol.get(".onLoad"), nameArgument, nameArgument),
+          context.evaluate(PairList.Node.newCall(Symbol.get(".onLoad"), nameArgument, nameArgument),
               namespace.getNamespaceEnvironment());
         }
 
@@ -245,7 +245,7 @@ public class NamespaceRegistry {
         .getNamespaceIfPresent(Symbol.get("methods"));
     if(methods.isPresent() && methods.get().isLoaded()) {
       SEXP cacheFunction = methods.get().getEntry(Symbol.get("cacheMetaData"));
-      FunctionCall cacheCall = FunctionCall.newCall(cacheFunction,
+      FunctionCall cacheCall = PairList.Node.newCall(cacheFunction,
           namespace.getNamespaceEnvironment(),
           LogicalVector.TRUE,
           namespace.getNamespaceEnvironment());

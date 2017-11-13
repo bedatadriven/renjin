@@ -2963,7 +2963,7 @@ public class RParser {
     state.setEatLines(false);
     if (options.isGenerateCode()) {
       SEXP prevA2 = a2;
-      a2 = FunctionCall.fromListExp((PairList.Node) a2);
+      a2 = PairList.Node.newCallFromList((PairList.Node) a2);
       SETCAR(a2, a1);
       if (state.keepSrcRefs) {
         PROTECT(prevSrcrefs = getAttrib(prevA2, R_SrcrefSymbol));

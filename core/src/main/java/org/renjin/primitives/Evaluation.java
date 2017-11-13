@@ -93,8 +93,8 @@ public class Evaluation {
     for(int i=0;i!=vector.length();++i) {
       // For historical reasons, the calls created by lapply are unevaluated, and code has
       // been written (e.g. bquote) that relies on this.
-      FunctionCall getElementCall = FunctionCall.newCall(Symbol.get("[["), vector, new IntArrayVector(i+1));
-      FunctionCall applyFunctionCall = new FunctionCall(function, new PairList.Node(getElementCall,
+      FunctionCall getElementCall = PairList.Node.newCall(Symbol.get("[["), vector, new IntArrayVector(i+1));
+      FunctionCall applyFunctionCall = PairList.Node.newCall(function, new PairList.Node(getElementCall,
           new PairList.Node(Symbols.ELLIPSES, Null.INSTANCE)));
       builder.add( context.evaluate(applyFunctionCall, rho) );
     }
@@ -116,12 +116,12 @@ public class Evaluation {
       // build function call 
       PairList.Builder args = new PairList.Builder();
       
-      FunctionCall getCall = FunctionCall.newCall(
+      FunctionCall getCall = PairList.Node.newCall(
           Symbol.get("[["), vector, new IntArrayVector(i+1));
       
       args.add(getCall);
       args.addAll(extraArgs);
-      FunctionCall call = new FunctionCall(function, args.build());
+      FunctionCall call = PairList.Node.newCall(function, args.build());
       
       // evaluate
       SEXP x = context.evaluate(call);
@@ -178,12 +178,12 @@ public class Evaluation {
       for(int j = 0; j!=varyingArgs.length();++ j) {
         SEXP arg = varyingArgs.getElementAsSEXP(j);
         args.add(varyingArgs.getName(j),
-            FunctionCall.newCall(doubleBracket, arg, IntVector.valueOf( (i % arg.length()) + 1 )));
+            PairList.Node.newCall(doubleBracket, arg, IntVector.valueOf( (i % arg.length()) + 1 )));
       }
       if(constantArgs.length() > 0) {
         args.addAll((ListVector)constantArgs);
       }
-      result.add(context.evaluate(new FunctionCall(f, args.build()), rho));
+      result.add(context.evaluate(PairList.Node.newCall(f, args.build()), rho));
     }
        
     return result.build();
@@ -192,7 +192,7 @@ public class Evaluation {
   @Internal("do.call")
   public static SEXP doCall(@Current Context context, Function what, ListVector arguments, Environment environment) {
     PairList argumentPairList = new PairList.Builder().addAll(arguments).build();
-    FunctionCall call = new FunctionCall(what, argumentPairList);
+    FunctionCall call = PairList.Node.newCall(what, argumentPairList);
     return context.evaluate(call, environment);
   }
 

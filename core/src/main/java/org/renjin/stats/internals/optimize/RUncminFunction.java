@@ -54,7 +54,7 @@ class RUncminFunction implements UncminFunction {
   }
 
   public SEXP doApply(double x[]) {
-    FunctionCall call = FunctionCall.newCall(function, new DoubleArrayVector(x));
+    FunctionCall call = PairList.Node.newCall(function, new DoubleArrayVector(x));
     return context.evaluate(call, rho);
   }
 

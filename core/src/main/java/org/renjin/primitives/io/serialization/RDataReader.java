@@ -260,7 +260,7 @@ public class RDataReader implements AutoCloseable {
     SEXP tag = readTag(flags);
     SEXP function = readExp();
     PairList arguments = (PairList) readExp();
-    return new FunctionCall(function, arguments, attributes);
+    return PairList.Node.newCall(function, arguments, attributes);
   }
 
   /**
@@ -352,7 +352,7 @@ public class RDataReader implements AutoCloseable {
         switch (type) {
           case ATTRLANGSXP:
           case LANGSXP:
-            ans = new FunctionCall(Null.INSTANCE, Null.INSTANCE, attributes);
+            ans = PairList.Node.newCall(Null.INSTANCE, Null.INSTANCE, attributes);
             break;
           case ATTRLISTSXP:
           case LISTSXP:

@@ -173,7 +173,7 @@ public class Serialization {
         // make sure exp doesn't get evaled
         Promise promisedExp = Promise.repromise(exp);
         
-        FunctionCall hookCall = FunctionCall.newCall(hookExp, promisedExp);
+        FunctionCall hookCall = PairList.Node.newCall(hookExp, promisedExp);
         SEXP result = context.evaluate(hookCall);
         if(result == Null.INSTANCE) {
           return Null.INSTANCE;

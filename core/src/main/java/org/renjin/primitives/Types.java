@@ -100,14 +100,24 @@ public class Types {
 
   @Builtin("is.list")
   public static boolean isList(SEXP exp) {
-    return exp instanceof ListVector || exp.getClass() == PairList.Node.class;
+    switch (exp.getType()) {
+      case VECSXP:
+      case LISTSXP:
+        return true;
+      default:
+        return false;
+    }
   }
 
   @Builtin("is.pairlist")
   public static boolean isPairList(SEXP exp) {
-    // strange, but true: 
-    return exp instanceof PairList &&
-        !(exp.getType() == LANGSXP);
+    switch (exp.getType()) {
+      case NILSXP:
+      case LISTSXP:
+        return true;
+      default:
+        return false;
+    }
   }
 
   @Builtin("is.atomic")
@@ -179,9 +189,14 @@ public class Types {
 
   @Builtin("is.language")
   public static boolean isLanguage(SEXP exp) {
-    return exp instanceof Symbol || exp.getType() == LANGSXP
-        || exp instanceof ExpressionVector;
-
+    switch (exp.getType()) {
+      case SYMSXP:
+      case LANGSXP:
+      case EXPRSXP:
+        return true;
+      default:
+        return false;
+    }
   }
 
   @Builtin("is.function")
@@ -362,7 +377,7 @@ public class Types {
     for (int i = 1; i != list.length(); ++i) {
       arguments.add(list.getName(i), list.getElementAsSEXP(i));
     }
-    return new FunctionCall(list.getElementAsSEXP(0), arguments.build());
+    return PairList.Node.newCall(list.getElementAsSEXP(0), arguments.build());
   }
 
 
@@ -371,7 +386,7 @@ public class Types {
     if (call.getType() == LANGSXP) {
       return (FunctionCall) call;
     }
-    return new FunctionCall(call.getValue(), call.getNext());
+    return PairList.Node.newCall(call.getValue(), call.getNext());
   }
 
   @Builtin

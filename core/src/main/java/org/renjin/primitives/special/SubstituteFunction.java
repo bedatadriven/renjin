@@ -118,8 +118,8 @@ public class SubstituteFunction extends SpecialFunction {
     }
 
     @Override
-    public void visit(FunctionCall call) {
-      result = new FunctionCall(
+    public void visitCall(FunctionCall call) {
+      result = PairList.Node.newCall(
           substitute(call.getFunction()),
           substituteArgumentList(call.getArguments()),
           call.getAttributes()

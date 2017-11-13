@@ -19,7 +19,6 @@
 package org.renjin.packaging;
 
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
-import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
@@ -213,8 +212,8 @@ public class DatasetsBuilder {
     args.add("header", LogicalVector.TRUE);
     args.add("sep", StringVector.valueOf(sep));
 
-    FunctionCall readTable = FunctionCall.newCall(Symbol.get("::"), Symbol.get("utils"), Symbol.get("read.table"));
-    FunctionCall call = new FunctionCall(readTable, args.build());
+    FunctionCall readTable = PairList.Node.newCall(Symbol.get("::"), Symbol.get("utils"), Symbol.get("read.table"));
+    FunctionCall call = PairList.Node.newCall(readTable, args.build());
 
     Session session = new SessionBuilder().build();
     SEXP dataFrame = session.getTopLevelContext().evaluate(call);
@@ -268,7 +267,7 @@ public class DatasetsBuilder {
 
     // The utils package needs to be on the search path
     // For read.table, etc
-    session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("library"), Symbol.get("utils")));
+    session.getTopLevelContext().evaluate(PairList.Node.newCall(Symbol.get("library"), Symbol.get("utils")));
 
     // The working directory needs to be the data dir
     session.setWorkingDirectory(scriptFile.getParentFile());

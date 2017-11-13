@@ -217,7 +217,7 @@ public class Conditions {
         if(handler != null) {
           if(handler.isCalling()) {
             // For "calling" handlers, we invoke in THIS context
-            FunctionCall handlerCall = FunctionCall.newCall(handler.getFunction(), condition);
+            FunctionCall handlerCall = PairList.Node.newCall(handler.getFunction(), condition);
             context.evaluateCallingHandler(definitionContext, handlerCall);
 
           } else {

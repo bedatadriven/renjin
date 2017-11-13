@@ -542,8 +542,7 @@ public class SubsettingTest extends EvalTestCase {
   }
   
   
-
-  @Test(expected = EvalException.class)
+  @Test
   public void replaceSingleElementInPairListMatrixWithNullAllowed() {
     eval(" x<- pairlist(1,2,3,4) ");
     eval(" dim(x) <- c(2,2) ");
@@ -980,18 +979,17 @@ public class SubsettingTest extends EvalTestCase {
   public void subsettingFunctionCalls() {
     eval("x <- quote(a+b)");
     assertThat(eval("x[]"), identicalTo(eval("x")));
-    assertThat(eval("x[1]"), identicalTo((SEXP) FunctionCall.newCall(Symbol.get("+"))));
-    assertThat(eval("x[1:2]"), identicalTo((SEXP) FunctionCall.newCall(Symbol.get("+"), Symbol.get("a"))));
+    assertThat(eval("x[1]"), identicalTo((SEXP) PairList.Node.newCall(Symbol.get("+"))));
+    assertThat(eval("x[1:2]"), identicalTo((SEXP) PairList.Node.newCall(Symbol.get("+"), Symbol.get("a"))));
   }
   
   @Test
   public void subsettingFunctionCallsByName() {
     eval("x <- quote(c(a=1,b=2))");
-    assertThat(eval("x['a']"), identicalTo((SEXP) FunctionCall.newCall(new DoubleArrayVector(1))));
     assertThat(eval("names(x['a'])"), elementsIdenticalTo(c("a")));
 
-    assertThat(eval("x['foo']"), identicalTo((SEXP) FunctionCall.newCall(Null.INSTANCE)));
-    assertThat(eval("x[ NA_character_ ]"), identicalTo((SEXP) FunctionCall.newCall(Null.INSTANCE)));
+    assertThat(eval("x['foo']"), identicalTo((SEXP) PairList.Node.newCall(Null.INSTANCE)));
+    assertThat(eval("x[ NA_character_ ]"), identicalTo((SEXP) PairList.Node.newCall(Null.INSTANCE)));
 
   }
   

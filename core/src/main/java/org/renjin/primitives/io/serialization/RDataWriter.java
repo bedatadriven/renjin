@@ -32,7 +32,6 @@ import java.util.Map;
 
 import static org.renjin.primitives.io.serialization.SerializationFormat.*;
 import static org.renjin.sexp.PairList.Node;
-import static org.renjin.sexp.SEXPType.LANGSXP;
 
 public class RDataWriter implements AutoCloseable {
 
@@ -165,8 +164,6 @@ public class RDataWriter implements AutoCloseable {
       writePromise((Promise)exp);
     } else if(exp instanceof ListVector) {
       writeList((ListVector) exp);
-    } else if (exp.getType() == LANGSXP) {
-      writeFunctionCall((FunctionCall) exp);
     } else if (exp instanceof Node) {
       writePairList((Node) exp);
     } else if (exp instanceof Symbol) {
@@ -377,7 +374,7 @@ public class RDataWriter implements AutoCloseable {
   private void writePairList(PairList.Node node) throws IOException {
 
     while(true) {
-      writeFlags(SexpType.LISTSXP, node);
+      writeFlags(node.getType().code(), node);
       writeAttributes(node);
       writeTag(node);
       writeExp(node.getValue());
@@ -387,18 +384,6 @@ public class RDataWriter implements AutoCloseable {
         break;
       }
       node = node.getNextNode();
-    }
-  }
-
-  private void writeFunctionCall(FunctionCall exp) throws IOException {
-    writeFlags(SexpType.LANGSXP, exp);
-    writeAttributes(exp);
-    writeTag(exp);
-    writeExp(exp.getValue());
-    if(exp.hasNextNode()) {
-      writeExp(exp.getNextNode());
-    } else {
-      writeNull();
     }
   }
 

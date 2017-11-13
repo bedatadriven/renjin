@@ -19,7 +19,7 @@ public class EvalTestCase {
     
     context = Context.newTopLevelContext();
     context.init();
-    context.evaluate(FunctionCall.newCall(Symbol.get("library"), Symbol.get("stats")));
+    context.evaluate(PairList.Node.newCall(Symbol.get("library"), Symbol.get("stats")));
     
     
   }
@@ -52,7 +52,7 @@ public class EvalTestCase {
   protected final void printWarnings() {
     SEXP warnings = context.getBaseEnvironment().getVariable(context, Warning.LAST_WARNING);
     if(warnings != Symbol.UNBOUND_VALUE) {
-      context.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
+      context.evaluate( PairList.Node.newCall(Symbol.get("print.warnings"), warnings),
               context.getBaseEnvironment());
     }
   }

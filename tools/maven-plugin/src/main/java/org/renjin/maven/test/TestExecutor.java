@@ -18,7 +18,6 @@
  */
 package org.renjin.maven.test;
 
-import org.renjin.repackaged.guava.base.Throwables;
 import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 import org.renjin.eval.Context;
@@ -29,6 +28,7 @@ import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.base.Throwables;
 import org.renjin.repackaged.guava.io.Files;
 import org.renjin.repl.JlineRepl;
 import org.renjin.sexp.*;
@@ -151,7 +151,7 @@ public class TestExecutor {
 
   private void loadLibrary(Session session, String namespaceName, PrintStream testOutput) {
     try {
-      session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("library"), Symbol.get(namespaceName)));
+      session.getTopLevelContext().evaluate(PairList.Node.newCall(Symbol.get("library"), Symbol.get(namespaceName)));
     } catch(Exception e) {
       testOutput.println("Failed to load namespace " + namespaceName);
       testOutput.println(Throwables.getStackTraceAsString(e));
@@ -247,7 +247,7 @@ public class TestExecutor {
     try {
       testOutput.print("Executing " + name.getPrintName() + "... ");
       sendMessage(START_MESSAGE, name.getPrintName());
-      context.evaluate(FunctionCall.newCall(name));
+      context.evaluate(PairList.Node.newCall(name));
       sendMessage(PASS_MESSAGE);
       testOutput.println("PASSED");
       
@@ -305,7 +305,7 @@ public class TestExecutor {
     options.add("testthat.junit.output_file", StringVector.valueOf(
         new File(testReportDirectory, "TEST-testthat-results.xml").getAbsolutePath()));
 
-    session.getTopLevelContext().evaluate(new FunctionCall(Symbol.get("options"), options.build()));
+    session.getTopLevelContext().evaluate(PairList.Node.newCall(Symbol.get("options"), options.build()));
 
     return session;
   }

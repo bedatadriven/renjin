@@ -82,7 +82,7 @@ public class WrapperRuntime {
       return Null.INSTANCE;
     } else {
       provided = provided.force(context);
-      return (Vector) context.evaluate( FunctionCall
+      return (Vector) context.evaluate( PairList.Node
         .newCall(Symbols.AS_CHARACTER, provided), rho);
     }
   }

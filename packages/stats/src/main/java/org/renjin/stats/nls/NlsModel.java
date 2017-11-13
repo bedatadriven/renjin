@@ -37,7 +37,7 @@ class NlsModel {
 
   private static FunctionCall getElementAsFunctionCall(ListVector m, String name) {
     SEXP element = getElementAsFunction(m, name);
-    return FunctionCall.newCall(element);
+    return PairList.Node.newCall(element);
   }
 
   /**
@@ -55,7 +55,7 @@ class NlsModel {
    * false otherwise
    */
   public boolean updateParameters(double[] newParameters) {
-    SEXP result = context.evaluate(FunctionCall.newCall(setPars, new DoubleArrayVector(newParameters)),
+    SEXP result = context.evaluate(PairList.Node.newCall(setPars, new DoubleArrayVector(newParameters)),
             context.getGlobalEnvironment());
     if(!(result instanceof AtomicVector)) {
       throw new EvalException("Unexpected result from setPars");

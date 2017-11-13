@@ -352,7 +352,7 @@ public class Match {
       }
     }
     
-    return new FunctionCall(call.getFunction(), expandedArgs.build());
+    return PairList.Node.newCall(call.getFunction(), expandedArgs.build());
   }
   
   /**

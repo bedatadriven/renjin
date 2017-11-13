@@ -376,7 +376,7 @@ public class Session {
   public void printWarnings() {
     SEXP warnings = baseEnvironment.getVariable(topLevelContext, Warning.LAST_WARNING);
     if(warnings != Symbol.UNBOUND_VALUE) {
-      topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
+      topLevelContext.evaluate( PairList.Node.newCall(Symbol.get("print.warnings"), warnings),
           topLevelContext.getBaseEnvironment());
 
     }

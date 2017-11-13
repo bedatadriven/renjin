@@ -18,7 +18,9 @@
  */
 package org.renjin.eval;
 
-import org.renjin.sexp.*;
+import org.renjin.sexp.Closure;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
 
 public class FinalizationClosure implements FinalizationHandler {
   private Closure function;
@@ -29,6 +31,6 @@ public class FinalizationClosure implements FinalizationHandler {
 
   @Override
   public void finalize(Context context, SEXP sexp) {
-    context.evaluate(new FunctionCall(function, PairList.Node.singleton(sexp)));
+    context.evaluate(PairList.Node.newCall(function, PairList.Node.singleton(sexp)));
   }
 }

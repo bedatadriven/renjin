@@ -55,7 +55,7 @@ public class Text {
       if(argument instanceof StringVector) {
         argumentVectors.add((StringVector) argument);
       } else {
-        SEXP result = context.evaluate(FunctionCall.newCall(Symbol.get("as.character"), Promise.repromise(argument)));
+        SEXP result = context.evaluate(PairList.Node.newCall(Symbol.get("as.character"), Promise.repromise(argument)));
         if(!(result instanceof StringVector)) {
           throw new EvalException("as.character() returned non-character");
         }
@@ -136,7 +136,7 @@ public class Text {
     for(int i=0;i!=formatArgs.length;++i) {
       SEXP argument = arguments.getElementAsSEXP(i);
       if(formatters[0].isFormattedString(i) && !(argument instanceof StringVector)) {
-        argument = context.evaluate( FunctionCall.newCall(Symbol.get("as.character"), argument), 
+        argument = context.evaluate( PairList.Node.newCall(Symbol.get("as.character"), argument),
             rho); 
       }
       if(!(argument instanceof AtomicVector)) {

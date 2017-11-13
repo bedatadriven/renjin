@@ -100,7 +100,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
   @Override
   public SEXPType getType() {
-    return SEXPType.LISTSXP;
+    return SEXPType.VECSXP;
   }
 
   @Override

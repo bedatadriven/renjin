@@ -40,7 +40,7 @@ public class RecallFunction extends SpecialFunction {
     Closure closure = (Closure)originalContext.getFunction();
 
     PairList newArguments = (PairList)rho.getVariable(context, Symbols.ELLIPSES);
-    FunctionCall newCall = new FunctionCall(originalContext.getCall().getFunction(), newArguments);
+    FunctionCall newCall = PairList.Node.newCall(originalContext.getCall().getFunction(), newArguments);
     
     return closure.apply(originalContext, 
           originalContext.getEnvironment(), 

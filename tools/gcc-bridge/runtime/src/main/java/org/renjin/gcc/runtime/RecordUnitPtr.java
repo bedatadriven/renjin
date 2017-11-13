@@ -220,6 +220,11 @@ public class RecordUnitPtr<T> implements Ptr {
   }
 
   @Override
+  public long getAlignedLong(int index) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public long getLong(int offset) {
     throw new UnsupportedOperationException("TODO");
   }

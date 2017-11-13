@@ -129,6 +129,9 @@ public class GlobalSymbolTable implements SymbolTable {
     addFunction("__builtin_memset__", new MemSetGenerator(typeOracle));
     addFunction("__memset_chk", new MemSetGenerator(typeOracle));
 
+    addFunction(VarArgsStartGenerator.NAME, new VarArgsStartGenerator());
+    addFunction(VarArgsEndGenerator.NAME, new VarArgsEndGenerator());
+
     addFunction(BuiltinConstantPredicate.NAME, new BuiltinConstantPredicate());
     addFunction(BuiltinObjectSize.NAME, new BuiltinObjectSize());
     addFunction(BuiltinAssumeAlignedGenerator.NAME, new BuiltinAssumeAlignedGenerator());
@@ -155,6 +158,7 @@ public class GlobalSymbolTable implements SymbolTable {
     addMethods(Stdlib2.class);
     addMethods(Mathlib.class);
     addMethods(Std.class);
+    addMethods(PosixThreads.class);
   }
 
   public void addLibrary(SymbolLibrary lib) {

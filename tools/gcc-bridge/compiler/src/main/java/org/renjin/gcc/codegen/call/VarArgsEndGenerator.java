@@ -16,19 +16,18 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.invoke.annotations;
+package org.renjin.gcc.codegen.call;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.ExprFactory;
+import org.renjin.gcc.gimple.statement.GimpleCall;
 
-/**
- * Indicates that a match by class should be tried before
- * executing this default function.
- */
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Generic {
-  boolean S3() default true;
-  boolean S4() default true;
+public class VarArgsEndGenerator implements CallGenerator {
+
+  public static final String NAME = "__builtin_va_end";
+
+  @Override
+  public void emitCall(MethodGenerator mv, ExprFactory exprFactory, GimpleCall call) {
+    // NOOP
+  }
 }

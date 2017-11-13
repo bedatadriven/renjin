@@ -70,6 +70,11 @@ public class NativeSourceBuilder {
 
   private void configure() throws IOException, InterruptedException {
 
+    File renjinMakeVars = new File(source.getNativeSourceDir(), "Makevars.renjin");
+    if (renjinMakeVars.exists()) {
+      buildContext.getLogger().debug("Makevars.renjin exists, skipping ./configure...");
+    }
+
     File configure = new File(source.getPackageDir(), "configure");
     if(!configure.exists()) {
       buildContext.getLogger().debug("No ./configure script found at " + configure.getAbsolutePath() +

@@ -23,6 +23,7 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleLValue;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
+import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.guava.base.Joiner;
@@ -245,7 +246,21 @@ public class GimpleFunction implements GimpleDecl {
   public GimpleBasicBlock getLastBasicBlock() {
     return basicBlocks.get(basicBlocks.size()-1);
   }
-  
+
+  public boolean isVariadic() {
+    for (GimpleBasicBlock basicBlock : basicBlocks) {
+      for (GimpleStatement statement : basicBlock.getStatements()) {
+        if(statement instanceof GimpleCall) {
+          GimpleCall call = (GimpleCall) statement;
+          if(call.isFunctionNamed("__builtin_va_start")) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   public void accept(GimpleExprVisitor visitor) {
     for (GimpleVarDecl decl : variableDeclarations) {
       if(decl.getValue() != null) {

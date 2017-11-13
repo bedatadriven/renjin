@@ -16,19 +16,17 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.invoke.annotations;
+package org.renjin.gcc.annotations;
 
-import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Indicates that a match by class should be tried before
- * executing this default function.
+ * Marks a parameter as the "varargs" parameter. Must of type {@link org.renjin.gcc.runtime.Ptr}
  */
-@Documented
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Generic {
-  boolean S3() default true;
-  boolean S4() default true;
+@Target(ElementType.PARAMETER)
+public @interface VarArgs {
 }

@@ -2354,7 +2354,10 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_HasFancyBindings");
   }
 
-  // void Rf_errorcall (SEXP, const char *,...)
+  public static void Rf_errorcall (SEXP call, Ptr format, Object... args) {
+    String errorMessage = Stdlib.format(format, args);
+    throw new EvalException(errorMessage);
+  }
 
   // void Rf_warningcall (SEXP, const char *,...)
 

@@ -22,6 +22,7 @@ import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.tree.AbstractInsnNode;
+import org.renjin.repackaged.asm.tree.IincInsnNode;
 import org.renjin.repackaged.asm.tree.IntInsnNode;
 import org.renjin.repackaged.asm.tree.MethodInsnNode;
 
@@ -206,6 +207,13 @@ public enum Pattern {
             methodInsnNode.desc.startsWith("(I)");
       }
       return false;
+    }
+  },
+
+  IINC {
+    @Override
+    public boolean match(AbstractInsnNode node) {
+      return node instanceof IincInsnNode;
     }
   };
 

@@ -292,7 +292,9 @@ public class NamespaceFile {
       parseImportFrom(call);
     } else if(directiveName.equals("importFromClass")) {
       parseImportFromClass(call);
-    } else if(directiveName.equals("importClassesFrom")) {
+    } else if(
+        directiveName.equals("importClassFrom") ||
+        directiveName.equals("importClassesFrom")) {
       parseImportS4ClassesFrom(call);
     } else if(directiveName.equals("importMethodsFrom")) {
       parseImportS4MethodsFrom(call);

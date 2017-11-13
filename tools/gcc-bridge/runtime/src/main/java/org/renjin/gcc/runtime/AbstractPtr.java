@@ -213,6 +213,11 @@ public abstract class AbstractPtr implements Ptr {
   }
 
   @Override
+  public long getAlignedLong(int index) {
+    return getLong(index * LongPtr.BYTES);
+  }
+
+  @Override
   public long getLong(int offset) {
     return ((getByte(offset + 7) & 0xffL) << 56L) |
            ((getByte(offset + 6) & 0xffL) << 48L) |

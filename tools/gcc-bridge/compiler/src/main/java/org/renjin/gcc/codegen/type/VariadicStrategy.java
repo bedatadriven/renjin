@@ -16,19 +16,33 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.invoke.annotations;
+package org.renjin.gcc.codegen.type;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.ExprFactory;
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.tree.AnnotationNode;
+
+import java.util.List;
 
 /**
- * Indicates that a match by class should be tried before
- * executing this default function.
+ * Defines a strategy for handling variadic functions
  */
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Generic {
-  boolean S3() default true;
-  boolean S4() default true;
+public interface VariadicStrategy {
+
+  /**
+   * @return zero or more JVM types used to represent this parameter.
+   */
+  List<Type> getParameterTypes();
+
+
+  /**
+   * Prepares a list of "extra" arguments to be passed to a variadic function.
+   */
+  List<JExpr> marshallVarArgs(MethodGenerator mv, ExprFactory exprFactory, List<GimpleExpr> extraArgs);
+
+
+  List<AnnotationNode> getParameterAnnotations();
 }

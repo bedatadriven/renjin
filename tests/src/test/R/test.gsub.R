@@ -19,23 +19,10 @@
 
 library(hamcrest)
 
-assertThat(sprintf("%i", 1L), identicalTo("1"))
-assertThat(sprintf("%f", 1L), identicalTo("1.000000"))
-assertThat(sprintf("%E", 1L), identicalTo("1.000000E+00"))
-assertThat(sprintf("%e", 1L), identicalTo("1.000000e+00"))
-assertThat(sprintf("%g", 1L), identicalTo("1"))
-assertThat(sprintf("%G", 1L), identicalTo("1"))
+test.gsub0 <- function() {
 
-assertThat(sprintf("%g", 102400000L), identicalTo("1.024e+08"))
-assertThat(sprintf("%G", 102400000L), identicalTo("1.024E+08"))
+    assertThat(gsub( '^0+', '', '123'), identicalTo('123'))
+    assertThat(gsub( '^0*', '', '123'), identicalTo('123'))
+    assertThat(gsub( '0*', '', '12303405678'), identicalTo('123345678'))
 
-assertThat(sprintf('%.f', 3 ), identicalTo("3"))
-assertThat(sprintf('%0.f', 3 ), identicalTo("3"))
-assertThat(sprintf('%0.f', 3.1 ), identicalTo("3"))
-assertThat(sprintf('%0.f', 3.5 ), identicalTo("4"))
-assertThat(sprintf('%0.f', 3.75 ), identicalTo("4"))
-
-assertThat(sprintf("0x%x", 64), identicalTo("0x40"))
-
-
-
+}

@@ -59,13 +59,6 @@ public class Packages {
     // Copy in the namespace's exports
     namespace.copyExportsTo(context, packageEnv);
     
-    // Load dataset objects as promises
-    for(Dataset dataset : namespace.getPackage().getDatasets()) {
-      for(String objectName : dataset.getObjectNames()) {
-        packageEnv.setVariable(context, objectName, new DatasetObjectPromise(dataset, objectName));
-      }
-    }
-    
     context.setInvisibleFlag();
   }
 

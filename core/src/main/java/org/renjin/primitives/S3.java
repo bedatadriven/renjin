@@ -224,8 +224,14 @@ public class S3 {
     }
 
     GenericMethod left;
-    if(Types.isS4(args.getElementAsSEXP(0))) {
-      return handleS4object(context, args.getElementAsSEXP(0), args, rho, group, opName);
+    for (int k = 0; k < nargs; k++) {
+      if(Types.isS4(args.getElementAsSEXP(k))) {
+        return handleS4object(context, args.getElementAsSEXP(0), args, rho, group, opName);
+      }
+    }
+
+    if(opName.equals("%*%")) {
+      return null;
     }
     
     left = Resolver.start(context, rho, group, opName, args.getElementAsSEXP(0))

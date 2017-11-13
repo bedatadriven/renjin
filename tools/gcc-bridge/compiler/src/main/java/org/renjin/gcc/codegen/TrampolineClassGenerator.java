@@ -76,6 +76,12 @@ public class TrampolineClassGenerator {
         varIndex += type.getSize();
       }
     }
+
+    for (Type type : functionGenerator.getVariadicStrategy().getParameterTypes()) {
+      mv.visitVarInsn(type.getOpcode(Opcodes.ILOAD), varIndex);
+      varIndex += type.getSize();
+    }
+
     mv.visitMethodInsn(Opcodes.INVOKESTATIC, functionGenerator.getClassName(), 
         functionGenerator.getSafeMangledName(),
         functionGenerator.getFunctionDescriptor(),

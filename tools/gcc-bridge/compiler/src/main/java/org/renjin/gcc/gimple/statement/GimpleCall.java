@@ -21,10 +21,7 @@ package org.renjin.gcc.gimple.statement;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleVisitor;
-import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
-import org.renjin.gcc.gimple.expr.GimpleLValue;
-import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
+import org.renjin.gcc.gimple.expr.*;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -69,9 +66,12 @@ public class GimpleCall extends GimpleStatement {
   }
 
   public boolean isFunctionNamed(String name) {
-    if(function instanceof GimpleFunctionRef) {
-      GimpleFunctionRef ref = (GimpleFunctionRef) function;
-      return ref.getName().equals(name);
+    if(function instanceof GimpleAddressOf) {
+      GimpleExpr value = ((GimpleAddressOf) function).getValue();
+      if (value instanceof GimpleFunctionRef) {
+        GimpleFunctionRef ref = (GimpleFunctionRef) value;
+        return ref.getName().equals(name);
+      }
     }
     return false;
   }

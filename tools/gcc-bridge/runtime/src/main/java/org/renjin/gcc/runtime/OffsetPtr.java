@@ -288,6 +288,11 @@ public class OffsetPtr implements Ptr {
   }
 
   @Override
+  public long getAlignedLong(int index) {
+    return ptr.getLong(this.offset + (index * LongPtr.BYTES));
+  }
+
+  @Override
   public void setLong(long value) {
     ptr.setLong(this.offset, value);
   }

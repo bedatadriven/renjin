@@ -91,7 +91,14 @@ public class PointerPtr extends AbstractPtr {
 
   @Override
   public Ptr realloc(int newSizeInBytes) {
-    throw new UnsupportedOperationException("TODO");
+    if(this.array == null) {
+      return malloc(newSizeInBytes);
+    }
+
+    Ptr[] newArray = new Ptr[mallocSize(newSizeInBytes, BYTES)];
+    System.arraycopy(this.array, this.offset, newArray, 0, Math.min(this.array.length - this.offset, newArray.length));
+
+    return new PointerPtr(newArray);
   }
 
   @Override

@@ -1676,9 +1676,13 @@ public class ExtendedRE implements Serializable, RE {
             // Move forward, skipping past match
             int newpos = getGroupEnd(0);
 
-            // We always want to make progress!
+            // We have to handle zero-length matches correctly:
+            // Add the character at this position to the return buffer,
+            // *AND* advance to the next character, otherwise we will be
+            // stuck in an infinite loop, or drop a character incorrectly.
             if (newpos == pos)
             {
+                ret.append(substituteIn.charAt(pos));
                 newpos++;
             }
 

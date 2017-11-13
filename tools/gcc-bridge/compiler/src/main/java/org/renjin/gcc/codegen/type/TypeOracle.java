@@ -40,6 +40,7 @@ import org.renjin.gcc.codegen.type.voidt.VoidReturnStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidTypeStrategy;
 import org.renjin.gcc.codegen.vptr.VPtrParamStrategy;
 import org.renjin.gcc.codegen.vptr.VPtrReturnStrategy;
+import org.renjin.gcc.codegen.vptr.VPtrVariadicStrategy;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.*;
@@ -222,6 +223,11 @@ public class TypeOracle {
     
     int index = 0;
     while(index < numParams) {
+
+      if(VPtrVariadicStrategy.isVarArgsPtr(method, index)) {
+        break;
+      }
+
       Class<?> paramClass = method.getParameterTypes()[index];
       if(paramClass.equals(ObjectPtr.class)) {
         strategies.add(forObjectPtrParam(method.getGenericParameterTypes()[index]));
@@ -296,12 +302,17 @@ public class TypeOracle {
     return map;
   }
   
-  public static String getMethodDescriptor(ReturnStrategy returnStrategy, List<ParamStrategy> paramStrategies) {
+  public static String getMethodDescriptor(
+      ReturnStrategy returnStrategy,
+      List<ParamStrategy> paramStrategies,
+      VariadicStrategy variadicStrategy) {
+
     Preconditions.checkNotNull(returnStrategy, "returnStrategy is null");
     List<Type> types = Lists.newArrayList();
     for (ParamStrategy paramStrategy : paramStrategies) {
       types.addAll(paramStrategy.getParameterTypes());
     }
+    types.addAll(variadicStrategy.getParameterTypes());
 
     Type[] typesArray = types.toArray(new Type[types.size()]);
     

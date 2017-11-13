@@ -229,6 +229,11 @@ public class OpaquePtr<T> implements Ptr {
   }
 
   @Override
+  public long getAlignedLong(int index) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public void setLong(long value) {
     throw new UnsupportedOperationException("TODO");
   }

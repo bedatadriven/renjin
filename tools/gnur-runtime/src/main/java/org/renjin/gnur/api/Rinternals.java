@@ -448,8 +448,22 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("SET_OBJECT");
   }
 
-  public static void SET_TYPEOF(SEXP x, int v) {
-    throw new UnimplementedGnuApiMethod("SET_TYPEOF");
+  public static void SET_TYPEOF(SEXP x, int type) {
+    SEXPType targetType = SEXPType.valueOf(type);
+
+    // Easiest case...
+    if(x.getType() == targetType) {
+      return;
+    }
+
+    // pairlists can be legally changed.
+    if(x instanceof PairList.Node) {
+      ((PairList.Node) x).setType(targetType);
+      return;
+    }
+
+    throw new EvalException(String.format("Cannot change object of type '%s to type '%s'",
+        x.getType().typeName(), targetType.typeName()));
   }
 
 
@@ -748,7 +762,8 @@ public final class Rinternals {
   }
 
   public static void SET_TAG(SEXP x, SEXP y) {
-    throw new UnimplementedGnuApiMethod("SET_TAG");
+    PairList.Node pairlist = (PairList.Node) x;
+    pairlist.setTag(y);
   }
 
   public static SEXP SETCAR(SEXP x, SEXP y) {
@@ -1248,7 +1263,11 @@ public final class Rinternals {
    * @return The constructed list, or R_NilValue if {@code n} is zero.
    */
   public static SEXP Rf_allocList(int n) {
-    throw new UnimplementedGnuApiMethod("Rf_allocList");
+    PairList.Builder list = new PairList.Builder();
+    for (int i = 0; i < n; i++) {
+      list.add(Null.INSTANCE);
+    }
+    return list.build();
   }
 
   /** Create an S4 object.

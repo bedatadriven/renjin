@@ -59,4 +59,13 @@ public enum SEXPType {
   public int code() {
     return code;
   }
+
+  public static SEXPType valueOf(int code) {
+    for (SEXPType sexpType : values()) {
+      if(sexpType.code() == code) {
+        return sexpType;
+      }
+    }
+    throw new IllegalArgumentException("code: " + code);
+  }
 }

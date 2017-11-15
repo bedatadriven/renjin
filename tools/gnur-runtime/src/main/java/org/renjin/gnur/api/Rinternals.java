@@ -23,6 +23,7 @@ import org.renjin.eval.*;
 import org.renjin.gcc.annotations.GlobalVar;
 import org.renjin.gcc.runtime.*;
 import org.renjin.methods.MethodDispatch;
+import org.renjin.methods.Methods;
 import org.renjin.primitives.*;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.packaging.Namespaces;
@@ -2407,8 +2408,7 @@ public final class Rinternals {
   }
 
   public static int R_has_slot(SEXP obj, SEXP name) {
-    // TODO(Matrix)
-    throw new UnimplementedGnuApiMethod("R_has_slot");
+    return Methods.R_has_slot(obj, name);
   }
 
   public static SEXP R_do_MAKE_CLASS(BytePtr what) {
@@ -2642,7 +2642,7 @@ public final class Rinternals {
   }
 
   public static boolean Rf_isArray(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isArray");
+    return Types.isArray(p0);
   }
 
   public static boolean Rf_isFactor(SEXP p0) {

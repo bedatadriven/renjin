@@ -31,6 +31,7 @@ import java.lang.reflect.Method;
 public class DllSymbol {
 
 
+
   public enum Convention {
     C("CRoutine"),
     CALL("CallRoutine"),
@@ -51,20 +52,19 @@ public class DllSymbol {
   private String name;
   private MethodHandle methodHandle;
   private Convention convention;
+  private boolean registered;
 
 
-  public DllSymbol() {
-  }
-
-
-  public DllSymbol(String name, MethodHandle methodHandle, Convention convention) {
+  public DllSymbol(String name, MethodHandle methodHandle, Convention convention, boolean registered) {
     this.name = name;
     this.methodHandle = methodHandle;
     this.convention = convention;
+    this.registered = registered;
   }
 
   public DllSymbol(Method method) {
     this.name = method.getName();
+    this.registered = false;
     try {
       this.methodHandle = MethodHandles.publicLookup().unreflect(method);
     } catch (IllegalAccessException e) {
@@ -74,10 +74,6 @@ public class DllSymbol {
 
   public String getName() {
     return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
   }
 
   public MethodHandle getMethodHandle() {
@@ -96,18 +92,26 @@ public class DllSymbol {
 
     ListVector.NamedBuilder symbol = new ListVector.NamedBuilder();
     symbol.add("name", name);
-    symbol.add("address", new ExternalPtr<MethodHandle>(methodHandle,
-        AttributeMap.builder().setClass("RegisteredNativeSymbol").build()));
-
+    symbol.add("address", buildAddressSexp());
     symbol.add("numParameters", methodHandle.type().parameterCount());
 
-    if (convention!=null){
+    if (convention != null){
       symbol.setAttribute(Symbols.CLASS, new StringArrayVector(convention.getClassName(), "NativeSymbolInfo"));
     } else {
       symbol.setAttribute(Symbols.CLASS, new StringArrayVector("NativeSymbolInfo"));
     }
     
     return symbol.build();
+  }
+
+  private ExternalPtr<MethodHandle> buildAddressSexp() {
+    AttributeMap.Builder attributes = AttributeMap.builder();
+    if(registered) {
+      attributes.setClass("RegisteredNativeSymbol");
+    } else {
+      attributes.setClass("NativeSymbol");
+    }
+    return new ExternalPtr<>(methodHandle, attributes.build());
   }
 
   /**
@@ -118,8 +122,16 @@ public class DllSymbol {
     String name = list.getElementAsString("name");
     ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>) list.get("address");
     Convention convention = conventionFromClass(method);
+    boolean registered = address.inherits("RegisteredNativeSymbol");
 
-    return new DllSymbol(name, address.getInstance(), convention);
+    return new DllSymbol(name, address.getInstance(), convention, registered);
+  }
+
+  public static DllSymbol fromAddressSexp(SEXP method) {
+    ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>) method;
+    boolean registered = address.inherits("RegisteredNativeSymbol");
+
+    return new DllSymbol("native", address.getInstance(), Convention.C, registered);
   }
 
   private static Convention conventionFromClass(SEXP method) {

@@ -23,13 +23,14 @@ import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 import org.renjin.util.CDefines;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
+
+import static org.renjin.gnur.api.Rinternals.*;
+import static org.renjin.util.CDefines.allocVector;
 
 /**
  * GNU R API methods defined in the "Defn.h" header file
@@ -280,8 +281,50 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("Rf_CleanEd");
   }
 
-  public static void Rf_copyMostAttribNoTs(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_copyMostAttribNoTs");
+  public static void Rf_copyMostAttribNoTs(SEXP inp, SEXP ans) {
+    if(ans == Null.INSTANCE) {
+      throw new EvalException("attempt to set an attribute on NULL");
+    }
+
+    AttributeMap.Builder attributeBuilder = new AttributeMap.Builder();
+    Iterator<PairList.Node> itr = inp.getAttributes().nodes().iterator();
+    while(itr.hasNext()) {
+      PairList.Node s = itr.next();
+      Symbol tag = s.getTag();
+      if(tag != Symbols.NAMES || tag != Symbols.CLASS || tag != Symbols.DIM || tag != Symbols.DIMNAMES || tag != Symbols.TSP) {
+        attributeBuilder.set(tag, ans.getAttributes().get(tag));
+      } else if(tag == Symbols.CLASS) {
+        SEXP cl = s.getValue();
+        int i;
+        boolean ists = false;
+        for(i = 0; i < cl.length(); i++) {
+          if("ts".equals(cl.getElementAsSEXP(i).asString())) {
+            ists = true;
+            break;
+          }
+        }
+        if(!ists) {
+          attributeBuilder.set(tag, cl);
+        } else if(cl.length() <= 1) {
+
+        } else {
+          int l = cl.length();
+          Vector.Builder new_cl = allocVector(CDefines.STRSXP, l-1);
+          for(int e = 0, j = 0; e < l; i++) {
+            if(!("ts".equals(cl.getElementAsSEXP(i).asString()))){
+              SET_STRING_ELT(new_cl.build(), j++, STRING_ELT(cl, i));
+            }
+          }
+          attributeBuilder.set(tag, new_cl.build());
+        }
+      }
+    }
+    ((AbstractSEXP)ans).unsafeSetAttributes(attributeBuilder);
+    if (IS_S4_OBJECT(inp) != 0) {
+      SET_S4_OBJECT(ans);
+    } else {
+      UNSET_S4_OBJECT(ans);
+    }
   }
 
   public static SEXP Rf_createS3Vars(SEXP p0, SEXP p1, SEXP p2, SEXP p3, SEXP p4, SEXP p5) {

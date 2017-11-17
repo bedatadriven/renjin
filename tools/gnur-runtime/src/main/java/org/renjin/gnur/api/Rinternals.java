@@ -2866,11 +2866,13 @@ public final class Rinternals {
 
   public static SEXP Rf_listAppend(SEXP s, SEXP t) {
     SEXP r;
-    if (s == R_NilValue)
+    if(s == R_NilValue){
       return t;
+    }
     r = s;
-    while (CDR(r) != R_NilValue)
+    while(CDR(r) != R_NilValue) {
       r = CDR(r);
+    }
     SETCDR(r, t);
     return s;
   }

@@ -108,6 +108,9 @@ public final class VoidPtr {
   }
 
   public static Ptr toPtr(Object voidPtr) {
+    if(voidPtr == null) {
+      return BytePtr.NULL;
+    }
     if(voidPtr instanceof Ptr) {
       return ((Ptr) voidPtr);
     } else if(voidPtr instanceof MethodHandle) {

@@ -457,7 +457,11 @@ public final class Rinternals {
 
 
   public static void SET_ATTRIB(SEXP x, SEXP v) {
-    ((AbstractSEXP)x).unsafeSetAttributes(v.getAttributes());
+    if(v instanceof PairList) {
+      ((AbstractSEXP)x).unsafeSetAttributes(AttributeMap.fromPairList((PairList) v));
+    } else {
+      ((AbstractSEXP)x).unsafeSetAttributes(v.getAttributes());
+    }
   }
 
   public static void DUPLICATE_ATTRIB(SEXP to, SEXP from) {
@@ -2873,11 +2877,13 @@ public final class Rinternals {
 
   public static SEXP Rf_listAppend(SEXP s, SEXP t) {
     SEXP r;
-    if (s == R_NilValue)
+    if(s == R_NilValue){
       return t;
+    }
     r = s;
-    while (CDR(r) != R_NilValue)
+    while(CDR(r) != R_NilValue) {
       r = CDR(r);
+    }
     SETCDR(r, t);
     return s;
   }

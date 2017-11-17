@@ -34,6 +34,8 @@ import java.lang.System;
 import java.lang.invoke.MethodHandle;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * GNU R API methods defined in the "Rinternals.h" header file.
@@ -444,7 +446,9 @@ public final class Rinternals {
   }
 
   public static void SET_OBJECT(SEXP x, int v) {
-    throw new UnimplementedGnuApiMethod("SET_OBJECT");
+    if(x.isObject() && v == 0) {
+      throw new EvalException("SET_OBJECT: value SEXP Object field doesn't match expected value");
+    }
   }
 
   public static void SET_TYPEOF(SEXP x, int v) {
@@ -752,7 +756,7 @@ public final class Rinternals {
   }
 
   public static void SET_TAG(SEXP x, SEXP y) {
-    throw new UnimplementedGnuApiMethod("SET_TAG");
+    ((PairList)x).setTag(y);
   }
 
   public static SEXP SETCAR(SEXP x, SEXP y) {
@@ -1124,7 +1128,8 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_PairToVectorList(SEXP x) {
-    throw new UnimplementedGnuApiMethod("Rf_PairToVectorList");
+    PairList pairList = (PairList) x;
+    return pairList.toVector();
   }
 
   public static SEXP Rf_VectorToPairList(SEXP x) {
@@ -1252,7 +1257,11 @@ public final class Rinternals {
    * @return The constructed list, or R_NilValue if {@code n} is zero.
    */
   public static SEXP Rf_allocList(int n) {
-    throw new UnimplementedGnuApiMethod("Rf_allocList");
+    PairList.Builder list = new PairList.Builder();
+    for(int i = 0; i < n; i++) {
+      list.add(R_NilValue, R_NilValue);
+    }
+    return list.build();
   }
 
   /** Create an S4 object.
@@ -1570,7 +1579,21 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_duplicated(SEXP p0, boolean p1) {
-    throw new UnimplementedGnuApiMethod("Rf_duplicated");
+    LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
+    if(!(p0.getElementAsSEXP(0) instanceof IntArrayVector)) {
+      throw new UnsupportedOperationException("argument to internal function 'Rf_duplicated' is not of type 'IntArrayVector'");
+    }
+    Set<IntArrayVector> elementsHash = new HashSet<>();
+    for(int i = 0; i < p0.length(); i++) {
+      IntArrayVector element = p0.getElementAsSEXP(i);
+      if (elementsHash.contains(element)) {
+        result.add(LogicalVector.TRUE);
+      } else {
+        result.add(LogicalVector.FALSE);
+        elementsHash.add(element);
+      }
+    }
+    return result.build();
   }
 
   public static boolean R_envHasNoSpecialSymbols(SEXP p0) {
@@ -2279,6 +2302,10 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_bcDecode");
   }
 
+  public static boolean R_ToplevelExec(MethodHandle fun, Ptr data) throws Throwable {
+    fun.invoke(data);
+    return true;
+  }
   // Rboolean R_ToplevelExec (void(*fun)(void *), void *data)
 
   // SEXP R_ExecWithCleanup (SEXP(*fun)(void *), void *data, void(*cleanfun)(void *), void *cleandata)
@@ -2844,8 +2871,17 @@ public final class Rinternals {
                         new PairList.Node(p4, Null.INSTANCE)))));
   }
 
-  public static SEXP Rf_listAppend(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_listAppend");
+  public static SEXP Rf_listAppend(SEXP s, SEXP t) {
+    SEXP r;
+    if(s == R_NilValue){
+      return t;
+    }
+    r = s;
+    while(CDR(r) != R_NilValue) {
+      r = CDR(r);
+    }
+    SETCDR(r, t);
+    return s;
   }
 
   @Deprecated

@@ -908,9 +908,6 @@ public class Primitives {
     f("fmin", Optimizations.class, 11);
     f("zeroin", /*zeroin*/ null, 11);
     f("zeroin2", Roots.class, 11);
-    //f("terms.formula", Models.class, 11);
-    //f("update.formula", /*updateform*/ null, 11);
-    //f("model.matrix", Models.class, 11);
 
     f("D", /*D*/ null, 11);
     f("deriv.default", /*deriv*/ null, 11);

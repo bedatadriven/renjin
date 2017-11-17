@@ -1967,8 +1967,8 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_substitute");
   }
 
-  public static BytePtr Rf_translateChar(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_translateChar");
+  public static CharPtr Rf_translateChar(SEXP p0) {
+    return new CharPtr(p0.asString().toCharArray());
   }
 
   public static BytePtr Rf_translateChar0(SEXP p0) {

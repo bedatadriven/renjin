@@ -1650,8 +1650,7 @@ static int TermCode(SEXP termlist, SEXP thisterm, int whichbit, SEXP term)
 
 SEXP termsform(SEXP args)
 {
-    printf("start: SEXP termsform(SEXP args)\n");
-    SEXP a, ans, v, pattern, formula, varnames, term, termlabs, ord;
+    SEXP head, a, ans, v, pattern, formula, varnames, term, termlabs, ord;
     SEXP specials, t, data, rhs, call;
     int i, j, k, l, n, keepOrder, allowDot;
 
@@ -1721,13 +1720,12 @@ SEXP termsform(SEXP args)
     if (allowDot == NA_LOGICAL) allowDot = 0;
 
     if (specials == R_NilValue) {
-	a = allocList(8);
-	SET_ATTRIB(ans, a);
+	head = allocList(8);
     }
     else {
-	a = allocList(9);
-	SET_ATTRIB(ans, a);
+	head = allocList(9);
     }
+    a = head;
 
     /* Step 1: Determine the ``variables'' in the model */
     /* Here we create an expression of the form */
@@ -2000,6 +1998,7 @@ SEXP termsform(SEXP args)
     SET_OBJECT(ans, 1);
 
     SETCDR(a, R_NilValue);  /* truncate if necessary */
+    SET_ATTRIB(ans, head);
 
     UNPROTECT(5);
     return ans;

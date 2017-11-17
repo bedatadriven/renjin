@@ -34,6 +34,7 @@ import java.lang.System;
 import java.lang.invoke.MethodHandle;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -456,7 +457,21 @@ public final class Rinternals {
 
 
   public static void SET_ATTRIB(SEXP x, SEXP v) {
-    ((AbstractSEXP)x).unsafeSetAttributes(v.getAttributes());
+    if(v instanceof PairList) {
+      SET_ATTRIB_PairListToMap(x, v);
+    } else {
+      ((AbstractSEXP)x).unsafeSetAttributes(v.getAttributes());
+    }
+  }
+
+  public static void SET_ATTRIB_PairListToMap(SEXP x, SEXP v) {
+    AttributeMap.Builder attributeMap = new AttributeMap.Builder();
+    Iterator<PairList.Node> itr = ((PairList) v).nodes().iterator();
+    while(itr.hasNext()) {
+      PairList.Node node = itr.next();
+      attributeMap.set(node.getTag(), node.getValue());
+    }
+    ((AbstractSEXP)x).unsafeSetAttributes(attributeMap);
   }
 
   public static void DUPLICATE_ATTRIB(SEXP to, SEXP from) {

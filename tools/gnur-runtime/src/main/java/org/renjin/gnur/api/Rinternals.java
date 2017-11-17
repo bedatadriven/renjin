@@ -29,7 +29,6 @@ import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.packaging.Namespaces;
 import org.renjin.primitives.subset.Subsetting;
 import org.renjin.sexp.*;
-import org.renjin.util.CDefines;
 
 import java.lang.System;
 import java.lang.invoke.MethodHandle;
@@ -757,7 +756,7 @@ public final class Rinternals {
   }
 
   public static void SET_TAG(SEXP x, SEXP y) {
-    CDefines.SET_TAG(x, y);
+    ((PairList)x).setTag(y);
   }
 
   public static SEXP SETCAR(SEXP x, SEXP y) {

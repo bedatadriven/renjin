@@ -1974,8 +1974,8 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_substitute");
   }
 
-  public static CharPtr Rf_translateChar(SEXP p0) {
-    return new CharPtr(p0.asString().toCharArray());
+  public static BytePtr Rf_translateChar(SEXP p0) {
+    return ((GnuCharSexp)p0).getValue();
   }
 
   public static BytePtr Rf_translateChar0(SEXP p0) {

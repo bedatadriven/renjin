@@ -474,7 +474,7 @@ SEXP modelmatrix(SEXP call, SEXP op, SEXP args, SEXP rho)
     /* the required arguments at call time.  The calls have the following */
     /* form: (contrast.type nlevs contrasts) */
 
-    PROTECT(contr1 = Rf_lang3(R_NilValue, RNil_Value, RNil_Value));
+    PROTECT(contr1 = Rf_lang3(R_NilValue, R_NilValue, R_NilValue));
     PROTECT(contr2 = allocVector(VECSXP, nVar));
 
     PROTECT(expr = allocList(3));

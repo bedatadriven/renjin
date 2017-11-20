@@ -638,6 +638,9 @@ public final class Rinternals {
    * @return The value of the {@code i}th element.
    */
   public static SEXP VECTOR_ELT(SEXP x, /*R_xlen_t*/ int i) {
+    if(x instanceof FunctionCall || x instanceof PairList){
+      return ((PairList) x).getElementAsSEXP(i);
+    }
     return ((ListVector) x).getElementAsSEXP(i);
   }
 

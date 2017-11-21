@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import static org.renjin.primitives.Types.isFactor;
 /**
  * GNU R API methods defined in the "Rinternals.h" header file.
  *
@@ -2898,7 +2899,10 @@ public final class Rinternals {
   }
 
   public static int Rf_nlevels(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_nlevels");
+    if(!isFactor(p0)) {
+      return 0;
+    }
+    return LENGTH(p0.getAttribute(Symbol.get("levels")));
   }
 
   public static int Rf_stringPositionTr(SEXP p0, BytePtr p1) {

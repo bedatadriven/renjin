@@ -1849,10 +1849,10 @@ public final class Rinternals {
   public static int Rf_nrows(SEXP s) {
     if (Rf_isVector(s) || Rf_isList(s)) {
       Vector dim = s.getAttributes().getDim();
-      if(dim.length() >= 1) {
-        return dim.getElementAsInt(0);
+      if(dim == Null.INSTANCE) {
+        return s.length();
       } else {
-        return 1;
+        return dim.getElementAsInt(0);
       }
 
     } else if (Rf_isFrame(s)) {

@@ -576,6 +576,8 @@ public final class Rinternals {
       return new IntPtr(((IntVector) x).toIntArray());
     } else if(x instanceof LogicalVector) {
       return new IntPtr(((LogicalVector) x).toIntArray());
+    } else if(x == Null.INSTANCE) {
+      return new IntPtr(0);
     } else {
       throw new EvalException("INTEGER(): expected integer vector, found %s", x.getTypeName());
     }

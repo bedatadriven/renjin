@@ -679,9 +679,22 @@ public final class Rinternals {
    * @return The new value {@code v}
    */
   public static SEXP SET_VECTOR_ELT(SEXP x, /*R_xlen_t*/ int i, SEXP v) {
-    ListVector listVector = (ListVector) x;
-    SEXP[] elements = listVector.toArrayUnsafe();
-    elements[i] = v;
+    ListVector listVector;
+    ListVector.Builder builder = new ListVector.Builder();
+    if(x instanceof FunctionCall || x instanceof PairList) {
+      PairList call = (PairList) x;
+      Iterator<SEXP> itr = call.values().iterator();
+      while(itr.hasNext()) {
+        builder.add(itr.next());
+      }
+    } else {
+      ListVector oldX = (ListVector) x;
+      for(int j = 0; j < oldX.length(); j++) {
+        builder.add(oldX.get(j));
+      }
+      builder.replace(i, v);
+    }
+    x = builder.build();
     return v;
   }
 

@@ -31,6 +31,7 @@ import org.renjin.sexp.*;
 
 import java.lang.System;
 import java.lang.invoke.MethodHandle;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -2004,7 +2005,64 @@ public final class Rinternals {
    * @return The SEXPTYPE's name within R.
    */
   public static BytePtr Rf_type2char(/*SEXPTYPE*/ int st) {
-    throw new UnimplementedGnuApiMethod("Rf_type2char");
+    String type;
+    switch (st) {
+      case SexpType.NILSXP:
+        type = "NULL";
+        break;
+      case SexpType.EXPRSXP:
+        type = ExpressionVector.TYPE_NAME;
+        break;
+      case SexpType.VECSXP:
+        type = ListVector.TYPE_NAME;
+        break;
+      case SexpType.STRSXP:
+        type = StringVector.TYPE_NAME;
+        break;
+      case SexpType.REALSXP:
+        type = DoubleVector.TYPE_NAME;
+        break;
+      case SexpType.INTSXP:
+        type = IntVector.TYPE_NAME;
+        break;
+      case SexpType.LGLSXP:
+        type = LogicalVector.TYPE_NAME;
+        break;
+      case SexpType.RAWSXP:
+        type = RawVector.TYPE_NAME;
+        break;
+      case SexpType.ENVSXP:
+        type = Environment.TYPE_NAME;
+        break;
+      case SexpType.CPLXSXP:
+        type = ComplexVector.TYPE_NAME;
+        break;
+      case SexpType.CLOSXP:
+        type = Closure.TYPE_NAME;
+        break;
+      case SexpType.LANGSXP:
+        type = FunctionCall.TYPE_NAME;
+        break;
+      case SexpType.LISTSXP:
+        type = PairList.TYPE_NAME;
+        break;
+      case SexpType.S4SXP:
+        type = "S4";
+        break;
+      case SexpType.PROMSXP:
+        type = Promise.TYPE_NAME;
+        break;
+      case SexpType.SYMSXP:
+        type = Symbol.TYPE_NAME;
+        break;
+      case SexpType.CHARSXP:
+        type = "char";
+        break;
+      default:
+        type = "unknown type #%d" + st;
+    }
+    BytePtr ptr = new BytePtr(new String(type).getBytes(StandardCharsets.UTF_8));
+    return ptr;
   }
 
   public static SEXP Rf_type2rstr(/*SEXPTYPE*/ int p0) {

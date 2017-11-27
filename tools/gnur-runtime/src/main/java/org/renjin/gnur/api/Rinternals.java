@@ -38,6 +38,8 @@ import java.util.Iterator;
 import java.util.Set;
 
 import static org.renjin.primitives.Types.isFactor;
+import static org.renjin.primitives.vector.RowNamesVector.isOldCompactForm;
+
 /**
  * GNU R API methods defined in the "Rinternals.h" header file.
  *
@@ -1902,6 +1904,11 @@ public final class Rinternals {
   public static SEXP Rf_setAttrib(SEXP vec, SEXP name, SEXP val) {
     if(name == null) {
       throw new IllegalArgumentException("attributeName is NULL");
+    }
+    if(name == R_RowNamesSymbol) {
+      if(isOldCompactForm(val) ) {
+        val = new RowNamesVector(Math.abs(val.getElementAsSEXP(1).asInt()));
+      }
     }
     Symbol attributeSymbol;
     if(name instanceof StringVector) {

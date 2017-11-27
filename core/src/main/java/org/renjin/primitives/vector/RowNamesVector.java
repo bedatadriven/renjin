@@ -70,7 +70,7 @@ public class RowNamesVector extends StringVector {
    * @return true if it is the old compact format
    */
   public static boolean isOldCompactForm(Vector rowNames) {
-    return rowNames.length() == 2 && rowNames.isElementNA(0) && rowNames.getElementAsInt(1) < 0;
+    return rowNames.length() == 2 && rowNames.isElementNA(0) && (rowNames.getElementAsInt(1) < 0 || rowNames.getElementAsInt(1) > 0);
   }
   
   public static RowNamesVector fromOldCompactForm(SEXP rowNames) {

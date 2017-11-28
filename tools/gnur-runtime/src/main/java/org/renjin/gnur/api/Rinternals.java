@@ -27,6 +27,7 @@ import org.renjin.primitives.*;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.packaging.Namespaces;
 import org.renjin.primitives.subset.Subsetting;
+import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.sexp.*;
 
 import java.lang.System;

@@ -39,6 +39,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import static org.renjin.primitives.Types.isFactor;
+import static org.renjin.primitives.vector.RowNamesVector.isCompactForm;
 import static org.renjin.primitives.vector.RowNamesVector.isOldCompactForm;
 
 /**
@@ -1907,7 +1908,7 @@ public final class Rinternals {
       throw new IllegalArgumentException("attributeName is NULL");
     }
     if(name == R_RowNamesSymbol) {
-      if(isOldCompactForm(val) ) {
+      if(isOldCompactForm(val) || isCompactForm(val) ) {
         val = new RowNamesVector(Math.abs(val.getElementAsSEXP(1).asInt()));
       }
     }

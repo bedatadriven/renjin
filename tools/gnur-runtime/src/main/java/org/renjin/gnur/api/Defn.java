@@ -23,6 +23,8 @@ import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.primitives.Deparse;
+import org.renjin.primitives.Native;
 import org.renjin.sexp.*;
 import org.renjin.util.CDefines;
 
@@ -355,15 +357,14 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("Rf_deparse1w");
   }
 
-  public static SEXP Rf_deparse1line(SEXP p0, boolean p1) {
-    String result = "";
-    for(int i = 0; i < p0.length(); i++) {
-      result = result.concat(p0.getElementAsSEXP(i).asString());
-    }
-    if(p1) {
-      return StringVector.valueOf(result.substring(0,12));
+  public static SEXP Rf_deparse1line(SEXP call, boolean abbrev) {
+    // if abbrev is set to true, return a single character string of length 13 which
+    // is oftern used in plots, otherwise, deparse to a single line string.
+    String line = Deparse.deparseExp(Native.currentContext(), call);
+    if(abbrev && line.length() > 12) {
+      return StringVector.valueOf(line.substring(12));
     } else {
-      return StringVector.valueOf(result);
+      return StringVector.valueOf(line);
     }
   }
 

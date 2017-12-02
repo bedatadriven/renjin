@@ -20,6 +20,8 @@ package org.renjin.gnur;
 
 
 import org.renjin.gcc.runtime.DoublePtr;
+import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.sexp.IntVector;
 
 import java.util.Arrays;
 
@@ -33,6 +35,35 @@ public class Sort {
    * larger to right
    *
    */
+  public static void iPsort2(IntPtr x, int lo, int hi, int k) {
+    boolean nalast = true;
+    int v, w;
+    int L, R, i, j;
+
+    for (L = lo, R = hi; L < R;) {
+      v = x.getInt(k);
+      for (i = L, j = R; i <= j;) {
+        while (icmp(x.getInt(i), v, nalast) < 0) {
+          i++;
+        }
+        while (icmp(v, x.getInt(j), nalast) < 0) {
+          j--;
+        }
+        if (i <= j) {
+          w = x.getInt(i);
+          x.setInt(i++, x.getInt(j));
+          x.setInt(j--, w);
+        }
+      }
+      if (j < k) {
+        L = i;
+      }
+      if (k < i) {
+        R = j;
+      }
+    }
+  }
+
   public static void rPsort2(DoublePtr x, int lo, int hi, int k) {
     boolean nalast=true;
     double v, w;
@@ -62,12 +93,40 @@ public class Sort {
     }
   }
 
+  public static void Rf_iPsort(IntPtr x, int n, int k) {
+    iPsort2(x, 0, n - 1, k);
+  }
+
   public static void Rf_rPsort(DoublePtr x, int n, int k) {
     rPsort2(x, 0, n-1, k);
   }
 
+  public static void R_isort(IntPtr x, int n) {
+    Arrays.sort(x.array, x.offset, x.offset + n);
+  }
+
   public static void R_rsort(DoublePtr x, int n) {
     Arrays.sort(x.array, x.offset, x.offset+n);
+  }
+
+  private static int icmp(int x, int y, boolean nalast) {
+    boolean nax = IntVector.isNA(x), nay = IntVector.isNA(y);
+    if (nax && nay) {
+      return 0;
+    }
+    if (nax) {
+      return nalast ? 1 : -1;
+    }
+    if (nay) {
+      return nalast ? -1 : 1;
+    }
+    if (x < y) {
+      return -1;
+    }
+    if (x > y) {
+      return 1;
+    }
+    return 0;
   }
 
   private static int rcmp(double x, double y, boolean nalast) {

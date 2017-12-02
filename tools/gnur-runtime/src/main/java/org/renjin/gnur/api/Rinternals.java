@@ -456,7 +456,12 @@ public final class Rinternals {
   }
 
   public static void DUPLICATE_ATTRIB(SEXP to, SEXP from) {
-    throw new UnimplementedGnuApiMethod("DUPLICATE_ATTRIB");
+    AbstractSEXP abstractSEXP = (AbstractSEXP) to;
+    if (Types.isS4(from)) {
+      abstractSEXP.unsafeSetAttributes(from.getAttributes().copy().setS4(true));
+    } else {
+      abstractSEXP.unsafeSetAttributes(from.getAttributes().copy().setS4(false));
+    }
   }
 
   public static int IS_S4_OBJECT(SEXP x) {

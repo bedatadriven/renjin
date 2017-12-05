@@ -32,6 +32,7 @@ import org.renjin.sexp.*;
 
 import java.lang.System;
 import java.lang.invoke.MethodHandle;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
@@ -1960,7 +1961,7 @@ public final class Rinternals {
    * @return The SEXPTYPE's name within R.
    */
   public static BytePtr Rf_type2char(/*SEXPTYPE*/ int st) {
-    throw new UnimplementedGnuApiMethod("Rf_type2char");
+    return BytePtr.nullTerminatedString(SexpType.typeName(st), StandardCharsets.UTF_8);
   }
 
   public static SEXP Rf_type2rstr(/*SEXPTYPE*/ int p0) {

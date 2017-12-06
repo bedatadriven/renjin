@@ -162,8 +162,8 @@ public class RenjinScriptEngineTest {
     Assert.assertNull(bindingsFromContext.get(key));
 
     bindingsFromEngine.put(key, value);
-    Assert.assertEquals(bindingsFromEngine.get(key), value);
 
-    Assert.assertEquals(bindingsFromContext.get(key), value);
+    Assert.assertEquals(StringVector.valueOf(value), bindingsFromEngine.get(key));
+    Assert.assertEquals(StringVector.valueOf(value), bindingsFromContext.get(key));
   }
 }

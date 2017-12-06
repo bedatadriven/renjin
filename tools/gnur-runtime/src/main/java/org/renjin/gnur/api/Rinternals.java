@@ -457,10 +457,10 @@ public final class Rinternals {
 
   public static void DUPLICATE_ATTRIB(SEXP to, SEXP from) {
     AbstractSEXP abstractSEXP = (AbstractSEXP) to;
-    if (Types.isS4(from)) {
+    if (Types.isS4(from) && !Types.isS4(to)) {
       abstractSEXP.unsafeSetAttributes(from.getAttributes().copy().setS4(true));
     } else {
-      abstractSEXP.unsafeSetAttributes(from.getAttributes().copy().setS4(false));
+      abstractSEXP.unsafeSetAttributes(from.getAttributes().copy());
     }
   }
 

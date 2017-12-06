@@ -18,9 +18,10 @@
  */
 package org.renjin.gnur;
 
-
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.gcc.runtime.Ptr;
+import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.IntVector;
 
 import java.util.Arrays;
@@ -35,7 +36,7 @@ public class Sort {
    * larger to right
    *
    */
-  public static void iPsort2(IntPtr x, int lo, int hi, int k) {
+  public static void iPsort2(Ptr x, int lo, int hi, int k) {
     boolean nalast = true;
     int v, w;
     int L, R, i, j;
@@ -64,24 +65,24 @@ public class Sort {
     }
   }
 
-  public static void rPsort2(DoublePtr x, int lo, int hi, int k) {
+  public static void rPsort2(Ptr x, int lo, int hi, int k) {
     boolean nalast=true;
     double v, w;
     int L, R, i, j;
 
     for (L = lo, R = hi; L < R; ) {
-      v = x.get(k);
+      v = x.getDouble(k);
       for(i = L, j = R; i <= j;) {
-        while (rcmp(x.get(i), v, nalast) < 0) {
+        while (rcmp(x.getDouble(i), v, nalast) < 0) {
           i++;
         }
-        while (rcmp(v, x.get(j), nalast) < 0) {
+        while (rcmp(v, x.getDouble(j), nalast) < 0) {
           j--;
         }
         if (i <= j) {
-          w = x.get(i);
-          x.set(i++, x.get(j));
-          x.set(j--,  w);
+          w = x.getDouble(i);
+          x.setDouble(i++, x.getDouble(j));
+          x.setDouble(j--, w);
         }
       }
       if (j < k) {
@@ -93,11 +94,11 @@ public class Sort {
     }
   }
 
-  public static void Rf_iPsort(IntPtr x, int n, int k) {
+  public static void Rf_iPsort(Ptr x, int n, int k) {
     iPsort2(x, 0, n - 1, k);
   }
 
-  public static void Rf_rPsort(DoublePtr x, int n, int k) {
+  public static void Rf_rPsort(Ptr x, int n, int k) {
     rPsort2(x, 0, n-1, k);
   }
 
@@ -130,7 +131,7 @@ public class Sort {
   }
 
   private static int rcmp(double x, double y, boolean nalast) {
-    boolean nax = Double.isNaN(x), nay = Double.isNaN(y);
+    boolean nax = DoubleVector.isNA(x), nay = DoubleVector.isNA(y);
     if (nax && nay) {
       return 0;
     }

@@ -1829,7 +1829,17 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_nthcdr(SEXP p0, int p1) {
-    throw new UnimplementedGnuApiMethod("Rf_nthcdr");
+    if (Rf_isList(p0) || Rf_isLanguage(p0) || Rf_isFrame(p0) || TYPEOF(p0) == SexpType.DOTSXP) {
+      while (p1-- > 0) {
+        if (p0 == R_NilValue) {
+          throw new EvalException(String.format("'nthcdr' list shorter than %d", p1));
+        }
+        p0 = CDR(p0);
+      }
+      return p0;
+    } else {
+      throw new EvalException("'nthcdr' needs a list to CDR down");
+    }
   }
 
   // int R_nchar (SEXP string, nchar_type type_, Rboolean allowNA, Rboolean keepNA, const char *msg_name)

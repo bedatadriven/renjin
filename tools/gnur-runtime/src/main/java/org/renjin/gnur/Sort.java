@@ -42,18 +42,18 @@ public class Sort {
     int L, R, i, j;
 
     for (L = lo, R = hi; L < R;) {
-      v = x.getInt(k);
+      v = x.getAlignedInt(k);
       for (i = L, j = R; i <= j;) {
-        while (icmp(x.getInt(i), v, nalast) < 0) {
+        while (icmp(x.getAlignedInt(i), v, nalast) < 0) {
           i++;
         }
-        while (icmp(v, x.getInt(j), nalast) < 0) {
+        while (icmp(v, x.getAlignedInt(j), nalast) < 0) {
           j--;
         }
         if (i <= j) {
-          w = x.getInt(i);
-          x.setInt(i++, x.getInt(j));
-          x.setInt(j--, w);
+          w = x.getAlignedInt(i);
+          x.setAlignedInt(i++, x.getAlignedInt(j));
+          x.setAlignedInt(j--, w);
         }
       }
       if (j < k) {
@@ -71,18 +71,18 @@ public class Sort {
     int L, R, i, j;
 
     for (L = lo, R = hi; L < R; ) {
-      v = x.getDouble(k);
+      v = x.getAlignedDouble(k);
       for(i = L, j = R; i <= j;) {
-        while (rcmp(x.getDouble(i), v, nalast) < 0) {
+        while (rcmp(x.getAlignedDouble(i), v, nalast) < 0) {
           i++;
         }
-        while (rcmp(v, x.getDouble(j), nalast) < 0) {
+        while (rcmp(v, x.getAlignedDouble(j), nalast) < 0) {
           j--;
         }
         if (i <= j) {
-          w = x.getDouble(i);
-          x.setDouble(i++, x.getDouble(j));
-          x.setDouble(j--, w);
+          w = x.getAlignedDouble(i);
+          x.setAlignedDouble(i++, x.getAlignedDouble(j));
+          x.setAlignedDouble(j--, w);
         }
       }
       if (j < k) {
@@ -99,7 +99,7 @@ public class Sort {
   }
 
   public static void Rf_rPsort(Ptr x, int n, int k) {
-    rPsort2(x, 0, n-1, k);
+    rPsort2(x, 0, n - 1, k);
   }
 
   public static void R_isort(IntPtr x, int n) {
@@ -107,7 +107,7 @@ public class Sort {
   }
 
   public static void R_rsort(DoublePtr x, int n) {
-    Arrays.sort(x.array, x.offset, x.offset+n);
+    Arrays.sort(x.array, x.offset, x.offset + n);
   }
 
   private static int icmp(int x, int y, boolean nalast) {

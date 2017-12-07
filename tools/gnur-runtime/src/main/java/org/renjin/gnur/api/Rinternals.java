@@ -1332,7 +1332,8 @@ public final class Rinternals {
    *
    */
   public static void Rf_copyMostAttrib(SEXP inp, SEXP ans) {
-    throw new UnimplementedGnuApiMethod("Rf_copyMostAttrib");
+    final AttributeMap inpAttrib = inp.getAttributes().copy().removeDim().removeDimnames().remove(Symbols.NAMES).build();
+    ((AbstractSEXP) ans).unsafeSetAttributes(ans.getAttributes().copy().combineFrom(inpAttrib));
   }
 
   public static void Rf_copyVector(SEXP s, SEXP t) {
@@ -1828,7 +1829,17 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_nthcdr(SEXP p0, int p1) {
-    throw new UnimplementedGnuApiMethod("Rf_nthcdr");
+    if (Rf_isList(p0) || Rf_isLanguage(p0) || Rf_isFrame(p0) || TYPEOF(p0) == SexpType.DOTSXP) {
+      while (p1-- > 0) {
+        if (p0 == R_NilValue) {
+          throw new EvalException(String.format("'nthcdr' list shorter than %d", p1));
+        }
+        p0 = CDR(p0);
+      }
+      return p0;
+    } else {
+      throw new EvalException("'nthcdr' needs a list to CDR down");
+    }
   }
 
   // int R_nchar (SEXP string, nchar_type type_, Rboolean allowNA, Rboolean keepNA, const char *msg_name)
@@ -2705,15 +2716,20 @@ public final class Rinternals {
   }
 
   public static boolean Rf_isUserBinop(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isUserBinop");
+    if (TYPEOF(p0) == SexpType.SYMSXP) {
+      BytePtr str = R_CHAR(PRINTNAME(p0));
+      final int strlen = str.nullTerminatedStringLength();
+      return (strlen >= 2 && str.getChar(0) == '%' && str.getChar(strlen - 1) == '%');
+    }
+    return false;
   }
 
   public static boolean Rf_isValidString(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isValidString");
+    return TYPEOF(p0) == SexpType.STRSXP && LENGTH(p0) > 0 && TYPEOF(STRING_ELT(p0, 0)) != SexpType.NILSXP;
   }
 
   public static boolean Rf_isValidStringF(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isValidStringF");
+    return Rf_isValidString(p0) && R_CHAR(STRING_ELT(p0, 0)).getChar(0) != '\0';
   }
 
   /** Is an R value a vector?

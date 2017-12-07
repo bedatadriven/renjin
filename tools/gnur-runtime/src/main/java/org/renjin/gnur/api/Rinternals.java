@@ -2705,15 +2705,20 @@ public final class Rinternals {
   }
 
   public static boolean Rf_isUserBinop(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isUserBinop");
+    if (TYPEOF(p0) == SexpType.SYMSXP) {
+      BytePtr str = R_CHAR(PRINTNAME(p0));
+      final int strlen = str.nullTerminatedStringLength();
+      return (strlen >= 2 && str.getChar(0) == '%' && str.getChar(strlen - 1) == '%');
+    }
+    return false;
   }
 
   public static boolean Rf_isValidString(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isValidString");
+    return TYPEOF(p0) == SexpType.STRSXP && LENGTH(p0) > 0 && TYPEOF(STRING_ELT(p0, 0)) != SexpType.NILSXP;
   }
 
   public static boolean Rf_isValidStringF(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isValidStringF");
+    return Rf_isValidString(p0) && R_CHAR(STRING_ELT(p0, 0)).getChar(0) != '\0';
   }
 
   /** Is an R value a vector?

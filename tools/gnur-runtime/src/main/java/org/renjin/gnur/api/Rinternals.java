@@ -1332,7 +1332,8 @@ public final class Rinternals {
    *
    */
   public static void Rf_copyMostAttrib(SEXP inp, SEXP ans) {
-    throw new UnimplementedGnuApiMethod("Rf_copyMostAttrib");
+    final AttributeMap inpAttrib = inp.getAttributes().copy().removeDim().removeDimnames().remove(Symbols.NAMES).build();
+    ((AbstractSEXP) ans).unsafeSetAttributes(ans.getAttributes().copy().combineFrom(inpAttrib));
   }
 
   public static void Rf_copyVector(SEXP s, SEXP t) {

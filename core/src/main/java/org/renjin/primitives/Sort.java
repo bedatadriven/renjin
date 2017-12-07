@@ -192,23 +192,43 @@ public class Sort {
     return LogicalVector.FALSE;
   }
 
-  @Internal
-  public static DoubleVector qsort(DoubleVector x, LogicalVector returnIndexes) {
-
-    if(returnIndexes.isElementTrue(0)) {
-      throw new EvalException("qsort(indexes=TRUE) not yet implemented");
+  private static Integer[] fillNewArrayWithIndices(int length) {
+    Integer[] array = new Integer[length];
+    for (int i = 0; i < length; i++) {
+      array[i] = i;
     }
-    
-    double[] values = x.toDoubleArray();
-    Arrays.sort(values);
-    
-    DoubleVector sorted = new DoubleArrayVector(values, x.getAttributes());
-    
-    // drop the names attributes if present because it will not be sorted
-    return (DoubleVector)sorted
-            .setAttribute(Symbols.NAMES, Null.INSTANCE);  
+    return array;
   }
-  
+
+  @Internal
+  public static DoubleVector qsort(final DoubleVector x, LogicalVector returnIndexes) {
+    // drop the names attributes if present because it will not be sorted
+    AttributeMap attrib = x.getAttributes().copy().remove(Symbols.NAMES).build();
+
+    if (returnIndexes.isElementTrue(0)) {
+      Integer[] indices = fillNewArrayWithIndices(x.length());
+      Arrays.sort(indices, new Comparator<Integer>() {
+        @Override
+        public int compare(Integer i1, Integer i2) {
+          return Double.compare(x.getElementAsDouble(i1), x.getElementAsDouble(i2));
+        }
+      });
+      return new DoubleArrayVector(toDoubleArray(indices), attrib);
+    } else {
+      double[] values = x.toDoubleArray();
+      Arrays.sort(values);
+      return new DoubleArrayVector(values, attrib);
+    }
+  }
+
+  private static double[] toDoubleArray(Integer[] indices) {
+    double[] array = new double[indices.length];
+    for (int i = 0; i < indices.length; i++) {
+      array[i] = indices[i];
+    }
+    return array;
+  }
+
   @Internal
   public static DoubleVector psort(DoubleVector x, Vector indexes) {
     // stub implementation: we just do a full sort
@@ -216,20 +236,32 @@ public class Sort {
   }
 
   @Internal
-  public static IntVector qsort(IntVector x, LogicalVector returnIndexes) {
-
-    if(returnIndexes.isElementTrue(0)) {
-      throw new EvalException("qsort(indexes=TRUE) not yet implemented");
-    }
-    
-    int[] values = x.toIntArray();
-    Arrays.sort(values);
-    
-    IntVector sorted = new IntArrayVector(values, x.getAttributes());
-    
+  public static IntVector qsort(final IntVector x, LogicalVector returnIndexes) {
     // drop the names attributes if present because it will not be sorted
-    return (IntVector)sorted
-            .setAttribute(Symbols.NAMES, Null.INSTANCE);  
+    AttributeMap attrib = x.getAttributes().copy().remove(Symbols.NAMES).build();
+
+    if (returnIndexes.isElementTrue(0)) {
+      Integer[] indices = fillNewArrayWithIndices(x.length());
+      Arrays.sort(indices, new Comparator<Integer>() {
+        @Override
+        public int compare(Integer i1, Integer i2) {
+          return Integer.compare(x.getElementAsInt(i1), x.getElementAsInt(i2));
+        }
+      });
+      return new IntArrayVector(toIntArray(indices), attrib);
+    } else {
+      int[] values = x.toIntArray();
+      Arrays.sort(values);
+      return new IntArrayVector(values, attrib);
+    }
+  }
+
+  private static int[] toIntArray(Integer[] indices) {
+    int[] array = new int[indices.length];
+    for (int i = 0; i < indices.length; i++) {
+      array[i] = indices[i];
+    }
+    return array;
   }
 
   @Internal
@@ -239,22 +271,24 @@ public class Sort {
 
 
   @Internal
-  public static LogicalVector qsort(LogicalVector x, boolean returnIndexes) {
-
-    if(returnIndexes) {
-      throw new EvalException("qsort(indexes=TRUE) not yet implemented");
-    }
-    
-    int[] array = x.toIntArray();
-    
-    Arrays.sort(array);
-
-    LogicalVector sorted = new LogicalArrayVector(array, x.getAttributes());
-    
-
+  public static LogicalVector qsort(final LogicalVector x, boolean returnIndexes) {
     // drop the names attributes if present because it will not be sorted
-    return (LogicalVector)sorted
-        .setAttribute(Symbols.NAMES, Null.INSTANCE);
+    AttributeMap attrib = x.getAttributes().copy().remove(Symbols.NAMES).build();
+
+    if (returnIndexes) {
+      Integer[] indices = fillNewArrayWithIndices(x.length());
+      Arrays.sort(indices, new Comparator<Integer>() {
+        @Override
+        public int compare(Integer i1, Integer i2) {
+          return Integer.compare(x.getElementAsInt(i1), x.getElementAsInt(i2));
+        }
+      });
+      return new LogicalArrayVector(toIntArray(indices), attrib);
+    } else {
+      int[] values = x.toIntArray();
+      Arrays.sort(values);
+      return new LogicalArrayVector(values, attrib);
+    }
   }
   
   @Internal

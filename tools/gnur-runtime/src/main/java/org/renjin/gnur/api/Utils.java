@@ -33,11 +33,11 @@ public final class Utils {
 
 
   public static void R_isort(IntPtr p0, int p1) {
-    throw new UnimplementedGnuApiMethod("R_isort");
+    org.renjin.gnur.Sort.R_isort(p0, p1);
   }
 
   public static void R_rsort(DoublePtr p0, int p1) {
-    throw new UnimplementedGnuApiMethod("R_rsort");
+    org.renjin.gnur.Sort.R_rsort(p0, p1);
   }
 
   // void R_csort (Rcomplex *, int)
@@ -51,7 +51,7 @@ public final class Utils {
   }
 
   public static void Rf_iPsort(IntPtr p0, int p1, int p2) {
-    throw new UnimplementedGnuApiMethod("Rf_iPsort");
+    org.renjin.gnur.Sort.Rf_iPsort(p0, p1, p2);
   }
 
   public static void Rf_rPsort(DoublePtr p0, int p1, int p2) {

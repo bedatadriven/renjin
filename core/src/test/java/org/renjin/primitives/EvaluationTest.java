@@ -660,53 +660,6 @@ public class EvaluationTest extends EvalTestCase {
   }
 
   @Test
-  public void rapplyWithList() throws IOException {
-    eval("l <- list(first=1.0, second=list(2.0, list(3.0, 'zzz')), third='qqq', fourth=list('aaa', 'bbb'))");
-    eval("f <- function(x) -2*x");
-    eval("clz <- c('double')");
-
-    // @formatter:off
-    ListVector expected = ListVector.newNamedBuilder()
-        .add("first", -2.0)
-        .add("second", list(-4d, list(-6d, 123d)))
-        .add("third", 123d)
-        .add("fourth", list(123d, 123d))
-        .build();
-    // @formatter:on
-
-    assertThat(eval("rapply(l, f, clz, deflt=123, how='list')"), elementsIdenticalTo(expected));
-  }
-
-  @Test
-  public void rapplyWithReplace() throws IOException {
-    eval("l <- list(first=1.0, second=list(2.0, list(3.0, 'zzz')), third='qqq', fourth=list('aaa', 'bbb'))");
-    eval("f <- function(x) -2*x");
-    eval("clz <- c('double')");
-
-    // @formatter:off
-    ListVector expected = ListVector.newNamedBuilder()
-        .add("first", -2.0)
-        .add("second", list(-4d, list(-6d, "zzz")))
-        .add("third", "qqq")
-        .add("fourth", list("aaa", "bbb"))
-        .build();
-    // @formatter:on
-
-    assertThat(eval("rapply(l, f, clz, how='replace')"), elementsIdenticalTo(expected));
-  }
-
-  @Test
-  public void rapplyWithUnlist() throws IOException {
-    eval("l <- list(first=1.0, second=list(2.0, list(3.0, 'zzz')), third='qqq', fourth=list('aaa', 'bbb'))");
-    eval("f <- function(x) -2*x");
-    eval("clz <- c('double')");
-
-    DoubleVector expected = new DoubleArrayVector(-2.0, -4d, -6d, 123d, 123d, 123d, 123d);
-
-    assertThat(eval("rapply(l, f, clz, deflt=123, how='unlist')"), elementsIdenticalTo(expected));
-  }
-
-  @Test
   public void nextMethodWithMissing() {
     eval("NextMethod <- function (generic = NULL, object = NULL, ...) " + 
         ".Internal(NextMethod(generic, object, ...))");

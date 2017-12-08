@@ -278,11 +278,14 @@ public class Namespace {
     try {
       library = loadDynamicLibrary(context, entry.getLibraryName());
     } catch (Exception e) {
-      e.printStackTrace();
+
+      if(!isClassSimplyNotFound(e)) {
+        e.printStackTrace();
+      }
       context.warn("Could not load compiled Fortran/C/C++ sources class for package " + pkg.getName() + ".\n" +
           "This is most likely because Renjin's compiler is not yet able to handle the sources for this\n" +
           "particular package. As a result, some functions may not work.\n");
-      e.printStackTrace();
+
       return;
     }
 
@@ -316,6 +319,17 @@ public class Namespace {
         namespaceEnvironment.setVariableUnsafe(entry.getPrefix() + symbol.getName(), symbol.buildNativeSymbolInfoSexp());
       }
     }
+  }
+
+  /**
+   * Returns true if an Exception indicates that the classfile simply could not be found.
+   * Retruns false if there is some other problem deserving of reporting, for example, an Exception thrown
+   * during &lt;clint&gt; or a byte code verification error.
+   * @param e
+   * @return
+   */
+  private boolean isClassSimplyNotFound(Exception e) {
+    return e instanceof ClassNotFoundException && e.getCause() == null;
   }
 
   /**

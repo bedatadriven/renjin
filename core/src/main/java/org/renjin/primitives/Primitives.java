@@ -827,7 +827,7 @@ public class Primitives {
     f("Sys.sleep", System.class, 11);
     f("Sys.getlocale", System.class, 11);
     f("Sys.setlocale", System.class, 11);
-    f("Sys.localeconv", /*localeconv*/ null, 11);
+    f("Sys.localeconv", System.class, 11);
     f("path.expand", Files.class, "pathExpand", 11);
     f("Sys.getpid",System.class, 11);
     f("normalizePath", Files.class, 11);

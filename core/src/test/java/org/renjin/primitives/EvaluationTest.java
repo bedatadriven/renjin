@@ -658,7 +658,7 @@ public class EvaluationTest extends EvalTestCase {
 
     assertThat(eval(".Internal(typeof(z[[2]]))"), elementsIdenticalTo(c("language")));
   }
-  
+
   @Test
   public void nextMethodWithMissing() {
     eval("NextMethod <- function (generic = NULL, object = NULL, ...) " + 

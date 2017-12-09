@@ -21,9 +21,11 @@ package org.renjin.gnur.api;
 
 import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.BytePtr;
-import org.renjin.gcc.runtime.CharPtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.primitives.files.Files;
+
+import java.nio.charset.StandardCharsets;
 
 @SuppressWarnings("unused")
 public final class Utils {
@@ -76,13 +78,8 @@ public final class Utils {
     org.renjin.gnur.qsort.R_qsort_int_I(iv, II, i, j);
   }
 
-  @Deprecated
-  public static CharPtr R_ExpandFileName(CharPtr p0) {
-    throw new UnimplementedGnuApiMethod("R_ExpandFileName");
-  }
-
   public static BytePtr R_ExpandFileName(BytePtr p0) {
-    throw new UnimplementedGnuApiMethod("R_ExpandFileName");
+    return BytePtr.nullTerminatedString(Files.pathExpand(p0.nullTerminatedString()), StandardCharsets.UTF_8);
   }
 
   public static void Rf_setIVector(IntPtr p0, int p1, int p2) {

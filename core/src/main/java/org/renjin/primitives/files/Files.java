@@ -64,10 +64,18 @@ public class Files {
   @DataParallel
   @Internal("path.expand")
   public static String pathExpand(String path) {
-    if(path.startsWith("~/")) {
-      return java.lang.System.getProperty("user.home") + path.substring(2);
-    } else {
+    if (path.length() < 2 || path.charAt(0) != '~' || Character.isAlphabetic(path.charAt(1))) {
       return path;
+    } else {
+      String home = System.getenv("R_USER");
+      if (home == null) {
+        home = System.getProperty("user.home");
+      }
+      if (home == null) {
+        return path;
+      } else {
+        return home + path.substring(1);
+      }
     }
   }
 

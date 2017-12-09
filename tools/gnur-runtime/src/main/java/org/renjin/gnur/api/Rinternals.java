@@ -2158,7 +2158,11 @@ public final class Rinternals {
   }
 
   public static Ptr Rf_reEnc(BytePtr x, int ce_in, int ce_out, int subst) {
-    throw new UnsupportedOperationException("Rf_reEnc");
+    if(ce_in == ce_out) {
+      return x;
+    } else {
+      throw new UnsupportedOperationException(String.format("Rf_reEnc: from %d to %d", ce_in, ce_out));
+    }
   }
 
   public static SEXP R_forceAndCall(SEXP e, int n, SEXP rho) {

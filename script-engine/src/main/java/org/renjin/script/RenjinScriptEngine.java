@@ -44,7 +44,7 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
   private final Context topLevelContext;
 
   // jsr context, which wrap renjincore context.
-  private final ScriptContext scriptContext;
+  private final RenjinScriptContext scriptContext;
   
   RenjinScriptEngine(RenjinScriptEngineFactory factory, Session session) {
     super();
@@ -73,15 +73,7 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
 
   @Override
   public Bindings getBindings(int scope) {
-    switch(scope) {
-      case ScriptContext.ENGINE_SCOPE:
-        return new RenjinBindings(topLevelContext.getEnvironment().getFrame());
-
-      default:
-      case ScriptContext.GLOBAL_SCOPE:
-        throw new UnsupportedOperationException();
-
-    }
+    return scriptContext.getBindings(scope);
   }
 
   @Override
@@ -163,14 +155,15 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
     return eval(context, source);
   }
   
-  private Object eval(Context context, SEXP source) {
+  private Object eval(Context context, SEXP source) throws ScriptException {
     try {
       return context.evaluate( source, context.getEnvironment());
     } catch(BreakException e) {
-      throw new EvalException("no loop for break");
+      throw new ScriptException("no loop for break");
     } catch(NextException e) {
-      throw new EvalException("no loop for next");
-
+      throw new ScriptException("no loop for next");
+    } catch (EvalException e) {
+      throw new ScriptException(e);
     }
   }
 

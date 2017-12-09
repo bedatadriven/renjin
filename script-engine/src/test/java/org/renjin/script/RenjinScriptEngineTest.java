@@ -19,6 +19,7 @@
 package org.renjin.script;
 
 import org.hamcrest.CoreMatchers;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.renjin.sexp.*;
@@ -28,6 +29,7 @@ import java.util.HashMap;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 
 public class RenjinScriptEngineTest {
@@ -154,5 +156,32 @@ public class RenjinScriptEngineTest {
     assertThat(vector.length(), equalTo(1));
     assertThat(vector.getElementAsString(0), equalTo("hello world"));
   }
-  
+
+
+  @Test
+  public void sameBindingsFromEngineAndContext() throws ScriptException {
+
+    ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
+    ScriptEngine scriptEngine = scriptEngineManager.getEngineByName("Renjin");
+    if (scriptEngine == null) {
+      throw new IllegalStateException("Could not load ScriptEngine: Renjin");
+    }
+
+    Bindings bindingsFromEngine = scriptEngine.getBindings(ScriptContext.ENGINE_SCOPE);
+
+    Bindings bindingsFromContext = scriptEngine.getContext().getBindings(ScriptContext.ENGINE_SCOPE);
+
+    assertTrue(bindingsFromEngine == bindingsFromContext); // identity test
+
+    final String key = "foo";
+    final String value = "bar";
+
+    Assert.assertNull(bindingsFromEngine.get(key));
+    Assert.assertNull(bindingsFromContext.get(key));
+
+    bindingsFromEngine.put(key, value);
+
+    Assert.assertEquals(StringVector.valueOf(value), bindingsFromEngine.get(key));
+    Assert.assertEquals(StringVector.valueOf(value), bindingsFromContext.get(key));
+  }
 }

@@ -245,7 +245,7 @@ public class WrapperGenerator2 {
       } else if(cp == '@') {
         sb.append("$at");
       } else if(cp == '#') {
-        sb.append("$at");
+        sb.append("$hash");
       } else if(cp == '%') {
         sb.append("$percent");
       } else if(cp == '^') {

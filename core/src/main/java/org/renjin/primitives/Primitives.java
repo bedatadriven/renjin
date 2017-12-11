@@ -762,7 +762,7 @@ public class Primitives {
     f("lapply", Evaluation.class, 10);
     f("vapply", Evaluation.class, 10);
     f("mapply", Evaluation.class, 10);
-    f("rapply", /*rapply*/ null, 11);
+    f("rapply", Evaluation.class, 11);
 
     f("islistfactor",  Types.class, 11);
     f("colSums", Matrices.class, 11);

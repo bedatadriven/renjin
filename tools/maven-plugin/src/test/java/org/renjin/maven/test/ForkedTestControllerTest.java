@@ -85,9 +85,9 @@ public class ForkedTestControllerTest extends TestCase {
 
     int outputLimit = 50 * 1024;
     
-    forkedTestController.setTimeout(3, TimeUnit.SECONDS);
-    forkedTestController.executeTest(testFile);
+    forkedTestController.setTimeout(9, TimeUnit.SECONDS);
     forkedTestController.setOutputLimit(outputLimit);
+    forkedTestController.executeTest(testFile);
 
     String output = parseOutput(testFile);
     

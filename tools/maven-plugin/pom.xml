@@ -36,6 +36,7 @@
       <groupId>org.renjin</groupId>
       <artifactId>gcc-bridge-maven-plugin</artifactId>
       <version>${project.version}</version>
+      <type>maven-plugin</type>
     </dependency>
     <dependency>
       <groupId>org.renjin</groupId>
@@ -100,7 +101,7 @@
         </exclusion>
       </exclusions>
     </dependency>
-      
+
   </dependencies>
 
   <build>

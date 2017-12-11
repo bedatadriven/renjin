@@ -28,6 +28,7 @@ import org.renjin.primitives.*;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.packaging.Namespaces;
 import org.renjin.primitives.subset.Subsetting;
+import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.sexp.*;
 
 import java.lang.System;
@@ -36,6 +37,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+
+import static org.renjin.primitives.Types.isFactor;
+import static org.renjin.primitives.vector.RowNamesVector.isCompactForm;
+import static org.renjin.primitives.vector.RowNamesVector.isOldCompactForm;
 
 /**
  * GNU R API methods defined in the "Rinternals.h" header file.
@@ -457,7 +462,11 @@ public final class Rinternals {
 
 
   public static void SET_ATTRIB(SEXP x, SEXP v) {
-    throw new UnimplementedGnuApiMethod("SET_ATTRIB");
+    if(v instanceof PairList) {
+      ((AbstractSEXP)x).unsafeSetAttributes(AttributeMap.fromPairList((PairList) v));
+    } else {
+      ((AbstractSEXP)x).unsafeSetAttributes(v.getAttributes());
+    }
   }
 
   public static void DUPLICATE_ATTRIB(SEXP to, SEXP from) {
@@ -571,6 +580,8 @@ public final class Rinternals {
       return new IntPtr(((IntVector) x).toIntArray());
     } else if(x instanceof LogicalVector) {
       return new IntPtr(((LogicalVector) x).toIntArray());
+    } else if(x == Null.INSTANCE) {
+      return new IntPtr(0);
     } else {
       throw new EvalException("INTEGER(): expected integer vector, found %s", x.getTypeName());
     }
@@ -640,6 +651,9 @@ public final class Rinternals {
    * @return The value of the {@code i}th element.
    */
   public static SEXP VECTOR_ELT(SEXP x, /*R_xlen_t*/ int i) {
+    if(x instanceof FunctionCall || x instanceof PairList){
+      return ((PairList) x).getElementAsSEXP(i);
+    }
     return ((ListVector) x).getElementAsSEXP(i);
   }
 
@@ -1842,10 +1856,10 @@ public final class Rinternals {
   public static int Rf_nrows(SEXP s) {
     if (Rf_isVector(s) || Rf_isList(s)) {
       Vector dim = s.getAttributes().getDim();
-      if(dim.length() >= 1) {
-        return dim.getElementAsInt(0);
+      if(dim == Null.INSTANCE) {
+        return s.length();
       } else {
-        return 1;
+        return dim.getElementAsInt(0);
       }
 
     } else if (Rf_isFrame(s)) {
@@ -1909,6 +1923,11 @@ public final class Rinternals {
     if(name == null) {
       throw new IllegalArgumentException("attributeName is NULL");
     }
+    if(name == R_RowNamesSymbol) {
+      if(isOldCompactForm(val) || isCompactForm(val) ) {
+        val = new RowNamesVector(Math.abs(val.getElementAsSEXP(1).asInt()));
+      }
+    }
     Symbol attributeSymbol;
     if(name instanceof StringVector) {
       attributeSymbol = Symbol.get(((StringVector) name).getElementAsString(0));
@@ -1971,7 +1990,7 @@ public final class Rinternals {
   }
 
   public static BytePtr Rf_translateChar(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_translateChar");
+    return ((GnuCharSexp)p0).getValue();
   }
 
   public static BytePtr Rf_translateChar0(SEXP p0) {
@@ -2139,7 +2158,11 @@ public final class Rinternals {
   }
 
   public static Ptr Rf_reEnc(BytePtr x, int ce_in, int ce_out, int subst) {
-    throw new UnsupportedOperationException("Rf_reEnc");
+    if(ce_in == ce_out) {
+      return x;
+    } else {
+      throw new UnsupportedOperationException(String.format("Rf_reEnc: from %d to %d", ce_in, ce_out));
+    }
   }
 
   public static SEXP R_forceAndCall(SEXP e, int n, SEXP rho) {
@@ -2912,7 +2935,10 @@ public final class Rinternals {
   }
 
   public static int Rf_nlevels(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_nlevels");
+    if(!isFactor(p0)) {
+      return 0;
+    }
+    return LENGTH(p0.getAttribute(Symbol.get("levels")));
   }
 
   public static int Rf_stringPositionTr(SEXP p0, BytePtr p1) {

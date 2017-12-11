@@ -102,6 +102,56 @@ public class Evaluation {
     return builder.build();
   }
 
+  private static final List<String> VALID_HOW_VALUES = Lists.newArrayList("unlist", "replace", "list");
+  @Builtin
+  public static Vector rapply(@Current Context context, @Current Environment rho, Vector vector,
+      Function function, StringVector classes, SEXP deflt, String how) {
+
+    if (!VALID_HOW_VALUES.contains(how)) {
+      throw new EvalException("'how' must be one of " + VALID_HOW_VALUES);
+    }
+
+    // Retrieve the additional arguments from the `...` value
+    // in the closure that called us
+    PairList extraArgs = (PairList)rho.getVariable(context, Symbols.ELLIPSES);
+
+    ListVector.Builder builder = ListVector.newBuilder();
+    for (int i = 0; i != vector.length(); ++i) {
+      // The semantics differ in detail from lapply:
+      // in particular the arguments are evaluated before calling the C code.
+      SEXP element = vector.getElementAsSEXP(i);
+
+      if (Types.isList(element)) {
+        builder.add(rapply(context, rho, (Vector) element, function, classes, deflt, how));
+      } else if (classes.contains(StringVector.valueOf(element.getTypeName()), 0)) {
+        // each element of the list which is not itself a list and has a class included in classes
+        // is replaced by the result of applying f to the element.
+        // all non-list elements which have a class included in classes
+        // are replaced by the result of applying f to the element
+        PairList.Builder args = new PairList.Builder();
+        args.add(element);
+        args.addAll(extraArgs);
+        FunctionCall applyFunctionCall = new FunctionCall(function, args.build());
+        builder.add(context.evaluate(applyFunctionCall, rho));
+      } else {
+        if ("replace".equals(how)) {
+          builder.add(element);
+        } else {
+          // If the mode is how = "list" or how = "unlist", all others are replaced by deflt.
+          builder.add(deflt);
+        }
+      }
+    }
+    builder.setAttribute(Symbols.NAMES, vector.getNames());
+    if ("unlist".equals(how)) {
+      // Finally, if how = "unlist", unlist(recursive = TRUE) is called on the result.
+      FunctionCall funCall = FunctionCall.newCall(Symbol.get("unlist"), builder.build(), LogicalVector.TRUE, LogicalVector.TRUE);
+      return (Vector) context.evaluate(funCall, rho);
+    } else {
+      return builder.build();
+    }
+  }
+
   @Internal
   public static Vector vapply(@Current Context context, @Current Environment rho, Vector vector,
       Function function, Vector funValue, boolean useNames) {

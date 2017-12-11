@@ -41,6 +41,7 @@ public class Symbols {
   public static final Symbol LEFT_BRACE = Symbol.get("{");
 
   public static final Symbol TZONE = Symbol.get("tzone");
+  public static final Symbol TSP = Symbol.get("tsp");
   
   /**
    * Identifies the {@code row.names} attribute, which contains an {@code AtomicVector} with the

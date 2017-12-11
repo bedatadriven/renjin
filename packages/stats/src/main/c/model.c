@@ -787,7 +787,8 @@ static SEXP ExpandDots(SEXP object, SEXP value)
 	    }
 	    else if (length(object) == 3) {
 		SETCADR(object, ExpandDots(CADR(object), value));
-		SETCADDR(object, ExpandDots(CADDR(object), value));
+		SETCADDR(object, lang2(parenSymbol,
+                         ExpandDots(CADDR(object), value)));
 	    }
 	    else goto badformula;
 	}

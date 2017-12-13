@@ -21,7 +21,6 @@ package org.renjin.primitives;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
-import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.invoke.reflection.converters.*;
 import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.vector.ConvertingDoubleVector;
@@ -30,7 +29,6 @@ import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.base.Predicates;
 import org.renjin.sexp.*;
-import org.renjin.util.NamesBuilder;
 
 import java.util.Arrays;
 
@@ -506,6 +504,12 @@ public class Vectors {
     } else if ("raw".equals(mode)) {
       byte values[] = new byte[length];
       return new RawVector(values);
+
+    } else if("expression".equals(mode)) {
+      SEXP values[] = new SEXP[length];
+      Arrays.fill(values, Null.INSTANCE);
+      return new ExpressionVector(values);
+
     } else {
       throw new EvalException(String.format(
           "vector: cannot make a vector of mode '%s'.", mode));

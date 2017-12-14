@@ -68,7 +68,7 @@ splineDesign <-
 	stop(gettextf("the 'x' data must be in the range %g to %g unless you set 'outer.ok = TRUE'",
 		      knots[ord], knots[nk- o1]), domain = NA)
     }
-    temp <- .Call("spline_basis", knots, ord, x, derivs, PACKAGE = "splines")
+    temp <- .Call(C_spline_basis, knots, ord, x, derivs, PACKAGE = "splines")
     ncoef <- nk - ord
     design <- matrix(double(nx * ncoef), nx, ncoef)
 
@@ -366,7 +366,7 @@ predict.bSpline <- function(object, x, nseg = 50, deriv = 0, ...)
     } else accept <- knots[ord] <= x & x <= knots[ncoeff + 1]
     y <- x
     y[!accept] <- NA
-    y[accept] <- .Call("spline_value", knots, coeff, ord, x[accept], deriv,
+    y[accept] <- .Call(C_spline_value, knots, coeff, ord, x[accept], deriv,
 		       PACKAGE = "splines")
     xyVector(x = x, y = y)
 }
@@ -419,7 +419,7 @@ predict.pbSpline <- function(object, x, nseg = 50, deriv = 0, ...)
     if(any(ind <- x > knots[ncoeff + 1]))
 	x[ind] <- x[ind] - period * (1 + (x[ind] - knots[ncoeff +1]) %/% period)
     xyVector(x = x.original,
-	     y = .Call("spline_value", knots, coef(object), ord, x, deriv,
+	     y = .Call(C_spline_value, knots, coef(object), ord, x, deriv,
              PACKAGE = "splines"))
 }
 

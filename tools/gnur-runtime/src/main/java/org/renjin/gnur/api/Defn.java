@@ -579,7 +579,7 @@ public final class Defn {
   }
 
   public static SEXP Rf_mkFalse() {
-    throw new UnimplementedGnuApiMethod("Rf_mkFalse");
+    return LogicalVector.FALSE;
   }
 
   public static SEXP mkPRIMSXP(int p0, int p1) {
@@ -607,7 +607,7 @@ public final class Defn {
   }
 
   public static SEXP Rf_mkTrue() {
-    throw new UnimplementedGnuApiMethod("Rf_mkTrue");
+    return LogicalVector.TRUE;
   }
 
   public static SEXP Rf_NewEnvironment(SEXP p0, SEXP p1, SEXP p2) {

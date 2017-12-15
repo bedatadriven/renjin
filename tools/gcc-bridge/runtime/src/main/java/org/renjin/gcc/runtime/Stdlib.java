@@ -565,6 +565,10 @@ public class Stdlib {
     return Double.isInfinite(x) ? 1 : 0;
   }
 
+  public static int isinf(double x) {
+    return __isinf(x);
+  }
+
   public static float logf(float x) {
     return (float)Math.log(x);
   }

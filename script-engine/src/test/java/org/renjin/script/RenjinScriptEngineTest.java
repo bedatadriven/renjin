@@ -21,12 +21,14 @@ package org.renjin.script;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
+import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
 import javax.script.*;
 import java.util.HashMap;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
 
 
@@ -154,5 +156,36 @@ public class RenjinScriptEngineTest {
     assertThat(vector.length(), equalTo(1));
     assertThat(vector.getElementAsString(0), equalTo("hello world"));
   }
-  
+
+  @Test
+  public void usefulSetterExceptions() {
+    try {
+      engine.eval("import(org.renjin.script.DummyObject)");
+      engine.eval("foo <- DummyObject$new(bar='Hi')");
+
+    } catch (ScriptException e) {
+      throw new AssertionError("ScriptException was thrown");
+
+    } catch(EvalException e) {
+      assertThat(e.getMessage(), equalTo("baz"));
+      assertThat(e.getCause(), instanceOf(IllegalArgumentException.class));
+    }
+  }
+
+  @Test
+  public void usefulMethodExceptions() {
+    try {
+      engine.eval("import(org.renjin.script.DummyObject)");
+      engine.eval("foo <- DummyObject$new()");
+      engine.eval("foo$launchMissile()");
+
+    } catch (ScriptException e) {
+      throw new AssertionError("ScriptException was thrown");
+
+    } catch(EvalException e) {
+      assertThat(e.getMessage(), equalTo("Missile not ready."));
+      assertThat(e.getCause(), instanceOf(IllegalStateException.class));
+    }
+  }
+
 }

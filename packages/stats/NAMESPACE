@@ -27,7 +27,19 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     cov,
     cor,
     lowess,
+
     loess_raw,
+    loess_free,
+    loess_dfit,
+    loess_dfitse,
+    loess_ifit,
+    loess_ise,
+    loess_workspace,
+    loess_prune,
+    loess_grow,
+
+
+
     optim,
     optimhess,
     HoltWinters,
@@ -46,7 +58,14 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     eureka = eureka_,
     Burg,
     rbart = rbart_,
-    bvalus = bvalus_
+    bvalus = bvalus_,
+
+    modelframe,
+    modelmatrix,
+    termsform,
+    updateform
+
+
     )
 
 # exportPattern("^[^\\.]")

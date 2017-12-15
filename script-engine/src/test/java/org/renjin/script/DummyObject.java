@@ -16,12 +16,21 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.stats.internals.models;
+package org.renjin.script;
 
-import java.util.List;
+public class DummyObject {
 
-public abstract class Variable {
+  private String bar;
 
+  public String getBar() {
+    return bar;
+  }
 
-  public abstract List<? extends ModelMatrixColumn> getModelMatrixColumns();
+  public void setBar(String value) {
+    throw new IllegalArgumentException("baz");
+  }
+
+  public void launchMissile() {
+    throw new IllegalStateException("Missile not ready.");
+  }
 }

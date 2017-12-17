@@ -668,4 +668,8 @@ public class Stdlib {
   public static int rand() {
     return RANDOM.get().nextInt(RAND_MAX);
   }
+
+  public static int signbit(double x) {
+    return Double.doubleToRawLongBits(x) < 0 ? 1 : 0;
+  }
 }

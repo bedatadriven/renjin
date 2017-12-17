@@ -474,24 +474,6 @@ public class EvaluationTest extends EvalTestCase {
   }
 
   @Test
-  public void doSwitch() {
-    
-    assertThat( eval("switch('z', alligator=4,aardvark=2, 44)"), elementsIdenticalTo( c(44)));
-    assertThat( eval("switch('a', alligator=4,aardvark=2, 44)"), elementsIdenticalTo( c(44)));
-    assertThat(eval("switch('a', alligator=4,aardvark=2)"), identicalTo(NULL));
-    assertThat(eval("switch('all', alligator=4,aardvark=2)"), elementsIdenticalTo(c(4)));
-    assertThat(eval("switch('all')"), identicalTo(NULL));
-
-    assertThat(eval("switch(1, 'first', 'second')"), elementsIdenticalTo(c("first")));
-    assertThat(eval("switch(2, 'first', 'second')"), elementsIdenticalTo(c("second")));
-    assertThat( eval("switch(99, 'first', 'second')"), identicalTo( NULL ));
-    assertThat( eval("switch(4)"), identicalTo( NULL ));
-
-    assertThat(eval("switch('a', a=,b=,c=3) "), elementsIdenticalTo(c(3)));
-    assertThat( eval("switch(NA_character_, a=1,b=2)"), identicalTo( NULL ));
-  }
-
-  @Test
   public void useMethod() {
     eval("fry <- function(what, howlong) UseMethod('fry') ");
     eval("fry.default <- function(what, howlong) list(desc='fried stuff',what=what,howlong=howlong) ");

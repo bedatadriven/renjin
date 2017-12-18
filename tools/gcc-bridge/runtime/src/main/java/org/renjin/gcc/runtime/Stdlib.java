@@ -19,6 +19,7 @@
 package org.renjin.gcc.runtime;
 
 import org.renjin.gcc.annotations.Struct;
+import org.renjin.gcc.annotations.VarArgs;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -315,6 +316,11 @@ public class Stdlib {
 
   public static int sprintf(BytePtr string, BytePtr format, Object... arguments) {
     return snprintf(string, Integer.MAX_VALUE, format, arguments);
+  }
+
+  public static int vsnprintf(BytePtr string, int limit, BytePtr format, @VarArgs OpaquePtr<?> arguments) {
+    Object[] args = (Object[]) arguments.getArray();
+    return snprintf(string, Integer.MAX_VALUE, format, args);
   }
 
   public static int snprintf(BytePtr string, int limit, BytePtr format, Object... arguments) {

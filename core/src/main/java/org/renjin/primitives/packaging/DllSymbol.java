@@ -62,6 +62,11 @@ public class DllSymbol {
     this.registered = registered;
   }
 
+  @Deprecated
+  public DllSymbol(String name, MethodHandle methodHandle, Convention convention) {
+    this(name, methodHandle, convention, true);
+  }
+
   public DllSymbol(Method method) {
     this.name = method.getName();
     this.registered = false;
@@ -74,6 +79,11 @@ public class DllSymbol {
 
   public String getName() {
     return name;
+  }
+
+  @Deprecated
+  public void setName(String name) {
+    this.name = name;
   }
 
   public MethodHandle getMethodHandle() {

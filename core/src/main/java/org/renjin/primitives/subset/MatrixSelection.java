@@ -73,7 +73,7 @@ public class MatrixSelection implements SelectionStrategy {
 
       // DO transform the dimnames to a names attribute if present
       if(dimNames.length() > 0) {
-        attributes.setNames(dimNames.getElementAsSEXP(0));
+        attributes.setNames(dimNames.<SEXP>getElementAsSEXP(0));
       }
       
     } else {

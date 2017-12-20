@@ -106,7 +106,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
         if(((AtomicVector)element).indexOf(vector, vectorIndex, 0) != -1) {
           return i;
         } 
-      } else if(element.equals(vector.getElementAsSEXP(vectorIndex))) {
+      } else if(element.equals(vector.<SEXP>getElementAsSEXP(vectorIndex))) {
         return i;
       }
     }
@@ -658,7 +658,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
         ListVector.Builder builder = new ListVector.Builder(0, x.length());
         builder.copyAttributesFrom(x);
         for (int i = 0; i < x.length(); i++) {
-          builder.add(x.getElementAsSEXP(i));
+          builder.add(x.<SEXP>getElementAsSEXP(i));
         }
         return builder.build();
       }

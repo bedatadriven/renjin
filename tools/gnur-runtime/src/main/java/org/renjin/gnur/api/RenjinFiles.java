@@ -60,13 +60,13 @@ public class RenjinFiles {
 
   private static FileHandle fopen(FileObject fileObject, String mode) throws FileSystemException {
     switch (mode) {
-    case "r":
-    case "rb":
-      return new InputStreamHandle(fileObject.getContent().getInputStream());
+      case "r":
+      case "rb":
+        return new InputStreamHandle(fileObject.getContent().getInputStream());
 
-    case "w":
-    case "wb":
-      return new OutputStreamHandle(fileObject.getContent().getOutputStream());
+      case "w":
+      case "wb":
+        return new OutputStreamHandle(fileObject.getContent().getOutputStream());
 
       default:
         throw new UnsupportedOperationException("mode: " + mode);

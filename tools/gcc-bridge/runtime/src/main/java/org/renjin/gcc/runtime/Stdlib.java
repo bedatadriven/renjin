@@ -405,6 +405,7 @@ public class Stdlib {
     daylight = currentTimezone.inDaylightTime(new Date()) ? 1 : 0;
   }
 
+  @Deprecated
   public static void fflush(Object file) {
     // TODO: implement properly
   }
@@ -490,15 +491,59 @@ public class Stdlib {
     String modeString = nullTerminatedString(mode);
 
     switch (modeString) {
+      case "r":
       case "rb":
         try {
           return new RecordUnitPtr<>(new FileHandleImpl(new RandomAccessFile(filenameString, "r")));
         } catch (FileNotFoundException e) {
           return BytePtr.NULL;
         }
+      case "w":
+      case "wb":
+        try {
+          return new RecordUnitPtr<>(new FileHandleImpl(new RandomAccessFile(filenameString, "rw")));
+        } catch (FileNotFoundException e) {
+          return BytePtr.NULL;
+        }
       default:
         throw new UnsupportedOperationException("Not implemented. Mode = " + modeString);
     }
+  }
+
+  public static int fflush(Ptr stream) throws IOException {
+    FileHandle handle = (FileHandle) stream.getArray();
+    handle.flush();
+    return 0;
+  }
+
+  public static int fprintf(Ptr stream, BytePtr format, Object... arguments) {
+    try {
+      String outputString = format(format, arguments);
+      BytePtr outputBytes = BytePtr.nullTerminatedString(outputString, StandardCharsets.UTF_8);
+      int bytesWritten = fwrite(outputBytes, 1, outputBytes.getArray().length, stream);
+
+      return bytesWritten;
+    } catch (Exception e) {
+      return -1;
+    }
+  }
+
+  public static int fwrite(BytePtr ptr, int size, int count, Ptr stream) throws IOException {
+    FileHandle handle = (FileHandle) stream.getArray();
+    int bytesWritten = 0;
+
+    // Super naive implementation.
+    // Performance to be improved...
+    for (int i = 0; i < (count * size); ++i) {
+      try {
+        handle.write(ptr.getByte(i));
+        bytesWritten++;
+      } catch (ArrayIndexOutOfBoundsException aioobe) {
+        i = count * size;
+      }
+    }
+
+    return bytesWritten;
   }
 
   public static int fread(Ptr ptr, int size, int count, Ptr stream) throws IOException {

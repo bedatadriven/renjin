@@ -38,6 +38,16 @@ public class FileHandleImpl implements FileHandle {
   }
 
   @Override
+  public void write(int b) throws IOException {
+    file.write(b);
+  }
+
+  @Override
+  public void flush() throws IOException {
+    file.getFD().sync();
+  }
+
+  @Override
   public void close() throws IOException {
     file.close();
   }

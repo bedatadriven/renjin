@@ -70,6 +70,11 @@ public class StdInConnection implements Connection {
   }
 
   @Override
+  public void flush() throws IOException {
+    // NOOP
+  }
+
+  @Override
   public void open(OpenSpec spec) throws IOException {
 
   }

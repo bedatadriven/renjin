@@ -79,7 +79,14 @@ public abstract class AbstractConnection implements Connection {
       closeOutputIfOpen();
     }
   }
-  
+
+  @Override
+  public void flush() throws IOException {
+    if(writer != null) {
+      writer.flush();
+    }
+  }
+
   @Override
   public String getMode() {
     return "r";

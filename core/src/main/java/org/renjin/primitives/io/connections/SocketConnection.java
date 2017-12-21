@@ -85,6 +85,13 @@ public class SocketConnection implements Connection {
   }
 
   @Override
+  public void flush() throws IOException {
+    if(writer != null) {
+      writer.flush();
+    }
+  }
+
+  @Override
   public void open(OpenSpec spec) throws IOException {
     this.openSpec = spec;
   }

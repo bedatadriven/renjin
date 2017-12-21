@@ -135,6 +135,11 @@ public class WriteTextConnection implements Connection {
   }
 
   @Override
+  public void flush() throws IOException {
+    printWriter.flush();
+  }
+
+  @Override
   public String getClassName() {
     return "textConnection";
   }

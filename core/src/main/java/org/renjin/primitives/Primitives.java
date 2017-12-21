@@ -943,7 +943,7 @@ public class Primitives {
     f("isIncomplete", /*isincomplete*/ null, 11);
     f("isSeekable", /*isseekable*/ null, 11);
     f("close", Connections.class, 11);
-    f("flush", /*flush*/ null, 11);
+    f("flush", Connections.class, 11);
     f("file", Connections.class, 11);
     f("url", Connections.class, 11);
     f("pipe", /*pipe*/ null, 11);

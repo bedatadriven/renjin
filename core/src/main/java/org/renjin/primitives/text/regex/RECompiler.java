@@ -699,12 +699,22 @@ public class RECompiler
             }
             else
             {
-                // If simple character and not start of range, include it
-                if (idx >= len || !(pattern.charAt(idx) == '-' && idx+1 < len && pattern.charAt(idx+1) != ']' ) )
-                {
-                    range.include(simpleChar, include);
+                // SPECIAL case to match GNU R:
+                // If a blackslash preceeds a ] character, then the backslash is considered a member
+                // of the character class, and the class terminates.
+                if(simpleChar == ']') {
+                    range.include('\\', include);
+                    idx--; // push back the ']' character
+                    break;
+
+                } else {
+
+                    // If simple character and not start of range, include it
+                    if (idx >= len || !(pattern.charAt(idx) == '-' && idx + 1 < len && pattern.charAt(idx + 1) != ']')) {
+                        range.include(simpleChar, include);
+                    }
+                    last = simpleChar;
                 }
-                last = simpleChar;
             }
         }
 

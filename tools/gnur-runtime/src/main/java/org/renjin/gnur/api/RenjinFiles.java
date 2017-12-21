@@ -96,6 +96,11 @@ public class RenjinFiles {
     }
 
     @Override
+    public void flush() throws IOException {
+      // no equivalent operation on underlying implementation
+    }
+
+    @Override
     public void seekSet(long offset) throws IOException {
       content.seek(offset);
     }
@@ -137,6 +142,11 @@ public class RenjinFiles {
     @Override
     public void write(int b) throws IOException {
       throw new UnsupportedOperationException("Cannot write on input stream handle.");
+    }
+
+    @Override
+    public void flush() throws IOException {
+      throw new UnsupportedOperationException("Cannot flush an input stream handle.");
     }
 
     @Override
@@ -186,6 +196,11 @@ public class RenjinFiles {
     @Override
     public void write(int b) throws IOException {
       outputStream.write(b);
+    }
+
+    @Override
+    public void flush() throws IOException {
+      outputStream.flush();
     }
 
     @Override

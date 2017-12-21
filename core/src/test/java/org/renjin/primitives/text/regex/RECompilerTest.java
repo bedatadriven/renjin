@@ -18,12 +18,10 @@
  */
 package org.renjin.primitives.text.regex;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class RECompilerTest {
@@ -168,8 +166,21 @@ public class RECompilerTest {
     assertTrue(re.match("ABBC"));
     assertTrue(re.match("ABBBC"));
     assertFalse(re.match("ABBBBC"));
+  }
 
+  @Test
+  public void backslashInCharacterClass() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("[/\\]");
 
+    assertTrue(re.match("\\"));
+    assertTrue(re.match("/foo/foo"));
+    assertFalse(re.match("foo"));
+    assertFalse(re.match(""));
+  }
+
+  @Test(expected = RESyntaxException.class)
+  public void trailingBackslashError() throws RESyntaxException {
+    new ExtendedRE("[A-Z]\\");
   }
 
 

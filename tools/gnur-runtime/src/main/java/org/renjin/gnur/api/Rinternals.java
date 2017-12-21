@@ -536,15 +536,22 @@ public final class Rinternals {
   }
 
   public static int LEVELS(SEXP x) {
-    throw new UnimplementedGnuApiMethod("LEVELS");
+    final SEXP levels = x.getAttribute(Symbols.LEVELS);
+    if (Null.INSTANCE == levels) {
+      return IntVector.NA;
+    } else {
+      return levels.asInt();
+    }
   }
 
   public static int SETLEVELS(SEXP x, int v) {
-    throw new UnimplementedGnuApiMethod("SETLEVELS");
+    AbstractSEXP abstractSEXP = (AbstractSEXP) x;
+    abstractSEXP.unsafeSetAttributes(x.getAttributes().copy().set(Symbols.LEVELS, IntVector.valueOf(v)));
+    return LEVELS(x);
   }
 
   public static Object DATAPTR(SEXP x) {
-    if(x instanceof IntVector | x instanceof LogicalVector) {
+    if (x instanceof IntVector || x instanceof LogicalVector) {
       return INTEGER(x);
     } else if(x instanceof DoubleVector) {
       return REAL(x);

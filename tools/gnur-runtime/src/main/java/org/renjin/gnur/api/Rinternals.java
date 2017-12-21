@@ -550,7 +550,7 @@ public final class Rinternals {
     return LEVELS(x);
   }
 
-  public static Ptr DATAPTR(SEXP x) {
+  public static Object DATAPTR(SEXP x) {
     if (x instanceof IntVector || x instanceof LogicalVector) {
       return INTEGER(x);
     } else if(x instanceof DoubleVector) {

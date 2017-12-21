@@ -135,7 +135,11 @@ public class InitDataFlowAnalysis {
    * Updates a node's entry state as a function of all the incoming node's states.
    */
   private Set<Long> applyJoin(ControlFlowGraph.Node node) {
-    
+
+    if(node.getIncoming().isEmpty()) {
+      return Collections.emptySet();
+    }
+
     // a local variable is known to be initialized if has been
     // initialized on all incoming paths
     Iterator<ControlFlowGraph.Node> incomingIt = node.getIncoming().iterator();

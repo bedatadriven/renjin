@@ -32,7 +32,8 @@ import java.io.PrintWriter;
  *
  */
 public interface Connection {
-  
+
+
   enum Type {
     TEXT,
     BINARY
@@ -99,7 +100,10 @@ public interface Connection {
    * @return true if this Connection has been opened and not yet closed.
    */
   boolean isOpen();
-  
+
+  void flush() throws IOException;
+
+
   /**
    * 
    * @return the S3 "sub" class of this connection (e.g. "terminal", "file", etc)

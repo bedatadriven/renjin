@@ -23,6 +23,7 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleLValue;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
+import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.guava.base.Joiner;
@@ -35,7 +36,7 @@ import java.util.*;
  * Gimple Function Model
  */
 public class GimpleFunction implements GimpleDecl {
-  private int id;
+  private long id;
   private String name;
   private String mangledName;
   private GimpleType returnType;
@@ -52,11 +53,11 @@ public class GimpleFunction implements GimpleDecl {
   }
 
 
-  public int getId() {
+  public long getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public void setId(long id) {
     this.id = id;
   }
 
@@ -113,7 +114,7 @@ public class GimpleFunction implements GimpleDecl {
 
   public GimpleVarDecl addVarDecl(GimpleType type) {
     // find unused id
-    Set<Integer> usedIds = usedIds();
+    Set<Long> usedIds = usedIds();
     int newId = 1000;
     while(usedIds.contains(newId)) {
       newId++;
@@ -127,8 +128,8 @@ public class GimpleFunction implements GimpleDecl {
     return decl;
   }
   
-  private Set<Integer> usedIds() {
-    Set<Integer> set = new HashSet<>();
+  private Set<Long> usedIds() {
+    Set<Long> set = new HashSet<>();
     for (GimpleVarDecl variableDeclaration : variableDeclarations) {
       set.add(variableDeclaration.getId());
     }
@@ -245,7 +246,21 @@ public class GimpleFunction implements GimpleDecl {
   public GimpleBasicBlock getLastBasicBlock() {
     return basicBlocks.get(basicBlocks.size()-1);
   }
-  
+
+  public boolean isVariadic() {
+    for (GimpleBasicBlock basicBlock : basicBlocks) {
+      for (GimpleStatement statement : basicBlock.getStatements()) {
+        if(statement instanceof GimpleCall) {
+          GimpleCall call = (GimpleCall) statement;
+          if(call.isFunctionNamed("__builtin_va_start")) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   public void accept(GimpleExprVisitor visitor) {
     for (GimpleVarDecl decl : variableDeclarations) {
       if(decl.getValue() != null) {

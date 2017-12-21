@@ -22,9 +22,11 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.gcc.runtime.*;
 import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.primitives.UnsignedBytes;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.util.Arrays;
 
 import static java.lang.Double.NaN;
@@ -60,12 +62,12 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void pointers() throws Exception {
     Class clazz = compile("pointers.c");
 
-    Method method = clazz.getMethod("sum_array", DoublePtr.class, int.class);
+    Method method = clazz.getMethod("sum_array", Ptr.class, int.class);
     Double result = (Double) method.invoke(null, new DoublePtr(15, 20, 300), 3);
 
     assertThat(result, equalTo(335d));
 
-    Method fillMethod = clazz.getMethod("fill_array", DoublePtr.class, int.class);
+    Method fillMethod = clazz.getMethod("fill_array", Ptr.class, int.class);
     DoublePtr ptr = new DoublePtr(new double[5]);
     fillMethod.invoke(null, ptr, ptr.array.length);
 
@@ -124,25 +126,25 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void returningPointersToPointers() throws Exception {
     Class clazz = compile("cmatrix.c");
-    Method cmatrix = clazz.getMethod("cmatrix", DoublePtr.class, int.class, int.class);
+    Method cmatrix = clazz.getMethod("cmatrix", Ptr.class, int.class, int.class);
     DoublePtr array = new DoublePtr(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-    ObjectPtr matrix = (ObjectPtr) cmatrix.invoke(null, array, 2, 5);
-    DoublePtr row0 = (DoublePtr) matrix.array[matrix.offset];
-    DoublePtr row1 = (DoublePtr) matrix.array[matrix.offset + 1];
+    Ptr matrix = (Ptr) cmatrix.invoke(null, array, 2, 5);
+    Ptr row0 = matrix.getPointer(0);
+    Ptr row1 = matrix.getPointer(4);
 
-    assertThat(row0.get(0), equalTo(1d));
-    assertThat(row0.get(1), equalTo(2d));
+    assertThat(row0.getAlignedDouble(0), equalTo(1d));
+    assertThat(row0.getAlignedDouble(1), equalTo(2d));
 
-    assertThat(row1.get(0), equalTo(6d));
-    assertThat(row1.get(1), equalTo(7d));
+    assertThat(row1.getAlignedDouble(0), equalTo(6d));
+    assertThat(row1.getAlignedDouble(1), equalTo(7d));
 
-    Method get_at = clazz.getMethod("get_at", ObjectPtr.class, int.class, int.class);
+    Method get_at = clazz.getMethod("get_at", Ptr.class, int.class, int.class);
 
     DoublePtr prow0 = (DoublePtr) get_at.invoke(null, matrix, 0, 0);
     assertThat(prow0.array, is(prow0.array));
     assertThat(prow0.offset, equalTo(0));
 
-    Method sum_second_col = clazz.getMethod("sum_second_col", DoublePtr.class, int.class, int.class);
+    Method sum_second_col = clazz.getMethod("sum_second_col", Ptr.class, int.class, int.class);
     double sum = (Double) sum_second_col.invoke(null, array, 2, 5);
 
     assertThat(sum, equalTo(9d));
@@ -176,7 +178,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void arraysNonZeroLowerBound() throws Exception {
     Class clazz = compile("lbound.f");
 
-    Method test = clazz.getMethod("test_", DoublePtr.class, IntPtr.class);
+    Method test = clazz.getMethod("test_", Ptr.class, Ptr.class);
     DoublePtr x = new DoublePtr(0, 0, 0, 0);
     test.invoke(null, x, new IntPtr(4));
 
@@ -236,7 +238,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void logicalToInt() throws Exception {
     Class clazz = compile("bool2int.f");
-    Method method = clazz.getMethod("test_", IntPtr.class, IntPtr.class);
+    Method method = clazz.getMethod("test_", Ptr.class, Ptr.class);
 
     IntPtr x = new IntPtr(43);
     IntPtr y = new IntPtr(0);
@@ -249,7 +251,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void switchStatement() throws Exception {
     Class clazz = compile("switch.c");
 
-    Method distance = clazz.getMethod("R_distance", IntPtr.class, int.class, int.class);
+    Method distance = clazz.getMethod("R_distance", Ptr.class, int.class, int.class);
 
     assertThat((Integer) distance.invoke(null, new IntPtr(1), 13, 14), equalTo(1));
     assertThat((Integer) distance.invoke(null, new IntPtr(2), 3, 4), equalTo(-1));
@@ -261,12 +263,12 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     clazz.getMethod("runtest_").invoke(null);
 
-    Method iftest = clazz.getMethod("iftest_", IntPtr.class, IntPtr.class);
+    Method iftest = clazz.getMethod("iftest_", Ptr.class, Ptr.class);
     IntPtr x = new IntPtr(0);
 
     iftest.invoke(null, new IntPtr(12), x);
 
-    assertThat(x.unwrap(), equalTo(1));
+    assertThat(x.getInt(), equalTo(1));
 
   }
 
@@ -283,15 +285,15 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void logicalOr() throws Exception {
     Class clazz = compile("or.f");
-    Method testMethod = clazz.getMethod("stlest_", IntPtr.class, IntPtr.class, DoublePtr.class);
+    Method testMethod = clazz.getMethod("stlest_", Ptr.class, Ptr.class, Ptr.class);
 
     DoublePtr result = new DoublePtr(0);
 
     testMethod.invoke(null, new IntPtr(41), new IntPtr(42), result);
-    assertThat(result.unwrap(), equalTo(42.0));
+    assertThat(result.getDouble(), equalTo(42.0));
 
     testMethod.invoke(null, new IntPtr(49), new IntPtr(42), result);
-    assertThat(result.unwrap(), equalTo(49.0));
+    assertThat(result.getDouble(), equalTo(49.0));
   }
 
   @Test
@@ -337,7 +339,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void fortran2darrays() throws Exception {
     Class clazz = compile("two_d_array.f");
 
-    Method method = clazz.getMethod("test_", DoublePtr.class, IntPtr.class);
+    Method method = clazz.getMethod("test_", Ptr.class, Ptr.class);
 
     double[] x = new double[9];
 
@@ -350,7 +352,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat(x[8], equalTo(9d));
 
     DoublePtr y = new DoublePtr(0);
-    method = clazz.getMethod("localarray_", DoublePtr.class);
+    method = clazz.getMethod("localarray_", Ptr.class);
     method.invoke(null, y);
 
     assertThat(y.unwrap(), equalTo(110d));
@@ -501,17 +503,14 @@ public class GimpleCompilerTest extends AbstractGccTest {
     compileAndTest("ptr_cast.c");
   }
 
-  @Test(expected = ClassCastException.class)
+  @Test
   public void illegalPointerCast() throws Throwable {
     Class clazz = compile("illegal_cast.c");
 
     Method method = clazz.getMethod("do_cast");
-    try {
-      method.invoke(null);
+    Ptr ptr = (Ptr) method.invoke(null);
 
-    } catch (InvocationTargetException e) {
-      throw e.getCause();
-    }
+    System.out.println(ptr);
   }
 
   @Test
@@ -520,7 +519,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
 //       SUBROUTINE HCLUST(R, DMIN)
 
-    Method hclust = clazz.getMethod("hclust_", DoublePtr.class, DoublePtr.class);
+    Method hclust = clazz.getMethod("hclust_", Ptr.class, Ptr.class);
 
     DoublePtr r = new DoublePtr(43.4);
     DoublePtr dmin = new DoublePtr(0);
@@ -593,45 +592,45 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void doubleComplex() throws Exception {
     Class clazz = compile("double_complex.f");
 
-    Method dcabs = clazz.getMethod("dcabs1_", double[].class, int.class);
-    assertThat((Double) dcabs.invoke(null, new double[]{-1, 1}, 0), equalTo(2.0));
-    assertThat((Double) dcabs.invoke(null, new double[]{1, 0}, 0), equalTo(1.0));
-    assertThat((Double) dcabs.invoke(null, new double[]{0, 3}, 0), equalTo(3.0));
+    Method dcabs = clazz.getMethod("dcabs1_", Ptr.class);
+    assertThat((Double) dcabs.invoke(null, new DoublePtr(-1, 1)), equalTo(2.0));
+    assertThat((Double) dcabs.invoke(null, new DoublePtr(1, 0)), equalTo(1.0));
+    assertThat((Double) dcabs.invoke(null, new DoublePtr(0, 3)), equalTo(3.0));
 
-    Method clast = clazz.getMethod("clast_", double[].class, int.class, IntPtr.class);
-    double[] x = {1, 2, 3, 4, 5, 6};
+    Method clast = clazz.getMethod("clast_", Ptr.class, Ptr.class);
+    DoublePtr x = new DoublePtr(1, 2, 3, 4, 5, 6);
     IntPtr n = new IntPtr(3);
-    double[] last = (double[]) clast.invoke(null, x, 0, n);
+    double[] last = (double[]) clast.invoke(null, x, n);
 
     assertThat(last[0], equalTo(5.0));
     assertThat(last[1], equalTo(6.0));
 
 
     // Check comparisons
-    double[] a = new double[]{1, 4};
-    double[] b = new double[]{5, 6};
+    DoublePtr a = new DoublePtr(1, 4);
+    DoublePtr b = new DoublePtr(5, 6);
 
-    Method ceq = clazz.getMethod("ceq_", double[].class, int.class, double[].class, int.class);
-    Method cne = clazz.getMethod("cne_", double[].class, int.class, double[].class, int.class);
+    Method ceq = clazz.getMethod("ceq_", Ptr.class, Ptr.class);
+    Method cne = clazz.getMethod("cne_", Ptr.class, Ptr.class);
 
-    assertThat((Integer) ceq.invoke(null, a, 0, b, 0), equalTo(0));
-    assertThat((Integer) ceq.invoke(null, a, 0, a, 0), equalTo(1));
-    assertThat((Integer) ceq.invoke(null, b, 0, x, 4), equalTo(1));
+    assertThat((Integer) ceq.invoke(null, a, b), equalTo(0));
+    assertThat((Integer) ceq.invoke(null, a, a), equalTo(1));
+    assertThat((Integer) ceq.invoke(null, b, x.pointerPlus(4 * DoublePtr.BYTES)), equalTo(1));
 
-    assertThat((Integer) cne.invoke(null, a, 0, b, 0), equalTo(1));
-    assertThat((Integer) cne.invoke(null, a, 0, a, 0), equalTo(0));
-    assertThat((Integer) cne.invoke(null, b, 0, x, 4), equalTo(0));
+    assertThat((Integer) cne.invoke(null, a, b), equalTo(1));
+    assertThat((Integer) cne.invoke(null, a, a), equalTo(0));
+    assertThat((Integer) cne.invoke(null, b, x.pointerPlus(4 * DoublePtr.BYTES)), equalTo(0));
 
     // Check binary operations
-    Method cmult = clazz.getMethod("cmul_", double[].class, int.class, double[].class, int.class);
+    Method cmult = clazz.getMethod("cmul_", Ptr.class, Ptr.class);
 
-    double product[] = (double[]) cmult.invoke(null, a, 0, b, 0);
+    double product[] = (double[]) cmult.invoke(null, a, b);
     assertThat(product[0], equalTo(-19d));
     assertThat(product[1], equalTo(+26d));
 
-    Method cadd = clazz.getMethod("cadd_", double[].class, int.class, double[].class, int.class);
+    Method cadd = clazz.getMethod("cadd_", Ptr.class, Ptr.class);
 
-    double sum[] = (double[]) cadd.invoke(null, a, 0, b, 0);
+    double sum[] = (double[]) cadd.invoke(null, a, b);
     assertThat(sum[0], equalTo(6d));
     assertThat(sum[1], equalTo(10d));
   }
@@ -640,15 +639,15 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void updateComplexArrayPointer() throws Exception {
     Class clazz = compile("complex_update.f");
 
-    double[] a = new double[]{1, 4, 3, -4, 5, -9};
-    double[] b = new double[]{-14, -13};
+    DoublePtr a = new DoublePtr(1, 4, 3, -4, 5, -9);
+    DoublePtr b = new DoublePtr(-14, -13);
 
-    Method update = clazz.getMethod("update2_", double[].class, int.class, double[].class, int.class);
+    Method update = clazz.getMethod("update2_", Ptr.class, Ptr.class);
 
-    update.invoke(null, a, 0, b, 0);
+    update.invoke(null, a, b);
 
-    assertThat(a[2], equalTo(b[0]));
-    assertThat(a[3], equalTo(b[1]));
+    assertThat(a.getAlignedDouble(2), equalTo(b.getAlignedDouble(0)));
+    assertThat(a.getAlignedDouble(3), equalTo(b.getAlignedDouble(1)));
 
 
   }
@@ -657,15 +656,15 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void singleComplex() throws Exception {
     Class clazz = compile("complex.f");
 
-    Method dcabs = clazz.getMethod("dcabs1_", float[].class, int.class);
-    assertThat((Float) dcabs.invoke(null, new float[]{-1, 1}, 0), equalTo(2f));
-    assertThat((Float) dcabs.invoke(null, new float[]{1, 0}, 0), equalTo(1f));
-    assertThat((Float) dcabs.invoke(null, new float[]{0, 3}, 0), equalTo(3f));
+    Method dcabs = clazz.getMethod("dcabs1_", Ptr.class);
+    assertThat((Float) dcabs.invoke(null, new FloatPtr(-1, 1)), equalTo(2f));
+    assertThat((Float) dcabs.invoke(null, new FloatPtr(1, 0)), equalTo(1f));
+    assertThat((Float) dcabs.invoke(null, new FloatPtr(0, 3)), equalTo(3f));
 
-    Method clast = clazz.getMethod("clast_", float[].class, int.class, IntPtr.class);
-    float[] x = {1, 2, 3, 4, 5, 6};
+    Method clast = clazz.getMethod("clast_", Ptr.class, Ptr.class);
+    FloatPtr x = new FloatPtr(1, 2, 3, 4, 5, 6);
     IntPtr n = new IntPtr(3);
-    float[] last = (float[]) clast.invoke(null, x, 0, n);
+    float[] last = (float[]) clast.invoke(null, x, n);
 
     assertThat(last[0], equalTo(5f));
     assertThat(last[1], equalTo(6f));
@@ -693,7 +692,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void lsame() throws Exception {
     Class clazz = compile("lsame.f");
-    Method lsame = clazz.getMethod("lsame_", BytePtr.class, BytePtr.class, int.class, int.class);
+    Method lsame = clazz.getMethod("lsame_", Ptr.class, Ptr.class, int.class, int.class);
 
     lsame.invoke(null, BytePtr.asciiString("A"), BytePtr.asciiString("a"), 1, 1);
 
@@ -788,19 +787,13 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
   @Test
   public void varArgsCalls() throws Exception {
-    Class clazz = compile("varargs.c");
-
-    Method test = clazz.getMethod("test_sprintf", BytePtr.class, int.class);
-
-    BytePtr message = (BytePtr) test.invoke(null, BytePtr.nullTerminatedString("Bob", Charsets.US_ASCII), 99);
-
-    assertThat(message.nullTerminatedString(), equalTo("Hello Bob, you have 99 messages"));
+    compileAndTest("varargs.c");
   }
 
   @Test
   public void ctypes() throws Exception {
     Class clazz = compile("ctype.c");
-    Method countWhitespace = clazz.getMethod("count_whitespace", BytePtr.class);
+    Method countWhitespace = clazz.getMethod("count_whitespace", Ptr.class);
     assertThat((Integer) countWhitespace.invoke(null,
         BytePtr.nullTerminatedString("Hello World!", Charsets.US_ASCII)), equalTo(1));
   }
@@ -835,6 +828,21 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat((Integer) uint32_to_uint8.invoke(null, 0x100), equalTo(0));
     assertThat((Integer) uint32_to_uint8.invoke(null, 0x400), equalTo(0));
     assertThat((Integer) uint32_to_uint8.invoke(null, 0xFFFFFFFF), equalTo(255));
+
+    // from uint64 to double
+    Method uint64_to_double = clazz.getMethod("uint64_to_double", long.class);
+    assertThat((Double)uint64_to_double.invoke(null, Integer.MAX_VALUE * 20L),
+        closeTo(BigDecimal.valueOf(Integer.MAX_VALUE).multiply(BigDecimal.valueOf(20)).doubleValue(), 0d));
+    assertThat((Double)uint64_to_double.invoke(null, 0xffffffffffffffffL),
+        closeTo(BigDecimal.valueOf(2).pow(64).doubleValue(), 0d));
+
+
+    // int32 to uint64
+    Method int32_to_uint64 = clazz.getMethod("int32_to_uint64", int.class);
+    assertThat((Long)int32_to_uint64.invoke(null, 0), equalTo(0L));
+    assertThat((Long)int32_to_uint64.invoke(null, -1), equalTo(0xFFFFFFFFFFFFFFFFL));
+    assertThat((Long)int32_to_uint64.invoke(null, -64), equalTo(0xFFFFFFFFFFFFFFC0L));
+    assertThat((Long)int32_to_uint64.invoke(null, 3000), equalTo(0xBB8L));
   }
 
   @Test
@@ -845,61 +853,21 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
   @Test
   public void unsignedToSigned() throws Exception {
-    Class clazz = compile("to_signed.c");
-    Method charToUnsigned16 = clazz.getMethod("charToUnsigned16", byte.class);
-
-    assertThat((Integer) charToUnsigned16.invoke(null, (byte) 0), equalTo(0));
-    assertThat((Integer) charToUnsigned16.invoke(null, (byte) 120), equalTo(120));
-    assertThat((Integer) charToUnsigned16.invoke(null, (byte) -62), equalTo(65474));
-
-
-    Method int16ToUnsigned32 = clazz.getMethod("int16ToUnsigned32", short.class);
-    assertThat((Integer) int16ToUnsigned32.invoke(null, (short) 0), equalTo(0));
-    assertThat((Integer) int16ToUnsigned32.invoke(null, (short) 4096), equalTo(0x1000));
-    assertThat((Integer) int16ToUnsigned32.invoke(null, (short) -34), equalTo(0xffffffde));
-    assertThat((Integer) int16ToUnsigned32.invoke(null, (short) -4142), equalTo(0xffffefd2));
-
-    Method uint32ToInt8 = clazz.getMethod("uint32ToInt8", int.class);
-    assertThat((Byte) uint32ToInt8.invoke(null, 0), equalTo((byte) 0));
-    assertThat((Byte) uint32ToInt8.invoke(null, 3000), equalTo((byte) -72));
-    assertThat((Byte) uint32ToInt8.invoke(null, 4096), equalTo((byte) 0));
-    assertThat((Byte) uint32ToInt8.invoke(null, 0xffffffff), equalTo((byte) -1));
-    assertThat((Byte) uint32ToInt8.invoke(null, 0xfffffffe), equalTo((byte) -2));
-
-    Method uint32ToInt16 = clazz.getMethod("uint32ToInt16", int.class);
-    assertThat((Short) uint32ToInt16.invoke(null, 0), equalTo((short) 0));
-    assertThat((Short) uint32ToInt16.invoke(null, 0xbb8), equalTo((short) 3000));
-    assertThat((Short) uint32ToInt16.invoke(null, 0x40000), equalTo((short) 0));
-
-    Method uint32ToUint16 = clazz.getMethod("uint32ToUint16", int.class);
-    assertThat((Character) uint32ToUint16.invoke(null, 0), equalTo((char) 0));
-    assertThat((Character) uint32ToUint16.invoke(null, 0x402), equalTo((char) 1026));
-    assertThat((Character) uint32ToUint16.invoke(null, 0x1000), equalTo((char) 4096));
-    assertThat((Character) uint32ToUint16.invoke(null, 0xFFFF), equalTo((char) 65535));
-    assertThat((Character) uint32ToUint16.invoke(null, 0x10003), equalTo((char) 3));
-
-    Method uint32ToUint64 = clazz.getMethod("uint32ToUint64", int.class);
-    assertThat((Long) uint32ToUint64.invoke(null, 0), equalTo((long) 0));
-    assertThat((Long) uint32ToUint64.invoke(null, 0xFF), equalTo(0xFFL));
-    assertThat((Long) uint32ToUint64.invoke(null, 0xFFFFFFFF), equalTo(0xFFFFFFFFL));
-
-    Method uint16ToUint64 = clazz.getMethod("uint32ToUint64", int.class);
-    assertThat((Long) uint16ToUint64.invoke(null, 0), equalTo((long) 0));
-    assertThat((Long) uint16ToUint64.invoke(null, 0xFF), equalTo(0xFFL));
-    assertThat((Long) uint16ToUint64.invoke(null, 0xFFFFFFFF), equalTo(0xFFFFFFFFL));
+    compileAndTest("to_signed.c");
   }
 
   @Test
   public void memcmpTest() throws Exception {
     Class clazz = compile("memcmp.c");
 
-    Method long_memcmp = clazz.getMethod("long_memcmp", LongPtr.class, LongPtr.class);
+    Method long_memcmp = clazz.getMethod("long_memcmp", Ptr.class, Ptr.class);
 
     assertThat((Integer) long_memcmp.invoke(null, new LongPtr(0xFFFFFFFFFFFFFFFFL), new LongPtr(0xFFFL)), greaterThan(0));
     assertThat((Integer) long_memcmp.invoke(null, new LongPtr(0xCAFEBABE), new LongPtr(0xCAFEBABE)), equalTo(0));
   }
 
   @Test
+  @Ignore("todo")
   public void longDouble() throws Exception {
     compileAndTest("long_double.c");
   }
@@ -948,14 +916,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
     Class<?> endpoints = compile("endpoint.cpp");
 
     Method allocMethod = endpoints.getMethod("alloc_endpoints");
-    ObjectPtr ptr = (ObjectPtr) allocMethod.invoke(null);
-
-    assertThat(ptr.array.length, equalTo(2));
+    Ptr ptr = (Ptr) allocMethod.invoke(null);
 
 
     Method testMethod = endpoints.getMethod("test_endpoints");
-    ObjectPtr ep = (ObjectPtr) testMethod.invoke(null);
-    assertThat(ep.array.length, equalTo(8));
+    Ptr ep = (Ptr) testMethod.invoke(null);
   }
 
   @Test
@@ -1212,4 +1177,62 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void unsignedDiv() throws Exception {
     compileAndTest("unsigned_div.c");
   }
+
+  @Test
+  public void realPointerCasting() throws Exception {
+    compileAndTest("pointer_casting.c");
+  }
+
+  @Test
+  public void izamax() throws Exception {
+    Class<?> clazz = compile("izamax.f");
+  }
+
+  @Test
+  public void globalVarsAreZeroedOnInit() throws Exception {
+    compileAndTest("static_var_zero.c");
+  }
+
+  @Test
+  public void rand() throws Exception {
+    compileAndTest("rand.c");
+  }
+
+  @Test
+  public void vptrConstructors() throws Exception {
+    compileAndTest("record_constructor.c");
+  }
+
+  @Test
+  @Ignore
+  public void leftRotate() throws Exception {
+    assertThat(UnsignedBytes.checkedCast(239), equalTo((byte)-17));
+    compileAndTest("rotate.c");
+  }
+
+  @Test
+  public void fortranBooleanArg() throws Exception {
+    compileAndTest("const_bool_arg.f");
+  }
+
+  @Test
+  public void sha256() throws Exception {
+    compileAndTest("sha256.c");
+  }
+
+  @Test
+  public void real96() throws Exception {
+    compileAndTest("real96.c");
+  }
+
+  @Test
+  public void arrayAssignFromRecord() throws Exception {
+    compileAndTest("array_assign_from_record.c");
+  }
+
+  @Test
+  public void threadsTest() throws Exception {
+    compileAndTest("pthreads.c");
+  }
 }
+

@@ -21,11 +21,17 @@ package org.renjin.pipeliner;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.pipeliner.fusion.LoopKernelCache;
+import org.renjin.pipeliner.node.DeferredNode;
+import org.renjin.primitives.matrix.DeferredColSums;
+import org.renjin.primitives.summary.DeferredSum;
 import org.renjin.repackaged.guava.util.concurrent.MoreExecutors;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 import java.util.concurrent.Executors;
+
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 
 
 public class DeferredGraphTest extends EvalTestCase {
@@ -45,5 +51,62 @@ public class DeferredGraphTest extends EvalTestCase {
     VectorPipeliner pipeliner = new VectorPipeliner(Executors.newFixedThreadPool(1));
     pipeliner.evaluate(graph);
   }
-  
+
+  @Test
+  public void fusedNodesPreserveAttributes() {
+
+    DoubleArrayVector matrix = new DoubleArrayVector(1, 2, 3, 4);
+    DeferredColSums colSums = new DeferredColSums(matrix, 2, false,
+        AttributeMap.builder().setNames(new StringArrayVector("a", "b")).build());
+
+    DeferredGraph graph = new DeferredGraph(colSums);
+    graph.optimize(new LoopKernelCache(Executors.newSingleThreadExecutor()));
+
+    DeferredGraphEval eval = new DeferredGraphEval(graph, Executors.newSingleThreadExecutor());
+    eval.execute();
+
+    Vector result = graph.getRootResult(0);
+
+
+    assertThat(result.getNames(), elementsIdenticalTo(c("a", "b")));
+  }
+
+  @Test
+  public void equivalentDataNodes() {
+
+
+    DoubleVector a = new DoubleArrayVector(1,2);
+    DoubleVector b = new DoubleArrayVector(1,2,3);
+
+    DeferredGraph graph = new DeferredGraph();
+    graph.addRoot(new DeferredSum(a, AttributeMap.EMPTY));
+    graph.addRoot(new DeferredSum(a, AttributeMap.EMPTY));
+    graph.addRoot(new DeferredSum(b, AttributeMap.EMPTY));
+
+    DeferredNode sa1 = graph.getRoots().get(0);
+    DeferredNode sa2 = graph.getRoots().get(1);
+    DeferredNode sb = graph.getRoots().get(2);
+
+    assertTrue(sa1 == sa2);
+    assertFalse(sa1 == sb);
+  }
+
+  @Test
+  public void attributesPreserved() {
+
+    DeferredColSums colSums = new DeferredColSums(new DoubleArrayVector(1, 2, 3, 4), 2, true, AttributeMap.EMPTY);
+    StringArrayVector names = new StringArrayVector("a", "b");
+    SEXP namedColSums = colSums.setAttributes((AttributeMap.builder().setNames(names)));
+
+    DeferredGraph graph = new DeferredGraph();
+    graph.addRoot((Vector)namedColSums);
+    graph.optimize(new LoopKernelCache(Executors.newSingleThreadExecutor()));
+
+    DeferredGraphEval eval = new DeferredGraphEval(graph, Executors.newSingleThreadExecutor());
+    eval.execute();
+
+    Vector result = graph.getRootResult(0);
+    assertThat(result.getNames(), elementsIdenticalTo(names));
+
+  }
 }

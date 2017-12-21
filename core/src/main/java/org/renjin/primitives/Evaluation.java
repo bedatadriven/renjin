@@ -102,6 +102,56 @@ public class Evaluation {
     return builder.build();
   }
 
+  private static final List<String> VALID_HOW_VALUES = Lists.newArrayList("unlist", "replace", "list");
+  @Builtin
+  public static Vector rapply(@Current Context context, @Current Environment rho, Vector vector,
+      Function function, StringVector classes, SEXP deflt, String how) {
+
+    if (!VALID_HOW_VALUES.contains(how)) {
+      throw new EvalException("'how' must be one of " + VALID_HOW_VALUES);
+    }
+
+    // Retrieve the additional arguments from the `...` value
+    // in the closure that called us
+    PairList extraArgs = (PairList)rho.getVariable(context, Symbols.ELLIPSES);
+
+    ListVector.Builder builder = ListVector.newBuilder();
+    for (int i = 0; i != vector.length(); ++i) {
+      // The semantics differ in detail from lapply:
+      // in particular the arguments are evaluated before calling the C code.
+      SEXP element = vector.getElementAsSEXP(i);
+
+      if (Types.isList(element)) {
+        builder.add(rapply(context, rho, (Vector) element, function, classes, deflt, how));
+      } else if (classes.contains(StringVector.valueOf(element.getTypeName()), 0)) {
+        // each element of the list which is not itself a list and has a class included in classes
+        // is replaced by the result of applying f to the element.
+        // all non-list elements which have a class included in classes
+        // are replaced by the result of applying f to the element
+        PairList.Builder args = new PairList.Builder();
+        args.add(element);
+        args.addAll(extraArgs);
+        FunctionCall applyFunctionCall = new FunctionCall(function, args.build());
+        builder.add(context.evaluate(applyFunctionCall, rho));
+      } else {
+        if ("replace".equals(how)) {
+          builder.add(element);
+        } else {
+          // If the mode is how = "list" or how = "unlist", all others are replaced by deflt.
+          builder.add(deflt);
+        }
+      }
+    }
+    builder.setAttribute(Symbols.NAMES, vector.getNames());
+    if ("unlist".equals(how)) {
+      // Finally, if how = "unlist", unlist(recursive = TRUE) is called on the result.
+      FunctionCall funCall = FunctionCall.newCall(Symbol.get("unlist"), builder.build(), LogicalVector.TRUE, LogicalVector.TRUE);
+      return (Vector) context.evaluate(funCall, rho);
+    } else {
+      return builder.build();
+    }
+  }
+
   @Internal
   public static Vector vapply(@Current Context context, @Current Environment rho, Vector vector,
       Function function, Vector funValue, boolean useNames) {
@@ -352,18 +402,20 @@ public class Evaluation {
   }
 
   private static boolean isArgMissing(Context context, Environment rho, Symbol argumentName) {
+
     if(rho.isMissingArgument(argumentName)) {
       return true;
     }
     SEXP value = rho.findVariable(context, argumentName);
-    if(argumentName == Symbol.UNBOUND_VALUE) {
+
+    if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException("missing can only be used for arguments.");
     }
-
-    if(value instanceof Promise) {
-      return isPromisedMissingArg(context, value, new ArrayDeque<Promise>());
+    if (value == Symbol.MISSING_ARG) {
+      return true;
     }
-    return false;
+
+    return isPromisedMissingArg(context, value, new ArrayDeque<Promise>());
   }
 
 
@@ -386,10 +438,21 @@ public class Evaluation {
 
         stack.push(promise);
         try {
+          SEXP argumentValue;
           Symbol argumentName = (Symbol) promise.getExpression();
           Environment argumentEnv = promise.getEnvironment();
-          SEXP argumentValue = argumentEnv.getVariable(context, argumentName);
-          if (argumentValue == Symbol.MISSING_ARG && argumentEnv.isMissingArgument(argumentName)) {
+
+          if(argumentName.isVarArgReference()) {
+            SEXP forwardedArguments = argumentEnv.findVariable(context, Symbols.ELLIPSES);
+            if(forwardedArguments.length() < argumentName.getVarArgReferenceIndex()) {
+              return true;
+            }
+            argumentValue = forwardedArguments.getElementAsSEXP(argumentName.getVarArgReferenceIndex() - 1);
+          } else {
+            argumentValue = argumentEnv.findVariable(context, argumentName);
+          }
+
+          if (argumentValue == Symbol.MISSING_ARG) {
             return true;
           } else if (isPromisedMissingArg(context, argumentValue, stack)) {
             return true;

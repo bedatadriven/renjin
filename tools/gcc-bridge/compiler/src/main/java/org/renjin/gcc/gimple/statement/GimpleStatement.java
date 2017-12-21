@@ -56,7 +56,10 @@ public abstract class GimpleStatement {
 
   @JsonProperty("line")
   private Integer lineNumber;
-  
+
+  @JsonProperty("file")
+  private String sourceFile;
+
   public abstract void visit(GimpleVisitor visitor);
     
   public boolean lhsMatches(Predicate<? super GimpleLValue> predicate) {
@@ -104,6 +107,10 @@ public abstract class GimpleStatement {
     this.lineNumber = lineNumber;
   }
 
+  public void setSourceFile(String sourceFile) {
+    this.sourceFile = sourceFile;
+  }
+
   protected final void replaceAll(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> operands, GimpleExpr newExpr) {
     for (int i = 0; i < operands.size(); i++) {
       if(predicate.apply(operands.get(i))) {
@@ -126,5 +133,9 @@ public abstract class GimpleStatement {
    */
   public Set<Integer> getJumpTargets() {
     return Collections.emptySet();
+  }
+
+  public String getSourceFile() {
+    return sourceFile;
   }
 }

@@ -19,13 +19,23 @@
 package org.renjin.gcc.codegen.type.voidt;
 
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
+import org.renjin.gcc.codegen.type.NumericExpr;
+import org.renjin.gcc.codegen.type.UnsupportedCastException;
+import org.renjin.gcc.codegen.vptr.VArrayExpr;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
+import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.repackaged.asm.Type;
 
-public class DereferencedVoidPtr extends VoidPtr {
+public class DereferencedVoidPtr extends VoidPtrExpr {
 
   private JExpr array;
   private JExpr offset;
@@ -39,7 +49,7 @@ public class DereferencedVoidPtr extends VoidPtr {
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
 
-    if(rhs instanceof VoidPtr) {
+    if(rhs instanceof VoidPtrExpr) {
       // Need to do some runtime casting in case 
       // our array is not an Object[] but rather a DoublePtr[] for example
 
@@ -50,12 +60,52 @@ public class DereferencedVoidPtr extends VoidPtr {
       
       JExpr call = Expressions.staticMethodCall(Type.getType(org.renjin.gcc.runtime.VoidPtr.class),
           "assign", assignDescriptor,
-          array, offset, ((VoidPtr) rhs).unwrap());
+          array, offset, ((VoidPtrExpr) rhs).jexpr());
       
       call.load(mv);
 
     } else {
       super.store(mv, rhs); 
     }
+  }
+
+  @Override
+  public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VPtrRecordExpr toVPtrRecord(GimpleRecordType recordType) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VArrayExpr toVArray(GimpleArrayType arrayType) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public NumericExpr toNumericExpr() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void memorySet(MethodGenerator mv, JExpr byteValue, JExpr length) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public PtrExpr realloc(MethodGenerator mv, JExpr newSizeInBytes) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public PtrExpr pointerPlus(MethodGenerator mv, JExpr offsetInBytes) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public ConditionGenerator comparePointer(MethodGenerator mv, GimpleOp op, GExpr otherPointer) {
+    throw new UnsupportedOperationException("TODO");
   }
 }

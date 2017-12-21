@@ -45,7 +45,7 @@ public class VoidReturnStrategy implements ReturnStrategy {
   }
 
   @Override
-  public GExpr unmarshall(MethodGenerator mv, JExpr returnValue, TypeStrategy lhsTypeStrategy) {
+  public GExpr unmarshall(MethodGenerator mv, JExpr callExpr, TypeStrategy lhsTypeStrategy) {
     if(lhsTypeStrategy instanceof PointerTypeStrategy) {
       return ((PointerTypeStrategy) lhsTypeStrategy).nullPointer();
     } else if(lhsTypeStrategy instanceof PrimitiveTypeStrategy) {
@@ -53,11 +53,6 @@ public class VoidReturnStrategy implements ReturnStrategy {
     } else {
       throw new UnsupportedOperationException("No default value for " + lhsTypeStrategy.getClass().getSimpleName());
     }
-  }
-
-  @Override
-  public GExpr unmarshall(JExpr returnValue) {
-    throw new UnsupportedOperationException("TODO");
   }
 
   @Override

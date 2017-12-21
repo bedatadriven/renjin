@@ -46,6 +46,7 @@ public class Options {
     map.put("keep.source.pkgs", new LogicalArrayVector(false));
     map.put("warnings.length", new IntArrayVector(1000));
     map.put("OutDec", new StringArrayVector("."));
+    map.put("encoding", new StringArrayVector("UTF8"));
   }
 
   public SEXP get(String name) {

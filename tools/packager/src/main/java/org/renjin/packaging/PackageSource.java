@@ -102,6 +102,17 @@ public class PackageSource {
     return "yes".equals(description.getFirstProperty("NeedsCompilation"));
   }
 
+  public boolean isCXX11() {
+    String systemRequirements = Strings.nullToEmpty(description.getFirstProperty("SystemRequirements")).trim();
+    boolean isCXX11 = "C++11".equals(systemRequirements);
+    if(isCXX11) {
+      System.out.println("Checking whether in DESCRIPTION 'SystemRequirements' is set to 'C++11'... yes");
+    } else {
+      System.out.println("Checking whether in DESCRIPTION 'SystemRequirements' is set to 'C++11'... no");
+    }
+    return isCXX11;
+  }
+
   public PackageDescription getDescription() {
     return description;
   }
@@ -245,9 +256,7 @@ public class PackageSource {
       List<File> list = Lists.newArrayList();
       for (String sourceFilename : sourceFileNames) {
         File sourceFile = new File(source.sourceDir, sourceFilename);
-        if(!sourceFile.exists()) {
-          throw new RuntimeException("Source file '" + sourceFile.getAbsolutePath() + "' does not exist.");
-        }
+        
         list.add(sourceFile);
       }
       return list;

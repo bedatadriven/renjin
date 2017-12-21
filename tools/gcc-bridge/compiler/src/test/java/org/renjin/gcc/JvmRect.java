@@ -18,7 +18,8 @@
  */
 package org.renjin.gcc;
 
-import org.renjin.gcc.runtime.ObjectPtr;
+import org.renjin.gcc.runtime.OpaquePtr;
+import org.renjin.gcc.runtime.RecordUnitPtr;
 
 /**
  * An existing JVM class to which the record type jvm_rect will be mapped
@@ -41,11 +42,11 @@ public class JvmRect {
     this.height = o.height;
   }
 
-  public static int area(ObjectPtr<JvmRect> rect) {
+  public static int area(RecordUnitPtr<JvmRect> rect) {
     return rect.get().width * rect.get().height;
   }
   
-  public static int areas(ObjectPtr<JvmRect> rects) {
+  public static int areas(OpaquePtr<JvmRect> rects) {
     int area = 0;
     int i = 0;
     // end of array is marked by rect with zero width

@@ -41,3 +41,41 @@ test.match.call.lazy <- function() {
     x <- f(1, 2)
     assertThat(x, identicalTo(quote(f(a = 1, zz = 2))))
 }
+
+test.match.extra <- function() {
+
+    f <- function(x, ...) match.call(expand.dots = FALSE)$...
+
+    extra <- f(1, a=3+4, b=z)
+
+    assertThat(extra$a, identicalTo(quote(3 + 4)))
+    assertThat(extra$b, identicalTo(quote(z)))
+}
+
+test.match.extra.then.dollar <- function() {
+
+    f <- function(x, ...) { pl <- match.call(expand.dots = FALSE)$...; pl$b }
+
+    b <- f(1, a=3+4, b=z)
+
+    assertThat(b, identicalTo(quote(z)))
+}
+
+test.replace.call.by.name <- function() {
+
+    call <- quote(f(a = 1, b = 2))
+
+    call[["b"]] <- 92
+
+    assertThat(call, identicalTo(quote(f(a=1,b=92))))
+}
+
+test.replace.call.by.index <- function() {
+
+    call <- quote(f(a = 1, b = 2))
+
+    call[[2]] <- 94
+    call[3] <- 42
+
+    assertThat(call, identicalTo(quote(f(a=94,b=42))))
+}

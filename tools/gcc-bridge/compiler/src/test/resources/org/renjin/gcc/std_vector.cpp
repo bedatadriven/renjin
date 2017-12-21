@@ -23,9 +23,9 @@ extern "C" void test_sort() {
     v.push_back(3);
     v.push_back(1);
     v.push_back(9);
-       
+
     sort(v.begin(), v.end());
-    
+
     ASSERT(v[0] == 1);
     ASSERT(v[1] == 3);
     ASSERT(v[2] == 9);

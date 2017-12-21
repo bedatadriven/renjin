@@ -29,7 +29,11 @@ import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
-import java.util.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Package namespace.
@@ -46,6 +50,11 @@ public class Namespace {
   private final List<Symbol> exports = Lists.newArrayList();
 
   protected final List<DllInfo> libraries = new ArrayList<>(0);
+
+  /**
+   * True if this namespace has completed loading
+   */
+  boolean loaded;
 
   public Namespace(Package pkg, Environment namespaceEnvironment) {
     this.pkg = pkg;
@@ -150,6 +159,26 @@ public class Namespace {
     }
   }
 
+
+  /**
+   * Populates the namespace from the R-language functions and expressions defined
+   * in this namespace.
+   *
+   */
+  public void populateNamespace(Context context) throws IOException {
+    for(NamedValue value : pkg.loadSymbols(context)) {
+      namespaceEnvironment.setVariable(context, Symbol.get(value.getName()), value.getValue());
+    }
+    // Load dataset objects as promises
+    for(Dataset dataset : pkg.getDatasets()) {
+      for(String objectName : dataset.getObjectNames()) {
+        namespaceEnvironment.setVariable(context, objectName,
+            new DatasetObjectPromise(dataset, objectName));
+      }
+    }
+  }
+
+
   public void addExport(Symbol export) {
     exports.add(export);
   }
@@ -249,10 +278,14 @@ public class Namespace {
     try {
       library = loadDynamicLibrary(context, entry.getLibraryName());
     } catch (Exception e) {
+
+      if(!isClassSimplyNotFound(e)) {
+        e.printStackTrace();
+      }
       context.warn("Could not load compiled Fortran/C/C++ sources class for package " + pkg.getName() + ".\n" +
           "This is most likely because Renjin's compiler is not yet able to handle the sources for this\n" +
           "particular package. As a result, some functions may not work.\n");
-      e.printStackTrace();
+
       return;
     }
 
@@ -289,6 +322,17 @@ public class Namespace {
   }
 
   /**
+   * Returns true if an Exception indicates that the classfile simply could not be found.
+   * Retruns false if there is some other problem deserving of reporting, for example, an Exception thrown
+   * during &lt;clint&gt; or a byte code verification error.
+   * @param e
+   * @return
+   */
+  private boolean isClassSimplyNotFound(Exception e) {
+    return e instanceof ClassNotFoundException && e.getCause() == null;
+  }
+
+  /**
    * Loads a compiled library from this namespace's package.
    *
    * <p>Many packages written for GNU R contain C, C++, Fortran sources, which are
@@ -314,6 +358,7 @@ public class Namespace {
     String className = packageName.getGroupId() + "." +
         Namespace.sanitizePackageNameForClassFiles(packageName.getPackageName()) + "." +
         Namespace.sanitizePackageNameForClassFiles(libraryName);
+
     libraryClass = pkg.loadClass(className);
 
 
@@ -369,6 +414,13 @@ public class Namespace {
     // .. And the S4 methods and their classes
     for (String methodName : file.getExportedS4Methods()) {
       exports.add(Symbol.get(methodName));
+    }
+
+    // .. Dataset objects are implicitly part of a namespace's exports
+    for (Dataset dataset : pkg.getDatasets()) {
+      for (String objectName : dataset.getObjectNames()) {
+        exports.add(Symbol.get(objectName));
+      }
     }
   }
 
@@ -444,5 +496,9 @@ public class Namespace {
             genericName, genericFunction.getTypeName());
       }
     }
+  }
+
+  public boolean isLoaded() {
+    return loaded;
   }
 }

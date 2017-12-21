@@ -18,7 +18,6 @@
  */
 package org.renjin.primitives.matrix;
 
-import org.renjin.primitives.vector.AttributeDecoratingVector;
 import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.sexp.*;
 
@@ -48,7 +47,7 @@ public class DeferredRowMeans extends DoubleVector implements MemoizedComputatio
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
-    return new AttributeDecoratingVector(this, attributes);
+    return new DeferredRowMeans(vector, numRows, attributes);
   }
 
   @Override
@@ -102,7 +101,7 @@ public class DeferredRowMeans extends DoubleVector implements MemoizedComputatio
     if(this.means == null) {
       computeMeans();
     }
-    return DoubleArrayVector.unsafe(this.means);
+    return DoubleArrayVector.unsafe(this.means, getAttributes());
   }
 
   @Override

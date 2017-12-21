@@ -93,7 +93,17 @@ class IndexSubscript implements Subscript {
       return new PositiveHashPredicate();
     }
   }
-  
+
+  @Override
+  public int computeCount() {
+    int count = 0;
+    IndexIterator it = computeIndexes();
+    while(it.next() != IndexIterator.EOF) {
+      count++;
+    }
+    return count;
+  }
+
   private int computeIndexSign() {
     for (int i = 0; i < subscript.length(); i++) {
       int index = subscript.getElementAsInt(i);

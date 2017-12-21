@@ -18,7 +18,6 @@
  */
 package org.renjin.primitives.matrix;
 
-import org.renjin.primitives.vector.AttributeDecoratingVector;
 import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.sexp.*;
 
@@ -43,12 +42,16 @@ public class DeferredColSums extends DoubleVector implements MemoizedComputation
 
   @Override
   public String getComputationName() {
-    return "colSums";
+    if(naRm) {
+      return "colSumsNaRm";
+    } else {
+      return "colSums";
+    }
   }
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
-    return new AttributeDecoratingVector(this, attributes);
+    return new DeferredColSums(vector, numColumns, naRm, attributes);
   }
 
   @Override
@@ -111,7 +114,7 @@ public class DeferredColSums extends DoubleVector implements MemoizedComputation
     if(this.sums == null) {
       computeMeans();
     }
-    return DoubleArrayVector.unsafe(this.sums);
+    return DoubleArrayVector.unsafe(this.sums, getAttributes());
   }
 
   @Override

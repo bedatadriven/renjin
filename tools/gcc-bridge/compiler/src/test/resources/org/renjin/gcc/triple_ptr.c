@@ -16,6 +16,8 @@ double *** init(int m, int n) {
 void test_init() {
     
     double ***w = init(5, 4);
-    
+
+    ASSERT(w != NULL);
+
     ASSERT(w[0][2] == 0);
 }

@@ -24,6 +24,7 @@ import java.util.Date;
 /**
  * Structure containing a calendar date and time broken down into its components.
  */
+@Deprecated
 public class tm {
 
   public tm(long instant) {

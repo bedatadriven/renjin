@@ -90,7 +90,7 @@ public class DataNode extends DeferredNode {
     if(!vectorType.equals(otherData.vector.getVectorType())) {
       return false;
     }
-    if(this.vector.length() > 10) {
+    if(this.vector.length() > 10 || this.vector.length() != otherData.vector.length()) {
       return false;
     }
     for (int i = 0; i < this.vector.length(); i++) {

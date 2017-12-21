@@ -29,4 +29,9 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 public @interface ArgumentList {
+  /**
+   *
+   * @return true if this argument list is allowed to contain missing arguments.
+   */
+  boolean allowMissing() default false;
 }

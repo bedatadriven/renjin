@@ -22,6 +22,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.type.NullVariadicStrategy;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
@@ -86,7 +87,7 @@ public class FunPtrCallGenerator implements CallGenerator {
     // Using this information, we can compose the signature for the invoke call
     // (MethodHandle invoke calls are signature-polymorphic:
     //  https://docs.oracle.com/javase/8/docs/api/java/lang/invoke/MethodHandle.html)
-    final String signature = TypeOracle.getMethodDescriptor(returnStrategy, paramStrategies);
+    final String signature = TypeOracle.getMethodDescriptor(returnStrategy, paramStrategies, new NullVariadicStrategy());
     
     
     // Now define the actual value

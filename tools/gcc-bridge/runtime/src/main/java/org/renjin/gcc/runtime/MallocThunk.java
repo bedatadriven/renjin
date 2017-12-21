@@ -34,9 +34,8 @@ import java.lang.reflect.Constructor;
  * <p>The JVM, on the other hand, is very particular about what is pointed to. You can't allocate an array
  * of doubles and then subsequently treat it as an array of integers.</p>
  */
-public class MallocThunk implements Ptr {
+public class MallocThunk extends AbstractPtr {
 
-  
   /**
    * The number of bytes to be allocated
    */
@@ -253,6 +252,11 @@ public class MallocThunk implements Ptr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public Ptr realloc(int newSizeInBytes) {
     if(pointer != null) {
       return ((Ptr) pointer).realloc(newSizeInBytes);
@@ -263,6 +267,27 @@ public class MallocThunk implements Ptr {
 
   @Override
   public Ptr pointerPlus(int bytes) {
+
     throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public byte getByte(int offset) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void setByte(int offset, byte value) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public int toInt() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public boolean isNull() {
+    return false;
   }
 }

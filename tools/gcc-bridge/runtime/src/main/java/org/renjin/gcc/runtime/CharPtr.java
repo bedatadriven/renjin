@@ -20,8 +20,10 @@ package org.renjin.gcc.runtime;
 
 import java.util.Arrays;
 
-public class CharPtr implements Ptr {
-  
+public class CharPtr extends AbstractPtr {
+
+  public static final int BYTES = 2;
+
   public static final CharPtr NULL = new CharPtr();
   
   public final char[] array;
@@ -53,13 +55,83 @@ public class CharPtr implements Ptr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public CharPtr realloc(int newSizeInBytes) {
     return new CharPtr(Realloc.realloc(array, offset, newSizeInBytes / 2));
   }
 
   @Override
   public Ptr pointerPlus(int bytes) {
-    return new CharPtr(array, offset + (bytes / 2));
+    if(bytes % BYTES == 0) {
+      return new CharPtr(array, offset + (bytes / BYTES));
+    } else {
+      return new OffsetPtr(this, bytes);
+    }
+  }
+
+  @Override
+  public char getChar() {
+    return array[this.offset];
+  }
+
+  @Override
+  public void setAlignedChar(int index, char value) {
+    this.array[this.offset + index] = value;
+  }
+
+  @Override
+  public char getChar(int offset) {
+    if(offset % BYTES == 0) {
+      return this.array[this.offset + (offset / BYTES)];
+    } else {
+      return super.getChar(offset);
+    }
+  }
+
+  @Override
+  public void setChar(char value) {
+    this.array[this.offset] = value;
+  }
+
+  @Override
+  public void setChar(int offset, char value) {
+    if(offset % BYTES == 0) {
+      this.array[this.offset + (offset / BYTES)] = value;
+    } else {
+      super.setChar(offset, value);
+    }
+  }
+
+  @Override
+  public char getAlignedChar(int index) {
+    return this.array[this.offset + index];
+  }
+
+  @Override
+  public byte getByte(int offset) {
+    int byteIndex = this.offset * BYTES + offset;
+    int index = byteIndex / BYTES;
+    int shift = (byteIndex % BYTES) * 8;
+    return (byte)(this.array[index] >>> shift);
+  }
+
+  @Override
+  public void setByte(int offset, byte value) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public int toInt() {
+    return offset * 2;
+  }
+
+  @Override
+  public boolean isNull() {
+    return array == null && offset == 0;
   }
 
   public static CharPtr fromString(String string) {
@@ -101,5 +173,18 @@ public class CharPtr implements Ptr {
   
   public static char memset(int byteValue) {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  public static void memcpy(CharPtr x, CharPtr y, int numBytes) {
+    char[] arrayS = y.getArray();
+    int offsetS = y.getOffset();
+    int restY = arrayS.length - offsetS;
+    if(restY > 0) {
+      char[] carray = new char[numBytes];
+      for(int i = 0, j = offsetS; j < arrayS.length && i < numBytes; j++, i++) {
+        carray[i] = arrayS[j];
+      }
+      x = new CharPtr(carray);
+    }
   }
 }

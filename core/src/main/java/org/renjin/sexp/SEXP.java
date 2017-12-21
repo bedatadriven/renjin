@@ -179,8 +179,28 @@ public interface SEXP {
    */
   <S extends SEXP> S getElementAsSEXP(int index);
 
-  
+  /**
+   * If this SEXP is a {@link Promise}, return its result, evaluating in the given context if the {@code Promise}
+   * is not yet evaluated.
+   *
+   * @param context the evaluation {@link Context} in which the unevaluated {@link Promise} should be evaluated
+   *                if is not evaluated.
+   * @return the result of the Promise's evaluation, or this S-Expression if this is not a promise.
+   */
   SEXP force(Context context);
+
+  /**
+   * If this SEXP is a {@link Promise}, return its result, evaluating in the given context if the {@code Promise}
+   * is not yet evaluated.
+   *
+   * @param context the evaluation {@link Context} in which the unevaluated {@link Promise} should be evaluated
+   *                if is not evaluated.
+   * @param allowMissing true if missing arguments without a default value should evaluate to {@code Symbol.MISSING_ARG}.
+   *                     If false, missing arguments without default values will throw an error.
+   *
+   * @return the result of the Promise's evaluation, or this S-Expression if this is not a promise.
+   */
+  SEXP force(Context context, boolean allowMissing);
 
 
   /**

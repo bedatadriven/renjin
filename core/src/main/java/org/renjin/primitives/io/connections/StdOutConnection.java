@@ -105,6 +105,11 @@ public class StdOutConnection implements Connection {
   public void open(OpenSpec spec) throws IOException {
   }
 
+  @Override
+  public void flush() throws IOException {
+    stream.flush();
+  }
+
   /**
    * @return number of sinks in the stack.
    */
@@ -151,9 +156,10 @@ public class StdOutConnection implements Connection {
     this.sinkStack.push(sink);
   }
 
-  void clearSink() throws IOException {
+  Sink clearSink() throws IOException {
     if(!this.sinkStack.isEmpty()) {
-      sinkStack.pop().disconnect();
+      return sinkStack.pop();
     }
+    return null;
   }
 }

@@ -104,39 +104,41 @@ public class S4Specialization implements Specialization {
   
       Map<String, List<List<S3.MethodRanking>>> signatures = runtimeState.generateSignatures(opName, arguments, signatureLength);
   
-      List<List<S3.SelectedMethod>> validMethods = runtimeState.findMatchingMethods(opName, signatures);
+      Map<String, List<S3.SelectedMethod>> validMethods = runtimeState.findMatchingMethods(opName, signatures);
   
       if (validMethods.size() == 0) {
         return UnspecializedCall.INSTANCE;
       }
   
-      int maxNumberOfMethods = 0;
-      for (int i = 0; i < validMethods.size(); i++) {
-        if (validMethods.get(i).size() > maxNumberOfMethods) {
-          maxNumberOfMethods = validMethods.get(i).size();
-        }
+      int genericMethods = 0;
+      int groupMethods = 0;
+      if(validMethods.containsKey("generic")) {
+        genericMethods = validMethods.get("generic").size();
       }
-      if (maxNumberOfMethods == 0) {
+      if(validMethods.containsKey("group")) {
+        groupMethods = validMethods.get("group").size();
+      }
+      if(genericMethods == 0 && groupMethods == 0) {
         return UnspecializedCall.INSTANCE;
       }
   
       S3.SelectedMethod method;
       if (validMethods.size() > 1) {
         // select closest group method if distance is less than the distance of closest generic method
-        int genericDistance = validMethods.get(0).size() == 0 ? -1 : validMethods.get(0).get(0).getDistance();
-        int groupDistance = validMethods.get(1).size() == 0 ? -1 : validMethods.get(1).get(0).getDistance();
-        if (genericDistance == -1 || (groupDistance != -1 && groupDistance < genericDistance)) {
-          method = validMethods.get(1).get(0);
+        double genericRank = validMethods.get("generic").size() == 0 ? -1 : validMethods.get("generic").get(0).getRank();
+        double groupRank = validMethods.get("group").size() == 0 ? -1 : validMethods.get("group").get(0).getRank();
+        if (genericRank == -1 || (groupRank != -1 && groupRank < genericRank)) {
+          method = validMethods.get("group").get(0);
         } else {
-          method = validMethods.get(0).get(0);
+          method = validMethods.get("generic").get(0);
         }
       } else {
-        if (validMethods.get(0).size() == 0) {
+        if (validMethods.get("generic").size() == 0) {
           // select closest group method if no generic methods are found
-          method = validMethods.get(1).get(0);
+          method = validMethods.get("group").get(0);
         } else {
           // select closest generic method if no group methods are found
-          method = validMethods.get(0).get(0);
+          method = validMethods.get("generic").get(0);
         }
       }
 

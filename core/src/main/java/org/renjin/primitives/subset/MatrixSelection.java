@@ -49,7 +49,51 @@ public class MatrixSelection implements SelectionStrategy {
     
     int[] sourceDim = source.getAttributes().getDimArray();
 
-    // We need random access to the array, so make sure that 
+    Vector result = extractSubset(context, source, subscripts, sourceDim);
+
+    // Calculate dimension of the subscript
+    // For example, the expression m[1:3, 4:5] yields a selection of 
+    // three rows and two columns, so subscriptDim = [3, 2]
+    int[] subscriptDim = computeSubscriptDim(subscripts);
+    
+    // If drop = TRUE, then remove any redundant dimensions
+    boolean[] droppedDim = dropRedundantDimensions(subscriptDim, drop);
+    
+    // Build the dimnames attribute for any remaining dimensions
+    Vector dimNames = computeDimNames(source, subscripts, droppedDim);
+
+    // If there is only a single dimension remaining, then drop
+    // the dim and dimnames entirely
+    // UNLESS, the input source was already one-dimensional
+
+    AttributeMap.Builder attributes = new AttributeMap.Builder();
+
+    int dimCount = countDims(droppedDim);
+    if(drop && (dimCount == 0 || dimCount == 1)) {
+
+      // DO transform the dimnames to a names attribute if present
+      if(dimNames.length() > 0) {
+        attributes.setNames(dimNames.getElementAsSEXP(0));
+      }
+      
+    } else {
+      attributes.setDim(buildDimAttribute(subscriptDim, droppedDim));
+      attributes.setDimNames(dimNames);
+    }
+    
+    return result.setAttributes(attributes);
+  }
+
+  private Vector extractSubset(Context context, Vector source, Subscript[] subscripts, int[] sourceDim) {
+
+    if(source instanceof ArraySubsettable) {
+      Vector result = ((ArraySubsettable) source).subscript(context, sourceDim, subscripts);
+      if(result != null) {
+        return result;
+      }
+    }
+
+    // We need random access to the array, so make sure that
     // any deferred calculations are triggered.
     Vector materializedSource = context.materialize(source);
 
@@ -67,34 +111,6 @@ public class MatrixSelection implements SelectionStrategy {
         result.addFrom(materializedSource, index);
       }
     }
-    
-    // Calculate dimension of the subscript
-    // For example, the expression m[1:3, 4:5] yields a selection of 
-    // three rows and two columns, so subscriptDim = [3, 2]
-    int[] subscriptDim = computeSubscriptDim(subscripts);
-    
-    // If drop = TRUE, then remove any redundant dimensions
-    boolean[] droppedDim = dropRedundantDimensions(subscriptDim, drop);
-    
-    // Build the dimnames attribute for any remaining dimensions
-    Vector dimNames = computeDimNames(source, subscripts, droppedDim);
-
-    // If there is only a single dimension remaining, then drop
-    // the dim and dimnames entirely
-    // UNLESS, the input source was already one-dimensional
-    int dimCount = countDims(droppedDim);
-    if(drop && (dimCount == 0 || dimCount == 1)) {
-
-      // DO transform the dimnames to a names attribute if present
-      if(dimNames.length() > 0) {
-        result.setAttribute(Symbols.NAMES, dimNames.getElementAsSEXP(0));
-      }
-      
-    } else {
-      result.setAttribute(Symbols.DIM, buildDimAttribute(subscriptDim, droppedDim));
-      result.setAttribute(Symbols.DIMNAMES, dimNames);
-    }
-    
     return result.build();
   }
 
@@ -167,18 +183,9 @@ public class MatrixSelection implements SelectionStrategy {
   private int[] computeSubscriptDim(Subscript[] subscripts) {
     int[] dim = new int[subscripts.length];
     for (int i = 0; i < subscripts.length; i++) {
-      dim[i] = computeCount(subscripts[i]);
+      dim[i] = subscripts[i].computeCount();
     }
     return dim; 
-  }
-
-  private int computeCount(Subscript subscript) {
-    IndexIterator it = subscript.computeIndexes();
-    int count = 0;
-    while(it.next() != IndexIterator.EOF) {
-      count++;
-    }
-    return count;
   }
 
 
@@ -192,22 +199,29 @@ public class MatrixSelection implements SelectionStrategy {
       if(!dropped[d]) {
         SEXP element = sourceDimNames.getElementAsSEXP(d);
         if (element instanceof StringVector && element.length() != 0) {
-          StringVector sourceNames = ((StringVector) element);
-          StringVector.Builder newNames = StringArrayVector.newBuilder();
-          IndexIterator it = subscripts[d].computeIndexes();
-
-          int index;
-          while ((index = it.next()) != IndexIterator.EOF) {
-            newNames.add(sourceNames.getElementAsString(index));
-          }
-
-          newDimNames.add(newNames.build());
+          newDimNames.add(extractDimNames(subscripts[d], (StringVector)element));
         } else {
           newDimNames.add(Null.INSTANCE);
         }
       }
     }
     return newDimNames.build();
+  }
+
+  private StringVector extractDimNames(Subscript subscript, StringVector sourceNames) {
+
+    if(subscript instanceof MissingSubscript) {
+      return sourceNames;
+    }
+
+    StringVector.Builder newNames = StringArrayVector.newBuilder();
+    IndexIterator it = subscript.computeIndexes();
+
+    int index;
+    while ((index = it.next()) != IndexIterator.EOF) {
+      newNames.add(sourceNames.getElementAsString(index));
+    }
+    return newNames.build();
   }
 
 
@@ -280,7 +294,6 @@ public class MatrixSelection implements SelectionStrategy {
       // all we know is what we could end up with
       resultBounds.attributeCouldBePresent(Symbols.DIM);
       if(source.attributeCouldBePresent(Symbols.DIMNAMES)) {
-        resultBounds.attributeCouldBePresent(Symbols.DIMNAMES);
         resultBounds.attributeCouldBePresent(Symbols.DIMNAMES);
       }
     }
@@ -377,7 +390,7 @@ public class MatrixSelection implements SelectionStrategy {
   }
 
   @Override
-  public Vector replaceSingleElement(AtomicVector source, Vector replacement) {
+  public Vector replaceSingleElement(Context context, AtomicVector source, Vector replacement) {
    
     if(replacement instanceof ListVector) {
       // Another special case...
@@ -452,7 +465,6 @@ public class MatrixSelection implements SelectionStrategy {
 
     return result.build();
   }
-
 
   private Subscript[] parseSubscripts(SEXP source) {
     Subscript[] array = new Subscript[this.subscripts.size()];

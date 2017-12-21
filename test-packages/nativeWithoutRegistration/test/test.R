@@ -35,4 +35,15 @@ test.dotC <- function() {
     assertThat(data[1], identicalTo(3333L));
 }
 
+test.getNativeSymbolInfo.Call <- function() {
+
+    nsi <- getNativeSymbolInfo("_dotCall")
+    print(nsi)
+    assertThat(nsi$name, identicalTo("_dotCall"))
+    assertThat(typeof(nsi$address), equalTo("externalptr"))
+    assertThat(class(nsi$address), equalTo("NativeSymbol"))
+    assertThat(class(nsi), equalTo("NativeSymbolInfo"))
+
+    assertThat(.Call(nsi$address, 1:10), identicalTo(10 * 42))
+}
 

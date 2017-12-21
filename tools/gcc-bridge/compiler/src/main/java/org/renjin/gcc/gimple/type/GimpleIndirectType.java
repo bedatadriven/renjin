@@ -18,6 +18,10 @@
  */
 package org.renjin.gcc.gimple.type;
 
+import org.renjin.gcc.gimple.expr.GimpleConstant;
+
 public interface GimpleIndirectType extends GimpleType {
+
+  GimpleConstant nullValue();
 
 }

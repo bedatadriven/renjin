@@ -19,11 +19,9 @@
 // Initial template generated from Rmath.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.apache.commons.math.util.FastMath;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
+import org.renjin.nmath.*;
 import org.renjin.stats.internals.Distributions;
 
 @SuppressWarnings("unused")
@@ -33,44 +31,13 @@ public final class Rmath {
 
 
   public static double R_pow(double x, double y) {
-    return FastMath.pow(x, y);
+    return mlutils.R_pow(x, y);
   }
 
-  public static double R_pow_di(double x, int n)
-  {
-    double xn = 1.0;
-
-    if(Double.isNaN(x)) {
-      return x;
-    }
-    if(IntVector.isNA(n)) {
-      return DoubleVector.NA;
-    }
-    if (n != 0) {
-      if (!DoubleVector.isFinite(x)) {
-        return R_pow(x, (double)n);
-      }
-      boolean isNegative = (n < 0);
-      if(isNegative) {
-        n = -n;
-      }
-      for(;;) {
-        if( (n & 01) != 0 ) {
-          xn *= x;
-        }
-        n >>= 1;
-        if( n != 0) {
-          x *= x;
-        } else {
-          break;
-        }
-      }
-      if(isNegative) {
-        xn = 1d / (double)xn;
-      }
-    }
-    return xn;
+  public static double R_pow_di(double x, int n) {
+    return mlutils.R_pow_di(x, n);
   }
+
 
   public static double norm_rand() {
     throw new UnimplementedGnuApiMethod("norm_rand");
@@ -510,15 +477,15 @@ public final class Rmath {
   }
 
   public static double Rf_gammafn(double p0) {
-    throw new UnimplementedGnuApiMethod("Rf_gammafn");
+    return gamma.gammafn(p0);
   }
 
   public static double Rf_lgammafn(double p0) {
-    throw new UnimplementedGnuApiMethod("Rf_lgammafn");
+    return lgamma.lgammafn(p0);
   }
 
   public static double Rf_lgammafn_sign(double p0, IntPtr p1) {
-    throw new UnimplementedGnuApiMethod("Rf_lgammafn_sign");
+    return lgamma.lgammafn_sign(p0, p1);
   }
 
   public static void Rf_dpsifn(double p0, int p1, int p2, int p3, DoublePtr p4, IntPtr p5, IntPtr p6) {
@@ -526,71 +493,71 @@ public final class Rmath {
   }
 
   public static double Rf_psigamma(double p0, double p1) {
-    throw new UnimplementedGnuApiMethod("Rf_psigamma");
+    return polygamma.psigamma(p0, p1);
   }
 
   public static double Rf_digamma(double p0) {
-    throw new UnimplementedGnuApiMethod("Rf_digamma");
+    return polygamma.digamma(p0);
   }
 
   public static double Rf_trigamma(double p0) {
-    throw new UnimplementedGnuApiMethod("Rf_trigamma");
+    return polygamma.trigamma(p0);
   }
 
   public static double Rf_tetragamma(double p0) {
-    throw new UnimplementedGnuApiMethod("Rf_tetragamma");
+    return polygamma.tetragamma(p0);
   }
 
   public static double Rf_pentagamma(double p0) {
-    throw new UnimplementedGnuApiMethod("Rf_pentagamma");
+    return polygamma.pentagamma(p0);
   }
 
   public static double Rf_beta(double p0, double p1) {
-    throw new UnimplementedGnuApiMethod("Rf_beta");
+    return beta.beta(p0, p1);
   }
 
   public static double Rf_lbeta(double p0, double p1) {
-    throw new UnimplementedGnuApiMethod("Rf_lbeta");
+    return lbeta.lbeta(p0, p1);
   }
 
   public static double Rf_choose(double p0, double p1) {
-    throw new UnimplementedGnuApiMethod("Rf_choose");
+    return choose.choose(p0, p1);
   }
 
   public static double Rf_lchoose(double p0, double p1) {
-    throw new UnimplementedGnuApiMethod("Rf_lchoose");
+    return choose.lchoose(p0, p1);
   }
 
   public static double Rf_bessel_i(double p0, double p1, double p2) {
-    throw new UnimplementedGnuApiMethod("Rf_bessel_i");
+    return bessel_i.bessel_i(p0, p1, p2);
   }
 
   public static double Rf_bessel_j(double p0, double p1) {
-    throw new UnimplementedGnuApiMethod("Rf_bessel_j");
+    return bessel_j.bessel_j(p0, p1);
   }
 
   public static double Rf_bessel_k(double p0, double p1, double p2) {
-    throw new UnimplementedGnuApiMethod("Rf_bessel_k");
+    return bessel_k.bessel_k(p0, p1, p2);
   }
 
   public static double Rf_bessel_y(double p0, double p1) {
-    throw new UnimplementedGnuApiMethod("Rf_bessel_y");
+    return bessel_y.bessel_y(p0, p1);
   }
 
   public static double Rf_bessel_i_ex(double p0, double p1, double p2, DoublePtr p3) {
-    throw new UnimplementedGnuApiMethod("Rf_bessel_i_ex");
+    return bessel_i.bessel_i_ex(p0, p1, p2, p3);
   }
 
   public static double Rf_bessel_j_ex(double p0, double p1, DoublePtr p2) {
-    throw new UnimplementedGnuApiMethod("Rf_bessel_j_ex");
+    return bessel_j.bessel_j_ex(p0, p1, p2);
   }
 
   public static double Rf_bessel_k_ex(double p0, double p1, double p2, DoublePtr p3) {
-    throw new UnimplementedGnuApiMethod("Rf_bessel_k_ex");
+    return bessel_k.bessel_k_ex(p0, p1, p2, p3);
   }
 
   public static double Rf_bessel_y_ex(double p0, double p1, DoublePtr p2) {
-    throw new UnimplementedGnuApiMethod("Rf_bessel_y_ex");
+    return bessel_y.bessel_y_ex(p0, p1, p2);
   }
 
   public static double Rf_pythag(double p0, double p1) {
@@ -598,53 +565,41 @@ public final class Rmath {
   }
 
   public static int Rf_imax2(int x, int y) {
-    // from src/nmath/imax2.c
-    return (x < y) ? y : x;
+    return imax2.imax2(x, y);
   }
 
   public static int Rf_imin2(int x, int y) {
-    // from src/nmath/imin2
-    return (x < y) ? x : y;
+    return imin2.imin2(x, y);
   }
 
   /**
    * @return the maximum of {@code x} and {@code y}, or Nan if either x or y is NaN.
    */
   public static double Rf_fmax2(double x, double y) {
-    if(Double.isNaN(x) || Double.isNaN(y)) {
-      return x + y;
-    }
-    return Math.max(x, y);
+    return fmax2.fmax2(x, y);
   }
 
   /**
    * @return the minimum of {@code x} and {@code y}, or Nan if either x or y is NaN.
    */
   public static double Rf_fmin2(double x, double y) {
-    if(Double.isNaN(x) || Double.isNaN(y)) {
-      return x + y;
-    }
-    return Math.min(x, y);
+    return fmin2.fmin2(x, y);
   }
 
   public static double Rf_sign(double p0) {
-    if (DoubleVector.isNaN(p0)) {
-      return p0;
-    } else {
-      return ((p0 > 0) ? 1 : ((p0 == 0)? 0 : -1));
-    }
+    return sign.sign(p0);
   }
 
   public static double Rf_fprec(double p0, double p1) {
-    throw new UnimplementedGnuApiMethod("Rf_fprec");
+    return fprec.fprec(p0, p1);
   }
 
   public static double Rf_fround(double p0, double p1) {
-    throw new UnimplementedGnuApiMethod("Rf_fround");
+    return fround.fround(p0, p1);
   }
 
-  public static double Rf_fsign(double p0, double p1) {
-    throw new UnimplementedGnuApiMethod("Rf_fsign");
+  public static double Rf_fsign(double x, double y) {
+    return fsign.fsign(x, y);
   }
 
   public static double Rf_ftrunc(double p0) {
@@ -652,14 +607,14 @@ public final class Rmath {
   }
 
   public static double cospi(double p0) {
-    throw new UnimplementedGnuApiMethod("cospi");
+    return org.renjin.nmath.cospi.cospi(p0);
   }
 
   public static double sinpi(double p0) {
-    throw new UnimplementedGnuApiMethod("sinpi");
+    return org.renjin.nmath.cospi.sinpi(p0);
   }
 
   public static double tanpi(double p0) {
-    throw new UnimplementedGnuApiMethod("tanpi");
+    return org.renjin.nmath.cospi.tanpi(p0);
   }
 }

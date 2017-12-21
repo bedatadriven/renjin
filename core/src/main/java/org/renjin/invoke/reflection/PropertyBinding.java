@@ -94,9 +94,12 @@ public class PropertyBinding implements MemberBinding {
       Object convertedValue = converter.convertToJava(value);
       try {
         method.invoke(instance, convertedValue);
+      } catch (InvocationTargetException e) {
+        throw new EvalException(e.getTargetException().getMessage(), e.getTargetException());
+
       } catch (Exception e) {
         throw new EvalException("Exception thrown while calling setter '%s' on instance of class '%s': %s",
-                method.getName(), method.getDeclaringClass().getName(), e.getMessage());
+                method.getName(), method.getDeclaringClass().getName(), e.getMessage(), e);
       }
     }
   }

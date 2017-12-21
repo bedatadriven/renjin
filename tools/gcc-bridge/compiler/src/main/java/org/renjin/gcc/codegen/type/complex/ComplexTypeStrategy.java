@@ -22,17 +22,16 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
+import org.renjin.gcc.codegen.vptr.VPtrStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
 import org.renjin.repackaged.asm.Type;
-
-import java.lang.reflect.Field;
 
 /**
  * Strategy for complex number types.
@@ -51,7 +50,7 @@ import java.lang.reflect.Field;
  * to return a complex value. This is something we could eliminate with aggressive inlining.</p>
  * 
  */
-public class ComplexTypeStrategy implements TypeStrategy<ComplexValue> {
+public class ComplexTypeStrategy implements TypeStrategy<ComplexExpr> {
 
   private GimpleComplexType type;
 
@@ -60,25 +59,25 @@ public class ComplexTypeStrategy implements TypeStrategy<ComplexValue> {
   }
 
   @Override
-  public ComplexValue variable(GimpleVarDecl decl, VarAllocator allocator) {
+  public ComplexExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
 //      return new AddressableComplexVarGenerator(type,
 //          allocator.reserveArrayRef(decl.getName(), type.getJvmPartType()));
       throw new UnsupportedOperationException("TODO");
     } else {
-      return new ComplexValue(
+      return new ComplexExpr(
           allocator.reserve(decl.getName() + "$real", type.getJvmPartType()),
           allocator.reserve(decl.getName() + "$im", type.getJvmPartType()));
     }
   }
 
   @Override
-  public ComplexValue providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+  public ComplexExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public ComplexValue constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
+  public ComplexExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -104,23 +103,24 @@ public class ComplexTypeStrategy implements TypeStrategy<ComplexValue> {
 
   @Override
   public ValueFunction getValueFunction() {
-    return new ComplexValueFunction(type.getJvmPartType());
+    return new ComplexValueFunction(type);
   }
 
   @Override
-  public FatPtrStrategy pointerTo() {
-    return new FatPtrStrategy(new ComplexValueFunction(type.getJvmPartType()), 1)
-        .setParametersWrapped(false);
+  public PointerTypeStrategy pointerTo() {
+    return new VPtrStrategy(type);
   }
 
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
-    return new ArrayTypeStrategy(arrayType, new ComplexValueFunction(type.getJvmPartType()))
+    return new ArrayTypeStrategy(arrayType, new ComplexValueFunction(type))
         .setParameterWrapped(false);
   }
 
   @Override
-  public ComplexValue cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public ComplexExpr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
     throw new UnsupportedCastException();
   }
+
 }
+

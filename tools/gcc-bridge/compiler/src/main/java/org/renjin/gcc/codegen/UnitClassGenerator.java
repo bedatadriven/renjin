@@ -28,7 +28,15 @@ import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.var.GlobalVarAllocator;
+import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.*;
+import org.renjin.gcc.gimple.expr.GimpleConstructor;
+import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.gcc.gimple.type.GimpleComplexType;
+import org.renjin.gcc.gimple.type.GimpleIndirectType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.link.LinkSymbol;
 import org.renjin.gcc.symbols.GlobalSymbolTable;
 import org.renjin.gcc.symbols.UnitSymbolTable;
 import org.renjin.repackaged.asm.ClassVisitor;
@@ -60,7 +68,10 @@ public class UnitClassGenerator {
   private final TypeOracle typeOracle;
   
   private final GlobalVarAllocator globalVarAllocator;
+
   private final List<GimpleVarDecl> varToGenerate = Lists.newArrayList();
+
+  private final List<LinkSymbol> globalVariableSymbols = new ArrayList<>();
 
   private ClassWriter cw;
   private ClassVisitor cv;
@@ -80,52 +91,64 @@ public class UnitClassGenerator {
     this.symbolTable = new UnitSymbolTable(functionTable);
 
     // Setup global variables that have global scoping
+    Set<String> visited = new HashSet<>();
     for (GimpleVarDecl decl : unit.getGlobalVariables()) {
-      if(!isIgnored(decl)) {
-        GExpr varGenerator;
-
-        if (isProvided(providedVariables, decl)) {
-          ProvidedGlobalVar providedField = providedVariables.get(decl.getName());
-          varGenerator = providedField.createExpr(decl, typeOracle);
-
-        } else {
-          try {
-            TypeStrategy typeStrategy = typeOracle.forType(decl.getType());
-            varGenerator = typeStrategy.variable(decl, globalVarAllocator);
-          } catch (Exception e) {
-            throw new InternalCompilerException("Global variable " + decl.getName() + " in " + unit.getSourceName(), e);
-          }
-          varToGenerate.add(decl);
-        }
-        symbolTable.addGlobalVariable(decl, varGenerator);
+      if(!visited.add(decl.getMangledName())) {
+        continue;
       }
+      GExpr varGenerator;
+
+      if (isProvided(providedVariables, decl)) {
+        ProvidedGlobalVar providedField = providedVariables.get(decl.getName());
+        varGenerator = providedField.createExpr(decl, typeOracle);
+
+      } else {
+        try {
+          TypeStrategy typeStrategy = typeOracle.forType(decl.getType());
+          varGenerator = typeStrategy.variable(decl, globalVarAllocator);
+
+        } catch (Exception e) {
+          throw new InternalCompilerException("Global variable " + decl.getName() + " in " + unit.getSourceName(), e);
+        }
+        varToGenerate.add(decl);
+
+        if(!decl.isStatic()) {
+          globalVariableSymbols.add(LinkSymbol.forGlobalVariable(decl.getMangledName(), Type.getType(className)));
+        }
+      }
+      symbolTable.addGlobalVariable(decl, varGenerator);
     }
 
     for (GimpleFunction function : unit.getFunctions()) {
-      try {
-        symbolTable.addFunction(function,
-            new FunctionGenerator(className, function, typeOracle, globalVarAllocator, symbolTable));
-      } catch (Exception e) {
-        throw new InternalCompilerException(String.format("Exception creating %s for %s in %s: %s",
-            FunctionGenerator.class.getSimpleName(),
-            function.getName(),
-            unit.getSourceName(),
-            e.getMessage()), e);
+      if (!isExcluded(function)) {
+        try {
+          symbolTable.addFunction(function,
+              new FunctionGenerator(className, function, typeOracle, globalVarAllocator, symbolTable));
+        } catch (Exception e) {
+          throw new InternalCompilerException(String.format("Exception creating %s for %s in %s: %s",
+              FunctionGenerator.class.getSimpleName(),
+              function.getName(),
+              unit.getSourceName(),
+              e.getMessage()), e);
+        }
       }
     }
 
     for (GimpleAlias alias : unit.getAliases()) {
       symbolTable.addAlias(alias);
     }
-
   }
 
-  private boolean isIgnored(GimpleVarDecl decl) {
-    if(decl.getMangledName() == null) {
-      return false;
+  public List<LinkSymbol> getGlobalVariableSymbols() {
+    return globalVariableSymbols;
+  }
+
+  private boolean isExcluded(GimpleFunction function) {
+    if(function.getMangledName().equals("printf")) {
+      return true;
     }
-    return decl.getMangledName().equals("_ZTVN10__cxxabiv117__class_type_infoE") ||
-        decl.getMangledName().equals("_ZTVN10__cxxabiv120__si_class_type_infoE");
+
+    return false;
   }
 
   private boolean isProvided(Map<String, ProvidedGlobalVar> providedVariables, GimpleVarDecl decl) {
@@ -191,21 +214,20 @@ public class UnitClassGenerator {
     globalVarAllocator.writeFieldInitialization(mv);
   
     for (GimpleVarDecl decl : varToGenerate) {
-      if(decl.getName().startsWith("_ZTI")) {
-        // Skip rtti tables for now...
-        continue;
-      }
       try {
         GExpr varGenerator = symbolTable.getGlobalVariable(decl);
-        if(decl.getValue() != null) {
-          try {
-            varGenerator.store(mv, exprFactory.findGenerator(decl.getValue()));
-          } catch (Exception e) {
-            System.err.println("Warning: could not generate code for global variable " + decl.getMangledName() +
-                ": " + e.getMessage());
+        GimpleExpr initialValue = decl.getValue();
+        if(initialValue == null) {
+          initialValue = zeroValue(decl.getType());
+        }
+        if(initialValue != null) {
+
+          if(initialValue instanceof GimpleConstructor) {
+            writeInitMethodCall(mv, decl, varGenerator, initialValue);
+          } else {
+            tryWriteInitCode(mv, exprFactory, decl, varGenerator, initialValue);
           }
         }
-
       } catch (Exception e) {
         throw new InternalCompilerException(
             String.format("Exception writing static variable initializer %s %s = %s defined in %s", 
@@ -217,12 +239,63 @@ public class UnitClassGenerator {
     }
 
     for (FunctionGenerator function : symbolTable.getFunctions()) {
-      function.emitLocalStaticVarInitialization(mv);
+      function.emitLocalStaticVarInitialization(mv, new ExprFactory(typeOracle, symbolTable, mv));
     }
 
     mv.visitInsn(RETURN);
     mv.visitMaxs(1, 1);
     mv.visitEnd();
+  }
+
+  private void writeInitMethodCall(MethodGenerator mv,
+                                   GimpleVarDecl decl,
+                                   GExpr varGenerator,
+                                   GimpleExpr initialValue) {
+
+    String initMethodName = writeInitMethod(decl, varGenerator, initialValue);
+    mv.invokestatic(className, initMethodName, "()V", false);
+  }
+
+  private String writeInitMethod(GimpleVarDecl decl,
+                                 GExpr varGenerator,
+                                 GimpleExpr initialValue) {
+
+    String initMethodName = VarAllocator.toJavaSafeName(decl.getMangledName()) + "$$clinit";
+    MethodGenerator mv = new MethodGenerator(cv.visitMethod(ACC_STATIC, initMethodName, "()V", null, null));
+    ExprFactory exprFactory = new ExprFactory(typeOracle, symbolTable, mv);
+    mv.visitCode();
+    tryWriteInitCode(mv, exprFactory, decl, varGenerator, initialValue);
+    mv.visitInsn(RETURN);
+    mv.visitMaxs(1, 1);
+    mv.visitEnd();
+
+    return initMethodName;
+
+  }
+
+
+  private void tryWriteInitCode(MethodGenerator mv,
+                                ExprFactory exprFactory,
+                                GimpleVarDecl decl,
+                                GExpr varGenerator,
+                                GimpleExpr initialValue) {
+    try {
+      varGenerator.store(mv, exprFactory.findGenerator(initialValue));
+    } catch (Exception e) {
+      System.err.println("Warning: could not generate code for global variable " + decl.getMangledName() +
+          ": " + e.getMessage());
+    }
+  }
+
+  private GimpleExpr zeroValue(GimpleType type) {
+    if(type instanceof GimplePrimitiveType) {
+      return ((GimplePrimitiveType) type).zero();
+    } else if(type instanceof GimpleComplexType) {
+      return ((GimpleComplexType) type).zero();
+    } else if(type instanceof GimpleIndirectType) {
+      return ((GimpleIndirectType) type).nullValue();
+    }
+    return null;
   }
 
   private void emitFunctions(TreeLogger parentLogger, GimpleCompilationUnit unit) {
@@ -248,7 +321,11 @@ public class UnitClassGenerator {
 
   public byte[] toByteArray() {
     cv.visitEnd();
-    return cw.toByteArray();
+    try {
+      return cw.toByteArray();
+    } catch (Exception e) {
+      throw new InternalCompilerException("Failed to write class " + getClassName() + ": " + e.getMessage());
+    }
   }
 
   /**

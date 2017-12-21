@@ -22,7 +22,6 @@ import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Invisible;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -60,17 +59,6 @@ public class Packages {
     // Copy in the namespace's exports
     namespace.copyExportsTo(context, packageEnv);
     
-    // Load dataset objects as promises
-    for(Dataset dataset : namespace.getPackage().getDatasets()) {
-      for(String objectName : dataset.getObjectNames()) {
-        packageEnv.setVariable(context, objectName, new DatasetObjectPromise(dataset, objectName));
-      }
-    }
-    
-    if(!namespace.getFullyQualifiedName().equals(METHODS_NAMESPACE)) {
-      maybeUpdateS4MetadataCache(context, namespace);
-    }
-    
     context.setInvisibleFlag();
   }
 
@@ -92,20 +80,6 @@ public class Packages {
     return false;
   }
 
-  private static void maybeUpdateS4MetadataCache(Context context, Namespace namespace) {
-    //methods:::cacheMetaData(ns, TRUE, ns)
-    Optional<Namespace> methods = context.getNamespaceRegistry()
-        .getNamespaceIfPresent(Symbol.get("methods"));
-    if(methods.isPresent()) {
-      SEXP cacheFunction = methods.get().getEntry(Symbol.get("cacheMetaData"));
-      FunctionCall cacheCall = FunctionCall.newCall(cacheFunction, 
-          namespace.getNamespaceEnvironment(),
-          LogicalVector.TRUE,
-          namespace.getNamespaceEnvironment());
-      
-      context.evaluate(cacheCall);
-    }
-  }
 
   @Internal
   @Invisible

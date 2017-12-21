@@ -44,6 +44,10 @@ public class Combine {
     Inspector inspector = new Inspector(recursive);
     inspector.acceptAll(Iterables.transform(arguments.namedValues(), VALUE_OF));
 
+    if(inspector.getResult() == Null.VECTOR_TYPE) {
+      return Null.INSTANCE;
+    }
+
     CombinedBuilder builder = inspector.newBuilder().useNames(true);
 
     // Allocate a new vector with all the elements

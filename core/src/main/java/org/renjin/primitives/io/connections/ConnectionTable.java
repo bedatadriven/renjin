@@ -67,6 +67,17 @@ public class ConnectionTable {
     table[index].close();
     table[index] = null;
   }
+
+
+  public void close(Connection connection) throws IOException {
+    for (int i = 0; i < table.length; i++) {
+      if(table[i] == connection) {
+        table[i].close();
+        table[i] = null;
+      }
+    }
+
+  }
   
   private int installConnection(Connection conn) {
     for(int i=0;i!=table.length;++i) {

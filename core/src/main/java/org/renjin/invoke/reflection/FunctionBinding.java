@@ -122,11 +122,7 @@ public class FunctionBinding {
       } catch (IllegalAccessException e) {
         throw new RuntimeException("Exception invoking " + method, e);
       } catch (InvocationTargetException e) {
-        if(e.getCause() instanceof RuntimeException) {
-          throw (RuntimeException)e.getCause();
-        } else {
-          throw new RuntimeException(e);
-        }
+        throw new EvalException(e.getCause().getMessage(), e.getCause());
       }
     }
     

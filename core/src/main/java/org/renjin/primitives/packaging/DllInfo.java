@@ -27,7 +27,9 @@ import org.renjin.sexp.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A dynamically loaded "native" library.
@@ -95,6 +97,19 @@ public class DllInfo {
 
   public Optional<DllSymbol> getRegisteredSymbol(String name) {
     return Optional.fromNullable(registeredSymbols.get(name));
+  }
+
+
+  public Optional<DllSymbol> getSymbol(String name) {
+    DllSymbol symbol = registeredSymbols.get(name);
+    if(symbol != null) {
+      return Optional.of(symbol);
+    }
+
+    if(useDynamicSymbols) {
+      return lookupWithReflection(DllSymbol.Convention.C, name);
+    }
+    return Optional.absent();
   }
 
   public Iterable<DllSymbol> getRegisteredSymbols() {
@@ -244,4 +259,5 @@ public class DllInfo {
     }
     return object.build();
   }
+
 }

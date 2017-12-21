@@ -21,8 +21,10 @@ package org.renjin.gcc.runtime;
 import java.util.Arrays;
 
 
-public class ShortPtr implements Ptr {
-  
+public class ShortPtr extends AbstractPtr {
+
+  public static final int BYTES = 2;
+
   public static final ShortPtr NULL = new ShortPtr();
   
   public final short[] array;
@@ -43,6 +45,10 @@ public class ShortPtr implements Ptr {
     this.offset = 0;
   }
 
+  public static ShortPtr malloc(int bytes) {
+    return new ShortPtr(new short[AbstractPtr.mallocSize(bytes, BYTES)]);
+  }
+
   @Override
   public short[] getArray() {
     return array;
@@ -54,6 +60,11 @@ public class ShortPtr implements Ptr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    return offset * BYTES;
+  }
+
+  @Override
   public Ptr realloc(int newSizeInBytes) {
     return new ShortPtr(Realloc.realloc(array, offset, newSizeInBytes / 2));
   }
@@ -61,6 +72,82 @@ public class ShortPtr implements Ptr {
   @Override
   public Ptr pointerPlus(int bytes) {
     return new ShortPtr(array, offset + (bytes / 2));
+  }
+
+  @Override
+  public short getShort() {
+    return array[this.offset];
+  }
+
+  @Override
+  public short getAlignedShort(int index) {
+    return array[this.offset + index];
+  }
+
+  @Override
+  public short getShort(int offset) {
+    if(offset % BYTES == 0) {
+      return getAlignedShort(offset / BYTES);
+    } else {
+      return super.getShort(offset);
+    }
+  }
+
+  @Override
+  public void setAlignedShort(int index, short shortValue) {
+    array[this.offset + index] = shortValue;
+  }
+
+  @Override
+  public void setShort(short value) {
+    array[this.offset] = value;
+  }
+
+  @Override
+  public void setShort(int offset, short value) {
+    if(offset % BYTES == 0) {
+      setAlignedShort(offset / BYTES, value);
+    } else {
+      super.setShort(offset, value);
+    }
+  }
+
+  @Override
+  public byte getByte(int offset) {
+    int byteIndex = this.offset * BYTES + offset;
+    int index = byteIndex / BYTES;
+    int shift = (byteIndex % BYTES) * 8;
+    return (byte)(this.array[index] >>> shift);
+  }
+
+  @Override
+  public void setByte(int offset, byte value) {
+    int bytes = (this.offset * BYTES) + offset;
+    int index = bytes / BYTES;
+    int shift = (bytes % BYTES) * BITS_PER_BYTE;
+
+    int element = array[index];
+
+    int updateMask = 0xFF << shift;
+
+    // Zero out the bits in the byte we are going to update
+    element = element & ~updateMask;
+
+    // Shift our byte into position
+    int update = (((int)value) << shift) & updateMask;
+
+    // Merge the original long and updated bits together
+    array[index] = (short)(element | update);
+  }
+
+  @Override
+  public int toInt() {
+    return offset * BYTES;
+  }
+
+  @Override
+  public boolean isNull() {
+    return array == null && offset != 0;
   }
 
   public short unwrap() {

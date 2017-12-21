@@ -41,7 +41,7 @@ public class SerializedPromise1 extends Promise {
   }
 
   @Override
-  protected SEXP doEval(Context context) {
+  protected SEXP doEval(Context context, boolean allowMissing) {
     try(RDataReader reader = new RDataReader(context,
           new GZIPInputStream(
               new ByteArrayInputStream(bytes)))) {

@@ -22,13 +22,12 @@ package org.renjin.embed;
 import org.renjin.eval.Context;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
-import org.renjin.primitives.Warning;
 import org.renjin.primitives.io.serialization.RDataReader;
 import org.renjin.primitives.io.serialization.RDataWriter;
 import org.renjin.primitives.special.ForFunction;
-import org.renjin.sexp.*;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.SEXP;
 import org.rosuda.JRI.RConsoleOutputStream;
-import org.rosuda.JRI.REXP;
 import org.rosuda.JRI.Rengine;
 import org.rosuda.REngine.REXPReference;
 

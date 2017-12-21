@@ -18,6 +18,10 @@
  */
 package org.renjin.gcc;
 
+import org.renjin.gcc.gimple.GimpleFunction;
+import org.renjin.gcc.html.HtmlFunctionRenderer;
+import org.renjin.gcc.symbols.SymbolTable;
+import org.renjin.repackaged.asm.tree.MethodNode;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -89,6 +93,16 @@ public class HtmlTreeLogger extends TreeLogger {
       Files.write(value.toString(), dumpFile, Charsets.UTF_8);
     } catch (IOException e) {
       System.err.println("Exception dumping to " + dumpFile.getAbsolutePath());
+    }
+  }
+
+  @Override
+  public void dumpHtml(SymbolTable symbolTable, GimpleFunction gimpleFunction, MethodNode methodNode) {
+    try {
+      dump(gimpleFunction.getUnit().getSourceName(), gimpleFunction.getSafeMangledName(), "html",
+          new HtmlFunctionRenderer(symbolTable, gimpleFunction, methodNode).render());
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
   }
 

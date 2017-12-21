@@ -75,13 +75,22 @@ public class GimpleEdge {
     return "edge <" + getEdgeTypeName() + ">(" + getSourceLabel() + "," + getTargetLabel() + ")";
   }
 
+  public boolean isFake() {
+    return (flags & EDGE_FAKE) != 0;
+  }
+
+  public boolean isExceptionThrow() {
+    return (flags & EDGE_EH) != 0;
+  }
+
   private String getEdgeTypeName() {
     final StringBuilder sb = new StringBuilder();
     final String[] names = {
         "EDGE_FALLTHRU"
         ,"EDGE_ABNORMAL"
         ,"EDGE_ABNORMAL_CALL"
-        ,"EDGE_EH,EDGE_FAKE"
+        ,"EDGE_EH"
+        ,"EDGE_FAKE"
         ,"EDGE_DFS_BACK"
         ,"EDGE_CAN_FALLTHRU"
         ,"EDGE_IRREDUCIBLE_LOOP"

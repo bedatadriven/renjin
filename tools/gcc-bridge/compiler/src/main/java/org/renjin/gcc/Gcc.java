@@ -30,7 +30,6 @@ import org.renjin.repackaged.guava.io.Resources;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
@@ -50,8 +49,12 @@ public class Gcc {
 
   private boolean debug;
   private File gimpleOutputDir;
+
+  private boolean link = false;
   
   private List<String> cFlags = Lists.newArrayList();
+
+  private List<String> cxxFlags = Lists.newArrayList();
   
   public Gcc() {
     workingDirectory = Files.createTempDir();
@@ -79,13 +82,17 @@ public class Gcc {
   public void addCFlags(List<String> flags) {
     cFlags.addAll(flags);
   }
+
+  public void addCxxFlags(List<String> flags) {
+    cxxFlags.addAll(flags);
+  }
   
   public File getGimpleOutputDir() {
     return gimpleOutputDir;
   }
 
   public GimpleCompilationUnit compileToGimple(File source, String... compilerFlags) throws IOException {
-    
+
     checkEnvironment();
     
     List<String> arguments = Lists.newArrayList();
@@ -99,14 +106,15 @@ public class Gcc {
 //    arguments.add("-E");
 //    arguments.add("-P");
 
-    arguments.add("-fno-rtti");
-
     arguments.add("-D");
     arguments.add("_GCC_BRIDGE");
     arguments.add("-D");
     arguments.add("_RENJIN");
-    arguments.add("-c"); // compile only, do not link
-    arguments.add("-S"); // stop at assembly generation
+
+    if(!link) {
+      arguments.add("-c"); // compile only, do not link
+      arguments.add("-S"); // stop at assembly generation
+    }
     arguments.addAll(Arrays.asList(compilerFlags));
 //    arguments.add("-O9"); // highest optimization
 
@@ -130,9 +138,14 @@ public class Gcc {
       arguments.addAll(cFlags);
     }
 
+    if(source.getName().toLowerCase().endsWith(".cc") ||
+        source.getName().toLowerCase().endsWith(".cpp")) {
+      arguments.addAll(cxxFlags);
+    }
+
     arguments.add(source.getAbsolutePath());
 
-    LOGGER.fine("Executing " + Joiner.on(" ").join(arguments));
+    LOGGER.info("Executing " + Joiner.on(" ").join(arguments));
 
     callGcc(arguments);
     
@@ -140,6 +153,18 @@ public class Gcc {
     GimpleCompilationUnit unit = parser.parse(gimpleFile);
     unit.setSourceFile(gimpleFile);
     return unit;
+  }
+
+  public boolean isLink() {
+    return link;
+  }
+
+  public void setLink(boolean link) {
+    this.link = link;
+  }
+
+  private String callGcc(String... arguments) throws IOException {
+    return callGcc(Arrays.asList(arguments));
   }
 
   /**
@@ -153,6 +178,8 @@ public class Gcc {
     List<String> command = Lists.newArrayList();
     command.add("gcc-4.7");
     command.addAll(arguments);
+
+    System.err.println("EXECUTING: " + Joiner.on(" ").join(arguments));
 
     Process gcc = new ProcessBuilder().command(command).directory(workingDirectory).redirectErrorStream(true).start();
 
@@ -212,22 +239,38 @@ public class Gcc {
     pluginLibrary.deleteOnExit();
   }
 
-  public static void extractPluginTo(File pluginLibrary) throws IOException {
+  public synchronized static void extractPluginTo(File pluginLibrary) throws IOException {
     Preconditions.checkArgument(pluginLibrary.getName().endsWith(".so"), "plugin name must end in .so");
 
-    String libraryName = PlatformUtils.getPortableLibraryName("gcc-bridge");
-    
-    URL pluginResource;
-    try {
-      pluginResource = Resources.getResource("org/renjin/gcc/" + libraryName);
-    } catch(IllegalArgumentException e) {
-      throw new GccException("Could not find a bundled version of the gcc plugin for your platform.\n" +
-              "(Was expecting: /org/renjin/gcc/" +  libraryName + " on the classpath.)\n" +
-              "You will need to build it yourself and specify the path to the binary. ");
+    if(pluginLibrary.exists()) {
+      return;
     }
 
-    Resources.asByteSource(pluginResource).copyTo(Files.asByteSink(pluginLibrary));
+    if(!pluginLibrary.getParentFile().exists()) {
+      boolean created = pluginLibrary.getParentFile().mkdirs();
+      if(!created) {
+        throw new IOException("Could not create directory " + pluginLibrary.getParentFile());
+      }
+    }
+
+    File workingDir = Files.createTempDir();
+    Gcc gcc = new Gcc(workingDir);
+
+    // Extract source
+    File sourceFile = new File(workingDir, "plugin.c");
+    Resources.asByteSource(Resources.getResource(Gcc.class, "plugin.c")).copyTo(Files.asByteSink(sourceFile));
+
+    // Compile and link source
+    String pluginDir = gcc.callGcc("-print-file-name=plugin").trim();
+    gcc.callGcc(
+        "-shared",
+        "-xc++", "-I" + pluginDir + "/include", "-fPIC", "-fno-rtti", "-O2",
+        "plugin.c",
+        "-lstdc++", "-shared-libgcc",
+        "-o", pluginLibrary.getAbsolutePath());
+
   }
+
 
   public void checkVersion() {
     try {
@@ -241,7 +284,7 @@ public class Gcc {
     }
   }
 
-  
+
 
   private static class OutputCollector implements Runnable {
 

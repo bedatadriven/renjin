@@ -18,6 +18,9 @@
  */
 package org.renjin.gcc.gimple.type;
 
+import org.renjin.gcc.gimple.expr.GimpleConstant;
+import org.renjin.gcc.gimple.expr.GimpleIntegerConstant;
+
 public class GimplePointerType extends AbstractGimpleType implements GimpleIndirectType {
   
   public static final int SIZE = 32;
@@ -41,6 +44,11 @@ public class GimplePointerType extends AbstractGimpleType implements GimpleIndir
   public int sizeOf() {
     // We require the generated gimple to be compiled for 32-bit platforms so we get 32 bit pointers.
     return 4;
+  }
+
+  @Override
+  public GimpleConstant nullValue() {
+    return GimpleIntegerConstant.nullValue(this);
   }
 
   public void setBaseType(GimpleType baseType) {
@@ -76,4 +84,6 @@ public class GimplePointerType extends AbstractGimpleType implements GimpleIndir
   public int hashCode() {
     return baseType.hashCode();
   }
+
+
 }

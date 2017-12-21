@@ -67,6 +67,11 @@ public class SingleThreadedFifoConnection implements Connection {
   }
 
   @Override
+  public void flush() throws IOException {
+    writer.flush();
+  }
+
+  @Override
   public PushbackBufferedReader getReader() throws IOException {
     return this.reader = new PushbackBufferedReader(
         new InputStreamReader(

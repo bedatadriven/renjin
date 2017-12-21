@@ -24,7 +24,7 @@ import org.renjin.repackaged.guava.base.Predicate;
 
 import java.util.List;
 
-public abstract class GimpleComplexPartExpr extends GimpleExpr {
+public abstract class GimpleComplexPartExpr extends GimpleLValue {
 
   private GimpleExpr complexValue;
 

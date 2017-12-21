@@ -53,6 +53,14 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
     return(bytes);
   }
 
+
+  /**
+   * @return a pointer to the underlying array. DO NOT MODIFY!!
+   */
+  public byte[] toByteArrayUnsafe() {
+    return values;
+  }
+
   @Override
   public String getTypeName() {
     return ("raw");

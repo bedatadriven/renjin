@@ -18,9 +18,9 @@
  */
 package org.renjin.gcc.runtime;
 
-import java.util.Arrays;
-
 public class Builtins {
+
+  private static final ThreadLocal<IntPtr> ERRNO = new ThreadLocal<>();
 
   public static double __builtin_powi__(double base, int exponent) {
     return powi(base, exponent);
@@ -34,6 +34,18 @@ public class Builtins {
     } else {
       return Math.pow(base, (double)exponent);
     }
+  }
+
+  /**
+   * The __errno_location() function shall return the address of the errno variable for the current thread.
+   */
+  public static Ptr __errno_location() {
+    IntPtr intPtr = ERRNO.get();
+    if(intPtr == null) {
+      intPtr = new IntPtr(0);
+      ERRNO.set(intPtr);
+    }
+    return intPtr;
   }
 
   public static float  __builtin_logf__(float x) {
@@ -51,7 +63,7 @@ public class Builtins {
   public static double __builtin_exp__(double x) {
     return Math.exp(x);
   }
-  
+
   public static float  __builtin_sqrtf__(float f) {
     return (float) Math.sqrt(f);
   }
@@ -264,5 +276,41 @@ public class Builtins {
   
   public static void undefined_std() {
     throw new RuntimeException("Invocation of std:: method");
+  }
+
+  public static void _gfortran_runtime_error_at(Ptr position, Ptr format, Object... arguments) {
+    throw new RuntimeException(Stdlib.format(format, arguments));
+  }
+
+  private static volatile int __sync_synchronize_value = 0;
+
+  public static void __sync_synchronize() {
+    // The following volatile field access should convince the JVM to emit a memory fence instruction.
+    // https://www.infoq.com/articles/memory_barriers_jvm_concurrency
+    __sync_synchronize_value++;
+  }
+
+  public static void _gfortran_concat_string(int resultLength, Ptr result, int arg1Length, Ptr arg1, int arg2Length, Ptr arg2) {
+    int resultPos = 0;
+    for(int i=0;i<arg1Length;++i) {
+      result.setByte(resultPos++, arg1.getByte(i));
+    }
+    for (int i=0;i<arg2Length;++i) {
+      result.setByte(resultPos++, arg2.getByte(i));
+    }
+  }
+
+  public static int __atomic_fetch_add_4(Ptr result, int value) {
+    int previous = result.getInt();
+    result.setInt(previous + value);
+    return previous;
+  }
+
+  public static int _gfortran_pow_i4_i4(int base, int power) {
+    int result = 1;
+    for (int i = 1; i <= power; i++) {
+      result *= base;
+    }
+    return result;
   }
 }

@@ -21,12 +21,12 @@ package org.renjin.gcc.runtime;
 
 import java.util.Arrays;
 
-public class DoublePtr implements Ptr {
+public class DoublePtr extends AbstractPtr implements Ptr {
   
   public static final DoublePtr NULL = new DoublePtr();
-  
-  public static final int BYTES = Double.SIZE / 8;
-  
+
+  public static final int BYTES = Double.SIZE / BITS_PER_BYTE;
+
   public final double[] array;
   public final int offset;
 
@@ -45,6 +45,10 @@ public class DoublePtr implements Ptr {
     this.offset = 0;
   }
 
+  public static DoublePtr malloc(int bytes) {
+    return new DoublePtr(new double[AbstractPtr.mallocSize(bytes, BYTES)]);
+  }
+
   @Override
   public double[] getArray() {
     return array;
@@ -56,13 +60,13 @@ public class DoublePtr implements Ptr {
   }
 
   @Override
-  public DoublePtr realloc(int newSizeInBytes) {
-    return new DoublePtr(Realloc.realloc(array, offset, newSizeInBytes / 8));
+  public int getOffsetInBytes() {
+    return offset * BYTES;
   }
 
   @Override
-  public Ptr pointerPlus(int bytes) {
-    return new DoublePtr(array, offset + (bytes / 8));
+  public DoublePtr realloc(int newSizeInBytes) {
+    return new DoublePtr(Realloc.realloc(array, offset, newSizeInBytes / 8));
   }
 
   @Override
@@ -96,7 +100,7 @@ public class DoublePtr implements Ptr {
    * @param x the first pointer
    * @param y the second pointer
    * @param numBytes the number of <strong>bytes</strong> to compare
-   * @return 0 if the two arrrays are byte-for-byte equal, or -1 if the first 
+   * @return 0 if the two arrrays are byte-for-byte equal, or -1 if the first
    * array is less than the second array, or > 0 if the second array is greater than the first array
    */
   public static int memcmp(DoublePtr x, DoublePtr y, int numBytes) {
@@ -161,5 +165,96 @@ public class DoublePtr implements Ptr {
       return NULL;
     }
     return (DoublePtr) voidPointer;
+  }
+
+  @Override
+  public double getDouble() {
+    return array[offset];
+  }
+
+  @Override
+  public double getDouble(int offset) {
+    if(offset % 8 == 0) {
+      return this.array[this.offset + (offset / 8)];
+    }
+    return super.getDouble(offset);
+  }
+
+  @Override
+  public double getAlignedDouble(int index) {
+    return array[this.offset + index];
+  }
+
+  @Override
+  public void setDouble(double value) {
+    this.array[offset] = value;
+  }
+
+  @Override
+  public void setAlignedDouble(int index, double value) {
+    this.array[this.offset + index] = value;
+  }
+
+  @Override
+  public byte getByte(int offset) {
+    int bytes = (this.offset * BYTES) + offset;
+    int index = bytes / BYTES;
+    double element = array[index];
+    long elementBits = Double.doubleToRawLongBits(element);
+    int shift = (bytes % BYTES) * BITS_PER_BYTE;
+
+    return (byte)(elementBits >>> shift);
+  }
+
+  @Override
+  public void setByte(int offset, byte value) {
+    int bytes = (this.offset * BYTES) + offset;
+    int index = bytes / BYTES;
+    int shift = (bytes % BYTES) * BITS_PER_BYTE;
+
+    long element = Double.doubleToRawLongBits(array[index]);
+
+    long updateMask = 0xffL << shift;
+
+    // Zero out the bits in the byte we are going to update
+    element = element & ~updateMask;
+
+    // Shift our byte into position
+    long update = (((long)value) << shift) & updateMask;
+
+    // Merge the original long and updated bits together
+    array[index] = Double.longBitsToDouble(element | update);
+  }
+
+  @Override
+  public int toInt() {
+    return offset * BYTES;
+  }
+
+  @Override
+  public boolean isNull() {
+    return array == null && offset == 0;
+  }
+
+  @Override
+  public Ptr pointerPlus(int byteCount) {
+    if(byteCount % BYTES == 0) {
+      return new DoublePtr(this.array, this.offset + (byteCount / BYTES));
+    } else {
+      return new OffsetPtr(this, byteCount);
+    }
+  }
+
+  public static void memcpy(DoublePtr x, DoublePtr y, int numBytes) {
+    double[] arrayS = y.getArray();
+    int offsetS = y.getOffset();
+    int restY = arrayS.length - offsetS;
+    if(restY > 0) {
+      double[] carray = new double[numBytes];
+      for(int i = 0, j = offsetS; j < arrayS.length && i < numBytes; j++, i++) {
+        carray[i] = arrayS[j];
+      }
+      x = new DoublePtr(carray);
+    }
   }
 }

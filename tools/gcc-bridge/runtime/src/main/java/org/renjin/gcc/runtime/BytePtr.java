@@ -22,7 +22,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-public class BytePtr implements Ptr {
+public class BytePtr extends AbstractPtr {
   
   public static final BytePtr NULL = new BytePtr();
   
@@ -41,6 +41,10 @@ public class BytePtr implements Ptr {
   public BytePtr(byte[] array, int offset) {
     this.array = array;
     this.offset = offset;
+  }
+
+  public static Ptr of(int value) {
+    return NULL.pointerPlus(value);
   }
   
   public byte get() {
@@ -96,6 +100,14 @@ public class BytePtr implements Ptr {
   }
 
 
+  public static BytePtr malloc(int bytes) {
+    return new BytePtr(new byte[bytes]);
+  }
+
+  public static BytePtr fromString(String string) {
+    return new BytePtr(string.getBytes(), 0);
+  }
+
   /**
    * Copies the character c (an unsigned char) to 
    * the first n characters of the string pointed to, by the argument str.
@@ -106,7 +118,7 @@ public class BytePtr implements Ptr {
    * @param n the number of bytes to set
    */
   public static void memset(byte[] str, int strOffset, int c, int n) {
-    Arrays.fill(str, strOffset, strOffset + (c / Double.SIZE), (byte)c);
+    Arrays.fill(str, strOffset, strOffset + n, (byte)c);
   }
 
   public static byte memset(int c) {
@@ -124,13 +136,56 @@ public class BytePtr implements Ptr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    return offset;
+  }
+
+  @Override
   public BytePtr realloc(int newSizeInBytes) {
     return new BytePtr(Realloc.realloc(array, offset, newSizeInBytes));
   }
 
   @Override
+  public BytePtr copyOf(int numBytes) {
+    return new BytePtr(Arrays.copyOf(array, numBytes));
+  }
+
+  @Override
+  public void memcpy(Ptr source, int numBytes) {
+    if(source instanceof BytePtr) {
+      BytePtr sourceBytePtr = (BytePtr) source;
+      System.arraycopy(sourceBytePtr.array, sourceBytePtr.offset, this.array, this.offset, numBytes);
+    } else {
+      super.memcpy(source, numBytes);
+    }
+  }
+
+  @Override
   public Ptr pointerPlus(int bytes) {
-    return new BytePtr(array, offset + 1);
+    if(bytes == 0) {
+      return this;
+    }
+    return new BytePtr(array, offset + bytes);
+  }
+
+  @Override
+  public byte getByte(int offset) {
+    return this.array[this.offset + offset];
+  }
+
+  @Override
+  public void setByte(int offset, byte value) {
+    this.array[this.offset + offset] = value;
+  }
+
+  @Override
+  public int toInt() {
+    return offset;
+  }
+
+  @Override
+  public boolean isNull() {
+    return array == null && offset == 0;
   }
 
   public static BytePtr cast(Object voidPointer) {
@@ -154,5 +209,18 @@ public class BytePtr implements Ptr {
       }
     }
     return 0;
+  }
+
+  public static void memcpy(BytePtr x, BytePtr y, int numBytes) {
+    byte[] arrayS = y.getArray();
+    int offsetS = y.getOffset();
+    int restY = arrayS.length - offsetS;
+    if(restY > 0) {
+      byte[] carray = new byte[numBytes];
+      for(int i = 0, j = offsetS; j < arrayS.length && i < numBytes; j++, i++) {
+        carray[i] = arrayS[j];
+      }
+      x = new BytePtr(carray);
+    }
   }
 }

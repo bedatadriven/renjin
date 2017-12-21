@@ -20,31 +20,29 @@ package org.renjin.gcc.codegen.expr;
 
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.array.ArrayExpr;
-import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
+import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunPtrCallGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.condition.ConstConditionGenerator;
 import org.renjin.gcc.codegen.condition.NullCheckGenerator;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
-import org.renjin.gcc.codegen.type.PointerTypeStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.complex.ComplexCmpGenerator;
-import org.renjin.gcc.codegen.type.complex.ComplexValue;
-import org.renjin.gcc.codegen.type.complex.ComplexValues;
-import org.renjin.gcc.codegen.type.fun.FunPtr;
+import org.renjin.gcc.codegen.type.complex.ComplexExpr;
+import org.renjin.gcc.codegen.type.fun.FunPtrExpr;
 import org.renjin.gcc.codegen.type.primitive.*;
-import org.renjin.gcc.codegen.type.primitive.op.*;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordExpr;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.symbols.SymbolTable;
-import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Optional;
 
+import java.util.Collections;
 import java.util.List;
 
 
@@ -55,13 +53,22 @@ public class ExprFactory {
   private final TypeOracle typeOracle;
   private final SymbolTable symbolTable;
   private MethodGenerator mv;
+  private Optional<VPtrExpr> varArgsPtr;
 
-  public ExprFactory(TypeOracle typeOracle, SymbolTable symbolTable, MethodGenerator mv) {
+  public ExprFactory(TypeOracle typeOracle, SymbolTable symbolTable, MethodGenerator mv, Optional<VPtrExpr> varArgsPtr) {
     this.typeOracle = typeOracle;
     this.symbolTable = symbolTable;
     this.mv = mv;
+    this.varArgsPtr = varArgsPtr;
   }
-  
+
+  public ExprFactory(TypeOracle typeOracle, SymbolTable symbolTable, MethodGenerator mv) {
+    this(typeOracle, symbolTable, mv, Optional.<VPtrExpr>absent());
+  }
+
+  public Optional<VPtrExpr> getVarArgsPtr() {
+    return varArgsPtr;
+  }
 
   public GExpr findGenerator(GimpleExpr expr, GimpleType expectedType) {
     return maybeCast(findGenerator(expr), expectedType, expr.getType());
@@ -75,13 +82,9 @@ public class ExprFactory {
     
     TypeStrategy leftStrategy = typeOracle.forType(lhsType);
     TypeStrategy rightStrategy = typeOracle.forType(rhsType);
-
-    if(ConstantValue.isZero(rhs) && leftStrategy instanceof PointerTypeStrategy) {
-      return ((PointerTypeStrategy) leftStrategy).nullPointer();
-    }
     
     try {
-      return leftStrategy.cast(mv, rhs, rightStrategy);
+      return leftStrategy.cast(mv, rhs);
     } catch (UnsupportedCastException e) {
       throw new InternalCompilerException(String.format("Unsupported cast to %s [%s] from %s [%s]",
           lhsType, leftStrategy.getClass().getSimpleName(),
@@ -110,14 +113,16 @@ public class ExprFactory {
       GimpleAddressOf addressOf = (GimpleAddressOf) expr;
       if (addressOf.getValue() instanceof GimpleFunctionRef) {
         GimpleFunctionRef functionRef = (GimpleFunctionRef) addressOf.getValue();
-        return new FunPtr(symbolTable.findHandle(functionRef));
+        return new FunPtrExpr(symbolTable.findHandle(functionRef));
 
       } else if(addressOf.getValue() instanceof GimplePrimitiveConstant) {
         // Exceptionally, gimple often contains to address of constants when
         // passing them to functions
 
         JExpr value = findPrimitiveGenerator(addressOf.getValue());
-        return new FatPtrPair(new PrimitiveValueFunction(value.getType()), Expressions.newArray(value));
+        PrimitiveType primitiveType = PrimitiveType.of((GimplePrimitiveType) addressOf.getValue().getType());
+        return new FatPtrPair(new PrimitiveValueFunction(primitiveType),
+            Expressions.newArray(primitiveType.jvmType(), Collections.singletonList(value)));
 
       } else  {
 
@@ -131,7 +136,7 @@ public class ExprFactory {
           }
         }
 
-        // Otherwise delgate addressOf operation to expr generator
+        // Otherwise delegate addressOf operation to expr generator
         GExpr value = findGenerator(addressOf.getValue());
         try {
           return value.addressOf();
@@ -146,24 +151,25 @@ public class ExprFactory {
 
     } else if(expr instanceof GimpleArrayRef) {
       GimpleArrayRef arrayRef = (GimpleArrayRef) expr;
-      ArrayTypeStrategy arrayStrategy = typeOracle.forArrayType(arrayRef.getArray().getType());
-      GExpr array = findGenerator(arrayRef.getArray());
+      ArrayExpr array = (ArrayExpr)findGenerator(arrayRef.getArray());
       GExpr index = findGenerator(arrayRef.getIndex());
-      
-      return arrayStrategy.elementAt(array, index);
-      
+      JExpr jvmIndex = index.toPrimitiveExpr().toSignedInt(32).jexpr();
+
+      return array.elementAt(expr.getType(), jvmIndex);
+
     } else if(expr instanceof GimpleConstantRef) {
       GimpleConstant constant = ((GimpleConstantRef) expr).getValue();
       JExpr constantValue = findPrimitiveGenerator(constant);
+      PrimitiveType primitiveType = PrimitiveType.of((GimplePrimitiveType) constant.getType());
       FatPtrPair address = new FatPtrPair(
-          new PrimitiveValueFunction(constantValue.getType()), 
-          Expressions.newArray(constantValue));
+          new PrimitiveValueFunction(primitiveType),
+          Expressions.newArray(primitiveType.jvmType(), Collections.singletonList(constantValue)));
       
-      return new PrimitiveValue(constantValue, address);
+      return PrimitiveType.of((GimplePrimitiveType) expr.getType()).fromStackValue(constantValue, address);
 
     } else if(expr instanceof GimpleComplexPartExpr) {
       GimpleExpr complexExpr = ((GimpleComplexPartExpr) expr).getComplexValue();
-      ComplexValue complexGenerator = (ComplexValue) findGenerator(complexExpr);
+      ComplexExpr complexGenerator = (ComplexExpr) findGenerator(complexExpr);
       if (expr instanceof GimpleRealPartExpr) {
         return complexGenerator.getRealGExpr();
       } else {
@@ -171,23 +177,16 @@ public class ExprFactory {
       }
     } else if (expr instanceof GimpleComponentRef) {
       GimpleComponentRef ref = (GimpleComponentRef) expr;
-      GExpr instance = findGenerator(((GimpleComponentRef) expr).getValue());
-      RecordTypeStrategy typeStrategy = (RecordTypeStrategy) typeOracle.forType(ref.getValue().getType());
-      TypeStrategy fieldTypeStrategy = typeOracle.forType(ref.getType());
-      return typeStrategy.memberOf(mv, instance,
-          ref.getMember().getOffset(), 
-          ref.getMember().getSize(), 
-          fieldTypeStrategy);
+      RecordExpr record = (RecordExpr)findGenerator(((GimpleComponentRef) expr).getValue());
+
+      return record.memberOf(mv, ref.getMember().getOffset(), ref.getMember().getSize(), expr.getType());
 
     } else if (expr instanceof GimpleBitFieldRefExpr) {
       GimpleBitFieldRefExpr ref = (GimpleBitFieldRefExpr) expr;
-      GExpr instance = findGenerator(ref.getValue());
-      RecordTypeStrategy recordTypeStrategy = (RecordTypeStrategy) typeOracle.forType(ref.getValue().getType());
-      TypeStrategy memberTypeStrategy = typeOracle.forType(expr.getType());
+      RecordExpr record = (RecordExpr)findGenerator(ref.getValue());
 
-      return recordTypeStrategy.memberOf(mv, instance, ref.getOffset(), ref.getSize(), memberTypeStrategy);
-      
-      
+      return record.memberOf(mv, ref.getOffset(), ref.getSize(), expr.getType());
+
     } else if(expr instanceof GimpleCompoundLiteral) {
       return findGenerator(((GimpleCompoundLiteral) expr).getDecl());
     
@@ -222,8 +221,8 @@ public class ExprFactory {
     }
 
     // Assume this is a function pointer ptr expression  
-    FunPtr expr = (FunPtr) findGenerator(functionExpr);
-    return new FunPtrCallGenerator(typeOracle, (GimpleFunctionType) functionExpr.getType().getBaseType(), expr.unwrap());
+    FunPtrExpr expr = findGenerator(functionExpr).toFunPtr();
+    return new FunPtrCallGenerator(typeOracle, (GimpleFunctionType) functionExpr.getType().getBaseType(), expr.jexpr());
   }
 
   public ConditionGenerator findConditionGenerator(GimpleOp op, List<GimpleExpr> operands) {
@@ -240,14 +239,9 @@ public class ExprFactory {
       return new ComplexCmpGenerator(op, findComplexGenerator(x), findComplexGenerator(y));
 
     } else if(x.getType() instanceof GimplePrimitiveType) {
-      if(x.getType() instanceof GimpleIntegerType && ((GimpleIntegerType) x.getType()).isUnsigned()) {
-        return PrimitiveCmpGenerator.unsigned(op, findPrimitiveGenerator(x), findPrimitiveGenerator(y));
-      } else {
-        return new PrimitiveCmpGenerator(op, findPrimitiveGenerator(x), findPrimitiveGenerator(y));
-      }
+      return findGenerator(x).toPrimitiveExpr().compareTo(op, findGenerator(y));
 
     } else if(x.getType() instanceof GimpleIndirectType) {
-      
       return comparePointers(op, x, y);
       
     } else {
@@ -288,11 +282,10 @@ public class ExprFactory {
       commonType = x.getType();
     }
 
-    PointerTypeStrategy typeStrategy = typeOracle.forPointerType(commonType);
-    GExpr ptrX = findGenerator(x, commonType);
-    GExpr ptrY = findGenerator(y, commonType);
+    PtrExpr ptrX = (PtrExpr) findGenerator(x, commonType);
+    PtrExpr ptrY = (PtrExpr) findGenerator(y, commonType);
 
-    return typeStrategy.comparePointers(mv, op, ptrX, ptrY);
+    return ptrX.comparePointer(mv, op, ptrY);
   }
 
   private boolean isNull(GimpleExpr expr) {
@@ -302,30 +295,45 @@ public class ExprFactory {
   public GExpr findGenerator(GimpleOp op, List<GimpleExpr> operands, GimpleType expectedType) {
     switch (op) {
       case PLUS_EXPR:
+        return findGenerator(operands.get(0)).toNumericExpr().plus(findGenerator(operands.get(1)));
+
       case MINUS_EXPR:
+        return findGenerator(operands.get(0)).toNumericExpr().minus(findGenerator(operands.get(1)));
+
       case MULT_EXPR:
+        return findGenerator(operands.get(0)).toNumericExpr().multiply(findGenerator(operands.get(1)));
+
       case RDIV_EXPR:
       case TRUNC_DIV_EXPR:
       case EXACT_DIV_EXPR:
+        return findGenerator(operands.get(0)).toNumericExpr().divide(findGenerator(operands.get(1)));
+
       case TRUNC_MOD_EXPR:
+        return findGenerator(operands.get(0)).toPrimitiveExpr().toNumericExpr().remainder(findGenerator(operands.get(1)));
+
       case BIT_IOR_EXPR:
+        return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().bitwiseOr(findGenerator(operands.get(1)));
+
       case BIT_XOR_EXPR:
+        return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().bitwiseXor(findGenerator(operands.get(1)));
+
       case BIT_AND_EXPR:
-        return findBinOpGenerator(op, operands);
+        return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().bitwiseAnd(findGenerator(operands.get(1)));
+
+      case BIT_NOT_EXPR:
+        return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().bitwiseNot();
+
+      case LSHIFT_EXPR:
+        return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().shiftLeft(findGenerator(operands.get(1)));
+
+      case RSHIFT_EXPR:
+        return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().shiftRight(findGenerator(operands.get(1)));
+
+      case LROTATE_EXPR:
+        return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().rotateLeft(findGenerator(operands.get(1)));
 
       case POINTER_PLUS_EXPR:
         return pointerPlus(operands.get(0), operands.get(1), expectedType);
-
-      case BIT_NOT_EXPR:
-        return primitive(new BitwiseNot(findPrimitiveGenerator(operands.get(0))));
-
-      case LSHIFT_EXPR:
-      case RSHIFT_EXPR:
-        return primitive(new BitwiseShift(
-            op,
-            operands.get(0).getType(),
-            findPrimitiveGenerator(operands.get(0)),
-            findPrimitiveGenerator(operands.get(1))));
 
       case MEM_REF:
         // Cast the pointer type first, then dereference
@@ -352,54 +360,48 @@ public class ExprFactory {
         return maybeCast(findGenerator(operands.get(0)), expectedType, operands.get(0).getType());
       
       case COMPLEX_EXPR:
-        return new ComplexValue(findPrimitiveGenerator(operands.get(0)));
+        return new ComplexExpr(findPrimitiveGenerator(operands.get(0)));
 
       case NEGATE_EXPR:
-        return primitive(new NegativeValue(findPrimitiveGenerator(operands.get(0))));
+        return findGenerator(operands.get(0)).toNumericExpr().negative();
 
       case TRUTH_NOT_EXPR:
-        return primitive(new LogicalNot(findPrimitiveGenerator(operands.get(0))));
+        return findGenerator(operands.get(0)).toPrimitiveExpr().toBooleanExpr().bitwiseNot();
 
       case TRUTH_AND_EXPR:
-        return primitive(new LogicalAnd(
-            findPrimitiveGenerator(operands.get(0)),
-            findPrimitiveGenerator(operands.get(1))));
+        return findGenerator(operands.get(0)).toPrimitiveExpr().toBooleanExpr().bitwiseAnd(findGenerator(operands.get(1)));
 
       case TRUTH_OR_EXPR:
-        return primitive(new LogicalOr(
-            findPrimitiveGenerator(operands.get(0)),
-            findPrimitiveGenerator(operands.get(1))));
-      
-      case TRUTH_XOR_EXPR:
-        return primitive(new LogicalXor(
-            findPrimitiveGenerator(operands.get(0)),
-            findPrimitiveGenerator(operands.get(1))));
+        return findGenerator(operands.get(0)).toPrimitiveExpr().toBooleanExpr().bitwiseOr(findGenerator(operands.get(1)));
 
+      case TRUTH_XOR_EXPR:
+        return findGenerator(operands.get(0)).toPrimitiveExpr().toBooleanExpr().bitwiseXor(findGenerator(operands.get(1)));
+
+      case ORDERED_EXPR:
+      case UNORDERED_EXPR:
       case EQ_EXPR:
       case LT_EXPR:
       case LE_EXPR:
       case NE_EXPR:
       case GT_EXPR:
       case GE_EXPR:
-      case UNORDERED_EXPR:
-      case ORDERED_EXPR:
       case UNEQ_EXPR:
       case UNLT_EXPR:
       case UNLE_EXPR:
       case UNGT_EXPR:
       case UNGE_EXPR:
-        return primitive(new ConditionExpr(
-            findComparisonGenerator(op,operands.get(0), operands.get(1))));
+        return booleanValue(findComparisonGenerator(op,operands.get(0), operands.get(1)));
 
       case MAX_EXPR:
+        return findGenerator(operands.get(0)).toNumericExpr().max(findGenerator(operands.get(1)));
+
       case MIN_EXPR:
-        return primitive(new MinMaxValue(op,
-            findPrimitiveGenerator(operands.get(0)),
-            findPrimitiveGenerator(operands.get(1))));
+        return findGenerator(operands.get(0)).toNumericExpr().min(findGenerator(operands.get(1)));
+
 
       case ABS_EXPR:
-        return primitive(new AbsValue(
-            findPrimitiveGenerator(operands.get(0))));
+        return findGenerator(operands.get(0)).toNumericExpr().absoluteValue();
+
 
       case CONJ_EXPR:
         return findComplexGenerator(operands.get(0)).conjugate();
@@ -410,17 +412,17 @@ public class ExprFactory {
     }
   }
 
-  private PrimitiveValue primitive(JExpr expr) {
-    return new PrimitiveValue(expr);
+  private GExpr booleanValue(ConditionGenerator condition) {
+    return new BooleanExpr(new ConditionExpr(condition));
   }
 
   private GExpr memRef(GimpleMemRef gimpleExpr, GimpleType expectedType) {
     GimpleExpr pointer = gimpleExpr.getPointer();
     
     // Case of *&x, which can be simplified to x
-    if(pointer instanceof GimpleAddressOf) {
+    if(pointer instanceof GimpleAddressOf && gimpleExpr.isOffsetZero()) {
       GimpleAddressOf addressOf = (GimpleAddressOf) pointer;
-      return findGenerator(addressOf.getValue(), expectedType);
+      return findGenerator(addressOf.getValue());
     }
     
     GimpleIndirectType pointerType = (GimpleIndirectType) pointer.getType();
@@ -440,41 +442,35 @@ public class ExprFactory {
     GimpleIndirectType expectedPointerType = expectedType.pointerTo();
     
     // Cast from the void pointer type to the "expected" pointer type
-    GExpr ptrExpr = maybeCast(findGenerator(pointer), expectedPointerType, pointerType);
-    PointerTypeStrategy pointerStrategy = typeOracle.forPointerType(expectedPointerType);
+    PtrExpr ptrExpr = (PtrExpr) maybeCast(findGenerator(pointer), expectedPointerType, pointerType);
 
     if(!gimpleExpr.isOffsetZero()) {
       JExpr offsetInBytes = findPrimitiveGenerator(gimpleExpr.getOffset());
 
-      ptrExpr =  pointerStrategy.pointerPlus(mv, ptrExpr, offsetInBytes);
+      ptrExpr =  ptrExpr.pointerPlus(mv, offsetInBytes);
     }
 
-    return ((PtrExpr) ptrExpr).valueOf();
+    return ptrExpr.valueOf(expectedType);
   }
   
   private GExpr dereferenceThenCast(GimpleMemRef gimpleExpr, GimpleType expectedType) {
     GimpleExpr pointer = gimpleExpr.getPointer();
-    GimpleIndirectType pointerType = (GimpleIndirectType) pointer.getType();
-    PointerTypeStrategy pointerStrategy = typeOracle.forPointerType(pointerType);
-
-    GExpr ptrExpr = findGenerator(pointer);
+    PtrExpr ptrExpr = (PtrExpr) findGenerator(pointer);
 
     if(!gimpleExpr.isOffsetZero()) {
       JExpr offsetInBytes = findPrimitiveGenerator(gimpleExpr.getOffset());
-      ptrExpr =  pointerStrategy.pointerPlus(mv, ptrExpr, offsetInBytes);
+      ptrExpr =  ptrExpr.pointerPlus(mv, offsetInBytes);
     }
     
-    GExpr valueExpr = ((PtrExpr) ptrExpr).valueOf();
-
-    return maybeCast(valueExpr, expectedType, pointerType.getBaseType());
+    return ptrExpr.valueOf(expectedType);
   }
 
   private GExpr pointerPlus(GimpleExpr pointerExpr, GimpleExpr offsetExpr, GimpleType expectedType) {
-    GExpr pointer = findGenerator(pointerExpr);
+    PtrExpr pointer = (PtrExpr) findGenerator(pointerExpr);
     JExpr offsetInBytes = findPrimitiveGenerator(offsetExpr);
 
     GimpleType pointerType = pointerExpr.getType();
-    GExpr result = typeOracle.forPointerType(pointerType).pointerPlus(mv, pointer, offsetInBytes);
+    GExpr result = pointer.pointerPlus(mv, offsetInBytes);
     
     return maybeCast(result, expectedType, pointerType);
   }
@@ -496,117 +492,48 @@ public class ExprFactory {
     if(gimpleExpr instanceof GimplePrimitiveConstant && gimpleExpr.getType() instanceof GimpleIndirectType) {
       return Expressions.constantInt(((GimplePrimitiveConstant) gimpleExpr).getValue().intValue());
     }
-    PrimitiveValue primitive = findGenerator(gimpleExpr, PrimitiveValue.class);
-    return primitive.getExpr();
+    PrimitiveExpr primitive = findGenerator(gimpleExpr, PrimitiveExpr.class);
+    return primitive.jexpr();
   }
 
 
-  private ComplexValue findComplexGenerator(GimpleExpr gimpleExpr) {
-    return findGenerator(gimpleExpr, ComplexValue.class);
-  }
-  
-  private GExpr findBinOpGenerator(GimpleOp op, List<GimpleExpr> operands) {
-    GimpleExpr x = operands.get(0);
-    GimpleExpr y = operands.get(1);
-
-
-    if( x.getType() instanceof GimpleComplexType && 
-        y.getType() instanceof GimpleComplexType) {
-
-      return complexBinOp(op, findComplexGenerator(x), findComplexGenerator(y));
-      
-    } else if(
-        x.getType() instanceof GimplePrimitiveType &&
-        y.getType() instanceof GimplePrimitiveType) {
-
-
-      // Unsigned integer division needs to be handled specially on the JVM
-      if((isUnsignedInt(x.getType()) || isUnsignedInt(y.getType())) &&
-          isDivisionOperator(op)) {
-
-        GimpleIntegerType dividendType = (GimpleIntegerType) x.getType();
-        GimpleIntegerType divisorType = (GimpleIntegerType) y.getType();
-
-        if(!dividendType.equals(divisorType)) {
-          throw new UnsupportedOperationException("TODO: " + dividendType + " / " + divisorType);
-        }
-
-        switch (dividendType.getSize()) {
-          case 32:
-            return primitive(new UnsignedIntDiv(findPrimitiveGenerator(x), findPrimitiveGenerator(y)));
-          default:
-            throw new UnsupportedOperationException("unsigned integer division, size = " + dividendType.getSize());
-        }
-      }
-
-      // Otherwise we can use builtin JVM operators
-
-      return primitive(new PrimitiveBinOpGenerator(op, findPrimitiveGenerator(x), findPrimitiveGenerator(y)));
-
-    }
-
-    throw new UnsupportedOperationException(op.name() + ": " + x.getType() + ", " + y.getType());
-  }
-
-  private boolean isDivisionOperator(GimpleOp op) {
-    switch (op) {
-      case RDIV_EXPR:
-      case TRUNC_DIV_EXPR:
-      case EXACT_DIV_EXPR:
-        return true;
-
-      default:
-        return false;
-    }
-  }
-
-  private boolean isUnsignedInt(GimpleType type) {
-    if(type instanceof GimpleIntegerType) {
-      GimpleIntegerType integerType = (GimpleIntegerType) type;
-      return integerType.isUnsigned();
-    }
-    return false;
-  }
-
-  private GExpr complexBinOp(GimpleOp op, ComplexValue cx, ComplexValue cy) {
-    switch (op) {
-      case PLUS_EXPR:
-        return ComplexValues.add(cx, cy);
-      case MINUS_EXPR:
-        return ComplexValues.subtract(cx, cy);
-      case MULT_EXPR:
-        return ComplexValues.multiply(cx, cy);
-      default:
-        throw new UnsupportedOperationException("complex operation: " + op);
-    }
-  }
-
-  public GExpr forConstant(GimpleConstant constant) {
-    if (constant.getType() instanceof GimpleIndirectType) {
-      // TODO: Treat all pointer constants as null
-      return typeOracle.forPointerType(constant.getType()).nullPointer();
-      
-    } else if (constant instanceof GimplePrimitiveConstant) {
-      return primitive(new ConstantValue((GimplePrimitiveConstant) constant));
-      
-    } else if (constant instanceof GimpleComplexConstant) {
-      GimpleComplexConstant complexConstant = (GimpleComplexConstant) constant;
-      return new ComplexValue(
-          forConstant(complexConstant.getReal()), 
-          forConstant(complexConstant.getIm()));
-      
-    } else if (constant instanceof GimpleStringConstant) {
-      StringConstant array = new StringConstant(((GimpleStringConstant) constant).getValue());
-      ArrayExpr arrayExpr = new ArrayExpr(new PrimitiveValueFunction(Type.BYTE_TYPE), array.getLength(), array);
-      return arrayExpr;
-      
-    } else {
-      throw new UnsupportedOperationException("constant: " + constant);
-    }
+  private ComplexExpr findComplexGenerator(GimpleExpr gimpleExpr) {
+    return findGenerator(gimpleExpr, ComplexExpr.class);
   }
 
 
   public TypeStrategy strategyFor(GimpleType type) {
     return typeOracle.forType(type);
+  }
+
+
+  public GExpr forConstant(GimpleConstant constant) {
+    if (constant.getType() instanceof GimpleIndirectType) {
+      // TODO: Treat all pointer constants as null
+      return typeOracle.forPointerType(constant.getType()).nullPointer();
+
+    } else if (constant instanceof GimplePrimitiveConstant) {
+
+      GimplePrimitiveType gimplePrimitiveType = (GimplePrimitiveType) constant.getType();
+      PrimitiveType primitiveType = PrimitiveType.of(gimplePrimitiveType);
+      return primitiveType.constantExpr(constant);
+
+    } else if (constant instanceof GimpleComplexConstant) {
+      GimpleComplexConstant complexConstant = (GimpleComplexConstant) constant;
+      return new ComplexExpr(
+          forConstant(complexConstant.getReal()),
+          forConstant(complexConstant.getIm()));
+
+    } else if (constant instanceof GimpleStringConstant) {
+      StringConstant array = new StringConstant(((GimpleStringConstant) constant).getValue());
+      return new FatArrayExpr(
+          (GimpleArrayType) constant.getType(),
+          new PrimitiveValueFunction(PrimitiveType.UINT8),
+          array.getLength(),
+          array);
+
+    } else {
+      throw new UnsupportedOperationException("constant: " + constant);
+    }
   }
 }

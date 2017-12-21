@@ -24,23 +24,23 @@ import org.renjin.repackaged.guava.base.Predicate;
 
 public class GimpleVariableRef extends GimpleLValue implements GimpleSymbolRef {
 
-  private int id;
+  private long id;
   private String name;
   private String mangledName;
   
   public GimpleVariableRef() {
   }
 
-  public GimpleVariableRef(int id, GimpleType type) {
+  public GimpleVariableRef(long id, GimpleType type) {
     this.id = id;
     this.setType(type);
   }
 
-  public int getId() {
+  public long getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public void setId(long id) {
     this.id = id;
   }
 
@@ -77,10 +77,11 @@ public class GimpleVariableRef extends GimpleLValue implements GimpleSymbolRef {
     return !(name != null ? !name.equals(that.name) : that.name != null);
   }
 
+
   @Override
   public int hashCode() {
-    int result = name != null ? name.hashCode() : 0;
-    result = 31 * result + id;
+    int result = (int) (id ^ (id >>> 32));
+    result = 31 * result + (name != null ? name.hashCode() : 0);
     return result;
   }
 

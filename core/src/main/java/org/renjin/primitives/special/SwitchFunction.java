@@ -20,7 +20,7 @@ package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.sexp.*;
 
 public class SwitchFunction extends SpecialFunction {
@@ -35,63 +35,79 @@ public class SwitchFunction extends SpecialFunction {
   }
 
   private static SEXP doApply(Context context, Environment rho, FunctionCall call, PairList args) {
-    EvalException.check(call.length() > 1, "argument \"EXPR\" is missing");
 
-    SEXP expr = context.evaluate(args.getElementAsSEXP(0),rho);
-    EvalException.check(expr.length() == 1, "EXPR must return a length 1 vector");
+    ArgumentIterator argIt = new ArgumentIterator(context, rho, args);
+    if(!argIt.hasNext()) {
+      throw new EvalException("argument \"EXPR\" is missing");
+    }
 
-    Iterable<PairList.Node> branches = Iterables.skip(args.nodes(), 1);
+    PairList.Node exprNode = argIt.nextNode();
+    if(exprNode.hasTag() && !exprNode.getTag().getPrintName().equals("EXPR")) {
+      throw new EvalException("supplied argument name '%s' does not match 'EXPR'", exprNode.getTag().getPrintName());
+    }
 
-    if(expr instanceof StringVector) {
-      String name = ((StringVector) expr).getElementAsString(0);
-      if(StringVector.isNA(name)) {
-        context.setInvisibleFlag();
-        return Null.INSTANCE;
-      }
-      SEXP partialMatch = null;
-      int partialMatchCount = 0;
-      for(PairList.Node node : branches) {
-        if(node.hasTag()) {
-          String branchName = node.getTag().getPrintName();
-          if(branchName.equals(name)) {
-            return context.evaluate( nextNonMissing(node), rho);
-          } else if(branchName.startsWith(name)) {
-            partialMatch = nextNonMissing(node);
-            partialMatchCount ++;
-          }
-        }
-      }
-      if(partialMatchCount == 1) {
-        return context.evaluate( partialMatch, rho);
-      } else if(Iterables.size(branches) > 0) {
-        PairList.Node last = Iterables.getLast(branches);
-        if(!last.hasTag()) {
-          return context.evaluate( last.getValue(), rho);
-        }
-      }
+    SEXP expr = context.evaluate(exprNode.getValue(), rho);
 
-    } else if(expr instanceof AtomicVector) {
-      int branchIndex = ((AtomicVector) expr).getElementAsInt(0);
-      if(branchIndex >= 1 && branchIndex <= Iterables.size(branches)) {
-        return context.evaluate( Iterables.get(branches, branchIndex-1).getValue(), rho);
+    if(expr.length() == 1) {
+      if (expr instanceof StringVector) {
+        return matchByName(context, rho, expr, argIt);
+      } else if (expr instanceof AtomicVector) {
+        return matchByPosition(context, rho, expr, argIt);
       }
     }
-    // no match
+    throw new EvalException("EXPR must be a length 1 vector");
+  }
+
+  private static SEXP matchByName(Context context, Environment rho, SEXP expr, ArgumentIterator argIt) {
+    String name = expr.asString();
+    if(StringVector.isNA(name)) {
+      name = "NA";
+    }
+
+    while(argIt.hasNext()) {
+      PairList.Node argNode = argIt.nextNode();
+
+      // Match by name
+      if(argNode.hasTag() && argNode.getTag().getPrintName().equals(name)) {
+
+        // Skip to the next non-missing argument, to support constructions like:
+        // switch("a", a = , b = , c = 32)
+        while(argNode.getValue() == Symbol.MISSING_ARG && argIt.hasNext()) {
+          argNode = argIt.nextNode();
+        }
+
+        // Evaluate and return the matching argument
+        return context.evaluate(argNode.getValue(), rho);
+      }
+
+      // If there are no matches, match the last unnamed argument, if one is present.
+      if(!argNode.hasTag() && !argIt.hasNext()) {
+        return context.evaluate(argNode.getValue(), rho);
+      }
+    }
+
+    // If there are no matches, and no final unnamed argument, the result is NULL
     return Null.INSTANCE;
   }
 
-  private static SEXP nextNonMissing(PairList.Node node) {
-    do {
-      if(node.getValue() != Symbol.MISSING_ARG) {
-        return node.getValue();
+  private static SEXP matchByPosition(Context context, Environment rho, SEXP expr, ArgumentIterator argIt) {
+
+    int pos = ((AtomicVector) expr).getElementAsInt(0);
+
+    if(!IntVector.isNA(pos) && pos > 0) {
+      int argIndex = 1;
+      while (argIt.hasNext()) {
+        PairList.Node argNode = argIt.nextNode();
+        if (argIndex == pos) {
+          return context.evaluate(argNode.getValue(), rho);
+        }
+        argIndex++;
       }
-      if(!node.hasNextNode()) {
-        return Null.INSTANCE;
-      }
-      node = node.getNextNode();
-    } while(true);
+    }
+
+    return Null.INSTANCE;
   }
-  
+
   public static SEXP matchAndApply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] arguments) {
     PairList.Builder args = new PairList.Builder();
     for(int i =0;i!=arguments.length;++i) {

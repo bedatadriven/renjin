@@ -68,6 +68,21 @@ public class FormatterTest {
   }
 
 
+  @Test
+  public void formatA() {
+    assertThat(sprintf("%a", 12), equalTo("0x1.8p+3"));
+
+    assertThat(sprintf("%a", 1000), equalTo("0x1.f4p+9"));
+    assertThat(sprintf("%A", 1000), equalTo("0X1.F4P+9"));
+
+  }
+
+  @Test
+  public void formatA15() {
+    assertThat(sprintf("%a", Math.pow(Math.sqrt(2.0), 2.0)), equalTo("0x1.0000000000001p+1"));
+  }
+
+
   private String sprintf(String s, double x) {
 
     AtomicVector arguments[] = new AtomicVector[] {DoubleVector.valueOf(x) };

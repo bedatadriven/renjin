@@ -27,9 +27,27 @@ public class GimpleOffsetType extends AbstractGimpleType {
 
   private int size;
 
+  private GimpleType baseType;
+  private GimpleType memberType;
 
   @Override
   public int sizeOf() {
     return size / 8;
+  }
+
+  public GimpleType getBaseType() {
+    return baseType;
+  }
+
+  public void setBaseType(GimpleType baseType) {
+    this.baseType = baseType;
+  }
+
+  public GimpleType getMemberType() {
+    return memberType;
+  }
+
+  public void setMemberType(GimpleType memberType) {
+    this.memberType = memberType;
   }
 }

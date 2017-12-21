@@ -22,32 +22,26 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
-import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.AddressableField;
-import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
-import org.renjin.gcc.codegen.type.record.unit.RefConditionGenerator;
-import org.renjin.gcc.codegen.type.voidt.VoidPtr;
-import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
-import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.codegen.vptr.VPtrStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimpleFunctionType;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Preconditions;
+import org.renjin.repackaged.guava.base.Optional;
 
 import java.lang.invoke.MethodHandle;
-import java.lang.reflect.Field;
 
 /**
  * Strategy for function pointer types
  */
-public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeStrategy<FunPtr> {
+public class FunPtrStrategy implements PointerTypeStrategy<FunPtrExpr> {
   
   public static final Type METHOD_HANDLE_TYPE = Type.getType(MethodHandle.class);
 
@@ -56,20 +50,27 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
 
   @Override
   public ParamStrategy getParamStrategy() {
-    return new RefPtrParamStrategy<>(this);
+    return new FunPtrParamStrategy();
   }
 
   @Override
-  public FunPtr variable(GimpleVarDecl decl, VarAllocator allocator) {
-    return new FunPtr(allocator.reserve(decl.getNameIfPresent(), Type.getType(MethodHandle.class)));
-  }
-
-  @Override
-  public FunPtr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
-    if(javaField.getType().equals(MethodHandle.class)) {
-      return new FunPtr(Expressions.staticField(javaField));
+  public FunPtrExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
+    if(decl.isAddressable()) {
+      JLValue unitArray = allocator.reserveUnitArray(decl.getNameIfPresent(), Type.getType(MethodHandle.class), Optional.<JExpr>absent());
+      FatPtrPair address = new FatPtrPair(new FunPtrValueFunction(4), unitArray);
+      JExpr value = Expressions.elementAt(address.getArray(), 0);
+      return new FunPtrExpr(value, address);
+    } else {
+      return new FunPtrExpr(allocator.reserve(decl.getNameIfPresent(), Type.getType(MethodHandle.class)));
     }
-    throw new InternalCompilerException("Cannot map global variable " + decl + " to " + javaField + ". " +
+  }
+
+  @Override
+  public FunPtrExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
+    if(expr.getType().equals(METHOD_HANDLE_TYPE)) {
+      return new FunPtrExpr(expr);
+    }
+    throw new InternalCompilerException("Cannot map global variable " + decl + " to " + expr + ". " +
         "Field of type " + MethodHandle.class.getName() + " is required");
   }
 
@@ -79,7 +80,7 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
   }
 
   @Override
-  public FunPtr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
+  public FunPtrExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
     throw new UnsupportedOperationException();
   }
 
@@ -90,7 +91,7 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new SimpleReturnStrategy(this);
+    return new FunPtrReturnStrategy();
   }
 
   @Override
@@ -99,8 +100,8 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
   }
 
   @Override
-  public FatPtrStrategy pointerTo() {
-    return new FatPtrStrategy(new FunPtrValueFunction(4), 2);
+  public VPtrStrategy pointerTo() {
+    return new VPtrStrategy(new GimpleFunctionType().pointerTo());
   }
 
   @Override
@@ -109,78 +110,18 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
   }
 
   @Override
-  public FunPtr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
-    if(typeStrategy instanceof FunPtrStrategy) {
-      // We can liberally cast between different types of function pointers thanks
-      // to the flexibility of MethodHandles.
-      return (FunPtr) value;
-    }
-    
-    // TODO: remove this, just to get rtti running
-    if(typeStrategy instanceof RecordUnitPtrStrategy) {
-      return nullPointer();
-    }
-    
-    if(typeStrategy instanceof PrimitiveTypeStrategy) {
-      return nullPointer();
-    }
-    
-    if(typeStrategy instanceof VoidPtrStrategy) {
-      VoidPtr voidPtr = (VoidPtr) value;
-      return new FunPtr(Expressions.cast(voidPtr.unwrap(), METHOD_HANDLE_TYPE));
-    }
-    
-    throw new UnsupportedCastException();
+  public FunPtrExpr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
+    return value.toFunPtr();
   }
 
   @Override
-  public FunPtr nullPointer() {
-    return new FunPtr(Expressions.nullRef(METHOD_HANDLE_TYPE));
+  public FunPtrExpr nullPointer() {
+    return FunPtrExpr.NULL_PTR;
   }
 
   @Override
-  public ConditionGenerator comparePointers(MethodGenerator mv, GimpleOp op, FunPtr x, FunPtr y) {
-    return new RefConditionGenerator(op, x.unwrap(), y.unwrap());
-  }
-
-  @Override
-  public JExpr memoryCompare(MethodGenerator mv, FunPtr p1, FunPtr p2, JExpr n) {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
-  public void memoryCopy(MethodGenerator mv, FunPtr destination, FunPtr source, JExpr length, boolean buffer) {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
-  public void memorySet(MethodGenerator mv, FunPtr pointer, JExpr byteValue, JExpr length) {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
-  public VoidPtr toVoidPointer(FunPtr ptrExpr) {
-    return new VoidPtr(ptrExpr.unwrap());
-  }
-
-  @Override
-  public FunPtr unmarshallVoidPtrReturnValue(MethodGenerator mv, JExpr voidPointer) {
-    return new FunPtr(Expressions.cast(voidPointer, METHOD_HANDLE_TYPE));
-  }
-
-  @Override
-  public FunPtr malloc(MethodGenerator mv, JExpr sizeInBytes) {
+  public FunPtrExpr malloc(MethodGenerator mv, JExpr sizeInBytes) {
     throw new UnsupportedOperationException("Cannot malloc function pointers");
-  }
-
-  @Override
-  public FunPtr realloc(MethodGenerator mv, FunPtr pointer, JExpr newSizeInBytes) {
-    throw new InternalCompilerException("Cannot realloc function pointers");
-  }
-
-  @Override
-  public FunPtr pointerPlus(MethodGenerator mv, FunPtr pointer, JExpr offsetInBytes) {
-    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
@@ -188,14 +129,4 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
     return "FunPtrStrategy";
   }
 
-  @Override
-  public Type getJvmType() {
-    return METHOD_HANDLE_TYPE;
-  }
-
-  @Override
-  public FunPtr wrap(JExpr expr) {
-    Preconditions.checkArgument(expr.getType().equals(METHOD_HANDLE_TYPE));
-    return new FunPtr(expr);
-  }
 }

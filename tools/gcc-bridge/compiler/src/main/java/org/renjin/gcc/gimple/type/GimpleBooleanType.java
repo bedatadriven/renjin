@@ -18,6 +18,8 @@
  */
 package org.renjin.gcc.gimple.type;
 
+import org.renjin.gcc.gimple.expr.GimpleIntegerConstant;
+import org.renjin.gcc.gimple.expr.GimplePrimitiveConstant;
 import org.renjin.repackaged.asm.Type;
 
 public class GimpleBooleanType extends GimplePrimitiveType {
@@ -55,5 +57,10 @@ public class GimpleBooleanType extends GimplePrimitiveType {
   @Override
   public int sizeOf() {
     return 1;
+  }
+
+  @Override
+  public GimplePrimitiveConstant zero() {
+    return new GimpleIntegerConstant(this, false);
   }
 }

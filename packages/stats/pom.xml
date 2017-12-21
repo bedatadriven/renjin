@@ -32,6 +32,11 @@
     </dependency>
     <dependency>
       <groupId>org.renjin</groupId>
+      <artifactId>grDevices</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.renjin</groupId>
       <artifactId>graphics</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -86,19 +91,6 @@
           </execution>
         </executions>
       </plugin>
-      
-      <!-- Currently the GCC-Bridge compiler can generate some really big classfiles
-           whose size prevents the JIT compiler from kicking in. Here we really need 
-           a better optimization pass to improve the final bytecode. 
-           
-           Soot is of course designed to do this, but doesn't yet handle MethodHandle 
-           constants, which means we can't use it on all classfiles yet. 
-           
-           Here we apply to just a few specific classes on an experimental basis to
-           fix a few major performance regressions
-           
-           -->
-           
       <plugin>
         <groupId>org.renjin</groupId>
         <artifactId>gcc-bridge-maven-plugin</artifactId>
@@ -109,13 +101,6 @@
               <goal>soot</goal>
             </goals>
             <phase>process-classes</phase>
-            <configuration>
-              <optimize>
-                <class>org.renjin.stats.fft__</class>
-                <class>org.renjin.stats.kmns__</class>
-                <class>org.renjin.stats.hclust__</class>
-              </optimize>
-            </configuration>
           </execution>
         </executions>
       </plugin>

@@ -20,6 +20,7 @@ package org.renjin.gcc.analysis;
 
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.TreeLogger;
+import org.renjin.gcc.codegen.cpp.CppStandardLibrary;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.statement.GimpleAssignment;
@@ -40,6 +41,8 @@ import java.util.Set;
 public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
 
   public static final VoidPointerTypeDeducer INSTANCE = new VoidPointerTypeDeducer();
+
+  public static final GimplePointerType UNKNOWN_TYPE = new GimpleVoidType().pointerTo();
 
   private VoidPointerTypeDeducer() {
   }
@@ -75,7 +78,7 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
 
     parentLogger.branch(TreeLogger.Level.DEBUG, "Possible type set of " + decl + " = "  + possibleTypes);
 
-    if(possibleTypes.size() == 1) {
+    if(possibleTypes.size() == 1 && !possibleTypes.contains(UNKNOWN_TYPE)) {
       GimpleType deducedType = possibleTypes.iterator().next();
       if(GimpleCompiler.TRACE) {
         System.out.println("...resolved to " + deducedType);
@@ -163,9 +166,20 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
 
     @Override
     public void visitCall(GimpleCall gimpleCall) {
-      if(gimpleCall.getFunction() instanceof GimpleFunctionRef) {
-        GimpleFunctionRef ref = (GimpleFunctionRef) gimpleCall.getFunction();
-        switch (ref.getName()) {
+
+      String functionName = findFunctionName(gimpleCall);
+
+      if(!isMalloc(functionName) && isReference(gimpleCall.getLhs())) {
+
+        // Assignment to our void pointer from a function call
+        // e.g. pp = INTEGER(x)
+
+        // At this point, we don't have the type of the result call, so we have
+        // to give up on type inference
+        possibleTypes.add(UNKNOWN_TYPE);
+
+      } else {
+        switch (functionName) {
           case "memcpy":
           case "__builtin_memcpy":
             inferFromMemCopy(gimpleCall);
@@ -177,6 +191,31 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
             break;
         }
       }
+    }
+
+    private boolean isMalloc(String functionName) {
+      switch (functionName) {
+        case "malloc":
+        case "calloc":
+        case "alloca":
+        case "realloc":
+        case "__builtin_malloc__":
+        case CppStandardLibrary.NEW_OPERATOR:
+        case CppStandardLibrary.NEW_ARRAY_OPERATOR:
+          return true;
+      }
+      return false;
+    }
+
+    private String findFunctionName(GimpleCall call) {
+      if(call.getFunction() instanceof GimpleAddressOf) {
+        GimpleAddressOf functionAddress = (GimpleAddressOf) call.getFunction();
+        if(functionAddress.getValue() instanceof GimpleFunctionRef) {
+          GimpleFunctionRef function = (GimpleFunctionRef) functionAddress.getValue();
+          return function.getName();
+        }
+      }
+      return "";
     }
 
     private void inferFromMemCmp(GimpleCall gimpleCall) {

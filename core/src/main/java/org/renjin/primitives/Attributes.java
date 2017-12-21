@@ -21,8 +21,6 @@ package org.renjin.primitives;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
-import org.renjin.repackaged.guava.base.Predicates;
-import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.sexp.*;
 
 /**
@@ -292,114 +290,6 @@ public class Attributes {
     return StringVector.valueOf(exp.getImplicitClass());
   }
 
-  @Internal("comment")
-  public static SEXP getComment(SEXP exp) {
-    return exp.getAttribute(Symbols.COMMENT);
-  }
-
-  @Internal("comment<-")
-  public static SEXP setComment(StringVector exp) {
-    return exp.setAttribute(Symbols.COMMENT, exp);
-  }
-
-  @Builtin("class<-")
-  public static SEXP setClass(SEXP exp, Vector classes) {
-    return exp.setAttribute("class", classes);
-
-    // TODO:
-    // this is apparently more complicated then implemented above:
-    // int nProtect = 0;
-    // if(isNull(value)) {
-    // setAttrib(obj, R_ClassSymbol, value);
-    // if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
-    // do_unsetS4(obj, value);
-    // return obj;
-    // }
-    // if(TYPEOF(value) != STRSXP) {
-    // /* Beware: assumes value is protected, which it is
-    // in the only use below */
-    // PROTECT(value = coerceVector(duplicate(value), STRSXP));
-    // nProtect++;
-    // }
-    // if(length(value) > 1) {
-    // setAttrib(obj, R_ClassSymbol, value);
-    // if(IS_S4_OBJECT(obj)) /* multiple strings only valid for S3 objects */
-    // do_unsetS4(obj, value);
-    // }
-    // else if(length(value) == 0) {
-    // UNPROTECT(nProtect); nProtect = 0;
-    // error(_("invalid replacement object to be a class string"));
-    // }
-    // else {
-    // const char *valueString, *classString; int whichType;
-    // SEXP cur_class; SEXPTYPE valueType;
-    // valueString = CHAR(asChar(value)); /* ASCII */
-    // whichType = class2type(valueString);
-    // valueType = (whichType == -1) ? -1 : classTable[whichType].sexp;
-    // PROTECT(cur_class = R_data_class(obj, FALSE)); nProtect++;
-    // classString = CHAR(asChar(cur_class)); /* ASCII */
-    // /* assigning type as a class deletes an explicit class attribute. */
-    // if(valueType != -1) {
-    // setAttrib(obj, R_ClassSymbol, R_NilValue);
-    // if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
-    // do_unsetS4(obj, value);
-    // if(classTable[whichType].canChange) {
-    // PROTECT(obj = ascommon(call, obj, valueType));
-    // nProtect++;
-    // }
-    // else if(valueType != TYPEOF(obj))
-    // error(_("\"%s\" can only be set as the class if the object has this type; found \"%s\""),
-    // valueString, type2char(TYPEOF(obj)));
-    // /* else, leave alone */
-    // }
-    // else if(!strcmp("numeric", valueString)) {
-    // setAttrib(obj, R_ClassSymbol, R_NilValue);
-    // if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
-    // do_unsetS4(obj, value);
-    // switch(TYPEOF(obj)) {
-    // case INTSXP: case REALSXP: break;
-    // default: PROTECT(obj = coerceVector(obj, REALSXP));
-    // nProtect++;
-    // }
-    // }
-    // /* the next 2 special cases mirror the special code in
-    // * R_data_class */
-    // else if(!strcmp("matrix", valueString)) {
-    // if(length(getAttrib(obj, R_DimSymbol)) != 2)
-    // error(_("invalid to set the class to matrix unless the dimension attribute is of length 2 (was %d)"),
-    // length(getAttrib(obj, R_DimSymbol)));
-    // setAttrib(obj, R_ClassSymbol, R_NilValue);
-    // if(IS_S4_OBJECT(obj))
-    // do_unsetS4(obj, value);
-    // }
-    // else if(!strcmp("array", valueString)) {
-    // if(length(getAttrib(obj, R_DimSymbol))<= 0)
-    // error(_("cannot set class to \"array\" unless the dimension attribute has length > 0"));
-    // setAttrib(obj, R_ClassSymbol, R_NilValue);
-    // if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
-    // UNSET_S4_OBJECT(obj);
-    // }
-    // else { /* set the class but don't do the coercion; that's
-    // supposed to be done by an as() method */
-    // setAttrib(obj, R_ClassSymbol, value);
-    // }
-    // }
-    // UNPROTECT(nProtect);
-    // return obj;
-
-  }
-
-  @Builtin("oldClass<-")
-  public static SEXP setOldClass(SEXP exp, Vector classes) {
-    /*
-     * checkArity(op, args); if (NAMED(CAR(args)) == 2) SETCAR(args,
-     * duplicate(CAR(args))); if (length(CADR(args)) == 0) SETCADR(args,
-     * R_NilValue); if(IS_S4_OBJECT(CAR(args))) UNSET_S4_OBJECT(CAR(args));
-     * setAttrib(CAR(args), R_ClassSymbol, CADR(args)); return CAR(args);
-     */
-    return exp.setAttribute(Symbols.CLASS, classes);
-  }
-
   @Builtin
   public static SEXP unclass(SEXP exp) {
     return exp.setAttributes(exp.getAttributes().copy().remove(Symbols.CLASS));
@@ -410,42 +300,44 @@ public class Attributes {
     return exp.setAttribute(which, value);
   }
 
-  @Builtin
-  public static SEXP oldClass(SEXP exp) {
-    if (!exp.hasAttributes()) {
-      return Null.INSTANCE;
+  @Internal
+  public static SEXP inherits(@Current Context context, SEXP exp, StringVector what, boolean which) {
+
+    StringVector classes = getClass(exp);
+    boolean s4 = Types.isS4(exp);
+
+    int inherits[] = new int[what.length()];
+    for (int i = 0; i < what.length(); i++) {
+      String whatClass = what.getElementAsString(i);
+      inherits[i] = inherits(context, whatClass, classes, s4);
     }
-    return exp.getAttribute(Symbols.CLASS);
+
+    if (which) {
+      return new IntArrayVector(inherits);
+    } else {
+      LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
+      for (int i = 0; i < inherits.length; i++) {
+        result.add(inherits[i] != 0);
+      }
+      return result.build();
+    }
   }
 
-  @Internal
-  public static boolean inherits(SEXP exp, StringVector what) {
-    StringVector classes = getClass(exp);
-    for (String whatClass : what) {
-      if (Iterables.contains(classes, whatClass)) {
-        return true;
+  private static int inherits(Context context, String whatClass, StringVector classes, boolean s4) {
+    for (int i = 0; i < classes.length(); i++) {
+      String className = classes.getElementAsString(i);
+      if(whatClass.equals(className)) {
+        return i + 1;
+      } else if(s4) {
+        AtomicVector superClasses = S3.getSuperClassesS4(context, className);
+        for (int j = 0; j < superClasses.length(); j++) {
+          if(whatClass.equals(superClasses.getElementAsString(j))) {
+            return i + 1;
+          }
+        }
       }
     }
-    return false;
+    return 0;
   }
 
-  @Internal
-  public static boolean inherits(SEXP exp, String what) {
-    return Iterables.contains(getClass(exp), what);
-  }
-
-  @Internal
-  public static SEXP inherits(SEXP exp, StringVector what, boolean which) {
-    if (!which) {
-      return new LogicalArrayVector(inherits(exp, what));
-    }
-    StringVector classes = getClass(exp);
-    int result[] = new int[what.length()];
-
-    for (int i = 0; i != what.length(); ++i) {
-      result[i] = Iterables.indexOf(classes,
-          Predicates.equalTo(what.getElementAsString(i))) + 1;
-    }
-    return new IntArrayVector(result);
-  }
 }

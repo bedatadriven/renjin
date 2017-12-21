@@ -26,7 +26,6 @@ import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.codegen.ArgumentIterator;
-import org.renjin.packaging.SerializedPromise;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.PeekingIterator;
@@ -36,6 +35,7 @@ import org.renjin.sexp.*;
 import org.renjin.sexp.Vector;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Primitives used in the implementation of the S3 object system
@@ -224,17 +224,23 @@ public class S3 {
     }
 
     GenericMethod left;
-    if(Types.isS4(args.getElementAsSEXP(0))) {
-      return handleS4object(context, args.getElementAsSEXP(0), args, rho, group, opName);
+    for (int k = 0; k < nargs; k++) {
+      if(Types.isS4(args.getElementAsSEXP(k))) {
+        return handleS4object(context, args.getElementAsSEXP(0), args, rho, group, opName);
+      }
+    }
+
+    if(opName.equals("%*%")) {
+      return null;
     }
     
-    left = Resolver.start(context, group, opName, args.getElementAsSEXP(0))
+    left = Resolver.start(context, rho, group, opName, args.getElementAsSEXP(0))
         .withBaseDefinitionEnvironment()
         .findNext();
         
     GenericMethod right = null;
     if(nargs == 2) {
-      right = Resolver.start(context, group, opName, args.getElementAsSEXP(1))
+      right = Resolver.start(context, rho, group, opName, args.getElementAsSEXP(1))
           .withBaseDefinitionEnvironment()
           .findNext();
     }
@@ -297,7 +303,7 @@ public class S3 {
         promised = promised.getNextNode();
       }
     }
-    return left.doApply(context, rho, promisedArgs);
+    return left.doApply(context, rho, call, promisedArgs);
   }
 
   /**
@@ -325,7 +331,7 @@ public class S3 {
     }
 
     GenericMethod method = Resolver
-        .start(context, name, object)
+        .start(context, rho, null, name, object)
         .withBaseDefinitionEnvironment()
         .withObjectArgument(object)
         .withGenericArgument(name)
@@ -337,7 +343,7 @@ public class S3 {
 
     PairList newArgs = reassembleAndEvaluateArgs(object, args, context, rho);
     
-    return method.doApply(context, rho, newArgs);
+    return method.doApply(context, rho, call, newArgs);
   }
 
   private static boolean isS4DispatchSupported(String name) {
@@ -346,8 +352,10 @@ public class S3 {
   
   private static SEXP handleS4object(@Current Context context, SEXP source, PairList args,
                                      Environment rho, String group, String opName) {
-    
-    boolean hasS3Class = source.getAttribute(Symbol.get(".S3Class")).length() != 0;
+
+    if("as.double".equals(opName)) {
+      opName = "as.numeric";
+    }
     
     
     List<Environment> groupMethodTables = null;
@@ -356,7 +364,7 @@ public class S3 {
     genericMethodTables = findMethodTable(context, opName);
     if("Ops".equals(group)) {
       groupMethodTables = findOpsMethodTable(context, opName);
-    } else if(!"".equals(group)) {
+    } else if(!("".equals(group) || group == null)) {
       groupMethodTables = findMethodTable(context, group);
     }
     
@@ -384,18 +392,18 @@ public class S3 {
     // lengths the return of computeSignatureLength is an integer array with the length of signature for
     // each found method table.
     
-    int[] signatureLength = computeSignatureLength(genericMethodTables, groupMethodTables);
+    Map<String, int[]> signatureLength = computeSignatureLength(genericMethodTables, groupMethodTables);
     
-    int maxSignatureLength = 0;
-    for(int i = 0; i < signatureLength.length; i++) {
-      maxSignatureLength = signatureLength[i] < maxSignatureLength ? maxSignatureLength : signatureLength[i];
-    }
+    int maxSignatureLength = getMaxSignatureLength(signatureLength);
+    
     if(maxSignatureLength == 0) {
       return null;
     }
     
+    // expand ... in arguments or remove if empty
+    PairList expandedArgs = Calls.promiseArgs(args, context, rho);
     PairList.Builder promisedArgs = new PairList.Builder();
-    Iterator<PairList.Node> it = args.nodes().iterator();
+    Iterator<PairList.Node> it = expandedArgs.nodes().iterator();
     int argIdx = 0;
     while(it.hasNext()) {
       PairList.Node node = it.next();
@@ -405,7 +413,11 @@ public class S3 {
         promisedArgs.add(node.getRawTag(), new Promise(uneval, source));
       } else {
         // otherwise a promise is created to evaluate if necessary
-        promisedArgs.add(node.getRawTag(), Promise.repromise(rho, uneval));
+        if(uneval == Symbol.MISSING_ARG) {
+          promisedArgs.add(node.getRawTag(), uneval);
+        } else {
+          promisedArgs.add(node.getRawTag(), Promise.repromise(rho, uneval));
+        }
       }
       argIdx++;
     }
@@ -420,40 +432,44 @@ public class S3 {
     // The generated signatures are sorted based on their distance to input signature and looked up in originating
     // method table. All signatures are looked up and the ones present are returned.
     
-    List<List<SelectedMethod>> validMethods = findMatchingMethods(context, mapMethodTableList, possibleSignatures);
+    Map<String, List<SelectedMethod>> validMethods = findMatchingMethods(context, mapMethodTableList, possibleSignatures);
     
-    if(validMethods.size() == 0) {
+    if(validMethods.keySet().size() == 0) {
       return null;
     }
     
     int maxNumberOfMethods = 0;
-    for(int i = 0; i < validMethods.size(); i++) {
-      if(validMethods.get(i).size() > maxNumberOfMethods) {
-        maxNumberOfMethods = validMethods.get(i).size();
+    Iterator<String> typeItr = validMethods.keySet().iterator();
+    for(;typeItr.hasNext();) {
+      List<SelectedMethod> methods = validMethods.get(typeItr.next());
+      int nextSize = methods.size();
+      if (nextSize > maxNumberOfMethods) {
+        maxNumberOfMethods = nextSize;
       }
     }
+    
     if(maxNumberOfMethods == 0) {
       return null;
     }
   
     SelectedMethod method;
-    if(validMethods.size() > 1) {
-      // select closest group method if distance is less than the distance of closest generic method
-      int genericDistance = validMethods.get(0).size() == 0 ? -1 : validMethods.get(0).get(0).getDistance();
-      int groupDistance = validMethods.get(1).size() == 0 ? -1 : validMethods.get(1).get(0).getDistance();
-      if(genericDistance == -1 || (groupDistance != -1 && groupDistance < genericDistance)) {
-        method = validMethods.get(1).get(0);
-      } else {
-        method = validMethods.get(0).get(0);
-      }
+    SelectedMethod genericMethod = null;
+    SelectedMethod groupMethod = null;
+    double genericRank = -1;
+    double groupRank = -1;
+    if(validMethods.containsKey("generic")) {
+      genericRank = validMethods.get("generic").get(0).getRank();
+      genericMethod = validMethods.get("generic").get(0);
+    }
+    if(validMethods.containsKey("group")) {
+      groupRank = validMethods.get("group").get(0).getRank();
+      groupMethod = validMethods.get("group").get(0);
+    }
+  
+    if (genericRank == -1 || (groupRank != -1 && genericRank > groupRank)) {
+      method = groupMethod;
     } else {
-      if(validMethods.get(0).size() == 0) {
-        // select closest group method if no generic methods are found
-        method = validMethods.get(1).get(0);
-      } else {
-        // select closest generic method if no group methods are found
-        method = validMethods.get(0).get(0);
-      }
+      method = genericMethod;
     }
     
 //     if selected method is from Group or if its from standard generic but distance is > 0
@@ -468,20 +484,54 @@ public class S3 {
 //
 //     otherwise only e1 and e2.
     
-    if (("generic".equals(method.getGroup()) && method.getDistance() == 0) || hasS3Class) {
-      return context.evaluate(new FunctionCall(method.getFunction(), promisedArgs.build()));
+    Closure function = method.getFunction();
+    boolean hasS3Class = source.getAttribute(Symbol.get(".S3Class")).length() != 0;
+    boolean genericExact = "generic".equals(method.getGroup()) && method.getTotalDist() == 0;
+    
+    if (!opName.contains("<-") && (genericExact || hasS3Class)) {
+      SEXP call = new FunctionCall(function, promisedArgs.build());
+      return context.evaluate( call );
     } else {
       Map<Symbol, SEXP> metadata = new HashMap<>();
       metadata.put(Symbol.get(".defined"), buildDotTargetOrDefined(context, method, true));
       metadata.put(Symbol.get(".Generic"), buildDotGeneric(opName));
-      metadata.put(Symbol.get(".Method"), method.getFunction());
+      metadata.put(Symbol.get(".Method"), function);
       metadata.put(Symbol.get(".Methods"), Symbol.get(".Primitive(\"" + opName +"\")"));
       metadata.put(Symbol.get(".target"), buildDotTargetOrDefined(context, method, false));
-      
-      FunctionCall call = new FunctionCall(method.getFunction(), args);
-      Closure closure = method.getFunction();
-      return ClosureDispatcher.apply(context,rho, call, closure, promisedArgs.build(), metadata);
+  
+      PairList formals = function.getFormals();
+      PairList matchedList = ClosureDispatcher.matchArguments(formals, promisedArgs.build(), true);
+      Map<Symbol, SEXP> matchedMap = new HashMap<>();
+      for (PairList.Node node : matchedList.nodes()) {
+        matchedMap.put(node.getTag(), node.getValue());
+      }
+
+      for(Symbol arg : matchedMap.keySet()) {
+        SEXP argValue = matchedMap.get(arg);
+        if(argValue != Symbol.MISSING_ARG) {
+          if(argValue instanceof Promise && ((Promise) argValue).getValue() != null) {
+            metadata.put(arg, ((Promise) argValue).getValue());
+          } else {
+            metadata.put(arg, argValue.force(context));
+          }
+        }
+      }
+  
+      FunctionCall call = new FunctionCall(function, expandedArgs);
+      return ClosureDispatcher.apply(context, rho, call, function, promisedArgs.build(), metadata);
     }
+  }
+  
+  private static int getMaxSignatureLength(Map<String, int[]> signatureLengths) {
+    int max = 0;
+    String[] types = new String[]{"generic", "group"};
+    for(String type : types) {
+      if(signatureLengths.containsKey(type)) {
+        int currentMax = Ints.max(signatureLengths.get(type));
+        max = max < currentMax ? currentMax : max;
+      }
+    }
+    return max;
   }
   
   private static SEXP buildDotGeneric(String opName) {
@@ -514,7 +564,7 @@ public class S3 {
     
     if(defined) {
       for (String argumentClass : argumentClasses) {
-        argumentPackages.add(findClassPackage(context, argumentClass));
+        argumentPackages.add(findClassOrMethodName(context, argumentClass, ".__C__", "methods", false));
       }
     } else {
       for (String ignored : argumentClasses) {
@@ -535,46 +585,45 @@ public class S3 {
       .setAttribute("package", StringVector.valueOf(packageName));
   }
   
-  private static String findClassPackage(Context context, String className) {
-    Environment environment = context.getGlobalEnvironment();
-    SEXP classS4Object = environment.findVariable(context, Symbol.get(".__C__" + className));
-    if (classS4Object instanceof SerializedPromise || "ANY".equals(className)) {
-      return "methods";
+  private static List<Environment> findMethodTable(Context context, String opName) {
+    String genericName = findClassOrMethodName(context, opName, ".__T__", "base", true);
+    List<Environment> methodTableList = new CopyOnWriteArrayList<>();
+    
+    List<String> pkgNames = getNamesLoadedPackages(context);
+    pkgNames.add(0, ".GlobalEnv");
+    for(String pkg : pkgNames) {
+      SEXP methodTablePackage = getFromPackage(context, pkg, genericName);
+      if(methodTablePackage instanceof Environment) {
+        methodTableList.add((Environment) methodTablePackage);
+      }
     }
-    return classS4Object.getAttribute(Symbol.get("package")).asString();
+    
+    return methodTableList.size() == 0 ? null : methodTableList;
   }
   
-  private static List<Environment> findMethodTable(Context context, String opName) {
-    Symbol methodSymbol = Symbol.get(".__T__" + opName + ":base");
-    SEXP methodTableMethodsPkg;
-    List<Environment> methodTableList = new ArrayList<>();
-  
-    if (SPECIAL.contains(opName)) {
-      Namespace methodsNamespace = context.getNamespaceRegistry().getNamespace(context, "methods");
-      Frame methodFrame = methodsNamespace.getNamespaceEnvironment().getFrame();
-      methodTableMethodsPkg = methodFrame.getVariable(methodSymbol).force(context);
-      if(methodTableMethodsPkg == Symbol.UNBOUND_VALUE || !(methodTableMethodsPkg instanceof Environment)) {
-        return null;
-      }
-      methodTableList.add((Environment) methodTableMethodsPkg);
-    } else {
-      
-      SEXP methodTableGlobalEnv = context.getGlobalEnvironment().getFrame().getVariable(methodSymbol);
-      if (methodTableGlobalEnv != Symbol.UNBOUND_VALUE && methodTableGlobalEnv instanceof Environment) {
-        methodTableList.add((Environment) methodTableGlobalEnv);
-      }
-      
-      for(Symbol loadedNamespace : context.getNamespaceRegistry().getLoadedNamespaces()) {
-        String packageName = loadedNamespace.getPrintName();
-        Namespace packageNamespace = context.getNamespaceRegistry().getNamespace(context, packageName);
-        Environment packageEnvironment = packageNamespace.getNamespaceEnvironment();
-        SEXP methodTablePackage = packageEnvironment.getFrame().getVariable(methodSymbol).force(context);
-        if(methodTablePackage instanceof Environment) {
-          methodTableList.add((Environment) methodTablePackage);
-        }
+  private static String findClassOrMethodName(Context context, String name, String what, String altValue, boolean method) {
+    
+    String sourcePackage = null;
+    String className = what+name;
+    
+    List<String> loadedPackages = getNamesLoadedPackages(context);
+    loadedPackages.add(0, ".GlobalEnv");
+    
+    for(int i = 0; i < loadedPackages.size() && sourcePackage == null; i++) {
+      String pkgName = loadedPackages.get(i);
+      String methodName = what+name+":"+pkgName;
+      String generic = method ? methodName : className;
+      SEXP methodTable = getFromPackage(context, pkgName, generic);
+      if(methodTable instanceof Environment || methodTable instanceof S4Object) {
+        sourcePackage = method? methodName : pkgName;
       }
     }
-    return methodTableList.size() == 0 ? null : methodTableList;
+    
+    if(sourcePackage == null) {
+      sourcePackage = method ? what+name+":"+altValue : altValue;
+    }
+    
+    return sourcePackage;
   }
   
   private static List<Environment> findOpsMethodTable(Context context, String opName) {
@@ -586,20 +635,12 @@ public class S3 {
       methodTableList.add((Environment) methodTableGlobalEnv);
     }
   
-    for(Symbol packageSymbol : context.getNamespaceRegistry().getLoadedNamespaces()) {
-      String packageName = packageSymbol.getPrintName();
-      Collection<Symbol> exports = context.getNamespaceRegistry().getNamespace(context, packageName).getExports();
-      if(exports.contains(Symbol.get("Arith")) ||
-          exports.contains(Symbol.get("Compare")) ||
-          exports.contains(Symbol.get("Logic")) ||
-          exports.contains(Symbol.get(opName))) {
-        Namespace packageNamespace = context.getNamespaceRegistry().getNamespace(context, packageName);
-        Frame packageFrame = packageNamespace.getNamespaceEnvironment().getFrame();
-        SEXP methodTablePackage = getMethodTable(context, opName, packageFrame);
-        if(methodTablePackage instanceof Environment &&
-            ((Environment) methodTablePackage).getFrame().getSymbols().size() > 0) {
-          methodTableList.add((Environment) methodTablePackage);
-        }
+    for(String pkg : getNamesLoadedPackages(context)) {
+      Frame packageFrame = getPackageFrame(context, pkg);
+      SEXP methodTablePackage = getMethodTable(context, opName, packageFrame);
+      if(methodTablePackage instanceof Environment &&
+          ((Environment) methodTablePackage).getFrame().getSymbols().size() > 0) {
+        methodTableList.add((Environment) methodTablePackage);
       }
     }
     
@@ -608,6 +649,27 @@ public class S3 {
     }
     
     return methodTableList;
+  }
+  
+  public static Frame getPackageFrame(Context context, String name) {
+    if(".GlobalEnv".equals(name)) {
+      return context.getGlobalEnvironment().getFrame();
+    }
+    Namespace pkgNamespace = context.getNamespaceRegistry().getNamespace(context, name);
+    return pkgNamespace.getNamespaceEnvironment().getFrame();
+  }
+  
+  public static SEXP getFromPackage(Context context, String pkg, String what) {
+    Frame pkgFrame = getPackageFrame(context, pkg);
+    return pkgFrame.getVariable(Symbol.get(what)).force(context);
+  }
+  
+  public static List<String> getNamesLoadedPackages(Context context) {
+    List<String> loadedPackages = new CopyOnWriteArrayList<>();
+    for(Symbol symbol : context.getNamespaceRegistry().getLoadedNamespaces()) {
+      loadedPackages.add(symbol.getPrintName());
+    }
+    return loadedPackages;
   }
   
   private static SEXP getMethodTable(Context context, String opName, Frame packageFrame) {
@@ -634,17 +696,34 @@ public class S3 {
     return methodTable;
   }
   
-  private static int[] computeSignatureLength(List<Environment> genericMethodTable, List<Environment> groupMethodTable) {
-    List<Environment> methodTable = genericMethodTable == null ? groupMethodTable : genericMethodTable;
-    int[] length = new int[methodTable.size()];
-    for(int i = 0; i < methodTable.size(); i++) {
-      if(methodTable.get(i).getFrame().getSymbols().iterator().hasNext()) {
-        length[i] = methodTable.get(i).getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
-      } else {
-        length[i] = 0;
+  private static Map<String, int[]> computeSignatureLength(List<Environment> genericMethodTable, List<Environment> groupMethodTable) {
+    Map<String, int[]> signatureLengths = new HashMap<>();
+    
+    if(genericMethodTable != null) {
+      int[] length = new int[genericMethodTable.size()];
+      for(int i = 0; i < genericMethodTable.size(); i++) {
+        if(genericMethodTable.get(i).getFrame().getSymbols().iterator().hasNext()) {
+          length[i] = genericMethodTable.get(i).getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
+        } else {
+          length[i] = 0;
+        }
       }
+      signatureLengths.put("generic", length);
     }
-    return length;
+    
+    if(groupMethodTable != null) {
+      int[] length = new int[groupMethodTable.size()];
+      for(int i = 0; i < groupMethodTable.size(); i++) {
+        if(groupMethodTable.get(i).getFrame().getSymbols().iterator().hasNext()) {
+          length[i] = groupMethodTable.get(i).getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
+        } else {
+          length[i] = 0;
+        }
+      }
+      signatureLengths.put("group", length);
+    }
+    
+    return signatureLengths;
   }
   
   
@@ -661,36 +740,41 @@ public class S3 {
    *
    *
    * */
-  private static List<List<SelectedMethod>> findMatchingMethods(Context context, Map<String, List<Environment>> mapMethodTableLists,
+  private static Map<String, List<SelectedMethod>> findMatchingMethods(Context context, Map<String, List<Environment>> mapMethodTableLists,
                                                           Map<String, List<List<MethodRanking>>> mapSignatureList) {
     
-    List<List<SelectedMethod>> listMethods = new ArrayList<>();
+    Map<String, List<SelectedMethod>> mapListMethods = new HashMap<>();
     
     for(int e = 0; e < mapSignatureList.size(); e++) {
+      List<SelectedMethod> selectedMethods = new ArrayList<>();
       String type = mapSignatureList.keySet().toArray(new String[0])[e];
       List<List<MethodRanking>> rankings = mapSignatureList.get(type);
       List<Environment> methodTableList = mapMethodTableLists.get(type);
       
       for(int i = 0; i < rankings.size(); i++) {
         List<MethodRanking> rankedMethodsList = rankings.get(i);
-        List<SelectedMethod> selectedMethods = new ArrayList<>();
         String inputSignature = rankedMethodsList.get(0).getSignature();
     
         for (MethodRanking rankedMethod : rankedMethodsList) {
           String signature = rankedMethod.getSignature();
-          int distance = rankedMethod.getTotalDist();
+          double rank = rankedMethod.getRank();
+          int[] dist = rankedMethod.getDistances();
+          boolean has0 = rankedMethod.hasZeroDistanceArgument();
           Symbol signatureSymbol = Symbol.get(signature);
           SEXP function = methodTableList.get(i).getFrame().getVariable(signatureSymbol).force(context);
       
           if (function instanceof Closure) {
-            selectedMethods.add(new SelectedMethod((Closure) function, type, distance, signature, signatureSymbol, inputSignature));
+            selectedMethods.add(new SelectedMethod((Closure) function, type, rank, dist, signature, signatureSymbol, inputSignature, has0));
           }
         }
-        listMethods.add(selectedMethods);
+      }
+      if(selectedMethods.size() > 0) {
+        Collections.sort(selectedMethods);
+        mapListMethods.put(type, selectedMethods);
       }
     }
     
-    return listMethods;
+    return mapListMethods;
   }
   
   /**
@@ -700,7 +784,7 @@ public class S3 {
    *
    * */
   private static Map<String, List<List<MethodRanking>>> generateSignatures(Context context, Map<String, List<Environment>> mapMethodTableLists,
-                                                                           PairList inputArgs, int[] depth) {
+                                                                           PairList inputArgs, Map<String, int[]> depths) {
     
     Map<String, List<List<MethodRanking>>> mapListMethods = new HashMap<>();
     
@@ -708,11 +792,12 @@ public class S3 {
       String type = mapMethodTableLists.keySet().toArray(new String[0])[e];
       List<Environment> methodTableList = mapMethodTableLists.get(type);
       List<List<MethodRanking>> listSignatures = new ArrayList<>();
+      int[] depth = depths.get(type);
       
       for(int listIdx = 0; listIdx < methodTableList.size(); listIdx++) {
         Environment methodTable = methodTableList.get(listIdx);
         int currentDepth = depth[listIdx];
-        ArgumentSignature[] argSignatures = new ArgumentSignature[currentDepth];
+        ArgumentSignature[] argSignatures;
         Symbol methodSymbol = methodTable.getFrame().getSymbols().iterator().next();
         Closure genericClosure = (Closure) methodTable.getFrame().getVariable(methodSymbol);
         PairList formals = genericClosure.getFormals();
@@ -792,7 +877,6 @@ public class S3 {
           argumentClassIdx = 0;
           repeat = repeat * numberOfClassesCurrentArgument;
         }
-        Collections.sort(possibleSignatures);
         listSignatures.add(possibleSignatures);
       }
   
@@ -837,8 +921,12 @@ public class S3 {
       return new ArgumentSignature();
     }
     String[] nodeClass = computeDataClasses(context, argValue).toArray();
+    List<String> listClasses = new ArrayList<>(Arrays.asList(nodeClass));
+    if(listClasses.contains("double")) {
+      listClasses.remove("double");
+    }
 
-    return getClassAndDistance(context, nodeClass);
+    return getClassAndDistance(context, listClasses);
   }
   
   /**
@@ -852,19 +940,17 @@ public class S3 {
    *
    * */
   
-  private static ArgumentSignature getClassAndDistance(Context context, String[] argClass) {
+  private static ArgumentSignature getClassAndDistance(Context context, List<String> argClass) {
 
     List<Integer> distances = new ArrayList<>();
     List<String> classes = new ArrayList<>();
-    for(int i = 0; i < argClass.length; i++) {
-      classes.add(argClass[i]);
+    for(int i = 0; i < argClass.size(); i++) {
+      classes.add(argClass.get(i));
       distances.add(0);
     }
-    Symbol argClassObjectName = Symbol.get(".__C__" + argClass[0]);
-    Frame globalFrame = context.getGlobalEnvironment().getFrame();
-    AttributeMap map = globalFrame.getVariable(argClassObjectName).getAttributes();
-    SEXP containsSlot = map.get("contains");
-    SEXP argSuperClasses = containsSlot.getNames();
+    
+    SEXP containsSlot = getContainsSlot(context, argClass.get(0));
+    SEXP argSuperClasses = getSuperClassesS4(containsSlot);
 
     for(int i = 0; i < argSuperClasses.length(); i++) {
       SEXP distanceSlot = ((ListVector) containsSlot).get(i).getAttributes().get("distance");
@@ -879,6 +965,29 @@ public class S3 {
     }
 
     return new ArgumentSignature(classes.toArray(new String[0]), Ints.toArray(distances));
+  }
+
+  public static SEXP getContainsSlot(Context context, String objClass) {
+    Symbol argClassObjectName = Symbol.get(".__C__" + objClass);
+    Environment environment = context.getEnvironment();
+    AttributeMap map = environment.findVariable(context, argClassObjectName).force(context).getAttributes();
+    return map.get("contains");
+  }
+
+  public static AtomicVector getSuperClassesS4(Context context, String objClass) {
+    SEXP containsSlot = getContainsSlot(context, objClass);
+    return containsSlot.getNames();
+  }
+
+  public static SEXP getSuperClassesS4(SEXP containsSlot) {
+    return containsSlot.getNames();
+  }
+  
+  public static SEXP computeDataClassesS4(Context context, String className) {
+    Symbol argClassObjectName = Symbol.get(".__C__" + className);
+    Environment environment = context.getEnvironment();
+    AttributeMap map = environment.findVariable(context, argClassObjectName).force(context).getAttributes();
+    return map.get("contains").getNames();
   }
   
   public static SEXP tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call,
@@ -912,18 +1021,21 @@ public class S3 {
   }
 
   /**
-   * Evaluate the remaining arguments to the primitive call. Despite the fact that we are passing these
-   * arguments to a user-defined closure, we _still_ evaluate arguments eagerly.
+   * Wrap the remaining arguments to the primitive call in promises.
    */
   static PairList reassembleAndEvaluateArgs(SEXP object, PairList args, Context context, Environment rho) {
     PairList.Builder newArgs = new PairList.Builder();
     PairList.Node firstArg = (PairList.Node)args;
-    newArgs.add(firstArg.getRawTag(), object);
+    newArgs.add(firstArg.getRawTag(), new Promise(firstArg.getValue(), object));
 
     ArgumentIterator argIt = new ArgumentIterator(context, rho, firstArg.getNext());
     while(argIt.hasNext()) {
       PairList.Node node = argIt.nextNode();
-      newArgs.add(node.getRawTag(), context.evaluate(node.getValue(), rho));
+      if(node.getValue() == Symbol.MISSING_ARG) {
+        newArgs.add(node.getRawTag(), Symbol.MISSING_ARG);
+      } else {
+        newArgs.add(node.getRawTag(), Promise.repromise(rho, node.getValue()));
+      }
     }
     return newArgs.build();
   }
@@ -988,6 +1100,12 @@ public class S3 {
       if(node.getRawTag() == NA_RM) {
         newArgs.add(node.getTag(), new LogicalArrayVector(naRm));
         naRmArgumentSupplied = true;
+      } else if(node.getValue() == Symbols.ELLIPSES) {
+        // Add all remaining arguments
+        while(varArgIndex < evaluatedArguments.length()) {
+          newArgs.add(evaluatedArguments.getName(varArgIndex), evaluatedArguments.get(varArgIndex));
+          varArgIndex++;
+        }
       } else {
         newArgs.add(node.getRawTag(), evaluatedArguments.get(varArgIndex++));
       }
@@ -997,7 +1115,7 @@ public class S3 {
     // builtin has an extra na.rm argument with default value false.
 
     if(!naRmArgumentSupplied) {
-      newArgs.add(NA_RM, LogicalArrayVector.FALSE);
+      newArgs.add(NA_RM, LogicalVector.valueOf(naRm));
     }
 
     return dispatchGroup("Summary", call, name, newArgs.build(), context, rho);
@@ -1049,17 +1167,31 @@ public class S3 {
 
     
     private static Resolver start(Context context, String genericMethodName, SEXP object) {
-      return start(context, null, genericMethodName, object);
+      return start(context, context.getEnvironment(), null, genericMethodName, object);
     }
 
-    private static Resolver start(Context context, String group, String genericMethodName, SEXP object) {
+    private static Resolver start(Context context, Environment rho, String group, String genericMethodName, SEXP object) {
       Resolver resolver = new Resolver();
-      resolver.callingEnvironment = context.getEnvironment();
+      resolver.callingEnvironment = rho;
       resolver.genericMethodName = genericMethodName;
       resolver.context = context;
       resolver.object = object;
       resolver.group = group;
-      resolver.classes = Lists.newArrayList(computeDataClasses(context, object));
+  
+      StringVector objectClasses = computeDataClasses(context, object);
+      if(Types.isS4(object)) {
+        SEXP objectClassesS4 = computeDataClassesS4(context, objectClasses.getElementAsString(0));
+        if(objectClassesS4 != Null.INSTANCE) {
+          List<String> classes = Lists.newArrayList(objectClasses);
+          classes.addAll(Lists.newArrayList((StringVector)objectClassesS4));
+          resolver.classes = classes;
+        } else {
+          resolver.classes = Lists.newArrayList(objectClasses);
+        }
+      } else {
+        resolver.classes = Lists.newArrayList(objectClasses);
+      }
+      
       return resolver;
     }
 
@@ -1182,6 +1314,22 @@ public class S3 {
         if(method != null) {
           return method;
         }
+        if(Types.isS4(object) && isS4DispatchSupported(genericMethodName)) {
+          List<Environment> methodTables = findMethodTable(context, genericMethodName);
+          if(methodTables != null) {
+            Iterator<Environment> methodTableItr = methodTables.iterator();
+            while (method == null && methodTableItr.hasNext()) {
+              Environment env = methodTableItr.next();
+              SEXP methodName = env.getFrame().getVariable(Symbol.get(className));
+              if(methodName instanceof GenericMethod) {
+                method = (GenericMethod) methodName;
+              }
+            }
+            if(method != null) {
+              return method;
+            }
+          }
+        }
         if(group != null) {
           method = findNext(methodTable, group, className);
           if(method != null) {
@@ -1256,7 +1404,7 @@ public class S3 {
 
     public SEXP apply(Context callContext, Environment callEnvironment) {
       PairList rePromisedArgs = Calls.promiseArgs(callContext.getArguments(), callContext, callEnvironment);
-      return doApply(callContext, callEnvironment, rePromisedArgs);
+      return doApply(callContext, callEnvironment, callContext.getCall(), rePromisedArgs);
     }
 
     public SEXP applyNext(Context context, Environment environment, ListVector extraArgs) {
@@ -1266,7 +1414,7 @@ public class S3 {
         withMethodVector(groupsMethodVector());
       }
 
-      return doApply(context, environment, arguments);
+      return doApply(context, environment, context.getCall(), arguments);
     }
 
     private String[] groupsMethodVector() {
@@ -1283,8 +1431,15 @@ public class S3 {
       return methodVector;
     }
 
-    public SEXP doApply(Context callContext, Environment callEnvironment, PairList args) {
-      FunctionCall newCall = new FunctionCall(method,args);
+    public SEXP doApply(Context callContext, Environment callEnvironment, FunctionCall call, PairList promisedArgs) {
+
+
+      // The new call that is visible to sys.call() and match.call()
+      // is identical to the call which invoked UseMethod(), but we do update the function name.
+
+      // For example, if you have a stack which looks like foo(x) -> UseMethod('foo') -> foo.default(x) then
+      // the foo.default function will have a call of foo.default(x) visible to sys.call() and match.call()
+      FunctionCall newCall = new FunctionCall(method, call.getArguments());
 
       callContext.setState(GenericMethod.class, this);
 
@@ -1301,10 +1456,10 @@ public class S3 {
             callingEnvironment = callContext.getGlobalEnvironment();
           }
           return Calls.applyClosure((Closure) function, callContext, callingEnvironment, newCall,
-              args, persistChain());
+              promisedArgs, persistChain());
         } else {
           // primitive
-          return function.apply(callContext, callEnvironment, newCall, args);
+          return function.apply(callContext, callEnvironment, newCall, promisedArgs);
         }
       } finally {
         
@@ -1534,7 +1689,7 @@ public class S3 {
     }
   }
   
-  public static class MethodRanking implements Comparable <MethodRanking> {
+  public static class MethodRanking {
     private String signature;
     private int[] distances;
     private boolean has0 = false;
@@ -1583,7 +1738,7 @@ public class S3 {
       return signature;
     }
     
-    public int[] getDistance() {
+    public int[] getDistances() {
       return distances;
     }
     
@@ -1591,46 +1746,40 @@ public class S3 {
       return totalDist;
     }
     
-    public int isHas0() {
-      if(has0){
-        return 0;
-      }
-      return 1;
-    }
-    
     public double getRank() {
       return rank;
     }
     
-    @Override
-    public int compareTo(MethodRanking o) {
-      int i = Integer.compare(this.getTotalDist(), o.getTotalDist());
-      if (i != 0) {
-        return i;
-      }
-      i = Integer.compare(this.isHas0(), o.isHas0());
-      if (i != 0) {
-        return i;
-      }
-      return Double.compare(rank, o.getRank());
+    public boolean hasZeroDistanceArgument() {
+      return has0;
     }
   }
   
-  public static class SelectedMethod {
+  public static class SelectedMethod implements Comparable <SelectedMethod> {
     private Closure function;
     private String group;
-    private int currentDistance;
+    private double currentRank;
+    private boolean has0;
+    private int[] distances;
+    private int currentDist;
     private String currentSig;
     private Symbol methodName;
     private String methodInputSignature;
     
-    public SelectedMethod(Closure fun, String grp, int dist, String sig, Symbol method, String methSig) {
+    public SelectedMethod(Closure fun, String grp, double rank, int[] dist, String sig, Symbol method, String methSig, boolean has0) {
       this.function = fun;
       this.group = grp;
-      this.currentDistance = dist;
+      this.currentRank = rank;
+      this.distances = dist;
+      int sum = 0;
+      for(int i = 0; i < dist.length; i++) {
+        sum += dist[i];
+      }
+      this.currentDist = sum;
       this.currentSig = sig;
       this.methodName = method;
       this.methodInputSignature = methSig;
+      this.has0 = has0;
     }
     
     public Closure getFunction() {
@@ -1640,9 +1789,21 @@ public class S3 {
     public String getGroup() {
       return group;
     }
-    
-    public int getDistance() {
-      return currentDistance;
+  
+    public double getRank() {
+      return currentRank;
+    }
+  
+    public int[] getDistances() {
+      return distances;
+    }
+
+    public int getDistance(int i) {
+      int sum = 0;
+      for(int j = 0; j < i; j++) {
+        sum += distances[j];
+      }
+      return sum;
     }
     
     public String getSignature() {
@@ -1653,8 +1814,39 @@ public class S3 {
       return methodName;
     }
     
-    public String getInputSignature() {
-      return methodInputSignature;
+    public int getTotalDist() {
+      return currentDist;
+    }
+    
+    public int isHas0() {
+      if(has0) {
+        return 0;
+      } else {
+        return 1;
+      }
+    }
+  
+    @Override
+    public int compareTo(SelectedMethod o) {
+      int i = Integer.compare(this.isHas0(), o.isHas0());
+      if (i != 0) {
+        return i;
+      }
+
+      if(this.getDistances().length == o.getDistances().length) {
+        i = Integer.compare(this.getTotalDist(), o.getTotalDist());
+        if (i != 0) {
+          return i;
+        }
+      } else {
+        int minArgs = Math.min(this.getDistances().length, o.getDistances().length);
+        i = Integer.compare(this.getDistance(minArgs), o.getDistance(minArgs));
+        if (i != 0) {
+          return i;
+        }
+      }
+
+      return Double.compare(currentRank, o.getRank());
     }
   }
 }

@@ -18,13 +18,13 @@
  */
 package org.renjin.pipeliner.fusion;
 
+import org.renjin.eval.EvalException;
 import org.renjin.pipeliner.fusion.kernel.CompiledKernel;
 import org.renjin.pipeliner.fusion.kernel.LoopKernel;
 import org.renjin.pipeliner.fusion.node.*;
 import org.renjin.pipeliner.node.DeferredNode;
 import org.renjin.pipeliner.node.FunctionNode;
 import org.renjin.pipeliner.node.NodeShape;
-import org.renjin.eval.EvalException;
 import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.repackaged.asm.Type;
@@ -143,11 +143,11 @@ public class FusedNode extends DeferredNode implements Runnable {
       return new DoubleArrayNode(inputIndex, node.getResultVectorType());
     }
 
-    if(node.getVector() instanceof IntVector) {
+    if(node.getVector() instanceof IntArrayVector) {
       return new IntArrayNode(inputIndex, node.getResultVectorType());
     }
     
-    if(node.getVector() instanceof LogicalVector) {
+    if(node.getVector() instanceof LogicalArrayVector) {
       return new IntArrayNode(inputIndex, node.getResultVectorType());
     }
 
@@ -190,7 +190,7 @@ public class FusedNode extends DeferredNode implements Runnable {
 
     double[] result = kernel.compute(vectorOperands);
 
-    resultVector = DoubleArrayVector.unsafe(result);
+    resultVector = DoubleArrayVector.unsafe(result, memoizedComputation.getAttributes());
 
     memoizedComputation.setResult(resultVector);
   }

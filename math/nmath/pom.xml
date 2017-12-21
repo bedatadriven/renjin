@@ -64,7 +64,15 @@
                 <flag>-I</flag>
                 <flag>.</flag>
               </cFlags>
+              <loggingDirectory>${basedir}/target/gcc-bridge-logs</loggingDirectory>
             </configuration>
+          </execution>
+          <execution>
+            <id>soot-classes</id>
+            <goals>
+              <goal>soot</goal>
+            </goals>
+            <phase>process-classes</phase>
           </execution>
         </executions>
       </plugin>

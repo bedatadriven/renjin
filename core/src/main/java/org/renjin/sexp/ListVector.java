@@ -597,6 +597,11 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
       return this;
     }
 
+    public NamedBuilder setName(int index, String name) {
+      names.set(index, name);
+      return this;
+    }
+
     @Override
     public NamedBuilder remove(int index) {
       super.remove(index);

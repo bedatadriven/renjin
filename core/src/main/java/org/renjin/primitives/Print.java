@@ -19,7 +19,10 @@
 package org.renjin.primitives;
 
 import org.renjin.eval.Context;
-import org.renjin.invoke.annotations.*;
+import org.renjin.invoke.annotations.ArgumentList;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Generic;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.parser.StringLiterals;
 import org.renjin.primitives.print.*;
 import org.renjin.primitives.vector.RowNamesVector;
@@ -36,7 +39,6 @@ public class Print {
   private Print() {}
 
   @Internal("print.default")
-  @Materialize
   public static SEXP printDefault(@Current Context context, SEXP expression, SEXP digits, boolean quote, SEXP naPrint,
       SEXP printGap, SEXP right, SEXP max, SEXP useSource, SEXP noOp, boolean useS4) throws IOException {
 
@@ -119,6 +121,9 @@ public class Print {
 
     @Override
     public void visit(ListVector list) {
+
+      list = context.materialize(list);
+
       int index = 1;
       for(int i=0; i!= list.length(); ++i) {
         SEXP value = list.get(i);
@@ -210,21 +215,25 @@ public class Print {
       }
     }
 
-    private <T> void printVector(Iterable<T> vector, Alignment align, Function<T, String> printer, String typeName) {
-      SEXP sexp = (SEXP)vector;
-      
-      if(sexp.length() == 0) {
+    private <T> void printVector(Iterable<T> iterable, Alignment align, Function<T, String> printer, String typeName) {
+      Vector vector = (Vector)iterable;
+
+      if(vector.isDeferred() && !vector.isConstantAccessTime()) {
+        vector = context.materialize(vector);
+      }
+
+      if(vector.length() == 0) {
         out.append(typeName).append("(0)\n");
       } else {
-        List<String> elements = Lists.newArrayList(Iterables.transform(vector, printer));
+        List<String> elements = Lists.newArrayList(Iterables.transform((Iterable<T>) vector, printer));
         
-        SEXP dim = sexp.getAttribute(Symbols.DIM);
+        SEXP dim = vector.getAttribute(Symbols.DIM);
         if(dim.length() == 2) {
-          new MatrixPrinter(elements, align, sexp.getAttributes());
+          new MatrixPrinter(elements, align, vector.getAttributes());
         } else {
-          new VectorPrinter(elements, align, sexp.getAttributes());
+          new VectorPrinter(elements, align, vector.getAttributes());
         }
-        printAttributes(sexp);
+        printAttributes(vector);
       }
     }
     
@@ -252,17 +261,22 @@ public class Print {
       private int maxIndexWidth;
       private int elementsPerLine;
       private AtomicVector names;
+      private ListVector dimnames;
 
       private VectorPrinter(List<String> elements, Alignment elementAlign, AttributeMap attributes) {
         this.elements = elements;
         this.elementAlign = elementAlign;
         this.names = (AtomicVector)attributes.getNamesOrNull();
+        this.dimnames = attributes.getDimNamesOrEmpty();
         if(hasNames()) {
           elementAlign = Alignment.RIGHT;
         }
         calcMaxElementWidth();
         calcMaxIndexWidth();
         calcElementsPerLine();
+        if(dimnames.length() != 0) {
+          printDimnames();
+        }
         print();
       }
       
@@ -348,6 +362,15 @@ public class Print {
             out.append(' ');
           }
           appendAligned(elements.get(startIndex+i), maxElementWidth, elementAlign);
+        }
+        out.append('\n');
+      }
+  
+      private void printDimnames() {
+        SEXP dims = dimnames.get(0);
+        for(int i = 0; i != elementsPerLine && i < dims.length(); ++i) {
+          out.append(' ');
+          appendAligned(dims.getElementAsSEXP(i).asString(), maxElementWidth, elementAlign);
         }
         out.append('\n');
       }

@@ -19,21 +19,21 @@
 package org.renjin.gcc.codegen.call;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.*;
-import org.renjin.gcc.codegen.fatptr.FatPtr;
+import org.renjin.gcc.codegen.expr.ExprFactory;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
 
 import javax.annotation.Nonnull;
+import java.util.Collections;
 import java.util.List;
-
-import static org.renjin.gcc.codegen.expr.Expressions.box;
 
 /**
  * Generates a call to a method.
@@ -66,50 +66,37 @@ public class FunctionCallGenerator implements CallGenerator, MethodHandleGenerat
       }
     }
 
-    // if this method accepts var args, then we pass the 
-    // remaining arguments as an Object[] array
-    Optional<JExpr> varArgArray = Optional.absent();
-    if(strategy.isVarArgs()) {
-      List<JExpr> varArgValues = Lists.newArrayList();
-      for(int i=fixedArgCount;i<call.getOperands().size(); ++i) {
-        GExpr varArgExpr = exprFactory.findGenerator(call.getOperand(i));
-        varArgValues.add(wrapVarArg(varArgExpr));
-      }
-      varArgArray = Optional.of(Expressions.newArray(Type.getType(Object.class), varArgValues));
-    }
-    
-    CallExpr returnValue = new CallExpr(argumentExpressions, varArgArray);
+    // Delegate handling of additional arguments to the VariadicStrategy
+
+    List<GimpleExpr> additionalArgs = extraArguments(call, fixedArgCount);
+    List<JExpr> varArgsExprs = strategy.getVariadicStrategy().marshallVarArgs(mv, exprFactory, additionalArgs);
+
+
+    CallExpr callExpr = new CallExpr(argumentExpressions, varArgsExprs);
     
     // If we don't need the return value, then invoke and pop any result off the stack
     if(call.getLhs() == null) {
-      returnValue.load(mv);
-      mv.pop(returnValue.getType());
+      callExpr.load(mv);
+      mv.pop(callExpr.getType());
     
     } else {
 
       GExpr lhs = exprFactory.findGenerator(call.getLhs());
       TypeStrategy lhsTypeStrategy = exprFactory.strategyFor(call.getLhs().getType());
-      GExpr rhs = strategy.getReturnStrategy().unmarshall(mv, returnValue, lhsTypeStrategy);
+      GExpr rhs = strategy.getReturnStrategy().unmarshall(mv, callExpr, lhsTypeStrategy);
 
       lhs.store(mv, rhs);
     }
   }
 
-  private JExpr wrapVarArg(GExpr varArgExpr) {
-    // TODO: generalize
-    // This is quite specific to printf()
-    if(varArgExpr instanceof PrimitiveValue) {
-      return box(((PrimitiveValue) varArgExpr).unwrap());
-
-    } else if(varArgExpr instanceof GSimpleExpr) {
-      return ((GSimpleExpr) varArgExpr).unwrap();
-
-    } else if(varArgExpr instanceof FatPtr) {
-      return ((FatPtr) varArgExpr).wrap();
+  private List<GimpleExpr> extraArguments(GimpleCall call, int fixedArgCount) {
+    if(call.getOperands().size() <= fixedArgCount) {
+      return Collections.emptyList();
     } else {
-      throw new UnsupportedOperationException("varArgExpr: " + varArgExpr);
+      return call.getOperands().subList(fixedArgCount, call.getOperands().size());
     }
   }
+
 
   @Override
   public JExpr getMethodHandle() {
@@ -119,11 +106,11 @@ public class FunctionCallGenerator implements CallGenerator, MethodHandleGenerat
   private class CallExpr implements JExpr {
 
     private List<GExpr> arguments;
-    private Optional<JExpr> varArgArray;
+    private List<JExpr> varArgs;
 
-    public CallExpr(List<GExpr> arguments, Optional<JExpr> varArgArray) {
+    public CallExpr(List<GExpr> arguments, List<JExpr> varArgs) {
       this.arguments = arguments;
-      this.varArgArray = varArgArray;
+      this.varArgs = varArgs;
     }
 
     @Nonnull
@@ -144,8 +131,8 @@ public class FunctionCallGenerator implements CallGenerator, MethodHandleGenerat
           paramStrategy.loadParameter(mv, Optional.<GExpr>absent());
         }
       }
-      if(varArgArray.isPresent()) {
-        varArgArray.get().load(mv);
+      for (JExpr varArg : varArgs) {
+        varArg.load(mv);
       }
       
       // Now invoke the method

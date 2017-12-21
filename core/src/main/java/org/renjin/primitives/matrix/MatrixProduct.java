@@ -20,349 +20,284 @@ package org.renjin.primitives.matrix;
 
 import com.github.fommil.netlib.BLAS;
 import org.renjin.eval.EvalException;
+import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.sexp.*;
 
 
 class MatrixProduct {
 
-  // TODO:
-  // 1. Code cleanup
-  // 2. Complex matrixes implementation
-  // 3. dim names (etc)
-  
   public static final int PROD = 0;
   public static final int CROSSPROD = 1;
   public static final int TCROSSPROD = 2;
 
+  private static final int ROWS = 0;
+  private static final int COLS = 1;
+
+  private int operation;
+  private boolean symmetrical;
+
   private AtomicVector x;
   private AtomicVector y;
 
-  private int nrx=0, ncx=0, nry=0, ncy=0;
-  private int primop;
-  private AtomicVector xdims;
-  private AtomicVector ydims;
+  private int nrx=0;
+  private int ncx=0;
+  private int nry=0;
+  private int ncy=0;
   private int ldx;
   private int ldy;
 
-  private boolean sym;
-  
-  private ListVector.Builder dimnames = new ListVector.Builder(2);
+  private Vector[] operands;
 
-  public MatrixProduct(int primop, AtomicVector x, AtomicVector y) {
+  public MatrixProduct(int operation, AtomicVector x, AtomicVector y) {
     super();
     this.x = x;
     this.y = y;
 
-    sym = (y == Null.INSTANCE);
-    if (sym && (primop > 0)) {
+    symmetrical = (y == Null.INSTANCE);
+    if (symmetrical && (operation > 0)) {
       this.y = x;
     }
 
-    this.primop = primop;
+    this.operation = operation;
+
+    if (symmetrical) {
+      operands = new Vector[] { x };
+    } else {
+      operands = new Vector[] { x, y };
+    }
 
     computeMatrixDims();
   }
 
-
   private void computeMatrixDims() {
 
-    xdims = (AtomicVector)x.getAttribute(Symbols.DIM);
-    ydims = (AtomicVector)y.getAttribute(Symbols.DIM);
+    Vector xdims = x.getAttributes().getDim();
+    Vector ydims = y.getAttributes().getDim();
     ldx = xdims.length();
     ldy = ydims.length();
 
+    if (ldx != 2 && ldy != 2) {
 
-    if (ldx != 2 && ldy != 2) {         /* x and y non-matrices */
-      if (primop == PROD) {
+      /* x and y non-matrices */
+
+      if (operation == PROD) {
+
         nrx = 1;
         ncx = x.length();
-      }
-      else {
+
+      } else {
         nrx = x.length();
         ncx = 1;
       }
+
       nry = y.length();
       ncy = 1;
-    }
-    else if (ldx != 2) {                /* x not a matrix */
+
+    } else if (ldx != 2) {
+
+      /* x not a matrix */
+
       nry = ydims.getElementAsInt(0);
       ncy = ydims.getElementAsInt(1);
       nrx = 0;
       ncx = 0;
-      if (primop == 0) {
-        if (x.length() == nry) {     /* x as row vector */
-          nrx = 1;
-          ncx = nry; /* == x.length() */
-        }
-        else if (nry == 1) {        /* x as col vector */
-          nrx = x.length();
-          ncx = 1;
-        }
+
+      switch (operation) {
+        case PROD:
+          if (x.length() == nry) {
+            /* x as row vector */
+            nrx = 1;
+            ncx = nry; /* == x.length() */
+          }
+          else if (nry == 1) {
+            /* x as col vector */
+            nrx = x.length();
+            ncx = 1;
+          }
+          break;
+
+        case CROSSPROD:
+
+          if (x.length() == nry) {
+          /* x is a col vector */
+            nrx = nry; /* == x.length() */
+            ncx = 1;
+          }
+          break;
+
+        case TCROSSPROD:
+          if (x.length() == ncy) {
+            /* x as row vector */
+            nrx = 1;
+            ncx = ncy; /* == x.length() */
+
+          } else if (ncy == 1) {
+            /* x as col vector */
+            nrx = x.length();
+            ncx = 1;
+          }
+          break;
       }
-      else if (primop == 1) { /* crossprod() */
-        if (x.length() == nry) {     /* x is a col vector */
-          nrx = nry; /* == x.length() */
-          ncx = 1;
-        }
-        /* else if (nry == 1) ... not being too tolerant
-               to treat x as row vector, as t(x) *is* row vector */
-      }
-      else { /* tcrossprod */
-        if (x.length() == ncy) {     /* x as row vector */
-          nrx = 1;
-          ncx = ncy; /* == x.length() */
-        }
-        else if (ncy == 1) {        /* x as col vector */
-          nrx = x.length();
-          ncx = 1;
-        }
-      }
-    }
-    else if (ldy != 2) {                /* y not a matrix */
+    } else if (ldy != 2) {
+
+      /* y not a matrix */
+
       nrx = xdims.getElementAsInt(0);
       ncx = xdims.getElementAsInt(1);
       nry = 0;
       ncy = 0;
-      if (primop == 0) {
-        if (y.length() == ncx) {     /* y as col vector */
-          nry = ncx;
+
+      switch (operation) {
+        case PROD:
+          if (y.length() == ncx) {
+            /* y as col vector */
+            nry = ncx;
+            ncy = 1;
+
+          } else if (ncx == 1) {
+            /* y as row vector */
+            nry = 1;
+            ncy = y.length();
+          }
+          break;
+
+        case CROSSPROD:
+          if (y.length() == nrx) {
+            /* y is a col vector */
+            nry = nrx;
+            ncy = 1;
+          }
+          break;
+
+        case TCROSSPROD:
+          nry = y.length();
           ncy = 1;
-        }
-        else if (ncx == 1) {        /* y as row vector */
-          nry = 1;
-          ncy = y.length();
-        }
+          break;
       }
-      else if (primop == 1) { /* crossprod() */
-        if (y.length() == nrx) {     /* y is a col vector */
-          nry = nrx;
-          ncy = 1;
-        }
-      }
-      else { /* tcrossprod --         y is a col vector */
-        nry = y.length();
-        ncy = 1;
-      }
-    }
-    else {                              /* x and y matrices */
-      nrx = xdims.getElementAsInt(0);
-      ncx = xdims.getElementAsInt(1);
-      nry = ydims.getElementAsInt(0);
-      ncy = ydims.getElementAsInt(1);
+    } else {
+
+      /* x and y matrices */
+
+      nrx = xdims.getElementAsInt(ROWS);
+      ncx = xdims.getElementAsInt(COLS);
+      nry = ydims.getElementAsInt(ROWS);
+      ncy = ydims.getElementAsInt(COLS);
     }
 
-
-    if (((primop == 0) && (ncx != nry)) ||
-        ((primop == 1) && (nrx != nry)) ||
-        ((primop == 2) && (ncx != ncy)) ) {
+    if (((operation == 0) && (ncx != nry)) ||
+        ((operation == 1) && (nrx != nry)) ||
+        ((operation == 2) && (ncx != ncy)) ) {
       throw new EvalException("non-conformable arguments");
     }
   }
 
-
-  public Vector matprod() {
-
-    double ans[] = new double[nrx*ncy];
-
-
-    //    if (mode == CPLXSXP)
-    //        cmatprod(COMPLEX(CAR(args)), nrx, ncx,
-    //                 COMPLEX(y), nry, ncy, COMPLEX(ans));
-    //    else
-
-    matprod(getXArray(), nrx, ncx,
-        getYArray(), nry, ncy, ans);
-    
-    
-    Vector xdimnames = (Vector) x.getAttribute(Symbols.DIMNAMES);
-
-    if (xdimnames != Null.INSTANCE) {
-      if (ldx == 2 || ncx == 1) {
-        dimnames.set(0, xdimnames.getElementAsSEXP(0));
-//            dnx = getAttrib(xdims, R_NamesSymbol);
-//            if(!isNull(dnx))
-//                SET_STRING_ELT(dimnamesnames, 0, STRING_ELT(dnx, 0));
-      }
-    }
-
-    ydimsEtcetera();
-
-    return makeMatrix(ans, nrx, ncy);
-  }
-
-  private DoubleVector makeMatrix(double[] values, int nr, int nc) {
-    AttributeMap.Builder attributes = AttributeMap.builder();
-    attributes.setDim(nr, nc);
-    attributes.set(Symbols.DIMNAMES, buildDimnames());
-
-    return new DoubleArrayVector(values, attributes.build());
-  }
-
-  private Vector buildDimnames() {
-    ListVector vector = dimnames.build();
-    if (vector.getElementAsSEXP(0) != Null.INSTANCE ||
-        vector.getElementAsSEXP(1) != Null.INSTANCE) {
-      return vector;
-    } else {
-      return Null.INSTANCE;
+  public String getName() {
+    switch (operation) {
+      default:
+      case PROD:
+        return "%*%";
+      case CROSSPROD:
+        return "crossprod";
+      case TCROSSPROD:
+        return "tcrossprod";
     }
   }
-  
-  public DoubleVector crossprod() {
-    double ans[] = new double[ncx * ncy];
-    //    if (mode == CPLXSXP)
-    //        if(sym)
-    //            ccrossprod(COMPLEX(CAR(args)), nrx, ncx,
-    //                       COMPLEX(CAR(args)), nry, ncy, COMPLEX(ans));
-    //        else
-    //            ccrossprod(COMPLEX(CAR(args)), nrx, ncx,
-    //                       COMPLEX(y), nry, ncy, COMPLEX(ans));
-    //    else {
-    if(sym) {
-      symcrossprod(getXArray(), nrx, ncx, ans);
-    } else {
-      crossprod(getXArray(), nrx, ncx,
-          getYArray(), nry, ncy, ans);
-    }
 
-
-    //    PROTECT(xdims = getAttrib(CAR(args), R_DimNamesSymbol));
-    //    if (sym)
-    //        PROTECT(ydims = xdims);
-    //    else
-    //        PROTECT(ydims = getAttrib(y, R_DimNamesSymbol));
-    //
-    //    if (xdims != Null.INSTANCE || ydims != Null.INSTANCE) {
-    //        SEXP dimnames, dimnamesnames, dnx=Null.INSTANCE, dny=Null.INSTANCE;
-    //
-    //        /* allocate dimnames and dimnamesnames */
-    //
-    //        PROTECT(dimnames = allocVector(VECSXP, 2));
-    //        PROTECT(dimnamesnames = allocVector(STRSXP, 2));
-    //
-    //        if (xdims != Null.INSTANCE) {
-    //            if (ldx == 2) {/* not nrx==1 : .. fixed, ihaka 2003-09-30 */
-    //                SET_VECTOR_ELT(dimnames, 0, VECTOR_ELT(xdims, 1));
-    //                dnx = getAttrib(xdims, R_NamesSymbol);
-    //                if(!isNull(dnx))
-    //                    SET_STRING_ELT(dimnamesnames, 0, STRING_ELT(dnx, 1));
-    //            }
-    //        }
-    //
-    //        ydimsEtcetera();
-    //    }
-    
-    return makeMatrix(ans, ncx, ncy);
+  public Vector[] getOperands() {
+    return operands;
   }
 
-  private void ydimsEtcetera() {
-
-    Vector ydimnames = (Vector) y.getAttribute(Symbols.DIMNAMES);
-    if (ydimnames != Null.INSTANCE) {
-      if (ldy == 2) {
-        dimnames.set(1, ydimnames.getElementAsSEXP(1));
-//                AtomicVector dny = getAttrib(ydims, R_NamesSymbol);             
-//                if(dny != Null.INSTANCE)                                   
-//                    SET_STRING_ELT(dimnamesnames, 1, STRING_ELT(dny, 1));
-      } else if (nry == 1) {
-        dimnames.set(1, ydimnames.getElementAsSEXP(0));
-//                dny = getAttrib(ydims, R_NamesSymbol);             
-//                if(!isNull(dny))                                   
-//                    SET_STRING_ELT(dimnamesnames, 1, STRING_ELT(dny, 0));
-      }
-    }
-//                                                                   
-//        /* We sometimes attach a dimnames attribute                
-//         * whose elements are all NULL ...                         
-//         * This is ugly but causes no real damage.                 
-//         * Now (2.1.0 ff), we don't anymore: */                    
-//        if (VECTOR_ELT(dimnames,0) != Null.INSTANCE ||                
-//            VECTOR_ELT(dimnames,1) != Null.INSTANCE) {                
-//            if (dnx != Null.INSTANCE || dny != Null.INSTANCE)            
-//                setAttrib(dimnames, R_NamesSymbol, dimnamesnames); 
-//            setAttrib(ans, R_DimNamesSymbol, dimnames);            
-//        }                      
+  public boolean isNonZero() {
+    return (nrx > 0 && ncx > 0 && nry > 0 && ncy > 0);
   }
 
-  public DoubleVector tcrossprod() {
-    {                                      /* op == 2: tcrossprod() */
-
-      double[] ans = new double[nrx * nry];
-      
-      //      if (mode == CPLXSXP)
-      //          if(sym)
-      //              tccrossprod(COMPLEX(CAR(args)), nrx, ncx,
-      //                          COMPLEX(CAR(args)), nry, ncy, COMPLEX(ans));
-      //          else
-      //              tccrossprod(COMPLEX(CAR(args)), nrx, ncx,
-      //                          COMPLEX(y), nry, ncy, COMPLEX(ans));
-
-      if(sym) {
-        symtcrossprod(getXArray(), nrx, ncx, ans);
-      } else {
-        tcrossprod(getXArray(), nrx, ncx,
-            getYArray(), nry, ncy, ans);
-      }
-
-
-      return makeMatrix(ans, nrx, nry);
+  public int computeLength() {
+    switch (operation) {
+      default:
+      case PROD:
+        return nrx*ncy;
+      case CROSSPROD:
+        return ncx * ncy;
+      case TCROSSPROD:
+        return nrx * nry;
     }
-
-    //      PROTECT(xdims = getAttrib(CAR(args), R_DimNamesSymbol));
-    //      if (sym)
-    //          PROTECT(ydims = xdims);
-    //      else
-    //          PROTECT(ydims = getAttrib(y, R_DimNamesSymbol));
-    //
-    //      if (xdims != Null.INSTANCE || ydims != Null.INSTANCE) {
-    //          SEXP dimnames, dimnamesnames, dnx=Null.INSTANCE, dny=Null.INSTANCE;
-    //
-    //          /* allocate dimnames and dimnamesnames */
-    //
-    //          PROTECT(dimnames = allocVector(VECSXP, 2));
-    //          PROTECT(dimnamesnames = allocVector(STRSXP, 2));
-    //
-    //          if (xdims != Null.INSTANCE) {
-    //              if (ldx == 2) {
-    //                  SET_VECTOR_ELT(dimnames, 0, VECTOR_ELT(xdims, 0));
-    //                  dnx = getAttrib(xdims, R_NamesSymbol);
-    //                  if(!isNull(dnx))
-    //                      SET_STRING_ELT(dimnamesnames, 0, STRING_ELT(dnx, 0));
-    //              }
-    //          }
-    //          if (ydims != Null.INSTANCE) {
-    //              if (ldy == 2) {
-    //                  SET_VECTOR_ELT(dimnames, 1, VECTOR_ELT(ydims, 0));
-    //                  dny = getAttrib(ydims, R_NamesSymbol);
-    //                  if(!isNull(dny))
-    //                      SET_STRING_ELT(dimnamesnames, 1, STRING_ELT(dny, 0));
-    //              }
-    //          }
-    //          if (VECTOR_ELT(dimnames,0) != Null.INSTANCE ||
-    //              VECTOR_ELT(dimnames,1) != Null.INSTANCE) {
-    //              if (dnx != Null.INSTANCE || dny != Null.INSTANCE)
-    //                  setAttrib(dimnames, R_NamesSymbol, dimnamesnames);
-    //              setAttrib(ans, R_DimNamesSymbol, dimnames);
-    //          }
-
   }
 
-  private void symcrossprod(double x[], int nr, int nc, double z[]) {
-    String trans = "T";
-    String uplo = "U";
-    double one = 1.0, zero = 0.0;
-    int i, j;
-    if (nr > 0 && nc > 0) {
-      BLAS.getInstance().dsyrk(uplo, trans, nc, nr, one, x, nr, zero, z, nc);  
-      for (i = 1; i < nc; i++) {
-        for (j = 0; j < i; j++) {
-          z[i + nc * j] = z[j + nc * i];
+  public AttributeMap computeAttributes() {
+    AttributeMap.Builder attributes = new AttributeMap.Builder();
+
+    switch (operation) {
+      case PROD:
+        attributes.setDim(nrx, ncy);
+        attributes.setDimNames(computeDimensionNames(ROWS, COLS));
+        break;
+
+      case CROSSPROD:
+        attributes.setDim(ncx, ncy);
+        attributes.setDimNames(computeDimensionNames(COLS, COLS));
+        break;
+
+      case TCROSSPROD:
+        attributes.setDim(nrx, nry);
+        attributes.setDimNames(computeDimensionNames(ROWS, ROWS));
+        break;
+    }
+    return attributes.build();
+  }
+
+  public Vector compute() {
+
+    if(!isNonZero()) {
+      return (Vector)RepDoubleVector.createConstantVector(0, computeLength())
+          .setAttributes(computeAttributes());
+    }
+
+    if(x.isDeferred() || y.isDeferred() || computeLength() > 500) {
+      return new DeferredMatrixProduct(this);
+    }
+
+    return DoubleArrayVector.unsafe(computeResult(), computeAttributes());
+  }
+
+  private Vector computeDimensionNames(int rowNamesDim, int colNamesDim) {
+    Vector xdims = x.getAttributes().getDimNames();
+    Vector ydims = y.getAttributes().getDimNames();
+
+    ListVector.NamedBuilder dimNames = new ListVector.NamedBuilder(2);
+    dimNames.set(ROWS, Null.INSTANCE);
+    dimNames.set(COLS, Null.INSTANCE);
+
+    boolean hasNames = false;
+
+    if(xdims != Null.INSTANCE) {
+      if (ldx == 2) {
+        SEXP rowNames = xdims.getElementAsSEXP(rowNamesDim);
+        if(rowNames != Null.INSTANCE) {
+          hasNames = true;
+        }
+        if(rowNames != Null.INSTANCE || xdims.hasNames()) {
+          dimNames.set(ROWS, rowNames);
+          dimNames.setName(ROWS, xdims.getName(rowNamesDim));
         }
       }
-    } else { /* zero-extent operations should return zeroes */
-      for(i = 0; i < nc*nc; i++) {
-        z[i] = 0;
+    }
+    if(ydims != Null.INSTANCE) {
+      if (ldy == 2) {
+        SEXP rowNames = ydims.getElementAsSEXP(colNamesDim);
+        if(rowNames != Null.INSTANCE) {
+          hasNames = true;
+        }
+        if(rowNames != Null.INSTANCE || ydims.hasNames()) {
+          dimNames.set(COLS, rowNames);
+          dimNames.setName(COLS, ydims.getName(colNamesDim));
+        }
       }
+    }
+
+    if(hasNames) {
+      return dimNames.build();
+    } else {
+      return Null.INSTANCE;
     }
   }
 
@@ -374,38 +309,64 @@ class MatrixProduct {
     return y.toDoubleArray();
   }
 
-  private void matprod(double x[], int nrx, int ncx,
-      double y[], int nry, int ncy, double z[])
-  {
+  Vector computeResultVector(AttributeMap attributes) {
+    return DoubleArrayVector.unsafe(computeResult(), attributes);
+  }
+
+  double[] computeResult() {
+    switch (operation) {
+      case CROSSPROD:
+        if(symmetrical) {
+          return computeSymmetricalCrossProduct();
+        } else {
+          return computeCrossProduct();
+        }
+      case TCROSSPROD:
+        if(symmetrical) {
+          return computeTransposeSymmetricalCrossProduct();
+        } else {
+          return computeTransposeCrossProduct();
+        }
+      default:
+      case PROD:
+        return computeMatrixProduct();
+    }
+  }
+
+  private double[] computeMatrixProduct() {
     String transa = "N";
     String transb = "N";
     int i,  j, k;
     double one = 1.0, zero = 0.0;
     double sum;
-    boolean have_na = false;
+    boolean haveNA = false;
+
+    double x[] = getXArray();
+    double y[] = getYArray();
+    double z[] = new double[nrx*ncy];
 
     if (nrx > 0 && ncx > 0 && nry > 0 && ncy > 0) {
+
       /* Don't trust the BLAS to handle NA/NaNs correctly: PR#4582
        * The test is only O(n) here
        */
-
       for (i = 0; i < nrx*ncx; i++) {
         if (Double.isNaN(x[i])) {
-          have_na = true;
+          haveNA = true;
           break;
         }
       }
 
-      if (!have_na) {
+      if (!haveNA) {
         for (i = 0; i < nry*ncy; i++) {
           if (Double.isNaN(y[i])) {
-            have_na = true; 
+            haveNA = true;
             break;
           }
         }
       }
 
-      if (have_na) {
+      if (haveNA) {
         for (i = 0; i < nrx; i++) {
           for (k = 0; k < ncy; k++) {
             sum = 0.0;
@@ -419,67 +380,82 @@ class MatrixProduct {
         BLAS.getInstance().dgemm(transa, transb, nrx, ncy, ncx, one,
             x, nrx, y, nry, zero, z, nrx);
       }
-    } else { /* zero-extent operations should return zeroes */
-      for(i = 0; i < nrx*ncy; i++) {
-        z[i] = 0;
-      }
     }
+    return z;
   }
 
 
-  private void symtcrossprod(double[] x, int nr, int nc, double[] z)
-  {
-    String trans = "N";
-    String uplo = "U";
-    double one = 1.0, zero = 0.0;
-    int i, j;
-    if (nr > 0 && nc > 0) {
-      BLAS.getInstance().dsyrk(uplo, trans, nr, nc, one, x, nr, zero, z, nr);
-      for (i = 1; i < nr; i++) {
-        for (j = 0; j < i; j++) {
-          z[i + nr *j] = z[j + nr * i];
-        }
-      }
-    } else { /* zero-extent operations should return zeroes */
-      for(i = 0; i < nr*nr; i++) {
-        z[i] = 0;
-      }
-    }
-  }
+  private double[] computeCrossProduct() {
+    double[] x = this.getXArray();
+    double[] y = this.getYArray();
+    double[] z = new double[ncx * ncy];
 
-
-  private void tcrossprod(double x[], int nrx, int ncx,
-      double y[], int nry, int ncy, double z[])
-  {
-    String transa = "N";
-    String transb = "T";
-    double one = 1.0, zero = 0.0;
-    if (nrx > 0 && ncx > 0 && nry > 0 && ncy > 0) {
-      BLAS.getInstance().dgemm(transa, transb, nrx, nry, ncx, one,
-          x, nrx, y, nry, zero, z, nrx);
-    } else { /* zero-extent operations should return zeroes */
-      int i;
-      for(i = 0; i < nrx*nry; i++) {
-        z[i] = 0;
-      }
-    }
-  }
-
-
-  private void crossprod(double x[], int nrx, int ncx,
-      double y[], int nry, int ncy, double z[])
-  {
     String transa = "T";
     String transb = "N";
     double one = 1.0, zero = 0.0;
     if (nrx > 0 && ncx > 0 && nry > 0 && ncy > 0) {
       BLAS.getInstance().dgemm(transa, transb, ncx, ncy, nrx, one,
           x, nrx, y, nry, zero, z, ncx);
-    } else { /* zero-extent operations should return zeroes */
-      int i;
-      for(i = 0; i < ncx*ncy; i++) {
-        z[i] = 0;
+    }
+
+    return z;
+  }
+
+  private double[] computeTransposeCrossProduct() {
+    double[] x = getXArray();
+    double[] y = getYArray();
+    double[] z = new double[nrx * nry];
+
+    String transa = "N";
+    String transb = "T";
+    double one = 1.0, zero = 0.0;
+    if (nrx > 0 && ncx > 0 && nry > 0 && ncy > 0) {
+      BLAS.getInstance().dgemm(transa, transb, nrx, nry, ncx, one,
+          x, nrx, y, nry, zero, z, nrx);
+    }
+    return z;
+  }
+
+
+  private double[] computeSymmetricalCrossProduct() {
+    String trans = "T";
+    String uplo = "U";
+    double one = 1.0, zero = 0.0;
+
+    double[] x = this.getXArray();
+    double[] z = new double[ncx * ncy];
+
+    int i, j;
+    if (nrx > 0 && ncx > 0) {
+      BLAS.getInstance().dsyrk(uplo, trans, ncx, nrx, one, x, nrx, zero, z, ncx);
+
+      for (i = 1; i < ncx; i++) {
+        for (j = 0; j < i; j++) {
+          z[i + ncx * j] = z[j + ncx * i];
+        }
       }
     }
+    return z;
   }
+
+  private double[] computeTransposeSymmetricalCrossProduct() {
+
+    double[] x = this.getXArray();
+    double[] z = new double[nrx * nry];
+
+    String trans = "N";
+    String uplo = "U";
+    double one = 1.0, zero = 0.0;
+    int i, j;
+    if (nrx > 0 && ncx > 0) {
+      BLAS.getInstance().dsyrk(uplo, trans, nrx, ncx, one, x, nrx, zero, z, nrx);
+      for (i = 1; i < nrx; i++) {
+        for (j = 0; j < i; j++) {
+          z[i + nrx *j] = z[j + nrx * i];
+        }
+      }
+    }
+    return z;
+  }
+
 }

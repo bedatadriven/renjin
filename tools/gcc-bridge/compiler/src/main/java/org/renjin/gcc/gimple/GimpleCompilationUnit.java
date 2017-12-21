@@ -108,4 +108,13 @@ public class GimpleCompilationUnit {
       function.accept(visitor);
     }
   }
+
+  public GimpleFunction getFunction(String mangledName) {
+    for (GimpleFunction function : functions) {
+      if(function.getMangledName().equals(mangledName)) {
+        return function;
+      }
+    }
+    throw new IllegalArgumentException("No such function: " + mangledName);
+  }
 }

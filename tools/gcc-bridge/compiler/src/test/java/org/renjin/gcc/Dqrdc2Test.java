@@ -22,6 +22,7 @@ package org.renjin.gcc;
 import org.junit.Test;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.gcc.runtime.Ptr;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -37,20 +38,20 @@ public class Dqrdc2Test  extends AbstractGccTest {
     compile(Arrays.asList("dqrdc2.f", "ddot.f", "daxpy.f", "dscal.f", "dnrm2.f"));
 
     Method dqrdc2 = Class.forName("org.renjin.gcc.dqrdc2").getMethod("dqrdc2_",
-        DoublePtr.class,  // x (in/out)
-        IntPtr.class,     // ldx - number of rows
-        IntPtr.class,     // n - number of rows
-        IntPtr.class,     // p - number of columns
-        DoublePtr.class,  // tol - tolerance
-        IntPtr.class,     // k - rank  (out)
-        DoublePtr.class,  // qraux - out
-        IntPtr.class,     // jpvt - out
-        DoublePtr.class); // work - out
+        Ptr.class,  // x (in/out)
+        Ptr.class,     // ldx - number of rows
+        Ptr.class,     // n - number of rows
+        Ptr.class,     // p - number of columns
+        Ptr.class,  // tol - tolerance
+        Ptr.class,     // k - rank  (out)
+        Ptr.class,  // qraux - out
+        Ptr.class,     // jpvt - out
+        Ptr.class); // work - out
 
     Method dnrm2 = Class.forName("org.renjin.gcc.dnrm2").getMethod("dnrm2_",
-        IntPtr.class,     // n    
-        DoublePtr.class,  // x
-        IntPtr.class);    // incx
+        Ptr.class,     // n
+        Ptr.class,  // x
+        Ptr.class);    // incx
 
 
     // 3 x 4 matrix (in column-major order)

@@ -35,12 +35,12 @@ public class GimpleSymbolTable {
   
   private class UnitTable {
     private final Map<String, GimpleFunction> functionMap = Maps.newHashMap();
-    private final Map<Integer, GimpleVarDecl> globalVariables = Maps.newHashMap();
+    private final Map<Long, GimpleVarDecl> globalVariables = Maps.newHashMap();
 
   }
   
   private class LocalTable {
-    private final Map<Integer, GimpleVarDecl> localVariables = Maps.newHashMap();
+    private final Map<Long, GimpleVarDecl> localVariables = Maps.newHashMap();
   }
   
   public static interface Scope {
@@ -101,12 +101,12 @@ public class GimpleSymbolTable {
   
   public Scope scope(final GimpleFunction function) {
     
-    final Map<Integer, GimpleParameter> paramMap = Maps.newHashMap();
+    final Map<Long, GimpleParameter> paramMap = Maps.newHashMap();
     for (GimpleParameter param : function.getParameters()) {
       paramMap.put(param.getId(), param);
     }
 
-    final Map<Integer, GimpleVarDecl> localVarMap = Maps.newHashMap();
+    final Map<Long, GimpleVarDecl> localVarMap = Maps.newHashMap();
     for (GimpleVarDecl varDecl : function.getVariableDeclarations()) {
       localVarMap.put(varDecl.getId(), varDecl);
     }

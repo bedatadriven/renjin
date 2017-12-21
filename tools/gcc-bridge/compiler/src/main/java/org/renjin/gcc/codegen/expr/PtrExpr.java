@@ -19,6 +19,9 @@
 package org.renjin.gcc.codegen.expr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.condition.ConditionGenerator;
+import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Label;
 
 /**
@@ -27,6 +30,27 @@ import org.renjin.repackaged.asm.Label;
 public interface PtrExpr extends GExpr {
   
   void jumpIfNull(MethodGenerator mv, Label label);
-  
-  GExpr valueOf();
+
+  JExpr memoryCompare(MethodGenerator mv, PtrExpr otherPointer, JExpr n);
+
+  void memorySet(MethodGenerator mv, JExpr byteValue, JExpr length);
+
+  /**
+   * Copies memory from the given {@code source} {@code PtrExpr} to memory to which
+   * this pointer points.
+   *
+   * @param source the pointer to the memory to copy
+   * @param length the number of bytes to copy
+   * @param buffer
+   */
+  void memoryCopy(MethodGenerator mv, PtrExpr source, JExpr length, boolean buffer);
+
+  PtrExpr realloc(MethodGenerator mv, JExpr newSizeInBytes);
+
+  PtrExpr pointerPlus(MethodGenerator mv, JExpr offsetInBytes);
+
+  GExpr valueOf(GimpleType expectedType);
+
+  ConditionGenerator comparePointer(MethodGenerator mv, GimpleOp op, GExpr otherPointer);
+
 }

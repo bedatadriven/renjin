@@ -18,12 +18,23 @@
  */
 package org.renjin.gcc;
 
+import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.codegen.type.fun.FunPtrStrategy;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
+import org.renjin.gcc.codegen.vptr.VPtrRecordTypeStrategy;
+import org.renjin.gcc.codegen.vptr.VPtrStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
+import org.renjin.gcc.runtime.Ptr;
 
+import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 public class ProvidedGlobalVarField implements ProvidedGlobalVar  {
   private Field field;
@@ -34,7 +45,30 @@ public class ProvidedGlobalVarField implements ProvidedGlobalVar  {
 
   @Override
   public GExpr createExpr(GimpleVarDecl decl, TypeOracle typeOracle) {
-    TypeStrategy typeStrategy = typeOracle.forType(decl.getType());
-    return typeStrategy.providedGlobalVariable(decl, field);
+
+    TypeStrategy strategy;
+    if(typeOracle.getRecordTypes().isMappedToRecordType(field.getType())) {
+      strategy = typeOracle.getRecordTypes().getPointerStrategyFor(field.getType());
+
+    } else if(field.getType().isPrimitive()) {
+      strategy = new PrimitiveTypeStrategy((GimplePrimitiveType) decl.getType());
+
+    } else if (field.getType().equals(MethodHandle[].class) && decl.getType() instanceof GimpleArrayType) {
+      GimpleArrayType arrayType = (GimpleArrayType) decl.getType();
+      strategy = new FunPtrStrategy().arrayOf(arrayType);
+
+    } else if (Ptr.class.isAssignableFrom(field.getType())) {
+      if(decl.getType() instanceof GimpleRecordType) {
+        strategy = new VPtrRecordTypeStrategy(typeOracle.getRecordTypeDef(((GimpleRecordType) decl.getType())));
+      } else {
+        strategy = new VPtrStrategy(decl.getType().getBaseType());
+      }
+    } else {
+      throw new UnsupportedOperationException("Strategy for " + field.getType());
+    }
+
+    boolean readOnly = Modifier.isFinal(field.getModifiers());
+
+    return strategy.providedGlobalVariable(decl, Expressions.staticField(field), readOnly);
   }
 }

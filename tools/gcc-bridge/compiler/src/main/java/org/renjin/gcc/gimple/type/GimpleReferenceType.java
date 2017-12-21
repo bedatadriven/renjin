@@ -18,6 +18,9 @@
  */
 package org.renjin.gcc.gimple.type;
 
+import org.renjin.gcc.gimple.expr.GimpleConstant;
+import org.renjin.gcc.gimple.expr.GimpleIntegerConstant;
+
 public class GimpleReferenceType extends AbstractGimpleType implements GimpleIndirectType {
   private GimpleType baseType;
 
@@ -37,6 +40,11 @@ public class GimpleReferenceType extends AbstractGimpleType implements GimpleInd
   @Override
   public int sizeOf() {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public GimpleConstant nullValue() {
+    return GimpleIntegerConstant.nullValue(this);
   }
 
   @Override

@@ -21,9 +21,11 @@ package org.renjin.gnur.api;
 
 import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.BytePtr;
-import org.renjin.gcc.runtime.CharPtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.primitives.files.Files;
+
+import java.nio.charset.StandardCharsets;
 
 @SuppressWarnings("unused")
 public final class Utils {
@@ -33,11 +35,11 @@ public final class Utils {
 
 
   public static void R_isort(IntPtr p0, int p1) {
-    throw new UnimplementedGnuApiMethod("R_isort");
+    org.renjin.gnur.Sort.R_isort(p0, p1);
   }
 
   public static void R_rsort(DoublePtr p0, int p1) {
-    throw new UnimplementedGnuApiMethod("R_rsort");
+    org.renjin.gnur.Sort.R_rsort(p0, p1);
   }
 
   // void R_csort (Rcomplex *, int)
@@ -51,7 +53,7 @@ public final class Utils {
   }
 
   public static void Rf_iPsort(IntPtr p0, int p1, int p2) {
-    throw new UnimplementedGnuApiMethod("Rf_iPsort");
+    org.renjin.gnur.Sort.Rf_iPsort(p0, p1, p2);
   }
 
   public static void Rf_rPsort(DoublePtr p0, int p1, int p2) {
@@ -76,13 +78,8 @@ public final class Utils {
     org.renjin.gnur.qsort.R_qsort_int_I(iv, II, i, j);
   }
 
-  @Deprecated
-  public static CharPtr R_ExpandFileName(CharPtr p0) {
-    throw new UnimplementedGnuApiMethod("R_ExpandFileName");
-  }
-
   public static BytePtr R_ExpandFileName(BytePtr p0) {
-    throw new UnimplementedGnuApiMethod("R_ExpandFileName");
+    return BytePtr.nullTerminatedString(Files.pathExpand(p0.nullTerminatedString()), StandardCharsets.UTF_8);
   }
 
   public static void Rf_setIVector(IntPtr p0, int p1, int p2) {

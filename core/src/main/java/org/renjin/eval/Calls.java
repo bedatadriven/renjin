@@ -80,8 +80,11 @@ public class Calls {
       */
 
       if (node.getValue().equals(Symbols.ELLIPSES)) {
-
-        PromisePairList dotExp = (PromisePairList)rho.findVariable(context, Symbols.ELLIPSES);
+        SEXP ellipsesValue = rho.findVariable(context, Symbols.ELLIPSES);
+        if(ellipsesValue == Symbol.UNBOUND_VALUE) {
+          throw new EvalException("'...' used in an incorrect context");
+        }
+        PromisePairList dotExp = (PromisePairList) ellipsesValue;
         for(PairList.Node dotNode : dotExp.nodes()) {
           list.add(dotNode.getRawTag(), dotNode.getValue());
         }

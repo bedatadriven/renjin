@@ -112,7 +112,7 @@ static Rboolean active[R_MaxDevices];
 
 /* a dummy description to point to when there are no active devices */
 
-static GEDevDesc nullDevice;
+static pGEDevDesc pNullDevice;
 
 /* In many cases this is used to mean that the current device is
    the null device, and in others to mean that there is no open device.
@@ -516,7 +516,7 @@ pGEDevDesc GEcreateDevDesc(pDevDesc dev)
 
 void InitGraphics()
 {
-    R_Devices[0] = &nullDevice;
+    R_Devices[0] = pNullDevice;
     active[0] = TRUE;
     // these are static arrays, not really needed
     for (int i = 1; i < R_MaxDevices; i++) {

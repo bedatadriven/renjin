@@ -21,12 +21,12 @@ package org.renjin.gcc.runtime;
 
 import java.util.Arrays;
 
-public class IntPtr implements Ptr {
+public class IntPtr extends AbstractPtr implements Ptr {
   
   public static final int BYTES = Integer.SIZE / 8;
   
   public static final IntPtr NULL = new IntPtr();
-  
+
   public final int[] array;
   public final int offset;
 
@@ -45,6 +45,26 @@ public class IntPtr implements Ptr {
     this.offset = 0;
   }
 
+  public static IntPtr malloc(int bytes) {
+    return new IntPtr(new int[AbstractPtr.mallocSize(bytes, BYTES)]);
+  }
+
+  public static Ptr toPtr(int i) {
+    if(i == 0) {
+      return NULL;
+    } else {
+      throw new UnsupportedOperationException(String.format("Cannot cast integer %x to pointer", i));
+    }
+  }
+
+  public static int fromPtr(Ptr ptr) {
+    if(ptr.isNull()) {
+      return 0;
+    } else {
+      return ptr.toInt();
+    }
+  }
+
   @Override
   public int[] getArray() {
     return array;
@@ -56,13 +76,13 @@ public class IntPtr implements Ptr {
   }
 
   @Override
-  public IntPtr realloc(int newSizeInBytes) {
-    return new IntPtr(Realloc.realloc(array, offset, newSizeInBytes / 4));
+  public int getOffsetInBytes() {
+    return offset * BYTES;
   }
 
   @Override
-  public Ptr pointerPlus(int bytes) {
-    return new IntPtr(array, offset + (bytes / 4));
+  public IntPtr realloc(int newSizeInBytes) {
+    return new IntPtr(Realloc.realloc(array, offset, newSizeInBytes / BYTES));
   }
 
   public int unwrap() {
@@ -117,12 +137,12 @@ public class IntPtr implements Ptr {
       int vx = x[xi];
       int vy = y[yi];
 
-      if(vx != vy || n < 4) {
+      if(vx != vy || n < BYTES) {
         return memcmp(vx, vy, n);
       }
       xi++;
       yi++;
-      n-= 4;
+      n-= BYTES;
     }
     return 0;
   }
@@ -164,4 +184,159 @@ public class IntPtr implements Ptr {
     return (IntPtr) voidPointer;
   }
 
+  @Override
+  public byte getByte(int offset) {
+    int byteIndex = this.offset * BYTES + offset;
+    int index = byteIndex / BYTES;
+    int shift = (byteIndex % BYTES) * 8;
+    return (byte)(this.array[index] >>> shift);
+  }
+
+  @Override
+  public int getInt() {
+    return this.array[this.offset];
+  }
+
+  @Override
+  public int getAlignedInt(int index) {
+    return this.array[this.offset + index];
+  }
+
+  @Override
+  public int getInt(int offset) {
+    if(this.offset % BYTES == 0) {
+      return this.array[this.offset + (offset / BYTES)];
+    } else {
+      return super.getInt(offset);
+    }
+  }
+
+
+
+  @Override
+  public void setInt(int value) {
+    this.array[offset] = value;
+  }
+
+  @Override
+  public void setInt(int byteOffset, int intValue) {
+    if(byteOffset % BYTES == 0) {
+      this.array[this.offset + (byteOffset / BYTES)] = intValue;
+    } else {
+      super.setInt(byteOffset, intValue);
+    }
+  }
+
+  @Override
+  public void setAlignedInt(int index, int value) {
+    this.array[this.offset + index] = value;
+  }
+
+  @Override
+  public void setByte(int offset, byte value) {
+    int bytes = (this.offset * BYTES) + offset;
+    int index = bytes / BYTES;
+    int shift = (bytes % BYTES) * BITS_PER_BYTE;
+
+    int element = array[index];
+
+    int updateMask = 0xFF << shift;
+
+    // Zero out the bits in the byte we are going to update
+    element = element & ~updateMask;
+
+    // Shift our byte into position
+    int update = (((int)value) << shift) & updateMask;
+
+    // Merge the original long and updated bits together
+    array[index] = element | update;
+  }
+
+  @Override
+  public Ptr getPointer(int offset) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public int toInt() {
+    return offset * BYTES;
+  }
+
+  @Override
+  public boolean isNull() {
+    return array == null && offset == 0;
+  }
+
+  @Override
+  public Ptr pointerPlus(int byteCount) {
+    if(byteCount % BYTES == 0) {
+      return new IntPtr(this.array, this.offset + (byteCount / BYTES));
+    } else {
+      return new OffsetPtr(this, byteCount);
+    }
+  }
+
+
+  static int flip(int value) {
+    return value ^ Integer.MIN_VALUE;
+  }
+
+  /**
+   * Compares the two specified {@code int} values, treating them as unsigned values between
+   * {@code 0} and {@code 2^32 - 1} inclusive. (Copied from Guava 17.0)
+   *
+   * @param a the first unsigned {@code int} to compare
+   * @param b the second unsigned {@code int} to compare
+   * @return a negative value if {@code a} is less than {@code b}; a positive value if {@code a} is
+   *         greater than {@code b}; or zero if they are equal
+   */
+  public static int unsignedCompare(int a, int b) {
+    return Integer.compare(flip(a), flip(b));
+  }
+
+  public static int unsignedMax(int a, int b) {
+    if(a==b) {
+      return a;
+    }
+    if(flip(a) > flip(b)) {
+      return a;
+    } else {
+      return b;
+    }
+  }
+
+  public static int unsignedMin(int a, int b) {
+    if(a==b) {
+      return a;
+    }
+    if(flip(a) < flip(b)) {
+      return a;
+    } else {
+      return b;
+    }
+  }
+
+
+  public static int unsignedDivide(int dividend, int divisor) {
+    // In lieu of tricky code, for now just use long arithmetic.
+    return (int)((dividend & 0xFFFFFFFFL) /  (divisor & 0xFFFFFFFFL));
+  }
+
+  public static int unsignedRemainder(int dividend, int divisor) {
+    // In lieu of tricky code, for now just use long arithmetic.
+    return (int)((dividend & 0xFFFFFFFFL) %  (divisor & 0xFFFFFFFFL));
+  }
+
+  public static void memcpy(IntPtr x, IntPtr y, int numBytes) {
+    int[] arrayS = y.getArray();
+    int offsetS = y.getOffset();
+    int restY = arrayS.length - offsetS;
+    if(restY > 0) {
+      int[] carray = new int[numBytes];
+      for(int i = 0, j = offsetS; j < arrayS.length && i < numBytes; j++, i++) {
+        carray[i] = arrayS[j];
+      }
+      x = new IntPtr(carray);
+    }
+  }
 }

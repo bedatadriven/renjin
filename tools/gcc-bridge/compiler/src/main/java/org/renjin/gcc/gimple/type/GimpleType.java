@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @Type(value = GimpleIntegerType.class, name = "integer_type"),
     @Type(value = GimpleRealType.class, name = "real_type"),
     @Type(value = GimplePointerType.class, name = "pointer_type"),
+    @Type(value = GimpleNullPointerType.class, name = "nullptr_type"),
     @Type(value = GimpleReferenceType.class, name = "reference_type"),
     @Type(value = GimpleArrayType.class, name = "array_type"),
     @Type(value = GimpleBooleanType.class, name = "boolean_type"),

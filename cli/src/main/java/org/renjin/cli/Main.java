@@ -27,8 +27,6 @@ import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.primitives.special.ForFunction;
 import org.renjin.repl.JlineRepl;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.Symbol;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -166,8 +164,10 @@ public class Main {
     threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     packageLoader = new AetherPackageLoader();
+
     this.session = new SessionBuilder()
         .setPackageLoader(packageLoader)
+        .setClassLoader(packageLoader.getClassLoader())
         .setExecutorService(threadPool)
         .withDefaultPackages()
         .build();

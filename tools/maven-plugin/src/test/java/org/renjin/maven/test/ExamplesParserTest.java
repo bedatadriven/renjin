@@ -46,4 +46,11 @@ public class ExamplesParserTest extends TestCase {
     assertFalse(examples.contains("# DO NOT RUN FOR THE LOVE OF "));
 
   }
+
+  public void testRdComments() throws IOException {
+    File testFile = new File(getClass().getResource("/man/generate.Guilds.Rd").getFile());
+    String examples = ExamplesParser.parseExamples(testFile);
+
+    assertEquals("\ngenerate.Guilds(theta=200,alpha_x = 0.005, alpha_y = 0.001,J=20000);\n", examples);
+  }
 }

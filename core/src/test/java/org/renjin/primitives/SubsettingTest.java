@@ -45,6 +45,18 @@ public class SubsettingTest extends EvalTestCase {
     assertThat( eval(" x[NULL] "), identicalTo( (SEXP) new DoubleArrayVector() ));
     assertThat( eval(" x[3L] "), elementsIdenticalTo( c(93) ));
   }
+
+  @Test
+  public void subsetNA() {
+    eval( " x <- list(a=1:5) ");
+
+    ListVector.NamedBuilder list = new ListVector.NamedBuilder();
+    list.add(StringVector.NA, Null.INSTANCE);
+    list.add(StringVector.NA, Null.INSTANCE);
+
+    assertThat( eval(" x[[NA]] "), identicalTo(Null.INSTANCE));
+    assertThat( eval(" x[c(NA,NA)] "), identicalTo(list.build()));
+  }
   
   @Test
   public void subsetNullPreservesNames() {

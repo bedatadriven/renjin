@@ -141,6 +141,8 @@ public abstract class AbstractGccTest {
     workingDir.mkdirs();
 
     Gcc gcc = new Gcc(workingDir);
+    gcc.addIncludeDirectory(new File("/usr/local/include/csmith-2.3.0"));
+
     if(Strings.isNullOrEmpty(System.getProperty("gcc.bridge.plugin"))) {
       gcc.extractPlugin();
     } else {
@@ -148,7 +150,6 @@ public abstract class AbstractGccTest {
     }
     gcc.setDebug(true);
     gcc.setGimpleOutputDir(new File("target/gimple"));
-
 
     List<GimpleCompilationUnit> units = Lists.newArrayList();
 

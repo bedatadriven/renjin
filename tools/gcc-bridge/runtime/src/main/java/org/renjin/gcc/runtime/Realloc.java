@@ -98,6 +98,9 @@ public class Realloc {
   }
   
   public static Object realloc(Object p, int newSize) {
+    if(p instanceof Ptr) {
+      return ((Ptr) p).realloc(newSize);
+    }
     throw new UnsupportedOperationException("TODO");
   }
 }

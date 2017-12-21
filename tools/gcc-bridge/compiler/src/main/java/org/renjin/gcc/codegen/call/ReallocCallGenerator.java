@@ -22,6 +22,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
 import org.renjin.gcc.gimple.statement.GimpleCall;
@@ -57,15 +58,14 @@ public class ReallocCallGenerator implements CallGenerator, MethodHandleGenerato
     GimpleType pointerType = call.getLhs().getType();
 
     // Get generators for the fat pointer and new length
-    GExpr pointer = exprFactory.findGenerator(call.getOperand(0));
+    PtrExpr pointer = (PtrExpr) exprFactory.findGenerator(call.getOperand(0));
     JExpr size = exprFactory.findPrimitiveGenerator(call.getOperand(1));
 
-    GExpr reallocatedPointer = typeOracle.forPointerType(pointerType).realloc(mv, pointer, size);
+    GExpr reallocatedPointer = pointer.realloc(mv, size);
 
     GExpr lhs = exprFactory.findGenerator(call.getLhs());
     lhs.store(mv, reallocatedPointer);
   }
-
 
 
   @Override

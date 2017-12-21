@@ -18,7 +18,6 @@
  */
 package org.renjin.primitives.sequence;
 
-import org.renjin.eval.Calls;
 import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -33,7 +32,7 @@ public class RepFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList arguments) {
 
     // rep is one of the very few primitives that uses argument matching
     // *ALMOST* like that employed for closures.
@@ -42,7 +41,6 @@ public class RepFunction extends SpecialFunction {
     // even if 'x' is provided as named argument elsewhere
 
     // check for zero args -- the result should be null
-    PairList arguments = call.getArguments();
     if(arguments == Null.INSTANCE) {
       context.setInvisibleFlag();
       return Null.INSTANCE;
@@ -146,7 +144,7 @@ public class RepFunction extends SpecialFunction {
       return new RepIntVector(x, resultLength, each, repeatAttributes(x, resultLength, each));
     }
 
-    /**
+    /*
      * Go ahead and allocate and fill the memory
      */
     Vector.Builder result = x.newBuilderWithInitialCapacity(resultLength);

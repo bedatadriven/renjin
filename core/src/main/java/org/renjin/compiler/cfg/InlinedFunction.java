@@ -20,10 +20,16 @@ package org.renjin.compiler.cfg;
 
 import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.builtins.ArgumentBounds;
-import org.renjin.compiler.codegen.*;
+import org.renjin.compiler.codegen.ByteCodeEmitter;
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.InlineEmitContext;
+import org.renjin.compiler.codegen.InlineParamExpr;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.ssa.SsaTransformer;
-import org.renjin.compiler.ir.tac.*;
+import org.renjin.compiler.ir.tac.IRArgument;
+import org.renjin.compiler.ir.tac.IRBody;
+import org.renjin.compiler.ir.tac.IRBodyBuilder;
+import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.compiler.ir.tac.expressions.ReadParam;
 import org.renjin.compiler.ir.tac.statements.ReturnStatement;
 import org.renjin.compiler.ir.tac.statements.Statement;

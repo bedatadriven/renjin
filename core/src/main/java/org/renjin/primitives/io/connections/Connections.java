@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.net.URL;
-import java.net.UnknownHostException;
 
 /**
  * 
@@ -150,9 +149,14 @@ public class Connections {
   
   @Internal
   public static IntVector textConnection(@Current final Context context,
-      String objectName, StringVector text, String open, Environment env, String type) throws IOException {
-    
-    return newConnection(context, open, new TextConnection(objectName, Joiner.on('\n').join(text)));
+      String objectName, StringVector object, String open, Environment env, String type) throws IOException {
+
+    OpenSpec openSpec = new OpenSpec(open);
+    if(openSpec.forWriting()) {
+      return newConnection(context, open, new WriteTextConnection(Symbol.get(object.asString()), env));
+    } else {
+      return newConnection(context, open, new ReadTextConnection(objectName, Joiner.on('\n').join(object)));
+    }
   }
   
   
@@ -293,7 +297,10 @@ public class Connections {
     }
 
     if(Identical.identical(connection, new IntArrayVector(-1))) {
-      source.clearSink();
+      Sink sink = source.clearSink();
+      if(sink != null && sink.isCloseOnExit()) {
+        context.getSession().getConnectionTable().close(sink.getConnection());
+      }
     } else {
       Connection sinkConnection = getConnection(context , connection);
       source.sink(new Sink(sinkConnection, split, closeOnExit));
@@ -333,6 +340,11 @@ public class Connections {
         reader.pushBack(data.getElementAsString(i) + suffix);
       }
     }
+  }
+
+  @Internal
+  public static void flush(@Current Context context, SEXP connection) throws IOException {
+    getConnection(context, connection).flush();
   }
   
   @Internal

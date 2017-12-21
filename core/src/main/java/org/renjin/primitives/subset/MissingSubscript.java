@@ -24,7 +24,7 @@ import org.renjin.eval.EvalException;
 /**
  * 
  */
-class MissingSubscript implements Subscript {
+public class MissingSubscript implements Subscript {
   
   private int sourceLength;
 
@@ -66,5 +66,10 @@ class MissingSubscript implements Subscript {
         return true;
       }
     };
+  }
+
+  @Override
+  public int computeCount() {
+    return sourceLength;
   }
 }

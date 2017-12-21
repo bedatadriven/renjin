@@ -42,4 +42,8 @@ public interface Subscript {
   
   IndexPredicate computeIndexPredicate();
 
+  /**
+   * Computes the count of elements selected by this subscript.
+   */
+  int computeCount();
 }

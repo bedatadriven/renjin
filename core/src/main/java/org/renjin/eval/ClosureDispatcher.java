@@ -21,7 +21,9 @@ package org.renjin.eval;
 import org.renjin.primitives.special.ReturnException;
 import org.renjin.sexp.*;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 
 
 public class ClosureDispatcher {

@@ -1,21 +1,20 @@
+#  File src/library/parallel/R/clusterApply.R
+#  Part of the R package, https://www.R-project.org
 #
-# Renjin : JVM-based interpreter for the R language for the statistical analysis
-# Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+#  Copyright (C) 1995-2016 The R Core Team
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, a copy is available at
-# https://www.gnu.org/licenses/gpl-2.0.txt
-#
+#  A copy of the GNU General Public License is available at
+#  https://www.R-project.org/Licenses/
 
 ## Derived from snow 0.3-6 by Luke Tierney
 
@@ -100,7 +99,7 @@ clusterMap <- function (cl = NULL, fun, ..., MoreArgs = NULL, RECYCLE = TRUE,
     args <- list(...)
     if (length(args) == 0) stop("need at least one argument")
     .scheduling <- match.arg(.scheduling)
-    n <- sapply(args, length)
+    n <- lengths(args)
     if (RECYCLE) {
         vlen <- max(n)
         if(vlen && min(n) == 0L)
@@ -144,7 +143,7 @@ splitIndices <- function(nx, ncl) {
     else if (ncl == 1L || nx == 1L) list(i)
     else {
         fuzz <- min((nx - 1L) / 1000, 0.4 * nx / ncl)
-        breaks <- seq(1 - fuzz, nx + fuzz, length = ncl + 1L)
+        breaks <- seq(1 - fuzz, nx + fuzz, length.out = ncl + 1L)
         structure(split(i, cut(i, breaks)), names = NULL)
     }
 }
@@ -291,7 +290,7 @@ parApply <- function(cl = NULL, X, MARGIN, FUN, ...)
 
     ans.names <- names(ans[[1L]])
     if(!ans.list)
-	ans.list <- any(unlist(lapply(ans, length)) != l.ans)
+	ans.list <- any(lengths(ans) != l.ans)
     if(!ans.list && length(ans.names)) {
         all.same <- vapply(ans, function(x) identical(names(x), ans.names), NA)
         if (!all(all.same)) ans.names <- NULL

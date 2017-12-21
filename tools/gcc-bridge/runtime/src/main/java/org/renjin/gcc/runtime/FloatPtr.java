@@ -21,10 +21,10 @@ package org.renjin.gcc.runtime;
 
 import java.util.Arrays;
 
-public class FloatPtr implements Ptr {
+public class FloatPtr extends AbstractPtr {
 
-  public static final int BYTES = 4;
-  
+  public static final int BYTES = Float.SIZE / BITS_PER_BYTE;
+
   public static final FloatPtr NULL = new FloatPtr();
   
   public final float[] array;
@@ -45,6 +45,11 @@ public class FloatPtr implements Ptr {
     this.offset = 0;
   }
 
+
+  public static FloatPtr malloc(int bytes) {
+    return new FloatPtr(new float[AbstractPtr.mallocSize(bytes, BYTES)]);
+  }
+
   @Override
   public float[] getArray() {
     return array;
@@ -56,13 +61,94 @@ public class FloatPtr implements Ptr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    return offset * BYTES;
+  }
+
+  @Override
   public Ptr realloc(int newSizeInBytes) {
-    return new FloatPtr(Realloc.realloc(array, offset, newSizeInBytes / 4));
+    return new FloatPtr(Realloc.realloc(array, offset, mallocSize(newSizeInBytes, BYTES)));
+  }
+
+  @Override
+  public float getFloat() {
+    return array[offset];
+  }
+
+  @Override
+  public float getFloat(int offset) {
+    return array[this.offset + (offset / BYTES)];
+  }
+
+  @Override
+  public float getAlignedFloat(int index) {
+    return array[this.offset + index];
+  }
+
+  @Override
+  public void setFloat(float value) {
+    array[this.offset] = value;
+  }
+
+  @Override
+  public void setFloat(int offset, float value) {
+    array[this.offset + (offset / BYTES)] = value;
+  }
+
+  @Override
+  public void setAlignedFloat(int index, float value) {
+    array[this.offset + index] = value;
   }
 
   @Override
   public Ptr pointerPlus(int bytes) {
-    return new FloatPtr(array, offset + (bytes / 4));
+    if(bytes % BYTES == 0) {
+      return new FloatPtr(array, offset + (bytes / BYTES));
+    } else {
+      return new OffsetPtr(this, bytes);
+    }
+  }
+
+  @Override
+  public byte getByte(int offset) {
+    int bytes = (this.offset * BYTES) + offset;
+    int index = bytes / BYTES;
+    float element = array[index];
+    long elementBits = Float.floatToRawIntBits(element);
+    int shift = (bytes % BYTES) * BITS_PER_BYTE;
+
+    return (byte)(elementBits >>> shift);
+  }
+
+  @Override
+  public void setByte(int offset, byte value) {
+    int bytes = (this.offset * BYTES) + offset;
+    int index = bytes / BYTES;
+    int shift = (bytes % BYTES) * BITS_PER_BYTE;
+
+    int element = Float.floatToRawIntBits(array[index]);
+
+    int updateMask = 0xff << shift;
+
+    // Zero out the bits in the byte we are going to update
+    element = element & ~updateMask;
+
+    // Shift our byte into position
+    int update = (((int)value) << shift) & updateMask;
+
+    // Merge the original long and updated bits together
+    array[index] = Float.intBitsToFloat(element | update);
+  }
+
+
+  @Override
+  public int toInt() {
+    return offset * 4;
+  }
+
+  @Override
+  public boolean isNull() {
+    return array == null && offset == 0;
   }
 
   @Override
@@ -115,5 +201,18 @@ public class FloatPtr implements Ptr {
       return NULL;
     }
     return (FloatPtr) voidPointer;
+  }
+
+  public static void memcpy(FloatPtr x, FloatPtr y, int numBytes) {
+    float[] arrayS = y.getArray();
+    int offsetS = y.getOffset();
+    int restY = arrayS.length - offsetS;
+    if(restY > 0) {
+      float[] carray = new float[numBytes];
+      for(int i = 0, j = offsetS; j < arrayS.length && i < numBytes; j++, i++) {
+        carray[i] = arrayS[j];
+      }
+      x = new FloatPtr(carray);
+    }
   }
 }

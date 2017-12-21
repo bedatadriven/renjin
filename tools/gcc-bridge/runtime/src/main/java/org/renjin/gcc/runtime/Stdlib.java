@@ -739,6 +739,25 @@ public class Stdlib {
 
   }
 
+  /**
+   *  Frees memory allocated by __cxa_allocate_exception
+   */
+  public static void __cxa_free_exception(Ptr p) {
+    // NOOP : We have a garbage collector :-P
+  }
+
+  public static void __cxa_call_unexpected(Ptr p) {
+    // TODO
+  }
+
+  /**
+   * Register a function to be called by exit or when a shared library is unloaded
+   */
+  public static int __cxa_atexit(MethodHandle fn, Ptr arg, Ptr dso_handle) {
+    // TODO: This needs to be implemented properly
+    return 0;
+  }
+
   public static int posix_memalign(Ptr memPtr, int aligment, int size) {
     memPtr.setPointer(MixedPtr.malloc(size));
     return 0;

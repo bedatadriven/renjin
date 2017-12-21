@@ -16,38 +16,31 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.gimple.type;
+package org.renjin.gcc.codegen.type;
 
-/**
- * This node is used to represent a data member; for example a pointer-to-data-member is
- * represented by a POINTER_TYPE whose TREE_TYPE is an OFFSET_TYPE. For a data member
- * X::m the TYPE_OFFSET_BASETYPE is X and the TREE_TYPE is the type of m.
- */
-public class GimpleOffsetType extends AbstractGimpleType {
+import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.repackaged.asm.Type;
 
-  private int size;
-
-  private GimpleType baseType;
-  private GimpleType memberType;
+public class OffsetReturnStrategy implements ReturnStrategy {
+  @Override
+  public Type getType() {
+    return Type.getType(Object.class);
+  }
 
   @Override
-  public int sizeOf() {
-    return size / 8;
+  public JExpr marshall(GExpr expr) {
+    throw new UnsupportedOperationException("TODO");
   }
 
-  public GimpleType getBaseType() {
-    return baseType;
+  @Override
+  public GExpr unmarshall(MethodGenerator mv, JExpr callExpr, TypeStrategy lhsTypeStrategy) {
+    throw new UnsupportedOperationException("TODO");
   }
 
-  public void setBaseType(GimpleType baseType) {
-    this.baseType = baseType;
-  }
-
-  public GimpleType getMemberType() {
-    return memberType;
-  }
-
-  public void setMemberType(GimpleType memberType) {
-    this.memberType = memberType;
+  @Override
+  public JExpr getDefaultReturnValue() {
+    throw new UnsupportedOperationException("TODO");
   }
 }

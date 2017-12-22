@@ -88,13 +88,13 @@ public class UnsignedSmallIntExpr extends AbstractIntExpr {
   @Override
   public UnsignedSmallIntExpr min(GExpr operand) {
     // No need to truncate - result will be in range if both arguments are in range
-    return lift(Expressions.staticMethodCall(Math.class, "min", "(II)I"));
+    return lift(Expressions.staticMethodCall(Math.class, "min", "(II)I", jexpr(), jexpr(operand)));
   }
 
   @Override
   public UnsignedSmallIntExpr max(GExpr operand) {
     // No need to truncate - result will be in range if both arguments are in range
-    return lift(Expressions.staticMethodCall(Math.class, "max", "(II)I"));
+    return lift(Expressions.staticMethodCall(Math.class, "max", "(II)I", jexpr(), jexpr(operand)));
   }
 
   @Override

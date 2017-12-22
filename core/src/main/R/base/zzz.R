@@ -260,4 +260,9 @@ version <- R.version            # for S compatibility
 	options(stringsAsFactors = TRUE)
 	if(!interactive() && is.null(getOption("showErrorCalls")))
 		options(showErrorCalls = TRUE)
+
+
+    makeActiveBinding(".Options", function() {
+     as.pairlist(options())
+    }, baseenv())
 }

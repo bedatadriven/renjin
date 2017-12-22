@@ -39,3 +39,18 @@ void test_varargs_invocation() {
     ASSERT(varargs_i(2, 91, 92, 93) == 93);
 
 }
+
+char * invoke_vsnprintf(char *fmt, ...) {
+    char *x = malloc(100);
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(x, 100, fmt, args);
+    va_end(args);
+    return x;
+}
+
+void test_vsnprintf() {
+
+    ASSERT(strcmp(invoke_vsnprintf("Hello %s, you have %d messages", "Bob", 99), "Hello Bob, you have 99 messages") == 0);
+
+}

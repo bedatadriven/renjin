@@ -29,14 +29,11 @@ import org.renjin.parser.RParser;
 import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.special.ReturnException;
-import org.renjin.primitives.text.RCharsets;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.io.CharSource;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.ArrayDeque;
 import java.util.List;
 
@@ -481,8 +478,7 @@ public class Evaluation {
             
       } else if(file.inherits("connection")) {
         Connection conn = Connections.getConnection(context, file);
-        Reader reader = new InputStreamReader(conn.getInputStream(), RCharsets.getByName(encoding));
-        return RParser.parseAllSource(reader, sourceFile);
+        return RParser.parseAllSource(conn.getReader(), sourceFile);
       
       } else {
         throw new EvalException("unsupported parsing source");

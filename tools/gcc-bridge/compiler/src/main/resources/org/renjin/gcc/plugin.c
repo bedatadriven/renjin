@@ -444,9 +444,9 @@ static void dump_type(tree type) {
     break;
 
   case OFFSET_TYPE:
-    json_field("baseType");
+    json_field("offsetBaseType");
     dump_type(TYPE_OFFSET_BASETYPE(type));
-    json_field("memberType");
+    json_field("baseType");
     dump_type(TREE_TYPE(type));
     break;
 

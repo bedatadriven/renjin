@@ -124,9 +124,6 @@ public class TypeOracle {
       GimpleArrayType arrayType = (GimpleArrayType) type;
       return forType(arrayType.getComponentType()).arrayOf(arrayType);
 
-    } else if(type instanceof GimpleOffsetType) {
-      return new OffsetTypeStrategy();
-
     } else {
       throw new UnsupportedOperationException("Unsupported type: " + type);
     }

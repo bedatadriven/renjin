@@ -426,6 +426,10 @@ public final class Rinternals {
       return SexpType.SYMSXP;
     } else if(s instanceof GnuCharSexp) {
       return SexpType.CHARSXP;
+    } else if(s instanceof SpecialFunction) {
+      return SexpType.SPECIALSXP;
+    } else if(s instanceof Function) {
+      return SexpType.BUILTINSXP;
     } else {
       throw new UnsupportedOperationException("Unknown SEXP Type: " + s.getClass().getName());
     }

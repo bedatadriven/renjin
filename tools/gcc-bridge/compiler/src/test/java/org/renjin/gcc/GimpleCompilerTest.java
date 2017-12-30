@@ -1204,6 +1204,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
 
   @Test
+  public void pointer2() throws Exception {
+    compileAndTest("pointers2.c");
+  }
+
+  @Test
   @Ignore
   public void leftRotate() throws Exception {
     assertThat(UnsignedBytes.checkedCast(239), equalTo((byte)-17));

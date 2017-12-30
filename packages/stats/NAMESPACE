@@ -27,6 +27,31 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     cov,
     cor,
     lowess,
+
+    lowesp,
+    lowesw,
+    lowesr,
+    lowesl,
+    lowesf,
+    lowese,
+    lowesd,
+    lowesb,
+    lowesa,
+    lowesc,
+
+
+    loess_raw,
+    loess_free,
+    loess_dfit,
+    loess_dfitse,
+    loess_ifit,
+    loess_ise,
+    loess_workspace,
+    loess_prune,
+    loess_grow,
+
+
+
     optim,
     optimhess,
     HoltWinters,
@@ -45,7 +70,14 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     eureka = eureka_,
     Burg,
     rbart = rbart_,
-    bvalus = bvalus_
+    bvalus = bvalus_,
+
+    modelframe,
+    modelmatrix,
+    termsform,
+    updateform
+
+
     )
 
 # exportPattern("^[^\\.]")
@@ -56,7 +88,7 @@ export(add.scope, add1, addmargins, aggregate, aggregate.data.frame,
        anova.glmlist, anova.lm, anova.lmlist, anova.mlm, aov, approx,
        approxfun, as.formula, as.ts, ave, BIC, binomial, bw.bcv,
        bw.nrd, bw.nrd0, bw.SJ, bw.ucv, C, case.names, coef,
-       coefficients, complete.cases, confint, confint.default,
+       coefficients, complete.cases, confint, confint.default, confint.lm,
        constrOptim, contr.SAS, contr.helmert, contr.poly, contr.sum,
        contr.treatment, contrasts, "contrasts<-", convolve,
        cooks.distance, cor, cov, cov.wt, cov2cor, covratio, cycle, D,
@@ -73,7 +105,8 @@ export(add.scope, add1, addmargins, aggregate, aggregate.data.frame,
        hasTsp, hat, hatvalues, hatvalues.lm, influence,
        influence.measures, integrate, interaction.plot,
        inverse.gaussian, IQR, is.empty.model, is.mts, is.ts, lines.ts,
-       lm, lm.fit, lm.influence, lm.wfit, logLik, loglin, lowess,
+       lm, lm.fit, lm.influence, lm.wfit, logLik, loglin,
+       lowess, loess, loess.control, loess.smooth,
        ls.diag, ls.print, lsfit, mad, mahalanobis, make.link,
        makepredictcall, manova, mauchly.test, median, model.extract,
        model.frame, model.frame.aovlist, model.frame.default,

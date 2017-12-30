@@ -38,6 +38,10 @@ public class LocalVariableTable implements SymbolTable {
     this.parent = parent;
   }
 
+  public boolean isRegistered(Long gimpleId) {
+    return variableMap.containsKey(gimpleId);
+  }
+
   public void addVariable(Long gimpleId, GExpr variable) {
     Preconditions.checkNotNull(variable);
     Preconditions.checkState(!variableMap.containsKey(gimpleId), "variable already registered with id " + gimpleId);

@@ -18,7 +18,8 @@
  */
 package org.renjin.gnur.api;
 
-import org.apache.commons.vfs2.FileContent;
+import static org.renjin.gcc.runtime.Stdlib.nullTerminatedString;
+
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.RandomAccessContent;
@@ -31,8 +32,7 @@ import org.renjin.primitives.Native;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-
-import static org.renjin.gcc.runtime.Stdlib.nullTerminatedString;
+import java.io.OutputStream;
 
 /**
  * Provides Renjin-specific hooks into the Session's FileSystemManager
@@ -60,9 +60,13 @@ public class RenjinFiles {
 
   private static FileHandle fopen(FileObject fileObject, String mode) throws FileSystemException {
     switch (mode) {
+      case "r":
       case "rb":
-        FileContent content = fileObject.getContent();
-        return new InputStreamHandle(content.getInputStream());
+        return new InputStreamHandle(fileObject.getContent().getInputStream());
+
+      case "w":
+      case "wb":
+        return new OutputStreamHandle(fileObject.getContent().getOutputStream());
 
       default:
         throw new UnsupportedOperationException("mode: " + mode);
@@ -84,6 +88,16 @@ public class RenjinFiles {
       } catch (EOFException e) {
         return -1;
       }
+    }
+
+    @Override
+    public void write(int b) throws IOException {
+      content.writeByte(b);
+    }
+
+    @Override
+    public void flush() throws IOException {
+      // no equivalent operation on underlying implementation
     }
 
     @Override
@@ -126,6 +140,16 @@ public class RenjinFiles {
     }
 
     @Override
+    public void write(int b) throws IOException {
+      throw new UnsupportedOperationException("Cannot write on input stream handle.");
+    }
+
+    @Override
+    public void flush() throws IOException {
+      throw new UnsupportedOperationException("Cannot flush an input stream handle.");
+    }
+
+    @Override
     public void close() throws IOException {
       inputStream.close();
     }
@@ -148,6 +172,50 @@ public class RenjinFiles {
       if(skipped < offset) {
         throw new EOFException();
       }
+    }
+
+    @Override
+    public void seekEnd(long offset) {
+      throw new UnsupportedOperationException("TODO");
+    }
+  }
+
+  private static class OutputStreamHandle implements FileHandle {
+
+    private OutputStream outputStream;
+
+    public OutputStreamHandle(OutputStream outputStream) {
+      this.outputStream = outputStream;
+    }
+
+    @Override
+    public int read() throws IOException {
+      throw new UnsupportedOperationException("Cannot read from output stream handle.");
+    }
+
+    @Override
+    public void write(int b) throws IOException {
+      outputStream.write(b);
+    }
+
+    @Override
+    public void flush() throws IOException {
+      outputStream.flush();
+    }
+
+    @Override
+    public void close() throws IOException {
+      outputStream.close();
+    }
+
+    @Override
+    public void seekSet(long offset) throws IOException {
+      throw new UnsupportedOperationException("TODO");
+    }
+
+    @Override
+    public void seekCurrent(long offset) throws IOException {
+      throw new UnsupportedOperationException("TODO");
     }
 
     @Override

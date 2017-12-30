@@ -21,6 +21,7 @@ package org.renjin.util;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.commons.vfs2.impl.DefaultFileReplicator;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.local.DefaultLocalFileProvider;
 import org.apache.commons.vfs2.provider.res.ResourceFileProvider;
@@ -144,6 +145,7 @@ public class FileSystemUtils {
 
   public static FileSystemManager getMinimalFileSystemManager() throws FileSystemException {
     DefaultFileSystemManager fsm = new DefaultFileSystemManager();
+    fsm.setReplicator(new DefaultFileReplicator());
     fsm.setDefaultProvider(new UrlFileProvider());
     fsm.addProvider("file", new DefaultLocalFileProvider());
     fsm.addProvider("jar", new FastJarFileProvider());

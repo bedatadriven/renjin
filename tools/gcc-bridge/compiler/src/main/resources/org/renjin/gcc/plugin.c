@@ -443,6 +443,13 @@ static void dump_type(tree type) {
     dump_type(TREE_TYPE(type));
     break;
 
+  case OFFSET_TYPE:
+    json_field("offsetBaseType");
+    dump_type(TYPE_OFFSET_BASETYPE(type));
+    json_field("baseType");
+    dump_type(TREE_TYPE(type));
+    break;
+
   case ARRAY_TYPE:
     json_field("componentType");
     dump_type(TREE_TYPE(type));

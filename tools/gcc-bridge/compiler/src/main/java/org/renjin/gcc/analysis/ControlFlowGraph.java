@@ -105,23 +105,25 @@ public class ControlFlowGraph {
       GimpleBasicBlock sourceBlock = it.next();
       Node sourceNode = nodes.get(sourceBlock.getIndex());
 
-      List<GimpleEdge> jumps = sourceBlock.getJumps();
-      if(jumps.isEmpty()) {
-        // fall through edge
+      // explicit jumps
+      Node targetNode;
+      boolean fallsThrough = true;
+      for (GimpleEdge jump : sourceBlock.getJumps()) {
+
+        if (!jump.isExceptionThrow()) {
+          fallsThrough = false;
+        }
+        sourceNode = nodes.get(jump.getSource());
+        if (jump.getTarget() == 1) {
+          targetNode = exitNode;
+        } else {
+          targetNode = nodes.get(jump.getTarget());
+        }
+        addEdge(sourceNode, targetNode);
+      }
+      if(fallsThrough) {
         if(it.hasNext()) {
           addEdge(sourceNode, getNode(it.peek()));
-        }
-      } else {
-        // explicit jumps
-        Node targetNode;
-        for (GimpleEdge jump : jumps) {
-          sourceNode = nodes.get(jump.getSource());
-          if(jump.getTarget() == 1) {
-            targetNode = exitNode;
-          } else {
-            targetNode = nodes.get(jump.getTarget());
-          }
-          addEdge(sourceNode, targetNode);
         }
       }
     }

@@ -210,5 +210,4 @@ public class FilesTest extends EvalTestCase {
         identicalTo((SEXP) LogicalVector.EMPTY));
   }
 
-
 }

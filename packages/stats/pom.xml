@@ -32,6 +32,11 @@
     </dependency>
     <dependency>
       <groupId>org.renjin</groupId>
+      <artifactId>grDevices</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.renjin</groupId>
       <artifactId>graphics</artifactId>
       <version>${project.version}</version>
     </dependency>

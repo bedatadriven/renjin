@@ -159,6 +159,13 @@ public class FileConnection extends AbstractConnection {
   }
 
   @Override
+  public void flush() throws IOException {
+    if(out != null) {
+      out.flush();
+    }
+  }
+
+  @Override
   public String getClassName() {
     return "file";
   }

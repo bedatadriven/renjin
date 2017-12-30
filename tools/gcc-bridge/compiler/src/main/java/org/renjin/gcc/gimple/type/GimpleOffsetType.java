@@ -18,18 +18,66 @@
  */
 package org.renjin.gcc.gimple.type;
 
+import org.renjin.gcc.gimple.expr.GimpleConstant;
+import org.renjin.gcc.gimple.expr.GimpleIntegerConstant;
+
 /**
  * This node is used to represent a data member; for example a pointer-to-data-member is
  * represented by a POINTER_TYPE whose TREE_TYPE is an OFFSET_TYPE. For a data member
  * X::m the TYPE_OFFSET_BASETYPE is X and the TREE_TYPE is the type of m.
  */
-public class GimpleOffsetType extends AbstractGimpleType {
+public class GimpleOffsetType extends AbstractGimpleType implements GimpleIndirectType {
 
-  private int size;
+  private GimpleType baseType;
+  private GimpleType offsetBaseType;
 
+  @Override
+  public GimpleConstant nullValue() {
+    return GimpleIntegerConstant.nullValue(this);
+  }
+
+  @Override
+  public <X extends GimpleType> X getBaseType() {
+    return (X)baseType;
+  }
+
+  public void setBaseType(GimpleType baseType) {
+    this.baseType = baseType;
+  }
+
+  public GimpleType getOffsetBaseType() {
+    return offsetBaseType;
+  }
+
+  public void setOffsetBaseType(GimpleType offsetBaseType) {
+    this.offsetBaseType = offsetBaseType;
+  }
 
   @Override
   public int sizeOf() {
-    return size / 8;
+    // We require the generated gimple to be compiled for 32-bit platforms so we get 32 bit pointers.
+    return 4;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    GimpleOffsetType that = (GimpleOffsetType) o;
+
+    return baseType.equals(that.baseType) &&
+           offsetBaseType.equals(that.offsetBaseType);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = baseType.hashCode();
+    result = 31 * result + offsetBaseType.hashCode();
+    return result;
   }
 }

@@ -27,7 +27,6 @@ import org.renjin.primitives.io.serialization.HeadlessWriteContext;
 import org.renjin.primitives.io.serialization.RDataWriter;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.packaging.NamespaceFile;
-import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.primitives.time.DateTimeFormat;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Strings;
@@ -97,6 +96,7 @@ public class NamespaceBuilder2 {
   private Context initContext()  {
     SessionBuilder builder = new SessionBuilder();
     builder.setPackageLoader(buildContext.getPackageLoader());
+    builder.setClassLoader(buildContext.getClassLoader());
     
     Context context = builder.build().getTopLevelContext();
     for(String name : buildContext.getDefaultPackages()) {

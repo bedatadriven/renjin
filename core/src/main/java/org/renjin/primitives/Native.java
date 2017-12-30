@@ -28,9 +28,6 @@ import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.invoke.annotations.*;
 import org.renjin.invoke.reflection.ClassBindingImpl;
-import org.renjin.gcc.runtime.*;
-import org.renjin.invoke.annotations.*;
-import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.invoke.reflection.FunctionBinding;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.packaging.DllInfo;
@@ -83,7 +80,7 @@ public class Native {
 
     if(packageName.isEmpty()) {
       for (DllInfo dllInfo : context.getSession().getLoadedLibraries()) {
-        Optional<DllSymbol> symbol = dllInfo.getRegisteredSymbol(name);
+        Optional<DllSymbol> symbol = dllInfo.getSymbol(name);
         if(symbol.isPresent()) {
           return symbol.get().buildNativeSymbolInfoSexp();
         }
@@ -95,7 +92,7 @@ public class Native {
       Optional<Namespace> namespace = context.getNamespaceRegistry().getNamespaceIfPresent(Symbol.get(packageName));
       if(namespace.isPresent()) {
         for (DllInfo dllInfo : namespace.get().getLibraries()) {
-          Optional<DllSymbol> symbol = dllInfo.getRegisteredSymbol(name);
+          Optional<DllSymbol> symbol = dllInfo.getSymbol(name);
           if(symbol.isPresent()) {
             return symbol.get().buildNativeSymbolInfoSexp();
           }
@@ -497,6 +494,10 @@ public class Native {
 
     if(method.inherits("NativeSymbolInfo")) {
       return DllSymbol.fromSexp(method);
+    }
+
+    if(method.inherits("NativeSymbol") || method.inherits("RegisteredNativeSymbol")) {
+      return DllSymbol.fromAddressSexp(method);
     }
 
     if(method instanceof ExternalPtr) {

@@ -28,7 +28,6 @@ import org.renjin.repackaged.guava.collect.*;
 import org.renjin.repackaged.guava.io.CharSource;
 import org.renjin.sexp.*;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -194,13 +193,14 @@ public class NamespaceRegistry {
         // and add them to our private namespace environment
         Namespace namespace = createNamespace(pkg);
 
-        // set up the namespace
-        populateNamespace(context, pkg, namespace);
-
-        // set up the imported symbols
         CharSource namespaceSource = pkg.getResource("NAMESPACE").asCharSource(Charsets.UTF_8);
         NamespaceFile namespaceFile = NamespaceFile.parse(context, namespaceSource);
 
+        // set up the namespace
+        namespace.populateNamespace(context);
+        namespace.initExports(namespaceFile);
+
+        // set up the imported symbols
         namespace.initImports(context, this, namespaceFile);
 
         // invoke the .onLoad hook
@@ -211,8 +211,6 @@ public class NamespaceRegistry {
               namespace.getNamespaceEnvironment());
         }
 
-        // finally export symbols from the namespace
-        namespace.initExports(namespaceFile);
         namespace.registerS3Methods(context, namespaceFile);
 
         // S4 classes are declared in a namespace, but once the namespace is loaded,
@@ -232,17 +230,6 @@ public class NamespaceRegistry {
   private boolean couldBeFullyQualified(Symbol name) {
     String string = name.getPrintName();
     return string.indexOf(':') != -1 || string.indexOf('.') != -1;
-  }
-
-  /**
-   * Populates the namespace from the R-language functions and expressions defined
-   * in this namespace.
-   *
-   */
-  private void populateNamespace(Context context, Package pkg, Namespace namespace) throws IOException {
-    for(NamedValue value : pkg.loadSymbols(context)) {
-      namespace.getNamespaceEnvironment().setVariable(context, Symbol.get(value.getName()), value.getValue());
-    }
   }
 
 

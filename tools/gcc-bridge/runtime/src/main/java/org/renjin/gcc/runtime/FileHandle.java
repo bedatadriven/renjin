@@ -40,6 +40,10 @@ public interface FileHandle {
 
   int read() throws IOException;
 
+  void write(int b) throws IOException;
+
+  void flush() throws IOException;
+
   void close() throws IOException;
 
   void seekSet(long offset) throws IOException;

@@ -60,6 +60,11 @@ public class ReadTextConnection implements Connection {
   }
 
   @Override
+  public void flush() throws IOException {
+    // NOOP
+  }
+
+  @Override
   public String getClassName() {
     return "textConnection";
   }

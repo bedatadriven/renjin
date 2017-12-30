@@ -379,6 +379,15 @@ public class FunctionGenerator implements InvocationStrategy {
 
     // Dumb scheduling: give every local variable it's own slot
     for (GimpleVarDecl varDecl : function.getVariableDeclarations()) {
+
+      if(symbolTable.isRegistered(varDecl.getId())) {
+        System.err.printf("WARNING: In function %s, variable %s [%d] is duplicated.%n",
+            getFunction().getMangledName(),
+            varDecl.getName(),
+            varDecl.getId());
+        continue;
+      }
+
       try {
         GExpr generator;
         TypeStrategy factory = typeOracle.forType(varDecl.getType());

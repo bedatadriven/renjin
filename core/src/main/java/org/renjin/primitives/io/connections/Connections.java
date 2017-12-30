@@ -341,6 +341,11 @@ public class Connections {
       }
     }
   }
+
+  @Internal
+  public static void flush(@Current Context context, SEXP connection) throws IOException {
+    getConnection(context, connection).flush();
+  }
   
   @Internal
   public static int pushBackLength(@Current Context context, SEXP connection) throws IOException {

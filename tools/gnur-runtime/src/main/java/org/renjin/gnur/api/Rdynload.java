@@ -78,7 +78,7 @@ public final class Rdynload {
         if (def.fun == null) {
           break;
         }
-        library.register(new DllSymbol(def.getName(), def.fun, convention));
+        library.register(new DllSymbol(def.getName(), def.fun, convention, true));
       }
     }
   }
@@ -91,7 +91,7 @@ public final class Rdynload {
         if (def.fun == null) {
           break;
         }
-        library.register(new DllSymbol(def.getName(), def.fun, convention));
+        library.register(new DllSymbol(def.getName(), def.fun, convention, true));
       }
     }
   }

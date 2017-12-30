@@ -54,7 +54,6 @@ import org.renjin.stats.internals.CompleteCases;
 import org.renjin.stats.internals.Distributions;
 import org.renjin.stats.internals.distributions.RNG;
 import org.renjin.stats.internals.distributions.Sampling;
-import org.renjin.stats.internals.models.Models;
 import org.renjin.stats.internals.optimize.Optimizations;
 import org.renjin.stats.internals.optimize.Roots;
 
@@ -198,13 +197,13 @@ public class Primitives {
 
     add(new AssignLeftFunction());
     add(new AssignFunction());
-    
+
     add(new ReassignLeftFunction());
     add(new BeginFunction());
     add(new ParenFunction());
-      
+
     add(new AssignSlotFunction());
-      
+
     f(".subset", Subsetting.class, 1);
     f(".subset2", Subsetting.class, 1);
     f("[",Subsetting.class, -1);
@@ -290,11 +289,8 @@ public class Primitives {
     addInternal("cbind", new ColumnBindFunction());
     addInternal("rbind", new RowBindFunction());
     f("drop", Vectors.class, 11);
-    f("oldClass", Attributes.class, 1);
-    f("oldClass<-", Attributes.class, 2);
     f("class", Attributes.class, "getClass", 1);
     f(".cache_class", Methods.class, 2);
-    f("class<-", Attributes.class, "setClass", 1);
     f("unclass", Attributes.class, 1);
     f("names", Attributes.class,  "getNames", 1);
     f("names<-", Attributes.class, "setNames", 1);
@@ -352,7 +348,7 @@ public class Primitives {
     f("sqrt", MathGroup.class, 1);
     f("sign", MathGroup.class, 1);
     f("trunc", MathGroup.class, 1);
-    
+
     f("exp", MathGroup.class, 1);
     f("expm1", MathGroup.class, 1);
     f("log1p", MathGroup.class, 1);
@@ -614,7 +610,7 @@ public class Primitives {
     f("iconv", Text.class, 11);
     f("strtrim", Text.class, 11);
     f("strtoi", Text.class, 11);
-    
+
 /* Type Checking (typically implemented in ./coerce.c ) */
 
     f("is.null", Types.class,   /*NILSXP*/ 1);
@@ -651,7 +647,7 @@ public class Primitives {
     f("is.nan", Types.class, 1);
     f("is.finite", Types.class, 1);
     f("is.infinite", Types.class, 1);
-      
+
     f("isS4", Types.class, 1);
     f("setS4Object", Types.class, 11);
     f(".isMethodsDispatchOn", Methods.class, 1);
@@ -766,7 +762,7 @@ public class Primitives {
     f("lapply", Evaluation.class, 10);
     f("vapply", Evaluation.class, 10);
     f("mapply", Evaluation.class, 10);
-    f("rapply", /*rapply*/ null, 11);
+    f("rapply", Evaluation.class, 11);
 
     f("islistfactor",  Types.class, 11);
     f("colSums", Matrices.class, 11);
@@ -830,12 +826,13 @@ public class Primitives {
     f("Sys.sleep", System.class, 11);
     f("Sys.getlocale", System.class, 11);
     f("Sys.setlocale", System.class, 11);
-    f("Sys.localeconv", /*localeconv*/ null, 11);
+    f("Sys.localeconv", System.class, 11);
     f("path.expand", Files.class, "pathExpand", 11);
     f("Sys.getpid",System.class, 11);
     f("normalizePath", Files.class, 11);
     f("Sys.glob", Files.class, "glob", 11);
     f("unlink", Files.class, 111);
+    f("local.file", Files.class, 111);
 
 /* Complex Valued Functions */
     f("polyroot", Polyroot.class, 11);
@@ -899,7 +896,7 @@ public class Primitives {
     f("grconvertX", Graphics.class, 11);
     f("grconvertY", Graphics.class, 11);
 
-/* Objects */   
+/* Objects */
     f("inherits", Attributes.class, 11);
     f("UseMethod", S3.class, 200);
     f("NextMethod", S3.class, 210);
@@ -911,9 +908,6 @@ public class Primitives {
     f("fmin", Optimizations.class, 11);
     f("zeroin", /*zeroin*/ null, 11);
     f("zeroin2", Roots.class, 11);
-    f("terms.formula", Models.class, 11);
-    f("update.formula", /*updateform*/ null, 11);
-    f("model.matrix", Models.class, 11);
 
     f("D", /*D*/ null, 11);
     f("deriv.default", /*deriv*/ null, 11);
@@ -949,7 +943,7 @@ public class Primitives {
     f("isIncomplete", /*isincomplete*/ null, 11);
     f("isSeekable", /*isseekable*/ null, 11);
     f("close", Connections.class, 11);
-    f("flush", /*flush*/ null, 11);
+    f("flush", Connections.class, 11);
     f("file", Connections.class, 11);
     f("url", Connections.class, 11);
     f("pipe", /*pipe*/ null, 11);
@@ -1004,9 +998,9 @@ public class Primitives {
     f("getNamespaceName", Namespaces.class, 0);
     f("getNamespaceExports", Namespaces.class, 0);
     f("getNamespaceImports", Namespaces.class, 0);
-    
+
     f("getNamespaceRegistry", Namespaces.class, 11);
-      
+
    // hiding f("importIntoEnv", Namespaces.class, 0, 11, 4);
     f("env.profile", /*envprofile*/ null, 211);
     f(":::", Namespaces.class, 0);
@@ -1019,7 +1013,7 @@ public class Primitives {
     f("setTimeLimit", /*setTimeLimit*/ null, 111);
     f("setSessionTimeLimit", /*setSessionTimeLimit*/ null, 111);
     f("icuSetCollate", /*ICUset*/ null, 111) ;
-    
+
     // jvm specific
     f("import", Jvmi.class, 0);
     f("jload", Jvmi.class, 0);

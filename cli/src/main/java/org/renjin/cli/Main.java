@@ -164,8 +164,10 @@ public class Main {
     threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     packageLoader = new AetherPackageLoader();
+
     this.session = new SessionBuilder()
         .setPackageLoader(packageLoader)
+        .setClassLoader(packageLoader.getClassLoader())
         .setExecutorService(threadPool)
         .withDefaultPackages()
         .build();

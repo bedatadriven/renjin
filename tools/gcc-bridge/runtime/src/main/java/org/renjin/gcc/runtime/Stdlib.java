@@ -79,6 +79,72 @@ public class Stdlib {
     return strncmp(x, y, Integer.MAX_VALUE);
   }
 
+  /**
+   * The <code>strcasecmp()</code> function compares <code>x</code> and <code>y</code> without sensitivity to case.
+   * 
+   * All alphabetic characters in <code>x</code> and <code>y</code> are converted to lowercase before comparison.
+   * 
+   * @param x
+   * @param y
+   * @return a value indicating the relationship between the two strings, as follows:
+   *         <table>
+   *         <th>
+   *         <td>Value</td>
+   *         <td>Meaning</td></th>
+   *         <tr>
+   *         <td>Less than 0</td>
+   *         <td><code>x</code> less than <code>y</code></td>
+   *         </tr>
+   *         <tr>
+   *         <td>0</td>
+   *         <td><code>x</code> equivalent to <code>y</code></td>
+   *         </tr>
+   *         <tr>
+   *         <td>Greater than 0</td>
+   *         <td><code>x</code> greater than <code>y</code></td>
+   *         </tr>
+   *         </table>
+   */
+  public static int strcasecmp(Ptr x, Ptr y) {
+    for (int i = 0; i < Integer.MAX_VALUE; ++i) {
+      int bx = Character.toLowerCase(x.getByte(i));
+      int by = Character.toLowerCase(y.getByte(i));
+
+      if (bx < by) {
+        return -1;
+      } else if (bx > by) {
+        return 1;
+      }
+      if (bx == 0) {
+        break;
+      }
+    }
+    return 0;
+  }
+
+  public static Ptr strchr(Ptr string, int ch) {
+    final int offset = nullTerminatedString(string).indexOf(ch);
+    return new OffsetPtr(string, offset);
+  }
+
+  public static Ptr strrchr(Ptr string, int ch) {
+    final int offset = nullTerminatedString(string).lastIndexOf(ch);
+    return new OffsetPtr(string, offset);
+  }
+
+  public static Ptr strstr(Ptr string, Ptr searched) {
+    final int offset = nullTerminatedString(string).indexOf(nullTerminatedString(searched));
+    return new OffsetPtr(string, offset);
+  }
+
+  public static long strtol(Ptr string) {
+    return Long.parseLong(nullTerminatedString(string));
+  }
+
+  public static double strtold(Ptr string) {
+    return strtod(string);
+  }
+
   public static double strtod(Ptr string) {
     return Double.parseDouble(nullTerminatedString(string));
   }
@@ -336,6 +402,10 @@ public class Stdlib {
     return new int[] { quot, rem };
   }
 
+  public static double nearbyint(double arg) {
+    return Math.round(arg);
+  }
+
   /**
    * Returns the time since the Epoch (00:00:00 UTC, January 1, 1970), measured in seconds.
    * If seconds is not NULL, the return value is also stored in variable seconds.
@@ -405,6 +475,7 @@ public class Stdlib {
     daylight = currentTimezone.inDaylightTime(new Date()) ? 1 : 0;
   }
 
+  @Deprecated
   public static void fflush(Object file) {
     // TODO: implement properly
   }
@@ -490,15 +561,59 @@ public class Stdlib {
     String modeString = nullTerminatedString(mode);
 
     switch (modeString) {
+      case "r":
       case "rb":
         try {
           return new RecordUnitPtr<>(new FileHandleImpl(new RandomAccessFile(filenameString, "r")));
         } catch (FileNotFoundException e) {
           return BytePtr.NULL;
         }
+      case "w":
+      case "wb":
+        try {
+          return new RecordUnitPtr<>(new FileHandleImpl(new RandomAccessFile(filenameString, "rw")));
+        } catch (FileNotFoundException e) {
+          return BytePtr.NULL;
+        }
       default:
         throw new UnsupportedOperationException("Not implemented. Mode = " + modeString);
     }
+  }
+
+  public static int fflush(Ptr stream) throws IOException {
+    FileHandle handle = (FileHandle) stream.getArray();
+    handle.flush();
+    return 0;
+  }
+
+  public static int fprintf(Ptr stream, BytePtr format, Object... arguments) {
+    try {
+      String outputString = format(format, arguments);
+      BytePtr outputBytes = BytePtr.nullTerminatedString(outputString, StandardCharsets.UTF_8);
+      int bytesWritten = fwrite(outputBytes, 1, outputBytes.getArray().length, stream);
+
+      return bytesWritten;
+    } catch (Exception e) {
+      return -1;
+    }
+  }
+
+  public static int fwrite(BytePtr ptr, int size, int count, Ptr stream) throws IOException {
+    FileHandle handle = (FileHandle) stream.getArray();
+    int bytesWritten = 0;
+
+    // Super naive implementation.
+    // Performance to be improved...
+    for (int i = 0; i < (count * size); ++i) {
+      try {
+        handle.write(ptr.getByte(i));
+        bytesWritten++;
+      } catch (ArrayIndexOutOfBoundsException aioobe) {
+        i = count * size;
+      }
+    }
+
+    return bytesWritten;
   }
 
   public static int fread(Ptr ptr, int size, int count, Ptr stream) throws IOException {
@@ -550,6 +665,13 @@ public class Stdlib {
     }
   }
 
+  public static int fgetc(Ptr stream) {
+    try {
+      return ((FileHandle) stream.getArray()).read();
+    } catch (IOException e) {
+      return -1;
+    }
+  }
 
   /**
    * test for infinity.
@@ -563,6 +685,10 @@ public class Stdlib {
    */
   public static int __isinf(double x) {
     return Double.isInfinite(x) ? 1 : 0;
+  }
+
+  public static int isinf(double x) {
+    return __isinf(x);
   }
 
   public static float logf(float x) {
@@ -611,6 +737,25 @@ public class Stdlib {
    */
   public static void __cxa_guard_abort(LongPtr p) {
 
+  }
+
+  /**
+   *  Frees memory allocated by __cxa_allocate_exception
+   */
+  public static void __cxa_free_exception(Ptr p) {
+    // NOOP : We have a garbage collector :-P
+  }
+
+  public static void __cxa_call_unexpected(Ptr p) {
+    // TODO
+  }
+
+  /**
+   * Register a function to be called by exit or when a shared library is unloaded
+   */
+  public static int __cxa_atexit(MethodHandle fn, Ptr arg, Ptr dso_handle) {
+    // TODO: This needs to be implemented properly
+    return 0;
   }
 
   public static int posix_memalign(Ptr memPtr, int aligment, int size) {

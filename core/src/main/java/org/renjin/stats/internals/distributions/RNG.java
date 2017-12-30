@@ -25,6 +25,7 @@ import org.renjin.eval.Session;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.*;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -67,6 +68,20 @@ public class RNG {
     } 
 
     return (new IntArrayVector(rng.RNG_kind.ordinal(), rng.N01_kind.ordinal()));
+  }
+
+  @Internal("set.seed")
+  public static void set_seed(@Current Context context, Null seed, SEXP kind, SEXP normalKind) {
+    // From the documentation:
+    //    The use of ‘kind = NULL’ or ‘normal.kind = NULL’ in ‘RNGkind’ or
+    //   ‘set.seed’ selects the currently-used generator (including that
+    //    used in the previous session if the workspace has been restored):
+    //    if no generator has been used it selects ‘"default"’.
+
+    // Since we initialize the session with the 'default' generator, then I don't see this
+    // has having much impact.
+
+    // NOOP.
   }
 
   /*

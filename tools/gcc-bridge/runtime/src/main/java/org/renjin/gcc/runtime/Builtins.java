@@ -290,4 +290,27 @@ public class Builtins {
     __sync_synchronize_value++;
   }
 
+  public static void _gfortran_concat_string(int resultLength, Ptr result, int arg1Length, Ptr arg1, int arg2Length, Ptr arg2) {
+    int resultPos = 0;
+    for(int i=0;i<arg1Length;++i) {
+      result.setByte(resultPos++, arg1.getByte(i));
+    }
+    for (int i=0;i<arg2Length;++i) {
+      result.setByte(resultPos++, arg2.getByte(i));
+    }
+  }
+
+  public static int __atomic_fetch_add_4(Ptr result, int value) {
+    int previous = result.getInt();
+    result.setInt(previous + value);
+    return previous;
+  }
+
+  public static int _gfortran_pow_i4_i4(int base, int power) {
+    int result = 1;
+    for (int i = 1; i <= power; i++) {
+      result *= base;
+    }
+    return result;
+  }
 }

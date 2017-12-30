@@ -72,6 +72,10 @@ public class RowNamesVector extends StringVector {
   public static boolean isOldCompactForm(Vector rowNames) {
     return rowNames.length() == 2 && rowNames.isElementNA(0) && rowNames.getElementAsInt(1) < 0;
   }
+
+  public static boolean isCompactForm(Vector rowNames) {
+    return rowNames.length() == 2 && rowNames.isElementNA(0) && rowNames.getElementAsInt(1) > 0;
+  }
   
   public static RowNamesVector fromOldCompactForm(SEXP rowNames) {
     Preconditions.checkArgument(isOldCompactForm(rowNames));
@@ -82,6 +86,14 @@ public class RowNamesVector extends StringVector {
   public static boolean isOldCompactForm(SEXP rowNames) {
     if(rowNames instanceof Vector) {
       return isOldCompactForm((Vector)rowNames);
+    } else {
+      return false;
+    }
+  }
+
+  public static boolean isCompactForm(SEXP rowNames) {
+    if(rowNames instanceof Vector) {
+      return isCompactForm((Vector)rowNames);
     } else {
       return false;
     }

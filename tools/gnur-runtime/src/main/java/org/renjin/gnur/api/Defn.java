@@ -19,11 +19,20 @@
 // Initial template generated from Defn.h from R 3.2.2
 package org.renjin.gnur.api;
 
+import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import org.renjin.primitives.Deparse;
+import org.renjin.primitives.Native;
+import org.renjin.sexp.*;
+import org.renjin.util.CDefines;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
+
+import static org.renjin.gnur.api.Rinternals.*;
+import static org.renjin.util.CDefines.allocVector;
 
 /**
  * GNU R API methods defined in the "Defn.h" header file
@@ -274,8 +283,50 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("Rf_CleanEd");
   }
 
-  public static void Rf_copyMostAttribNoTs(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_copyMostAttribNoTs");
+  public static void Rf_copyMostAttribNoTs(SEXP inp, SEXP ans) {
+    if(ans == Null.INSTANCE) {
+      throw new EvalException("attempt to set an attribute on NULL");
+    }
+
+    AttributeMap.Builder attributeBuilder = new AttributeMap.Builder();
+    Iterator<PairList.Node> itr = inp.getAttributes().nodes().iterator();
+    while(itr.hasNext()) {
+      PairList.Node s = itr.next();
+      Symbol tag = s.getTag();
+      if(tag != Symbols.NAMES || tag != Symbols.CLASS || tag != Symbols.DIM || tag != Symbols.DIMNAMES || tag != Symbols.TSP) {
+        attributeBuilder.set(tag, ans.getAttributes().get(tag));
+      } else if(tag == Symbols.CLASS) {
+        SEXP cl = s.getValue();
+        int i;
+        boolean ists = false;
+        for(i = 0; i < cl.length(); i++) {
+          if("ts".equals(cl.getElementAsSEXP(i).asString())) {
+            ists = true;
+            break;
+          }
+        }
+        if(!ists) {
+          attributeBuilder.set(tag, cl);
+        } else if(cl.length() <= 1) {
+
+        } else {
+          int l = cl.length();
+          Vector.Builder new_cl = allocVector(CDefines.STRSXP, l-1);
+          for(int e = 0, j = 0; e < l; i++) {
+            if(!("ts".equals(cl.getElementAsSEXP(i).asString()))){
+              SET_STRING_ELT(new_cl.build(), j++, STRING_ELT(cl, i));
+            }
+          }
+          attributeBuilder.set(tag, new_cl.build());
+        }
+      }
+    }
+    ((AbstractSEXP)ans).unsafeSetAttributes(attributeBuilder);
+    if (IS_S4_OBJECT(inp) != 0) {
+      SET_S4_OBJECT(ans);
+    } else {
+      UNSET_S4_OBJECT(ans);
+    }
   }
 
   public static SEXP Rf_createS3Vars(SEXP p0, SEXP p1, SEXP p2, SEXP p3, SEXP p4, SEXP p5) {
@@ -306,8 +357,15 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("Rf_deparse1w");
   }
 
-  public static SEXP Rf_deparse1line(SEXP p0, boolean p1) {
-    throw new UnimplementedGnuApiMethod("Rf_deparse1line");
+  public static SEXP Rf_deparse1line(SEXP call, boolean abbrev) {
+    // if abbrev is set to true, return a single character string of length 13 which
+    // is oftern used in plots, otherwise, deparse to a single line string.
+    String line = Deparse.deparseExp(Native.currentContext(), call);
+    if(abbrev && line.length() > 12) {
+      return StringVector.valueOf(line.substring(12));
+    } else {
+      return StringVector.valueOf(line);
+    }
   }
 
   public static SEXP Rf_deparse1s(SEXP call) {
@@ -521,7 +579,7 @@ public final class Defn {
   }
 
   public static SEXP Rf_mkFalse() {
-    throw new UnimplementedGnuApiMethod("Rf_mkFalse");
+    return LogicalVector.FALSE;
   }
 
   public static SEXP mkPRIMSXP(int p0, int p1) {
@@ -549,7 +607,7 @@ public final class Defn {
   }
 
   public static SEXP Rf_mkTrue() {
-    throw new UnimplementedGnuApiMethod("Rf_mkTrue");
+    return LogicalVector.TRUE;
   }
 
   public static SEXP Rf_NewEnvironment(SEXP p0, SEXP p1, SEXP p2) {
@@ -846,8 +904,18 @@ public final class Defn {
 
   // size_t Rf_wcstoutf8 (char *s, const wchar_t *wc, size_t n)
 
-  public static SEXP Rf_installTrChar(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_installTrChar");
+  public static SEXP Rf_installTrChar(SEXP x) {
+    if(!(x instanceof GnuCharSexp)) {
+      throw new EvalException("'installTrChar' must be called on 'CHARSXP'");
+    }
+    BytePtr ptr = ((GnuCharSexp) x).getValue();
+    byte[] allBytes = ptr.getArray();
+    byte[] minusLast = new byte[allBytes.length-1];
+    for(int i = 0; i < minusLast.length; i++) {
+      minusLast[i] = allBytes[i];
+    }
+    String name = new String(minusLast, StandardCharsets.UTF_8);
+    return Symbol.get(name);
   }
 
   // const wchar_t* Rf_wtransChar (SEXP x)

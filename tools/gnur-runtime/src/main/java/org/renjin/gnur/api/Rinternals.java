@@ -1980,6 +1980,8 @@ public final class Rinternals {
         return SexpType.STRSXP;
       case IntVector.TYPE_NAME:
         return SexpType.INTSXP;
+      case DoubleVector.TYPE_NAME:
+        return SexpType.REALSXP;
       case RawVector.TYPE_NAME:
         return SexpType.RAWSXP;
       case LogicalVector.TYPE_NAME:

@@ -42,7 +42,7 @@ public class ResultDeclRewriter implements FunctionBodyTransformer {
   public static final ResultDeclRewriter INSTANCE = new ResultDeclRewriter();
 
   @Override
-  public boolean transform(TreeLogger logger, GimpleCompilationUnit unit, GimpleFunction fn) {
+  public boolean transform(TreeLogger logger, GimpleOracle oracle, GimpleCompilationUnit unit, GimpleFunction fn) {
     
     // Does this function use a return_decl expression?
     ResultDeclMatcher matcher = new ResultDeclMatcher();

@@ -21,7 +21,10 @@ package org.renjin.gcc.analysis;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.TreeLogger;
 import org.renjin.gcc.gimple.*;
-import org.renjin.gcc.gimple.expr.*;
+import org.renjin.gcc.gimple.expr.GimpleConstant;
+import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.gcc.gimple.expr.GimpleMemRef;
+import org.renjin.gcc.gimple.expr.GimpleVariableRef;
 import org.renjin.gcc.gimple.statement.GimpleAssignment;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.statement.GimpleConditional;
@@ -47,7 +50,7 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
   }
 
   @Override
-  public boolean transform(TreeLogger logger, GimpleCompilationUnit unit, GimpleFunction fn) {
+  public boolean transform(TreeLogger logger, GimpleOracle oracle, GimpleCompilationUnit unit, GimpleFunction fn) {
 
     boolean updated = false;
     

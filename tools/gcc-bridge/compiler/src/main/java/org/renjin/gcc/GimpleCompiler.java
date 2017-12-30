@@ -18,6 +18,7 @@
  */
 package org.renjin.gcc;
 
+import heros.solver.IFDSSolver;
 import org.renjin.gcc.analysis.*;
 import org.renjin.gcc.annotations.GlobalVar;
 import org.renjin.gcc.codegen.FunctionGenerator;
@@ -184,6 +185,10 @@ public class GimpleCompiler  {
     globalSymbolTable.addLibrary(lib);
   }
 
+  public void addFunctionBodyTransformer(FunctionBodyTransformer transformer) {
+    functionBodyTransformers.add(transformer);
+  }
+
   public void addMethod(String functionName, Class declaringClass, String methodName) {
     globalSymbolTable.addMethod(functionName, declaringClass, methodName);
   }
@@ -218,6 +223,7 @@ public class GimpleCompiler  {
       PmfRewriter.rewrite(units);
       GlobalVarMerger.merge(units);
 
+
       // Prune unused functions
       if(pruneUnusedSymbols) {
         SymbolPruner.prune(rootLogger, units, entryPointPredicate);
@@ -225,8 +231,12 @@ public class GimpleCompiler  {
 
       typeOracle.initRecords(units, providedRecordTypes);
 
+
+      AllocationProfileMap profileMap = analyze(units);
+      GimpleOracle oracle = new GimpleOracle(profileMap);
+
       // First apply any transformations needed by the code generation process
-      transform(units);
+      transform(oracle, units);
 
       // Identify variables and fields that must be addressable
       AddressableFinder addressableFinder = new AddressableFinder(units);
@@ -274,6 +284,18 @@ public class GimpleCompiler  {
         e.printStackTrace();
       }
     }
+  }
+
+  private AllocationProfileMap analyze(List<GimpleCompilationUnit> units) {
+    GimpleInterproceduralCFG cfg = new GimpleInterproceduralCFG(units, entryPointPredicate);
+    PointsToAnalysis pointsToAnalysis = new PointsToAnalysis(cfg);
+
+    IFDSSolver<GimpleNode, PointsTo, GimpleFunction, GimpleInterproceduralCFG> solver =
+        new IFDSSolver<>(pointsToAnalysis);
+
+    solver.solve();
+
+    return new AllocationProfileMap(cfg, solver);
   }
 
   private void writeLinkMetadata(List<UnitClassGenerator> unitClassGenerators) throws IOException {
@@ -354,7 +376,7 @@ public class GimpleCompiler  {
     this.verbose = verbose;
   }
 
-  private void transform(List<GimpleCompilationUnit> units) {
+  private void transform(GimpleOracle oracle, List<GimpleCompilationUnit> units) {
 
     for (GimpleCompilationUnit unit : units) {
       if(TRACE) {
@@ -362,19 +384,22 @@ public class GimpleCompiler  {
       }
       for (GimpleFunction function : unit.getFunctions()) {
         if(!function.isEmpty()) {
-          transformFunctionBody(rootLogger.branch("Transforming " + function.getName()), unit, function);
+          transformFunctionBody(rootLogger.branch("Transforming " + function.getName()), oracle, unit, function);
         }
       }
     }
   }
 
-  private void transformFunctionBody(TreeLogger parentLogger, GimpleCompilationUnit unit, GimpleFunction function) {
+  private void transformFunctionBody(TreeLogger parentLogger,
+                                     GimpleOracle oracle,
+                                     GimpleCompilationUnit unit,
+                                     GimpleFunction function) {
     boolean updated;
     do {
       updated = false;
       for(FunctionBodyTransformer transformer : functionBodyTransformers) {
         TreeLogger logger = parentLogger.branch(TreeLogger.Level.DEBUG, "Running " + transformer.getClass().getSimpleName());
-        if(transformer.transform(logger, unit, function)) {
+        if(transformer.transform(logger, oracle, unit, function)) {
           updated = true;
         }
       }

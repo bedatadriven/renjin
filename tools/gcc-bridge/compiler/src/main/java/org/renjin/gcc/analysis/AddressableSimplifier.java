@@ -48,7 +48,7 @@ public class AddressableSimplifier implements FunctionBodyTransformer {
   }
 
   @Override
-  public boolean transform(TreeLogger logger, GimpleCompilationUnit unit, GimpleFunction fn) {
+  public boolean transform(TreeLogger logger, GimpleOracle oracle, GimpleCompilationUnit unit, GimpleFunction fn) {
 
     boolean updated = false;
 

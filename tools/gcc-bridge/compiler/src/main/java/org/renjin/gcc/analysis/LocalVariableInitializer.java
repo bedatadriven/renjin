@@ -42,7 +42,7 @@ public class LocalVariableInitializer implements FunctionBodyTransformer {
   public static final LocalVariableInitializer INSTANCE = new LocalVariableInitializer();
   
   @Override
-  public boolean transform(TreeLogger logger, GimpleCompilationUnit unit, GimpleFunction fn) {
+  public boolean transform(TreeLogger logger, GimpleOracle oracle, GimpleCompilationUnit unit, GimpleFunction fn) {
     
     ControlFlowGraph cfg = new ControlFlowGraph(fn);
     InitDataFlowAnalysis flowAnalysis = new InitDataFlowAnalysis(fn, cfg);

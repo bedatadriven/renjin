@@ -39,7 +39,7 @@ public class LocalVariablePruner implements FunctionBodyTransformer {
   public static final LocalVariablePruner INSTANCE = new LocalVariablePruner();
   
   @Override
-  public boolean transform(TreeLogger logger, GimpleCompilationUnit unit, GimpleFunction fn) {
+  public boolean transform(TreeLogger logger, GimpleOracle oracle, GimpleCompilationUnit unit, GimpleFunction fn) {
 
     VariableRefFinder refFinder = new VariableRefFinder();
     fn.accept(refFinder);

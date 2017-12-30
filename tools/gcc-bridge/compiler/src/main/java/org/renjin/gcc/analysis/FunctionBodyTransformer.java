@@ -30,11 +30,11 @@ public interface FunctionBodyTransformer {
   /**
    * Applies a transformation to the body of the function.
    * @param logger
+   * @param oracle
    * @param unit
-   * @param fn
-   * @return true if the body was updated
-   */
-  boolean transform(TreeLogger logger, GimpleCompilationUnit unit, GimpleFunction fn);
+   * @param fn   @return true if the body was updated
+   * */
+  boolean transform(TreeLogger logger, GimpleOracle oracle, GimpleCompilationUnit unit, GimpleFunction fn);
 
 
 }

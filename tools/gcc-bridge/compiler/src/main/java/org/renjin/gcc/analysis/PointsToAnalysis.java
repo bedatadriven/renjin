@@ -32,6 +32,7 @@ import org.renjin.gcc.gimple.expr.GimpleParamRef;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
 import org.renjin.gcc.gimple.statement.GimpleAssignment;
 import org.renjin.gcc.gimple.statement.GimpleCall;
+import org.renjin.gcc.gimple.statement.GimpleReturn;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.repackaged.guava.base.Optional;
 
@@ -78,26 +79,7 @@ public class PointsToAnalysis implements IFDSTabulationProblem<
           final GimpleExpr lhs = ((GimpleCall) curr.getStatement()).getLhs();
           final Allocation allocation = new HeapAllocation(curr.getStatement());
 
-          return new FlowFunction<PointsTo>() {
-            @Override
-            public Set<PointsTo> computeTargets(PointsTo source) {
-              if(source == PointsTo.ZERO) {
-                // New knowledge, return the link between the lefthand-side
-                // and this malloc.
-                return Sets.newHashSet(new PointsTo(lhs, allocation));
-
-              } else if(source.getExpr().equals(lhs)) {
-                // source: p=malloc
-                // statement: p=x
-                // therefore, this statement kills the previous definition.
-                return Collections.emptySet();
-
-              } else {
-                // This statement has no effect on the source fact.
-                return Collections.singleton(source);
-              }
-            }
-          };
+          return new AllocFlowFunction(lhs, allocation);
         }
 
         if(curr.getStatement() instanceof GimpleAssignment) {
@@ -166,30 +148,7 @@ public class PointsToAnalysis implements IFDSTabulationProblem<
               final GimpleExpr lhs = assignment.getLHS();
               final GimpleExpr rhs = assignment.getOperands().get(0);
 
-              return new FlowFunction<PointsTo>() {
-                @Override
-                public Set<PointsTo> computeTargets(PointsTo source) {
-
-                  if (source.getExpr().equals(rhs)) {
-                    // source: y = z
-                    // assignment: x = y
-                    // Then we know that x = z, (and: y still equals z)
-                    return Sets.newHashSet(
-                        source,
-                        new PointsTo(lhs, source.getAllocation()));
-
-                  } else if (source.getExpr().equals(lhs)) {
-                    // source: x := heap
-                    // assignment: x = y
-                    // Then we know that x is being changed and the source fact is no longer relevant.
-                    return Collections.emptySet();
-
-                  } else {
-                    // No effect, the source fact remains valid
-                    return Collections.singleton(source);
-                  }
-                }
-              };
+              return new AliasFlowFunction(lhs, rhs);
             }
           }
         }
@@ -217,8 +176,23 @@ public class PointsToAnalysis implements IFDSTabulationProblem<
       }
 
       @Override
-      public FlowFunction<PointsTo> getReturnFlowFunction(GimpleNode callSite, GimpleFunction calleeMethod, GimpleNode exitStmt, GimpleNode returnSite) {
-        throw new UnsupportedOperationException("TODO");
+      public FlowFunction<PointsTo> getReturnFlowFunction(GimpleNode callSite, GimpleFunction calleeMethod,
+                                                          GimpleNode exitStmt, GimpleNode returnSite) {
+        if (exitStmt.getStatement() instanceof GimpleReturn) {
+          GimpleCall call = (GimpleCall) callSite.getStatement();
+          if (call.getLhs() != null) {
+            GimpleExpr lhs = call.getLhs();
+            GimpleReturn returnStmt = (GimpleReturn) exitStmt.getStatement();
+            GimpleExpr returnValue = returnStmt.getValue();
+
+            if(returnValue instanceof GimpleVariableRef || returnValue instanceof GimpleParamRef) {
+              return new AliasFlowFunction(lhs, returnValue);
+            } else {
+              throw new UnsupportedOperationException("returnValue: " + returnValue.getClass().getName());
+            }
+          }
+        }
+        return Identity.v();
       }
 
       @Override
@@ -287,5 +261,67 @@ public class PointsToAnalysis implements IFDSTabulationProblem<
   @Override
   public boolean recordEdges() {
     return true;
+  }
+
+  private static class AliasFlowFunction implements FlowFunction<PointsTo> {
+    private final GimpleExpr lhs;
+    private final GimpleExpr rhs;
+
+    public AliasFlowFunction(GimpleExpr lhs, GimpleExpr rhs) {
+      this.rhs = rhs;
+      this.lhs = lhs;
+    }
+
+    @Override
+    public Set<PointsTo> computeTargets(PointsTo source) {
+
+      if (source.getExpr().equals(rhs)) {
+        // source: y = z
+        // assignment: x = y
+        // Then we know that x = z, (and: y still equals z)
+        return Sets.newHashSet(
+            source,
+            new PointsTo(lhs, source.getAllocation()));
+
+      } else if (source.getExpr().equals(lhs)) {
+        // source: x := heap
+        // assignment: x = y
+        // Then we know that x is being changed and the source fact is no longer relevant.
+        return Collections.emptySet();
+
+      } else {
+        // No effect, the source fact remains valid
+        return Collections.singleton(source);
+      }
+    }
+  }
+
+  private static class AllocFlowFunction implements FlowFunction<PointsTo> {
+    private final GimpleExpr lhs;
+    private final Allocation allocation;
+
+    public AllocFlowFunction(GimpleExpr lhs, Allocation allocation) {
+      this.lhs = lhs;
+      this.allocation = allocation;
+    }
+
+    @Override
+    public Set<PointsTo> computeTargets(PointsTo source) {
+      if(source == PointsTo.ZERO) {
+        // New knowledge, return the link between the lefthand-side
+        // and this malloc.
+        return Sets.newHashSet(new PointsTo(lhs, allocation));
+
+      } else if(source.getExpr().equals(lhs)) {
+        // source: p=malloc
+        // statement: p=x
+        // therefore, this statement kills the previous definition.
+        return Collections.emptySet();
+
+      } else {
+        // This statement has no effect on the source fact.
+        return Collections.singleton(source);
+      }
+    }
   }
 }

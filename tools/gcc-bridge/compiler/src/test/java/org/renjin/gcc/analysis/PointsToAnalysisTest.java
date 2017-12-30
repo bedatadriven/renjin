@@ -55,7 +55,6 @@ public class PointsToAnalysisTest extends AbstractGccTest {
     assertThat(profileMap.getAllocations(), hasSize(2));
   }
 
-
   private AllocationProfileMap solve(String sourceFile) throws IOException {
     GimpleCompilationUnit unit = compileToGimple(sourceFile);
     GimpleInterproceduralCFG cfg = new GimpleInterproceduralCFG(Arrays.asList(unit));

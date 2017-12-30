@@ -461,9 +461,12 @@ public final class Rinternals {
   }
 
   public static void SET_TYPEOF(SEXP x, int v) {
-    throw new UnimplementedGnuApiMethod("SET_TYPEOF");
+    if(TYPEOF(x) != v) {
+      throw new UnimplementedGnuApiMethod(String.format("Cannot change SEXP of type '%s' to '%s'",
+          SexpType.typeName(TYPEOF(x)),
+          SexpType.typeName(v)));
+    }
   }
-
 
   public static void SET_ATTRIB(SEXP x, SEXP v) {
     if(v instanceof PairList) {
@@ -1029,8 +1032,8 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("SET_FRAME");
   }
 
-  public static void SET_ENCLOS(SEXP x, SEXP v) {
-    throw new UnimplementedGnuApiMethod("SET_ENCLOS");
+  public static void SET_ENCLOS(SEXP env, SEXP parent) {
+    ((Environment) env).setParent(((Environment) parent));
   }
 
   public static void SET_HASHTAB(SEXP x, SEXP v) {

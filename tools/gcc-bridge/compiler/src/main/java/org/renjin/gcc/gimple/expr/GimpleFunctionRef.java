@@ -19,6 +19,7 @@
 package org.renjin.gcc.gimple.expr;
 
 import org.renjin.gcc.gimple.GimpleExprVisitor;
+import org.renjin.gcc.gimple.type.GimpleFunctionType;
 import org.renjin.repackaged.guava.base.Predicate;
 
 public class GimpleFunctionRef extends GimpleExpr {
@@ -39,6 +40,14 @@ public class GimpleFunctionRef extends GimpleExpr {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public GimpleFunctionRef() {
+  }
+
+  public GimpleFunctionRef(String name) {
+    this.name = name;
+    setType(new GimpleFunctionType());
   }
 
   @Override

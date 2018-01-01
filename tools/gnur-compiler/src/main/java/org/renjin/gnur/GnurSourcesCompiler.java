@@ -209,6 +209,8 @@ public class GnurSourcesCompiler {
     compiler.addReferenceClass(Rdynload.class);
     compiler.addRecordClass("_DllInfo", DllInfo.class);
     compiler.addReferenceClass(RenjinFiles.class);
+
+    compiler.addTransformer(new SetTypeRewriter());
   }
 
   private boolean checkUpToDate() {

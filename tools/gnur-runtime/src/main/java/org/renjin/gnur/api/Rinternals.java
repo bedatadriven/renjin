@@ -1292,6 +1292,14 @@ public final class Rinternals {
     return list.build();
   }
 
+  public static SEXP Rf_allocLang(int n) {
+    FunctionCall.Builder lang = new FunctionCall.Builder();
+    for(int i = 0; i < n; i++) {
+      lang.add(R_NilValue, R_NilValue);
+    }
+    return lang.build();
+  }
+
   /** Create an S4 object.
    *
    * @return Pointer to the created object.

@@ -20,7 +20,6 @@ package org.renjin.gcc.analysis;
 
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.TreeLogger;
-import org.renjin.gcc.gimple.GimpleBasicBlock;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -69,8 +68,6 @@ public class LocalVariableInitializer implements FunctionBodyTransformer {
     ControlFlowGraph cfg = new ControlFlowGraph(fn);
     InitFlowFunction flowFunction = new InitFlowFunction(fn);
     DataFlowAnalysis<Set<Long>> flowAnalysis = new DataFlowAnalysis<>(cfg, flowFunction);
-
-    flowAnalysis.solve();
     if(GimpleCompiler.TRACE) {
       flowAnalysis.dump();
     }
@@ -216,13 +213,10 @@ public class LocalVariableInitializer implements FunctionBodyTransformer {
     }
 
     @Override
-    public Set<Long> transfer(Set<Long> initialState, GimpleBasicBlock basicBlock) {
-      Set<Long> exitState = new HashSet<>(initialState);
-
-      if(basicBlock != null) {
-        for (GimpleStatement ins : basicBlock.getStatements()) {
-          updateInitializedSet(ins, exitState);
-        }
+    public Set<Long> transfer(Set<Long> entryState, Iterable<GimpleStatement> basicBlock) {
+      Set<Long> exitState = new HashSet<>(entryState);
+      for (GimpleStatement ins : basicBlock) {
+        updateInitializedSet(ins, exitState);
       }
       return exitState;
     }

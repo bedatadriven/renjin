@@ -18,7 +18,7 @@
  */
 package org.renjin.gcc.analysis;
 
-import org.renjin.gcc.gimple.GimpleBasicBlock;
+import org.renjin.gcc.gimple.statement.GimpleStatement;
 
 import java.util.List;
 
@@ -26,7 +26,7 @@ public interface FlowFunction<T> {
 
   T initialState();
 
-  T transfer(T initialState, GimpleBasicBlock basicBlock);
+  T transfer(T entryState, Iterable<GimpleStatement> basicBlock);
 
   T join(List<T> inputs);
 

@@ -21,6 +21,7 @@ package org.renjin.gcc.analysis;
 import org.renjin.gcc.gimple.GimpleBasicBlock;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.statement.GimpleEdge;
+import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.repackaged.guava.collect.Iterators;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
@@ -78,6 +79,14 @@ public class ControlFlowGraph {
     @Override
     public String toString() {
       return "<" + id + ">";
+    }
+
+    public Iterable<GimpleStatement> getStatements() {
+      if(basicBlock == null) {
+        return Collections.emptySet();
+      } else {
+        return basicBlock.getStatements();
+      }
     }
   }
   

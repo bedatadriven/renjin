@@ -28,7 +28,11 @@ public class GimpleFunctionType extends AbstractGimpleType {
   private GimpleType returnType;
   private List<GimpleType> argumentTypes = Lists.newArrayList();
   private boolean variableArguments;
-  
+
+  public GimpleFunctionType() {
+    returnType = new GimpleVoidType();
+  }
+
   public GimpleType getReturnType() {
     return returnType;
   }
@@ -48,7 +52,6 @@ public class GimpleFunctionType extends AbstractGimpleType {
   public void setVariableArguments(boolean variableArguments) {
     this.variableArguments = variableArguments;
   }
-
 
   @Override
   public int sizeOf() {

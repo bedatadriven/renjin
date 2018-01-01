@@ -18,6 +18,9 @@
  */
 package org.renjin.gcc.analysis;
 
+import org.renjin.gcc.gimple.GimpleBasicBlock;
+import org.renjin.gcc.gimple.statement.GimpleStatement;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,23 +36,20 @@ public class DataFlowAnalysis<T> {
   
   private Map<ControlFlowGraph.Node, T> entryState = new HashMap<>();
   private Map<ControlFlowGraph.Node, T> exitState = new HashMap<>();
-  
-  public DataFlowAnalysis(ControlFlowGraph cfg, FlowFunction<T> flowFunction) {
-    this.cfg = cfg;
-    this.flowFunction = flowFunction;
-  }
 
   /**
    * Solves the dataflow equation at the boundaries of the basic blocks
    */
-  public void solve() {
-    
+  public DataFlowAnalysis(ControlFlowGraph cfg, FlowFunction<T> flowFunction) {
+    this.cfg = cfg;
+    this.flowFunction = flowFunction;
+
     // Step 1: initialize the state of all nodes
     T initialState = flowFunction.initialState();
 
     for (ControlFlowGraph.Node node : cfg.getNodes()) {
       entryState.put(node, initialState);
-      exitState.put(node, flowFunction.transfer(initialState, node.getBasicBlock()));
+      exitState.put(node, flowFunction.transfer(initialState, node.getStatements()));
     }
     
     // While (sets are still changing)
@@ -66,7 +66,7 @@ public class DataFlowAnalysis<T> {
           entryState.put(node, updatedEntryState);
 
           T currentExitState = exitState.get(node);
-          T updatedExitState = flowFunction.transfer(updatedEntryState, node.getBasicBlock());
+          T updatedExitState = flowFunction.transfer(updatedEntryState, node.getBasicBlock().getStatements());
           if (!currentExitState.equals(updatedExitState)) {
             changed = true;
             exitState.put(node, updatedExitState);
@@ -95,6 +95,17 @@ public class DataFlowAnalysis<T> {
       throw new IllegalArgumentException("Node: " + node);
     }
     return state;
+  }
+
+  public T getState(GimpleBasicBlock block, GimpleStatement statement) {
+    T entryState = getEntryState(cfg.getNode(block));
+    int statementIndex = block.getStatements().indexOf(statement);
+
+    if(statementIndex == -1) {
+      throw new IllegalArgumentException("Statement does not belong to basic block");
+    }
+
+    return flowFunction.transfer(entryState, block.getStatements().subList(0, statementIndex));
   }
 
   public void dump() {

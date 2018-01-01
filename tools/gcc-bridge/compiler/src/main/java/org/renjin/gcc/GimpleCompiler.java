@@ -184,6 +184,10 @@ public class GimpleCompiler  {
     globalSymbolTable.addLibrary(lib);
   }
 
+  public void addTransformer(FunctionBodyTransformer transformer) {
+    functionBodyTransformers.add(transformer);
+  }
+
   public void addMethod(String functionName, Class declaringClass, String methodName) {
     globalSymbolTable.addMethod(functionName, declaringClass, methodName);
   }

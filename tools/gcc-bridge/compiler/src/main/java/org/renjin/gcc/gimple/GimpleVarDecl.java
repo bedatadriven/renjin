@@ -204,4 +204,6 @@ public class GimpleVarDecl implements GimpleDecl {
   public void setGlobal(boolean global) {
     this.global = global;
   }
+
+
 }

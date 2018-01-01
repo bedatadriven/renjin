@@ -20,16 +20,18 @@ package org.renjin.gcc.analysis;
 
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.TreeLogger;
+import org.renjin.gcc.gimple.GimpleBasicBlock;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
-import org.renjin.gcc.gimple.expr.GimpleComplexConstant;
-import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.expr.GimpleIntegerConstant;
-import org.renjin.gcc.gimple.expr.GimpleRealConstant;
+import org.renjin.gcc.gimple.expr.*;
+import org.renjin.gcc.gimple.statement.GimpleAssignment;
+import org.renjin.gcc.gimple.statement.GimpleCall;
+import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.gimple.type.*;
+import org.renjin.repackaged.guava.collect.Sets;
 
-import java.util.Set;
+import java.util.*;
 
 /**
  * Ensures that local variables are initialized before use.
@@ -44,26 +46,56 @@ public class LocalVariableInitializer implements FunctionBodyTransformer {
   @Override
   public boolean transform(TreeLogger logger, GimpleCompilationUnit unit, GimpleFunction fn) {
     
+    Set<Long> toInitialize = findVariablesUsedWithoutInitialization(fn);
+
+    for (GimpleVarDecl gimpleVarDecl : fn.getVariableDeclarations()) {
+      if(toInitialize.contains(gimpleVarDecl.getId())) {
+        gimpleVarDecl.setValue(defaultValue(gimpleVarDecl.getType()));
+      }
+    }
+
+    // one pass is always enough
+    return false;
+  }
+
+
+  /**
+   * Finds the set of variable ids that are used without initialization.
+   * @param fn the function to analyze
+   * @return a set of variable ids that are used without initialization
+   */
+  public Set<Long> findVariablesUsedWithoutInitialization(GimpleFunction fn) {
+
     ControlFlowGraph cfg = new ControlFlowGraph(fn);
-    InitDataFlowAnalysis flowAnalysis = new InitDataFlowAnalysis(fn, cfg);
-    
+    InitFlowFunction flowFunction = new InitFlowFunction(fn);
+    DataFlowAnalysis<Set<Long>> flowAnalysis = new DataFlowAnalysis<>(cfg, flowFunction);
+
     flowAnalysis.solve();
     if(GimpleCompiler.TRACE) {
       flowAnalysis.dump();
     }
 
-    Set<GimpleVarDecl> toInitialize = flowAnalysis.getVariablesUsedWithoutInitialization();
+    Set<Long> toInitialize = new HashSet<>();
 
-    for (GimpleVarDecl decl : toInitialize) {
-      GimpleExpr defaultValue = defaultValue(decl.getType());
-      decl.setValue(defaultValue);
-      if(GimpleCompiler.TRACE) {
-        System.out.println("INITIALIZING " + decl + " = " + defaultValue);
+    for (ControlFlowGraph.Node node : cfg.getBasicBlockNodes()) {
+      // The set of variables that have been *definitely* initialized
+      Set<Long> initialized = new HashSet<>(flowAnalysis.getEntryState(node));
+
+      // Now go statement-by-statement to see if there are any possible
+      // uses before definition
+      for (GimpleStatement statement : node.getBasicBlock().getStatements()) {
+
+        // Does this statement use any uninitialized variables?
+        for (GimpleSymbolRef symbolRef : statement.findVariableUses()) {
+          if(!initialized.contains(symbolRef.getId())) {
+            toInitialize.add(symbolRef.getId());
+          }
+        }
+        // Does this statement initialize any variables?
+        updateInitializedSet(statement, initialized);
       }
     }
-    
-    // one pass is always enough
-    return false;
+    return toInitialize;
   }
 
   private GimpleExpr defaultValue(GimpleType type) {
@@ -93,5 +125,107 @@ public class LocalVariableInitializer implements FunctionBodyTransformer {
     } else {
       throw new UnsupportedOperationException("Don't know how to create default value for " + type);
     }
+  }
+
+
+  /**
+   * Updates the set of initialized variables with the given statement
+   * @param statement the statement
+   * @param initializedVariables the set of variableIds that have definitely been initialized
+   */
+  private static void updateInitializedSet(GimpleStatement statement, Set<Long> initializedVariables) {
+    org.renjin.repackaged.guava.base.Optional<Long> variableRef = org.renjin.repackaged.guava.base.Optional.absent();
+    if (statement instanceof GimpleAssignment) {
+      variableRef = findVariableRef(((GimpleAssignment) statement).getLHS());
+    } else if (statement instanceof GimpleCall) {
+      variableRef = findVariableRef(((GimpleCall) statement).getLhs());
+    }
+    if (variableRef.isPresent()) {
+      initializedVariables.add(variableRef.get());
+    }
+  }
+
+  private static org.renjin.repackaged.guava.base.Optional<Long> findVariableRef(GimpleExpr lhs) {
+    if(lhs instanceof GimpleVariableRef) {
+      GimpleVariableRef ref = (GimpleVariableRef) lhs;
+
+      // is this a local variable or global variable?
+      return org.renjin.repackaged.guava.base.Optional.of(ref.getId());
+
+    } else if(lhs instanceof GimpleMemRef) {
+      return findVariableRef(((GimpleMemRef) lhs).getPointer());
+    } else if(lhs instanceof GimpleAddressOf) {
+      return findVariableRef(((GimpleAddressOf) lhs).getValue());
+    } else if(lhs instanceof GimpleComponentRef) {
+      return findVariableRef(((GimpleComponentRef) lhs).getValue());
+    } else {
+      return org.renjin.repackaged.guava.base.Optional.absent();
+    }
+  }
+
+
+  /**
+   * Identifies which variables are definitely initialized at the beginning of a basic block
+   */
+  public static class InitFlowFunction implements FlowFunction<Set<Long>> {
+
+    private GimpleFunction function;
+
+    public InitFlowFunction(GimpleFunction function) {
+      this.function = function;
+    }
+
+    @Override
+    public Set<Long> initialState() {
+      // We know the initial state of all nodes includes
+      // _at least_ those variables explicitly initialized
+
+      Set<Long> initialState = new HashSet<>();
+      for (GimpleVarDecl decl : function.getVariableDeclarations()) {
+        if(decl.getValue() != null) {
+          initialState.add(decl.getId());
+        }
+        // we always have to allocate arrays and records explicitly, because our
+        // arrays are stored on the heap, not the stack
+        if (decl.getType() instanceof GimpleArrayType ||
+            decl.getType() instanceof GimpleRecordType) {
+
+          initialState.add(decl.getId());
+        }
+      }
+      return initialState;
+    }
+
+    @Override
+    public Set<Long> join(List<Set<Long>> inputs) {
+
+      if(inputs.isEmpty()) {
+        return Collections.emptySet();
+      }
+
+      // a local variable is known to be initialized if has been
+      // initialized on ALL incoming paths
+      Iterator<Set<Long>> incomingIt = inputs.iterator();
+
+      Set<Long> state = new HashSet<>(incomingIt.next());
+
+      while(incomingIt.hasNext()) {
+        state = Sets.intersection(state, incomingIt.next());
+      }
+      return state;
+    }
+
+    @Override
+    public Set<Long> transfer(Set<Long> initialState, GimpleBasicBlock basicBlock) {
+      Set<Long> exitState = new HashSet<>(initialState);
+
+      if(basicBlock != null) {
+        for (GimpleStatement ins : basicBlock.getStatements()) {
+          updateInitializedSet(ins, exitState);
+        }
+      }
+      return exitState;
+    }
+
   }
 }

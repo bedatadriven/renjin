@@ -21,11 +21,6 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.renjin.test</groupId>
-      <artifactId>s3test</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.renjin</groupId>
       <artifactId>stats4</artifactId>
       <version>${project.version}</version>

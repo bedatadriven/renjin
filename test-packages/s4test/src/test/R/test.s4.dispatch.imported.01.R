@@ -19,7 +19,7 @@
 
 library(hamcrest)
 library(methods)
-library("org.renjin.test:s3test")
+library("org.renjin.test:s4test")
 
 nl <- new("Country", name = "The Netherlands", temp = "COLD")
 es <- new("Country", name = "Spain", temp = "WARM")

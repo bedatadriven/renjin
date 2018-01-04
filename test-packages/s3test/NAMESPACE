@@ -2,8 +2,6 @@
 # export constructors
 export(new.circle)
 export(new.square)
-exportMethods(setCountryName, setCountryTemp, "[", "[[", "[[<-", Arith, "/")
-exportClasses(Country, City)
 
 # export extensions of methods in other packages
 S3method(as.character, circle)

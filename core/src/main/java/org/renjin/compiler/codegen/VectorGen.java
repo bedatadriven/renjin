@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,13 +18,11 @@
  */
 package org.renjin.compiler.codegen;
 
-import org.apache.commons.math.complex.Complex;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.IntArrayVector;
 import org.renjin.sexp.LogicalArrayVector;
-import org.renjin.sexp.SEXP;
 
 public enum VectorGen {
 

@@ -30,7 +30,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.renjin.test</groupId>
+    <groupId>org.renjin.cran</groupId>
     <artifactId>s4testdep</artifactId>
     <name>Dependency on Test S4 package</name>
 
@@ -41,7 +41,7 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.renjin.test</groupId>
+            <groupId>org.renjin.cran</groupId>
             <artifactId>s4test</artifactId>
             <version>${project.version}</version>
         </dependency>

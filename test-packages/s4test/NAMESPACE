@@ -1,3 +1,6 @@
+
+import(methods)
+
 importClassesFrom(stats4, mle)
 importMethodsFrom(stats4, coef)
 
@@ -14,8 +17,8 @@ exportClasses(Country, City)
 
 
 # GNU R does not throw an error if the S4 metadata symbol
-# cannot be found. 
-# There are a few CRAN packages where package authors have added 
+# cannot be found.
+# There are a few CRAN packages where package authors have added
 # erroneous exportClasses() directives which are silently ignored by GNU R
 # but would break in Renjin if we throw an error.
-exportClasses(THIS_CLASS_DOES_NOT_EXIST)
+#exportClasses(THIS_CLASS_DOES_NOT_EXIST)

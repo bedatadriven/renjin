@@ -17,12 +17,15 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
-library(hamcrest)
+
 library(methods)
-library("org.renjin.test:s4test")
+library(s4test)
+library(hamcrest)
+
+# NSBS is exported by s4test,
+# but extends a class NativeNSBS that is NOT exported
+setClass("RleNSBS", contains="NSBS", representation(subscript="Rle"))
 
 
-s <- new("Z")
 
-assertThat(deparse(s), equalTo("<S4 object of class structure(\"Z\", package = \"s4test\")>"))
 

@@ -10,7 +10,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.renjin.test</groupId>
+  <groupId>org.renjin.cran</groupId>
   <artifactId>s4test</artifactId>
   <name>Test S4 package</name>
 
@@ -41,14 +41,9 @@
           <execution>
             <id>build</id>
             <goals>
-              <goal>namespace-compile</goal>
+              <goal>gnur-compile</goal>
             </goals>
             <phase>compile</phase>
-            <configuration>
-              <defaultPackages>
-                <defaultPackage>methods</defaultPackage>
-              </defaultPackages>
-            </configuration>
           </execution>
           <execution>
             <goals>
@@ -65,5 +60,4 @@
       </plugin>
     </plugins>
   </build>
-
 </project>

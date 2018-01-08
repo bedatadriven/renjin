@@ -17,8 +17,9 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
+library(methods)
 library(stats4)
-library("org.renjin.test:s4test")
+library(s4test)
 library(hamcrest)
 
 

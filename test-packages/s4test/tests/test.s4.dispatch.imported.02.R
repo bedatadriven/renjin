@@ -17,9 +17,9 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
-library(hamcrest)
 library(methods)
-library("org.renjin.test:s4test")
+library(s4test)
+library(hamcrest)
 
 
 city <- new("City", new.env(hash = TRUE, parent = emptyenv()) )

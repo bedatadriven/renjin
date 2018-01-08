@@ -1,4 +1,4 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
  * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
@@ -20,7 +20,8 @@ package org.renjin.pipeliner;
 
 import org.renjin.repackaged.asm.MethodVisitor;
 
-import static org.renjin.repackaged.asm.Opcodes.*;
+import static org.renjin.repackaged.asm.Opcodes.ICONST_0;
+import static org.renjin.repackaged.asm.Opcodes.ISTORE;
 
 public class ComputeMethod {
   private int localCount = 2; // includes instance pointer and argument

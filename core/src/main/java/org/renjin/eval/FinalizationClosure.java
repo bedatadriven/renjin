@@ -1,4 +1,4 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
  * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
@@ -18,7 +18,10 @@
  */
 package org.renjin.eval;
 
-import org.renjin.sexp.*;
+import org.renjin.sexp.Closure;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
 
 public class FinalizationClosure implements FinalizationHandler {
   private Closure function;

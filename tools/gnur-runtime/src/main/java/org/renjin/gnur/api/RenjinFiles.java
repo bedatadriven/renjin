@@ -1,4 +1,4 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
  * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
@@ -18,8 +18,6 @@
  */
 package org.renjin.gnur.api;
 
-import static org.renjin.gcc.runtime.Stdlib.nullTerminatedString;
-
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.RandomAccessContent;
@@ -33,6 +31,8 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import static org.renjin.gcc.runtime.Stdlib.nullTerminatedString;
 
 /**
  * Provides Renjin-specific hooks into the Session's FileSystemManager

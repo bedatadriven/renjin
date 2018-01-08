@@ -1,4 +1,4 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
  * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
@@ -23,9 +23,7 @@ import org.renjin.EvalTestCase;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.S4Object;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class IdenticalTest extends EvalTestCase {
 

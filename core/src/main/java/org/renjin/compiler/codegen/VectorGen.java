@@ -1,4 +1,4 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
  * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
@@ -18,13 +18,11 @@
  */
 package org.renjin.compiler.codegen;
 
-import org.apache.commons.math.complex.Complex;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.IntArrayVector;
 import org.renjin.sexp.LogicalArrayVector;
-import org.renjin.sexp.SEXP;
 
 public enum VectorGen {
 

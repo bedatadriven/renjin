@@ -1,4 +1,4 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
  * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
@@ -17,8 +17,6 @@
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
 package org.renjin.gcc.gimple;
-
-import java.util.List;
 
 /**
  * Common interface to function, variable declarations

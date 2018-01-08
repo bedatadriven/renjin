@@ -1,4 +1,4 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
  * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
@@ -19,7 +19,10 @@
 // Initial template generated from Print.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.gcc.runtime.*;
+import org.renjin.gcc.runtime.BytePtr;
+import org.renjin.gcc.runtime.DoublePtr;
+import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.gcc.runtime.Stdlib;
 import org.renjin.sexp.SEXP;
 
 @SuppressWarnings("unused")

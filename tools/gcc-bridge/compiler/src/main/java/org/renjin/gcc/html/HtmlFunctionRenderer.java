@@ -1,4 +1,4 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
  * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
@@ -18,18 +18,12 @@
  */
 package org.renjin.gcc.html;
 
-import com.sun.corba.se.impl.io.InputStreamHook;
-import com.sun.corba.se.spi.orbutil.fsm.Input;
-import org.renjin.gcc.gimple.GimpleBasicBlock;
 import org.renjin.gcc.gimple.GimpleFunction;
-import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.symbols.SymbolTable;
 import org.renjin.repackaged.asm.tree.MethodNode;
 import org.renjin.repackaged.guava.base.Charsets;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.io.Resources;
 
-import java.io.File;
 import java.io.IOException;
 
 public class HtmlFunctionRenderer {

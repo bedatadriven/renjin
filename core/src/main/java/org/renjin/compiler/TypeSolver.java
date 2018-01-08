@@ -1,4 +1,4 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
  * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
@@ -31,7 +31,9 @@ import org.renjin.compiler.ir.tac.statements.IfStatement;
 import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.repackaged.guava.collect.Sets;
-import org.renjin.sexp.*;
+import org.renjin.sexp.Function;
+import org.renjin.sexp.Logical;
+import org.renjin.sexp.Symbol;
 
 import java.util.*;
 

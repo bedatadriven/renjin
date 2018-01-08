@@ -1,4 +1,4 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
  * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
@@ -22,7 +22,6 @@ import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.collect.Sets;
 

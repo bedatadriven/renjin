@@ -1,4 +1,4 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
  * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
@@ -18,7 +18,6 @@
  */
 package org.renjin.invoke.codegen.args;
 
-import com.sun.codemodel.JClass;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JVar;
@@ -26,11 +25,7 @@ import org.renjin.invoke.codegen.ApplyMethodContext;
 import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.invoke.model.JvmMethod.Argument;
 import org.renjin.sexp.Environment;
-import org.renjin.sexp.ExternalPtr;
 import org.renjin.sexp.SEXP;
-
-import static com.sun.codemodel.JExpr.cast;
-import static com.sun.codemodel.JExpr.invoke;
 
 /**
  * Converts a formal argument of type 'Environment' via the

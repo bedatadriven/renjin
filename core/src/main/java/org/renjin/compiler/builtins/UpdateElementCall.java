@@ -1,4 +1,4 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
  * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
@@ -18,8 +18,6 @@
  */
 package org.renjin.compiler.builtins;
 
-import org.renjin.compiler.builtins.FailedToSpecializeException;
-import org.renjin.compiler.builtins.Specialization;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;

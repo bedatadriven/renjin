@@ -1,4 +1,4 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
  * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
@@ -23,7 +23,6 @@ import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.invoke.model.JvmMethod;
-import org.renjin.invoke.reflection.converters.BooleanArrayConverter;
 import org.renjin.invoke.reflection.converters.Converters;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;

@@ -107,7 +107,7 @@ public class Subsetting {
       if(namesVector != null) {
         elementName = namesVector.getElementAsString(i);
       }
-      copyBuilder.add(elementName, vector.getElementAsSEXP(i));
+      copyBuilder.add(elementName, vector.<SEXP>getElementAsSEXP(i));
     }
     return setSingleListElementByName(copyBuilder, nameToReplace, value);
   }
@@ -258,7 +258,7 @@ public class Subsetting {
       if(!(result instanceof Vector)) {
         throw new EvalException("Recursive indexing failed at level %d", i+1);
       }
-      result = getSingleElement(context, result, new ListVector(indexes.getElementAsSEXP(i)), exact, drop);
+      result = getSingleElement(context, result, new ListVector(indexes.<SEXP>getElementAsSEXP(i)), exact, drop);
     }
     return result;
   }

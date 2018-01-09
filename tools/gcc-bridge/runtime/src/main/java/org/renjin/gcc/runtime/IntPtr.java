@@ -24,7 +24,7 @@ import java.util.Arrays;
 public class IntPtr extends AbstractPtr implements Ptr {
   
   public static final int BYTES = Integer.SIZE / 8;
-  
+
   public static final IntPtr NULL = new IntPtr();
 
   public final int[] array;
@@ -88,11 +88,11 @@ public class IntPtr extends AbstractPtr implements Ptr {
   public int unwrap() {
     return array[offset];
   }
-  
+
   public int get() {
     return array[offset];
   }
-  
+
   public void set(int value) {
     array[offset] = value;
   }
@@ -103,7 +103,7 @@ public class IntPtr extends AbstractPtr implements Ptr {
   }
 
   /**
-   * Copies the character c (an unsigned char) to 
+   * Copies the character c (an unsigned char) to
    * the first n characters of the string pointed to, by the argument str.
    *
    * @param str an array of doubles
@@ -112,7 +112,7 @@ public class IntPtr extends AbstractPtr implements Ptr {
    * @param n the number of bytes to set
    */
   public static void memset(int[] str, int strOffset, int byteValue, int n) {
-    
+
     assert n % BYTES == 0;
 
     Arrays.fill(str, strOffset, strOffset + (n / BYTES), memset(byteValue));
@@ -122,9 +122,9 @@ public class IntPtr extends AbstractPtr implements Ptr {
    * Sets all bytes of an {@code int} to the {@code byteValue}
    */
   public static int memset(int byteValue) {
-    return byteValue << 24 | 
-          (byteValue & 0xFF) << 16 | 
-          (byteValue & 0xFF) << 8 | 
+    return byteValue << 24 |
+          (byteValue & 0xFF) << 16 |
+          (byteValue & 0xFF) << 8 |
           (byteValue & 0xFF);
   }
 
@@ -154,7 +154,7 @@ public class IntPtr extends AbstractPtr implements Ptr {
    *
    * @param x the first int value
    * @param y the second int value
-   * @param n the number of <strong>bytes</strong> to compare. 
+   * @param n the number of <strong>bytes</strong> to compare.
    * @return 0 if the first {@code n} bytes of the long values are equal, -1 if the first is less than the second,
    * or +1 if the first is greater than the second.
    */
@@ -173,7 +173,7 @@ public class IntPtr extends AbstractPtr implements Ptr {
     }
     return 0;
   }
-  
+
   public static IntPtr cast(Object voidPointer) {
     if(voidPointer instanceof MallocThunk) {
       return ((MallocThunk) voidPointer).intPtr();
@@ -210,8 +210,6 @@ public class IntPtr extends AbstractPtr implements Ptr {
       return super.getInt(offset);
     }
   }
-
-
 
   @Override
   public void setInt(int value) {
@@ -277,28 +275,19 @@ public class IntPtr extends AbstractPtr implements Ptr {
   }
 
 
-  static int flip(int value) {
-    return value ^ Integer.MIN_VALUE;
-  }
-
   /**
    * Compares the two specified {@code int} values, treating them as unsigned values between
-   * {@code 0} and {@code 2^32 - 1} inclusive. (Copied from Guava 17.0)
+   * {@code 0} and {@code 2^32 - 1} inclusive.
    *
-   * @param a the first unsigned {@code int} to compare
-   * @param b the second unsigned {@code int} to compare
-   * @return a negative value if {@code a} is less than {@code b}; a positive value if {@code a} is
-   *         greater than {@code b}; or zero if they are equal
+   * @deprecated Compiler will now use Java 1.8 API
    */
+  @Deprecated
   public static int unsignedCompare(int a, int b) {
-    return Integer.compare(flip(a), flip(b));
+    return Integer.compareUnsigned(a, b);
   }
 
   public static int unsignedMax(int a, int b) {
-    if(a==b) {
-      return a;
-    }
-    if(flip(a) > flip(b)) {
+    if(Long.compareUnsigned(a, b) > 0) {
       return a;
     } else {
       return b;
@@ -306,10 +295,7 @@ public class IntPtr extends AbstractPtr implements Ptr {
   }
 
   public static int unsignedMin(int a, int b) {
-    if(a==b) {
-      return a;
-    }
-    if(flip(a) < flip(b)) {
+    if(Long.compareUnsigned(a, b) < 0) {
       return a;
     } else {
       return b;
@@ -317,14 +303,20 @@ public class IntPtr extends AbstractPtr implements Ptr {
   }
 
 
+  /**
+   * @deprecated Compiler will now use Java 1.8 API
+   */
+  @Deprecated
   public static int unsignedDivide(int dividend, int divisor) {
-    // In lieu of tricky code, for now just use long arithmetic.
-    return (int)((dividend & 0xFFFFFFFFL) /  (divisor & 0xFFFFFFFFL));
+    return Integer.divideUnsigned(dividend, divisor);
   }
 
+  /**
+   * @deprecated Compiler will now use Java 1.8 API
+   */
+  @Deprecated
   public static int unsignedRemainder(int dividend, int divisor) {
-    // In lieu of tricky code, for now just use long arithmetic.
-    return (int)((dividend & 0xFFFFFFFFL) %  (divisor & 0xFFFFFFFFL));
+    return Integer.remainderUnsigned(dividend, divisor);
   }
 
   public static void memcpy(IntPtr x, IntPtr y, int numBytes) {

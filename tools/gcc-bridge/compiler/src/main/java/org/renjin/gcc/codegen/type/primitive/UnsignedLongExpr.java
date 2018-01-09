@@ -67,7 +67,7 @@ public class UnsignedLongExpr extends AbstractIntExpr {
 
   @Override
   public UnsignedLongExpr divide(GExpr operand) {
-    return lift(Expressions.staticMethodCall(LongPtr.class, "unsignedDivide", "(JJ)J", jexpr(), jexpr(operand)));
+    return lift(Expressions.staticMethodCall(Long.class, "divideUnsigned", "(JJ)J", jexpr(), jexpr(operand)));
   }
 
   @Override
@@ -95,7 +95,7 @@ public class UnsignedLongExpr extends AbstractIntExpr {
 
   @Override
   public UnsignedLongExpr remainder(GExpr operand) {
-    return lift(Expressions.staticMethodCall(LongPtr.class, "unsignedRemainder", "(JJ)J", jexpr(), jexpr(operand)));
+    return lift(Expressions.staticMethodCall(Long.class, "remainderUnsigned", "(JJ)J", jexpr(), jexpr(operand)));
   }
 
   @Override
@@ -183,7 +183,7 @@ public class UnsignedLongExpr extends AbstractIntExpr {
       case NE_EXPR:
         return new Comparison(op, Expressions.lcmp(jexpr(), jexpr(operand)));
       default:
-        return new Comparison(op, Expressions.staticMethodCall(LongPtr.class, "compareUnsigned", "(JJ)I",
+        return new Comparison(op, Expressions.staticMethodCall(Long.class, "compareUnsigned", "(JJ)I",
             jexpr(), jexpr(operand)));
     }
   }

@@ -76,7 +76,7 @@ public class UnsignedIntExpr extends AbstractIntExpr {
 
   @Override
   public UnsignedIntExpr divide(GExpr operand) {
-    return lift(Expressions.staticMethodCall(IntPtr.class, "unsignedDivide", "(II)I", jexpr(), jexpr(operand)));
+    return lift(Expressions.staticMethodCall(Integer.class, "divideUnsigned", "(II)I", jexpr(), jexpr(operand)));
   }
 
   @Override
@@ -103,7 +103,7 @@ public class UnsignedIntExpr extends AbstractIntExpr {
 
   @Override
   public UnsignedIntExpr remainder(GExpr operand) {
-    return lift(Expressions.staticMethodCall(IntPtr.class, "unsignedRemainder", "(II)I", jexpr(), jexpr(operand)));
+    return lift(Expressions.staticMethodCall(Integer.class, "remainderUnsigned", "(II)I", jexpr(), jexpr(operand)));
   }
 
   @Override
@@ -199,7 +199,7 @@ public class UnsignedIntExpr extends AbstractIntExpr {
         return new IntegerComparison(op, jexpr(), jexpr(operand));
 
       default:
-        return new Comparison(op, Expressions.staticMethodCall(IntPtr.class, "unsignedCompare", "(II)I",
+        return new Comparison(op, Expressions.staticMethodCall(Integer.class, "compareUnsigned", "(II)I",
             jexpr(), jexpr(operand)));
     }
   }

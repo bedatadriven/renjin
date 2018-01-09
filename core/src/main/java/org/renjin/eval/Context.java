@@ -307,7 +307,7 @@ public class Context {
   }
 
   public <T> void setState(T instance) {
-    this.<T>setState((Class<T>) instance.getClass(), instance);
+    this.setState((Class<T>) instance.getClass(), instance);
   }
 
   public <T> void setState(Class<T> clazz, T instance) {

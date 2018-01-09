@@ -205,7 +205,7 @@ public class GccBridgeMojo extends AbstractMojo {
       String defaultIncludePattern = "**/*" + ( inputFileEnding.startsWith( "." ) ? "" : "." ) + inputFileEnding;
       includes.add(defaultIncludePattern);
     }
-    SourceInclusionScanner scanner = new SimpleSourceInclusionScanner( includes, Collections.<String>emptySet() );
+    SourceInclusionScanner scanner = new SimpleSourceInclusionScanner( includes, Collections.emptySet() );
     for(String inputFileEnding : inputFileEndings) {
       scanner.addSourceMapping(getSourceMapping(inputFileEnding));
     }

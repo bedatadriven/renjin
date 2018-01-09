@@ -54,7 +54,7 @@ public class FunctionCall extends PairList.Node {
   }
 
   public <X extends SEXP> X getArgument(int index) {
-    return getArguments().<X>getElementAsSEXP(index);
+    return getArguments().getElementAsSEXP(index);
   }
 
   @Override

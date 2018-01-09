@@ -39,7 +39,7 @@ public class ClasspathPackageLoader implements PackageLoader {
   public Optional<Package> load(FqPackageName name) {
     ClasspathPackage pkg = new ClasspathPackage(classLoader, name);
     if(pkg.resourceExists("environment")) {
-      return Optional.<Package>of(pkg);
+      return Optional.of(pkg);
     } else {
       return Optional.empty();
     }

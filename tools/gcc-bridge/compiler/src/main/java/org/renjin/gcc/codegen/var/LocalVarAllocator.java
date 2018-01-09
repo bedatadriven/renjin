@@ -90,7 +90,7 @@ public class LocalVarAllocator extends VarAllocator {
 
   @Override
   public LocalVar reserve(String name, Type type) {
-    return reserve(name, type, Optional.<JExpr>empty());
+    return reserve(name, type, Optional.empty());
   }
 
   @Override

@@ -136,10 +136,10 @@ public class RenjinScriptEngineTest {
   public void putNullRef() throws ScriptException {
     
     engine.put("x", 42);
-    assertThat(engine.eval("x == 42"), CoreMatchers.<Object>equalTo(LogicalVector.TRUE));
+    assertThat(engine.eval("x == 42"), CoreMatchers.equalTo(LogicalVector.TRUE));
 
     engine.put("x", null);
-    assertThat(engine.eval("is.null(x)"), CoreMatchers.<Object>equalTo(LogicalVector.TRUE));
+    assertThat(engine.eval("is.null(x)"), CoreMatchers.equalTo(LogicalVector.TRUE));
   }
   
   @Test
@@ -147,7 +147,7 @@ public class RenjinScriptEngineTest {
     Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
     
     bindings.put("x", null);
-    assertThat(engine.eval("is.null(x)"), CoreMatchers.<Object>equalTo(LogicalVector.TRUE));
+    assertThat(engine.eval("is.null(x)"), CoreMatchers.equalTo(LogicalVector.TRUE));
   }
   
   @Test

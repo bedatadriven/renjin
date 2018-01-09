@@ -23,7 +23,6 @@ import org.renjin.EvalTestCase;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.sexp.Closure;
-import org.renjin.sexp.Symbol;
 
 import java.util.Collections;
 
@@ -58,7 +57,7 @@ public class InlinedFunctionTest extends EvalTestCase {
   private InlinedFunction compileFunction(String functionDecl) {
     Closure closure = (Closure) eval(functionDecl);
     return new InlinedFunction(new RuntimeState(topLevelContext, topLevelContext.getGlobalEnvironment()),
-        closure, Collections.<Symbol>emptySet());
+        closure, Collections.emptySet());
   }
 
 

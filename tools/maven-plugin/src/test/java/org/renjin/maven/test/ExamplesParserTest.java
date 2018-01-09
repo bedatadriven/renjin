@@ -34,7 +34,7 @@ public class ExamplesParserTest extends TestCase {
     File testFile = new File(getClass().getResource("/man/p.hboxp.Rd").getFile());
     String examples = ExamplesParser.parseExamples(testFile);
     
-    TestExecutor runner = new TestExecutor("base",  Lists.<String>newArrayList(), reportDir);
+    TestExecutor runner = new TestExecutor("base",  Lists.newArrayList(), reportDir);
     runner.executeTestFile(testFile, examples);
 
   }

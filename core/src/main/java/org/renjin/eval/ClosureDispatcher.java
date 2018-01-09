@@ -48,7 +48,7 @@ public class ClosureDispatcher {
 
   public SEXP applyClosure(Closure closure, PairList args) {
     PairList promisedArgs = Calls.promiseArgs(args, callingContext, callingEnvironment);
-    return apply(callingContext, callingEnvironment, call, closure, promisedArgs, Collections.<Symbol, SEXP>emptyMap());
+    return apply(callingContext, callingEnvironment, call, closure, promisedArgs, Collections.emptyMap());
   }
 
   /**

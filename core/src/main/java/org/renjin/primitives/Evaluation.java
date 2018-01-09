@@ -287,7 +287,7 @@ public class Evaluation {
        * changes any of the components named in the (pair)list, the changes are lost.
        */
       Environment parent = enclosing == Null.INSTANCE ? context.getBaseEnvironment() :
-          EvalException.<Environment>checkedCast(enclosing);
+          EvalException.checkedCast(enclosing);
 
       rho = Environment.createChildEnvironment(parent).build();
 

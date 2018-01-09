@@ -26,6 +26,12 @@ import java.util.Iterator;
 
 public class ComplexArrayVector extends ComplexVector {
 
+  public static final ComplexVector NA_VECTOR = new ComplexArrayVector(ComplexVector.NA);
+  public static final ComplexVector EMPTY = new ComplexArrayVector();
+
+  public static final ComplexVector NAMED_EMPTY = new ComplexArrayVector(new Complex[0],
+      AttributeMap.builder().setNames(StringVector.EMPTY).build());
+
   private final double[] values;
 
   public ComplexArrayVector(Complex... values) {

@@ -50,18 +50,11 @@ public class Ops  {
   @DataParallel(PreserveAttributeStyle.ALL)
   public static int plus(@Cast(CastStyle.EXPLICIT) int a, @Cast(CastStyle.EXPLICIT) int b) {
     // check for integer overflow
-    int r = a + b;
-    boolean bLTr = b < r;
-    if (a > 0) {
-      if (bLTr) {
-        return r;
-      }
-    } else {
-      if (!bLTr) {
-        return r;
-      }
+    try {
+      return Math.addExact(a, b);
+    } catch(ArithmeticException e) {
+      return IntVector.NA;
     }
-    return IntVector.NA;
   }
 
   @Builtin("+")
@@ -114,10 +107,9 @@ public class Ops  {
   @Builtin("-")
   @DataParallel(PreserveAttributeStyle.ALL)
   public static int minus(@Cast(CastStyle.EXPLICIT) int a, @Cast(CastStyle.EXPLICIT) int b) {
-    int r = a - b;
-    if ((a < 0 == b < 0) || (a < 0 == r < 0)) {
-      return r;
-    } else {
+    try {
+      return Math.subtractExact(a, b);
+    } catch (ArithmeticException e) {
       return IntVector.NA;
     }
   }
@@ -193,10 +185,9 @@ public class Ops  {
   @Builtin("*")
   @DataParallel(PreserveAttributeStyle.ALL)
   public static int multiply(@Cast(CastStyle.EXPLICIT) int x, @Cast(CastStyle.EXPLICIT) int y) {
-    long l = (long) x * (long) y;
-    if (!(l < Integer.MIN_VALUE || l > Integer.MAX_VALUE)) {
-      return (int) l;
-    } else {
+    try {
+      return Math.multiplyExact(x, y);
+    } catch (ArithmeticException e) {
       return IntVector.NA;
     }
   }

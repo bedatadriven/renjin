@@ -335,7 +335,7 @@ public class Distributions {
   public static DoubleVector runif(@Current Context context, Vector nVector, AtomicVector min, AtomicVector max) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int minLength = min.length();
     int maxLength = min.length();
@@ -363,7 +363,7 @@ public class Distributions {
   public static DoubleVector rnorm(@Current Context context, Vector nVector, AtomicVector mean, AtomicVector sd) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int meanLength  = mean.length();
     int sdLength = sd.length();
@@ -391,7 +391,7 @@ public class Distributions {
   public static DoubleVector rgamma(@Current Context context, Vector nVector, AtomicVector shape, AtomicVector scale) {
     int n  = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int shapeLength = shape.length();
     int scaleLength = scale.length();
@@ -419,7 +419,7 @@ public class Distributions {
   public static DoubleVector rchisq(@Current Context context, Vector nVector, AtomicVector df) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int dfLength = df.length();
     boolean hasNA = df.containsNA();
@@ -459,7 +459,7 @@ public class Distributions {
   public static DoubleVector rnchisq(@Current Context context, Vector nVector, AtomicVector df, double ncp) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int dfLength = df.length();
     if (dfLength == 0) {
@@ -483,7 +483,7 @@ public class Distributions {
     int n = defineSize(nVector);
     if (n == 0) {
       // replace this with error!
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int invrateLength = invrate.length();
     if (invrateLength == 0) {
@@ -529,7 +529,7 @@ public class Distributions {
   public static DoubleVector rsignrank(@Current Context context, Vector nnVector, AtomicVector n) {
     int nn = defineSize(nnVector);
     if (nn == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int nLength = n.length();
     if (nLength == 0) {
@@ -552,7 +552,7 @@ public class Distributions {
   public static DoubleVector rwilcox(@Current Context context, Vector nnVector, AtomicVector m, AtomicVector n) {
     int nn = defineSize(nnVector);
     if (nn == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int mLength = m.length();
     int nLength = n.length();
@@ -603,7 +603,7 @@ public class Distributions {
   public static DoubleVector rt(@Current Context context, Vector nVector, AtomicVector df) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int dfLength = df.length();
     if (dfLength == 0) {
@@ -626,7 +626,7 @@ public class Distributions {
   public static DoubleVector rcauchy(@Current Context context, Vector nVector, AtomicVector location, AtomicVector scale) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int locationLength = location.length();
     int scaleLength = scale.length();
@@ -654,7 +654,7 @@ public class Distributions {
   public static DoubleVector rlnorm(@Current Context context, Vector nVector, AtomicVector meanlog, AtomicVector sdlog) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int meanlogLenght = meanlog.length();
     int sdlogLength = sdlog.length();
@@ -682,7 +682,7 @@ public class Distributions {
   public static DoubleVector rlogis(@Current Context context, Vector nVector, AtomicVector location, AtomicVector scale) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int locationLength = location.length();
     int scaleLength = scale.length();
@@ -710,7 +710,7 @@ public class Distributions {
   public static DoubleVector rweibull(@Current Context context, Vector nVector, AtomicVector shape, AtomicVector scale) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int shapeLength = shape.length();
     int scaleLength = scale.length();
@@ -766,7 +766,7 @@ public class Distributions {
   public static DoubleVector rnbinom_mu(@Current Context context, Vector nVector, AtomicVector size, AtomicVector mu) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int sizeLength = size.length();
     int muLenght = mu.length();
@@ -823,7 +823,7 @@ public class Distributions {
   public static DoubleVector rf(@Current Context context, Vector nVector, AtomicVector df1, AtomicVector df2) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int df1Length = df1.length();
     int df2Length = df2.length();
@@ -851,7 +851,7 @@ public class Distributions {
   public static DoubleVector rbeta(@Current Context context, Vector nVector, AtomicVector shape1, AtomicVector shape2) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int shape1Length = shape1.length();
     int shape2Length = shape2.length();
@@ -879,7 +879,7 @@ public class Distributions {
   public static DoubleVector rhyper(@Current Context context, Vector nnVector, AtomicVector m, AtomicVector n, AtomicVector k) {
     int nn = defineSize(nnVector);
     if (nn == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int mLength = m.length();
     int nLength = n.length();

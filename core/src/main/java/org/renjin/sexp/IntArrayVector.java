@@ -24,6 +24,8 @@ import java.util.Arrays;
 
 public class IntArrayVector extends IntVector {
 
+  public static final IntArrayVector NA_VECTOR = new IntArrayVector(IntVector.NA);
+
   private int[] values;
 
   private IntArrayVector(AttributeMap attributes) {
@@ -118,7 +120,7 @@ public class IntArrayVector extends IntVector {
       }
       values = new int[initialCapacity];
       size = initialSize;
-      Arrays.fill(values, NA);
+      Arrays.fill(values, IntVector.NA);
     }
 
     public Builder(int initialSize) {

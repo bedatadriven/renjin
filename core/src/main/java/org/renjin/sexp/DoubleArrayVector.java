@@ -26,9 +26,14 @@ import java.util.Collection;
 
 public final class DoubleArrayVector extends DoubleVector {
 
-  public static DoubleArrayVector ZERO = new DoubleArrayVector(0);
+  public static final DoubleArrayVector ZERO = new DoubleArrayVector(0);
 
-  public static DoubleArrayVector ONE = new DoubleArrayVector(1);
+  public static final DoubleArrayVector ONE = new DoubleArrayVector(1);
+
+  public static final DoubleArrayVector EMPTY = new DoubleArrayVector();
+
+  public static final DoubleArrayVector NA_VECTOR = new DoubleArrayVector(DoubleVector.NA);
+
 
   private double[] values;
 

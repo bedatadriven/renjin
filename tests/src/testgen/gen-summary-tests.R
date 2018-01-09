@@ -125,7 +125,7 @@ for(fn in unary) {
   # Check combinations for min, max, range
   # But skip those with attributes to reduce explosion
   short.list <- inputs[ sapply(inputs, function(i) is.null(attributes(i))) ]
-  if(fn %in% c("min", "max")) {
+  if(fn %in% c("min", "max", "sum", "mean")) {
     for(na.rm in c(TRUE, FALSE)) {
         for(i in short.list) {
             for(j in short.list) {

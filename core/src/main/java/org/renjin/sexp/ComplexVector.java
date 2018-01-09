@@ -27,10 +27,6 @@ import java.util.Iterator;
 
 public abstract class ComplexVector extends AbstractAtomicVector implements Iterable<Complex> {
   public static final String TYPE_NAME = "complex";
-  public static final ComplexVector EMPTY = new ComplexArrayVector();
-  
-  public static final ComplexVector NAMED_EMPTY = new ComplexArrayVector(new Complex[0], 
-      AttributeMap.builder().setNames(StringVector.EMPTY).build());
 
   public static final Complex NA = new Complex(DoubleVector.NA, DoubleVector.NA);
   public static final Complex NaN = new Complex(DoubleVector.NaN, DoubleVector.NaN);

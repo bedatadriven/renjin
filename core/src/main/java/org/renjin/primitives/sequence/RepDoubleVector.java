@@ -51,7 +51,7 @@ public class RepDoubleVector extends DoubleVector implements DeferredComputation
 
   public static DoubleVector createConstantVector(double constant, int length) {
     if (length <= 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     if (length < LENGTH_THRESHOLD) {
       double array[] = new double[length];

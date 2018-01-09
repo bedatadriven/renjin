@@ -2979,7 +2979,7 @@ public class MicroTest extends AbstractMicroTest {
   }
   @Test
   public void micro1100() {
-    assertIdentical("{ cumsum(c(1,2,3,0/0,5)) }", "c(1, 3, 6, NA, NA)");
+    assertIdentical("{ cumsum(c(1,2,3,0/0,5)) }", "c(1, 3, 6, NaN, NaN)");
   }
   @Test
   public void micro1101() {

@@ -440,7 +440,7 @@ public class MathGroup {
 
   @Builtin
   public static DoubleVector cumsum(Null x) {
-    return DoubleVector.EMPTY;
+    return DoubleArrayVector.EMPTY;
   }
 
   private static DoubleVector cumulativeRealSum(Vector source) {
@@ -449,7 +449,8 @@ public class MathGroup {
     double sum = 0;
     for (int i = 0; i < source.length(); i++) {
       sum += source.getElementAsDouble(i);
-      if (Double.isNaN(sum)) {
+      if (DoubleVector.isNA(sum)) {
+        // The rest of the vector is already initialized to NA
         break;
       }
       result.set(i, sum);
@@ -593,12 +594,12 @@ public class MathGroup {
   
   @Builtin
   public static DoubleVector cummin(Null x) {
-    return DoubleVector.EMPTY;
+    return DoubleArrayVector.EMPTY;
   }
   
   @Builtin
   public static DoubleVector cummax(Null x) {
-    return DoubleVector.EMPTY;
+    return DoubleArrayVector.EMPTY;
   }
   
   private static ComplexVector cumulativeExtrema(String functionName, ComplexVector source) {
@@ -606,9 +607,9 @@ public class MathGroup {
     // returns complex(0), so we'll mimic it here
     if(source.length() == 0) {
       if(source.getNames() == Null.INSTANCE) {
-        return ComplexVector.EMPTY;
+        return ComplexArrayVector.EMPTY;
       } else {
-        return ComplexVector.NAMED_EMPTY;
+        return ComplexArrayVector.NAMED_EMPTY;
       }
     } else {
       throw new EvalException(String.format("'%s' not defined for complex numbers", functionName));

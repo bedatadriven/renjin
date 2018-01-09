@@ -51,7 +51,7 @@ For 64-bit systems:
 
     sudo apt-get install openjdk-8-jdk maven make gcc-4.7 gcc-4.7-plugin-dev gfortran-4.7 g++-4.7 gcc-4.7.multilib g++-4.7-multilib
 
-For 34-bit systems:
+For 32-bit systems:
 
     sudo apt-get install openjdk-8-jdk maven make gcc-4.7 gcc-4.7-plugin-dev gfortran-4.7 g++-4.7 
 

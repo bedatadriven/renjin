@@ -21,7 +21,8 @@ package org.renjin.pipeliner.fusion.node;
 import org.renjin.pipeliner.ComputeMethod;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
-import org.renjin.repackaged.guava.base.Optional;
+
+import java.util.Optional;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 

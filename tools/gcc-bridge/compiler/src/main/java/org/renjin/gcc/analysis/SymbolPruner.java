@@ -22,7 +22,6 @@ import org.renjin.gcc.TreeLogger;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -31,6 +30,7 @@ import org.renjin.repackaged.guava.collect.Sets;
 import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**

@@ -20,8 +20,9 @@ package org.renjin.sexp;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.repackaged.guava.base.Objects;
 import org.renjin.repackaged.guava.base.Preconditions;
+
+import java.util.Objects;
 
 
 /**
@@ -178,7 +179,7 @@ public abstract class AbstractSEXP implements SEXP {
       if(namesExp instanceof StringVector) {
         StringVector names = (StringVector) namesExp;
         for(int i=0;i!=names.length();++i) {
-          if(Objects.equal(names.getElementAsString(i), name)) {
+          if(Objects.equals(names.getElementAsString(i), name)) {
             return i;
           }
         }

@@ -21,12 +21,12 @@ package org.renjin.gcc.gimple;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleParamRef;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Maps;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Maintains a symbol lookup for purely symbolic purposes.
@@ -159,7 +159,7 @@ public class GimpleSymbolTable {
           return Optional.of(globalVariables.get(ref.getName()));
         }
 
-        return Optional.absent();      
+        return Optional.empty();
       }
 
       @Override
@@ -181,23 +181,23 @@ public class GimpleSymbolTable {
       return Optional.of(globalFunctions.get(name));
     }
 
-    return Optional.absent();
+    return Optional.empty();
   }
   
   public Optional<GimpleVarDecl> lookupGlobalVariable(GimpleFunction function, GimpleVariableRef ref) {
     UnitTable unitTable = unitMap.get(function.getUnit());
     if(unitTable == null) {
-      return Optional.absent();
+      return Optional.empty();
     }
     
     LocalTable localTable = localMap.get(function);
     if(localTable == null) {
-      return Optional.absent();
+      return Optional.empty();
     }
     
     // If this a local variable reference, ignore
     if(localTable.localVariables.containsKey(ref.getId())) {
-      return Optional.absent();
+      return Optional.empty();
     }
     
     if(unitTable.globalVariables.containsKey(ref.getId())) {
@@ -208,6 +208,6 @@ public class GimpleSymbolTable {
       return Optional.of(globalVariables.get(ref.getName()));
     }
     
-    return Optional.absent();
+    return Optional.empty();
   }
 }

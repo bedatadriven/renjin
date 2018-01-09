@@ -32,13 +32,9 @@ import org.eclipse.aether.transfer.TransferListener;
 import org.eclipse.aether.version.Version;
 import org.renjin.primitives.packaging.*;
 import org.renjin.primitives.packaging.Package;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A {@link PackageLoader} implementation that attempts to load packages from remote repositories.
@@ -136,7 +132,7 @@ public class AetherPackageLoader implements PackageLoader {
         if (packageListener != null) {
           packageListener.packageVersionResolutionFailed(name);
         }
-        return Optional.absent();
+        return Optional.empty();
       }
 
       if(packageListener != null) {
@@ -169,7 +165,7 @@ public class AetherPackageLoader implements PackageLoader {
       
     } catch (DependencyResolutionException e) {
       packageListener.packageResolveFailed(e);
-      return Optional.absent();
+      return Optional.empty();
       
     } catch (Exception e) {
       e.printStackTrace();

@@ -22,12 +22,12 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.FinalizationClosure;
 import org.renjin.invoke.annotations.*;
-import org.renjin.repackaged.guava.base.Objects;
 import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * R primitive functions which operate on {@code Environment}s
@@ -106,7 +106,7 @@ public final class Environments {
 
     Environment result = context.getEnvironment();
     while(result != Environment.EMPTY) {
-      if(Objects.equal(result.getName(), name)) {
+      if(Objects.equals(result.getName(), name)) {
         return result;
       }
       if(name.equals("package:base") && result == context.getBaseEnvironment()) {

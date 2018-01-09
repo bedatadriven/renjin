@@ -28,7 +28,8 @@ import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
+
+import java.util.Optional;
 
 
 public class AddressableField extends FieldStrategy {

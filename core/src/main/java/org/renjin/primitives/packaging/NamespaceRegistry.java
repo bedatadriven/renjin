@@ -23,15 +23,14 @@ import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.SessionScoped;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.*;
 import org.renjin.repackaged.guava.io.CharSource;
 import org.renjin.sexp.*;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 
 /**
  * Session-level registry of namespaces
@@ -96,7 +95,7 @@ public class NamespaceRegistry {
     if(matching.size() == 1) {
       return Optional.of(matching.iterator().next());
     } else {
-      return Optional.absent();
+      return Optional.empty();
     }
   }
 
@@ -136,7 +135,7 @@ public class NamespaceRegistry {
     candidates.add(new FqPackageName("org.renjin.bioconductor", symbol.getPrintName()));
     candidates.add(new FqPackageName("org.renjin.cran", symbol.getPrintName()));
 
-    Optional<Namespace> namespace = Optional.absent();
+    Optional<Namespace> namespace = empty();
 
     for (FqPackageName candidate : candidates) {
       namespace = tryGetNamespace(context, candidate);
@@ -175,7 +174,7 @@ public class NamespaceRegistry {
    */
   private Optional<Namespace> tryGetNamespace(Context context, FqPackageName fqName) {
     if(namespaceMap.containsKey(fqName)) {
-      return Optional.of(namespaceMap.get(fqName));
+      return of(namespaceMap.get(fqName));
     } else {
       return tryLoad(context, fqName);
     }
@@ -185,7 +184,7 @@ public class NamespaceRegistry {
 
     Optional<Package> loadResult = loader.load(fqName);
     if(!loadResult.isPresent()) {
-      return Optional.absent();
+      return empty();
     } else {
       Package pkg = loadResult.get();
       try {
@@ -219,7 +218,7 @@ public class NamespaceRegistry {
 
         namespace.loaded = true;
 
-        return Optional.of(namespace);
+        return of(namespace);
 
       } catch(Exception e) {
         throw new EvalException("IOException while loading package " + fqName + ": " + e.getMessage(), e);

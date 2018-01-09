@@ -131,7 +131,7 @@ public class LocalVariableInitializer implements FunctionBodyTransformer {
    * @param initializedVariables the set of variableIds that have definitely been initialized
    */
   private static void updateInitializedSet(GimpleStatement statement, Set<Long> initializedVariables) {
-    org.renjin.repackaged.guava.base.Optional<Long> variableRef = org.renjin.repackaged.guava.base.Optional.absent();
+    Optional<Long> variableRef = Optional.empty();
     if (statement instanceof GimpleAssignment) {
       variableRef = findVariableRef(((GimpleAssignment) statement).getLHS());
     } else if (statement instanceof GimpleCall) {
@@ -142,12 +142,12 @@ public class LocalVariableInitializer implements FunctionBodyTransformer {
     }
   }
 
-  private static org.renjin.repackaged.guava.base.Optional<Long> findVariableRef(GimpleExpr lhs) {
+  private static Optional<Long> findVariableRef(GimpleExpr lhs) {
     if(lhs instanceof GimpleVariableRef) {
       GimpleVariableRef ref = (GimpleVariableRef) lhs;
 
       // is this a local variable or global variable?
-      return org.renjin.repackaged.guava.base.Optional.of(ref.getId());
+      return Optional.of(ref.getId());
 
     } else if(lhs instanceof GimpleMemRef) {
       return findVariableRef(((GimpleMemRef) lhs).getPointer());
@@ -156,7 +156,7 @@ public class LocalVariableInitializer implements FunctionBodyTransformer {
     } else if(lhs instanceof GimpleComponentRef) {
       return findVariableRef(((GimpleComponentRef) lhs).getValue());
     } else {
-      return org.renjin.repackaged.guava.base.Optional.absent();
+      return Optional.empty();
     }
   }
 

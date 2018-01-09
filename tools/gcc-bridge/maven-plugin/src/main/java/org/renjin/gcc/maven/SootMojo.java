@@ -18,7 +18,6 @@
  */
 package org.renjin.gcc.maven;
 
-import com.google.common.io.Files;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -28,6 +27,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.renjin.repackaged.guava.io.Files;
 import soot.G;
 
 import java.io.File;

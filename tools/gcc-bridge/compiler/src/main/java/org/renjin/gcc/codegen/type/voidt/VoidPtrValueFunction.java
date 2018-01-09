@@ -29,10 +29,10 @@ import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 
 public class VoidPtrValueFunction implements ValueFunction {
@@ -58,7 +58,7 @@ public class VoidPtrValueFunction implements ValueFunction {
 
   @Override
   public Optional<JExpr> getValueConstructor() {
-    return Optional.absent();
+    return Optional.empty();
   }
 
   @Override

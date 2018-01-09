@@ -30,9 +30,6 @@ import org.renjin.gcc.runtime.IntPtr;
 
 import javax.annotation.Nullable;
 
-import static org.renjin.gcc.codegen.expr.Expressions.constantLong;
-import static org.renjin.gcc.codegen.expr.Expressions.i2l;
-
 /**
  * 32-bit unsigned integer
  */
@@ -60,8 +57,7 @@ public class UnsignedIntExpr extends AbstractIntExpr {
   }
 
   private JExpr jlongExpr() {
-    JExpr longValue = i2l(jexpr());
-    return Expressions.bitwiseAnd(longValue, constantLong(0xffffffffL));
+    return Expressions.staticMethodCall(Integer.class, "toUnsignedLong", "(I)J", jexpr());
   }
 
   @Override

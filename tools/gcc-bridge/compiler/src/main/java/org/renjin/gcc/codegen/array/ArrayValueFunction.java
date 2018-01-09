@@ -27,9 +27,9 @@ import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 
 import java.util.List;
+import java.util.Optional;
 
 
 public class ArrayValueFunction implements ValueFunction {

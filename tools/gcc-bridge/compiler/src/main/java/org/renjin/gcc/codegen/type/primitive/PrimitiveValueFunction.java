@@ -32,10 +32,10 @@ import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.Double96Ptr;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 
 public class PrimitiveValueFunction implements ValueFunction {
@@ -106,7 +106,7 @@ public class PrimitiveValueFunction implements ValueFunction {
 
   @Override
   public Optional<JExpr> getValueConstructor() {
-    return Optional.absent();
+    return Optional.empty();
   }
 
   @Override

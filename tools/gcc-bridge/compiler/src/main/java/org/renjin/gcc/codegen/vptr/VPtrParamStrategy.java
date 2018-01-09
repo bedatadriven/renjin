@@ -29,10 +29,10 @@ import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.runtime.PointerPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class VPtrParamStrategy implements ParamStrategy {
 

@@ -22,11 +22,11 @@ import org.renjin.pipeliner.ComputeMethod;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.sexp.Vector;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Optional;
 
 import static org.renjin.repackaged.asm.Opcodes.INVOKESTATIC;
 

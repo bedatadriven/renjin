@@ -31,7 +31,8 @@ import org.renjin.gcc.runtime.MixedPtr;
 import org.renjin.gcc.runtime.PointerPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
+
+import java.util.Optional;
 
 /**
  * Implements a C pointer using the {@link org.renjin.gcc.runtime.Ptr} interface.
@@ -110,7 +111,7 @@ public class VPtrStrategy implements PointerTypeStrategy {
   public GExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
       GimplePointerType pointerType = this.baseType.pointerTo();
-      JLValue unitArray = allocator.reserveUnitArray(decl.getNameIfPresent(), Type.getType(Ptr.class), Optional.<JExpr>absent());
+      JLValue unitArray = allocator.reserveUnitArray(decl.getNameIfPresent(), Type.getType(Ptr.class), Optional.empty());
       VPtrValueFunction valueFunction = new VPtrValueFunction(pointerType);
       FatPtrPair address = new FatPtrPair(valueFunction, unitArray, Expressions.constantInt(0));
       return address.valueOf(pointerType);

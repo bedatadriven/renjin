@@ -24,9 +24,9 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Functor which can "unwrap" a fat ptr

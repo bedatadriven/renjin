@@ -22,7 +22,8 @@ import org.renjin.pipeliner.ComputeMethod;
 import org.renjin.pipeliner.fusion.node.LoopNode;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
-import org.renjin.repackaged.guava.base.Optional;
+
+import java.util.Optional;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
@@ -73,7 +74,7 @@ public class ColSumKernel implements LoopKernel {
     if(matrix.mustCheckForIntegerNAs()) {
       integerNaLabel = Optional.of(new Label());
     } else {
-      integerNaLabel = Optional.absent();
+      integerNaLabel = Optional.empty();
     }
 
     // START THE LOOP!!

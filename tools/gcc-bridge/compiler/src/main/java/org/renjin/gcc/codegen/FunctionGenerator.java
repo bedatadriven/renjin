@@ -44,7 +44,6 @@ import org.renjin.repackaged.asm.tree.AnnotationNode;
 import org.renjin.repackaged.asm.tree.MethodNode;
 import org.renjin.repackaged.asm.util.Textifier;
 import org.renjin.repackaged.asm.util.TraceMethodVisitor;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.base.Throwables;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
@@ -152,7 +151,7 @@ public class FunctionGenerator implements InvocationStrategy {
         int varArgIndex = getVarArgIndex();
         varArgsPtr = Optional.of(new VPtrExpr(Expressions.localVariable(Type.getType(Ptr.class), varArgIndex)));
       } else {
-        varArgsPtr = Optional.absent();
+        varArgsPtr = Optional.empty();
       }
 
 

@@ -25,12 +25,12 @@ import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -78,7 +78,7 @@ public class GlobalVarAllocator extends VarAllocator {
 
   @Override
   public JLValue reserve(String name, Type type) {
-    return reserve(name, type, Optional.<JExpr>absent());
+    return reserve(name, type, Optional.empty());
   }
 
   public JLValue reserve(String name, Type type, Optional<JExpr> initialValue) {

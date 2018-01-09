@@ -23,7 +23,8 @@ import org.renjin.pipeliner.node.DeferredNode;
 import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
-import org.renjin.repackaged.guava.base.Optional;
+
+import java.util.Optional;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 

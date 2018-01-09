@@ -29,9 +29,9 @@ import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.PointerPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 
 import java.util.List;
+import java.util.Optional;
 
 public class VPtrValueFunction implements ValueFunction {
 
@@ -63,7 +63,7 @@ public class VPtrValueFunction implements ValueFunction {
 
   @Override
   public Optional<JExpr> getValueConstructor() {
-    return Optional.absent();
+    return Optional.empty();
   }
 
   @Override

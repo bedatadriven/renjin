@@ -29,10 +29,10 @@ import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.PointerPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.renjin.gcc.codegen.expr.Expressions.constantInt;
 import static org.renjin.gcc.codegen.expr.Expressions.divide;

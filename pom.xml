@@ -102,7 +102,14 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>2.17</version>
+        <version>3.0.0</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>8.7</version>
+          </dependency>
+        </dependencies>
         <executions>
           <execution>
             <id>validate</id>
@@ -123,6 +130,14 @@
                       <property name="tokens" value="STRING_LITERAL, CHAR_LITERAL"/>
                       <property name="format" value="\\u00(08|09|0(a|A)|0(c|C)|0(d|D)|22|27|5(C|c))|\\(0(10|11|12|14|15|42|47)|134)"/>
                       <property name="message" value="Avoid using corresponding octal or Unicode escape."/>
+                    </module>
+                    <module name="IllegalImportCheck">
+
+                      <!-- Use the repackaged classes to avoid conflicts -->
+                      <property name="illegalPkgs" value="com.google.common"/>
+
+                      <!-- The equivalent Java 1.8 APIs should be used -->
+                      <property name="illegalClasses" value="org.renjin.repackaged.guava.base.Objects,org.renjin.repackaged.guava.base.Optional"/>
                     </module>
                     <module name="AvoidEscapedUnicodeCharacters">
                       <property name="allowEscapesForControlCharacters" value="true"/>

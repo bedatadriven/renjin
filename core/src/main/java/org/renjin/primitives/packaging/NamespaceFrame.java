@@ -20,13 +20,13 @@ package org.renjin.primitives.packaging;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.ImmutableSet;
 import org.renjin.sexp.Frame;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
+import java.util.Optional;
 import java.util.Set;
 
 

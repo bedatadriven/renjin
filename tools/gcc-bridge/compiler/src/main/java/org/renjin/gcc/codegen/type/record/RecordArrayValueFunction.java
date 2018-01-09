@@ -31,9 +31,9 @@ import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Translates a pointer array and offset to a Record value represented by a primitive array.
@@ -87,7 +87,7 @@ public class RecordArrayValueFunction implements ValueFunction {
   public Optional<JExpr> getValueConstructor() {
     // No constructor is required for individual fields;
     // they will default to zero.
-    return Optional.absent();
+    return Optional.empty();
   }
 
   @Override

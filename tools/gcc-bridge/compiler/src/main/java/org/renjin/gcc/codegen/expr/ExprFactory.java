@@ -40,10 +40,10 @@ import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.symbols.SymbolTable;
-import org.renjin.repackaged.guava.base.Optional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 
 /**
@@ -63,7 +63,7 @@ public class ExprFactory {
   }
 
   public ExprFactory(TypeOracle typeOracle, SymbolTable symbolTable, MethodGenerator mv) {
-    this(typeOracle, symbolTable, mv, Optional.<VPtrExpr>absent());
+    this(typeOracle, symbolTable, mv, Optional.empty());
   }
 
   public Optional<VPtrExpr> getVarArgsPtr() {

@@ -18,7 +18,7 @@
  */
 package org.renjin.primitives.packaging;
 
-import org.renjin.repackaged.guava.base.Optional;
+import java.util.Optional;
 
 /**
  * Loads Packages from the class path
@@ -41,7 +41,7 @@ public class ClasspathPackageLoader implements PackageLoader {
     if(pkg.resourceExists("environment")) {
       return Optional.<Package>of(pkg);
     } else {
-      return Optional.absent();
+      return Optional.empty();
     }
   }
 

@@ -25,7 +25,8 @@ import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.expr.GimpleAddressOf;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.statement.GimpleCall;
-import org.renjin.repackaged.guava.base.Optional;
+
+import java.util.Optional;
 
 public class VarArgsStartGenerator implements CallGenerator {
 

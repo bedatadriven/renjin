@@ -26,11 +26,11 @@ import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 
 import java.lang.invoke.MethodHandle;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class FunPtrParamStrategy implements ParamStrategy {
   @Override

@@ -33,9 +33,9 @@ import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 
 import java.util.Collections;
+import java.util.Optional;
 
 /**
  * Strategy for dealing with primitive types.
@@ -82,7 +82,7 @@ public class PrimitiveTypeStrategy implements TypeStrategy<PrimitiveExpr> {
   @Override
   public PrimitiveExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
-      JLValue unitArray = allocator.reserveUnitArray(decl.getNameIfPresent(), type.localVariableType(), Optional.<JExpr>absent());
+      JLValue unitArray = allocator.reserveUnitArray(decl.getNameIfPresent(), type.localVariableType(), Optional.empty());
       FatPtrPair address = new FatPtrPair(valueFunction(), unitArray);
       JExpr value = Expressions.elementAt(address.getArray(), 0);
       return type.fromStackValue(value, address);

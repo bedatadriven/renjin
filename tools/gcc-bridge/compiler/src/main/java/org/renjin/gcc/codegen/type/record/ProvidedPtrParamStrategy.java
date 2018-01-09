@@ -29,10 +29,10 @@ import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 
 class ProvidedPtrParamStrategy implements ParamStrategy {
@@ -59,7 +59,7 @@ class ProvidedPtrParamStrategy implements ParamStrategy {
     if(parameter.isAddressable()) {
       // Allocate a unit array for this parameter
       JLValue unitArray = localVars.reserveUnitArray(parameter.getName() + "$address",
-          unitPtr.getType(), Optional.<JExpr>of(unitPtr));
+          unitPtr.getType(), Optional.of(unitPtr));
       FatPtrPair address = new FatPtrPair(strategy.getValueFunction(), unitArray);
 
       JExpr value = Expressions.elementAt(address.getArray(), 0);

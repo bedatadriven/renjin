@@ -23,7 +23,8 @@ import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
+
+import java.util.Optional;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
@@ -37,7 +38,7 @@ public abstract class LoopNode {
    *
    */
   public final void pushElementAsDouble(ComputeMethod method) {
-    pushElementAsDouble(method, Optional.<Label>absent());
+    pushElementAsDouble(method, Optional.empty());
   }
   
   public abstract void pushElementAsDouble(ComputeMethod method, Optional<Label> integerNaLabel);
@@ -128,7 +129,7 @@ public abstract class LoopNode {
   public final void pushElementAsInt(ComputeMethod method, int index) {
     MethodVisitor mv = method.getVisitor();
     pushIntConstant(mv, index);
-    pushElementAsInt(method, Optional.<Label>absent());
+    pushElementAsInt(method, Optional.empty());
   }
 
   /**

@@ -21,7 +21,8 @@ package org.renjin.pipeliner.fusion.node;
 import org.renjin.pipeliner.ComputeMethod;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
-import org.renjin.repackaged.guava.base.Optional;
+
+import java.util.Optional;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
@@ -51,7 +52,7 @@ public class TransposeNode extends LoopNode {
     operand.pushLength(method);
     mv.visitInsn(ICONST_0);
     // stack => { length, rowCountVector, 0 }
-    sourceRowCount.pushElementAsInt(method, Optional.<Label>absent());
+    sourceRowCount.pushElementAsInt(method, Optional.empty());
     // stack => { length, nrows }
     mv.visitInsn(DUP);
     // stack => { length, nrows, nrows }

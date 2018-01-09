@@ -27,11 +27,11 @@ import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Strategy for using FatPtrs as a single wrapped fat pointer
@@ -63,7 +63,7 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
       
       // Allocate a unit array for this parameter
       JLValue unitArray = localVars.reserveUnitArray(parameter.getName() + "$address",
-          wrapper.getType(), Optional.<JExpr>of(wrapper));
+          wrapper.getType(), Optional.of(wrapper));
 
       return new DereferencedFatPtr(unitArray, Expressions.constantInt(0), 
           new FatPtrValueFunction(valueFunction))

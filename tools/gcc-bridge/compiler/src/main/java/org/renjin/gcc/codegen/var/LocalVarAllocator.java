@@ -25,11 +25,11 @@ import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Allocates local variable slots
@@ -90,7 +90,7 @@ public class LocalVarAllocator extends VarAllocator {
 
   @Override
   public LocalVar reserve(String name, Type type) {
-    return reserve(name, type, Optional.<JExpr>absent());
+    return reserve(name, type, Optional.<JExpr>empty());
   }
 
   @Override

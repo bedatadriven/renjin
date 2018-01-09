@@ -19,7 +19,7 @@
 package org.renjin.primitives.packaging;
 
 
-import org.renjin.repackaged.guava.base.Optional;
+import java.util.Optional;
 
 public interface PackageLoader {
 

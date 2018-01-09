@@ -31,11 +31,11 @@ import org.renjin.gcc.gimple.type.GimpleFunctionType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.FunctionPtr;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 
 import java.lang.invoke.MethodHandle;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 
 public class FunPtrValueFunction implements ValueFunction {
@@ -99,7 +99,7 @@ public class FunPtrValueFunction implements ValueFunction {
 
   @Override
   public Optional<JExpr> getValueConstructor() {
-    return Optional.absent();
+    return Optional.empty();
   }
 
   @Override

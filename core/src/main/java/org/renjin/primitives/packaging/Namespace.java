@@ -25,15 +25,11 @@ import org.renjin.methods.S4;
 import org.renjin.primitives.S3;
 import org.renjin.primitives.text.regex.RE;
 import org.renjin.primitives.text.regex.REFactory;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Package namespace.
@@ -381,7 +377,7 @@ public class Namespace {
         return symbol;
       }
     }
-    return Optional.absent();
+    return Optional.empty();
   }
 
   public void initExports(NamespaceFile file) {
@@ -472,7 +468,7 @@ public class Namespace {
    *
    * @param context the current evaluation context
    * @param genericName the name of the generic function (for example, "print" or "summary")
-   * @return the namespace environment in which the function was defined, or {@code Optional.absent()} if
+   * @return the namespace environment in which the function was defined, or {@code Optional.empty()} if
    * the function could not be resolved.
    */
   private Optional<Environment> resolveGenericFunctionNamespace(Context context, String genericName) {
@@ -483,7 +479,7 @@ public class Namespace {
     } else {
       SEXP genericFunction = namespaceEnvironment.findFunction(context, Symbol.get(genericName));
       if (genericFunction == null) {
-        return Optional.absent();
+        return Optional.empty();
       }
       if (genericFunction instanceof Closure) {
         return Optional.of(((Closure) genericFunction).getEnclosingEnvironment());

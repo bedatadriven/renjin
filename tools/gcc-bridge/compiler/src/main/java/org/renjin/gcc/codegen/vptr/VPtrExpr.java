@@ -40,9 +40,9 @@ import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 
 import java.lang.invoke.MethodHandle;
+import java.util.Optional;
 
 import static org.renjin.gcc.codegen.expr.Expressions.objectEquals;
 
@@ -66,7 +66,7 @@ public class VPtrExpr implements PtrExpr {
   public VPtrExpr(JExpr ref) {
     this.baseRef = ref;
     this.address = null;
-    this.offset = Optional.absent();
+    this.offset = Optional.empty();
   }
 
   public VPtrExpr(JExpr baseRef, JExpr offset) {
@@ -78,7 +78,7 @@ public class VPtrExpr implements PtrExpr {
   public VPtrExpr(JExpr ptr, PtrExpr address) {
     this.baseRef = ptr;
     this.address = address;
-    this.offset = Optional.absent();
+    this.offset = Optional.empty();
   }
 
   @Override
@@ -117,7 +117,7 @@ public class VPtrExpr implements PtrExpr {
    * @return the offset in bytes relative to the {@code baseRef}
    */
   public JExpr getOffset() {
-    return offset.or(Expressions.zero());
+    return offset.orElse(Expressions.zero());
   }
 
   @Override

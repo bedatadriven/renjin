@@ -18,7 +18,6 @@
  */
 package org.renjin.maven;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -31,6 +30,7 @@ import org.apache.maven.project.MavenProject;
 import org.renjin.packaging.PackageBuilder;
 import org.renjin.packaging.PackageDescription;
 import org.renjin.packaging.PackageSource;
+import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Strings;
 
 import javax.annotation.concurrent.ThreadSafe;

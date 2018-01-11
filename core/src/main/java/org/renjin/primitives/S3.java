@@ -342,8 +342,8 @@ public class S3 {
     }
 
     PairList newArgs = reassembleAndEvaluateArgs(object, args, context, rho);
-    
-    return method.doApply(context, rho, call, newArgs);
+    Context fakeContext = context.beginFunction(rho, call, new Closure(rho, Null.INSTANCE, Null.INSTANCE), args);
+    return method.doApply(fakeContext, rho, call, newArgs);
   }
 
   private static boolean isS4DispatchSupported(String name) {

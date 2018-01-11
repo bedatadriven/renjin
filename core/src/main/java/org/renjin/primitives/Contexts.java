@@ -26,7 +26,6 @@ import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.*;
 
 
-
 /**
  * Functions that provide access to the call Context stack.
  */
@@ -96,6 +95,21 @@ public class Contexts {
     }
     return i;
 
+  }
+
+  @Internal("sys.parents")
+  public static SEXP sysParents(@Current Context context) {
+
+    Context cptr = findCallingContext(context);
+
+    int nframe = cptr.getFrameDepth();
+    int[] rval = new int[nframe];
+
+    for(int i = 0; i < nframe; i++) {
+      rval[i] = R_sysparent(nframe - i, cptr);
+    }
+
+    return new IntArrayVector(rval);
   }
 
   /** Find the environment that can be returned by sys.frame

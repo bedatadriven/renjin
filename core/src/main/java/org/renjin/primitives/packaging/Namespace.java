@@ -214,6 +214,18 @@ public class Namespace {
           }
         }
 
+        for (String methodName : entry.getMethods()) {
+          SEXP export = importedNamespace.getExportIfExists(Symbol.get(methodName));
+          if(export == Symbol.UNBOUND_VALUE) {
+            context.warn(String.format("Method '%s' not exported from namespace '%s'",
+                methodName,
+                importedNamespace.getName()));
+          } else {
+            importsEnvironment.setVariableUnsafe(methodName, export);
+          }
+        }
+
+
         for (String className : entry.getClasses()) {
           Symbol symbol = S4.classNameMetadata(className);
           SEXP export = importedNamespace.getExportIfExists(symbol);

@@ -14,13 +14,14 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-stem <- function(x, scale = 1, width = 80, atom = 0.00000001) {
-    if (!is.numeric(x) )
-	stop("'x' must be numeric")
-    x <- x[!is.na(x)]
-    if (length(x)==0) stop("no non-missing values")
-    if (scale <= 0) stop("'scale' must be positive")# unlike S
-    .C("stemleaf", as.double(x), length(x),
-       as.double(scale), as.integer(width), as.double(atom), PACKAGE="base")
+stem <- function(x, scale = 1, width = 80, atom = 0.00000001)
+{
+    if (!is.numeric(x) ) stop("'x' must be numeric")
+    x <- x[is.finite(x)]
+    n <- as.integer(length(x))
+    if (is.na(n)) stop("invalid length(x)")
+    if (n == 0) stop("no finite and non-missing values")
+    if (scale <= 0) stop("'scale' must be positive") # unlike S
+    .Call(C_StemLeaf, as.double(x), scale, width, atom)
     invisible(NULL)
 }

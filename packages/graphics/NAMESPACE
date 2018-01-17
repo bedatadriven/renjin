@@ -1,8 +1,10 @@
 import(grDevices)
 
 # Refer to all C/Fortran routines by their name prefixed by C_
-#useDynLib(graphics, .registration = FALSE, .fixes="C_", BinCount, StemLeaf )
-useDynLib(graphics, .registration = TRUE, C_StemLeaf, C_BinCount)
+useDynLib(graphics, .registration = TRUE,
+  C_BinCount,
+  C_StemLeaf
+)
 
 export(abline, arrows, assocplot, axTicks, Axis, axis, axis.Date,
        axis.POSIXct, barplot, barplot, box, boxplot, bxp, cdplot,

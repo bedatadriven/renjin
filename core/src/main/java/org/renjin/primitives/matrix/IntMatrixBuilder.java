@@ -40,5 +40,9 @@ public class IntMatrixBuilder extends AbstractMatrixBuilder<IntArrayVector.Build
   @Override
   public void setValue(int row, int col, int value) {
     builder.set(computeIndex(row, col), (int)value);    
-  } 
+  }
+
+  public void fill(int value) {
+    builder.fill(value);
+  }
 }

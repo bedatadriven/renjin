@@ -164,6 +164,12 @@ public class IntArrayVector extends IntVector {
       return set(size, value);
     }
 
+
+    public Builder fill(int value) {
+      Arrays.fill(values, value);
+      return this;
+    }
+
     @Override
     public Builder add(Number value) {
       if (value instanceof Integer) {

@@ -39,4 +39,9 @@ public class EmptyFixedRE implements RE {
     public int getGroupEnd(int groupIndex) {
         throw new EvalException("zero-length pattern");
     }
+
+  @Override
+  public int getGroupCount() {
+    return 0;
+  }
 }

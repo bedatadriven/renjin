@@ -26,6 +26,12 @@ test.csv <- function() {
     assertThat(names(df), identicalTo(c("A", "B", "C")))
 }
 
+test.noquote <- function() {
+
+    df <- read.csv("tables/simple.csv", quote = "")
+    assertThat(names(df), identicalTo(c("A", "B", "C")))
+}
+
 test.txt.with.comments <- function() {
 
     df <- read.table("tables/comments.txt", header = TRUE)

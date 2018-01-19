@@ -241,7 +241,7 @@ public class Scan {
     private char separator;
 
     public CharSplitter(String quote, String separator) {
-      this.quote = quote.charAt(0);
+      this.quote = quote.isEmpty() ? 0 : quote.charAt(0);
       this.separator = separator.charAt(0);
     }
 
@@ -251,7 +251,7 @@ public class Scan {
       boolean quoted = false;
       for (int i = 0; i != line.length(); ++i) {
         char c = line.charAt(i);
-        if (c == quote) {
+        if (quote != 0 && c == quote) {
           quoted = !quoted;
         } else if (!quoted && c == separator) {
           fields.add(sb.toString());
@@ -269,7 +269,7 @@ public class Scan {
     private final char quote;
 
     public WhitespaceSplitter(String quote) {
-      this.quote = quote.charAt(0);
+      this.quote = quote.isEmpty() ? 0 : quote.charAt(0);
     }
 
     @Override
@@ -279,7 +279,7 @@ public class Scan {
       boolean quoted = false;
       for (int i = 0; i != line.length(); ++i) {
         char c = line.charAt(i);
-        if (c == quote) {
+        if (quote != 0 && c == quote) {
           quoted = !quoted;
         } else if (!quoted && Character.isWhitespace(c)) {
           if(sb.length() > 0) {

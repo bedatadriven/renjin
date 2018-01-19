@@ -315,11 +315,12 @@ public class Attributes {
     if (which) {
       return new IntArrayVector(inherits);
     } else {
-      LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
       for (int i = 0; i < inherits.length; i++) {
-        result.add(inherits[i] != 0);
+        if(inherits[i] != 0) {
+          return LogicalVector.TRUE;
+        }
       }
-      return result.build();
+      return LogicalVector.FALSE;
     }
   }
 

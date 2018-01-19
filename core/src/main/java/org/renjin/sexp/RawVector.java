@@ -36,6 +36,9 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
 
   private byte[] values;
 
+  private RawVector() {
+  }
+
   public RawVector(byte... values) {
     this.values = new byte[values.length];
     this.values = Arrays.copyOf(values, values.length);
@@ -185,6 +188,12 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
   @Override
   public Iterator<Byte> iterator() {
     return new ValueIterator();
+  }
+
+  public static RawVector unsafe(byte[] buffer) {
+    RawVector vector = new RawVector();
+    vector.values = buffer;
+    return vector;
   }
 
   /*

@@ -24,18 +24,17 @@ import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Recycle;
+import org.renjin.invoke.reflection.converters.StringArrayConverter;
 import org.renjin.primitives.Identical;
 import org.renjin.primitives.io.connections.Connection.Type;
 import org.renjin.primitives.text.RCharsets;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.io.ByteStreams;
 import org.renjin.sexp.*;
 
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Reader;
+import java.io.*;
 import java.net.URL;
 
 /**
@@ -264,7 +263,34 @@ public class Connections {
     
     return lines.build();
   }
-  
+
+  @Internal
+  public static Vector readBin(@Current Context context, SEXP connIndex, SEXP what, int n, int size, boolean signed, boolean swap) throws IOException {
+    BinaryReader reader;
+    if(connIndex instanceof RawVector) {
+      reader = new BinaryReader((RawVector)connIndex);
+    } else {
+      Connection connection = getConnection(context, connIndex);
+      InputStream inputStream = connection.getInputStream();
+      reader = new BinaryReader(inputStream);
+    }
+
+    String typeName = what.asString();
+    switch (typeName) {
+      case "integer":
+        return reader.readIntVector(n, size, signed, swap);
+      case "double":
+        return reader.readDoubleVector(n, size, swap);
+      case "complex":
+        return reader.readComplexVector(n, size, swap);
+      case "character":
+        return reader.readCharacterVector(n, size, swap);
+      default:
+        throw new EvalException("Unsupported/unimplemented type: " + typeName);
+    }
+  }
+
+
   @Internal("writeLines")
   public static void writeLines(@Current Context context, StringVector x, SEXP connIndex, String seperator, boolean useBytes) throws IOException {
     PrintWriter writer = getConnection(context, connIndex).getPrintWriter();

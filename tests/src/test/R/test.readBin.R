@@ -19,8 +19,6 @@
 
 library(hamcrest)
 
-setwd("/home/alex/dev/renjin/tests/src/test/R")
-
 test.read <- function() {
     zz <- file("test.readBin.data", "rb")
     on.exit(close(zz))

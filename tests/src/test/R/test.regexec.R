@@ -36,7 +36,7 @@ test.not.perl <- function() {
 
     assertThat(m, identicalTo(
         list(
-            structure(c(1L, 1Liconvlist),
+            structure(c(1L, 1L),
                 match.length = c(5L, 4L)))))
 
 }

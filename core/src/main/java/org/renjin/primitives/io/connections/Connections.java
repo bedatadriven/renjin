@@ -290,6 +290,20 @@ public class Connections {
     }
   }
 
+  @Internal
+  public static void writeBin(@Current Context context, SEXP object, SEXP con, int size, boolean swap, boolean useBytes) throws IOException {
+    if(con instanceof IntVector) {
+      Connection connection = getConnection(context, con);
+      if(object instanceof RawVector) {
+        connection.getOutputStream().write(((RawVector) object).toByteArrayUnsafe());
+      } else {
+        throw new UnsupportedOperationException("TODO: typeof(object) = %s" + object.getTypeName());
+      }
+    } else {
+      throw new EvalException("TODO: typeof(con) = %s" + con.getTypeName());
+    }
+  }
+
 
   @Internal("writeLines")
   public static void writeLines(@Current Context context, StringVector x, SEXP connIndex, String seperator, boolean useBytes) throws IOException {

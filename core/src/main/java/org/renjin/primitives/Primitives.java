@@ -936,7 +936,7 @@ public class Primitives {
     f("readLines",Connections.class, 11);
     f("writeLines", Connections.class, 11);
     f("readBin", Connections.class, 11);
-    f("writeBin", /*writebin*/ null, 211);
+    f("writeBin", Connections.class, 211);
     f("readChar", Connections.class, 11);
     f("writeChar", /*writechar*/ null, 211);
     f("open", Connections.class, 11);

@@ -1,5 +1,5 @@
 #  File src/library/methods/R/zzz.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,23 +14,21 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
-## utils::globalVariables("...onLoad")
-
-## This method is invoked only when the namespace is constructed.
-## it is 
-setupNamespace  <-		
+## Initial version of .onLoad
+...onLoad  <-
   ## Initialize the methods package.
-  function(where)
+  function(libname, pkgname)
 {
+    where <- environment(sys.function())  # the namespace
     initMethodDispatch(where)
-
     ## temporary empty reference to the package's own namespace
     assign(".methodsNamespace", new.env(), envir = where)
+    .Call("R_set_method_dispatch", TRUE, PACKAGE = "methods")
     cat("initializing class and method definitions ...")
     ## set up default prototype (uses .Call so has be at load time)
-    assign(".defaultPrototype", .Call("Rf_allocS4Object",PACKAGE="methods"), envir = where)
+    assign(".defaultPrototype", .Call("Rf_allocS4Object", PACKAGE = "methods"), envir = where)
     assign(".SealedClasses", character(), envir = where)
     .InitClassDefinition(where)
     assign("possibleExtends", .possibleExtends, envir = where)
@@ -88,12 +86,20 @@ setupNamespace  <-
 
     assign("envRefMethodNames",
 	   names(getClassDef("envRefClass")@refMethods), envir = where)
- #   assign(".onLoad", ..onLoad, envir = where)
-  
-  #  rm(...onLoad, ..onLoad, envir = where)
+    assign(".onLoad", ..onLoad, envir = where)
+    rm(...onLoad, ..onLoad, envir = where)
+    dbbase <- file.path(libname, pkgname, "R", pkgname)
+    ns <- asNamespace(pkgname)
+    ## we need to exclude the registration vars
+    vars <- grep("^C_", names(ns), invert = TRUE, value = TRUE)
+    tools:::makeLazyLoadDB(ns, dbbase, variables = vars)
 }
 
-.onLoad <- function(libname, pkgname)
+## avoid warnings from static analysis code by extra call
+.onLoad <- function(libname, pkgname) ...onLoad(libname, pkgname)
+
+##  .onLoad for routine use, installed by ...onLoad
+..onLoad <- function(libname, pkgname)
 {
     where <- environment(sys.function())  # the namespace
     initMethodDispatch(where)
@@ -109,6 +115,10 @@ setupNamespace  <-
 
 .onUnload <- function(libpath)
 {
+    message("unloading 'methods' package ...") # see when this is called
+    .isMethodsDispatchOn(FALSE)
+    methods:::bind_activation(FALSE)
+    library.dynam.unload("methods", libpath)
 }
 
 
@@ -126,17 +136,12 @@ setupNamespace  <-
     }
 }
 
-.onDetach <- function(libpath) methods:::.onUnload(libpath)
-
-## redefining it here, invalidates the one above:
-## Why don't we unload "methods" on detach() ?
-.onDetach <- function(libpath) .isMethodsDispatchOn(FALSE)
+## Q: Why don't we unload "methods" on detach() ?
+## A: Because the user chooses detach(*, unload= .), so detach() will unload if ..
+## .onDetach <- function(libpath) { <nothing> }
 
 ## used for .methodsIsLoaded
 .saveImage <- FALSE
 
 ## want ASCII quotes, not fancy nor translated ones
-.dQ <- function (x) paste0('"', x, '"')
-
-
-setupNamespace(environment())
+.dQ <- function (x) paste('"', x, '"', sep = "")

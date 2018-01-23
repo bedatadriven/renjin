@@ -148,6 +148,10 @@ public class NamespaceBuilder2 {
       try {
         context.evaluate(FunctionCall.newCall(onLoad, nameArgument, nameArgument), namespaceEnvironment);
       } catch (Exception e) {
+        if(e instanceof EvalException) {
+          System.out.println("ERROR: " + e.getMessage());
+          ((EvalException) e).printRStackTrace(System.out);
+        }
         throw new RuntimeException("Exception evaluating .onLoad() method", e);
       }
     }

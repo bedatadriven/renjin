@@ -689,7 +689,7 @@ public class Primitives {
     f("seq_len", Sequences.class, 1);
     f("list", Vectors.class, "list", 1);
     f("split",  Split.class, 11);
-    f("is.loaded", /*isloaded*/ null, -1);
+    f("is.loaded", Native.class, 11);
     f(".C", Native.class, -1);
     f(".Fortran", Native.class, -1);
     f(".External",  Native.class, -1);

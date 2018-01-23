@@ -37,3 +37,4 @@ assertThat(routines$.Call$Cmysum$name, identicalTo("Cmysum"))
 assertThat(routines$.Fortran$Fdpchim$name, identicalTo("Fdpchim"))
 assertThat(routines$.Fortran$Fdpchim$numParameters, identicalTo(0L))
 
+assertTrue(is.loaded("Fdpchim"))

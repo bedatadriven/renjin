@@ -34,12 +34,16 @@ import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.primitives.packaging.DllSymbol;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.base.Predicate;
+import org.renjin.repackaged.guava.base.Predicates;
+import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.util.Collections;
 import java.util.Optional;
 
 public class Native {
@@ -68,6 +72,39 @@ public class Native {
     }
 
     return list.build();
+  }
+
+  @Internal("is.loaded")
+  public static boolean isLoaded(@Current Context context, String symbol, String packageName, String type) {
+    Iterable<DllInfo> libraries;
+    if(Strings.isNullOrEmpty(packageName)) {
+      libraries = context.getSession().getLoadedLibraries();
+    } else {
+      Optional<Namespace> namespace = context.getSession().getNamespaceRegistry().getNamespaceIfPresent(Symbol.get(symbol));
+      if(namespace.isPresent()) {
+        libraries = namespace.get().getLibraries();
+      } else {
+        libraries = Collections.emptySet();
+      }
+    }
+
+    Predicate<DllSymbol> predicate;
+    if("Fortran".equals(type)) {
+      predicate = (x -> x.getConvention() == DllSymbol.Convention.FORTRAN);
+    } else if("Call".equals(type)) {
+      predicate = (x -> x.getConvention() == DllSymbol.Convention.CALL);
+    } else if("External".equals(type)) {
+      predicate = (x -> x.getConvention() == DllSymbol.Convention.EXTERNAL);
+    } else {
+      predicate = (x -> true);
+    }
+
+    for (DllInfo library : libraries) {
+      if(library.isLoaded(symbol, predicate)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Internal

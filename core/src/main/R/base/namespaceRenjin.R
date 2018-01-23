@@ -56,7 +56,11 @@ find.package <- function(package = NULL, lib.loc = NULL, quiet = FALSE, verbose 
 	if(is.null(package)) {
 		stop("package = NULL not supported by Renjin.")
 	}
-	.Internal(find.package(package))
+	if(quiet) {
+	    tryCatch(.Internal(find.package(package)), error = function(e) character(0))
+	} else {
+	    .Internal(find.package(package))
+	}
 }
 
 loadNamespaceMethods <- function(package, ns, expClasses, expClassPatterns) {

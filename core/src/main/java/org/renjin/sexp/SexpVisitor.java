@@ -25,7 +25,6 @@ public class SexpVisitor<R> {
 
 
   protected void unhandled(SEXP exp) {
-    System.out.println(exp.getClass().getName());
   }
 
   public void visit(CHARSEXP charExp) {

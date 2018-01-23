@@ -66,6 +66,7 @@ public class NamespaceBuilder2 {
     importDependencies(context, namespace);
     loadPackageData(context, namespace);
     evaluateSources(context, namespace.getNamespaceEnvironment());
+    invokeOnLoad(context, namespace.getNamespaceEnvironment());
     serializeEnvironment(context, namespace.getNamespaceEnvironment(), environmentFile);
     writeRequires();
     writePackageRds();
@@ -134,6 +135,20 @@ public class NamespaceBuilder2 {
         throw new RuntimeException("Error evaluating package source: " + sourceFile.getName(), e);
       } catch (Exception e) {
         throw new RuntimeException("Exception evaluating " + sourceFile.getName(), e);
+      }
+    }
+  }
+
+  private void invokeOnLoad(Context context, Environment namespaceEnvironment) {
+
+    Symbol onLoad = Symbol.get(".onLoad");
+    StringVector nameArgument = StringVector.valueOf(this.source.getPackageName());
+
+    if(namespaceEnvironment.exists(onLoad)) {
+      try {
+        context.evaluate(FunctionCall.newCall(onLoad, nameArgument, nameArgument), namespaceEnvironment);
+      } catch (Exception e) {
+        throw new RuntimeException("Exception evaluating .onLoad() method", e);
       }
     }
   }

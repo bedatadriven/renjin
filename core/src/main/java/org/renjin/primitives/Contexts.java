@@ -25,6 +25,9 @@ import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * Functions that provide access to the call Context stack.
@@ -159,6 +162,34 @@ public class Contexts {
     return n;
   }
 
+  @Internal("sys.frames")
+  public static SEXP sysFrames(@Current Context context) {
+    Context current = findCallingContext(context);
+    List<Environment> environments = new ArrayList<>();
+    while(!current.isTopLevel()) {
+      if(current.getEnvironment() != Environment.EMPTY) {
+        environments.add(current.getEnvironment());
+      }
+      current = current.getParent();
+    }
+
+    ListVector.Builder frames = new ListVector.Builder();
+    for(int i = environments.size()-1; i >= 0; i--) {
+      frames.add(environments.get(i));
+    }
+
+    return frames.build();
+  }
+
+  @Internal("sys.frame")
+  public static Environment sysFrame(@Current Context context, int which) {
+    if(which == 0) {
+      return context.getGlobalEnvironment();
+    }
+
+    return findContext(context, which).getEnvironment();
+  }
+
   @Internal("sys.calls")
   public static PairList sysCalls(@Current Context context) {
     Context current = findCallingContext(context);
@@ -170,15 +201,6 @@ public class Contexts {
       current = current.getParent();
     }
     return head;
-  }
-
-  @Internal("sys.frame")
-  public static Environment sysFrame(@Current Context context, int which) {
-    if(which == 0) {
-      return context.getGlobalEnvironment();
-    }
-
-    return findContext(context, which).getEnvironment();
   }
 
   @Internal("sys.call")

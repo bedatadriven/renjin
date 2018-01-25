@@ -1,0 +1,6 @@
+
+import(methods)
+importMethodsFrom(s4test, setCountryName)
+
+exportClass(Pays)
+#exportMethods(setCountryName)

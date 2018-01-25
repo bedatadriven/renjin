@@ -17,17 +17,17 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
+
+library(s4testdep)
 library(hamcrest)
-library(methods)
-library("org.renjin.test:s3test")
 
-c1 <- new.circle(1)
-assertThat(as.character(c1), equalTo("circle of radius 1"))
-assertThat(area(c1), closeTo(pi, 0.001))
+# The Country CLASS is *not* import nor exported
 
-sq <- new.square(2)
-assertThat(as.character(sq), equalTo("2x2 square"))
-assertThat(area(sq), equalTo(4))
+assertThat(getClass("Country"), throwsError())
 
-c2 <- new.circle(4)
-assertThat(c1 %/% c2, equalTo(1+4))
+# But the setCountryName METHOD *is* imported and
+# used by the france method
+
+fr <- france()
+assertThat(fr@nom, equalTo("Hexagone"))
+

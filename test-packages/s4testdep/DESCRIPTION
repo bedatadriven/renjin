@@ -1,12 +1,11 @@
-Package: s4test
-Title: S4 Test
+Package: s4testdep
+Title: Depends on S4 Test
 Version: 0.1
 Date: 2015-09-22
 Author: Parham Solaimani, Alex Bertram
 Maintainer: BeDataDriven <info@bedatadriven.com>
 Description: Demo package to test S4 package import in Renjin.
 Suggests:
-License: GPL-2
-Imports: methods, stats4
-RoxygenNote: 6.0.1
+Imports: methods, s4test
 Suggests: hamcrest
+License: GPL-2

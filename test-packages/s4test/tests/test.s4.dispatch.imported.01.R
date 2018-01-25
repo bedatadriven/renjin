@@ -17,9 +17,9 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
-library(hamcrest)
 library(methods)
-library("org.renjin.test:s3test")
+library(s4test)
+library(hamcrest)
 
 nl <- new("Country", name = "The Netherlands", temp = "COLD")
 es <- new("Country", name = "Spain", temp = "WARM")

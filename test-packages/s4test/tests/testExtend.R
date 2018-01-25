@@ -18,10 +18,9 @@
 #
 
 
-library(hamcrest)
 library(methods)
-library("org.renjin.test:s4test")
-
+library(s4test)
+library(hamcrest)
 
 # NSBS is exported by s4test,
 # but extends a class NativeNSBS that is NOT exported

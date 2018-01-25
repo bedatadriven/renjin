@@ -202,6 +202,8 @@ public class NamespaceRegistry {
         // set up the imported symbols
         namespace.initImports(context, this, namespaceFile);
 
+        namespace.initS4(context);
+
         // invoke the .onLoad hook
         // (Before we export symbols!)
         if(namespace.getNamespaceEnvironment().hasVariable(Symbol.get(".onLoad"))) {
@@ -287,4 +289,5 @@ public class NamespaceRegistry {
   public boolean isNamespaceEnv(Environment envir) {
     return envirMap.containsKey(envir);
   }
+
 }

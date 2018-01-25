@@ -26,6 +26,8 @@ import org.renjin.primitives.S3;
 import org.renjin.primitives.text.regex.RE;
 import org.renjin.primitives.text.regex.REFactory;
 import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.s4.S4Class;
+import org.renjin.s4.S4Method;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -43,7 +45,21 @@ public class Namespace {
   private final Environment importsEnvironment;
   private final Environment baseNamespaceEnvironment;
 
+  /**
+   * S4 Classes imported from other namespaces
+   */
+  private final Map<String, S4Class> importedClasses = new HashMap<>();
+
+  /**
+   * S4 Classes defined in this namespace
+   */
+  private final Map<String, S4Class> classes = new HashMap<>();
+
+  private final List<S4Method> methods = new ArrayList<>();
+
+
   private final List<Symbol> exports = Lists.newArrayList();
+
 
   protected final List<DllInfo> libraries = new ArrayList<>(0);
 
@@ -89,6 +105,10 @@ public class Namespace {
     }
   }
 
+  public Map<String, S4Class> getExportedClasses() {
+    return classes;
+  }
+
   public SEXP getEntry(Symbol entry) {
     SEXP value = namespaceEnvironment.getVariableUnsafe(entry);
     if(value == Symbol.UNBOUND_VALUE) {
@@ -103,6 +123,10 @@ public class Namespace {
       throw new EvalException("Namespace " + pkg.getName() + " has no exported symbol named '" + entry.getPrintName() + "'");
     }
     return value;
+  }
+
+  public Optional<S4Class> getExportedS4Class(String className) {
+    return Optional.fromNullable(classes.get(className));
   }
   
   public SEXP getExportIfExists(Symbol entry) {
@@ -165,6 +189,7 @@ public class Namespace {
     for(NamedValue value : pkg.loadSymbols(context)) {
       namespaceEnvironment.setVariable(context, Symbol.get(value.getName()), value.getValue());
     }
+
     // Load dataset objects as promises
     for(Dataset dataset : pkg.getDatasets()) {
       for(String objectName : dataset.getObjectNames()) {
@@ -202,6 +227,8 @@ public class Namespace {
       Namespace importedNamespace = registry.getNamespace(context, entry.getPackageName());
       if(entry.isAllSymbols()) {
         importedNamespace.copyExportsTo(context, importsEnvironment);
+        importedClasses.putAll(importedNamespace.getExportedClasses());
+
       } else {
         for (Symbol symbol : entry.getSymbols()) {
           SEXP export = importedNamespace.getExportIfExists(symbol);
@@ -236,6 +263,10 @@ public class Namespace {
           } else {
             importsEnvironment.setVariableUnsafe(symbol, export);
           }
+          Optional<S4Class> importedClass = importedNamespace.getExportedS4Class(className);
+          if(importedClass.isPresent()) {
+            importedClasses.put(className, importedClass.get());
+          }
         }
       }
     }
@@ -264,7 +295,6 @@ public class Namespace {
     for (NamespaceFile.DynLibEntry library : file.getDynLibEntries()) {
       importDynamicLibrary(context, library);
     }
-
   }
 
   private void importDynamicLibrary(Context context, NamespaceFile.DynLibEntry entry) {
@@ -506,7 +536,28 @@ public class Namespace {
     }
   }
 
+
+  public void initS4(Context context) {
+
+    // First load the serialized classes and methods
+
+    for (NamedValue value : namespaceEnvironment.namedValues()) {
+      if (value.getName().startsWith(S4Class.PREFIX)) {
+        S4Class s4Class = new S4Class(this.getName(), (S4Object) value.getValue().force(context));
+        classes.put(s4Class.getClassName(), s4Class);
+
+      } else if (value.getName().startsWith(S4Method.PREFIX)) {
+        Environment table = (Environment) value.getValue().force(context);
+        for (NamedValue entry : table.namedValues()) {
+          methods.add(new S4Method(entry.getValue()));
+        }
+      }
+    }
+
+  }
+
   public boolean isLoaded() {
     return loaded;
   }
+
 }

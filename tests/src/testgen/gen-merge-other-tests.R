@@ -39,6 +39,7 @@ inputs <- list(
 )
 
 ARGS <- list(
+  byxy.multicol = list(by.x = c("id","i1"),by.y = c("id","i4")),
   byxy.all      = list(by.x="i1", by.y = "i4", all = TRUE),
   byxy.inc      = list(by.x="i1", by.y = "i4", incomparables = c(NA, 3)),
   byxy.inc.all  = list(by.x="i1", by.y = "i4", incomparables = c(NA, 3), all = TRUE),

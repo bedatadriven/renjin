@@ -55,8 +55,7 @@ public class SessionWriteContext implements WriteContext {
   public boolean isBaseNamespaceEnvironment(Environment ns) {
     return ns == context
         .getNamespaceRegistry()
-        .getNamespace(context, Symbol.get("base"))
-        .getNamespaceEnvironment();
+        .getBaseNamespaceEnv();
   }
 
   @Override

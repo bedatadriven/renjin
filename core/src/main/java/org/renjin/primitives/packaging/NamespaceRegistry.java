@@ -54,14 +54,14 @@ public class NamespaceRegistry {
   /**
    * Maps local names to namespaces
    */
-  private Multimap<Symbol, Namespace> localNameMap = HashMultimap.create();
+  private Map<Symbol, Namespace> localNameMap = new HashMap<>();
   private Map<FqPackageName, Namespace> namespaceMap = Maps.newHashMap();
 
   private Map<Environment, Namespace> envirMap = Maps.newIdentityHashMap();
 
   private final Namespace baseNamespace;
 
-  public NamespaceRegistry(PackageLoader loader, Context context, Environment baseNamespaceEnv) {
+  public NamespaceRegistry(PackageLoader loader, Environment baseNamespaceEnv) {
     this.loader = loader;
 
     baseNamespace = new BaseNamespace(baseNamespaceEnv);
@@ -91,12 +91,7 @@ public class NamespaceRegistry {
   }
   
   public Optional<Namespace> getNamespaceIfPresent(Symbol name) {
-    Collection<Namespace> matching = localNameMap.get(name);
-    if(matching.size() == 1) {
-      return Optional.of(matching.iterator().next());
-    } else {
-      return Optional.empty();
-    }
+    return Optional.ofNullable(localNameMap.get(name));
   }
 
   public Namespace getNamespace(Context context, String name) {
@@ -104,16 +99,10 @@ public class NamespaceRegistry {
   }
 
   public Namespace getNamespace(Context context, Symbol symbol) {
-    if(symbol.getPrintName().equals("base")) {
-      return baseNamespace;
-    }
 
-    // try to match name to currently loaded namespaces
-    for (FqPackageName fqPackageName : namespaceMap.keySet()) {
-      if(symbol.getPrintName().equals(fqPackageName.toString('.')) ||
-          symbol.getPrintName().equals(fqPackageName.getPackageName())) {
-        return namespaceMap.get(fqPackageName);
-      }
+    Namespace localMatch = localNameMap.get(symbol);
+    if(localMatch != null) {
+      return localMatch;
     }
 
     // There are a small number of "core" packages that are part of the 
@@ -214,7 +203,9 @@ public class NamespaceRegistry {
 
         // S4 classes are declared in a namespace, but once the namespace is loaded,
         // they are loaded into the global metadata cache
-        maybeUpdateS4MetadataCache(context, namespace);
+        if(namespace.hasS4Metadata()) {
+          maybeUpdateS4MetadataCache(context, namespace);
+        }
 
         namespace.loaded = true;
 
@@ -225,6 +216,7 @@ public class NamespaceRegistry {
       }
     }
   }
+
 
   private boolean couldBeFullyQualified(Symbol name) {
     String string = name.getPrintName();

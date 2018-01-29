@@ -29,7 +29,6 @@ import org.renjin.sexp.*;
 import org.renjin.sexp.Vector;
 
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class S4 {
 
@@ -40,34 +39,25 @@ public class S4 {
 
   private static final Set<String> LOGIC_GROUP = Sets.newHashSet("&", "&&", "|", "||", "xor");
 
+
   public static SEXP handleS4object(@Current Context context, SEXP source, PairList args,
                                     Environment rho, String group, String opName) {
 
-    if ("as.double".equals(opName)) {
+    if("as.double".equals(opName)) {
       opName = "as.numeric";
     }
 
+    S4Cache cache = new S4Cache();
 
-    List<Environment> groupMethodTables = null;
-    List<Environment> genericMethodTables = null;
-
-    genericMethodTables = findMethodTable(context, opName);
-    if ("Ops".equals(group)) {
-      groupMethodTables = findOpsMethodTable(context, opName);
-    } else if (!("".equals(group) || group == null)) {
-      groupMethodTables = findMethodTable(context, group);
+    cache.addGeneric(getLoadedPackagesMethods(context, opName));
+    if("Ops".equals(group)) {
+      cache.addGroup(getLoadedPackagesMethodsOps(context, opName));
+    } else if(!("".equals(group) || group == null)) {
+      cache.addGroup(getLoadedPackagesMethods(context, group));
     }
 
-    if ((groupMethodTables == null || groupMethodTables.size() == 0) && (genericMethodTables == null || genericMethodTables.size() == 0)) {
+    if(cache.hasNoMethods()) {
       return null;
-    }
-
-    Map<String, List<Environment>> mapMethodTableList = new HashMap<>();
-    if (genericMethodTables != null && genericMethodTables.size() != 0) {
-      mapMethodTableList.put("generic", genericMethodTables);
-    }
-    if (groupMethodTables != null && groupMethodTables.size() != 0) {
-      mapMethodTableList.put("group", groupMethodTables);
     }
 
     // S4 methods for each generic function is stored in method table of type environment. methods for each signature is stored
@@ -82,11 +72,9 @@ public class S4 {
     // lengths the return of computeSignatureLength is an integer array with the length of signature for
     // each found method table.
 
-    Map<String, int[]> signatureLength = computeSignatureLength(genericMethodTables, groupMethodTables);
+    S4Cache.findMaxSignatureLength();
 
-    int maxSignatureLength = getMaxSignatureLength(signatureLength);
-
-    if (maxSignatureLength == 0) {
+    if(S4Cache.getMaxSignatureLength() == 0) {
       return null;
     }
 
@@ -117,49 +105,15 @@ public class S4 {
     // and resulting signatures for generic and group functions are kept seperately in HashMap with keys "generic" or
     // "group". This is necessary since "generic" methods are prioritized over "group" methods when distance is same.
 
-    Map<String, List<List<MethodRanking>>> possibleSignatures = generateSignatures(context, mapMethodTableList, promisedArgs.build(), signatureLength);
+    Signatures possibleSignatures = generateSignatures(context, cache, promisedArgs.build());
 
     // The generated signatures are sorted based on their distance to input signature and looked up in originating
     // method table. All signatures are looked up and the ones present are returned.
 
-    Map<String, List<SelectedMethod>> validMethods = findMatchingMethods(context, mapMethodTableList, possibleSignatures);
+    SelectedMethod method = findMatchingMethods(context, cache, possibleSignatures);
 
-    if (validMethods.keySet().size() == 0) {
+    if (method == null) {
       return null;
-    }
-
-    int maxNumberOfMethods = 0;
-    Iterator<String> typeItr = validMethods.keySet().iterator();
-    for (; typeItr.hasNext(); ) {
-      List<SelectedMethod> methods = validMethods.get(typeItr.next());
-      int nextSize = methods.size();
-      if (nextSize > maxNumberOfMethods) {
-        maxNumberOfMethods = nextSize;
-      }
-    }
-
-    if (maxNumberOfMethods == 0) {
-      return null;
-    }
-
-    SelectedMethod method;
-    SelectedMethod genericMethod = null;
-    SelectedMethod groupMethod = null;
-    double genericRank = -1;
-    double groupRank = -1;
-    if (validMethods.containsKey("generic")) {
-      genericRank = validMethods.get("generic").get(0).getRank();
-      genericMethod = validMethods.get("generic").get(0);
-    }
-    if (validMethods.containsKey("group")) {
-      groupRank = validMethods.get("group").get(0).getRank();
-      groupMethod = validMethods.get("group").get(0);
-    }
-
-    if (genericRank == -1 || (groupRank != -1 && genericRank > groupRank)) {
-      method = groupMethod;
-    } else {
-      method = genericMethod;
     }
 
 //     if selected method is from Group or if its from standard generic but distance is > 0
@@ -212,17 +166,77 @@ public class S4 {
     }
   }
 
-  private static int getMaxSignatureLength(Map<String, int[]> signatureLengths) {
-    int max = 0;
-    String[] types = new String[]{"generic", "group"};
-    for (String type : types) {
-      if (signatureLengths.containsKey(type)) {
-        int currentMax = Ints.max(signatureLengths.get(type));
-        max = max < currentMax ? currentMax : max;
+  private static MethodTable getLoadedPackagesMethodsOps(Context context, String opName) {
+    MethodTable methodTable = null;
+    if(ARITH_GROUP.contains(opName)) {
+      String[] groups = {"Arith", "Ops"};
+      for (int i = 0; i < groups.length && methodTable == null; i++) {
+        MethodTable foundMethodTable = getLoadedPackagesMethods(context, groups[i]);
+        methodTable = foundMethodTable != null ? foundMethodTable : methodTable;
+      }
+    } else if (COMPARE_GROUP.contains(opName)) {
+      String[] groups = {"Compare", "Ops"};
+      for (int i = 0; i < groups.length && methodTable == null; i++) {
+        MethodTable foundMethodTable = getLoadedPackagesMethods(context, groups[i]);
+        methodTable = foundMethodTable != null ? foundMethodTable : methodTable;
+      }
+    } else if (LOGIC_GROUP.contains(opName)) {
+      String[] groups = {"Logic", "Ops"};
+      for (int i = 0; i < groups.length && methodTable == null; i++) {
+        MethodTable foundMethodTable = getLoadedPackagesMethods(context, groups[i]);
+        methodTable = foundMethodTable != null ? foundMethodTable : methodTable;
       }
     }
-    return max;
+    return methodTable;
   }
+
+  public static class MethodTable {
+    List<String> packageNames;
+    List<Environment> methods;
+    List<Integer> sigLengths;
+
+    public MethodTable(List<String> packages, List<Environment> methods, List<Integer> lengths) {
+      this.packageNames = packages;
+      this.methods = methods;
+      this.sigLengths = lengths;
+    }
+  }
+
+  public static MethodTable getLoadedPackagesMethods(Context context, String opName) {
+    String what = ".__T__" + opName + ":";
+    List<String> packageNames = new ArrayList<>();
+    List<Environment> packagesMethods = new ArrayList<>();
+    List<Integer> sigLengths = new ArrayList<>();
+
+    for(Symbol namespace : context.getNamespaceRegistry().getLoadedNamespaces()) {
+      String packageName = namespace.getPrintName();
+      Environment method = null;
+      int sigLen = 0;
+      Frame namespaceFrame = context.getNamespaceRegistry().getNamespace(context, namespace).getNamespaceEnvironment().getFrame();
+      Iterator<Symbol> symItr = namespaceFrame.getSymbols().iterator();
+
+      while(symItr.hasNext() && method == null) {
+        Symbol symbol = symItr.next();
+        if(symbol.getPrintName().startsWith(what)) {
+          method = (Environment) namespaceFrame.getVariable(symbol);
+          sigLen = method.getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
+        }
+      }
+
+      if(method != null) {
+        packageNames.add(packageName);
+        packagesMethods.add(method);
+        sigLengths.add(sigLen);
+      }
+    }
+
+    if(packagesMethods.size() == 0) {
+      return null;
+    } else {
+      return new MethodTable(packageNames, packagesMethods, sigLengths);
+    }
+  }
+
 
   private static SEXP buildDotGeneric(String opName) {
     SEXP generic = StringVector.valueOf(opName);
@@ -277,7 +291,7 @@ public class S4 {
 
   public static List<Environment> findMethodTable(Context context, String opName) {
     String genericName = findClassOrMethodName(context, opName, ".__T__", "base", true);
-    List<Environment> methodTableList = new CopyOnWriteArrayList<>();
+    List<Environment> methodTableList = new ArrayList<>();
 
     List<String> pkgNames = getNamesLoadedPackages(context);
     pkgNames.add(0, ".GlobalEnv");
@@ -316,31 +330,6 @@ public class S4 {
     return sourcePackage;
   }
 
-  private static List<Environment> findOpsMethodTable(Context context, String opName) {
-    List<Environment> methodTableList = new ArrayList<>();
-
-    Frame globalFrame = context.getGlobalEnvironment().getFrame();
-    SEXP methodTableGlobalEnv = getMethodTable(context, opName, globalFrame);
-    if (methodTableGlobalEnv instanceof Environment) {
-      methodTableList.add((Environment) methodTableGlobalEnv);
-    }
-
-    for (String pkg : getNamesLoadedPackages(context)) {
-      Frame packageFrame = getPackageFrame(context, pkg);
-      SEXP methodTablePackage = getMethodTable(context, opName, packageFrame);
-      if (methodTablePackage instanceof Environment &&
-          ((Environment) methodTablePackage).getFrame().getSymbols().size() > 0) {
-        methodTableList.add((Environment) methodTablePackage);
-      }
-    }
-
-    if (methodTableList.size() == 0) {
-      return null;
-    }
-
-    return methodTableList;
-  }
-
   public static Frame getPackageFrame(Context context, String name) {
     if (".GlobalEnv".equals(name)) {
       return context.getGlobalEnvironment().getFrame();
@@ -355,67 +344,12 @@ public class S4 {
   }
 
   public static List<String> getNamesLoadedPackages(Context context) {
-    List<String> loadedPackages = new CopyOnWriteArrayList<>();
+    List<String> loadedPackages = new ArrayList<>();
     for (Symbol symbol : context.getNamespaceRegistry().getLoadedNamespaces()) {
       loadedPackages.add(symbol.getPrintName());
     }
     return loadedPackages;
   }
-
-  private static SEXP getMethodTable(Context context, String opName, Frame packageFrame) {
-    SEXP methodTable = null;
-    if (ARITH_GROUP.contains(opName)) {
-      String[] groups = {".__T__Arith:base", ".__T__Ops:base"};
-      methodTable = getMethod(context, packageFrame, groups);
-    } else if (COMPARE_GROUP.contains(opName)) {
-      String[] groups = {".__T__Compare:methods", ".__T__Ops:base"};
-      methodTable = getMethod(context, packageFrame, groups);
-    } else if (LOGIC_GROUP.contains(opName)) {
-      String[] groups = {".__T__Logic:base", ".__T__Ops:base"};
-      methodTable = getMethod(context, packageFrame, groups);
-    }
-    return methodTable;
-  }
-
-  private static SEXP getMethod(Context context, Frame frame, String[] groups) {
-    SEXP methodTable = null;
-    for (int i = 0; i < groups.length && methodTable == null; i++) {
-      SEXP foundMethodTable = frame.getVariable(Symbol.get(groups[i])).force(context);
-      methodTable = foundMethodTable instanceof Environment ? (Environment) foundMethodTable : null;
-    }
-    return methodTable;
-  }
-
-  private static Map<String, int[]> computeSignatureLength(List<Environment> genericMethodTable, List<Environment> groupMethodTable) {
-    Map<String, int[]> signatureLengths = new HashMap<>();
-
-    if (genericMethodTable != null) {
-      int[] length = new int[genericMethodTable.size()];
-      for (int i = 0; i < genericMethodTable.size(); i++) {
-        if (genericMethodTable.get(i).getFrame().getSymbols().iterator().hasNext()) {
-          length[i] = genericMethodTable.get(i).getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
-        } else {
-          length[i] = 0;
-        }
-      }
-      signatureLengths.put("generic", length);
-    }
-
-    if (groupMethodTable != null) {
-      int[] length = new int[groupMethodTable.size()];
-      for (int i = 0; i < groupMethodTable.size(); i++) {
-        if (groupMethodTable.get(i).getFrame().getSymbols().iterator().hasNext()) {
-          length[i] = groupMethodTable.get(i).getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
-        } else {
-          length[i] = 0;
-        }
-      }
-      signatureLengths.put("group", length);
-    }
-
-    return signatureLengths;
-  }
-
 
   /**
    * This function loops through an ArrayList of generated MethodRankings and stores the signatures for
@@ -427,41 +361,63 @@ public class S4 {
    * are stored in SelectedMethod class. This is necessary to be able to give generic methods priority over
    * group methods, and also for giving a warning for ignored valid methods.
    */
-  private static Map<String, List<SelectedMethod>> findMatchingMethods(Context context, Map<String, List<Environment>> mapMethodTableLists,
-                                                                       Map<String, List<List<MethodRanking>>> mapSignatureList) {
+  private static SelectedMethod findMatchingMethods(Context context, S4Cache cache, Signatures signatures) {
+    List<SelectedMethod> genericMethods = new ArrayList<>();
+    List<SelectedMethod> groupMethods = new ArrayList<>();
+    SelectedMethod topGeneric = null;
+    SelectedMethod topGroup = null;
 
-    Map<String, List<SelectedMethod>> mapListMethods = new HashMap<>();
+    List<MethodRanking> rankings = signatures.genericRankings;
+    String inputSignature = rankings.get(0).getSignature();
 
-    for (int e = 0; e < mapSignatureList.size(); e++) {
-      List<SelectedMethod> selectedMethods = new ArrayList<>();
-      String type = mapSignatureList.keySet().toArray(new String[0])[e];
-      List<List<MethodRanking>> rankings = mapSignatureList.get(type);
-      List<Environment> methodTableList = mapMethodTableLists.get(type);
+    for(int i = 0; i < rankings.size(); i++) {
+      MethodRanking rankedMethod = rankings.get(i);
+      String signature = rankedMethod.getSignature();
+      double rank = rankedMethod.getRank();
+      int[] dist = rankedMethod.getDistances();
+      boolean has0 = rankedMethod.hasZeroDistanceArgument();
+      Symbol signatureSymbol = Symbol.get(signature);
 
-      for (int i = 0; i < rankings.size(); i++) {
-        List<MethodRanking> rankedMethodsList = rankings.get(i);
-        String inputSignature = rankedMethodsList.get(0).getSignature();
-
-        for (MethodRanking rankedMethod : rankedMethodsList) {
-          String signature = rankedMethod.getSignature();
-          double rank = rankedMethod.getRank();
-          int[] dist = rankedMethod.getDistances();
-          boolean has0 = rankedMethod.hasZeroDistanceArgument();
-          Symbol signatureSymbol = Symbol.get(signature);
-          SEXP function = methodTableList.get(i).getFrame().getVariable(signatureSymbol).force(context);
-
-          if (function instanceof Closure) {
-            selectedMethods.add(new SelectedMethod((Closure) function, type, rank, dist, signature, signatureSymbol, inputSignature, has0));
-          }
+      if(cache.hasGeneric()) {
+        List<Environment> genericMethodTables = cache.getGenericMethodTables();
+        SEXP genericFunction = genericMethodTables.get(i).getFrame().getVariable(signatureSymbol).force(context);
+        if(genericFunction instanceof Closure) {
+          SelectedMethod genericMethod = new SelectedMethod((Closure) genericFunction, "generic", rank, dist, signature, signatureSymbol, inputSignature, has0);
+          genericMethods.add(genericMethod);
         }
       }
-      if (selectedMethods.size() > 0) {
-        Collections.sort(selectedMethods);
-        mapListMethods.put(type, selectedMethods);
+
+      if(cache.hasGroup()) {
+        List<Environment> groupMethodTables = cache.getGroupMethodTables();
+        SEXP groupFunction = groupMethodTables.get(i).getFrame().getVariable(signatureSymbol).force(context);
+        if(groupFunction instanceof Closure) {
+          SelectedMethod groupMethod = new SelectedMethod((Closure) groupFunction, "group", rank, dist, signature, signatureSymbol, inputSignature, has0);
+          groupMethods.add(groupMethod);
+        }
       }
     }
 
-    return mapListMethods;
+    if (genericMethods.size() > 0) {
+      Collections.sort(genericMethods);
+      topGeneric = genericMethods.get(0);
+    }
+
+    if(groupMethods.size() > 0) {
+      Collections.sort(groupMethods);
+      topGroup = groupMethods.get(0);
+    }
+
+    if(topGeneric == null && topGroup == null) {
+      return null;
+    } else if (topGeneric == null) {
+      return topGroup;
+    } else if (topGroup == null) {
+      return topGeneric;
+    } else if(genericMethods.get(0).getRank() > groupMethods.get(0).getRank()) {
+      return topGroup;
+    } else {
+      return topGeneric;
+    }
   }
 
   /**
@@ -469,107 +425,108 @@ public class S4 {
    * this function first evaluates the arguments and extracts their class and superclass
    * information.
    */
-  private static Map<String, List<List<MethodRanking>>> generateSignatures(Context context, Map<String, List<Environment>> mapMethodTableLists,
-                                                                           PairList inputArgs, Map<String, int[]> depths) {
+  private static Signatures generateSignatures(Context context, S4Cache cache, PairList inputArgs) {
 
-    Map<String, List<List<MethodRanking>>> mapListMethods = new HashMap<>();
+    List<MethodRanking> genericSignatures = new ArrayList<>();
+    List<MethodRanking> groupSignatures = new ArrayList<>();
 
-    for (int e = 0; e < mapMethodTableLists.size(); e++) {
-      String type = mapMethodTableLists.keySet().toArray(new String[0])[e];
-      List<Environment> methodTableList = mapMethodTableLists.get(type);
-      List<List<MethodRanking>> listSignatures = new ArrayList<>();
-      int[] depth = depths.get(type);
+    if(cache.hasGeneric()) {
+      List<Integer> signatureLengths = S4Cache.getGenericSignatureLengths();
+      List<Environment> methodTables = S4Cache.getGenericMethodTables();
 
-      for (int listIdx = 0; listIdx < methodTableList.size(); listIdx++) {
-        Environment methodTable = methodTableList.get(listIdx);
-        int currentDepth = depth[listIdx];
-        ArgumentSignature[] argSignatures;
-        Symbol methodSymbol = methodTable.getFrame().getSymbols().iterator().next();
-        Closure genericClosure = (Closure) methodTable.getFrame().getVariable(methodSymbol);
-        PairList formals = genericClosure.getFormals();
-
-        // when length of all arguments used in function call is as long as formals length (except ...)
-        // then arguments are matched positionally and the argument tags are ignored
-        // Example:
-        // > setClass("ABC")
-        // > obj <- new("ABC")
-        // > obj[[i=1,j="hello"]] <- 100
-        // `[[` formals are x(i, j, ..., value)
-        // obj signature is:   x=ABC, i=numeric, j=character, value=numeric
-        //
-        // > obj[[j=1,i="hello"] <- 100
-        // obj signature is:   x=ABC, i=numeric, j=character, value=numeric
-        //
-        // > obj[[j=1]] <- 100
-        // obj signature is:   x=ABC, i=missing, j=numeric,   value=numeric
-
-        PairList matchedList = ClosureDispatcher.matchArguments(formals, inputArgs, true);
-        Map<Symbol, SEXP> matchedMap = new HashMap<>();
-        for (PairList.Node node : matchedList.nodes()) {
-          matchedMap.put(node.getTag(), node.getValue());
-        }
-
-        List<SEXP> inputMap = new ArrayList<>();
-        for (PairList.Node node : inputArgs.nodes()) {
-          inputMap.add(node.getValue());
-        }
-        int matchLength = matchedMap.containsKey(Symbols.ELLIPSES) ? matchedMap.size() - 1 : matchedMap.size();
-        boolean lengthMatchEqualsInput = (matchLength - inputMap.size()) == 0;
-
-        if (lengthMatchEqualsInput) {
-          argSignatures = computeArgumentSignatures(context, inputArgs.nodes(), null, currentDepth);
-        } else {
-          argSignatures = computeArgumentSignatures(context, formals.nodes(), matchedMap, currentDepth);
-        }
-
-        int numberOfPossibleSignatures = 1;
-        for (int i = 0; i < argSignatures.length; i++) {
-          numberOfPossibleSignatures = numberOfPossibleSignatures * argSignatures[i].getArgument().length;
-        }
-
-        List<MethodRanking> possibleSignatures = new ArrayList<>(numberOfPossibleSignatures);
-
-        int numberOfClassesCurrentArgument;
-        int argumentClassIdx = 0;
-        int repeat = 1;
-        int repeatIdx = 1;
-
-        for (int col = 0; col < depth[listIdx]; col++) {
-          numberOfClassesCurrentArgument = argSignatures[col].getArgument().length;
-          for (int row = 0; row < numberOfPossibleSignatures; row++, repeatIdx++) {
-            if (argumentClassIdx == numberOfClassesCurrentArgument) {
-              argumentClassIdx = 0;
-            }
-            ArgumentSignature argSignature = argSignatures[col];
-            String signature = argSignature.getArgument(argumentClassIdx);
-            if (possibleSignatures.isEmpty() ||
-                possibleSignatures.size() < row + 1 ||
-                possibleSignatures.get(row) == null) {
-              int[] distance = argSignature.getDistanceAsArray(argumentClassIdx);
-              possibleSignatures.add(row, new MethodRanking(signature, distance));
-            } else {
-              int distance = argSignature.getDistance(argumentClassIdx);
-              possibleSignatures.set(row, possibleSignatures.get(row).append(signature, distance));
-            }
-            if (repeat == 1) {
-              argumentClassIdx++;
-            }
-            if (repeat != 1 && repeatIdx == repeat) {
-              repeatIdx = 0;
-              argumentClassIdx++;
-            }
-          }
-          repeatIdx = 1;
-          argumentClassIdx = 0;
-          repeat = repeat * numberOfClassesCurrentArgument;
-        }
-        listSignatures.add(possibleSignatures);
+      for (int listIdx = 0; listIdx < methodTables.size(); listIdx++) {
+        List<MethodRanking> possibleSignatures = createSignatureFromMethodTable(context, inputArgs, methodTables, listIdx, signatureLengths.get(listIdx));
+        genericSignatures.addAll(possibleSignatures);
       }
-
-      mapListMethods.put(type, listSignatures);
     }
 
-    return mapListMethods;
+    if(cache.hasGroup()) {
+      List<Integer> signatureLengths = S4Cache.getGroupSignatureLengths();
+      List<Environment> methodTables = S4Cache.getGroupMethodTables();
+
+      for (int listIdx = 0; listIdx < methodTables.size(); listIdx++) {
+        List<MethodRanking> possibleSignatures = createSignatureFromMethodTable(context, inputArgs, methodTables, listIdx, signatureLengths.get(listIdx));
+        groupSignatures.addAll(possibleSignatures);
+      }
+    }
+
+    return new Signatures(genericSignatures, groupSignatures);
+  }
+
+  private static List<MethodRanking> createSignatureFromMethodTable(Context context, PairList inputArgs, List<Environment> methodTables, int listIdx, Integer integer) {
+    Environment methodTable = methodTables.get(listIdx);
+    int currentDepth = integer;
+    ArgumentSignature[] argSignatures;
+    Symbol methodSymbol = methodTable.getFrame().getSymbols().iterator().next();
+    Closure genericClosure = (Closure) methodTable.getFrame().getVariable(methodSymbol);
+    PairList formals = genericClosure.getFormals();
+
+    PairList matchedList = ClosureDispatcher.matchArguments(formals, inputArgs, true);
+    Map<Symbol, SEXP> matchedMap = new HashMap<>();
+    for (PairList.Node node : matchedList.nodes()) {
+      matchedMap.put(node.getTag(), node.getValue());
+    }
+
+    List<SEXP> inputMap = new ArrayList<>();
+    for (PairList.Node node : inputArgs.nodes()) {
+      inputMap.add(node.getValue());
+    }
+    int matchLength = matchedMap.containsKey(Symbols.ELLIPSES) ? matchedMap.size() - 1 : matchedMap.size();
+    boolean lengthMatchEqualsInput = (matchLength - inputMap.size()) == 0;
+
+    if (lengthMatchEqualsInput) {
+      argSignatures = computeArgumentSignatures(context, inputArgs.nodes(), null, currentDepth);
+    } else {
+      argSignatures = computeArgumentSignatures(context, formals.nodes(), matchedMap, currentDepth);
+    }
+
+    return createSignatures(argSignatures, integer);
+  }
+
+  private static List<MethodRanking> createSignatures(ArgumentSignature[] argSignatures, Integer integer) {
+
+    int numberOfPossibleSignatures = 1;
+    for (int i = 0; i < argSignatures.length; i++) {
+      numberOfPossibleSignatures = numberOfPossibleSignatures * argSignatures[i].getArgument().length;
+    }
+
+    List<MethodRanking> possibleSignatures = new ArrayList<>(numberOfPossibleSignatures);
+
+    int numberOfClassesCurrentArgument;
+    int argumentClassIdx = 0;
+    int repeat = 1;
+    int repeatIdx = 1;
+
+    for (int col = 0; col < integer; col++) {
+      numberOfClassesCurrentArgument = argSignatures[col].getArgument().length;
+      for (int row = 0; row < numberOfPossibleSignatures; row++, repeatIdx++) {
+        if (argumentClassIdx == numberOfClassesCurrentArgument) {
+          argumentClassIdx = 0;
+        }
+        ArgumentSignature argSignature = argSignatures[col];
+        String signature = argSignature.getArgument(argumentClassIdx);
+        if (possibleSignatures.isEmpty() ||
+            possibleSignatures.size() < row + 1 ||
+            possibleSignatures.get(row) == null) {
+          int[] distance = argSignature.getDistanceAsArray(argumentClassIdx);
+          possibleSignatures.add(row, new MethodRanking(signature, distance));
+        } else {
+          int distance = argSignature.getDistance(argumentClassIdx);
+          possibleSignatures.set(row, possibleSignatures.get(row).append(signature, distance));
+        }
+        if (repeat == 1) {
+          argumentClassIdx++;
+        }
+        if (repeat != 1 && repeatIdx == repeat) {
+          repeatIdx = 0;
+          argumentClassIdx++;
+        }
+      }
+      repeatIdx = 1;
+      argumentClassIdx = 0;
+      repeat = repeat * numberOfClassesCurrentArgument;
+    }
+    return possibleSignatures;
   }
 
   private static ArgumentSignature[] computeArgumentSignatures(Context context, Iterable<PairList.Node> nodes, Map<Symbol, SEXP> matchedMap, int currentDepth) {
@@ -868,6 +825,94 @@ public class S4 {
       }
 
       return Double.compare(currentRank, o.getRank());
+    }
+  }
+
+  public static class S4Cache {
+    private static List<Environment> genericMethodTables = new ArrayList<>();
+    private static List<Integer> genericSignatureLengths = new ArrayList<>();
+    private static int maxGenericSignatureLength = 0;
+
+    private static List<Environment> groupMethodTables = new ArrayList<>();
+    private static List<Integer> groupSignatureLengths = new ArrayList<>();
+    private static int maxGroupSignatureLength = 0;
+
+    private static int maxSignatureLength = 0;
+
+    private static List<Integer> getGenericSignatureLengths() {
+      return genericSignatureLengths;
+    }
+
+    private static List<Integer> getGroupSignatureLengths() {
+      return groupSignatureLengths;
+    }
+
+    private static List<Environment> getGenericMethodTables() {
+      return genericMethodTables;
+    }
+
+    private static List<Environment> getGroupMethodTables() {
+      return groupMethodTables;
+    }
+
+    private void addGeneric(MethodTable generic) {
+      genericMethodTables = generic.methods;
+      genericSignatureLengths = generic.sigLengths;
+    }
+    private void addGroup(MethodTable group) {
+      groupMethodTables = group.methods;
+      groupSignatureLengths = group.sigLengths;
+    }
+
+    private boolean hasGeneric() {
+      return genericMethodTables.size() > 0;
+    }
+    private boolean hasGroup() {
+      return groupMethodTables.size() > 0;
+    }
+    private boolean hasNoMethods() {
+      return !hasGroup() && !hasGeneric();
+    }
+    private static void setMaxLength(int value) {
+      maxSignatureLength = value;
+    }
+    private static void setMaxGenericLength(int value) {
+      maxGenericSignatureLength = value;
+    }
+    private static void setMaxGroupLength(int value) {
+      maxGroupSignatureLength = value;
+    }
+    private static int getMaxSignatureLength() {
+      return maxSignatureLength;
+    }
+
+    private static void findMaxSignatureLength() {
+      int maxGenericMethodLength = 0;
+      int maxGroupMethodLength = 0;
+
+      if(hasGeneric()) {
+        int length = Collections.max(genericSignatureLengths);
+        maxGenericMethodLength = length > maxGenericMethodLength ? length : maxGenericMethodLength;
+        setMaxGenericLength(maxGenericMethodLength);
+      }
+
+      if(hasGroup()) {
+        int length = Collections.max(groupSignatureLengths);
+        maxGroupMethodLength = length > maxGroupMethodLength ? length : maxGroupMethodLength;
+        setMaxGroupLength(maxGroupMethodLength);
+      }
+
+      setMaxLength(maxGenericMethodLength > maxGroupMethodLength ? maxGenericMethodLength : maxGroupMethodLength);
+    }
+
+  }
+
+  public static class Signatures {
+    private List<MethodRanking> genericRankings;
+    private List<MethodRanking> groupRankings;
+    public Signatures(List<MethodRanking> genericRankings, List<MethodRanking> groupRankings) {
+      this.genericRankings = genericRankings;
+      this.groupRankings = groupRankings;
     }
   }
 }

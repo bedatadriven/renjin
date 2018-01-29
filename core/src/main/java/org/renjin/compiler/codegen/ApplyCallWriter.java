@@ -23,7 +23,7 @@ import org.renjin.compiler.JitClassLoader;
 import org.renjin.compiler.cfg.InlinedFunction;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.primitives.vector.MemoizedComputation;
+import org.renjin.primitives.vector.DeferredFunction;
 import org.renjin.repackaged.asm.*;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.asm.util.TraceClassVisitor;
@@ -91,7 +91,7 @@ public class ApplyCallWriter {
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
     cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
     cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, thisClass.getInternalName(), null,
-        superClass.getInternalName(), new String[] { Type.getInternalName(MemoizedComputation.class) });
+        superClass.getInternalName(), new String[] { Type.getInternalName(DeferredFunction.class) });
   }
 
 

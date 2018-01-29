@@ -21,6 +21,7 @@ package org.renjin.primitives.matrix;
 import com.github.fommil.netlib.BLAS;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.sequence.RepDoubleVector;
+import org.renjin.primitives.vector.DeferredFunction;
 import org.renjin.sexp.*;
 
 
@@ -333,6 +334,28 @@ class MatrixProduct {
     }
   }
 
+  DeferredFunction defer() {
+    switch (operation) {
+      case CROSSPROD:
+        if(symmetrical) {
+          return new SymmetricalCrossProduct();
+          return computeSymmetricalCrossProduct();
+        } else {
+          return computeCrossProduct();
+        }
+      case TCROSSPROD:
+        if(symmetrical) {
+          return computeTransposeSymmetricalCrossProduct();
+        } else {
+          return computeTransposeCrossProduct();
+        }
+      default:
+      case PROD:
+        return computeMatrixProduct();
+    }
+
+  }
+
   private double[] computeMatrixProduct() {
     String transa = "N";
     String transb = "N";
@@ -341,8 +364,6 @@ class MatrixProduct {
     double sum;
     boolean haveNA = false;
 
-    double x[] = getXArray();
-    double y[] = getYArray();
     double z[] = new double[nrx*ncy];
 
     if (nrx > 0 && ncx > 0 && nry > 0 && ncy > 0) {

@@ -18,21 +18,31 @@
  */
 package org.renjin.primitives.vector;
 
-import org.renjin.sexp.AttributeMap;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
-public abstract class MemoizedDoubleVector extends DoubleVector implements MemoizedComputation {
+public final class MemoizedDoubleVector extends DoubleVector implements DeferredComputation {
 
-  private final Vector[] operands;
+  private final DeferredFunction function;
+  private final AtomicVector[] operands;
   private final int length;
+
   private Vector result;
 
 
-  public MemoizedDoubleVector(Vector[] operands, int length, AttributeMap attributes) {
+  public MemoizedDoubleVector(AtomicVector[] operands, DeferredFunction function, AttributeMap attributes) {
     super(attributes);
     this.operands = operands;
-    this.length = length;
+    this.length = function.computeLength(operands);
+    this.function = function;
+  }
+
+  public MemoizedDoubleVector(AtomicVector[] operands, DeferredFunction function) {
+    this(operands, function, AttributeMap.EMPTY);
+  }
+
+  @Override
+  protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
+    return new MemoizedDoubleVector(operands, function, attributes);
   }
 
   @Override
@@ -43,27 +53,22 @@ public abstract class MemoizedDoubleVector extends DoubleVector implements Memoi
     return result.getElementAsDouble(index);
   }
 
-  @Override
-  public final Vector forceResult() {
+  private Vector forceResult() {
     if(result == null) {
-      result = computeResult();
+      result =  function.compute(operands);
     }
     return result;
   }
-
-  public abstract Vector computeResult();
 
   @Override
   public final int length() {
     return length;
   }
 
-  @Override
   public final void setResult(Vector result) {
     this.result = result;
   }
 
-  @Override
   public final boolean isCalculated() {
     return result != null;
   }
@@ -76,5 +81,24 @@ public abstract class MemoizedDoubleVector extends DoubleVector implements Memoi
   @Override
   public final Vector[] getOperands() {
     return operands;
+  }
+
+  @Override
+  public String getComputationName() {
+    return function.getComputationName();
+  }
+
+  @Override
+  public final boolean isConstantAccessTime() {
+    return isCalculated();
+  }
+
+  @Override
+  public String toString() {
+    if(isCalculated()) {
+      return DoubleVector.toString(this);
+    } else {
+      return "{" + getComputationName() + "}";
+    }
   }
 }

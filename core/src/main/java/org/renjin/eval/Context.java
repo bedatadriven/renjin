@@ -28,7 +28,8 @@ import org.renjin.primitives.Warning;
 import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.primitives.special.ControlFlowException;
 import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.primitives.vector.MemoizedComputation;
+import org.renjin.primitives.vector.DeferredFunction;
+import org.renjin.primitives.vector.MemoizedVector;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.*;
@@ -248,7 +249,7 @@ public class Context {
   }
 
   public SEXP simplify(SEXP sexp) {
-    if(sexp instanceof MemoizedComputation && ((MemoizedComputation) sexp).isCalculated()) {
+    if(sexp instanceof MemoizedVector && ((MemoizedVector) sexp).isCalculated()) {
       return sexp;
     }
 

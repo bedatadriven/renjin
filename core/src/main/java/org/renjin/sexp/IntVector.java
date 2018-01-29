@@ -206,22 +206,22 @@ public abstract class IntVector extends AbstractAtomicVector implements Iterable
     return result;
   }
 
-  @Override
-  public String toString() {
+
+  public static String toString(IntVector vector) {
     StringBuilder sb = new StringBuilder();
     sb.append("c(");
-    for (int i = 0; i < Math.min(5, length()); ++i) {
+    for (int i = 0; i < Math.min(5, vector.length()); ++i) {
       if (i > 0) {
         sb.append(", ");
       }
-      if (isElementNA(i)) {
+      if (vector.isElementNA(i)) {
         sb.append("NA_integer_");
       } else {
-        sb.append(getElementAsInt(i)).append("L");
+        sb.append(vector.getElementAsInt(i)).append("L");
       }
     }
-    if (length() > 5) {
-      sb.append("...").append(length()).append(" elements total");
+    if (vector.length() > 5) {
+      sb.append("...").append(vector.length()).append(" elements total");
     }
     sb.append(")");
     return sb.toString();

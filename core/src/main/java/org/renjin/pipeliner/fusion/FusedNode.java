@@ -26,7 +26,7 @@ import org.renjin.pipeliner.node.DeferredNode;
 import org.renjin.pipeliner.node.FunctionNode;
 import org.renjin.pipeliner.node.NodeShape;
 import org.renjin.primitives.sequence.IntSequence;
-import org.renjin.primitives.vector.MemoizedComputation;
+import org.renjin.primitives.vector.MemoizedVector;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.sexp.*;
 
@@ -43,7 +43,7 @@ public class FusedNode extends DeferredNode implements Runnable {
   private LoopKernel kernel;
   private LoopNode[] kernelOperands;
 
-  private MemoizedComputation memoizedComputation;
+  private MemoizedVector memoizedVector;
   private DoubleArrayVector resultVector;
   private Future<CompiledKernel> compiledKernel;
 
@@ -52,7 +52,7 @@ public class FusedNode extends DeferredNode implements Runnable {
 
     this.kernel = LoopKernels.INSTANCE.get(node);
     this.kernelOperands = new LoopNode[node.getOperands().size()];
-    this.memoizedComputation = (MemoizedComputation) node.getVector();
+    this.memoizedVector = (MemoizedVector) node.getVector();
 
     for (int i = 0; i < kernelOperands.length; i++) {
       kernelOperands[i] = addLoopNode(node.getOperand(i));
@@ -190,9 +190,9 @@ public class FusedNode extends DeferredNode implements Runnable {
 
     double[] result = kernel.compute(vectorOperands);
 
-    resultVector = DoubleArrayVector.unsafe(result, memoizedComputation.getAttributes());
+    resultVector = DoubleArrayVector.unsafe(result, memoizedVector.getAttributes());
 
-    memoizedComputation.setResult(resultVector);
+    memoizedVector.setResult(resultVector);
   }
   
   public DoubleArrayVector getVector() {

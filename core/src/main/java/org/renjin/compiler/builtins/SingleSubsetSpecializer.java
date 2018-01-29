@@ -61,8 +61,6 @@ public class SingleSubsetSpecializer implements BuiltinSpecializer {
         }
 
       }
-
-      throw new UnsupportedOperationException("TODO");
     }
 
     return UnspecializedCall.INSTANCE;

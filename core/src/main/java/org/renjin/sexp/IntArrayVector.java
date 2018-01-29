@@ -102,6 +102,11 @@ public class IntArrayVector extends IntVector {
   }
 
   @Override
+  public String toString() {
+    return IntVector.toString(this);
+  }
+
+  @Override
   public boolean isConstantAccessTime() {
     return true;
   }

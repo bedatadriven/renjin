@@ -353,6 +353,8 @@ public class S3 {
   private static SEXP handleS4object(@Current Context context, SEXP source, PairList args,
                                      Environment rho, String group, String opName) {
 
+    System.out.println("handleS4: " + opName);
+
     if("as.double".equals(opName)) {
       opName = "as.numeric";
     }

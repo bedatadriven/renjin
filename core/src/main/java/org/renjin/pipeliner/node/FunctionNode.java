@@ -19,14 +19,14 @@
 package org.renjin.pipeliner.node;
 
 import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.primitives.vector.MemoizedComputation;
+import org.renjin.primitives.vector.DeferredFunction;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.sexp.*;
 
 /**
  * Node that applies a function to one or more vector operands.
  */
-public class FunctionNode extends DeferredNode implements Runnable {
+public class FunctionNode extends DeferredNode {
 
   private DeferredComputation vector;
   private Vector result;
@@ -52,11 +52,7 @@ public class FunctionNode extends DeferredNode implements Runnable {
 
   @Override
   public NodeShape getShape() {
-    if(vector instanceof MemoizedComputation) {
-      return NodeShape.ELLIPSE;
-    } else {
-      return NodeShape.PARALLELOGRAM;
-    }
+    return NodeShape.PARALLELOGRAM;
   }
 
   @Override
@@ -77,12 +73,4 @@ public class FunctionNode extends DeferredNode implements Runnable {
     return vector.getComputationName();
   }
 
-  @Override
-  public void run() {
-    if(vector instanceof MemoizedComputation) {
-      this.result = ((MemoizedComputation) vector).forceResult();
-    } else {
-      this.result = vector;
-    }
-  }
 }

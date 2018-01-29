@@ -187,6 +187,9 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
 
   @Override
   public String toString() {
+    if( !isConstantAccessTime()) {
+      return "{deferred}";
+    }
     if (length() == 1) {
       return toString(getElementAsRawLogical(0));
     } else {

@@ -52,8 +52,5 @@ public class DeferredMatrixProduct extends MemoizedDoubleVector {
     return product.getName();
   }
 
-  @Override
-  public boolean isConstantAccessTime() {
-    return false;
-  }
+
 }

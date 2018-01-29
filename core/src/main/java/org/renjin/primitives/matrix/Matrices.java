@@ -26,6 +26,7 @@ import org.renjin.primitives.Warning;
 import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.sequence.RepLogicalVector;
 import org.renjin.primitives.vector.ComputingIntVector;
+import org.renjin.primitives.vector.MemoizedDoubleVector;
 import org.renjin.sexp.*;
 
 
@@ -201,7 +202,7 @@ public class Matrices {
                                       int rowLength,
                                       boolean naRm) {
     if(!naRm && x.isDeferred()) {
-      return new DeferredRowMeans(x, numRows, AttributeMap.EMPTY);
+      return new MemoizedDoubleVector(new AtomicVector[] { x, new IntArrayVector(numRows) }, DeferredRowMeans.INSTANCE);
     }
 
     double sums[] = new double[numRows];
@@ -227,10 +228,9 @@ public class Matrices {
 
   @Internal
   public static DoubleVector colSums(AtomicVector x, int columnLength, int numColumns, boolean naRm) {
-    DeferredColSums dcs =  new DeferredColSums(x, numColumns, naRm, AttributeMap.EMPTY);
-    if (System.getProperty("renjin.disable.colsums") != null) {
-      return (DoubleVector) dcs.forceResult();
-    }
+    MemoizedDoubleVector dcs =  new MemoizedDoubleVector(new AtomicVector[] { x, new IntArrayVector(numColumns) },
+        new DeferredColSums(naRm));
+
     return dcs;
   }
 

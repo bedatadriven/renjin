@@ -18,26 +18,16 @@
  */
 package org.renjin.primitives.matrix;
 
-import org.renjin.primitives.vector.MemoizedComputation;
-import org.renjin.sexp.*;
+import org.renjin.primitives.vector.DeferredFunction;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.DoubleVector;
 
-public class DeferredRowMeans extends DoubleVector implements MemoizedComputation {
+public class DeferredRowMeans implements DeferredFunction {
 
-  private final AtomicVector vector;
-  private int numRows;
-  private int numCols;
-  private double[] means;
+  public static final DeferredRowMeans INSTANCE = new DeferredRowMeans();
 
-  public DeferredRowMeans(AtomicVector vector, int numRows, AttributeMap attributes) {
-    super(attributes);
-    this.vector = vector;
-    this.numRows = numRows;
-    this.numCols = vector.length() / numRows;
-  }
-
-  @Override
-  public Vector[] getOperands() {
-    return new Vector[] { vector, new IntArrayVector(numRows) };
+  private DeferredRowMeans() {
   }
 
   @Override
@@ -45,31 +35,17 @@ public class DeferredRowMeans extends DoubleVector implements MemoizedComputatio
     return "rowMeans";
   }
 
+
   @Override
-  protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
-    return new DeferredRowMeans(vector, numRows, attributes);
+  public int computeLength(AtomicVector[] operands) {
+    return operands[1].asInt();
   }
 
   @Override
-  public double getElementAsDouble(int index) {
-    if(this.means == null) {
-      computeMeans();
-    }
-    return means[index];
-  }
-
-  @Override
-  public boolean isConstantAccessTime() {
-    return false;
-  }
-
-  @Override
-  public int length() {
-    return numRows;
-  }
-
-  private void computeMeans() {
-    System.err.println("EEK! rowMeans.calculate() called directly");
+  public DoubleVector compute(AtomicVector[] operands) {
+    AtomicVector vector = operands[0];
+    int numRows = operands[1].asInt();
+    int numCols = vector.length() / numRows;
 
     double means[] = new double[numRows];
     int row = 0;
@@ -83,29 +59,7 @@ public class DeferredRowMeans extends DoubleVector implements MemoizedComputatio
     for(int i=0;i!=numRows;++i) {
       means[i] /= ((double)numCols);
     }
-    this.means = means;
+    return DoubleArrayVector.unsafe(means);
   }
 
-  @Override
-  public boolean isCalculated() {
-    return means != null;
-  }
-
-  @Override
-  public boolean isDeferred() {
-    return !isCalculated();
-  }
-
-  @Override
-  public Vector forceResult() {
-    if(this.means == null) {
-      computeMeans();
-    }
-    return DoubleArrayVector.unsafe(this.means, getAttributes());
-  }
-
-  @Override
-  public void setResult(Vector result) {
-    this.means = ((DoubleArrayVector)result).toDoubleArrayUnsafe();
-  }
 }

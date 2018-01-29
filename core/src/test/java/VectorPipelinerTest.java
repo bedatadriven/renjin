@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.LogicalArrayVector;
+import org.renjin.sexp.SEXP;
 
 
 public class VectorPipelinerTest extends EvalTestCase {
@@ -96,6 +97,21 @@ public class VectorPipelinerTest extends EvalTestCase {
     eval("g <- sum(f)");
     
     eval("print(g)");
+  }
+
+  @Test
+  public void crossProduct() {
+
+    //crossprod(+(-([600]), *(1200.0, [600])))
+
+    topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "x", new DoubleArrayVector(new double[600]));
+    topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "y", new DoubleArrayVector(new double[600]));
+
+
+    eval("z <- crossprod(-x + (1200 * y))");
+
+    SEXP z = topLevelContext.materialize(eval("z"));
+
   }
 
 

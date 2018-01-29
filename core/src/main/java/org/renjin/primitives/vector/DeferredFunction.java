@@ -18,6 +18,9 @@
  */
 package org.renjin.primitives.vector;
 
+import com.sun.jndi.toolkit.ctx.AtomicContext;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.Vector;
 
 /**
@@ -26,24 +29,12 @@ import org.renjin.sexp.Vector;
  * its result is stored internally to avoid being computed again.
  *
  */
-public interface MemoizedComputation extends DeferredComputation {
+public interface DeferredFunction {
 
-  /**
-   *
-   * @return ensure that the result has been calculated and return it.
-   */
-  Vector forceResult();
+  String getComputationName();
 
-  /**
-   * Sets the results of the computation. This may be called in the event
-   *  that the computation is done externally.
-   */
-  void setResult(Vector result);
+  DoubleVector compute(AtomicVector[] operands);
 
-  /**
-   *
-   * @return  true if the result has been calculated and is available in memory.
-   */
-  boolean isCalculated();
+  int computeLength(AtomicVector[] operands);
 
 }

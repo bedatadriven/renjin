@@ -25,6 +25,7 @@ import org.renjin.invoke.annotations.*;
 import org.renjin.parser.NumericLiterals;
 import org.renjin.primitives.summary.DeferredMean;
 import org.renjin.primitives.summary.DeferredSum;
+import org.renjin.primitives.vector.MemoizedDoubleVector;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -489,7 +490,7 @@ public class Summary {
     if(arguments.length() == 1 && arguments.get(0) instanceof DoubleVector && !removeNA) {
       DoubleVector argument = (DoubleVector) arguments.get(0);
       if(argument.isDeferred() || argument.length() > 300) {
-        return new DeferredSum((Vector) arguments.get(0), AttributeMap.EMPTY);
+        return new MemoizedDoubleVector(new AtomicVector[] {(AtomicVector) arguments.get(0)}, DeferredSum.INSTANCE);
       }
     }
 
@@ -641,7 +642,7 @@ public class Summary {
   public static DoubleVector mean(Vector x) {
 
     if(x.isDeferred() || x.length() > 100000) {
-      return new DeferredMean(x, AttributeMap.EMPTY);
+      return new MemoizedDoubleVector(new AtomicVector[] {(AtomicVector) x}, DeferredMean.INSTANCE);
     }
 
     double mean = 0;

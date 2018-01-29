@@ -18,26 +18,17 @@
  */
 package org.renjin.primitives.matrix;
 
-import org.renjin.primitives.vector.MemoizedComputation;
-import org.renjin.sexp.*;
+import org.renjin.primitives.vector.DeferredFunction;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.DoubleVector;
 
-public class DeferredColSums extends DoubleVector implements MemoizedComputation {
+public class DeferredColSums implements DeferredFunction {
 
-  private final AtomicVector vector;
-  private int numColumns;
   private boolean naRm;
-  private double[] sums = null;
 
-  public DeferredColSums(AtomicVector vector, int numColumns, boolean naRm, AttributeMap attributes) {
-    super(attributes);
-    this.vector = vector;
-    this.numColumns = numColumns;
+  public DeferredColSums(boolean naRm) {
     this.naRm = naRm;
-  }
-
-  @Override
-  public Vector[] getOperands() {
-    return new Vector[]{vector, new IntArrayVector(numColumns)};
   }
 
   @Override
@@ -50,30 +41,10 @@ public class DeferredColSums extends DoubleVector implements MemoizedComputation
   }
 
   @Override
-  protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
-    return new DeferredColSums(vector, numColumns, naRm, attributes);
-  }
+  public DoubleVector compute(AtomicVector[] operands) {
+    AtomicVector vector = operands[0];
+    int numColumns = operands[1].asInt();
 
-  @Override
-  public double getElementAsDouble(int index) {
-    if(this.sums == null) {
-      System.err.println("EEK! colSums.computeMeans() called through getElementAsDouble()");
-      computeMeans();
-    }
-    return sums[index];
-  }
-
-  @Override
-  public boolean isConstantAccessTime() {
-    return false;
-  }
-
-  @Override
-  public int length() {
-    return numColumns;
-  }
-
-  private void computeMeans() {
     double sums[] = new double[numColumns];
     int sourceIndex = 0;
     double sum = 0;
@@ -95,30 +66,11 @@ public class DeferredColSums extends DoubleVector implements MemoizedComputation
         colIndex++;
       }
     }
-
-    this.sums = sums;
+    return DoubleArrayVector.unsafe(sums);
   }
 
   @Override
-  public boolean isCalculated() {
-    return sums != null;
-  }
-
-  @Override
-  public boolean isDeferred() {
-    return !isCalculated();
-  }
-
-  @Override
-  public Vector forceResult() {
-    if(this.sums == null) {
-      computeMeans();
-    }
-    return DoubleArrayVector.unsafe(this.sums, getAttributes());
-  }
-
-  @Override
-  public void setResult(Vector result) {
-    this.sums = ((DoubleArrayVector)result).toDoubleArrayUnsafe();
+  public int computeLength(AtomicVector[] operands) {
+    return operands[1].asInt();
   }
 }

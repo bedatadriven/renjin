@@ -18,14 +18,14 @@
  */
 package org.renjin.primitives.summary;
 
-import org.renjin.sexp.AttributeMap;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Vector;
+import org.renjin.primitives.vector.DeferredFunction;
+import org.renjin.sexp.*;
 
-public class DeferredMean extends DeferredSummary {
+public class DeferredMean implements DeferredFunction {
 
-  public DeferredMean(Vector vector, AttributeMap attributes) {
-    super(vector, attributes);
+  public static final DeferredMean INSTANCE = new DeferredMean();
+
+  private DeferredMean() {
   }
 
   @Override
@@ -34,15 +34,18 @@ public class DeferredMean extends DeferredSummary {
   }
 
   @Override
-  protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
-    return new DeferredMean(vector, attributes);
-  }
-
-  protected double calculate() {
+  public DoubleVector compute(AtomicVector[] operands) {
+    AtomicVector vector = operands[0];
     double sum = 0;
     for(int i=0;i!=vector.length();++i) {
       sum += vector.getElementAsDouble(i);
     }
-    return sum / vector.length();
+    return new DoubleArrayVector(sum / vector.length());
   }
+
+  @Override
+  public int computeLength(AtomicVector[] operands) {
+    return 1;
+  }
+
 }

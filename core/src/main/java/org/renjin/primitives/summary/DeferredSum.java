@@ -18,25 +18,16 @@
  */
 package org.renjin.primitives.summary;
 
-import org.renjin.sexp.AttributeMap;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Vector;
+import org.renjin.primitives.vector.DeferredComputation;
+import org.renjin.primitives.vector.DeferredFunction;
+import org.renjin.sexp.*;
 
-public class DeferredSum extends DeferredSummary {
+public class DeferredSum implements DeferredFunction {
 
-  public DeferredSum(Vector vector, AttributeMap attributes) {
-    super(vector, attributes);
+  public static final DeferredSum INSTANCE = new DeferredSum();
+
+  private DeferredSum() {
   }
-
-  @Override
-  protected double calculate() {
-    double sum = 0;
-    for(int i=0;i!=vector.length();++i) {
-      sum += vector.getElementAsDouble(i);
-    }
-    return sum;
-  }
-
 
   @Override
   public String getComputationName() {
@@ -44,7 +35,17 @@ public class DeferredSum extends DeferredSummary {
   }
 
   @Override
-  protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
-    return new DeferredSum(vector, attributes);
+  public DoubleVector compute(AtomicVector[] operands) {
+    AtomicVector vector = operands[0];
+    double sum = 0;
+    for(int i=0;i!=vector.length();++i) {
+      sum += vector.getElementAsDouble(i);
+    }
+    return new DoubleArrayVector(sum);
+  }
+
+  @Override
+  public int computeLength(AtomicVector[] operands) {
+    return 1;
   }
 }

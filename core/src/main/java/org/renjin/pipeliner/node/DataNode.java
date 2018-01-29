@@ -18,7 +18,8 @@
  */
 package org.renjin.pipeliner.node;
 
-import org.renjin.primitives.vector.MemoizedComputation;
+import org.renjin.primitives.vector.DeferredFunction;
+import org.renjin.primitives.vector.MemoizedVector;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.IntVector;
@@ -35,8 +36,8 @@ public class DataNode extends DeferredNode {
   
   public DataNode(Vector vector) {
     super();
-    if(vector instanceof MemoizedComputation) {
-      this.vector = ((MemoizedComputation) vector).forceResult();
+    if(vector instanceof MemoizedVector) {
+      this.vector = ((MemoizedVector) vector).forceResult();
     } else {
       this.vector = vector;
     }

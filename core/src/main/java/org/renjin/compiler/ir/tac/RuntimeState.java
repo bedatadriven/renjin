@@ -28,6 +28,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.MatchedArgumentPositions;
 import org.renjin.packaging.SerializedPromise;
 import org.renjin.primitives.S3;
+import org.renjin.primitives.S4;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.repackaged.guava.collect.Sets;
@@ -392,9 +393,9 @@ public class RuntimeState {
     return length;
   }
   
-  public Map<String,List<List<S3.MethodRanking>>> generateSignatures(Symbol opName, List<ArgumentBounds> arguments, int[] depth) {
+  public Map<String,List<List<S4.MethodRanking>>> generateSignatures(Symbol opName, List<ArgumentBounds> arguments, int[] depth) {
   
-    Map<String, List<List<S3.MethodRanking>>> mapListMethods = new HashMap<>();
+    Map<String, List<List<S4.MethodRanking>>> mapListMethods = new HashMap<>();
     Map<String, List<Environment>> mapMethodTableLists = new HashMap<>();
     if(s4GenericMethodTables.size() > 0) {
       mapMethodTableLists.put("generic", s4GenericMethodTables.get(opName));
@@ -406,12 +407,12 @@ public class RuntimeState {
     for(int e = 0; e < mapMethodTableLists.size(); e++) {
       String type = mapMethodTableLists.keySet().toArray(new String[0])[e];
       List<Environment> methodTableList = mapMethodTableLists.get(type);
-      List<List<S3.MethodRanking>> listSignatures = new ArrayList<>();
+      List<List<S4.MethodRanking>> listSignatures = new ArrayList<>();
     
       for(int listIdx = 0; listIdx < methodTableList.size(); listIdx++) {
         Environment methodTable = methodTableList.get(listIdx);
         int currentDepth = depth[listIdx];
-        S3.ArgumentSignature[] argSignatures;
+        S4.ArgumentSignature[] argSignatures;
         Symbol methodSymbol = methodTable.getFrame().getSymbols().iterator().next();
         Closure genericClosure = (Closure) methodTable.getFrame().getVariable(methodSymbol);
         PairList formals = genericClosure.getFormals();
@@ -434,7 +435,7 @@ public class RuntimeState {
           numberOfPossibleSignatures = numberOfPossibleSignatures * argSignatures[i].getArgument().length;
         }
       
-        List<S3.MethodRanking> possibleSignatures = new ArrayList<>(numberOfPossibleSignatures);
+        List<S4.MethodRanking> possibleSignatures = new ArrayList<>(numberOfPossibleSignatures);
       
         int numberOfClassesCurrentArgument;
         int argumentClassIdx = 0;
@@ -447,13 +448,13 @@ public class RuntimeState {
             if(argumentClassIdx == numberOfClassesCurrentArgument) {
               argumentClassIdx = 0;
             }
-            S3.ArgumentSignature argSignature = argSignatures[col];
+            S4.ArgumentSignature argSignature = argSignatures[col];
             String signature = argSignature.getArgument(argumentClassIdx);
             if(possibleSignatures.isEmpty() ||
                 possibleSignatures.size() < row + 1 ||
                 possibleSignatures.get(row) == null) {
               int[] distance = argSignature.getDistanceAsArray(argumentClassIdx);
-              possibleSignatures.add(row, new S3.MethodRanking(signature, distance));
+              possibleSignatures.add(row, new S4.MethodRanking(signature, distance));
             } else {
               int distance = argSignature.getDistance(argumentClassIdx);
               possibleSignatures.set(row, possibleSignatures.get(row).append(signature, distance));
@@ -477,11 +478,11 @@ public class RuntimeState {
     return mapListMethods;
   }
   
-  private static S3.ArgumentSignature[] computeArgumentSignatures(Context context, MatchedArgumentPositions match, List<ArgumentBounds> arguments, int currentDepth) {
+  private static S4.ArgumentSignature[] computeArgumentSignatures(Context context, MatchedArgumentPositions match, List<ArgumentBounds> arguments, int currentDepth) {
     
     String argClass;
     
-    S3.ArgumentSignature[] argSignatures = new S3.ArgumentSignature[currentDepth];
+    S4.ArgumentSignature[] argSignatures = new S4.ArgumentSignature[currentDepth];
     
     int idx = 0;
     for (int i = 0; i < currentDepth; i++) {
@@ -500,16 +501,16 @@ public class RuntimeState {
     return argSignatures;
   }
   
-//  private static S3.ArgumentSignature getArgumentSignature(Context context, SEXP argValue) {
+//  private static S4.ArgumentSignature getArgumentSignature(Context context, SEXP argValue) {
 //    if (argValue == Symbol.MISSING_ARG) {
-//      return new S3.ArgumentSignature();
+//      return new S4.ArgumentSignature();
 //    }
-//    String[] nodeClass = S3.computeDataClasses(context, argValue).toArray();
+//    String[] nodeClass = S4.computeDataClasses(context, argValue).toArray();
 //
 //    return getClassAndDistance(context, nodeClass);
 //  }
   
-  private static S3.ArgumentSignature getClassAndDistance(Context context, String argClass) {
+  private static S4.ArgumentSignature getClassAndDistance(Context context, String argClass) {
     
     List<Integer> distances = new ArrayList<>();
     List<String> classes = new ArrayList<>();
@@ -535,10 +536,10 @@ public class RuntimeState {
       classes.add("ANY");
     }
     
-    return new S3.ArgumentSignature(classes.toArray(new String[0]), Ints.toArray(distances));
+    return new S4.ArgumentSignature(classes.toArray(new String[0]), Ints.toArray(distances));
   }
   
-//  private static S3.ArgumentSignature getClassAndDistance(Context context, String[] argClass) {
+//  private static S4.ArgumentSignature getClassAndDistance(Context context, String[] argClass) {
 //
 //    List<Integer> distances = new ArrayList<>();
 //    List<String> classes = new ArrayList<>();
@@ -564,13 +565,13 @@ public class RuntimeState {
 //      classes.add("ANY");
 //    }
 //
-//    return new S3.ArgumentSignature(classes.toArray(new String[0]), Ints.toArray(distances));
+//    return new S4.ArgumentSignature(classes.toArray(new String[0]), Ints.toArray(distances));
 //  }
   
-  public Map<String, List<S3.SelectedMethod>> findMatchingMethods(Symbol opName, Map<String, List<List<S3.MethodRanking>>> signatures) {
+  public Map<String, List<S4.SelectedMethod>> findMatchingMethods(Symbol opName, Map<String, List<List<S4.MethodRanking>>> signatures) {
     
-    Map<String, List<S3.SelectedMethod>> methods = new HashMap<>();
-    List<S3.SelectedMethod> selectedMethods = new ArrayList<>();
+    Map<String, List<S4.SelectedMethod>> methods = new HashMap<>();
+    List<S4.SelectedMethod> selectedMethods = new ArrayList<>();
     Map<String, List<Environment>> mapMethodTableLists = new HashMap<>();
     if(s4GenericMethodTables.containsKey(opName)) {
       mapMethodTableLists.put("generic", s4GenericMethodTables.get(opName));
@@ -581,14 +582,14 @@ public class RuntimeState {
   
     for(int e = 0; e < signatures.size(); e++) {
       String type = signatures.keySet().toArray(new String[0])[e];
-      List<List<S3.MethodRanking>> rankings = signatures.get(type);
+      List<List<S4.MethodRanking>> rankings = signatures.get(type);
       List<Environment> methodTableList = mapMethodTableLists.get(type);
     
       for(int i = 0; i < rankings.size(); i++) {
-        List<S3.MethodRanking> rankedMethodsList = rankings.get(i);
+        List<S4.MethodRanking> rankedMethodsList = rankings.get(i);
         String inputSignature = rankedMethodsList.get(0).getSignature();
       
-        for (S3.MethodRanking rankedMethod : rankedMethodsList) {
+        for (S4.MethodRanking rankedMethod : rankedMethodsList) {
           String signature = rankedMethod.getSignature();
           double rank = rankedMethod.getRank();
           int[] distance = rankedMethod.getDistances();
@@ -597,7 +598,7 @@ public class RuntimeState {
           SEXP function = methodTableList.get(i).getFrame().getVariable(signatureSymbol).force(context);
         
           if (function instanceof Closure) {
-            selectedMethods.add(new S3.SelectedMethod((Closure) function, type, rank, distance, signature, signatureSymbol, inputSignature, has0));
+            selectedMethods.add(new S4.SelectedMethod((Closure) function, type, rank, distance, signature, signatureSymbol, inputSignature, has0));
           }
         }
       }

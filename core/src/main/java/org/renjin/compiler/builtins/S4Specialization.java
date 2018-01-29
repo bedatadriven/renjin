@@ -26,6 +26,7 @@ import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.eval.MatchedArgumentPositions;
 import org.renjin.primitives.S3;
+import org.renjin.primitives.S4;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.primitives.Ints;
@@ -102,9 +103,9 @@ public class S4Specialization implements Specialization {
         return UnspecializedCall.INSTANCE;
       }
   
-      Map<String, List<List<S3.MethodRanking>>> signatures = runtimeState.generateSignatures(opName, arguments, signatureLength);
+      Map<String, List<List<S4.MethodRanking>>> signatures = runtimeState.generateSignatures(opName, arguments, signatureLength);
   
-      Map<String, List<S3.SelectedMethod>> validMethods = runtimeState.findMatchingMethods(opName, signatures);
+      Map<String, List<S4.SelectedMethod>> validMethods = runtimeState.findMatchingMethods(opName, signatures);
   
       if (validMethods.size() == 0) {
         return UnspecializedCall.INSTANCE;
@@ -122,7 +123,7 @@ public class S4Specialization implements Specialization {
         return UnspecializedCall.INSTANCE;
       }
   
-      S3.SelectedMethod method;
+      S4.SelectedMethod method;
       if (validMethods.size() > 1) {
         // select closest group method if distance is less than the distance of closest generic method
         double genericRank = validMethods.get("generic").size() == 0 ? -1 : validMethods.get("generic").get(0).getRank();
@@ -161,7 +162,7 @@ public class S4Specialization implements Specialization {
   
     // check that argument classes are constant
   
-    // follow the same logic as with S3.handleS4object() to
+    // follow the same logic as with S4.handleS4object() to
     // resolve the function and assign it to inlineMethod
     
     // Otherwise, try to resolve the function

@@ -27,14 +27,30 @@ import org.renjin.sexp.SEXP;
  * A Method is a specific implementation of a {@link Generic} for a given classes of arguments.
  */
 public class Method {
+
+  /**
+   * This method has been defined for the name generic, for example "+" or "*"
+   */
+  public static final int SPECIFICITY_GENERIC = 0;
+
+  /**
+   * This method has been defined for an Ops sub-group, for example "Arith" or "Compare"
+   */
+  public static final int SPECIFICITY_SUB_GROUP = 1;
+
+  /**
+   * This method has been defined for a group, such as "Ops" or "Summary"
+   */
+  public static final int SPECIFICITY_GROUP = 2;
+
   private Generic generic;
-  private int group;
+  private int specificity;
   private Signature signature;
   private Closure definition;
 
-  public Method(Generic generic, int group, String signature, SEXP definition) {
+  public Method(Generic generic, int specificity, String signature, SEXP definition) {
     this.generic = generic;
-    this.group = group;
+    this.specificity = specificity;
     this.signature = new Signature(signature);
     this.definition = (Closure) definition;
   }
@@ -52,15 +68,15 @@ public class Method {
   }
 
   public boolean isGroupGeneric() {
-    return group != 0;
+    return specificity != SPECIFICITY_GENERIC;
   }
 
   /**
    * @return 0 if the method is defined for a specific generic, 1 if the method is defined for a specific group,
    * such as "Arith" or "Logic", and 2 if the method is defined for a general group, like "Ops" or "Summary"
    */
-  public int getGroupLevel() {
-    return group;
+  public int getSpecificity() {
+    return specificity;
   }
 
   public PairList getFormals() {
@@ -73,6 +89,13 @@ public class Method {
 
   @Override
   public String toString() {
-    return generic.getName() + "(" + signature + ")";
+    switch (specificity) {
+      case SPECIFICITY_SUB_GROUP:
+        return generic.getSubGroup() + "(" + signature + ")";
+      case SPECIFICITY_GROUP:
+        return generic.getGroup() + "(" + signature + ")";
+      default:
+        return generic.getName() + "(" + signature + ")";
+    }
   }
 }

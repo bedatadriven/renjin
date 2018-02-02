@@ -86,8 +86,17 @@ public class NamespaceRegistry {
   }
 
 
-  public Iterable<Symbol> getLoadedNamespaces() {
+  /**
+   *
+   * @return a sequence of the "local names" of the currently loaded namespaces. Local names do not include
+   * the group name of the namespace.
+   */
+  public Iterable<Symbol> getLoadedNamespaceNames() {
     return localNameMap.keySet();
+  }
+
+  public Iterable<Namespace> getLoadedNamespaces() {
+    return namespaceMap.values();
   }
   
   public Optional<Namespace> getNamespaceIfPresent(Symbol name) {

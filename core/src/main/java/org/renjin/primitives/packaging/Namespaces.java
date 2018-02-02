@@ -91,7 +91,7 @@ public class Namespaces {
   @Builtin
   public static StringVector loadedNamespaces(@Current NamespaceRegistry registry) {
     StringVector.Builder result = new StringVector.Builder();
-    for(Symbol name : registry.getLoadedNamespaces()) {
+    for(Symbol name : registry.getLoadedNamespaceNames()) {
       result.add(name.getPrintName());
     }
     return result.build();

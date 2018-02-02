@@ -19,11 +19,15 @@
 package org.renjin.s4;
 
 import org.renjin.eval.ArgumentMatcher;
-import org.renjin.eval.Session;
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.sexp.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A table containing all of the Methods defined for a given {@link Generic}
@@ -41,28 +45,27 @@ public class MethodLookupTable {
   private Map<String, Method> signatureMap = new HashMap<>();
 
 
-
   private int maximumSignatureLength = 0;
 
-  public MethodLookupTable(Generic generic, Session session) {
+  public MethodLookupTable(Generic generic, Context context) {
     this.generic = generic;
 
     List<Frame> namespaceFrames = new ArrayList<>();
-    namespaceFrames.add(session.getGlobalEnvironment().getFrame());
+    namespaceFrames.add(context.getGlobalEnvironment().getFrame());
 
-    for (Namespace namespace : session.getNamespaceRegistry().getLoadedNamespaces()) {
+    for (Namespace namespace : context.getNamespaceRegistry().getLoadedNamespaces()) {
       namespaceFrames.add(namespace.getNamespaceEnvironment().getFrame());
     }
 
     for (Frame namespaceFrame : namespaceFrames) {
       SEXP table = namespaceFrame.getVariable(methodTableName(generic));
       if (table != Symbol.UNBOUND_VALUE) {
-        addMethods((Environment) table, 0);
+        addMethods(asMethodTableEnvironment(context, table), 0);
       }
       for (int i = 0; i < generic.getGroups().size(); i++) {
         SEXP groupTable = namespaceFrame.getVariable(methodTableName(generic, generic.getGroups().get(i)));
         if (groupTable != Symbol.UNBOUND_VALUE) {
-          addMethods((Environment) groupTable, i + 1);
+          addMethods(asMethodTableEnvironment(context, groupTable), i + 1);
         }
       }
     }
@@ -76,6 +79,15 @@ public class MethodLookupTable {
       Method method = signatureMap.values().iterator().next();
       this.argumentMatcher = new ArgumentMatcher(method.getDefinition().getFormals());
     }
+
+  }
+
+  public Environment asMethodTableEnvironment(Context context, SEXP table) {
+    SEXP forcedTable = table.force(context);
+    if(!(forcedTable instanceof Environment)) {
+      throw new EvalException("Expected an environment object, found " + forcedTable.getTypeName());
+    }
+    return (Environment) forcedTable;
   }
 
   /**

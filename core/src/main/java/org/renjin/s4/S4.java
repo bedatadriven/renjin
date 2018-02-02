@@ -24,27 +24,38 @@ import org.renjin.invoke.annotations.Current;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.sexp.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class S4 {
 
 
-
-
-  public static SEXP handleS4object(@Current Context context, SEXP source, PairList args,
-                                    Environment rho, String group, String opName) {
+  /**
+   * Attempts to dispatch to an S4 method based on the calling arguments.
+   *
+   * <p>If a suitable method is found, it is evaluated and this method returns the result of the function call</p>
+   *
+   * <p>If no method is found, then this method returns {@code null}</p>
+   */
+  public static SEXP tryDispatchToS4Method(@Current Context context, SEXP source, PairList args,
+                                           Environment rho, String group, String opName) {
 
     Generic generic = new Generic(opName, group);
-    MethodLookupTable lookupTable = new MethodLookupTable(generic, context.getSession());
+    MethodLookupTable lookupTable = new MethodLookupTable(generic, context);
     if(lookupTable.isEmpty()) {
       return null;
     }
 
     CallingArguments arguments = new CallingArguments(context, rho, source, args, lookupTable.getArgumentMatcher());
-
-    DistanceCalculator calculator = new DistanceCalculator();
+    S4ClassCache classCache = new S4ClassCache(context);
+    DistanceCalculator calculator = new DistanceCalculator(classCache);
 
     RankedMethod selectedMethod = lookupTable.selectMethod(arguments, calculator);
+    if(selectedMethod == null) {
+      return null;
+    }
 
     Closure function = selectedMethod.getMethod().getDefinition();
 

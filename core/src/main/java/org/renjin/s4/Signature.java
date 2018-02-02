@@ -77,4 +77,9 @@ public class Signature {
   public List<String> getClasses() {
     return Arrays.asList(arguments);
   }
+
+  @Override
+  public String toString() {
+    return signature;
+  }
 }

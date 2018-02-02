@@ -21,8 +21,6 @@ package org.renjin.s4;
 import org.renjin.eval.ArgumentMatcher;
 import org.renjin.eval.Calls;
 import org.renjin.eval.Context;
-import org.renjin.eval.MatchedArguments;
-import org.renjin.primitives.S3;
 import org.renjin.sexp.*;
 
 import java.util.Iterator;
@@ -44,37 +42,19 @@ public class CallingArguments {
     // expand ... in arguments or remove if empty
     expandedArgs = Calls.promiseArgs(args, context, rho);
 
-    // Match the provided arguments to the formals of the generic
-
-    MatchedArguments matchedArguments = matcher.match(expandedArgs);
-
-    // Given the complete list of arguments, we need two things:
-    // 1) A list of the classes of the evaluated arguments
-    // 2) A pairlist of promises that include the original expression _and_ the evaluated
-    //    expression which can ultimately be passed to the selected method and avoid double evaluation.
-
+    // Create list of promised arguments without names
     PairList.Builder promisedArgs = new PairList.Builder();
 
-    for (int formalIndex = 0; formalIndex < matchedArguments.getFormalCount(); formalIndex++) {
-
-      Symbol formalName = matchedArguments.getFormalName(formalIndex);
-      int actualIndex = matchedArguments.getActualIndex(formalIndex);
-
-      if(actualIndex == -1) {
-        // This formal argument was not provided by the caller
-        promisedArgs.add(formalName, Symbol.MISSING_ARG);
-
+    boolean firstArgument = true;
+    for (SEXP argument : expandedArgs.values()) {
+      if(firstArgument) {
+        promisedArgs.add(new Promise(((Promise) argument).getExpression(), object));
       } else {
-        SEXP uneval = matchedArguments.getActualValue(actualIndex);
-        if(actualIndex == 0) {
-          // The source has already been evaluated to check for class
-          promisedArgs.add(formalName, new Promise(uneval, object));
-
-        } else {
-          promisedArgs.add(formalName, Promise.repromise(rho, uneval));
-        }
+        promisedArgs.add(Promise.repromise(rho, argument));
       }
+      firstArgument = false;
     }
+
     this.promisedArgs = promisedArgs.build();
   }
 
@@ -84,15 +64,19 @@ public class CallingArguments {
 
   public Signature getSignature(int length) {
     String[] classes = new String[length];
-    int index = 0;
-    for (PairList.Node actual : promisedArgs.nodes()) {
-      SEXP evaluated = actual.force(context);
-      if(evaluated == Symbol.MISSING_ARG) {
-        classes[index] = "missing";
+    Iterator<PairList.Node> argumentIt = promisedArgs.nodes().iterator();
+    for(int index = 0; index < length; ++index) {
+      if(argumentIt.hasNext()) {
+        SEXP actual = argumentIt.next().getValue();
+        SEXP evaluated = actual.force(context);
+        if (evaluated == Symbol.MISSING_ARG) {
+          classes[index] = "missing";
+        } else {
+          classes[index] = computeDateClass(evaluated);
+        }
       } else {
-        classes[index] = computeDateClass(evaluated);
+        classes[index] = "missing";
       }
-      index++;
     }
     return new Signature(classes);
   }

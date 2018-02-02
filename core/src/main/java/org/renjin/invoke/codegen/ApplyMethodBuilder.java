@@ -120,7 +120,9 @@ public abstract class ApplyMethodBuilder implements ApplyMethodContext {
 
   private GenericDispatchStrategy genericDispatchStrategy(PrimitiveModel primitive) {
     JvmMethod overload =  primitive.getOverloads().get(0);
-    if (overload.isGroupGeneric()) {
+    if (primitive.getName().equals("%*%")) {
+      return new MatrixMultDispatchStrategy(codeModel);
+    } else if (overload.isGroupGeneric()) {
       if (overload.getGenericGroup().equals("Ops")) {
         return new OpsGroupGenericDispatchStrategy(codeModel, primitive.getName());
       } else if (overload.getGenericGroup().equals("Summary")) {

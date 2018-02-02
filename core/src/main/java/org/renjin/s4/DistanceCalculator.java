@@ -20,11 +20,32 @@ package org.renjin.s4;
 
 public class DistanceCalculator {
 
+  private static final int FAR_AWAY = Integer.MAX_VALUE - 1;
+
+  private S4ClassCache classCache;
+
+  public DistanceCalculator(S4ClassCache classCache) {
+    this.classCache = classCache;
+  }
+
   public int distance(String from, String to) {
     if (to.equals("ANY")) {
-      return Integer.MAX_VALUE;
+      // Classes are equidistant but far from "ANY"
+      // ... but missing is even further.
+      if(from.equals("missing")) {
+        return FAR_AWAY + 1;
+      } else {
+        return FAR_AWAY;
+      }
     }
 
-    return -1;
+    S4Class providedClass = classCache.lookupClass(from);
+    if(providedClass == null) {
+      return -1;
+    }
+
+    int distanceToSuperClass = providedClass.getDistanceToSuperClass(to);
+//    System.out.println(String.format("%s => %s = %d", from, to, distanceToSuperClass));
+    return distanceToSuperClass;
   }
 }

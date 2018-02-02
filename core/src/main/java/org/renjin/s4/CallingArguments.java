@@ -21,6 +21,7 @@ package org.renjin.s4;
 import org.renjin.eval.ArgumentMatcher;
 import org.renjin.eval.Calls;
 import org.renjin.eval.Context;
+import org.renjin.eval.MatchedArguments;
 import org.renjin.sexp.*;
 
 import java.util.Iterator;
@@ -31,10 +32,10 @@ import java.util.Iterator;
  */
 public class CallingArguments {
 
-  private final PairList promisedArgs;
+  private final PairList expandedArgs;
+  private PairList promisedArgs;
   private Context context;
 
-  private final PairList expandedArgs;
 
   public CallingArguments(Context context, Environment rho, SEXP object, PairList args, ArgumentMatcher matcher) {
     this.context = context;
@@ -42,19 +43,66 @@ public class CallingArguments {
     // expand ... in arguments or remove if empty
     expandedArgs = Calls.promiseArgs(args, context, rho);
 
-    // Create list of promised arguments without names
-    PairList.Builder promisedArgs = new PairList.Builder();
 
-    boolean firstArgument = true;
-    for (SEXP argument : expandedArgs.values()) {
-      if(firstArgument) {
-        promisedArgs.add(new Promise(((Promise) argument).getExpression(), object));
-      } else {
-        promisedArgs.add(Promise.repromise(rho, argument));
-      }
-      firstArgument = false;
+    // when length of all arguments used in function call is as long as formals length (except ...)
+    // then arguments are matched positionally and the argument tags are ignored
+    // Example:
+    // > setClass("ABC", representation(x="numeric"))
+    // > obj <- new("ABC")
+
+    // Matched by position:
+    //   > obj[[i=1,j="hello"]] <- 100
+    //   `[[` formals are x(i, j, ..., value)
+    //   obj signature is:   x=ABC, i=numeric, j=character, value=numeric
+    //
+    // Matched by position:
+    //   > obj[[j=1,i="hello"] <- 100
+    //   obj signature is:   x=ABC, i=numeric, j=character, value=numeric
+    //
+    // Matched by *name* because there is no match for the formal 'i' :
+    //   > obj[[j=1]] <- 100
+    //   obj signature is:   x=ABC, i=missing, j=numeric,   value=numeric
+
+
+    if(matcher.getNamedFormalCount() == expandedArgs.length()) {
+
+      // Match positionally, ignoring the names of the arguments.
+      this.promisedArgs = expandedArgs;
+
+
+    } else {
+
+      // Match the provided arguments to the formals of the generic
+
+      MatchedArguments matchedArguments = matcher.match(expandedArgs);
+      matchByName(rho, object, matchedArguments);
+
     }
+  }
 
+  private void matchByName(Environment rho, SEXP object, MatchedArguments matchedArguments) {
+    PairList.Builder promisedArgs = new PairList.Builder();
+    for (int formalIndex = 0; formalIndex < matchedArguments.getFormalCount(); formalIndex++) {
+
+      Symbol formalName = matchedArguments.getFormalName(formalIndex);
+      int actualIndex = matchedArguments.getActualIndex(formalIndex);
+
+      if(actualIndex == -1) {
+        if(formalName != Symbols.ELLIPSES) {
+          // This formal argument was not provided by the caller
+          promisedArgs.add(formalName, Symbol.MISSING_ARG);
+        }
+      } else {
+        SEXP uneval = matchedArguments.getActualValue(actualIndex);
+        if(actualIndex == 0) {
+          // The source has already been evaluated to check for class
+          promisedArgs.add(formalName, new Promise(uneval, object));
+
+        } else {
+          promisedArgs.add(formalName, Promise.repromise(rho, uneval));
+        }
+      }
+    }
     this.promisedArgs = promisedArgs.build();
   }
 

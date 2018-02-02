@@ -29,46 +29,24 @@ setMethod("[", signature("BB","ANY"), function(x,i,j,...) 3.5)
 setMethod("[", signature("BB","BB"), function(x,i,j,...) 4.5)
 
 f.count <- 0
-f <- function() { f.count <<- f.count+1; 1}
+f <- function() { f.count <<- f.count+1; cat("FFFFFFFFFFFFFFF\n"); 1}
 a <- new("AA")
 b <- new("BB")
 
-test.arg.eval.01 = function() {
-    assertThat(a[f()], identicalTo(1.5))
-}
+assertThat(a[f()], identicalTo(1.5))
+assertThat(f.count, identicalTo(1))
 
-test.arg.eval.02 = function() {
-    assertThat(f.count, identicalTo(1))
-}
+assertThat(a[f()], identicalTo(1.5))
+assertThat(f.count, identicalTo(2))
 
-test.arg.eval.03 = function() {
-    assertThat(a[f()], identicalTo(1.5))
-}
+assertThat(b[f()], identicalTo(3.5))
+assertThat(f.count, identicalTo(3))
 
-test.arg.eval.04 = function() {
-    assertThat(f.count, identicalTo(2))
-}
+assertThat(b[f()], identicalTo(3.5))
+assertThat(f.count, identicalTo(4))
 
-test.arg.eval.05 = function() {
-    assertThat(b[f()], identicalTo(3.5))
-}
+# f() should not be invoked it is the third argument
+# and the maximum signature length is 2.
 
-test.arg.eval.06 = function() {
-    assertThat(f.count, identicalTo(3))
-}
-
-test.arg.eval.07 = function() {
-    assertThat(b[f()], identicalTo(3.5))
-}
-
-test.arg.eval.08 = function() {
-    assertThat(f.count, identicalTo(4))
-}
-
-test.arg.eval.09 = function() {
-    assertThat(b[b,f()], identicalTo(4.5))
-}
-
-test.arg.eval.10 = function() {
-    assertThat(f.count, identicalTo(4))
-}
+assertThat(b[b,f()], identicalTo(4.5))
+assertThat(f.count, identicalTo(4))

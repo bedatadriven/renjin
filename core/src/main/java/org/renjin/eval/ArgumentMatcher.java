@@ -61,6 +61,16 @@ public class ArgumentMatcher {
     }
   }
 
+  /**
+   * @return the number of formal arguments, excluding the '...' if present.
+   */
+  public int getNamedFormalCount() {
+    if(formalEllipses == -1) {
+      return formalNames.length;
+    } else {
+      return formalNames.length - 1;
+    }
+  }
 
 
   /**
@@ -145,7 +155,7 @@ public class ArgumentMatcher {
       }
     }
 
-    return new MatchedArgumentPositions(formalNames, formalToActual, matchedActuals);
+    return new MatchedArgumentPositions(formalNames, formalToActual, matchedActuals, formalEllipses);
   }
 
   public MatchedArguments match(PairList actuals) {

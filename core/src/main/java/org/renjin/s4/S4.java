@@ -72,7 +72,7 @@ public class S4 {
 
   private static boolean dispatchWithoutMeta(String opName, SEXP source, RankedMethod rank) {
     boolean hasS3Class = source.getAttribute(Symbol.get(".S3Class")).length() != 0;
-    boolean genericExact = rank.getMethod().isGroupGeneric() && rank.isExact();
+    boolean genericExact = !rank.getMethod().isGroupGeneric() && rank.isExact();
     return (!opName.contains("<-") && (genericExact || hasS3Class));
   }
 
@@ -252,4 +252,7 @@ public class S4 {
     return map.get("contains").getNames();
   }
 
+  public static Symbol classNameMetadata(String className) {
+    return Symbol.get(".__C__" + className);
+  }
 }

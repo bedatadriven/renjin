@@ -21,7 +21,6 @@ package org.renjin.primitives.packaging;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.reflection.ClassBindingImpl;
-import org.renjin.methods.S4;
 import org.renjin.primitives.S3;
 import org.renjin.primitives.text.regex.RE;
 import org.renjin.primitives.text.regex.REFactory;
@@ -227,7 +226,7 @@ public class Namespace {
 
 
         for (String className : entry.getClasses()) {
-          Symbol symbol = S4.classNameMetadata(className);
+          Symbol symbol = org.renjin.s4.S4.classNameMetadata(className);
           SEXP export = importedNamespace.getExportIfExists(symbol);
           if(export == Symbol.UNBOUND_VALUE) {
             context.warn(String.format("Class '%s' is not exported from namespace '%s'", 
@@ -416,7 +415,7 @@ public class Namespace {
 
     // .. And finally the metadata of exported classes
     for (String className : file.getExportedClasses()) {
-      exports.add(S4.classNameMetadata(className));
+      exports.add(org.renjin.s4.S4.classNameMetadata(className));
     }
 
     // .. And the S4 methods and their classes

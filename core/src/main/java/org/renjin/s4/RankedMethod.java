@@ -47,7 +47,7 @@ public class RankedMethod {
           candidate = false;
           break;
         }
-        distances[i] = i;
+        distances[i] = distance;
       }
     }
   }

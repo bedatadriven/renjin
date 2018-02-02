@@ -106,7 +106,15 @@ public class Generic {
 
   @Override
   public int hashCode() {
-
     return Objects.hash(name, groups);
+  }
+
+  @Override
+  public String toString() {
+    return "Generic{" +
+        "name='" + name + '\'' +
+        ", packageName='" + packageName + '\'' +
+        ", groups=" + groups +
+        '}';
   }
 }

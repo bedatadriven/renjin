@@ -20,7 +20,10 @@ package org.renjin.primitives.matrix;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.annotations.*;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Generic;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.Indexes;
 import org.renjin.primitives.Warning;
 import org.renjin.primitives.sequence.RepDoubleVector;
@@ -161,7 +164,6 @@ public class Matrices {
   }
 
   @Builtin("%*%")
-  @GroupGeneric("Ops")
   @Generic(S3 = false, S4 = true)
   public static SEXP matrixproduct(AtomicVector x, AtomicVector y) {
     return new MatrixProduct(MatrixProduct.PROD, x, y).compute();

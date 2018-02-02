@@ -18,5 +18,37 @@
  */
 package org.renjin.s4;
 
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
+
 public class S4Class {
+
+  private static final Symbol CONTAINS = Symbol.get("contains");
+  public static final Symbol DISTANCE = Symbol.get("distance");
+
+  private SEXP classRepresentation;
+
+  public S4Class(SEXP classRepresentation) {
+    this.classRepresentation = classRepresentation;
+  }
+
+  /**
+   * Finds the distance between this class and the {@code otherClassName}. If {@code otherClassName} is
+   * not a super class (not "contained"), this method will return -1.
+   */
+  public int getDistanceToSuperClass(String otherClassName) {
+    SEXP containsSexp = classRepresentation.getAttribute(CONTAINS);
+    if(containsSexp instanceof ListVector) {
+      ListVector containsList = (ListVector) containsSexp;
+      int index = containsList.getIndexByName(otherClassName);
+      if(index != -1) {
+        SEXP classExtension = containsList.getElementAsSEXP(index);
+        SEXP distanceAttribute = classExtension.getAttribute(DISTANCE);
+
+        return distanceAttribute.asInt();
+      }
+    }
+    return -1;
+  }
 }

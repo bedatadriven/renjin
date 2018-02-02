@@ -19,7 +19,8 @@
 package org.renjin.s4;
 
 import org.renjin.sexp.Closure;
-import org.renjin.sexp.SEXP;
+
+import java.util.Arrays;
 
 public class RankedMethod {
 
@@ -41,11 +42,12 @@ public class RankedMethod {
 
       } else {
         exact = false;
-        int distance = distanceCalculator.distance(definedClass, callingSignature.getClass(i));
+        int distance = distanceCalculator.distance(callingSignature.getClass(i), definedClass);
         if (distance == -1) {
           candidate = false;
           break;
         }
+        distances[i] = i;
       }
     }
   }
@@ -100,5 +102,16 @@ public class RankedMethod {
 
   public Closure getFunction() {
     return method.getDefinition();
+  }
+
+  @Override
+  public String toString() {
+    return "RankedMethod{" +
+        "method=" + method +
+        ", has0=" + has0 +
+        ", candidate=" + candidate +
+        ", exact=" + exact +
+        ", distances=" + Arrays.toString(distances) +
+        '}';
   }
 }

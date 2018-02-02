@@ -18,9 +18,10 @@
  */
 package org.renjin.s4;
 
-import org.renjin.sexp.*;
-
-import java.util.Optional;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.Closure;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
 
 /**
  * A Method is a specific implementation of a {@link Generic} for a given classes of arguments.
@@ -68,5 +69,10 @@ public class Method {
 
   public AtomicVector getFormalNames() {
     return getFormals().getNames();
+  }
+
+  @Override
+  public String toString() {
+    return generic.getName() + "(" + signature + ")";
   }
 }

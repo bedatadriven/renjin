@@ -19,14 +19,10 @@
 package org.renjin.s4;
 
 import org.renjin.repackaged.guava.collect.Sets;
+import org.renjin.sexp.Symbol;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 
 /**
  * A generic is a function that can have many {@code Methods} that handle different classes of arguments.
@@ -44,18 +40,18 @@ public class Generic {
 
   private final String name;
   private final String packageName;
-  private final List<String> groups;
+  private final String group;
+  private final String subGroup;
 
   public Generic(String name, String group) {
     this.name = applyAliases(name);
     this.packageName = "base";
+    this.group = group;
 
-    if (group == null) {
-      this.groups = emptyList();
-    } else if (group.equals("Ops")) {
-      this.groups = Arrays.asList(opsSubGroupOf(name), "Ops");
+    if ("Ops".equals(group)) {
+      this.subGroup = opsSubGroupOf(name);
     } else {
-      this.groups = singletonList(group);
+      this.subGroup = null;
     }
   }
 
@@ -87,8 +83,40 @@ public class Generic {
     return name;
   }
 
-  public List<String> getGroups() {
-    return groups;
+  public boolean isGroupGeneric() {
+    return group != null;
+  }
+
+  public boolean isOps() {
+    return "Ops".equals(group);
+  }
+
+  public String getSubGroup() {
+    assert subGroup != null : "not a member of the Ops group";
+    return subGroup;
+  }
+
+  public String getGroup() {
+    assert group != null : "generic is not group-generic";
+    return group;
+  }
+
+  public Symbol getGenericMethodTableName() {
+    return Symbol.get(".__T__" + name + ":" + packageName);
+  }
+
+  public Symbol getGroupGenericMethodTableName() {
+    assert group != null;
+    return Symbol.get(".__T__" + name + ":base");
+  }
+
+  public Symbol getSubGroupGenericMethodTableName() {
+    assert subGroup != null;
+    if(subGroup.equals("Compare")) {
+      return Symbol.get(".__T__" + subGroup + ":methods");
+    } else {
+      return Symbol.get(".__T__" + subGroup + ":base");
+    }
   }
 
   @Override
@@ -101,20 +129,27 @@ public class Generic {
     }
     Generic generic = (Generic) o;
     return Objects.equals(name, generic.name) &&
-        Objects.equals(groups, generic.groups);
+        Objects.equals(subGroup, generic.subGroup) &&
+        Objects.equals(group, generic.group);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, groups);
+    return Objects.hash(name, subGroup, group);
   }
 
   @Override
   public String toString() {
-    return "Generic{" +
-        "name='" + name + '\'' +
-        ", packageName='" + packageName + '\'' +
-        ", groups=" + groups +
-        '}';
+    StringBuilder s = new StringBuilder("Generic{");
+    s.append(name);
+    if(isOps()) {
+      s.append("/").append(subGroup);
+    } else if(isGroupGeneric()) {
+      s.append(group);
+    }
+    s.append("}");
+    return s.toString();
   }
+
+
 }

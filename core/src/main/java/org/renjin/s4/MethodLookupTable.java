@@ -57,16 +57,14 @@ public class MethodLookupTable {
       namespaceFrames.add(namespace.getNamespaceEnvironment().getFrame());
     }
 
-    for (Frame namespaceFrame : namespaceFrames) {
-      SEXP table = namespaceFrame.getVariable(methodTableName(generic));
-      if (table != Symbol.UNBOUND_VALUE) {
-        addMethods(asMethodTableEnvironment(context, table), 0);
+    for (Frame frame : namespaceFrames) {
+      addMethods(context, frame, generic.getGenericMethodTableName(), Method.SPECIFICITY_GENERIC);
+
+      if(generic.isOps()) {
+        addMethods(context, frame, generic.getSubGroupGenericMethodTableName(), Method.SPECIFICITY_SUB_GROUP);
       }
-      for (int i = 0; i < generic.getGroups().size(); i++) {
-        SEXP groupTable = namespaceFrame.getVariable(methodTableName(generic, generic.getGroups().get(i)));
-        if (groupTable != Symbol.UNBOUND_VALUE) {
-          addMethods(asMethodTableEnvironment(context, groupTable), i + 1);
-        }
+      if(generic.isGroupGeneric()) {
+        addMethods(context, frame, generic.getGroupGenericMethodTableName(), Method.SPECIFICITY_GROUP);
       }
     }
 
@@ -80,14 +78,6 @@ public class MethodLookupTable {
       this.argumentMatcher = new ArgumentMatcher(method.getDefinition().getFormals());
     }
 
-  }
-
-  public Environment asMethodTableEnvironment(Context context, SEXP table) {
-    SEXP forcedTable = table.force(context);
-    if(!(forcedTable instanceof Environment)) {
-      throw new EvalException("Expected an environment object, found " + forcedTable.getTypeName());
-    }
-    return (Environment) forcedTable;
   }
 
   /**
@@ -108,7 +98,8 @@ public class MethodLookupTable {
    *
    * </pre>
    */
-  private void addMethods(Environment table, int groupLevel) {
+  private void addMethods(Context context, Frame namespaceFrame, Symbol methodTableName, int groupLevel) {
+
 
     // S4 methods for each generic function is stored in method table of type environment. methods for each signature is stored
     // separately using the signature as name. for example
@@ -122,6 +113,18 @@ public class MethodLookupTable {
     // lengths the return of computeSignatureLength is an integer array with the length of signature for
     // each found method table.
 
+    SEXP tableValue = namespaceFrame.getVariable(methodTableName);
+    if(tableValue == Symbol.UNBOUND_VALUE) {
+      return;
+    }
+
+    SEXP forcedTable = tableValue.force(context);
+    if(!(forcedTable instanceof Environment)) {
+      throw new EvalException("Expected an environment object, found " + forcedTable.getTypeName());
+    }
+
+    Environment table = (Environment) forcedTable;
+
     for (NamedValue namedValue : table.namedValues()) {
       String signature = namedValue.getName();
       SEXP definition = namedValue.getValue();
@@ -134,15 +137,6 @@ public class MethodLookupTable {
       methods.add(method);
       signatureMap.put(signature, method);
     }
-  }
-
-  private Symbol methodTableName(Generic generic) {
-    return Symbol.get(".__T__" + generic.getName() + ":" + generic.getPackageName());
-  }
-
-
-  private Symbol methodTableName(Generic generic, String groupName) {
-    return Symbol.get(".__T__" + groupName + ":" + generic.getPackageName());
   }
 
   /**

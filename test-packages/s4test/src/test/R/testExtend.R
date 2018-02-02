@@ -20,7 +20,7 @@
 
 library(hamcrest)
 library(methods)
-library("org.renjin.test:s4test"
+library("org.renjin.test:s4test")
 
 
 # NSBS is exported by s4test,

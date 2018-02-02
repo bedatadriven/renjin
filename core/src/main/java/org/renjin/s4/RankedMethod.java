@@ -85,10 +85,10 @@ public class RankedMethod {
     }
 
     // All distances being equal, specific methods are better than group methods
-    if(this.method.getGroupLevel() < other.method.getGroupLevel()) {
+    if(this.method.getSpecificity() < other.method.getSpecificity()) {
       return true;
     }
-    if(this.method.getGroupLevel() > other.method.getGroupLevel()) {
+    if(this.method.getSpecificity() > other.method.getSpecificity()) {
       return false;
     }
 

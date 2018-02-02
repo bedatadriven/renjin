@@ -29,6 +29,7 @@ import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.PeekingIterator;
 import org.renjin.repackaged.guava.collect.Sets;
+import org.renjin.s4.S4;
 import org.renjin.sexp.*;
 
 import java.util.Collections;

@@ -40,7 +40,7 @@ public class NamespaceFrame implements Frame {
 
   @Override
   public Set<Symbol> getSymbols() {
-    return ImmutableSet.copyOf(registry.getLoadedNamespaces());
+    return ImmutableSet.copyOf(registry.getLoadedNamespaceNames());
   }
 
   @Override

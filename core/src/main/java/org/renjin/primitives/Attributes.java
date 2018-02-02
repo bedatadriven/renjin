@@ -21,6 +21,7 @@ package org.renjin.primitives;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
+import org.renjin.s4.S4;
 import org.renjin.sexp.*;
 
 /**

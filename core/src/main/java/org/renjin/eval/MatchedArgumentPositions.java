@@ -37,15 +37,17 @@ public class MatchedArgumentPositions {
 
   private final boolean[] matchedActuals;
   private String[] formalNames;
+  private final int formalEllipses;
   private final int[] formalMatches;
 
   private int extraArgumentCount;
 
-  MatchedArgumentPositions(String[] formalNames, int[] formalMatches, boolean[] matchedActuals) {
+  MatchedArgumentPositions(String[] formalNames, int[] formalMatches, boolean[] matchedActuals, int formalEllipses) {
     this.formalNames = formalNames;
     this.formalMatches = formalMatches;
 
     this.matchedActuals = matchedActuals;
+    this.formalEllipses = formalEllipses;
     extraArgumentCount = 0;
     for (int i = 0; i < matchedActuals.length; i++) {
       if(!matchedActuals[i]) {
@@ -114,6 +116,18 @@ public class MatchedArgumentPositions {
 
   public int getFormalCount() {
     return formalNames.length;
+  }
 
+  /**
+   *
+   * @return true if all formal arguments are matched to a provided argument.
+   */
+  public boolean allFormalsMatched() {
+    for (int i = 0; i < formalMatches.length; i++) {
+      if(i != formalEllipses && formalMatches[i] == -1) {
+        return false;
+      }
+    }
+    return true;
   }
 }

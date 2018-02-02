@@ -78,4 +78,8 @@ public class MatchedArguments {
   public SEXP getActualValue(int actualIndex) {
     return actualValues[actualIndex];
   }
+
+  public boolean areAllFormalsMatched() {
+    return matchedPositions.allFormalsMatched();
+  }
 }

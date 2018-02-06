@@ -64,7 +64,7 @@ public class S4 {
       return context.evaluate(call);
       
     } else {
-      Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, opName, arguments.getPromisedArgs());
+      Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, opName, arguments);
       FunctionCall call = new FunctionCall(function, arguments.getExpandedArgs());
       return ClosureDispatcher.apply(context, rho, call, function, arguments.getPromisedArgs(), metadata);
     }
@@ -76,33 +76,13 @@ public class S4 {
     return (!opName.contains("<-") && (genericExact || hasS3Class));
   }
 
-  public static Map<Symbol, SEXP> generateCallMetaData(Context context, RankedMethod method, String opName, PairList promisedArgs) {
+  public static Map<Symbol, SEXP> generateCallMetaData(Context context, RankedMethod method, String opName, CallingArguments promisedArgs) {
     Map<Symbol, SEXP> metadata = new HashMap<>();
     metadata.put(Symbol.get(".defined"), buildDotTargetOrDefined(context, method, true));
     metadata.put(Symbol.get(".Generic"), buildDotGeneric(opName));
     metadata.put(Symbol.get(".Method"), method.getFunction());
     metadata.put(Symbol.get(".Methods"), Symbol.get(".Primitive(\"" + opName + "\")"));
     metadata.put(Symbol.get(".target"), buildDotTargetOrDefined(context, method, false));
-
-    PairList formals = method.getMethod().getFormals();
-    
-    // TODO: haven't we already matched arguments?
-    PairList matchedList = ClosureDispatcher.matchArguments(formals, promisedArgs, true);
-    Map<Symbol, SEXP> matchedMap = new HashMap<>();
-    for (PairList.Node node : matchedList.nodes()) {
-      matchedMap.put(node.getTag(), node.getValue());
-    }
-
-    for (Symbol arg : matchedMap.keySet()) {
-      SEXP argValue = matchedMap.get(arg);
-      if (argValue != Symbol.MISSING_ARG) {
-        if (argValue instanceof Promise && ((Promise) argValue).getValue() != null) {
-          metadata.put(arg, ((Promise) argValue).getValue());
-        } else {
-          metadata.put(arg, argValue.force(context));
-        }
-      }
-    }
     return metadata;
   }
 

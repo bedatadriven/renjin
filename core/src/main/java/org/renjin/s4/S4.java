@@ -64,7 +64,7 @@ public class S4 {
       return context.evaluate(call);
       
     } else {
-      Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, opName, arguments);
+      Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, opName);
       FunctionCall call = new FunctionCall(function, arguments.getExpandedArgs());
       return ClosureDispatcher.apply(context, rho, call, function, arguments.getPromisedArgs(), metadata);
     }
@@ -76,7 +76,7 @@ public class S4 {
     return (!opName.contains("<-") && (genericExact || hasS3Class));
   }
 
-  public static Map<Symbol, SEXP> generateCallMetaData(Context context, RankedMethod method, String opName, CallingArguments promisedArgs) {
+  public static Map<Symbol, SEXP> generateCallMetaData(Context context, RankedMethod method, String opName) {
     Map<Symbol, SEXP> metadata = new HashMap<>();
     metadata.put(Symbol.get(".defined"), buildDotTargetOrDefined(context, method, true));
     metadata.put(Symbol.get(".Generic"), buildDotGeneric(opName));

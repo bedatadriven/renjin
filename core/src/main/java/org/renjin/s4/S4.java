@@ -80,7 +80,7 @@ public class S4 {
     Map<Symbol, SEXP> metadata = new HashMap<>();
     metadata.put(Symbol.get(".defined"), buildDotTargetOrDefined(context, method, true));
     metadata.put(Symbol.get(".Generic"), buildDotGeneric(opName));
-    metadata.put(Symbol.get(".MethodLookupTable"), method.getFunction());
+    metadata.put(Symbol.get(".Method"), method.getFunction());
     metadata.put(Symbol.get(".Methods"), Symbol.get(".Primitive(\"" + opName + "\")"));
     metadata.put(Symbol.get(".target"), buildDotTargetOrDefined(context, method, false));
 

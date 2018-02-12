@@ -219,7 +219,7 @@ public class S3 {
     GenericMethod left;
     for (int k = 0; k < nargs; k++) {
       if(Types.isS4(args.getElementAsSEXP(k))) {
-        return S4.tryDispatchToS4Method(context, args.getElementAsSEXP(0), args, rho, group, opName);
+        return S4.tryS4DispatchFromPrimitive(context, args.getElementAsSEXP(0), args, rho, group, opName);
       }
     }
 
@@ -317,7 +317,7 @@ public class S3 {
 
     SEXP resultS4Dispatch = null;
     if(Types.isS4(object) && isS4DispatchSupported(name)) {
-      resultS4Dispatch = S4.tryDispatchToS4Method(context, object, args, rho, null, name);
+      resultS4Dispatch = S4.tryS4DispatchFromPrimitive(context, object, args, rho, null, name);
     }
     if (resultS4Dispatch != null) {
       return resultS4Dispatch;

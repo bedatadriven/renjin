@@ -598,7 +598,13 @@ public class Stdlib {
     }
   }
 
+
+  @Deprecated
   public static int fwrite(BytePtr ptr, int size, int count, Ptr stream) throws IOException {
+    return fwrite((Ptr)ptr, size, count, stream);
+  }
+
+  public static int fwrite(Ptr ptr, int size, int count, Ptr stream) throws IOException {
     FileHandle handle = (FileHandle) stream.getArray();
     int bytesWritten = 0;
 
@@ -615,6 +621,19 @@ public class Stdlib {
 
     return bytesWritten;
   }
+
+  public static int ferror(Ptr stream) {
+    FileHandle handle = (FileHandle) stream.getArray();
+
+    return handle.getError();
+  }
+
+  public static void clearerr(Ptr stream) {
+    FileHandle handle = (FileHandle) stream.getArray();
+
+    handle.clearError();
+  }
+
 
   public static int fread(Ptr ptr, int size, int count, Ptr stream) throws IOException {
 
@@ -634,6 +653,11 @@ public class Stdlib {
     }
 
     return bytesRead;
+  }
+
+  public static void rewind(Ptr stream) throws IOException {
+    FileHandle handle = (FileHandle) stream.getArray();
+    handle.rewind();
   }
 
   public static int fseek(Ptr stream, long offset, int whence) {
@@ -808,5 +832,15 @@ public class Stdlib {
 
   public static int rand() {
     return RANDOM.get().nextInt(RAND_MAX);
+  }
+
+  public static int _setjmp(Ptr buf) {
+    // this is a placeholder. It will actually work perfectly
+    // if longjmp is never called...
+    return 0;
+  }
+
+  public static void longjmp(Ptr buf, int value) {
+    throw new LongJumpException(buf, value);
   }
 }

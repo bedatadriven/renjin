@@ -18,48 +18,19 @@
  */
 package org.renjin.gcc.runtime;
 
-import java.io.IOException;
+public abstract class AbstractFileHandle implements FileHandle {
+
+  private int error = 0;
+
+  @Override
+  public final int getError() {
+    return error;
+  }
+
+  @Override
+  public final void clearError() {
+    error = 0;
+  }
 
 
-public interface FileHandle {
-
-  /**
-   * Beginning of file
-   */
-  int SEEK_SET = 0;
-  /**
-   * Current position of the file pointer
-   */
-  int SEEK_CURRENT = 1;
-  /**
-   * SEEK_END
-   */
-  int SEEK_END = 2;
-
-
-  int read() throws IOException;
-
-  /**
-   * Checks if the error indicator associated with stream is set, returning a value different from zero if it is.
-   */
-  int getError();
-
-  void clearError();
-
-  void write(int b) throws IOException;
-
-  void rewind() throws IOException;
-
-  void flush() throws IOException;
-
-  void close() throws IOException;
-
-  /**
-   * Sets the cursor to an offset from the beginning of the file.
-   */
-  void seekSet(long offset) throws IOException;
-
-  void seekCurrent(long offset) throws IOException;
-
-  void seekEnd(long offset);
 }

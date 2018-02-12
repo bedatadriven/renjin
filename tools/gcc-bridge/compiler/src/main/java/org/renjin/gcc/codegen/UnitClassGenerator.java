@@ -239,7 +239,7 @@ public class UnitClassGenerator {
     }
 
     for (FunctionGenerator function : symbolTable.getFunctions()) {
-      function.emitLocalStaticVarInitialization(mv, new ExprFactory(typeOracle, symbolTable, mv));
+      function.emitLocalStaticVarInitialization(mv);
     }
 
     mv.visitInsn(RETURN);

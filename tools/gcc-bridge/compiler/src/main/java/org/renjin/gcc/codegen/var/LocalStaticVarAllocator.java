@@ -39,11 +39,8 @@ public class LocalStaticVarAllocator extends VarAllocator {
 
   @Override
   public JLValue reserve(String name, Type type) {
-
     return globalVarAllocator.reserve(uniqueName(name), type);
   }
-
-
 
   @Override
   public JLValue reserve(String name, Type type, JExpr initialValue) {

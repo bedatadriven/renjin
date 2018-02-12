@@ -72,7 +72,8 @@ public class FunctionGenerator implements InvocationStrategy {
   private TypeOracle typeOracle;
   private ExprFactory exprFactory;
   private LocalStaticVarAllocator staticVarAllocator;
-  private LocalVariableTable symbolTable;
+  private LocalVariableTable localSymbolTable;
+  private LocalVariableTable localStaticSymbolTable;
   
   private Label beginLabel = new Label();
   private Label endLabel = new Label();
@@ -97,7 +98,8 @@ public class FunctionGenerator implements InvocationStrategy {
 
     this.returnStrategy = this.typeOracle.returnStrategyFor(function.getReturnType());
     this.staticVarAllocator = new LocalStaticVarAllocator("$" + function.getSafeMangledName() + "$", globalVarAllocator);
-    this.symbolTable = new LocalVariableTable(symbolTable);
+    this.localSymbolTable = new LocalVariableTable(symbolTable);
+    this.localStaticSymbolTable = new LocalVariableTable(symbolTable);
 
   }
 
@@ -156,7 +158,7 @@ public class FunctionGenerator implements InvocationStrategy {
 
 
       mv = new MethodGenerator(methodNode);
-      this.exprFactory = new ExprFactory(typeOracle, this.symbolTable, mv, varArgsPtr);
+      this.exprFactory = new ExprFactory(typeOracle, this.localSymbolTable, mv, varArgsPtr);
 
       mv.visitCode();
       mv.visitLabel(beginLabel);
@@ -201,7 +203,7 @@ public class FunctionGenerator implements InvocationStrategy {
       }
 
       logger.dump(function.getUnit().getSourceName(), function.getSafeMangledName(), "opt.j", toString(methodNode));
-      logger.dumpHtml(symbolTable, function, methodNode);
+      logger.dumpHtml(localSymbolTable, function, methodNode);
 
       try {
         methodNode.accept(cw);
@@ -260,7 +262,7 @@ public class FunctionGenerator implements InvocationStrategy {
         getFunctionDescriptor(), null, null);
 
     mv = new MethodGenerator(methodNode);
-    this.exprFactory = new ExprFactory(typeOracle, this.symbolTable, mv);
+    this.exprFactory = new ExprFactory(typeOracle, this.localSymbolTable, mv);
 
     mv.visitCode();
     mv.anew(Type.getType(RuntimeException.class));
@@ -331,7 +333,7 @@ public class FunctionGenerator implements InvocationStrategy {
       GimpleParameter param = function.getParameters().get(i);
       ParamStrategy generator = params.get(param);
       GExpr expr = generator.emitInitialization(mv, param, paramIndexes.get(i), mv.getLocalVarAllocator());
-      symbolTable.addVariable(param.getId(), expr);
+      localSymbolTable.addVariable(param.getId(), expr);
     }
   }
 
@@ -341,7 +343,7 @@ public class FunctionGenerator implements InvocationStrategy {
     
     for (GimpleVarDecl decl : function.getVariableDeclarations()) {
       if(!decl.isStatic()) {
-        GExpr lhs = symbolTable.getVariable(decl);
+        GExpr lhs = localSymbolTable.getVariable(decl);
         if (decl.getValue() != null) {
           lhs.store(mv, exprFactory.findGenerator(decl.getValue()));
         }
@@ -349,15 +351,17 @@ public class FunctionGenerator implements InvocationStrategy {
     }
   }
 
-  public void emitLocalStaticVarInitialization(MethodGenerator mv, ExprFactory exprFactory) {
+  public void emitLocalStaticVarInitialization(MethodGenerator mv) {
 
     if(compilationFailed) {
       return;
     }
 
+    ExprFactory exprFactory = new ExprFactory(typeOracle, localStaticSymbolTable, mv);
+
     for (GimpleVarDecl decl : function.getVariableDeclarations()) {
       if(decl.isStatic()) {
-        GExpr lhs = symbolTable.getVariable(decl);
+        GExpr lhs = localSymbolTable.getVariable(decl);
         if (decl.getValue() != null) {
           try {
             lhs.store(mv, exprFactory.findGenerator(decl.getValue()));
@@ -379,7 +383,7 @@ public class FunctionGenerator implements InvocationStrategy {
     // Dumb scheduling: give every local variable it's own slot
     for (GimpleVarDecl varDecl : function.getVariableDeclarations()) {
 
-      if(symbolTable.isRegistered(varDecl.getId())) {
+      if(localSymbolTable.isRegistered(varDecl.getId())) {
         System.err.printf("WARNING: In function %s, variable %s [%d] is duplicated.%n",
             getFunction().getMangledName(),
             varDecl.getName(),
@@ -395,7 +399,12 @@ public class FunctionGenerator implements InvocationStrategy {
                 staticVarAllocator :
                 mv.getLocalVarAllocator());
 
-        symbolTable.addVariable(varDecl.getId(), generator);
+        localSymbolTable.addVariable(varDecl.getId(), generator);
+
+        if(varDecl.isStatic()) {
+          localStaticSymbolTable.addVariable(varDecl.getId(), generator);
+        }
+
       } catch (Exception e) {
         throw new InternalCompilerException("Exception generating local variable " + varDecl, e);
       }

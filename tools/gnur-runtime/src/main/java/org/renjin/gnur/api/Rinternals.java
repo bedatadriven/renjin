@@ -1834,15 +1834,25 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_namesgets");
   }
 
+  @Deprecated
   public static SEXP Rf_mkChar(BytePtr string) {
-    if(string.array == null) {
-      return GnuCharSexp.NA_STRING;
-    }
-    return Rf_mkCharLen(string, string.nullTerminatedStringLength());
+    return Rf_mkChar((Ptr)string);
   }
 
+  public static SEXP Rf_mkChar(Ptr string) {
+    if(string.isNull()) {
+      return GnuCharSexp.NA_STRING;
+    }
+    return Rf_mkCharLen(string, Stdlib.strlen(string));
+  }
+
+  @Deprecated
   public static SEXP Rf_mkCharLen(BytePtr string, int length) {
-    if(string.array == null) {
+    return Rf_mkCharLen((Ptr)string, length);
+  }
+
+  public static SEXP Rf_mkCharLen(Ptr string, int length) {
+    if(string.isNull()) {
       return GnuCharSexp.NA_STRING;
     }
 
@@ -1850,10 +1860,10 @@ public final class Rinternals {
       return R_BlankString;
     }
 
-    byte[] copy = new byte[length+1];
-    System.arraycopy(string.array, string.offset, copy, 0, length);
+    BytePtr copy = BytePtr.malloc(length+1);
+    copy.memcpy(string, length);
 
-    return new GnuCharSexp(copy);
+    return new GnuCharSexp(copy.array);
   }
 
   public static boolean Rf_NonNullStringMatch(SEXP p0, SEXP p1) {

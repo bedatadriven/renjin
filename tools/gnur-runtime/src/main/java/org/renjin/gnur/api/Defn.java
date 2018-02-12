@@ -20,9 +20,8 @@
 package org.renjin.gnur.api;
 
 import org.renjin.eval.EvalException;
-import org.renjin.gcc.runtime.BytePtr;
-import org.renjin.gcc.runtime.DoublePtr;
-import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.gcc.runtime.*;
+import org.renjin.parser.NumericLiterals;
 import org.renjin.primitives.Deparse;
 import org.renjin.primitives.Native;
 import org.renjin.sexp.*;
@@ -992,8 +991,13 @@ public final class Defn {
 
   // double R_strtod (const char *str, char **endptr)
 
+  @Deprecated
   public static double R_atof(BytePtr str) {
-    throw new UnimplementedGnuApiMethod("R_atof");
+    return R_atof((Ptr)str);
+  }
+
+  public static double R_atof(Ptr str) {
+    return NumericLiterals.parseDouble(Stdlib.nullTerminatedString(str));
   }
 
   public static void set_rl_word_breaks(BytePtr str) {

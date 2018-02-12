@@ -635,6 +635,16 @@ public class Stdlib {
   }
 
 
+  /***
+   *
+   * @param ptr A pointer to memory that will receive the data. Must be at least (size * count) bytes.
+   * @param size The size of the elements to read
+   * @param count the number of elements to read
+   * @param stream a pointer to a file handle created with fopen()
+   * @return The total number of elements successfully read are returned as a size_t object, which is an integral
+   * data type. If this number differs from the nmemb parameter,
+   * then either an error had occurred or the End Of File was reached.
+   */
   public static int fread(Ptr ptr, int size, int count, Ptr stream) throws IOException {
 
     FileHandle handle = (FileHandle) stream.getArray();
@@ -652,7 +662,8 @@ public class Stdlib {
       bytesRead++;
     }
 
-    return bytesRead;
+    // Return the number of elements read, _not_ bytes read
+    return bytesRead / size;
   }
 
   public static void rewind(Ptr stream) throws IOException {

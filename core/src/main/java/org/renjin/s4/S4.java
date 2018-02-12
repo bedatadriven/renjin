@@ -39,16 +39,16 @@ public class S4 {
    *
    * <p>If no method is found, then this method returns {@code null}</p>
    */
-  public static SEXP tryDispatchToS4Method(@Current Context context, SEXP source, PairList args,
-                                           Environment rho, String group, String opName) {
+  public static SEXP tryS4DispatchFromPrimitive(@Current Context context, SEXP source, PairList args,
+                                                Environment rho, String group, String opName) {
 
-    Generic generic = new Generic(opName, group);
+    Generic generic = Generic.primitive(opName, group);
     MethodLookupTable lookupTable = new MethodLookupTable(generic, context);
     if(lookupTable.isEmpty()) {
       return null;
     }
 
-    CallingArguments arguments = new CallingArguments(context, rho, source, args, lookupTable.getArgumentMatcher());
+    CallingArguments arguments = CallingArguments.primitiveArguments(context, rho, lookupTable.getArgumentMatcher(), source, args);
     S4ClassCache classCache = new S4ClassCache(context);
     DistanceCalculator calculator = new DistanceCalculator(classCache);
 
@@ -65,7 +65,7 @@ public class S4 {
       
     } else {
       Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, opName);
-      FunctionCall call = new FunctionCall(function, arguments.getExpandedArgs());
+      FunctionCall call = new FunctionCall(function, arguments.getPromisedArgs());
       return ClosureDispatcher.apply(context, rho, call, function, arguments.getPromisedArgs(), metadata);
     }
   }
@@ -76,7 +76,7 @@ public class S4 {
     return (!opName.contains("<-") && (genericExact || hasS3Class));
   }
 
-  public static Map<Symbol, SEXP> generateCallMetaData(Context context, RankedMethod method, String opName) {
+  private static Map<Symbol, SEXP> generateCallMetaData(Context context, RankedMethod method, String opName) {
     Map<Symbol, SEXP> metadata = new HashMap<>();
     metadata.put(Symbol.get(".defined"), buildDotTargetOrDefined(context, method, true));
     metadata.put(Symbol.get(".Generic"), buildDotGeneric(opName));

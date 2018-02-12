@@ -32,16 +32,19 @@ import java.util.Iterator;
  */
 public class CallingArguments {
 
-  private final PairList expandedArgs;
-  private PairList promisedArgs;
-  private Context context;
+  private final Context context;
+  private final PairList promisedArgs;
 
-
-  public CallingArguments(Context context, Environment rho, SEXP object, PairList args, ArgumentMatcher matcher) {
+  private CallingArguments(Context context, PairList promisedArgs) {
     this.context = context;
+    this.promisedArgs = promisedArgs;
+  }
+
+
+  public static CallingArguments primitiveArguments(Context context, Environment rho, ArgumentMatcher matcher, SEXP object, PairList args) {
 
     // expand ... in arguments or remove if empty
-    expandedArgs = Calls.promiseArgs(args, context, rho);
+    PairList expandedArgs = Calls.promiseArgs(args, context, rho);
 
 
     // when length of all arguments used in function call is as long as formals length (except ...)
@@ -64,10 +67,11 @@ public class CallingArguments {
     //   obj signature is:   x=ABC, i=missing, j=numeric,   value=numeric
 
 
+    PairList promisedArgs;
     if(matcher.getNamedFormalCount() == expandedArgs.length()) {
 
       // Match positionally, ignoring the names of the arguments.
-      this.promisedArgs = expandedArgs;
+      promisedArgs = expandedArgs;
 
 
     } else {
@@ -75,12 +79,23 @@ public class CallingArguments {
       // Match the provided arguments to the formals of the generic
 
       MatchedArguments matchedArguments = matcher.match(expandedArgs);
-      matchByName(rho, object, matchedArguments);
+      promisedArgs = matchByName(rho, object, matchedArguments);
 
     }
+    return new CallingArguments(context, promisedArgs);
   }
 
-  private void matchByName(Environment rho, SEXP object, MatchedArguments matchedArguments) {
+
+  public static CallingArguments standardGenericArguments(Context context, Environment callingEnvironment, ArgumentMatcher argumentMatcher) {
+    PairList.Builder promisedArgs = new PairList.Builder();
+    for (String formalName : argumentMatcher.getFormalNames()) {
+      SEXP promisedArg = callingEnvironment.getVariableUnsafe(formalName);
+      promisedArgs.add(formalName, promisedArg);
+    }
+    return new CallingArguments(context, promisedArgs.build());
+  }
+
+  private static PairList matchByName(Environment rho, SEXP object, MatchedArguments matchedArguments) {
     PairList.Builder promisedArgs = new PairList.Builder();
     for (int formalIndex = 0; formalIndex < matchedArguments.getFormalCount(); formalIndex++) {
 
@@ -103,7 +118,7 @@ public class CallingArguments {
         }
       }
     }
-    this.promisedArgs = promisedArgs.build();
+    return promisedArgs.build();
   }
 
   public PairList getPromisedArgs() {
@@ -127,10 +142,6 @@ public class CallingArguments {
       }
     }
     return new Signature(classes);
-  }
-
-  public PairList getExpandedArgs() {
-    return expandedArgs;
   }
 
   private String computeDateClass(SEXP evaluated) {

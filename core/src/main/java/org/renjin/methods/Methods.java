@@ -27,6 +27,8 @@ import org.renjin.methods.PrimitiveMethodTable.prim_methods_t;
 import org.renjin.primitives.Types;
 import org.renjin.primitives.special.SubstituteFunction;
 import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.s4.Generic;
+import org.renjin.s4.MethodLookupTable;
 import org.renjin.sexp.*;
 
 import java.util.Map;
@@ -343,18 +345,7 @@ public class Methods {
   }
 
   @Builtin
-  public static SEXP standardGeneric(@Current Context context, @Current Environment env, String fname) {
-    //      SEXP arg, value, fdef;
-    //
-    //      checkArity(op, args);
-    //      check1arg(args, call, "f");
-
-    //      if(!ptr) {
-    //      warningcall(call,
-    //            _("'standardGeneric' called without 'methods' dispatch enabled (will be ignored)"));
-    //      R_set_standardGeneric_ptr(dispatchNonGeneric, NULL);
-    //      ptr = R_get_standardGeneric_ptr();
-    //      }
+  public static SEXP standardGeneric(@Current Context context, @Current Environment ev, String fname) {
 
   
     if(Strings.isNullOrEmpty(fname)) {
@@ -364,10 +355,86 @@ public class Methods {
     if(fdef == Null.INSTANCE) {
       throw new EvalException("call to standardGeneric(\"%s\") apparently not from the body of that generic function", fname);
     }
+    if(!(fdef instanceof Closure)) {
+      throw new EvalException("Expected fdef instanceof Closure");
+    }
 
-    return context.getSession().getSingleton(MethodDispatch.class)
-    .standardGeneric(context, Symbol.get(fname), env, fdef);
-    
+    String packageName = fdef.getAttribute(Symbol.get("package")).asString();
+
+    Environment f_env = ((Closure) fdef).getEnclosingEnvironment();
+
+    Generic generic = Generic.standardGeneric(fname, packageName);
+    MethodLookupTable lookupTable = new MethodLookupTable(generic, context);
+    if(lookupTable.isEmpty()) {
+      throw new EvalException("No methods defined for '" + generic.getName() + "'");
+    }
+
+    throw new UnsupportedOperationException("TODO");
+
+
+//
+//    SEXP sigargs = f_env.getVariable(context, R_sigargs);
+//    SEXP siglength = f_env.getVariable(context, R_siglength);
+//
+//    if(sigargs == Symbol.UNBOUND_VALUE || siglength == Symbol.UNBOUND_VALUE ||
+//        mtable == Symbol.UNBOUND_VALUE) {
+//      throw new EvalException("Generic \"%s\" seems not to have been initialized for table dispatch---need to have .SigArgs and .AllMtable assigned in its environment",
+//          fname.asString());
+//    }
+//    int nargs =  (int)siglength.asReal();
+//    ListVector.Builder classListBuilder = ListVector.newBuilder();
+//    StringVector thisClass;
+//    StringBuilder buf = new StringBuilder();
+//
+//    for(int i = 0; i < nargs; i++) {
+//      Symbol arg_sym = sigargs.getElementAsSEXP(i);
+//      if(is_missing_arg(context, arg_sym, ev)) {
+//        thisClass = s_missing;
+//      } else {
+//        /*  get its class */
+//        SEXP arg;
+//        try {
+//          arg = context.evaluate(arg_sym, ev);
+//        } catch(EvalException e) {
+//          throw new EvalException(String.format("error in evaluating the argument '%s' in selecting a " +
+//                  "method for function '%s'",
+//              arg_sym.getPrintName(), fname.asString()), e);
+//        }
+//        thisClass = Methods.R_data_class(arg, true);
+//      }
+//      classListBuilder.set(i, thisClass);
+//      if(i > 0) {
+//        buf.append("#");
+//      }
+//      buf.append(thisClass.asString());
+//    }
+//    ListVector classes = classListBuilder.build();
+//    method = ((Environment)mtable).getVariable(context, buf.toString());
+//    if(method == Symbol.UNBOUND_VALUE) {
+//      method = do_inherited_table(context, classes, fdef, mtable, (Environment)ev);
+//    }
+//    /* the rest of this is identical to R_standardGeneric;
+//         hence the f=method to remind us  */
+//    f = method;
+//    if(f.isObject()) {
+//      f = R_loadMethod(context, f, fname.getPrintName(), ev);
+//    }
+//
+//    if(f instanceof Closure) {
+//      val = R_execMethod(context, (Closure)f, ev);
+//    } else if(f instanceof PrimitiveFunction) {
+//      /* primitives  can't be methods; they arise only as the
+//      default method when a primitive is made generic.  In this
+//      case, return a special marker telling the C code to go on
+//      with the internal computations. */
+//      //val = R_deferred_default_method();
+//      throw new UnsupportedOperationException();
+//    } else {
+//      throw new EvalException("invalid object (non-function) used as method");
+//
+//    }
+//    return val;
+//
   }
 
 

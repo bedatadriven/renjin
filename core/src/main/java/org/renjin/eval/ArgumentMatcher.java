@@ -21,6 +21,7 @@ package org.renjin.eval;
 import org.renjin.sexp.*;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Matches arguments to a function call to the formal arguments declared by an R closure.
@@ -199,7 +200,6 @@ public class ArgumentMatcher {
     return -1;
   }
 
-
   /**
    * Find an argument name that *exactly* matches the given formal name.
    *
@@ -251,5 +251,9 @@ public class ArgumentMatcher {
 
   public SEXP getDefaultValue(int formalIndex) {
     return defaultValues[formalIndex];
+  }
+
+  public List<String> getFormalNames() {
+    return Arrays.asList(formalNames);
   }
 }

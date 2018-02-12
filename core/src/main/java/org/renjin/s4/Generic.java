@@ -43,9 +43,17 @@ public class Generic {
   private final String group;
   private final String subGroup;
 
-  public Generic(String name, String group) {
+  public static Generic primitive(String name, String group) {
+    return new Generic(name, group, "base");
+  }
+
+  public static Generic standardGeneric(String name, String packageName) {
+    return new Generic(name, null, packageName);
+  }
+
+  private Generic(String name, String group, String packageName) {
     this.name = applyAliases(name);
-    this.packageName = "base";
+    this.packageName = packageName;
     this.group = group;
 
     if ("Ops".equals(group)) {

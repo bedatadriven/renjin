@@ -20,11 +20,75 @@
 
 package org.renjin.primitives.io.scan;
 
-import org.renjin.primitives.io.connections.CharProcessor;
+import org.renjin.primitives.io.connections.ByteProcessor;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Vector;
 
-public class ListScanner implements CharProcessor {
+import java.nio.ByteBuffer;
+
+public class ListScanner implements ByteProcessor, Scanner {
+
+  private static final int COLUMN_BUFFER_SIZE = 1024;
+
+  private AtomicReader[] readers;
+  private final byte fieldSeparator;
+  private final byte quoteChar;
+
+  private final byte[] columnBuffer;
+
+  public ListScanner(AtomicReader[] readers, byte separator, byte quoteChar) {
+    this.readers = readers;
+    this.fieldSeparator = separator;
+    this.quoteChar = quoteChar;
+    this.columnBuffer = new byte[COLUMN_BUFFER_SIZE];
+  }
+
   @Override
-  public void process(char[] buffer, int bufferLength, boolean endOfInput) {
-    throw new UnsupportedOperationException("TODO");
+  public void process(ByteBuffer buffer, boolean endOfInput) {
+    int remaining = buffer.remaining();
+    int column = 0;
+    boolean quoted = false;
+
+    byte[] columnBuffer = this.columnBuffer;
+    int columnPos = 0;
+
+    for (int i = 0; i < remaining; i++) {
+      byte b = buffer.get(i);
+
+      boolean newLine = (b == (byte)'\n');
+      boolean newColumn = (b == fieldSeparator);
+      boolean endOfColumn = newLine || newColumn;
+
+      if(endOfColumn) {
+        int columnLength = columnPos;
+        if(newLine && i > 0 && buffer.get(i-1) == (byte)'\r') {
+          columnLength --;
+        }
+        readers[column].readUTF8(columnBuffer, columnLength);
+        column ++;
+        columnPos = 0;
+
+        if(newLine) {
+          column = 0;
+        }
+      } else {
+        columnBuffer[columnPos++] = b;
+      }
+    }
+
+    if(endOfInput) {
+      readers[column].readUTF8(columnBuffer, columnPos);
+    }
+
+  }
+
+  @Override
+  public ListVector build() {
+    SEXP[] columns = new SEXP[readers.length];
+    for (int i = 0; i < readers.length; i++) {
+      columns[i] = readers[i].build();
+    }
+    return new ListVector(columns);
   }
 }

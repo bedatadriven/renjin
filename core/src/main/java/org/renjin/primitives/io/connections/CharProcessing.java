@@ -22,8 +22,10 @@ package org.renjin.primitives.io.connections;
 
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
@@ -72,6 +74,40 @@ public class CharProcessing {
       inputBuffer.clear();
     }
   }
+
+
+  public static void read(InputStream inputStream, int bufferSize, ByteProcessor processor) throws IOException {
+    read(Channels.newChannel(inputStream), bufferSize, processor);
+  }
+
+  public static void read(ReadableByteChannel inputChannel, int bufferSize, ByteProcessor processor) throws IOException {
+
+    ByteBuffer inputBuffer = ByteBuffer.allocate(bufferSize);
+
+    while(true) {
+
+      // Fill the input buffer with bytes
+      boolean endOfInput = false;
+      while(inputBuffer.remaining() > 0) {
+        int bytesRead = inputChannel.read(inputBuffer);
+        if(bytesRead < 0) {
+          endOfInput = true;
+          break;
+        }
+      }
+      // Process the bytes
+      inputBuffer.flip();
+      processor.process(inputBuffer, endOfInput);
+
+      if(endOfInput) {
+        break;
+      }
+
+      // Prepare our buffers for the next round
+      inputBuffer.clear();
+    }
+  }
+
 
   public static void read(ByteBuffer inputBuffer, Charset charset, int bufferSize, CharProcessor processor) throws IOException {
 

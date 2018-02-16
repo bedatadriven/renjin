@@ -22,6 +22,7 @@ import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.parser.NumericLiterals;
+import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.io.connections.PushbackBufferedReader;
 import org.renjin.repackaged.guava.base.Strings;
@@ -56,18 +57,22 @@ public class Scan {
                             String encoding) throws IOException {
     
     
-    PushbackBufferedReader lineReader;
+    Connection connection;
     if(file instanceof StringVector) {
       String fileName = ((StringVector) file).getElementAsString(0);
       if(fileName.length() == 0) {
-        lineReader = context.getSession().getConnectionTable().getStdin().getReader();
+        connection = context.getSession().getConnectionTable().getStdin();
       } else {
         SEXP fileConn = Connections.file(context,fileName,"o",true,encoding,false);
-        lineReader = Connections.getConnection(context, fileConn).getReader();
+        connection = Connections.getConnection(context, fileConn);
       }
     } else {
-      lineReader = Connections.getConnection(context, file).getReader();
+      connection = Connections.getConnection(context, file);
     }
+
+
+    PushbackBufferedReader lineReader = connection.getReader();
+
 
     Splitter splitter;
     if(Strings.isNullOrEmpty(seperator)) {

@@ -20,10 +20,7 @@ package org.renjin.primitives.io.connections;
 
 import org.renjin.repackaged.guava.base.Charsets;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.nio.charset.Charset;
 
 public abstract class AbstractConnection implements Connection {

@@ -165,13 +165,23 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
     what[colClasses %in% "NULL"] <- list(NULL)
     keep <- !sapply(what, is.null)
 
-    data <- scan(file = file, what = what, sep = sep, quote = quote,
-                 dec = dec, nmax = nrows, skip = 0,
-		 na.strings = na.strings, quiet = TRUE, fill = fill,
+    data <- scan(file = file,
+                 what = what,
+                 sep = sep,
+                 quote = quote,
+                 dec = dec,
+                 nmax = nrows,
+                 skip = 0,
+		         na.strings = na.strings,
+		         quiet = TRUE,
+		         fill = fill,
                  strip.white = strip.white,
-                 blank.lines.skip = blank.lines.skip, multi.line = FALSE,
-                 comment.char = comment.char, allowEscapes = allowEscapes,
-                 flush = flush, encoding = encoding)
+                 blank.lines.skip = blank.lines.skip,
+                 multi.line = FALSE,
+                 comment.char = comment.char,
+                 allowEscapes = allowEscapes,
+                 flush = flush,
+                 encoding = encoding)
 
     nlines <- length(data[[ which.max(keep) ]])
 

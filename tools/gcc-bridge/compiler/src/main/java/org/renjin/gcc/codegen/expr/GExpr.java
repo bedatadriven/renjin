@@ -28,6 +28,7 @@ import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.complex.ComplexExpr;
 import org.renjin.gcc.codegen.type.fun.FunPtrExpr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveExpr;
+import org.renjin.gcc.codegen.type.primitive.PtrCarryingExpr;
 import org.renjin.gcc.codegen.type.record.ProvidedPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;

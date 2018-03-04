@@ -27,6 +27,7 @@ import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.condition.ConstConditionGenerator;
 import org.renjin.gcc.codegen.condition.NullCheckGenerator;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
+import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
@@ -295,7 +296,7 @@ public class ExprFactory {
   public GExpr findGenerator(GimpleOp op, List<GimpleExpr> operands, GimpleType expectedType) {
     switch (op) {
       case PLUS_EXPR:
-        return findGenerator(operands.get(0)).toNumericExpr().plus(findGenerator(operands.get(1)));
+        return plus(operands);
 
       case MINUS_EXPR:
         return findGenerator(operands.get(0)).toNumericExpr().minus(findGenerator(operands.get(1)));
@@ -410,6 +411,21 @@ public class ExprFactory {
       default:
         throw new UnsupportedOperationException("op: " + op);
     }
+  }
+
+  private NumericExpr plus(List<GimpleExpr> operands) {
+    NumericExpr x = findGenerator(operands.get(0)).toNumericExpr();
+    NumericExpr y = findGenerator(operands.get(1)).toNumericExpr();
+
+    // It can happen that we end up with the expression
+    // <int> + <pointer_offset>
+    // in which case we want the result to be a pointer offset as well,
+    // so delegate to the plus() method of the second argument.
+    if(y instanceof PtrCarryingExpr) {
+      return y.plus(x);
+    }
+
+    return x.plus(y);
   }
 
   private GExpr booleanValue(ConditionGenerator condition) {

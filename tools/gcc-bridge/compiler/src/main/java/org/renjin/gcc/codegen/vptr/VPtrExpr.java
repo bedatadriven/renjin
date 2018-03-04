@@ -30,13 +30,14 @@ import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.complex.ComplexExpr;
 import org.renjin.gcc.codegen.type.fun.FunPtrExpr;
+import org.renjin.gcc.codegen.type.primitive.NumericIntExpr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveExpr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveType;
+import org.renjin.gcc.codegen.type.primitive.PtrCarryingExpr;
 import org.renjin.gcc.codegen.type.record.ProvidedPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.*;
-import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
@@ -143,10 +144,12 @@ public class VPtrExpr implements PtrExpr {
 
   @Override
   public PrimitiveExpr toPrimitiveExpr() throws UnsupportedCastException {
-    return PrimitiveType.UINT32.fromStackValue(
-        Expressions.staticMethodCall(IntPtr.class, "fromPtr",
-            Type.getMethodDescriptor(Type.INT_TYPE, Type.getType(Ptr.class)),
-                getRef()));
+    JExpr pointerExpr = getRef();
+    NumericIntExpr integerValue = (NumericIntExpr) PrimitiveType.UINT32.fromStackValue(
+        Expressions.methodCall(pointerExpr, Ptr.class, "getOffsetInBytes",
+            Type.getMethodDescriptor(Type.INT_TYPE)));
+
+    return new PtrCarryingExpr(integerValue, baseRef);
   }
 
   @Override

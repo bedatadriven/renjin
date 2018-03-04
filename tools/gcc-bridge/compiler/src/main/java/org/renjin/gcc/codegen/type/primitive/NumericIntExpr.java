@@ -19,35 +19,20 @@
 package org.renjin.gcc.codegen.type.primitive;
 
 import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.complex.ComplexExpr;
 
-
-public abstract class AbstractIntExpr extends AbstractPrimitiveExpr implements NumericIntExpr {
-
-  protected AbstractIntExpr(JExpr expr, PtrExpr address) {
-    super(expr, address);
-  }
+public interface NumericIntExpr extends IntExpr, NumericExpr {
 
   @Override
-  public final NumericExpr toNumericExpr() {
-    return this;
-  }
+  NumericIntExpr plus(GExpr operand);
 
   @Override
-  public final IntExpr toIntExpr() {
-    return this;
-  }
+  NumericIntExpr minus(GExpr operand);
 
   @Override
-  public final ComplexExpr toComplexExpr() {
-    return toRealExpr().toComplexExpr();
-  }
+  NumericIntExpr multiply(GExpr operand);
 
-
-  protected static JExpr bits(GExpr operand) {
-    return operand.toPrimitiveExpr().toSignedInt(32).jexpr();
-  }
+  @Override
+  NumericIntExpr absoluteValue();
 }

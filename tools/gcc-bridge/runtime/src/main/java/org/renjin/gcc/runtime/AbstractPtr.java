@@ -427,6 +427,11 @@ public abstract class AbstractPtr implements Ptr {
     return compare(this, o);
   }
 
+  @Override
+  public Ptr withOffset(int offset) {
+    return pointerPlus(offset - getOffsetInBytes());
+  }
+
   public static int compare(Ptr x, Ptr y) {
     Object m1 = x.getArray();
     Object m2 = y.getArray();

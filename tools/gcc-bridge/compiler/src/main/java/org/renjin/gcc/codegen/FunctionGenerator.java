@@ -21,6 +21,7 @@ package org.renjin.gcc.codegen;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.TreeLogger;
+import org.renjin.gcc.analysis.FunctionOracle;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.InvocationStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
@@ -70,6 +71,7 @@ public class FunctionGenerator implements InvocationStrategy {
   
   private Labels labels = new Labels();
   private TypeOracle typeOracle;
+  private FunctionOracle functionOracle;
   private ExprFactory exprFactory;
   private LocalStaticVarAllocator staticVarAllocator;
   private LocalVariableTable localSymbolTable;
@@ -87,6 +89,7 @@ public class FunctionGenerator implements InvocationStrategy {
     this.className = className;
     this.function = function;
     this.typeOracle = typeOracle;
+    this.functionOracle = new FunctionOracle(typeOracle, function);
     this.params = this.typeOracle.forParameters(function.getParameters());
 
     if(function.isVariadic()) {
@@ -392,9 +395,7 @@ public class FunctionGenerator implements InvocationStrategy {
       }
 
       try {
-        GExpr generator;
-        TypeStrategy factory = typeOracle.forType(varDecl.getType());
-        generator = factory.variable(varDecl,
+        GExpr generator = functionOracle.variable(varDecl,
             varDecl.isStatic() ?
                 staticVarAllocator :
                 mv.getLocalVarAllocator());

@@ -1239,5 +1239,10 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void threadsTest() throws Exception {
     compileAndTest("pthreads.c");
   }
+
+  @Test
+  public void pointerMath() throws Exception {
+    compileAndTest("ptr_math.c");
+  }
 }
 

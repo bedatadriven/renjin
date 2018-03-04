@@ -87,6 +87,16 @@ public class GimpleVarDecl implements GimpleDecl {
     }
   }
 
+  public String getNameIfPresent(String suffix) {
+    if(mangledName != null) {
+      return mangledName + "$" + suffix;
+    } else if(name != null) {
+      return name + "$" + suffix;
+    } else {
+      return null;
+    }
+  }
+
   public String getMangledName() {
     if(mangledName == null) {
       return name;

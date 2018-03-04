@@ -345,4 +345,10 @@ public interface Ptr extends Comparable<Ptr> {
   @Override
   int compareTo(Ptr o);
 
+  /**
+   * @return a new pointer using the same array and the new offset in bytes. The new {@code offset} is considered
+   * to be absolute.
+   */
+  Ptr withOffset(int offset);
+
 }

@@ -21,7 +21,7 @@ package org.renjin.gcc.codegen;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.ProvidedGlobalVar;
-import org.renjin.gcc.TreeLogger;
+import org.renjin.gcc.logging.LogManager;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.ParamStrategy;
@@ -159,9 +159,7 @@ public class UnitClassGenerator {
     return className;
   }
 
-  public void emit(TreeLogger parentLogger) {
-    
-    TreeLogger logger = parentLogger.branch("Generating code for " + unit.getSourceName());
+  public void emit(LogManager parentLogger) {
     
     sw = new StringWriter();
     pw = new PrintWriter(sw);
@@ -185,7 +183,7 @@ public class UnitClassGenerator {
     cv.visit(V1_7, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object", new String[0]);
     cv.visitSource(unit.getSourceName(), null);
     emitDefaultConstructor();
-    emitFunctions(logger, unit);
+    emitFunctions(parentLogger, unit);
     emitGlobalVariables();
     cv.visitEnd();
   }
@@ -298,7 +296,7 @@ public class UnitClassGenerator {
     return null;
   }
 
-  private void emitFunctions(TreeLogger parentLogger, GimpleCompilationUnit unit) {
+  private void emitFunctions(LogManager parentLogger, GimpleCompilationUnit unit) {
 
     // Check for duplicate names...
     Set<String> names = Sets.newHashSet();

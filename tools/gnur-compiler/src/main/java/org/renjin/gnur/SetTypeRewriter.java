@@ -18,7 +18,7 @@
  */
 package org.renjin.gnur;
 
-import org.renjin.gcc.TreeLogger;
+import org.renjin.gcc.logging.LogManager;
 import org.renjin.gcc.analysis.ControlFlowGraph;
 import org.renjin.gcc.analysis.DataFlowAnalysis;
 import org.renjin.gcc.analysis.FunctionBodyTransformer;
@@ -45,7 +45,7 @@ import java.util.Collection;
  */
 public class SetTypeRewriter implements FunctionBodyTransformer {
   @Override
-  public boolean transform(TreeLogger logger, GimpleCompilationUnit unit, GimpleFunction fn) {
+  public boolean transform(LogManager logManager, GimpleCompilationUnit unit, GimpleFunction fn) {
 
     // If there are no calls to SET_TYPEOF in this function, we have nothing to do.
     if(!hasSetTypeOfCall(fn)) {

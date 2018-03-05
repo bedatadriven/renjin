@@ -121,8 +121,27 @@ public class PointerPtr extends AbstractPtr {
   }
 
   @Override
+  public void setAlignedInt(int index, int value) {
+    if(value == 0) {
+      array[index] = NULL;
+    } else {
+      super.setAlignedInt(index, value);
+    }
+  }
+
+  @Override
+  public void setInt(int offset, int intValue) {
+    if(offset % BYTES == 0 && intValue == 0) {
+      array[offset / BYTES] = NULL;
+    } else {
+      super.setInt(offset, intValue);
+    }
+  }
+
+  @Override
   public void setByte(int offset, byte value) {
-    throw new UnsupportedOperationException("TODO");
+    throw new UnsupportedOperationException("Unsupported primitive store to a memory region allocated for pointers.\n" +
+        "This means something went wrong during compilation and we allocated the wrong type of storage.");
   }
 
   @Override

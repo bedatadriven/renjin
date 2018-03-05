@@ -26,7 +26,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.renjin.gcc.GimpleCompiler;
-import org.renjin.gcc.HtmlTreeLogger;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleParser;
 
@@ -122,7 +121,7 @@ public class MakeMojo extends AbstractMojo {
     GimpleCompiler compiler = new GimpleCompiler();
     compiler.setOutputDirectory(outputDirectory);
     compiler.setPackageName(packageName);
-    compiler.setLogger(new HtmlTreeLogger(loggingDir));
+    compiler.setLoggingDirectory(loggingDir);
     try {
       compiler.compile(units);
     } catch (Exception e) {

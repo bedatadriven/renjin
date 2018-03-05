@@ -18,16 +18,16 @@
  */
 package org.renjin.gcc.analysis;
 
-import org.renjin.gcc.TreeLogger;
+import org.renjin.gcc.logging.LogManager;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
+import org.renjin.gcc.logging.Logger;
 import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
 
-import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -75,11 +75,11 @@ public class SymbolPruner {
     }
   }
 
-  public static void prune(TreeLogger parentLogger, List<GimpleCompilationUnit> units, 
+  public static void prune(LogManager logManager, List<GimpleCompilationUnit> units,
                            Predicate<GimpleFunction> entryPointPredicate) {
 
 
-    PrintWriter logger = parentLogger.debugLog("symbol-pruner");
+    Logger logger = logManager.getLogger("symbol-pruner");
 
     final GimpleSymbolTable symbolTable = new GimpleSymbolTable(units);
 
@@ -89,7 +89,7 @@ public class SymbolPruner {
     for (GimpleCompilationUnit unit : units) {
       for (GimpleFunction function : unit.getFunctions()) {
         if(entryPointPredicate.apply(function)) {
-          logger.println("Retaining entry point: " + function.getName() + " [" + function.getMangledName() + "]");
+          logger.log("Retaining entry point: " + function.getName() + " [" + function.getMangledName() + "]");
           visitor.retained.add(new Symbol(function, symbolTable.scope(function)));
         }
       }
@@ -101,7 +101,7 @@ public class SymbolPruner {
       visitor.changing = false;
       for (Symbol retainedSymbol : Lists.newArrayList(visitor.retained)) {
         visitor.currentScope = retainedSymbol.scope;
-        logger.println("Adding references from " + retainedSymbol);
+        logger.log("Adding references from " + retainedSymbol);
         retainedSymbol.decl.accept(visitor);
       }
     } while(visitor.changing);
@@ -113,31 +113,28 @@ public class SymbolPruner {
 
       for (GimpleFunction function : unit.getFunctions()) {
         if(!retained.contains(function)) {
-          logger.println("Pruning function " + function.getMangledName());
+          logger.log("Pruning function " + function.getMangledName());
         }
       }
       for (GimpleVarDecl varDecl : unit.getGlobalVariables()) {
         if(!retained.contains(varDecl)) {
-          logger.println("Pruning global variable " + varDecl.getName());
+          logger.log("Pruning global variable " + varDecl.getName());
         }
       }
 
       unit.getFunctions().retainAll(retained);
       unit.getGlobalVariables().retainAll(retained);
     }
-
-    logger.close();
-
   }
 
   private static class ReferenceFinder extends GimpleExprVisitor {
-    private PrintWriter logger;
+    private Logger logger;
     private final GimpleSymbolTable symbolTable;
     private final Set<Symbol> retained = new HashSet<>();
     private GimpleSymbolTable.Scope currentScope;
     private boolean changing = false;
 
-    private ReferenceFinder(PrintWriter logger, GimpleSymbolTable symbolTable) {
+    private ReferenceFinder(Logger logger, GimpleSymbolTable symbolTable) {
       this.logger = logger;
       this.symbolTable = symbolTable;
     }
@@ -147,14 +144,14 @@ public class SymbolPruner {
       Optional<GimpleFunction> referencedFunction = currentScope.lookupFunction(functionRef);
       
       if(!referencedFunction.isPresent()) {
-        logger.println("  Reference to undefined function " + functionRef.getName());
+        logger.log("  Reference to undefined function " + functionRef.getName());
       }
 
       if(referencedFunction.isPresent()) {
         Symbol symbol = new Symbol(referencedFunction.get(), symbolTable.scope(referencedFunction.get()));
         if(retained.add(symbol)) {
           if(symbol.isNamed()) {
-            logger.println("  Adding referenced function " + symbol);
+            logger.log("  Adding referenced function " + symbol);
           }
           changing = true;
         }
@@ -165,13 +162,13 @@ public class SymbolPruner {
       Optional<GimpleVarDecl> decl = currentScope.lookupVariable(variableRef);
 
       if(!decl.isPresent() && !Strings.isNullOrEmpty(variableRef.getName())) {
-        logger.println("  Reference to undefined global variable " + variableRef.getName());
+        logger.log("  Reference to undefined global variable " + variableRef.getName());
       }
 
       if(decl.isPresent() && decl.get().isGlobal()) {
         Symbol symbol = new Symbol(decl.get(), symbolTable.scope(decl.get().getUnit()));
         if(retained.add(symbol)) {
-          logger.println("  Adding referenced variable " + symbol);
+          logger.log("  Adding referenced variable " + symbol);
           changing = true;
         }
       }

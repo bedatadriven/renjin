@@ -16,25 +16,41 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.analysis;
+package org.renjin.gcc.logging;
 
-import org.renjin.gcc.logging.LogManager;
-import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gcc.gimple.GimpleFunction;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 
 /**
- * A transformer which updates the gimple function body prior to code generation
+ * Simple logger for compilation diagnostics
  */
-public interface FunctionBodyTransformer {
+public class Logger {
 
-  /**
-   * Applies a transformation to the body of the function.
-   * @param logManager
-   * @param unit
-   * @param fn
-   * @return true if the body was updated
-   */
-  boolean transform(LogManager logManager, GimpleCompilationUnit unit, GimpleFunction fn);
+  public static final Logger NULL = new Logger();
 
+  private PrintWriter printWriter;
+
+  private Logger() {
+    printWriter = null;
+  }
+
+  Logger(File file) {
+    try {
+      this.printWriter = new PrintWriter(file);
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public void log(String message) {
+    if(printWriter != null) {
+      printWriter.println(message);
+    }
+  }
+
+  void close() {
+    printWriter.close();
+  }
 
 }

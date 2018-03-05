@@ -19,7 +19,7 @@
 package org.renjin.gcc.analysis;
 
 import org.renjin.gcc.GimpleCompiler;
-import org.renjin.gcc.TreeLogger;
+import org.renjin.gcc.logging.LogManager;
 import org.renjin.gcc.codegen.cpp.CppStandardLibrary;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.*;
@@ -30,6 +30,7 @@ import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
+import org.renjin.gcc.logging.Logger;
 import org.renjin.repackaged.guava.collect.Sets;
 
 import java.util.Set;
@@ -48,13 +49,15 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
   }
 
   @Override
-  public boolean transform(TreeLogger logger, GimpleCompilationUnit unit, GimpleFunction fn) {
+  public boolean transform(LogManager logManager, GimpleCompilationUnit unit, GimpleFunction fn) {
 
     boolean updated = false;
-    
-    for(GimpleVarDecl decl : fn.getVariableDeclarations()) {
-      if(isVoidPtr(decl.getType())) {
-        if(tryToDeduceType(logger, fn, decl)) {
+
+    Logger logger = logManager.getLogger(fn, "void-deducer");
+
+    for (GimpleVarDecl decl : fn.getVariableDeclarations()) {
+      if (isVoidPtr(decl.getType())) {
+        if (tryToDeduceType(logger, fn, decl)) {
           updated = true;
         }
       }
@@ -70,18 +73,18 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
   /**
    * Tries to deduce the type of a given void pointer declaration
    */
-  private boolean tryToDeduceType(TreeLogger parentLogger, GimpleFunction fn, GimpleVarDecl decl) {
+  private boolean tryToDeduceType(Logger logger, GimpleFunction fn, GimpleVarDecl decl) {
 
     Set<GimpleType> possibleTypes = Sets.newHashSet();
     fn.accept(new AssignmentFinder(decl, possibleTypes));
     fn.accept(new MemRefVisitor(decl, possibleTypes));
 
-    parentLogger.branch(TreeLogger.Level.DEBUG, "Possible type set of " + decl + " = "  + possibleTypes);
+    logger.log("Possible type set of " + decl + " = "  + possibleTypes);
 
-    if(possibleTypes.size() == 1 && !possibleTypes.contains(UNKNOWN_TYPE)) {
+    if (possibleTypes.size() == 1 && !possibleTypes.contains(UNKNOWN_TYPE)) {
       GimpleType deducedType = possibleTypes.iterator().next();
-      if(GimpleCompiler.TRACE) {
-        System.out.println("...resolved to " + deducedType);
+      if (GimpleCompiler.TRACE) {
+        logger.log("...resolved to " + deducedType);
       }
       decl.setType(deducedType);
       fn.accept(new VarRefTypeUpdater(decl));

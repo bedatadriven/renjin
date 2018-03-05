@@ -304,7 +304,7 @@ public class Stdlib {
   }
 
   public static int puts(BytePtr string) {
-    System.out.print(string.nullTerminatedString());
+    System.out.println(string.nullTerminatedString());
     return 0;
   }
 

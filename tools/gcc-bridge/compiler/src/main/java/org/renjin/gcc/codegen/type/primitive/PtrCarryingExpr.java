@@ -50,6 +50,10 @@ public class PtrCarryingExpr implements NumericIntExpr {
     this.pointerExpr = pointerExpr;
   }
 
+  public JExpr getPointerExpr() {
+    return pointerExpr;
+  }
+
   @Override
   public GimplePrimitiveType getType() {
     return primitive.getType();
@@ -148,27 +152,24 @@ public class PtrCarryingExpr implements NumericIntExpr {
   }
 
   @Override
-  public GExpr bitwiseXor(GExpr operand) {
-    // Relationship to pointer is lost
-    return primitive.bitwiseXor(operand);
+  public NumericIntExpr bitwiseXor(GExpr operand) {
+    return new PtrCarryingExpr(primitive.bitwiseXor(operand), pointerExpr);
   }
 
   @Override
-  public GExpr bitwiseNot() {
+  public NumericIntExpr bitwiseNot() {
     // Relationship to pointer is lost
     return primitive.bitwiseNot();
   }
 
   @Override
-  public GExpr bitwiseAnd(GExpr operand) {
-    // Relationship to pointer is lost
-    return primitive.bitwiseAnd(operand);
+  public NumericIntExpr bitwiseAnd(GExpr operand) {
+    return new PtrCarryingExpr(primitive.bitwiseAnd(operand), pointerExpr);
   }
 
   @Override
-  public GExpr bitwiseOr(GExpr operand) {
-    // Relationship to pointer is lost
-    return primitive.bitwiseOr(operand);
+  public NumericIntExpr bitwiseOr(GExpr operand) {
+    return new PtrCarryingExpr(primitive.bitwiseOr(operand), pointerExpr);
   }
 
   @Override

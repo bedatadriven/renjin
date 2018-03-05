@@ -105,8 +105,21 @@ public class PtrCarrierFlowFunction implements FlowFunction<VarSet> {
 
   private boolean isOffsetManipulationOperation(GimpleAssignment assignment) {
     switch (assignment.getOperator()) {
+
+      /* Some C code use +/- to align pointers to specific boundaries */
       case PLUS_EXPR:
       case MINUS_EXPR:
+        return true;
+
+      /* ... and other code "cleverly" stashes extra information temporarily in pointers... 😱 */
+      /* See this comment from the triangle library: */
+
+      /*    encode() compresses an oriented triangle into a single pointer.  It       */
+      /*   relies on the assumption that all triangles are aligned to four-byte    */
+      /*   boundaries, so the two least significant bits of (otri).tri are zero.   */
+      case BIT_IOR_EXPR:
+      case BIT_AND_EXPR:
+      case BIT_XOR_EXPR:
         return true;
       default:
         return false;

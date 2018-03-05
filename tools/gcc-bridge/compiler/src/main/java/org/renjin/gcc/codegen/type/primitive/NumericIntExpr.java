@@ -35,4 +35,16 @@ public interface NumericIntExpr extends IntExpr, NumericExpr {
 
   @Override
   NumericIntExpr absoluteValue();
+
+  @Override
+  NumericIntExpr bitwiseXor(GExpr operand);
+
+  @Override
+  NumericIntExpr bitwiseNot();
+
+  @Override
+  NumericIntExpr bitwiseAnd(GExpr operand);
+
+  @Override
+  NumericIntExpr bitwiseOr(GExpr operand);
 }

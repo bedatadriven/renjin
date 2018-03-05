@@ -27,7 +27,6 @@ import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.condition.ConstConditionGenerator;
 import org.renjin.gcc.codegen.condition.NullCheckGenerator;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
-import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
@@ -294,44 +293,33 @@ public class ExprFactory {
   }
 
   public GExpr findGenerator(GimpleOp op, List<GimpleExpr> operands, GimpleType expectedType) {
+
+
     switch (op) {
-      case PLUS_EXPR:
-        return plus(operands);
 
-      case MINUS_EXPR:
-        return findGenerator(operands.get(0)).toNumericExpr().minus(findGenerator(operands.get(1)));
-
-      case MULT_EXPR:
-        return findGenerator(operands.get(0)).toNumericExpr().multiply(findGenerator(operands.get(1)));
-
-      case RDIV_EXPR:
-      case TRUNC_DIV_EXPR:
-      case EXACT_DIV_EXPR:
-        return findGenerator(operands.get(0)).toNumericExpr().divide(findGenerator(operands.get(1)));
-
-      case TRUNC_MOD_EXPR:
-        return findGenerator(operands.get(0)).toPrimitiveExpr().toNumericExpr().remainder(findGenerator(operands.get(1)));
-
-      case BIT_IOR_EXPR:
-        return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().bitwiseOr(findGenerator(operands.get(1)));
-
-      case BIT_XOR_EXPR:
-        return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().bitwiseXor(findGenerator(operands.get(1)));
-
-      case BIT_AND_EXPR:
-        return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().bitwiseAnd(findGenerator(operands.get(1)));
+      case NEGATE_EXPR:
+        return findGenerator(operands.get(0)).toNumericExpr().negative();
 
       case BIT_NOT_EXPR:
         return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().bitwiseNot();
 
+      case COMPLEX_EXPR:
+        return new ComplexExpr(findPrimitiveGenerator(operands.get(0)));
+
+      case PLUS_EXPR:
+      case MINUS_EXPR:
+      case MULT_EXPR:
+      case RDIV_EXPR:
+      case TRUNC_DIV_EXPR:
+      case EXACT_DIV_EXPR:
+      case TRUNC_MOD_EXPR:
+      case BIT_IOR_EXPR:
+      case BIT_XOR_EXPR:
+      case BIT_AND_EXPR:
       case LSHIFT_EXPR:
-        return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().shiftLeft(findGenerator(operands.get(1)));
-
       case RSHIFT_EXPR:
-        return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().shiftRight(findGenerator(operands.get(1)));
-
       case LROTATE_EXPR:
-        return findGenerator(operands.get(0)).toPrimitiveExpr().toIntExpr().rotateLeft(findGenerator(operands.get(1)));
+        return findBinaryGenerator(op, operands);
 
       case POINTER_PLUS_EXPR:
         return pointerPlus(operands.get(0), operands.get(1), expectedType);
@@ -359,12 +347,6 @@ public class ExprFactory {
       case REALPART_EXPR:
       case IMAGPART_EXPR:
         return maybeCast(findGenerator(operands.get(0)), expectedType, operands.get(0).getType());
-      
-      case COMPLEX_EXPR:
-        return new ComplexExpr(findPrimitiveGenerator(operands.get(0)));
-
-      case NEGATE_EXPR:
-        return findGenerator(operands.get(0)).toNumericExpr().negative();
 
       case TRUTH_NOT_EXPR:
         return findGenerator(operands.get(0)).toPrimitiveExpr().toBooleanExpr().bitwiseNot();
@@ -413,19 +395,59 @@ public class ExprFactory {
     }
   }
 
-  private NumericExpr plus(List<GimpleExpr> operands) {
-    NumericExpr x = findGenerator(operands.get(0)).toNumericExpr();
-    NumericExpr y = findGenerator(operands.get(1)).toNumericExpr();
+  private GExpr findBinaryGenerator(GimpleOp op, List<GimpleExpr> operands) {
+    GExpr x = findGenerator(operands.get(0));
+    GExpr y = findGenerator(operands.get(1));
 
-    // It can happen that we end up with the expression
-    // <int> + <pointer_offset>
-    // in which case we want the result to be a pointer offset as well,
-    // so delegate to the plus() method of the second argument.
-    if(y instanceof PtrCarryingExpr) {
-      return y.plus(x);
+    // Fixup for integers that "carry" pointers.
+    // If the second argument is a PtrCarryingExpr but the first is not,
+    // lift the first argument into a PtrCarryingExpr
+
+    if (  y instanceof PtrCarryingExpr &&
+        !(x instanceof PtrCarryingExpr) &&
+          x instanceof NumericIntExpr) {
+
+      x = new PtrCarryingExpr(((NumericIntExpr) x), ((PtrCarryingExpr) y).getPointerExpr());
     }
 
-    return x.plus(y);
+    switch (op) {
+      case PLUS_EXPR:
+        return x.toNumericExpr().plus(y);
+
+      case MINUS_EXPR:
+        return x.toNumericExpr().minus(y);
+
+      case MULT_EXPR:
+        return x.toNumericExpr().multiply(y);
+
+      case RDIV_EXPR:
+      case TRUNC_DIV_EXPR:
+      case EXACT_DIV_EXPR:
+        return x.toNumericExpr().divide(y);
+
+      case TRUNC_MOD_EXPR:
+        return x.toPrimitiveExpr().toNumericExpr().remainder(y);
+
+      case BIT_IOR_EXPR:
+        return x.toPrimitiveExpr().toIntExpr().bitwiseOr(y);
+
+      case BIT_XOR_EXPR:
+        return x.toPrimitiveExpr().toIntExpr().bitwiseXor(y);
+
+      case BIT_AND_EXPR:
+        return x.toPrimitiveExpr().toIntExpr().bitwiseAnd(y);
+
+      case LSHIFT_EXPR:
+        return x.toPrimitiveExpr().toIntExpr().shiftLeft(y);
+
+      case RSHIFT_EXPR:
+        return x.toPrimitiveExpr().toIntExpr().shiftRight(y);
+
+      case LROTATE_EXPR:
+        return x.toPrimitiveExpr().toIntExpr().rotateLeft(y);
+
+    }
+    return null;
   }
 
   private GExpr booleanValue(ConditionGenerator condition) {

@@ -45,7 +45,7 @@ public class MatrixMultDispatchStrategy extends GenericDispatchStrategy {
     //                                           Environment rho, String group, String opName)
 
     JInvocation dispatchInvocation = codeModel.ref(S4.class)
-        .staticInvoke("tryDispatchToS4Method")
+        .staticInvoke("tryS4DispatchFromPrimitive")
         .arg(context.getContext())  // context
         .arg(arguments.get(0))      // source
         .arg(functionCall.invoke("getArguments"))           // args

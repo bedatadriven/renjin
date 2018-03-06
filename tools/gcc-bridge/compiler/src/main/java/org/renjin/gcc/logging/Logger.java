@@ -29,28 +29,40 @@ public class Logger {
 
   public static final Logger NULL = new Logger();
 
-  private PrintWriter printWriter;
+  private File file = null;
+
+  private PrintWriter printWriter = null;
 
   private Logger() {
-    printWriter = null;
+    file = null;
   }
 
   Logger(File file) {
-    try {
-      this.printWriter = new PrintWriter(file);
-    } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);
-    }
+    this.file = file;
   }
 
   public void log(String message) {
-    if(printWriter != null) {
-      printWriter.println(message);
+    if(file == null) {
+      return;
     }
+    if(printWriter == null) {
+      try {
+        printWriter = new PrintWriter(file);
+      } catch (FileNotFoundException e) {
+        System.err.println("Could not open log at " + file + ": " + e.getMessage());
+        file = null;
+        return;
+      }
+    }
+
+    printWriter.println(message);
   }
 
   void close() {
-    printWriter.close();
+    if(printWriter != null) {
+      printWriter.close();
+      printWriter = null;
+    }
   }
 
 }

@@ -128,7 +128,7 @@ public class GccBridgeMojo extends AbstractMojo {
         }
       }
 
-      scanner = getSourceInclusionScanner( ".c", ".cpp" );
+      scanner = getSourceInclusionScanner( ".c", ".cpp", ".C", ".c++", ".cc", ".cxx" );
 
       if (cSourceDirectory.exists()) {
         try {

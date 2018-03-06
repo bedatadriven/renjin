@@ -86,11 +86,16 @@ public class CallingArguments {
   }
 
 
-  public static CallingArguments standardGenericArguments(Context context, Environment callingEnvironment, ArgumentMatcher argumentMatcher) {
+  public static CallingArguments standardGenericArguments(Context context, ArgumentMatcher argumentMatcher) {
+    Environment environment = context.getEnvironment();
     PairList.Builder promisedArgs = new PairList.Builder();
     for (String formalName : argumentMatcher.getFormalNames()) {
-      SEXP promisedArg = callingEnvironment.getVariableUnsafe(formalName);
-      promisedArgs.add(formalName, promisedArg);
+      SEXP promisedArg = environment.getVariableUnsafe(formalName);
+      if(formalName.equals("...")) {
+        promisedArgs.addAll(((PairList) promisedArg));
+      } else {
+        promisedArgs.add(promisedArg);
+      }
     }
     return new CallingArguments(context, promisedArgs.build());
   }

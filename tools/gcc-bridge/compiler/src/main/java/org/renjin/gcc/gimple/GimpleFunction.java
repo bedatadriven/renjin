@@ -18,6 +18,7 @@
  */
 package org.renjin.gcc.gimple;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
@@ -44,7 +45,10 @@ public class GimpleFunction implements GimpleDecl {
   private List<GimpleBasicBlock> basicBlocks = Lists.newArrayList();
   private List<GimpleParameter> parameters = Lists.newArrayList();
   private List<GimpleVarDecl> variableDeclarations = Lists.newArrayList();
-  private boolean extern;
+
+  @JsonProperty("public")
+  private boolean _public;
+
   private boolean weak;
   private boolean inline;
   
@@ -142,15 +146,15 @@ public class GimpleFunction implements GimpleDecl {
 
   /**
    * 
-   * @return true if this function has external linkage, that is, it is visible 
+   * @return true if this function has external (public) linkage, that is, it is visible
    * from outside of the compilation unit.
    */
-  public boolean isExtern() {
-    return extern;
+  public boolean isPublic() {
+    return _public;
   }
 
-  public void setExtern(boolean extern) {
-    this.extern = extern;
+  public void setPublic(boolean _public) {
+    this._public = _public;
   }
 
   public List<GimpleParameter> getParameters() {

@@ -53,7 +53,10 @@ public class GimpleVariableRef extends GimpleLValue implements GimpleSymbolRef {
   }
 
   public String getMangledName() {
-    return mangledName;
+    if(mangledName != null) {
+      return mangledName;
+    }
+    return name;
   }
 
   public void setMangledName(String mangledName) {

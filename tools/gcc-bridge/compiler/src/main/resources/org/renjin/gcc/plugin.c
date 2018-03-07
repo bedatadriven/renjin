@@ -1038,7 +1038,7 @@ static unsigned int dump_function (void)
   json_bool_field("weak", DECL_WEAK(cfun->decl));
   json_bool_field("inline", DECL_DECLARED_INLINE_P(cfun->decl));
 
-  json_bool_field("extern", TREE_PUBLIC(cfun->decl));
+  json_bool_field("public", TREE_PUBLIC(cfun->decl));
   
   TRACE("dump_function: dumping arguments...\n");
   dump_arguments(cfun->decl);
@@ -1102,7 +1102,8 @@ static void dump_global_var(tree var) {
   if (DECL_ASSEMBLER_NAME_SET_P (var)) {
     json_string_field("mangledName",  IDENTIFIER_POINTER (DECL_ASSEMBLER_NAME (var)));
   }
-  json_bool_field("extern", TREE_PUBLIC(var));
+  json_bool_field("public", TREE_PUBLIC(var));
+  json_bool_field("extern", DECL_EXTERNAL(var));
 
   json_field("type");
   dump_type(TREE_TYPE(var));
@@ -1154,7 +1155,7 @@ static void dump_aliases() {
           json_start_object();
           json_string_field("alias",  IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(n->decl)));
           json_string_field("definition",  IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(n->thunk.alias)));
-          json_bool_field("extern", TREE_PUBLIC(n->decl));
+          json_bool_field("public", TREE_PUBLIC(n->decl));
           json_end_object();
       }
     }

@@ -45,6 +45,11 @@ public class GimpleParamRef extends GimpleLValue implements GimpleSymbolRef {
     return name;
   }
 
+  @Override
+  public String getMangledName() {
+    return name;
+  }
+
   public void setName(String name) {
     this.name = name;
   }

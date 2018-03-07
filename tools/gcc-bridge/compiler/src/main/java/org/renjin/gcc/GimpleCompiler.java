@@ -100,7 +100,7 @@ public class GimpleCompiler  {
     functionBodyTransformers.add(VoidPointerTypeDeducer.INSTANCE);
     functionBodyTransformers.add(ResultDeclRewriter.INSTANCE);
     functionBodyTransformers.add(LocalVariableInitializer.INSTANCE);
-    globalSymbolTable = new GlobalSymbolTable(typeOracle);
+    globalSymbolTable = new GlobalSymbolTable(typeOracle, providedVariables);
     globalSymbolTable.addDefaults();
   }
 
@@ -221,12 +221,6 @@ public class GimpleCompiler  {
     try {
 
       PmfRewriter.rewrite(units);
-      GlobalVarMerger.merge(units);
-
-      // Prune unused functions
-      if(pruneUnusedSymbols) {
-        SymbolPruner.prune(logManager, units, entryPointPredicate);
-      }
 
       typeOracle.initRecords(units, providedRecordTypes);
 

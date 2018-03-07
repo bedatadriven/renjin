@@ -47,6 +47,9 @@ public class GimpleVarDecl implements GimpleDecl {
   @JsonProperty("static")
   private boolean _static;
 
+  @JsonProperty("public")
+  private boolean _public;
+
   /**
    * True if this local variable is addressable
    */
@@ -148,6 +151,18 @@ public class GimpleVarDecl implements GimpleDecl {
     this.unit = unit;
   }
 
+  /**
+   *
+   * @return true if the declaration is visible outside of the translation unit.
+   */
+  public boolean isPublic() {
+    return _public;
+  }
+
+  public void setPublic(boolean _public) {
+    this._public = _public;
+  }
+
   @Override
   public String toString() {
     StringBuilder s = new StringBuilder().append(type).append(" ").append(getName());
@@ -159,8 +174,7 @@ public class GimpleVarDecl implements GimpleDecl {
 
   /**
    * 
-   * @return true f this variable declaration has external linkage, that is, it is visible outside
-   * of the compilation unit.
+   * @return true if this variable declaration is defined in another translation unit.
    */
   public boolean isExtern() {
     return extern;

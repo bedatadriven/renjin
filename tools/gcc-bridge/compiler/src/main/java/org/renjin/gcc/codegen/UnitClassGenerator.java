@@ -88,11 +88,14 @@ public class UnitClassGenerator {
     this.className = className;
     this.typeOracle = typeOracle;
     this.globalVarAllocator = new GlobalVarAllocator(className);
-    this.symbolTable = new UnitSymbolTable(functionTable);
+    this.symbolTable = new UnitSymbolTable(functionTable, unit);
 
     // Setup global variables that have global scoping
     Set<String> visited = new HashSet<>();
     for (GimpleVarDecl decl : unit.getGlobalVariables()) {
+      if(decl.isExtern()) {
+        continue;
+      }
       if(!visited.add(decl.getMangledName())) {
         continue;
       }
@@ -152,7 +155,7 @@ public class UnitClassGenerator {
   }
 
   private boolean isProvided(Map<String, ProvidedGlobalVar> providedVariables, GimpleVarDecl decl) {
-    return decl.isExtern() && providedVariables.containsKey(decl.getName());
+    return decl.isPublic() && providedVariables.containsKey(decl.getName());
   }
 
   public String getClassName() {

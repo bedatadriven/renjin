@@ -31,7 +31,7 @@ public class DefaultEntryPointPredicate implements Predicate<GimpleFunction> {
   @Override
   public boolean apply(@Nullable GimpleFunction function) {
 
-    if(!function.isExtern() || function.isWeak() || function.isInline()) {
+    if(!function.isPublic() || function.isWeak() || function.isInline()) {
       return false;
     }
     // This is a bit of hack, but assume that C++ mangled names are NOT entry

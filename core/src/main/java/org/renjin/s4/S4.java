@@ -76,7 +76,7 @@ public class S4 {
     return (!opName.contains("<-") && (genericExact || hasS3Class));
   }
 
-  private static Map<Symbol, SEXP> generateCallMetaData(Context context, RankedMethod method, String opName) {
+  public static Map<Symbol, SEXP> generateCallMetaData(Context context, RankedMethod method, String opName) {
     Map<Symbol, SEXP> metadata = new HashMap<>();
     metadata.put(Symbol.get(".defined"), buildDotTargetOrDefined(context, method, true));
     metadata.put(Symbol.get(".Generic"), buildDotGeneric(opName));

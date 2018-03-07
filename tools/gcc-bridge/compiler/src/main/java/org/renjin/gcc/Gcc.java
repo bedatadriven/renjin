@@ -30,6 +30,7 @@ import org.renjin.repackaged.guava.io.Resources;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
@@ -42,6 +43,8 @@ public class Gcc {
 
   private File workingDirectory;
   private File pluginLibrary;
+
+  private boolean trace = false;
 
   private List<File> includeDirectories = Lists.newArrayList();
 
@@ -72,6 +75,10 @@ public class Gcc {
 
   public void setDebug(boolean debug) {
     this.debug = debug;
+  }
+
+  public void setTrace(boolean trace) {
+    this.trace = trace;
   }
 
   public void setGimpleOutputDir(File gimpleOutputDir) {
@@ -228,18 +235,26 @@ public class Gcc {
         System.err.println("bridge.so does not exist at " + pluginLibrary.getAbsolutePath());
       }
     }
-    
-    
-    
+
     /* .so because gcc only ever looks for .so files */
     pluginLibrary = new File(workingDirectory, "bridge.so");
 
-    extractPluginTo(pluginLibrary);
+    compilePlugin(pluginLibrary, trace);
     
     pluginLibrary.deleteOnExit();
   }
 
+  @Deprecated
   public synchronized static void extractPluginTo(File pluginLibrary) throws IOException {
+    compilePlugin(pluginLibrary, false);
+  }
+
+  public synchronized static void compilePlugin(File pluginLibrary) throws IOException {
+    compilePlugin(pluginLibrary, false);
+  }
+
+
+  public synchronized static void compilePlugin(File pluginLibrary, boolean trace) throws IOException {
     Preconditions.checkArgument(pluginLibrary.getName().endsWith(".so"), "plugin name must end in .so");
 
     if(pluginLibrary.exists()) {
@@ -260,15 +275,27 @@ public class Gcc {
     File sourceFile = new File(workingDir, "plugin.c");
     Resources.asByteSource(Resources.getResource(Gcc.class, "plugin.c")).copyTo(Files.asByteSink(sourceFile));
 
-    // Compile and link source
+    // Query location of plugin headers
     String pluginDir = gcc.callGcc("-print-file-name=plugin").trim();
-    gcc.callGcc(
-        "-shared",
-        "-xc++", "-I" + pluginDir + "/include", "-fPIC", "-fno-rtti", "-O2",
-        "plugin.c",
-        "-lstdc++", "-shared-libgcc",
-        "-o", pluginLibrary.getAbsolutePath());
 
+    // Compile and link source
+    List<String> args = new ArrayList<>();
+    args.add("-shared");
+    args.add("-xc++");
+    args.add("-I" + pluginDir + "/include");
+    if(trace) {
+      args.add("-DTRACE_GCC_BRIDGE");
+    }
+    args.add("-fPIC");
+    args.add("-fno-rtti");
+    args.add("-O2");
+    args.add("plugin.c");
+    args.add("-lstdc++");
+    args.add("-shared-libgcc");
+    args.addAll(Arrays.asList("-o", pluginLibrary.getAbsolutePath()));
+
+
+    gcc.callGcc(args);
   }
 
 

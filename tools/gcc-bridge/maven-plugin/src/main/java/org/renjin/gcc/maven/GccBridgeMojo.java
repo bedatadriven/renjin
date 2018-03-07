@@ -107,6 +107,8 @@ public class GccBridgeMojo extends AbstractMojo {
   @Parameter(defaultValue = "true")
   private boolean pruneUnusedSymbols = true;
 
+  @Parameter(defaultValue = "${gcc.bridge.trace}")
+  private boolean tracePlugin = false;
 
   public void execute() throws MojoExecutionException {
 
@@ -152,6 +154,8 @@ public class GccBridgeMojo extends AbstractMojo {
     workingDir.mkdirs();
 
     Gcc gcc = new Gcc(workingDir);
+    gcc.setTrace(tracePlugin);
+
     if(Strings.isNullOrEmpty(System.getProperty("gcc.bridge.plugin"))) {
       try {
         gcc.extractPlugin();
@@ -171,7 +175,6 @@ public class GccBridgeMojo extends AbstractMojo {
     if(cxxFlags != null) {
       gcc.addCxxFlags(cxxFlags);
     }
-    
     
     if(includeDirectories != null) {
       for (File includeDirectory : includeDirectories) {

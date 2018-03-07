@@ -62,8 +62,11 @@ int json_needs_comma = 0;
 #define JSON_OBJECT  2
 
 
-//#define TRACE(...) printf(__VA_ARGS__)
+#ifdef TRACE_GCC_BRIDGE
+#define TRACE(...) printf(__VA_ARGS__)
+#else
 #define TRACE(...) do { if(0) printf(__VA_ARGS__); } while(0)
+#endif
 
 typedef struct json_context {
   int needs_comma;
@@ -1020,7 +1023,9 @@ static unsigned int dump_function (void)
   if(errorcount > 0) {
    return 0;
   }
-  
+
+  TRACE("dump_function: pre-entering\n");
+
   TRACE("dump_function: entering %s\n", IDENTIFIER_POINTER(DECL_NAME(cfun->decl)) );
 
   
@@ -1138,7 +1143,7 @@ static void start_unit_callback (void *gcc_data, void *user_data)
 
 static void dump_aliases() {
 
-  TRACE("dump_function: checking aliases\n");
+  TRACE("dump_aliases: checking aliases\n");
   json_array_field("aliases");
 
   struct cgraph_node *n;

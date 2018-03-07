@@ -1,6 +1,7 @@
 # adapted from https://github.com/wch/r-source/tree/trunk/src/library/methods/tests
 
 library(stats)
+library(methods)
 library(hamcrest)
 
 test.setClassInheritNonConditionalExplicit <- function(){

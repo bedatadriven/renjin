@@ -18,6 +18,7 @@
  */
 package org.renjin.methods;
 
+import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.Context.Type;
 import org.renjin.eval.EvalException;
@@ -31,6 +32,8 @@ import org.renjin.s4.*;
 import org.renjin.sexp.*;
 
 import java.util.Map;
+
+import static org.renjin.s4.S4.generateCallMetaData;
 
 public class Methods {
 
@@ -370,8 +373,9 @@ public class Methods {
 
     Closure function = selectedMethod.getMethod().getDefinition();
 
+    Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, fname);
     FunctionCall call = new FunctionCall(function, arguments.getPromisedArgs());
-    return context.evaluate(call);
+    return ClosureDispatcher.apply(context, context.getEnvironment(), call, function, arguments.getPromisedArgs(), metadata);
   }
 
 

@@ -140,8 +140,8 @@ public class MethodDispatch {
     }
   }
 
-  public SEXP R_dispatchGeneric(Context context, Symbol fname, Environment ev, SEXP fdef)   {
-   throw new UnsupportedOperationException("TO REMOVE");
+  public SEXP R_dispatchGeneric(Context context, Symbol fname, Environment ev, SEXP fdef) {
+    throw new UnsupportedOperationException("TO REMOVE");
   }
 
 

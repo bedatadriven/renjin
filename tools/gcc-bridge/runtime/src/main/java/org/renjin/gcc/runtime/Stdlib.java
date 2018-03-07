@@ -18,6 +18,7 @@
  */
 package org.renjin.gcc.runtime;
 
+import org.renjin.gcc.StdOutHandle;
 import org.renjin.gcc.annotations.Struct;
 
 import java.io.FileNotFoundException;
@@ -46,6 +47,8 @@ public class Stdlib {
   public static int timezone;
   public static int daylight;
 
+  public static final StdOutHandle stdout = new StdOutHandle(System.out);
+  public static final StdOutHandle stderr = new StdOutHandle(System.err);
 
   @Deprecated
   public static int strncmp(BytePtr x, BytePtr y, int n) {
@@ -703,6 +706,30 @@ public class Stdlib {
   public static int fgetc(Ptr stream) {
     try {
       return ((FileHandle) stream.getArray()).read();
+    } catch (IOException e) {
+      return -1;
+    }
+  }
+
+  /**
+   *
+   * Writes a character (an unsigned char) specified by the argument char to the specified stream
+   * and advances the position indicator for the stream.
+   *
+
+   *
+   * @param character This is the character to be written. This is passed as its int promotion.
+   * @param stream This is the pointer to a FILE object that identifies the stream where the
+   *               character is to be written.
+   *
+   * @return If there are no errors, the same character that has been written is returned.
+   * If an error occurs, EOF is returned and the error indicator is set.   \
+   */
+  public static int fputc(int character, Ptr stream) {
+    FileHandle handle = (FileHandle) stream.getArray();
+    try {
+      handle.write(character);
+      return character;
     } catch (IOException e) {
       return -1;
     }

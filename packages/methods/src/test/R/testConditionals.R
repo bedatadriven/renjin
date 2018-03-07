@@ -1,6 +1,7 @@
 # adapted from https://github.com/wch/r-source/tree/trunk/src/library/methods/tests
 
 library(hamcrest)
+library(methods)
 
 test.setClassSetGeneric <- function() {
 

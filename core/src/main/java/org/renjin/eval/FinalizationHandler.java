@@ -29,5 +29,5 @@ public interface FinalizationHandler {
    * @param context the context in which any R function should be evaluated
    * @param sexp the SEXP to be finalized before being collected by the garbage collector
    */
-  void finalize(Context context, SEXP sexp);
+  void finalizeSexp(Context context, SEXP sexp);
 }

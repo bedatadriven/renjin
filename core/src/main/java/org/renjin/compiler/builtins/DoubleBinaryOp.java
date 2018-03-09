@@ -76,7 +76,7 @@ public class DoubleBinaryOp implements Specialization {
     List<JvmMethod.Argument> formals = overload.getPositionalFormals();
     if(formals.size() == 2 &&
         formals.get(0).getClazz().equals(double.class) &&
-        formals.get(0).getClazz().equals(double.class)) {
+        formals.get(1).getClazz().equals(double.class)) {
 
       switch (name) {
         case "+":

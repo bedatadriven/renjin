@@ -2308,7 +2308,7 @@ public final class Rinternals {
   public static void R_RegisterCFinalizerEx (SEXP s, final MethodHandle fun, boolean onexit) {
     FinalizationHandler handler = new FinalizationHandler() {
       @Override
-      public void finalize(Context context, SEXP sexp) {
+      public void finalizeSexp(Context context, SEXP sexp) {
         try {
           fun.invoke(sexp);
         } catch (Throwable throwable) {

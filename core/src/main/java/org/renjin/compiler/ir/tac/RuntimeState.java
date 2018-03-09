@@ -280,7 +280,7 @@ public class RuntimeState {
     SEXP methodTableMethodsPkg;
     List<Environment> methodTableList = new ArrayList<>();
     
-    if (SPECIAL.contains(opName)) {
+    if (SPECIAL.contains(opName.getPrintName())) {
       Namespace methodsNamespace = context.getNamespaceRegistry().getNamespace(context, "methods");
       Frame methodFrame = methodsNamespace.getNamespaceEnvironment().getFrame();
       methodTableMethodsPkg = methodFrame.getVariable(opName).force(context);

@@ -150,8 +150,4 @@ public class ConstantCall implements Specialization {
     return Converters.get(formalType).convertToJava(constantValue);
   }
 
-  private static void evaluateVarArgs(JvmMethod method, List<ValueBounds> arguments) {
-    
-    
-  }
 }

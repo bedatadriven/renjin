@@ -686,7 +686,7 @@ public class Ops  {
 
   public static double fmod(double a, double b) {
     double quotient = a / b;
-    if (b != 0) {
+    if (b != 0d) {
       double tmp = a - Math.floor(quotient) * b;
       if (isFinite(quotient) && Math.abs(quotient) > (1d / DoubleVector.EPSILON)) {
         // TODO: RContext.warning(ast, RError.ACCURACY_MODULUS);

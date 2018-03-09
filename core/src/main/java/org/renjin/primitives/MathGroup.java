@@ -273,7 +273,7 @@ public class MathGroup {
     if(digits <= 0) {
       digits = 1;
     }
-    return new BigDecimal(x).round(new MathContext(digits, RoundingMode.HALF_UP)).doubleValue();
+    return BigDecimal.valueOf(x).round(new MathContext(digits, RoundingMode.HALF_UP)).doubleValue();
   }
 
   @Deferrable
@@ -364,7 +364,7 @@ public class MathGroup {
       return sign * Math.rint(x);
     } else if (dig > 0) {
       // round to a specific number of decimal places
-      return sign * new BigDecimal(x).setScale(digits, RoundingMode.HALF_EVEN).doubleValue();
+      return sign * BigDecimal.valueOf(x).setScale(digits, RoundingMode.HALF_EVEN).doubleValue();
     } else {
       // round to the nearest power of 10
       double pow10 = Math.pow(10., -dig);

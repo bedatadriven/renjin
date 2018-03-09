@@ -119,7 +119,7 @@ public class GimpleFunction implements GimpleDecl {
   public GimpleVarDecl addVarDecl(GimpleType type) {
     // find unused id
     Set<Long> usedIds = usedIds();
-    int newId = 1000;
+    long newId = 1000;
     while(usedIds.contains(newId)) {
       newId++;
     }

@@ -21,7 +21,7 @@ package org.renjin.gcc.gimple.statement;
 import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 
 import java.util.Collections;
 import java.util.List;
@@ -71,7 +71,7 @@ public class GimpleReturn extends GimpleStatement {
 
   @Override
   public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
-    if(predicate.apply(value)) {
+    if(predicate.test(value)) {
       value = newExpr;
     } else {
       value.replaceAll(predicate, newExpr);

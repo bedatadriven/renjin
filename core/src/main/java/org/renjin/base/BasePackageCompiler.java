@@ -23,7 +23,7 @@ import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.packaging.LazyLoadFrameBuilder;
 import org.renjin.parser.RParser;
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
@@ -64,16 +64,14 @@ public class BasePackageCompiler {
 
     new LazyLoadFrameBuilder(context)
         .outputTo(new File("target/classes/org/renjin/base"))
-        .filter(new Predicate<NamedValue>() {
-          public boolean apply(NamedValue namedValue) {
-            if(omit.contains(namedValue.getName())) {
-              return false;
-            }
-            if(namedValue.getValue() instanceof PrimitiveFunction) {
-              return false;
-            }
-            return true;
+        .filter(namedValue -> {
+          if(omit.contains(namedValue.getName())) {
+            return false;
           }
+          if(namedValue.getValue() instanceof PrimitiveFunction) {
+            return false;
+          }
+          return true;
         })
         .build(baseNamespaceEnv);
   }

@@ -23,7 +23,7 @@ import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
 import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 
 /**
  * Gimple Variable Declaration
@@ -198,16 +198,6 @@ public class GimpleVarDecl implements GimpleDecl {
 
   public void setStatic(boolean _static) {
     this._static = _static;
-  }
-
-  public Predicate<GimpleExpr> isReference() {
-    return new Predicate<GimpleExpr>() {
-      @Override
-      public boolean apply(GimpleExpr input) {
-        return input instanceof GimpleSymbolRef && 
-            ((GimpleSymbolRef) input).getId() == id;
-      }
-    };
   }
 
   public GimpleVariableRef newRef() {

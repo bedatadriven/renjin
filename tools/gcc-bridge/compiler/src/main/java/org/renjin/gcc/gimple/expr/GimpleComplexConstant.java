@@ -20,7 +20,7 @@ package org.renjin.gcc.gimple.expr;
 
 
 import org.renjin.gcc.gimple.GimpleExprVisitor;
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 
 public class GimpleComplexConstant extends GimpleConstant {
 

@@ -20,7 +20,7 @@ package org.renjin.gcc.gimple.expr;
 
 import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 
 public class GimpleVariableRef extends GimpleLValue implements GimpleSymbolRef {
 

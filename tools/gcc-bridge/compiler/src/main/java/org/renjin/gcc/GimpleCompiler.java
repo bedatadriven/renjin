@@ -35,7 +35,7 @@ import org.renjin.gcc.logging.LogManager;
 import org.renjin.gcc.symbols.GlobalSymbolTable;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Preconditions;
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.repackaged.guava.collect.Sets;

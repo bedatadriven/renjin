@@ -28,7 +28,7 @@ import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.guava.base.Joiner;
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.*;

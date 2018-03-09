@@ -23,7 +23,7 @@ import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.base.Preconditions;
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.Collections;
@@ -135,7 +135,7 @@ public class GimpleSwitch extends GimpleStatement {
 
   @Override
   public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
-    if(predicate.apply(value)) {
+    if(predicate.test(value)) {
       value = newExpr;
     } else {
       value.replaceAll(predicate, newExpr);

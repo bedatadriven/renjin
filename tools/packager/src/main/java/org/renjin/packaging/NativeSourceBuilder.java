@@ -27,7 +27,6 @@ import org.renjin.gnur.GnurSourcesCompiler;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
-import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.io.Files;
 import org.renjin.repackaged.guava.io.LineProcessor;
@@ -36,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
@@ -203,7 +203,7 @@ public class NativeSourceBuilder {
     if(entryPoints != null && !entryPoints.isEmpty()) {
       compiler.setEntryPointPredicate(new Predicate<GimpleFunction>() {
         @Override
-        public boolean apply(GimpleFunction input) {
+        public boolean test(GimpleFunction input) {
           return entryPoints.contains(input.getMangledName());
         }
       });

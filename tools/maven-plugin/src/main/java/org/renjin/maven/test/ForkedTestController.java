@@ -20,6 +20,7 @@ package org.renjin.maven.test;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
 
@@ -50,6 +51,10 @@ public class ForkedTestController {
   private File testReportsDirectory;
   private TestReporter reporter;
   private String argLine;
+
+  public ForkedTestController() {
+    this(new SystemStreamLog());
+  }
 
   public ForkedTestController(Log log) {
     this.log = log;

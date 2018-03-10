@@ -74,7 +74,7 @@
 
     <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
     <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
-    <sonar.jacoco.reportPath>target/jacoco.exec</sonar.jacoco.reportPath>
+    <sonar.jacoco.reportPaths>target/jacoco.exec</sonar.jacoco.reportPaths>
   </properties>
 
   <scm>
@@ -246,7 +246,7 @@ https://www.gnu.org/licenses/gpl-2.0.txt
         <artifactId>jacoco-maven-plugin</artifactId>
         <version>0.8.0</version>
         <configuration>
-          <destFile>${sonar.jacoco.reportPath}</destFile>
+          <destFile>${jacoco.reportPath}</destFile>
           <append>true</append>
         </configuration>
         <executions>

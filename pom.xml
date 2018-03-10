@@ -70,11 +70,9 @@
     <plexusCompilerVersion>2.7</plexusCompilerVersion>
 
     <!-- Tell Jacoco to write to a single project-wide output file -->
-    <jacoco.reportPath>${session.executionRootDirectory}/target/jacoco.exec</jacoco.reportPath>
-
+    <sonar.jacoco.reportPath>${session.executionRootDirectory}/target/jacoco.exec</sonar.jacoco.reportPath>
     <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
     <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
-    <sonar.jacoco.reportPaths>target/jacoco.exec</sonar.jacoco.reportPaths>
   </properties>
 
   <scm>
@@ -246,7 +244,7 @@ https://www.gnu.org/licenses/gpl-2.0.txt
         <artifactId>jacoco-maven-plugin</artifactId>
         <version>0.8.0</version>
         <configuration>
-          <destFile>${jacoco.reportPath}</destFile>
+          <destFile>${sonar.jacoco.reportPath}</destFile>
           <append>true</append>
         </configuration>
         <executions>

@@ -21,9 +21,7 @@ package org.renjin.s4;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.packaging.Namespace;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
 import java.util.Optional;
 
@@ -60,5 +58,36 @@ public class S4ClassCache {
     } else {
       return new S4Class(classRepresentation);
     }
+  }
+
+  public boolean isSimpleCoerce(String from, String to) {
+    SEXP classDef = classTable.getVariableUnsafe(from);
+    ListVector contains = (ListVector) classDef.getAttribute(Symbol.get("contains"));
+    int index = contains.getIndexByName(to);
+    if(index != -1) {
+      SEXP classExtension = contains.getElementAsSEXP(index);
+      SEXP simple = classExtension.getAttribute(Symbol.get("simple"));
+      return ((LogicalArrayVector) simple).isElementTrue(0);
+    }
+    return true;
+  }
+
+  public SEXP coerceSimple(Context context, SEXP value, String from, String to) {
+    SEXP classDef = classTable.getVariableUnsafe(from);
+    ListVector contains = (ListVector) classDef.getAttribute(Symbol.get("contains"));
+    int toIndex = contains.getIndexByName(to);
+    if(toIndex != -1) {
+      S4Object fromClass = (S4Object) contains.getElementAsSEXP(toIndex);
+      Closure coerce = (Closure) fromClass.getAttribute(Symbol.get("coerce"));
+      String by = fromClass.getAttribute(Symbol.get("by")).asString();
+      FunctionCall call = new FunctionCall(coerce, new PairList.Node(value, Null.INSTANCE));
+      SEXP res = context.evaluate(call);
+      return res;
+    }
+    return value;
+  }
+
+  public SEXP coerceComplex(Context context, SEXP value, String from, String to) {
+    return value;
   }
 }

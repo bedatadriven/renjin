@@ -33,6 +33,8 @@ import org.renjin.sexp.*;
 
 import java.util.Map;
 
+import static org.renjin.methods.MethodDispatch.R_dot_defined;
+import static org.renjin.methods.MethodDispatch.R_dot_target;
 import static org.renjin.s4.S4.generateCallMetaData;
 
 public class Methods {
@@ -371,12 +373,35 @@ public class Methods {
       return null;
     }
 
+    int sigLength = selectedMethod.getMethod().getSignatureLength();
     Closure function = selectedMethod.getMethod().getDefinition();
+    Signature definedSignature = selectedMethod.getMethod().getSignature();
+    Signature targetSignature = arguments.getSignature(sigLength);
+
     Map<Symbol, SEXP> metadata = generateCallMetaData(selectedMethod, fname);
     metadata.put(R_dot_defined, Symbol.get(definedSignature.toString()));
     metadata.put(R_dot_target, Symbol.get(targetSignature.toString()));
 
-    Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, fname);
+    PairList.Builder coercedArgs = new PairList.Builder();
+    int step = 0;
+    for(PairList.Node arg : arguments.getPromisedArgs().nodes()) {
+      SEXP value = arg.getValue();
+      String from = targetSignature.getClass(step);
+      String to = definedSignature.getClass(step);
+      if(to.equals(from)) {
+        coercedArgs.add(arg.getRawTag(), value);
+      } else {
+        SEXP coercedArg;
+        if(classCache.isSimpleCoerce(from, to)) {
+          coercedArg = classCache.coerceSimple(context, value, from, to);
+        } else {
+          coercedArg = classCache.coerceComplex(context, value, from, to);
+        }
+        coercedArgs.add(arg.getRawTag(), coercedArg);
+      }
+      step += 1;
+    }
+
     FunctionCall call = new FunctionCall(function, arguments.getPromisedArgs());
     return ClosureDispatcher.apply(context, context.getEnvironment(), call, function, arguments.getPromisedArgs(), metadata);
   }

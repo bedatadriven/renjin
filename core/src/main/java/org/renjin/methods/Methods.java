@@ -372,6 +372,9 @@ public class Methods {
     }
 
     Closure function = selectedMethod.getMethod().getDefinition();
+    Map<Symbol, SEXP> metadata = generateCallMetaData(selectedMethod, fname);
+    metadata.put(R_dot_defined, Symbol.get(definedSignature.toString()));
+    metadata.put(R_dot_target, Symbol.get(targetSignature.toString()));
 
     Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, fname);
     FunctionCall call = new FunctionCall(function, arguments.getPromisedArgs());

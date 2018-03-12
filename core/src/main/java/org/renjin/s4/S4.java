@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.renjin.methods.MethodDispatch.*;
+
 public class S4 {
 
 
@@ -64,7 +66,7 @@ public class S4 {
       return context.evaluate(call);
       
     } else {
-      Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, opName);
+      Map<Symbol, SEXP> metadata = generateCallMetaData(selectedMethod, opName);
       FunctionCall call = new FunctionCall(function, arguments.getPromisedArgs());
       return ClosureDispatcher.apply(context, rho, call, function, arguments.getPromisedArgs(), metadata);
     }
@@ -76,152 +78,54 @@ public class S4 {
     return (!opName.contains("<-") && (genericExact || hasS3Class));
   }
 
-  public static Map<Symbol, SEXP> generateCallMetaData(Context context, RankedMethod method, String opName) {
+  public static Map<Symbol, SEXP> generateCallMetaData(RankedMethod method, String opName) {
     Map<Symbol, SEXP> metadata = new HashMap<>();
-    metadata.put(Symbol.get(".defined"), buildDotTargetOrDefined(context, method, true));
-    metadata.put(Symbol.get(".Generic"), buildDotGeneric(opName));
+
+
+    /**
+     * Current GNU R (v3.3.1) seems to set the package-attribute in '.target' to
+     * 'methods' for all the arguments (independent of input and method signature).
+     * <p>
+     * For '.defined', the class of selected method formals are used. 'methods' is
+     * used for the selected method arguments of class "ANY" or atomic vectors.
+     * <p>
+     * > setClass("A", representation(a="numeric"))
+     * > setMethod("[", signature("A","A","ANY"), function(x,i,j,...) environment())
+     * > x <- a[a,1]
+     * > cat(deparse( attr(x$.target, "package") ))
+     * c("methods", "methods","methods")
+     * > cat(deparse( attr(x$.defined, "package") ))
+     * c("methods", ".GlobalEnv","methods")
+     */
+    PairList attrib = method.getMethod().getDefinition().getAttributes().asPairList();
+    for(PairList.Node s : attrib.nodes()) {
+      SEXP t = s.getTag();
+      if(t == R_defined) {
+        metadata.put(R_dot_defined, s.getValue());
+      } else if(t == s_generic) {
+        metadata.put(DOT_GENERIC, s.getValue());
+      }
+      else if(t == Symbols.SOURCE)  {
+      }
+    }
     metadata.put(Symbol.get(".Method"), method.getFunction());
     metadata.put(Symbol.get(".Methods"), Symbol.get(".Primitive(\"" + opName + "\")"));
-    metadata.put(Symbol.get(".target"), buildDotTargetOrDefined(context, method, false));
     return metadata;
   }
 
-  private static SEXP buildDotGeneric(String opName) {
-    SEXP generic = StringVector.valueOf(opName);
-    generic.setAttribute("package", StringVector.valueOf("base"));
-    return generic;
-  }
-
-  /**
-   * Current GNU R (v3.3.1) seems to set the package-attribute in '.target' to
-   * 'methods' for all the arguments (independent of input and method signature).
-   * <p>
-   * For '.defined', the class of selected method formals are used. 'methods' is
-   * used for the selected method arguments of class "ANY" or atomic vectors.
-   * <p>
-   * > setClass("A", representation(a="numeric"))
-   * > setMethod("[", signature("A","A","ANY"), function(x,i,j,...) environment())
-   * > x <- a[a,1]
-   * > cat(deparse( attr(x$.target, "package") ))
-   * c("methods", "methods","methods")
-   * > cat(deparse( attr(x$.defined, "package") ))
-   * c("methods", ".GlobalEnv","methods")
-   */
-  private static SEXP buildDotTargetOrDefined(Context context, RankedMethod method, boolean defined) {
-
-    List<String> argumentClasses = method.getMethod().getSignature().getClasses();
-    List<String> argumentPackages = new ArrayList<>();
-
-    if (defined) {
-      for (String argumentClass : argumentClasses) {
-        argumentPackages.add(findClassOrMethodName(context, argumentClass, ".__C__", "methods", false));
-      }
-    } else {
-      for (String ignored : argumentClasses) {
-        argumentPackages.add("methods");
-      }
-    }
-
-    return new StringVector.Builder()
-        .addAll(argumentClasses)
-        .setAttribute("names", method.getMethod().getFormalNames())
-        .setAttribute("package", new StringArrayVector(argumentPackages))
-        .setAttribute("class", classWithPackage("signature", "methods"))
-        .build();
-  }
-
-  private static SEXP classWithPackage(String className, String packageName) {
-    return StringVector.valueOf(className)
-        .setAttribute("package", StringVector.valueOf(packageName));
-  }
-
-  public static List<Environment> findMethodTable(Context context, String opName) {
-    String genericName = findClassOrMethodName(context, opName, ".__T__", "base", true);
-    List<Environment> methodTableList = new ArrayList<>();
-
-    List<String> pkgNames = getNamesLoadedPackages(context);
-    pkgNames.add(0, ".GlobalEnv");
-    for (String pkg : pkgNames) {
-      SEXP methodTablePackage = getFromPackage(context, pkg, genericName);
-      if (methodTablePackage instanceof Environment) {
-        methodTableList.add((Environment) methodTablePackage);
-      }
-    }
-
-    return methodTableList.size() == 0 ? null : methodTableList;
-  }
-
-  private static String findClassOrMethodName(Context context, String name, String what, String altValue, boolean method) {
-
-    String sourcePackage = null;
-    String className = what + name;
-
-    List<String> loadedPackages = getNamesLoadedPackages(context);
-    loadedPackages.add(0, ".GlobalEnv");
-
-    for (int i = 0; i < loadedPackages.size() && sourcePackage == null; i++) {
-      String pkgName = loadedPackages.get(i);
-      String methodName = what + name + ":" + pkgName;
-      String generic = method ? methodName : className;
-      SEXP methodTable = getFromPackage(context, pkgName, generic);
-      if (methodTable instanceof Environment || methodTable instanceof S4Object) {
-        sourcePackage = method ? methodName : pkgName;
-      }
-    }
-
-    if (sourcePackage == null) {
-      sourcePackage = method ? what + name + ":" + altValue : altValue;
-    }
-
-    return sourcePackage;
-  }
-
-  public static Frame getPackageFrame(Context context, String name) {
-    if (".GlobalEnv".equals(name)) {
-      return context.getGlobalEnvironment().getFrame();
-    }
-    Namespace pkgNamespace = context.getNamespaceRegistry().getNamespace(context, name);
-    return pkgNamespace.getNamespaceEnvironment().getFrame();
-  }
-
-  public static SEXP getFromPackage(Context context, String pkg, String what) {
-    Frame pkgFrame = getPackageFrame(context, pkg);
-    return pkgFrame.getVariable(Symbol.get(what)).force(context);
-  }
-
-  public static List<String> getNamesLoadedPackages(Context context) {
-    List<String> loadedPackages = new ArrayList<>();
-    for (Symbol symbol : context.getNamespaceRegistry().getLoadedNamespaceNames()) {
-      loadedPackages.add(symbol.getPrintName());
-    }
-    return loadedPackages;
-  }
-
-
-  private static SEXP getContainsSlot(Context context, String objClass) {
-    SEXP classDef = getClassDef(context, objClass);
-    AttributeMap map = classDef.getAttributes();
-    return map.get("contains");
-  }
-
-  private static SEXP getClassDef(Context context, String className) {
-    return getClassTable(context).
-        findVariable(context, Symbol.get(className));
-  }
-
-  private static Environment getClassTable(Context context) {
-    return (Environment) getMethodsNamespaceEnv(context)
-        .findVariableUnsafe(Symbol.get(".classTable")).force(context);
-  }
-
-  private static Environment getMethodsNamespaceEnv(Context context) {
-    return context.getNamespaceRegistry()
+  public static AtomicVector getSuperClassesS4(Context context, String objClass) {
+    Environment methodsEnv = context.getNamespaceRegistry()
         .getNamespace(context, "methods")
         .getNamespaceEnvironment();
-  }
 
-  public static AtomicVector getSuperClassesS4(Context context, String objClass) {
-    SEXP containsSlot = getContainsSlot(context, objClass);
+    Environment classTable = (Environment) methodsEnv
+        .findVariableUnsafe(Symbol.get(".classTable")).force(context);
+
+    SEXP classDef = classTable
+        .findVariable(context, Symbol.get(objClass));
+
+    AttributeMap map = classDef.getAttributes();
+    SEXP containsSlot = map.get("contains");
     return containsSlot.getNames();
   }
 

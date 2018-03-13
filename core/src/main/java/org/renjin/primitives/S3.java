@@ -667,22 +667,6 @@ public class S3 {
         if(method != null) {
           return method;
         }
-        if(Types.isS4(object) && isS4DispatchSupported(genericMethodName)) {
-          List<Environment> methodTables = S4.findMethodTable(context, genericMethodName);
-          if(methodTables != null) {
-            Iterator<Environment> methodTableItr = methodTables.iterator();
-            while (method == null && methodTableItr.hasNext()) {
-              Environment env = methodTableItr.next();
-              SEXP methodName = env.getFrame().getVariable(Symbol.get(className));
-              if(methodName instanceof GenericMethod) {
-                method = (GenericMethod) methodName;
-              }
-            }
-            if(method != null) {
-              return method;
-            }
-          }
-        }
         if(group != null) {
           method = findNext(methodTable, group, className);
           if(method != null) {

@@ -382,30 +382,43 @@ public class Methods {
     metadata.put(R_dot_defined, Symbol.get(definedSignature.toString()));
     metadata.put(R_dot_target, Symbol.get(targetSignature.toString()));
 
+    PairList.Builder coercedArgs = coerceArguments(context, arguments, classCache, sigLength, definedSignature, targetSignature);
+
+    if("initialize".equals(fname)) {
+      FunctionCall call = new FunctionCall(function, arguments.getPromisedArgs());
+      return ClosureDispatcher.apply(context, context.getEnvironment(), call, function, arguments.getPromisedArgs(), metadata);
+    }
+    FunctionCall call = new FunctionCall(function, coercedArgs.build());
+    SEXP result = ClosureDispatcher.apply(context, context.getEnvironment(), call, function, coercedArgs.build(), metadata);
+    return result;
+  }
+
+  public static PairList.Builder coerceArguments(@Current Context context, CallingArguments arguments, S4ClassCache classCache, int sigLength, Signature definedSignature, Signature targetSignature) {
     PairList.Builder coercedArgs = new PairList.Builder();
     int step = 0;
     for(PairList.Node arg : arguments.getPromisedArgs().nodes()) {
       SEXP value = arg.getValue();
-      String from = targetSignature.getClass(step);
-      String to = definedSignature.getClass(step);
-      if(to.equals(from)) {
-        coercedArgs.add(arg.getRawTag(), value);
-      } else {
-        SEXP coercedArg;
-        if(classCache.isSimpleCoerce(from, to)) {
-          coercedArg = classCache.coerceSimple(context, value, from, to);
+      if(step < sigLength) {
+        String from = targetSignature.getClass(step);
+        String to = definedSignature.getClass(step);
+        if(to.equals(from) || to.equals("ANY")) {
+          coercedArgs.add(arg.getRawTag(), value);
         } else {
-          coercedArg = classCache.coerceComplex(context, value, from, to);
+          SEXP coercedArg;
+          if(classCache.isSimpleCoerce(from, to)) {
+            coercedArg = classCache.coerceSimple(context, value, from, to);
+          } else {
+            coercedArg = classCache.coerceComplex(context, value, from, to);
+          }
+          coercedArgs.add(arg.getRawTag(), coercedArg);
         }
-        coercedArgs.add(arg.getRawTag(), coercedArg);
+        step += 1;
+      } else {
+        coercedArgs.add(arg.getRawTag(), value);
       }
-      step += 1;
     }
-
-    FunctionCall call = new FunctionCall(function, arguments.getPromisedArgs());
-    return ClosureDispatcher.apply(context, context.getEnvironment(), call, function, arguments.getPromisedArgs(), metadata);
+    return coercedArgs;
   }
-
 
 
   /* get the generic function, defined to be the function definition for

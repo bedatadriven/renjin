@@ -236,10 +236,5 @@ public class RuntimeState {
     
     return null;
   }
-  
-  
-  // related to S4 method dispatch
-  public static final Set<String> GROUPS = Sets.newHashSet("Ops", "Math", "Summary");
 
-  private static final Set<String> SPECIAL = Sets.newHashSet("$", "$<-");
 }

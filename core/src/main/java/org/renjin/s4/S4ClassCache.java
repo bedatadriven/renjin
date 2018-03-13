@@ -79,7 +79,6 @@ public class S4ClassCache {
     if(toIndex != -1) {
       S4Object fromClass = (S4Object) contains.getElementAsSEXP(toIndex);
       Closure coerce = (Closure) fromClass.getAttribute(Symbol.get("coerce"));
-      String by = fromClass.getAttribute(Symbol.get("by")).asString();
       FunctionCall call = new FunctionCall(coerce, new PairList.Node(value, Null.INSTANCE));
       SEXP res = context.evaluate(call);
       return res;
@@ -88,6 +87,41 @@ public class S4ClassCache {
   }
 
   public SEXP coerceComplex(Context context, SEXP value, String from, String to) {
+    SEXP classDef = classTable.getVariableUnsafe(from);
+    ListVector contains = (ListVector) classDef.getAttribute(Symbol.get("contains"));
+    int toIndex = contains.getIndexByName(to);
+    if(toIndex != -1) {
+      // get sloth with information about target class and create
+      // new function call to perform the coercion (if "by" field is defined
+      // this is an intermediate stage).
+      S4Object fromClass = (S4Object) contains.getElementAsSEXP(toIndex);
+      Closure coerce = (Closure) fromClass.getAttribute(Symbol.get("coerce"));
+      FunctionCall call = new FunctionCall(coerce, new PairList.Node(value, Null.INSTANCE));
+
+      // get the "by" field. to know which coerce function to use to get to final format
+      String by = fromClass.getAttribute(Symbol.get("by")).asString();
+      SEXP res = context.evaluate(call);
+
+      if(by.isEmpty()) {
+        return res;
+      } else {
+        // the "by" field is provided. the coercion should be followed with
+        // coercion provided in "by" class
+
+        // get the "by" class information, if "by" is not in contained classes than
+        // assume its a function
+        int byIndex = contains.getIndexByName(by);
+        if(byIndex != -1) {
+          S4Object byClass = (S4Object) contains.getElementAsSEXP(byIndex);
+          Closure byCoerce = (Closure) byClass.getAttribute(Symbol.get("coerce"));
+          FunctionCall byCall = new FunctionCall(byCoerce, new PairList.Node(value, Null.INSTANCE));
+          return context.evaluate(byCall);
+        } else {
+          FunctionCall byCall = new FunctionCall(Symbol.get(by), new PairList.Node(call, Null.INSTANCE));
+          return context.evaluate(byCall);
+        }
+      }
+    }
     return value;
   }
 }

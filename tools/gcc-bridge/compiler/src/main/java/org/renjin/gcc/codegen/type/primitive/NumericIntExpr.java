@@ -16,53 +16,35 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc;
+package org.renjin.gcc.codegen.type.primitive;
 
-import org.renjin.gcc.gimple.GimpleFunction;
-import org.renjin.gcc.symbols.SymbolTable;
-import org.renjin.repackaged.asm.tree.MethodNode;
-import org.renjin.repackaged.guava.io.ByteStreams;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.type.NumericExpr;
+import org.renjin.gcc.codegen.type.complex.ComplexExpr;
 
-import java.io.PrintWriter;
-
-/**
- * TreeLogger implementation which does nothing.
- */
-public class NullTreeLogger extends TreeLogger {
-  @Override
-  public boolean isEnabled() {
-    return false;
-  }
+public interface NumericIntExpr extends IntExpr, NumericExpr {
 
   @Override
-  public PrintWriter debugLog(String name) {
-    return new PrintWriter(ByteStreams.nullOutputStream());
-  }
+  NumericIntExpr plus(GExpr operand);
 
   @Override
-  public void dump(String dir, String file, String ext, Object value) {
-  }
+  NumericIntExpr minus(GExpr operand);
 
   @Override
-  public void dumpHtml(SymbolTable symbolTable, GimpleFunction gimpleFunction, MethodNode methodNode) {
-
-  }
+  NumericIntExpr multiply(GExpr operand);
 
   @Override
-  public void log(Level level, String message) {
-  }
+  NumericIntExpr absoluteValue();
 
   @Override
-  public TreeLogger branch(Level level, String message) {
-    return this;
-  }
+  NumericIntExpr bitwiseXor(GExpr operand);
 
   @Override
-  public TreeLogger debug(String message, Object code) {
-    return this;
-  }
+  NumericIntExpr bitwiseNot();
 
   @Override
-  public void finish() {
-  }
+  NumericIntExpr bitwiseAnd(GExpr operand);
+
+  @Override
+  NumericIntExpr bitwiseOr(GExpr operand);
 }

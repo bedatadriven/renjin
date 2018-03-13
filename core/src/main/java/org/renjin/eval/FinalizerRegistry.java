@@ -46,7 +46,7 @@ public class FinalizerRegistry {
     }
 
     private void invoke(Context context) {
-      function.finalize(context, get());
+      function.finalizeSexp(context, get());
     }
 
     public SEXP getSexp() {

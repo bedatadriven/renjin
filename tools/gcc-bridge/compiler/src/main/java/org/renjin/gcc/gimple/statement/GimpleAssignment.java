@@ -24,7 +24,7 @@ import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleLValue;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.Arrays;
@@ -84,7 +84,7 @@ public class GimpleAssignment extends GimpleStatement {
 
   @Override
   public boolean lhsMatches(Predicate<? super GimpleLValue> predicate) {
-    return predicate.apply(lhs);
+    return predicate.test(lhs);
   }
 
 
@@ -107,7 +107,7 @@ public class GimpleAssignment extends GimpleStatement {
 
   @Override
   public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
-    if(predicate.apply(lhs)) {
+    if(predicate.test(lhs)) {
       lhs = (GimpleLValue) newExpr;
     } else {
       lhs.replaceAll(predicate, newExpr);

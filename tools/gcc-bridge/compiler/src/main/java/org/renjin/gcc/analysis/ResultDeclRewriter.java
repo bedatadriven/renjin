@@ -18,11 +18,8 @@
  */
 package org.renjin.gcc.analysis;
 
-import org.renjin.gcc.TreeLogger;
-import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gcc.gimple.GimpleExprVisitor;
-import org.renjin.gcc.gimple.GimpleFunction;
-import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.gcc.gimple.*;
+import org.renjin.gcc.logging.LogManager;
 import org.renjin.gcc.gimple.expr.GimpleAddressOf;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleResultDecl;
@@ -42,7 +39,7 @@ public class ResultDeclRewriter implements FunctionBodyTransformer {
   public static final ResultDeclRewriter INSTANCE = new ResultDeclRewriter();
 
   @Override
-  public boolean transform(TreeLogger logger, GimpleCompilationUnit unit, GimpleFunction fn) {
+  public boolean transform(LogManager logManager, GimpleCompilationUnit unit, GimpleFunction fn) {
     
     // Does this function use a return_decl expression?
     ResultDeclMatcher matcher = new ResultDeclMatcher();
@@ -68,7 +65,7 @@ public class ResultDeclRewriter implements FunctionBodyTransformer {
         ref = new GimpleVariableRef(returnVar.getId(), fn.getReturnType());
       }
 
-      fn.replaceAll(Predicates.instanceOf(GimpleResultDecl.class), ref);
+      fn.replaceAll(expr -> expr instanceof GimpleResultDecl, ref);
       
       assertResultDeclsAreReplaced(fn);
       

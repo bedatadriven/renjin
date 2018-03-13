@@ -23,7 +23,6 @@ import org.apache.commons.math.special.Erf;
 import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GccException;
 import org.renjin.gcc.GimpleCompiler;
-import org.renjin.gcc.HtmlTreeLogger;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gnur.api.*;
 import org.renjin.gnur.api.Error;
@@ -150,9 +149,7 @@ public class GnurSourcesCompiler {
 
       setupCompiler(compiler);
 
-      if(loggingDir != null) {
-        compiler.setLogger(new HtmlTreeLogger(loggingDir));
-      }
+      compiler.setLoggingDirectory(loggingDir);
 
       compiler.compile(units);
     }

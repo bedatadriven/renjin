@@ -21,7 +21,7 @@ package org.renjin.sexp;
 import org.renjin.base.BaseFrame;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
 
@@ -452,7 +452,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
       if(value instanceof Promise) {
         value = value.force(context);
       }
-      if(predicate.apply(value)) {
+      if(predicate.test(value)) {
         return value;
       }
     }

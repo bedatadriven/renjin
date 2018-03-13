@@ -19,13 +19,21 @@
 package org.renjin.compiler.ir.tac;
 
 import org.renjin.compiler.NotCompilableException;
+import org.renjin.compiler.builtins.ArgumentBounds;
+import org.renjin.compiler.ir.TypeSet;
+import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
+import org.renjin.eval.ArgumentMatcher;
 import org.renjin.eval.Context;
+import org.renjin.eval.MatchedArgumentPositions;
 import org.renjin.packaging.SerializedPromise;
 import org.renjin.primitives.S3;
+import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.repackaged.guava.collect.Sets;
+import org.renjin.repackaged.guava.primitives.Ints;
 import org.renjin.sexp.*;
+import org.renjin.sexp.Vector;
 
 import java.util.*;
 

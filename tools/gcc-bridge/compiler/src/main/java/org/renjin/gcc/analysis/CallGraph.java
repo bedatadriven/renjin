@@ -100,7 +100,7 @@ public class CallGraph {
       for (GimpleFunction function : unit.getFunctions()) {
         FunctionNode node = new FunctionNode(unit, function);
         unitScope.put(function.getName(), node);
-        if(function.isExtern()) {
+        if(function.isPublic()) {
           globalScope.put(function.getName(), node);
         }
         functionNodes.add(node);

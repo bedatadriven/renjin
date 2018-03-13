@@ -37,15 +37,26 @@ public interface FileHandle {
   int SEEK_END = 2;
 
 
-
   int read() throws IOException;
 
+  /**
+   * Checks if the error indicator associated with stream is set, returning a value different from zero if it is.
+   */
+  int getError();
+
+  void clearError();
+
   void write(int b) throws IOException;
+
+  void rewind() throws IOException;
 
   void flush() throws IOException;
 
   void close() throws IOException;
 
+  /**
+   * Sets the cursor to an offset from the beginning of the file.
+   */
   void seekSet(long offset) throws IOException;
 
   void seekCurrent(long offset) throws IOException;

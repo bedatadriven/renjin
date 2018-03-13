@@ -25,7 +25,7 @@ import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.complex.ComplexExpr;
 
 
-public abstract class AbstractIntExpr extends AbstractPrimitiveExpr implements IntExpr, NumericExpr {
+public abstract class AbstractIntExpr extends AbstractPrimitiveExpr implements NumericIntExpr {
 
   protected AbstractIntExpr(JExpr expr, PtrExpr address) {
     super(expr, address);

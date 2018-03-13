@@ -18,7 +18,7 @@
  */
 package org.renjin.gcc.analysis;
 
-import org.renjin.gcc.TreeLogger;
+import org.renjin.gcc.logging.LogManager;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleFunction;
@@ -39,7 +39,7 @@ public class LocalVariablePruner implements FunctionBodyTransformer {
   public static final LocalVariablePruner INSTANCE = new LocalVariablePruner();
   
   @Override
-  public boolean transform(TreeLogger logger, GimpleCompilationUnit unit, GimpleFunction fn) {
+  public boolean transform(LogManager logManager, GimpleCompilationUnit unit, GimpleFunction fn) {
 
     VariableRefFinder refFinder = new VariableRefFinder();
     fn.accept(refFinder);

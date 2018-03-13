@@ -21,7 +21,11 @@ package org.renjin.gnur.api;
 
 import org.renjin.sexp.SEXP;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({
+    "unused",
+    "squid:S1172", /* Unused method parameters */
+    "squid:S00100" /* Method naming convention */
+})
 public final class Internal {
 
   private Internal() { }

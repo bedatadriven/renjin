@@ -305,9 +305,9 @@ public class DatasetsBuilder {
       
       File targetFile = new File(datasetDir, node.getName());
       FileOutputStream out = new FileOutputStream(targetFile);
-      RDataWriter writer = new RDataWriter(session.getTopLevelContext(), out);
-      writer.save(node.getValue());
-      out.close();    
+      try(RDataWriter writer = new RDataWriter(session.getTopLevelContext(), out)) {
+        writer.save(node.getValue());
+      }
     }
   }
 
@@ -318,24 +318,28 @@ public class DatasetsBuilder {
    */
   public static InputStream decompress(File file) throws IOException {
 
-    FileInputStream in = new FileInputStream(file);
-    int b1 = in.read();
-    int b2 = in.read();
-    int b3 = in.read();
-    in.close();
-    
-    if(b1 == GzFileConnection.GZIP_MAGIC_BYTE1 && b2 == GzFileConnection.GZIP_MAGIC_BYTE2) {
+    int b1;
+    int b2;
+    int b3;
+
+    try(FileInputStream in = new FileInputStream(file)) {
+      b1 = in.read();
+      b2 = in.read();
+      b3 = in.read();
+    }
+
+    if (b1 == GzFileConnection.GZIP_MAGIC_BYTE1 && b2 == GzFileConnection.GZIP_MAGIC_BYTE2) {
       return new GZIPInputStream(new FileInputStream(file));
 
-    } else if(b1 == 0xFD && b2 == '7') {
+    } else if (b1 == 0xFD && b2 == '7') {
       // See http://tukaani.org/xz/xz-javadoc/org/tukaani/xz/XZInputStream.html
       // Set a memory limit of 64mb, if this is not sufficient, it will throw
       // an exception rather than an OutOfMemoryError, which will terminate the JVM
       return new XZInputStream(new FileInputStream(file), 64 * 1024 * 1024);
-      
-    } else if (b1 == 'B' && b2 == 'Z' && b3 == 'h' ) {
+
+    } else if (b1 == 'B' && b2 == 'Z' && b3 == 'h') {
       return new BZip2CompressorInputStream(new FileInputStream(file));
-    
+
     } else {
       return new FileInputStream(file);
     }

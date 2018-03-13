@@ -358,7 +358,12 @@ public abstract class AbstractPtr implements Ptr {
 
   @Override
   public void setPointer(int offset, Ptr value) {
-    throw new UnsupportedOperationException("TODO");
+    if(value.isNull()) {
+      setInt(offset, 0);
+    } else {
+      throw new UnsupportedOperationException("Unsupported pointer store to a memory region allocated for primitives.\n" +
+          "This means something went wrong during compilation and we allocated the wrong type of storage.");
+    }
   }
 
   @Override
@@ -425,6 +430,11 @@ public abstract class AbstractPtr implements Ptr {
   public final int compareTo(Ptr o) {
 
     return compare(this, o);
+  }
+
+  @Override
+  public Ptr withOffset(int offset) {
+    return pointerPlus(offset - getOffsetInBytes());
   }
 
   public static int compare(Ptr x, Ptr y) {

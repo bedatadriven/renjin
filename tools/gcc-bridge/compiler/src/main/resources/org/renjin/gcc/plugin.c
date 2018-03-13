@@ -62,8 +62,11 @@ int json_needs_comma = 0;
 #define JSON_OBJECT  2
 
 
-//#define TRACE(...) printf(__VA_ARGS__)
+#ifdef TRACE_GCC_BRIDGE
+#define TRACE(...) printf(__VA_ARGS__)
+#else
 #define TRACE(...) do { if(0) printf(__VA_ARGS__); } while(0)
+#endif
 
 typedef struct json_context {
   int needs_comma;
@@ -1020,7 +1023,9 @@ static unsigned int dump_function (void)
   if(errorcount > 0) {
    return 0;
   }
-  
+
+  TRACE("dump_function: pre-entering\n");
+
   TRACE("dump_function: entering %s\n", IDENTIFIER_POINTER(DECL_NAME(cfun->decl)) );
 
   
@@ -1033,7 +1038,7 @@ static unsigned int dump_function (void)
   json_bool_field("weak", DECL_WEAK(cfun->decl));
   json_bool_field("inline", DECL_DECLARED_INLINE_P(cfun->decl));
 
-  json_bool_field("extern", TREE_PUBLIC(cfun->decl));
+  json_bool_field("public", TREE_PUBLIC(cfun->decl));
   
   TRACE("dump_function: dumping arguments...\n");
   dump_arguments(cfun->decl);
@@ -1097,7 +1102,8 @@ static void dump_global_var(tree var) {
   if (DECL_ASSEMBLER_NAME_SET_P (var)) {
     json_string_field("mangledName",  IDENTIFIER_POINTER (DECL_ASSEMBLER_NAME (var)));
   }
-  json_bool_field("extern", TREE_PUBLIC(var));
+  json_bool_field("public", TREE_PUBLIC(var));
+  json_bool_field("extern", DECL_EXTERNAL(var));
 
   json_field("type");
   dump_type(TREE_TYPE(var));
@@ -1138,7 +1144,7 @@ static void start_unit_callback (void *gcc_data, void *user_data)
 
 static void dump_aliases() {
 
-  TRACE("dump_function: checking aliases\n");
+  TRACE("dump_aliases: checking aliases\n");
   json_array_field("aliases");
 
   struct cgraph_node *n;
@@ -1149,7 +1155,7 @@ static void dump_aliases() {
           json_start_object();
           json_string_field("alias",  IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(n->decl)));
           json_string_field("definition",  IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(n->thunk.alias)));
-          json_bool_field("extern", TREE_PUBLIC(n->decl));
+          json_bool_field("public", TREE_PUBLIC(n->decl));
           json_end_object();
       }
     }

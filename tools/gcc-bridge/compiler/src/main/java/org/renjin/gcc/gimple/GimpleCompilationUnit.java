@@ -97,7 +97,7 @@ public class GimpleCompilationUnit {
 
   @Override
   public String toString() {
-    return Joiner.on("\n").join(functions);
+    return "GimpleCompilationUnit{" + getSourceName() + "}";
   }
 
   public void accept(GimpleExprVisitor visitor) {

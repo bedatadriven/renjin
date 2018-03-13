@@ -20,7 +20,7 @@ package org.renjin.gcc.gimple.expr;
 
 import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleParameter;
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 
 public class GimpleParamRef extends GimpleLValue implements GimpleSymbolRef {
 
@@ -42,6 +42,11 @@ public class GimpleParamRef extends GimpleLValue implements GimpleSymbolRef {
   }
 
   public String getName() {
+    return name;
+  }
+
+  @Override
+  public String getMangledName() {
     return name;
   }
 

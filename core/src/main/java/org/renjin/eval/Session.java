@@ -147,7 +147,7 @@ public class Session {
     this.topLevelContext = new Context(this);
     this.baseNamespaceEnv.setVariableUnsafe(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
 
-    namespaceRegistry = new NamespaceRegistry(packageLoader, topLevelContext, baseNamespaceEnv);
+    namespaceRegistry = new NamespaceRegistry(packageLoader, baseNamespaceEnv);
     securityManager = new SecurityManager();
 
     this.vectorPipeliner = new VectorPipeliner(executorService);

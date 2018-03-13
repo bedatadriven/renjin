@@ -44,6 +44,24 @@
           <skip>true</skip>
         </configuration>
       </plugin>
+
+      <!-- Clean up intermediate files (*.o, *.gimple, *.so) in src/ directory -->
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>3.0.0</version>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>src</directory>
+              <includes>
+                <include>**/*.o</include>
+                <include>**/*.gimple</include>
+                <include>**/*.so</include>
+              </includes>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 </project>

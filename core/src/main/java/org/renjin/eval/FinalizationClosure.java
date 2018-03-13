@@ -31,7 +31,7 @@ public class FinalizationClosure implements FinalizationHandler {
   }
 
   @Override
-  public void finalize(Context context, SEXP sexp) {
+  public void finalizeSexp(Context context, SEXP sexp) {
     context.evaluate(new FunctionCall(function, PairList.Node.singleton(sexp)));
   }
 }

@@ -88,6 +88,12 @@ public class TestMojo extends AbstractMojo {
   @Parameter(property = "maven.test.failure.ignore", defaultValue = "false")
   private boolean testFailureIgnore;
 
+  /**
+   * Arbitrary JVM options to set on the command line.
+   */
+  @Parameter( property = "argLine" )
+  private String argLine;
+
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -101,7 +107,8 @@ public class TestMojo extends AbstractMojo {
       defaultPackages = Lists.newArrayList();
     }
 
-    ForkedTestController controller = new ForkedTestController();
+    ForkedTestController controller = new ForkedTestController(getLog());
+    controller.setArgLine(argLine);
     controller.setTimeout(timeoutInSeconds, TimeUnit.SECONDS);
     controller.setDefaultPackages(defaultPackages);
     controller.setClassPath(buildClassPath());
@@ -115,7 +122,7 @@ public class TestMojo extends AbstractMojo {
     
     if(!controller.allTestsSucceeded()) {
       if(testFailureIgnore) {
-        System.err.println("There were R test failures.");
+        getLog().error("There were R test failures.");
       } else {
         throw new MojoFailureException("There were R test failures");
       }

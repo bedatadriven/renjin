@@ -16,7 +16,7 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.html;
+package org.renjin.gcc.logging;
 
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.symbols.SymbolTable;

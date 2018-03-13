@@ -23,7 +23,7 @@ import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.repackaged.guava.base.Joiner;
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.List;
@@ -113,7 +113,7 @@ public class GimpleCall extends GimpleStatement {
   @Override
   public boolean lhsMatches(Predicate<? super GimpleLValue> predicate) {
     if(lhs != null) {
-      return predicate.apply(lhs);
+      return predicate.test(lhs);
     } else {
       return false;
     }
@@ -122,13 +122,13 @@ public class GimpleCall extends GimpleStatement {
   @Override
   public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
     if(lhs != null) {
-      if (predicate.apply(lhs)) {
+      if (predicate.test(lhs)) {
         lhs = (GimpleLValue) newExpr;
       } else {
         lhs.replaceAll(predicate, newExpr);
       }
     }
-    if(predicate.apply(function)) {
+    if(predicate.test(function)) {
       function = newExpr;
     } else {
       function.replaceAll(predicate, newExpr);

@@ -2071,7 +2071,7 @@ public final class Rinternals {
   }
 
   public static void Rf_unprotect_ptr(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_unprotect_ptr");
+    // NOOP
   }
 
   public static void R_signal_protect_error() {

@@ -27,6 +27,16 @@
   <name>Renjin GNU-R Runtime</name>
   <description>Emulated C/Fortran API for compatibility with GNU R</description>
 
+  <properties>
+
+    <!--
+    Exclude this module from sonar analysis as the methods here do not conform to
+    Java naming conventions and should only be mapping the GNU R API to existing
+    code elsewhere.
+    -->
+    <sonar.skip>true</sonar.skip>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.renjin</groupId>

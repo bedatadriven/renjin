@@ -375,6 +375,9 @@ public class Stdlib {
   }
 
   private static Object convertFormatArg(Object argument) {
+    if(argument instanceof Ptr && ((Ptr) argument).isNull()) {
+      return null;
+    }
     if(argument instanceof BytePtr || argument instanceof MixedPtr) {
       return Stdlib.nullTerminatedString((Ptr) argument);
     } else {

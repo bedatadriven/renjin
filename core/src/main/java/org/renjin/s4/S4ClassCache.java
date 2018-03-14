@@ -62,11 +62,11 @@ public class S4ClassCache {
 
   public boolean isSimpleCoerce(String from, String to) {
     SEXP classDef = classTable.getVariableUnsafe(from);
-    ListVector contains = (ListVector) classDef.getAttribute(Symbol.get("contains"));
+    ListVector contains = (ListVector) classDef.getAttribute(S4Class.CONTAINS);
     int index = contains.getIndexByName(to);
     if(index != -1) {
       SEXP classExtension = contains.getElementAsSEXP(index);
-      SEXP simple = classExtension.getAttribute(Symbol.get("simple"));
+      SEXP simple = classExtension.getAttribute(S4Class.SIMPLE);
       return ((LogicalArrayVector) simple).isElementTrue(0);
     }
     return true;
@@ -74,11 +74,11 @@ public class S4ClassCache {
 
   public SEXP coerceSimple(Context context, SEXP value, String from, String to) {
     SEXP classDef = classTable.getVariableUnsafe(from);
-    ListVector contains = (ListVector) classDef.getAttribute(Symbol.get("contains"));
+    ListVector contains = (ListVector) classDef.getAttribute(S4Class.CONTAINS);
     int toIndex = contains.getIndexByName(to);
     if(toIndex != -1) {
       S4Object fromClass = (S4Object) contains.getElementAsSEXP(toIndex);
-      Closure coerce = (Closure) fromClass.getAttribute(Symbol.get("coerce"));
+      Closure coerce = (Closure) fromClass.getAttribute(S4Class.COERCE);
       FunctionCall call = new FunctionCall(coerce, new PairList.Node(value, Null.INSTANCE));
       SEXP res = context.evaluate(call);
       return res;
@@ -88,18 +88,18 @@ public class S4ClassCache {
 
   public SEXP coerceComplex(Context context, SEXP value, String from, String to) {
     SEXP classDef = classTable.getVariableUnsafe(from);
-    ListVector contains = (ListVector) classDef.getAttribute(Symbol.get("contains"));
+    ListVector contains = (ListVector) classDef.getAttribute(S4Class.CONTAINS);
     int toIndex = contains.getIndexByName(to);
     if(toIndex != -1) {
       // get sloth with information about target class and create
       // new function call to perform the coercion (if "by" field is defined
       // this is an intermediate stage).
       S4Object fromClass = (S4Object) contains.getElementAsSEXP(toIndex);
-      Closure coerce = (Closure) fromClass.getAttribute(Symbol.get("coerce"));
+      Closure coerce = (Closure) fromClass.getAttribute(S4Class.COERCE);
       FunctionCall call = new FunctionCall(coerce, new PairList.Node(value, Null.INSTANCE));
 
       // get the "by" field. to know which coerce function to use to get to final format
-      String by = fromClass.getAttribute(Symbol.get("by")).asString();
+      String by = fromClass.getAttribute(S4Class.BY).asString();
       SEXP res = context.evaluate(call);
 
       if(by.isEmpty()) {
@@ -113,7 +113,7 @@ public class S4ClassCache {
         int byIndex = contains.getIndexByName(by);
         if(byIndex != -1) {
           S4Object byClass = (S4Object) contains.getElementAsSEXP(byIndex);
-          Closure byCoerce = (Closure) byClass.getAttribute(Symbol.get("coerce"));
+          Closure byCoerce = (Closure) byClass.getAttribute(S4Class.COERCE);
           FunctionCall byCall = new FunctionCall(byCoerce, new PairList.Node(value, Null.INSTANCE));
           return context.evaluate(byCall);
         } else {

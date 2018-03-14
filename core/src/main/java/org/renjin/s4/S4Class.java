@@ -24,8 +24,11 @@ import org.renjin.sexp.Symbol;
 
 public class S4Class {
 
-  private static final Symbol CONTAINS = Symbol.get("contains");
+  public static final Symbol CONTAINS = Symbol.get("contains");
   public static final Symbol DISTANCE = Symbol.get("distance");
+  public static final Symbol COERCE = Symbol.get("coerce");
+  public static final Symbol BY = Symbol.get("by");
+  public static final Symbol SIMPLE = Symbol.get("simple");
 
   private SEXP classRepresentation;
 

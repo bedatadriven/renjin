@@ -25,15 +25,9 @@ import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.eval.MatchedArgumentPositions;
-import org.renjin.primitives.S3;
-import org.renjin.s4.S4;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.repackaged.guava.primitives.Ints;
 import org.renjin.sexp.Closure;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
 
 import java.util.List;
 import java.util.Map;

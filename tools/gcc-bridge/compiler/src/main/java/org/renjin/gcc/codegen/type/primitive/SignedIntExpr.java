@@ -103,22 +103,22 @@ public class SignedIntExpr extends AbstractIntExpr {
   }
 
   @Override
-  public IntExpr bitwiseXor(GExpr operand) {
+  public NumericIntExpr bitwiseXor(GExpr operand) {
     return lift(Expressions.bitwiseXor(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public IntExpr bitwiseNot() {
+  public NumericIntExpr bitwiseNot() {
     return lift(Expressions.bitwiseXor(jexpr(), constantInt(-1)));
   }
 
   @Override
-  public IntExpr bitwiseAnd(GExpr operand) {
+  public NumericIntExpr bitwiseAnd(GExpr operand) {
     return lift(Expressions.bitwiseAnd(jexpr(), jexpr(operand)));
   }
 
   @Override
-  public IntExpr bitwiseOr(GExpr operand) {
+  public NumericIntExpr bitwiseOr(GExpr operand) {
     return lift(Expressions.bitwiseOr(jexpr(), jexpr(operand)));
   }
 

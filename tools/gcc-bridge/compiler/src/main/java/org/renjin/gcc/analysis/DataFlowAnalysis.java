@@ -21,10 +21,7 @@ package org.renjin.gcc.analysis;
 import org.renjin.gcc.gimple.GimpleBasicBlock;
 import org.renjin.gcc.gimple.statement.GimpleStatement;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Identifies uses of uninitialized variables
@@ -95,6 +92,10 @@ public class DataFlowAnalysis<T> {
       throw new IllegalArgumentException("Node: " + node);
     }
     return state;
+  }
+
+  public Iterable<T> getExitStates() {
+    return exitState.values();
   }
 
   public T getState(GimpleBasicBlock block, GimpleStatement statement) {

@@ -20,10 +20,17 @@ package org.renjin.gcc;
 
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.fun.FunPtrStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
+import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
+import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordTypeStrategy;
 import org.renjin.gcc.codegen.vptr.VPtrStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -31,6 +38,7 @@ import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.runtime.Ptr;
+import org.renjin.repackaged.asm.Type;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Field;
@@ -46,8 +54,14 @@ public class ProvidedGlobalVarField implements ProvidedGlobalVar  {
   @Override
   public GExpr createExpr(GimpleVarDecl decl, TypeOracle typeOracle) {
 
+    // The trick here is that we have to find a way to map a JVM field that
+    // we compiled earlier, in some other library, to a valid strategy for the
+    // requested type.
+
+
     TypeStrategy strategy;
     if(typeOracle.getRecordTypes().isMappedToRecordType(field.getType())) {
+
       strategy = typeOracle.getRecordTypes().getPointerStrategyFor(field.getType());
 
     } else if(field.getType().isPrimitive()) {
@@ -58,13 +72,28 @@ public class ProvidedGlobalVarField implements ProvidedGlobalVar  {
       strategy = new FunPtrStrategy().arrayOf(arrayType);
 
     } else if (Ptr.class.isAssignableFrom(field.getType())) {
-      if(decl.getType() instanceof GimpleRecordType) {
+      if (decl.getType() instanceof GimpleRecordType) {
         strategy = new VPtrRecordTypeStrategy(typeOracle.getRecordTypeDef(((GimpleRecordType) decl.getType())));
       } else {
         strategy = new VPtrStrategy(decl.getType().getBaseType());
       }
+    } else if(decl.getType() instanceof GimpleRecordType && field.getType().isArray()) {
+
+      // In the translation unit where this global variable was defined, this variable
+      // was declared as an array, e.g. byte[4]
+      // But now, the translation unit which is referring to this global variable, wants to interpret
+      // it as a struct.
+
+      Class<?> componentType = field.getType().getComponentType();
+      GimplePrimitiveType primitiveComponentType = GimplePrimitiveType.fromJvmType(Type.getType(componentType));
+      FatPtrPair fatPtr = new FatPtrPair(new PrimitiveValueFunction(primitiveComponentType), Expressions.staticField(field));
+      VPtrExpr vptr = fatPtr.toVPtrExpr();
+      return vptr.valueOf(decl.getType());
+
     } else {
-      throw new UnsupportedOperationException("Strategy for " + field.getType());
+
+
+      strategy = typeOracle.forType(decl.getType());
     }
 
     boolean readOnly = Modifier.isFinal(field.getModifiers());

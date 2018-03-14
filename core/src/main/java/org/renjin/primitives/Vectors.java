@@ -26,7 +26,7 @@ import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.vector.ConvertingDoubleVector;
 import org.renjin.primitives.vector.ConvertingStringVector;
 import org.renjin.repackaged.guava.base.Charsets;
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 import org.renjin.repackaged.guava.base.Predicates;
 import org.renjin.sexp.*;
 
@@ -464,9 +464,9 @@ public class Vectors {
 
   public static Predicate<SEXP> modePredicate(String mode) {
     if(mode.equals("any")) {
-      return Predicates.alwaysTrue();
+      return (x -> true);
     } else if(mode.equals("function")){
-      return CollectionUtils.IS_FUNCTION;
+      return (x -> x instanceof Function);
     } else {
       throw new EvalException(" mode '%s' as a predicate is not implemented.", mode);
     }

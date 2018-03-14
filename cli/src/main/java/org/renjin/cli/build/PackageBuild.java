@@ -248,10 +248,8 @@ public class PackageBuild {
   }
 
   private void archivePackage() {
-    try {
-      JarArchiver archiver = new JarArchiver(getJarFile());
+    try(JarArchiver archiver = new JarArchiver(getJarFile())) {
       archiver.addDirectory(stagingDir);
-      archiver.close();
     } catch (Exception e) {
       throw new BuildException("Failed to create package jar", e);
     }

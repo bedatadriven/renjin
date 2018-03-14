@@ -391,5 +391,10 @@ public class OffsetPtr implements Ptr {
     return AbstractPtr.compare(this, o);
   }
 
+  @Override
+  public Ptr withOffset(int offset) {
+    return ptr.pointerPlus(offset - ptr.getOffsetInBytes());
+  }
+
 
 }

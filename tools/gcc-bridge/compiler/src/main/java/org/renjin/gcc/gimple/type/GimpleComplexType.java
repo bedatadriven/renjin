@@ -30,7 +30,7 @@ public class GimpleComplexType extends AbstractGimpleType {
   }
   
   public GimpleComplexType(GimpleRealType partType) {
-    setSize(partType.getSize() * 2);
+    setSize(Math.multiplyExact(partType.getSize(), 2));
   }
 
   @Override
@@ -45,11 +45,6 @@ public class GimpleComplexType extends AbstractGimpleType {
   @Override
   public String toString() {
     return "complex";
-  }
-
-  @Override
-  public void setSize(long size) {
-    super.setSize(size);
   }
 
   /**

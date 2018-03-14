@@ -180,7 +180,7 @@ public abstract class AbstractGccTest {
 
     GimpleCompiler compiler = new GimpleCompiler();
     compiler.setOutputDirectory(outputDir);          
-    compiler.setLogger(new HtmlTreeLogger(new File("target/gcc-bridge-logs")));
+    compiler.setLoggingDirectory(new File("target/gcc-bridge-logs"));
     compiler.setRecordClassPrefix(units.get(0).getName());
     compiler.setPackageName(PACKAGE_NAME);
     compiler.setVerbose(true);

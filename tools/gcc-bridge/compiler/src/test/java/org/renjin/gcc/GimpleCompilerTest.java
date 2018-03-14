@@ -175,6 +175,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
 
   @Test
+  public void staticInitRef() throws Exception {
+    compile("static_init_ref.c");
+  }
+
+  @Test
   public void arraysNonZeroLowerBound() throws Exception {
     Class clazz = compile("lbound.f");
 
@@ -1233,6 +1238,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void threadsTest() throws Exception {
     compileAndTest("pthreads.c");
+  }
+
+  @Test
+  public void pointerMath() throws Exception {
+    compileAndTest("ptr_math.c");
   }
 }
 

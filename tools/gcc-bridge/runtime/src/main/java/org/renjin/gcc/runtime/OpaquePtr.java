@@ -397,4 +397,9 @@ public class OpaquePtr<T> implements Ptr {
   public int compareTo(Ptr o) {
     throw new UnsupportedOperationException("TODO");
   }
+
+  @Override
+  public Ptr withOffset(int offset) {
+    throw new UnsupportedOperationException("TODO");
+  }
 }

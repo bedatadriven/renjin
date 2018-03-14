@@ -68,6 +68,11 @@
     <envClassifier>linux-x86</envClassifier>
     <jmh.version>1.11.2</jmh.version>
     <plexusCompilerVersion>2.7</plexusCompilerVersion>
+
+    <!-- Tell Jacoco to write to a single project-wide output file -->
+    <sonar.jacoco.reportPath>${session.executionRootDirectory}/target/jacoco.exec</sonar.jacoco.reportPath>
+    <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+    <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
   </properties>
 
   <scm>
@@ -183,7 +188,7 @@
         <configuration>
           <inlineHeader>
 Renjin : JVM-based interpreter for the R language for the statistical analysis
-Copyright © 2010-${license.git.copyrightLastYear} BeDataDriven Groep B.V. and contributors
+Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -208,13 +213,6 @@ https://www.gnu.org/licenses/gpl-2.0.txt
             <include>**/*.R</include>
           </includes>
         </configuration>
-          <dependencies>
-            <dependency>
-              <groupId>com.mycila</groupId>
-              <artifactId>license-maven-plugin-git</artifactId>
-              <version>3.0</version>
-            </dependency>
-          </dependencies>
         <executions>
           <execution>
             <id>check-license</id>
@@ -237,6 +235,24 @@ https://www.gnu.org/licenses/gpl-2.0.txt
               <goal>jar</goal>
             </goals>
             <phase>package</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.0</version>
+        <configuration>
+          <destFile>${sonar.jacoco.reportPath}</destFile>
+          <append>true</append>
+        </configuration>
+        <executions>
+          <execution>
+            <id>agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>

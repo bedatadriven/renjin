@@ -22,7 +22,7 @@
 package org.renjin.primitives.text.regex;
 
 import org.renjin.eval.EvalException;
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 
 /**
  * Compiles a regular expression based on the supplied options.
@@ -69,11 +69,6 @@ public class REFactory {
   }
   
   public static Predicate<String> asPredicate(final RE re) {
-    return new Predicate<String>() {
-      @Override
-      public boolean apply(String input) {
-        return re.match(input);
-      }
-    };
+    return input -> re.match(input);
   }
 }

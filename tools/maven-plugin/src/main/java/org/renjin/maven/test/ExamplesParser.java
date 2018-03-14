@@ -83,8 +83,7 @@ public class ExamplesParser extends SexpVisitor<String> {
    * @throws IOException
    */
   public static String parseExamples(File file) throws IOException {
-    try {
-      FileReader reader = new FileReader(file);
+    try(FileReader reader = new FileReader(file)) {
       RdParser parser = new RdParser();
       SEXP rd = parser.R_ParseRd(reader, StringVector.valueOf(file.getName()), false);
 

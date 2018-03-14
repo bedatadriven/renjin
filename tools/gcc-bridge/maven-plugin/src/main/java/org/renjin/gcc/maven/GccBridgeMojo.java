@@ -32,7 +32,6 @@ import org.codehaus.plexus.compiler.util.scan.mapping.SourceMapping;
 import org.codehaus.plexus.compiler.util.scan.mapping.SuffixMapping;
 import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GimpleCompiler;
-import org.renjin.gcc.HtmlTreeLogger;
 import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.lib.cpp.CppSymbolLibrary;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
@@ -108,6 +107,8 @@ public class GccBridgeMojo extends AbstractMojo {
   @Parameter(defaultValue = "true")
   private boolean pruneUnusedSymbols = true;
 
+  @Parameter(defaultValue = "${gcc.bridge.trace}")
+  private boolean tracePlugin = false;
 
   public void execute() throws MojoExecutionException {
 
@@ -129,7 +130,7 @@ public class GccBridgeMojo extends AbstractMojo {
         }
       }
 
-      scanner = getSourceInclusionScanner( ".c", ".cpp" );
+      scanner = getSourceInclusionScanner( ".c", ".cpp", ".C", ".c++", ".cc", ".cxx" );
 
       if (cSourceDirectory.exists()) {
         try {
@@ -153,6 +154,8 @@ public class GccBridgeMojo extends AbstractMojo {
     workingDir.mkdirs();
 
     Gcc gcc = new Gcc(workingDir);
+    gcc.setTrace(tracePlugin);
+
     if(Strings.isNullOrEmpty(System.getProperty("gcc.bridge.plugin"))) {
       try {
         gcc.extractPlugin();
@@ -172,7 +175,6 @@ public class GccBridgeMojo extends AbstractMojo {
     if(cxxFlags != null) {
       gcc.addCxxFlags(cxxFlags);
     }
-    
     
     if(includeDirectories != null) {
       for (File includeDirectory : includeDirectories) {
@@ -229,7 +231,7 @@ public class GccBridgeMojo extends AbstractMojo {
     compiler.addMathLibrary();
     compiler.setOutputDirectory(outputDirectory);
     compiler.setLinkClassLoader(getLinkClassLoader());
-    compiler.setLogger(new HtmlTreeLogger(logDir));
+    compiler.setLoggingDirectory(logDir);
     
     ClassLoader classLoader = createClassLoader();
     

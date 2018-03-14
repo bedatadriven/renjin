@@ -25,5 +25,7 @@ public interface GimpleSymbolRef {
 
   String getName();
 
+  String getMangledName();
+
   GimpleType getType();
 }

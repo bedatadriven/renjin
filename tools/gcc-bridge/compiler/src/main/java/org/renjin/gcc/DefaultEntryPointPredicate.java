@@ -19,9 +19,8 @@
 package org.renjin.gcc;
 
 import org.renjin.gcc.gimple.GimpleFunction;
-import org.renjin.repackaged.guava.base.Predicate;
 
-import javax.annotation.Nullable;
+import java.util.function.Predicate;
 
 /**
  * Identifies functions which are considered "entry points" and must definitely
@@ -29,9 +28,9 @@ import javax.annotation.Nullable;
  */
 public class DefaultEntryPointPredicate implements Predicate<GimpleFunction> {
   @Override
-  public boolean apply(@Nullable GimpleFunction function) {
+  public boolean test(GimpleFunction function) {
 
-    if(!function.isExtern() || function.isWeak() || function.isInline()) {
+    if(!function.isPublic() || function.isWeak() || function.isInline()) {
       return false;
     }
     // This is a bit of hack, but assume that C++ mangled names are NOT entry

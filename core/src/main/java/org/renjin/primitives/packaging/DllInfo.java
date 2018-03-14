@@ -21,7 +21,7 @@ package org.renjin.primitives.packaging;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Native;
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 import org.renjin.sexp.*;
 
 import java.lang.reflect.InvocationTargetException;
@@ -264,7 +264,7 @@ public class DllInfo {
   public boolean isLoaded(String name, Predicate<DllSymbol> predicate) {
     if(registeredSymbols.containsKey(name)) {
       DllSymbol symbol = registeredSymbols.get(name);
-      if(predicate.apply(symbol)) {
+      if(predicate.test(symbol)) {
         return true;
       }
     }

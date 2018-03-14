@@ -396,4 +396,9 @@ public class RecordUnitPtr<T> implements Ptr {
     }
     return Integer.compare(toInt(), o.toInt());
   }
+
+  @Override
+  public Ptr withOffset(int offset) {
+    throw new UnsupportedOperationException("TODO");
+  }
 }

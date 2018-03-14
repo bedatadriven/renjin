@@ -18,6 +18,7 @@
  */
 package org.renjin.gcc.runtime;
 
+import org.renjin.gcc.StdOutHandle;
 import org.renjin.gcc.annotations.Struct;
 
 import java.io.FileNotFoundException;
@@ -46,6 +47,8 @@ public class Stdlib {
   public static int timezone;
   public static int daylight;
 
+  public static final StdOutHandle stdout = new StdOutHandle(System.out);
+  public static final StdOutHandle stderr = new StdOutHandle(System.err);
 
   @Deprecated
   public static int strncmp(BytePtr x, BytePtr y, int n) {
@@ -304,7 +307,7 @@ public class Stdlib {
   }
 
   public static int puts(BytePtr string) {
-    System.out.print(string.nullTerminatedString());
+    System.out.println(string.nullTerminatedString());
     return 0;
   }
 
@@ -372,6 +375,9 @@ public class Stdlib {
   }
 
   private static Object convertFormatArg(Object argument) {
+    if(argument instanceof Ptr && ((Ptr) argument).isNull()) {
+      return null;
+    }
     if(argument instanceof BytePtr || argument instanceof MixedPtr) {
       return Stdlib.nullTerminatedString((Ptr) argument);
     } else {
@@ -598,7 +604,13 @@ public class Stdlib {
     }
   }
 
+
+  @Deprecated
   public static int fwrite(BytePtr ptr, int size, int count, Ptr stream) throws IOException {
+    return fwrite((Ptr)ptr, size, count, stream);
+  }
+
+  public static int fwrite(Ptr ptr, int size, int count, Ptr stream) throws IOException {
     FileHandle handle = (FileHandle) stream.getArray();
     int bytesWritten = 0;
 
@@ -616,6 +628,29 @@ public class Stdlib {
     return bytesWritten;
   }
 
+  public static int ferror(Ptr stream) {
+    FileHandle handle = (FileHandle) stream.getArray();
+
+    return handle.getError();
+  }
+
+  public static void clearerr(Ptr stream) {
+    FileHandle handle = (FileHandle) stream.getArray();
+
+    handle.clearError();
+  }
+
+
+  /***
+   *
+   * @param ptr A pointer to memory that will receive the data. Must be at least (size * count) bytes.
+   * @param size The size of the elements to read
+   * @param count the number of elements to read
+   * @param stream a pointer to a file handle created with fopen()
+   * @return The total number of elements successfully read are returned as a size_t object, which is an integral
+   * data type. If this number differs from the nmemb parameter,
+   * then either an error had occurred or the End Of File was reached.
+   */
   public static int fread(Ptr ptr, int size, int count, Ptr stream) throws IOException {
 
     FileHandle handle = (FileHandle) stream.getArray();
@@ -633,7 +668,13 @@ public class Stdlib {
       bytesRead++;
     }
 
-    return bytesRead;
+    // Return the number of elements read, _not_ bytes read
+    return bytesRead / size;
+  }
+
+  public static void rewind(Ptr stream) throws IOException {
+    FileHandle handle = (FileHandle) stream.getArray();
+    handle.rewind();
   }
 
   public static int fseek(Ptr stream, long offset, int whence) {
@@ -668,6 +709,30 @@ public class Stdlib {
   public static int fgetc(Ptr stream) {
     try {
       return ((FileHandle) stream.getArray()).read();
+    } catch (IOException e) {
+      return -1;
+    }
+  }
+
+  /**
+   *
+   * Writes a character (an unsigned char) specified by the argument char to the specified stream
+   * and advances the position indicator for the stream.
+   *
+
+   *
+   * @param character This is the character to be written. This is passed as its int promotion.
+   * @param stream This is the pointer to a FILE object that identifies the stream where the
+   *               character is to be written.
+   *
+   * @return If there are no errors, the same character that has been written is returned.
+   * If an error occurs, EOF is returned and the error indicator is set.   \
+   */
+  public static int fputc(int character, Ptr stream) {
+    FileHandle handle = (FileHandle) stream.getArray();
+    try {
+      handle.write(character);
+      return character;
     } catch (IOException e) {
       return -1;
     }
@@ -808,5 +873,15 @@ public class Stdlib {
 
   public static int rand() {
     return RANDOM.get().nextInt(RAND_MAX);
+  }
+
+  public static int _setjmp(Ptr buf) {
+    // this is a placeholder. It will actually work perfectly
+    // if longjmp is never called...
+    return 0;
+  }
+
+  public static void longjmp(Ptr buf, int value) {
+    throw new LongJumpException(buf, value);
   }
 }

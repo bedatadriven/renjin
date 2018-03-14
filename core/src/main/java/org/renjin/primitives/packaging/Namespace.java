@@ -508,4 +508,14 @@ public class Namespace {
   public boolean isLoaded() {
     return loaded;
   }
+
+  public boolean hasS4Metadata() {
+    for (Symbol symbol : namespaceEnvironment.getSymbolNames()) {
+      String symbolName = symbol.getPrintName();
+      if(symbolName.startsWith(".__C__") || symbolName.startsWith(".__T__")) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

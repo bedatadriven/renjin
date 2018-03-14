@@ -164,7 +164,9 @@ public class AetherPackageLoader implements PackageLoader {
       return classpathPackageLoader.load(name);
       
     } catch (DependencyResolutionException e) {
-      packageListener.packageResolveFailed(e);
+      if(packageListener != null) {
+        packageListener.packageResolveFailed(e);
+      }
       return Optional.empty();
       
     } catch (Exception e) {

@@ -36,7 +36,7 @@ public class GimpleArrayType extends AbstractGimpleType {
     this.componentType = componentType;
     this.lbound = 0;
     this.ubound = ubound;
-    setSize(componentType.getSize() * ubound);
+    setSize(Math.multiplyExact(componentType.getSize(), ubound));
   }
   
 

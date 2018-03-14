@@ -183,7 +183,7 @@ public class BasicBlock {
   }
 
   public Iterable<Assignment> assignments() {
-    return (Iterable)Iterables.filter(statements, Predicates.instanceOf(Assignment.class));
+    return Iterables.filter(statements, Assignment.class);
   }
   
   public Iterable<Assignment> phiAssignments() {

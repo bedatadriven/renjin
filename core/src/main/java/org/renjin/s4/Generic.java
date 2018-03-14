@@ -38,6 +38,8 @@ public class Generic {
 
   private static final Set<String> LOGIC_GROUP = Sets.newHashSet("&", "&&", "|", "||", "xor");
 
+  private static final String METHOD_PREFIX = ".__T__";
+
   private final String name;
   private final String packageName;
   private final String group;
@@ -110,20 +112,20 @@ public class Generic {
   }
 
   public Symbol getGenericMethodTableName() {
-    return Symbol.get(".__T__" + name + ":" + packageName);
+    return Symbol.get(METHOD_PREFIX + name + ":" + packageName);
   }
 
   public Symbol getGroupGenericMethodTableName() {
     assert group != null;
-    return Symbol.get(".__T__" + name + ":base");
+    return Symbol.get(METHOD_PREFIX + name + ":base");
   }
 
   public Symbol getSubGroupGenericMethodTableName() {
     assert subGroup != null;
     if(subGroup.equals("Compare")) {
-      return Symbol.get(".__T__" + subGroup + ":methods");
+      return Symbol.get(METHOD_PREFIX + subGroup + ":methods");
     } else {
-      return Symbol.get(".__T__" + subGroup + ":base");
+      return Symbol.get(METHOD_PREFIX + subGroup + ":base");
     }
   }
 

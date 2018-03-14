@@ -25,17 +25,17 @@ import java.util.List;
 import java.util.Objects;
 
 public class Signature {
-  private final String signature;
+  private final String fullSignature;
   private final String[] arguments;
 
   public Signature(String signature) {
-    this.signature = signature;
+    this.fullSignature = signature;
     this.arguments = signature.split("#");
   }
 
   public Signature(String[] classes) {
     this.arguments = classes;
-    this.signature = Joiner.on('#').join(classes);
+    this.fullSignature = Joiner.on('#').join(classes);
   }
 
   public int getLength() {
@@ -55,13 +55,13 @@ public class Signature {
       return false;
     }
     Signature signature1 = (Signature) o;
-    return Objects.equals(signature, signature1.signature) &&
+    return Objects.equals(fullSignature, signature1.fullSignature) &&
         Arrays.equals(arguments, signature1.arguments);
   }
 
   @Override
   public int hashCode() {
-    int result = Objects.hash(signature);
+    int result = Objects.hash(fullSignature);
     result = 31 * result + Arrays.hashCode(arguments);
     return result;
   }
@@ -80,6 +80,6 @@ public class Signature {
 
   @Override
   public String toString() {
-    return signature;
+    return fullSignature;
   }
 }

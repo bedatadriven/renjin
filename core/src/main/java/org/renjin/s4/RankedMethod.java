@@ -88,11 +88,7 @@ public class RankedMethod {
     if(this.method.getSpecificity() < other.method.getSpecificity()) {
       return true;
     }
-    if(this.method.getSpecificity() > other.method.getSpecificity()) {
-      return false;
-    }
-
-    // The methods are equal...
+    // The methods are equal or group methods better than specific methods...
     return false;
   }
 

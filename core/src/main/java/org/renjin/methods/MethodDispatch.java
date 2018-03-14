@@ -368,22 +368,6 @@ public class MethodDispatch {
   }
 
 
-  private static SEXP R_primitive_generic(SEXP fdef) {
-    throw new UnsupportedOperationException();
-  }
-
-
-  private static SEXP do_inherited_table(StringVector classes, SEXP fdef,
-                                         SEXP mtable, Environment ev) {
-    throw new UnsupportedOperationException();
-  }
-
-
-  private static void do_mtable(SEXP fdef, Environment ev) {
-    throw new UnsupportedOperationException();
-  }
-
-
   private static boolean is_missing_arg(Context context, Symbol arg_sym, Environment ev) {
     return Evaluation.missing(context, ev, arg_sym);
   }

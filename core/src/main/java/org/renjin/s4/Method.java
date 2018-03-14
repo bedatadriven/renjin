@@ -98,4 +98,8 @@ public class Method {
         return generic.getName() + "(" + signature + ")";
     }
   }
+
+  public Generic getGeneric() {
+    return generic;
+  }
 }

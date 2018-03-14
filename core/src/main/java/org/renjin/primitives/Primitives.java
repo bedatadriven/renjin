@@ -95,6 +95,20 @@ public class Primitives {
     return getPrimitive(INSTANCE.internalEntries, INSTANCE.internals, symbol);
   }
 
+  public static boolean isPrimitive(String opName) {
+    Symbol symbol = Symbol.get(opName);
+    return isPrimitive(INSTANCE.internalEntries, INSTANCE.internals, symbol);
+  }
+
+  private static boolean isPrimitive(IdentityHashMap<Symbol, Entry> entryMap,
+                                     ConcurrentHashMap<Symbol, PrimitiveFunction> cache,
+                                     Symbol symbol) {
+    if(cache.get(symbol) != null || entryMap.get(symbol) != null) {
+      return true;
+    }
+    return false;
+  }
+
   private static PrimitiveFunction getPrimitive(IdentityHashMap<Symbol, Entry> entryMap,
                                                 ConcurrentHashMap<Symbol, PrimitiveFunction> cache,
                                                 Symbol symbol) {

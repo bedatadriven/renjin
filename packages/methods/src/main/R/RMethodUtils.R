@@ -1092,7 +1092,7 @@ methodSignatureMatrix <- function(object, sigSlots = c("target", "defined"))
 #             ## this utility is called AFTER ensuring the existence of a generic for f
 #             ## Therefore, the case below can only happen for a primitive for which
 #             ## no methods currently are attached.  Make the primitive the default
-#             deflt <- getFunction(f, generic = FALSE, mustFind = FALSE)
+#             deflt <- getMethodDefinition(f, generic = FALSE, mustFind = FALSE)
 #         else
 #             ## inherit the default method, if any
 #             deflt <- finalDefaultMethod(other)

@@ -19,6 +19,9 @@
 package org.renjin.s4;
 
 import org.renjin.repackaged.guava.collect.Sets;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringArrayVector;
+import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbol;
 
 import java.util.Objects;
@@ -162,4 +165,14 @@ public class Generic {
   }
 
 
+  public SEXP asSEXP() {
+    StringArrayVector.Builder builder = new StringVector.Builder();
+    if(name.isEmpty()) {
+      builder.add(group);
+    } else {
+      builder.add(name);
+    }
+    builder.setAttribute("package", StringVector.valueOf(packageName));
+    return builder.build();
+  }
 }

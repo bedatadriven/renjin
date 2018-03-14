@@ -374,13 +374,11 @@ public class Methods {
     }
 
     int sigLength = selectedMethod.getMethod().getSignatureLength();
-    Closure function = selectedMethod.getMethod().getDefinition();
+    Closure function = selectedMethod.getMethodDefinition();
     Signature definedSignature = selectedMethod.getMethod().getSignature();
     Signature targetSignature = arguments.getSignature(sigLength);
 
-    Map<Symbol, SEXP> metadata = generateCallMetaData(selectedMethod, fname);
-    metadata.put(R_dot_defined, Symbol.get(definedSignature.toString()));
-    metadata.put(R_dot_target, Symbol.get(targetSignature.toString()));
+    Map<Symbol, SEXP> metadata = generateCallMetaData(selectedMethod, arguments, fname);
 
     PairList.Builder coercedArgs = coerceArguments(context, arguments, classCache, sigLength, definedSignature, targetSignature);
 

@@ -96,8 +96,12 @@ public class RankedMethod {
     return method;
   }
 
-  public Closure getFunction() {
+  public Closure getMethodDefinition() {
     return method.getDefinition();
+  }
+
+  public String getMethodSignature() {
+    return method.getSignature().toString();
   }
 
   @Override

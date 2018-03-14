@@ -21,12 +21,10 @@ package org.renjin.s4;
 import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.Current;
-import org.renjin.primitives.packaging.Namespace;
+import org.renjin.primitives.Primitives;
 import org.renjin.sexp.*;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.renjin.methods.MethodDispatch.*;
@@ -59,14 +57,14 @@ public class S4 {
       return null;
     }
 
-    Closure function = selectedMethod.getMethod().getDefinition();
+    Closure function = selectedMethod.getMethodDefinition();
 
     if (dispatchWithoutMeta(opName, source, selectedMethod)) {
       FunctionCall call = new FunctionCall(function, arguments.getPromisedArgs());
       return context.evaluate(call);
       
     } else {
-      Map<Symbol, SEXP> metadata = generateCallMetaData(selectedMethod, opName);
+      Map<Symbol, SEXP> metadata = generateCallMetaData(selectedMethod, arguments, opName);
       FunctionCall call = new FunctionCall(function, arguments.getPromisedArgs());
       return ClosureDispatcher.apply(context, rho, call, function, arguments.getPromisedArgs(), metadata);
     }
@@ -78,9 +76,8 @@ public class S4 {
     return (!opName.contains("<-") && (genericExact || hasS3Class));
   }
 
-  public static Map<Symbol, SEXP> generateCallMetaData(RankedMethod method, String opName) {
+  public static Map<Symbol, SEXP> generateCallMetaData(RankedMethod method, CallingArguments arguments, String opName) {
     Map<Symbol, SEXP> metadata = new HashMap<>();
-
 
     /**
      * Current GNU R (v3.3.1) seems to set the package-attribute in '.target' to
@@ -97,19 +94,18 @@ public class S4 {
      * > cat(deparse( attr(x$.defined, "package") ))
      * c("methods", ".GlobalEnv","methods")
      */
-    PairList attrib = method.getMethod().getDefinition().getAttributes().asPairList();
-    for(PairList.Node s : attrib.nodes()) {
-      SEXP t = s.getTag();
-      if(t == R_defined) {
-        metadata.put(R_dot_defined, s.getValue());
-      } else if(t == s_generic) {
-        metadata.put(DOT_GENERIC, s.getValue());
-      }
-      else if(t == Symbols.SOURCE)  {
-      }
+
+    int sigLength = method.getMethod().getSignatureLength();
+    Signature targetSignature = arguments.getSignature(sigLength);
+    metadata.put(R_dot_defined, Symbol.get(method.getMethodSignature()));
+    metadata.put(R_dot_target, Symbol.get(targetSignature.toString()));
+    metadata.put(DOT_GENERIC, method.getMethod().getGeneric().asSEXP());
+    metadata.put(R_dot_Method, method.getMethodDefinition());
+    if(Primitives.isPrimitive(opName)) {
+      metadata.put(s_dot_Methods, Symbol.get(".Primitive(\"" + opName + "\")"));
+    } else {
+      metadata.put(s_dot_Methods, Null.INSTANCE);
     }
-    metadata.put(Symbol.get(".Method"), method.getFunction());
-    metadata.put(Symbol.get(".Methods"), Symbol.get(".Primitive(\"" + opName + "\")"));
     return metadata;
   }
 
@@ -124,8 +120,7 @@ public class S4 {
     SEXP classDef = classTable
         .findVariable(context, Symbol.get(objClass));
 
-    AttributeMap map = classDef.getAttributes();
-    SEXP containsSlot = map.get("contains");
+    SEXP containsSlot = classDef.getAttribute(S4Class.CONTAINS);
     return containsSlot.getNames();
   }
 

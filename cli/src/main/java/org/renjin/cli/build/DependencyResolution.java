@@ -49,7 +49,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.google.common.collect.Iterables.concat;
+import static org.renjin.repackaged.guava.collect.Iterables.concat;
+
 
 /**
  * Resolves a package's dependencies from a DESCRIPTION file.

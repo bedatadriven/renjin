@@ -200,11 +200,6 @@ public class GnurSourcesCompiler {
 
     compiler.addRecordClass("SEXPREC", SEXP.class);
 
-    compiler.addRecordClass("_GESystemDesc", GESystemDesc.class);
-    compiler.addRecordClass("_GEDevDesc", GEDevDesc.class);
-    compiler.addRecordClass("_DevDesc", DevDesc.class);
-    compiler.addRecordClass("_R_GE_gcontext", GEContext.class);
-
     compiler.addReferenceClass(Rdynload.class);
     compiler.addRecordClass("_DllInfo", DllInfo.class);
     compiler.addReferenceClass(RenjinFiles.class);

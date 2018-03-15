@@ -58,8 +58,23 @@ public final class Defn {
   public static final  SEXP R_dot_GenericCallEnv = Symbol.get(".GenericCallEnv");
   public static final  SEXP R_dot_GenericDefEnv = Symbol.get(".GenericDefEnv");
 
-  private Defn() { }
+  public static int R_interrupts_suspended = 0;
 
+  public static int R_interrupts_pending = 0;
+
+  public static int R_Interactive = 1;
+
+  public static int known_to_be_latin1 = 0;
+
+  public static int utf8locale = 0;
+
+  public static int mbcslocale = 0;
+
+  public static int max_contour_segments = 25000;
+
+  public static int R_Visible = 1;
+
+  private Defn() { }
 
 
   public static void Rf_CoercionWarning(int p0) {

@@ -269,7 +269,12 @@ public class PackageDescription {
   }
 
   public Iterable<Person> getAuthors() {
-    return Iterables.transform(Arrays.asList(getFirstProperty("Author").split("\\s*,\\s*")), new PersonParser());
+    String authors = getFirstProperty("Author");
+    if(Strings.isNullOrEmpty(authors)) {
+      return Collections.emptySet();
+    } else {
+      return Iterables.transform(Arrays.asList(authors.split("\\s*,\\s*")), new PersonParser());
+    }
   }
 
   public Person getMaintainer() {

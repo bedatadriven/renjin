@@ -155,7 +155,7 @@ public class PackageBuilder {
       JarEntry entry;
       while ((entry = in.getNextJarEntry()) != null) {
         if (!entry.isDirectory()) {
-          File outputFile = new File(context.getOutputDir().getAbsolutePath() + "/" + entry.getName());
+          File outputFile = new File(context.getPackageOutputDir().getAbsolutePath() + "/" + entry.getName());
           if(!outputFile.getParentFile().exists()) {
             boolean created = outputFile.getParentFile().mkdirs();
             if(!created) {

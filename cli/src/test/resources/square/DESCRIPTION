@@ -1,0 +1,5 @@
+Package: square
+Title: An R package to compute squares
+Version: 0.1
+Description: Squares
+Depends: R (>= 3.1.0)

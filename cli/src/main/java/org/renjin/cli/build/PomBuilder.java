@@ -25,6 +25,7 @@ import org.renjin.eval.Session;
 import org.renjin.packaging.BuildException;
 import org.renjin.packaging.PackageDescription;
 import org.renjin.packaging.PackageSource;
+import org.renjin.packaging.ResolvedDependency;
 import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Strings;
@@ -87,7 +88,7 @@ public class PomBuilder {
   }
 
 
-  private Model buildPom() throws IOException {
+  private Model buildPom() {
 
     Model model = new Model();
     model.setModelVersion("4.0.0");
@@ -117,7 +118,14 @@ public class PomBuilder {
           addCoreModule(model, dependencyName);
 
         } else {
-          throw new UnsupportedOperationException(dependencyName);
+          ResolvedDependency resolvedDependency =
+              build.getDependencyResolution().getResolvedDependency(dependencyName);
+
+          Dependency mavenDep = new Dependency();
+          mavenDep.setGroupId(resolvedDependency.getGroupId());
+          mavenDep.setArtifactId(resolvedDependency.getName());
+          mavenDep.setVersion(resolvedDependency.getVersion());
+          model.addDependency(mavenDep);
         }
       }
     }
@@ -145,12 +153,12 @@ public class PomBuilder {
   }
 
   private Set<String> dependencies() {
-    Set<String> included = new HashSet<String>();
+    Set<String> included = new HashSet<>();
 
     // Add the "default" packages which are always meant to be on the search path
     included.addAll(Session.DEFAULT_PACKAGES);
 
-    // Add the "tools" package which is often referenced by the if() directive in the NAMESPACE file
+    // Add the "tools" package which is often referenced by the if directive in the NAMESPACE file
     included.add("tools");
 
     // Add the packages specified in the Imports and Depends fields of the DESCRIPTION file
@@ -168,16 +176,13 @@ public class PomBuilder {
     model.addDependency(mavenDep);
   }
 
-  public String getXml()  {
-    try {
-      Model pom = buildPom();
-      StringWriter fileWriter = new StringWriter();
-      MavenXpp3Writer writer = new MavenXpp3Writer();
-      writer.write(fileWriter, pom);
-      fileWriter.close();
-      return fileWriter.toString();
-    } catch(Exception e) {
-      throw new RuntimeException(e);
-    }
+  public String getXml() throws IOException {
+    Model pom = buildPom();
+    StringWriter fileWriter = new StringWriter();
+    MavenXpp3Writer writer = new MavenXpp3Writer();
+    writer.write(fileWriter, pom);
+    fileWriter.close();
+    return fileWriter.toString();
+
   }
 }

@@ -22,19 +22,20 @@ package org.renjin.cli.build;
 
 import org.renjin.packaging.BuildLogger;
 
+@SuppressWarnings("squid:S106")
 public class CliBuildLogger implements BuildLogger {
   @Override
   public void info(String message) {
-    System.out.println("[INFO] " + message);
+    System.out.println("[INFO]  " + message);
   }
 
   @Override
   public void debug(String message) {
-    throw new UnsupportedOperationException("TODO");
+    System.err.println("[DEBUG] " + message);
   }
 
   @Override
   public void error(String message) {
-    throw new UnsupportedOperationException("TODO");
+    System.err.println("[ERROR] " + message);
   }
 }

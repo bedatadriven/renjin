@@ -18,14 +18,34 @@
  *
  */
 
-package org.renjin.aether;
+package org.renjin.packaging;
 
-/**
- * Client for querying the Renjin package repository
- */
-public class PackageRepoClient {
+import org.junit.Test;
 
-  public PackageRepoClient() {
+import java.io.IOException;
+import java.util.Map;
+
+import static java.util.Collections.singletonList;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertThat;
+
+public class PackageRepoClientTest {
+
+
+  @Test
+  public void resolve() throws IOException {
+
+    PackageRepoClient client = new PackageRepoClient();
+
+    Map<String, ResolvedDependency> result = client.resolve(
+        singletonList(
+            new PackageDescription.PackageDependency("Matrix")));
+
+    ResolvedDependency matrixPackage = result.get("Matrix");
+
+    assertThat(matrixPackage, not(nullValue()));
+    assertThat(matrixPackage.getGroupId(), equalTo("org.renjin.cran"));
+    assertThat(matrixPackage.getVersion(), not(nullValue()));
   }
 
 }

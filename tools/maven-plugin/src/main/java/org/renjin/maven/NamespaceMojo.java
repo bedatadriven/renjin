@@ -104,7 +104,7 @@ public class NamespaceMojo extends AbstractMojo {
 
     try {
       PackageSource source = new PackageSource.Builder(project.getBasedir())
-          .setGroupId(groupId)
+          .setDefaultGroupId(groupId)
           .setPackageName(packageName)
           .setDescription(buildDescription())
           .setNamespaceFile(namespaceFile)

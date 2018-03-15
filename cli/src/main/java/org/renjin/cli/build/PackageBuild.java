@@ -40,17 +40,14 @@ public class PackageBuild implements BuildContext {
   private final PackageSource source;
   private final DependencyResolution dependencyResolution;
   private final File outputDir;
-  private final File gccWorkDir;
   private final File packageOutputDir;
   private final File mavenMetaDir;
 
 
-  public PackageBuild(PackageSource source, DependencyResolution dependencyResolution) {
+  public PackageBuild(PackageSource source) {
     this.buildDir = createCleanBuildDir(source.getPackageDir());
     this.source = source;
-    this.dependencyResolution = dependencyResolution;
     this.outputDir = new File(buildDir, "classes");
-    this.gccWorkDir = new File(buildDir, "gcc-work");
     this.packageOutputDir = new File(
         outputDir + File.separator +
             source.getGroupId().replace('.', File.separatorChar) + File.separator +
@@ -66,6 +63,12 @@ public class PackageBuild implements BuildContext {
             source.getPackageName());
 
     mkdirs(mavenMetaDir);
+
+    this.dependencyResolution = new DependencyResolution(logger, source.getDescription());
+  }
+
+  public DependencyResolution getDependencyResolution() {
+    return dependencyResolution;
   }
 
   public String getBuildVersion() {

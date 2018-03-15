@@ -35,16 +35,21 @@ import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.DependencyResult;
 import org.renjin.aether.AetherFactory;
 import org.renjin.aether.AetherPackageLoader;
+import org.renjin.packaging.BuildException;
 import org.renjin.packaging.PackageDescription;
+import org.renjin.packaging.PackageRepoClient;
+import org.renjin.packaging.ResolvedDependency;
 import org.renjin.primitives.packaging.ClasspathPackageLoader;
 import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.primitives.packaging.PackageLoader;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.google.common.collect.Iterables.concat;
 
@@ -55,8 +60,26 @@ public class DependencyResolution {
 
   private final URLClassLoader classLoader;
   private final PackageLoader packageLoader;
+  private DependencyNode node;
+  private Map<String, ResolvedDependency> resolved;
 
-  public DependencyResolution(PackageDescription description) throws DependencyCollectionException, DependencyResolutionException, MalformedURLException {
+  public DependencyResolution(CliBuildLogger logger, PackageDescription description) {
+
+    logger.info("Resolving dependencies...");
+
+    Iterable<PackageDescription.PackageDependency> dependencies = concat(
+        description.getDepends(),
+        description.getImports());
+
+    PackageRepoClient repoClient = new PackageRepoClient();
+
+    try {
+      resolved = repoClient.resolve(dependencies);
+    } catch (IOException e) {
+      throw new BuildException("Querying packages.renjin.org failed.", e);
+    }
+
+    logger.info("Resolving transitive dependencies...");
 
     RepositorySystem system = AetherFactory.newRepositorySystem();
     DefaultRepositorySystemSession session = AetherFactory.newRepositorySystemSession(system);
@@ -65,47 +88,65 @@ public class DependencyResolution {
     CollectRequest collectRequest = new CollectRequest();
     collectRequest.setRepositories(repositories);
 
-    for (PackageDescription.PackageDependency depend : concat(
-        description.getDepends(),
-        description.getImports())) {
-
+    for (PackageDescription.PackageDependency depend : dependencies) {
       if(!isExcluded(depend)) {
-        collectRequest.addDependency(qualify(depend));
+        collectRequest.addDependency(qualify(resolved, depend));
       }
     }
 
-    DependencyNode node = system.collectDependencies(session, collectRequest).getRoot();
+    logger.info("Downloading dependencies...");
+
+    try {
+      node = system.collectDependencies(session, collectRequest).getRoot();
+    } catch (DependencyCollectionException e) {
+      throw new BuildException("Dependency collection failed.", e);
+    }
 
     DependencyRequest dependencyRequest = new DependencyRequest();
     dependencyRequest.setRoot(node);
-//    dependencyRequest.setFilter(new ClasspathExclusionFilter());
     dependencyRequest.setCollectRequest(collectRequest);
 
-    DependencyResult dependencyResult = system.resolveDependencies(session, dependencyRequest);
+    DependencyResult dependencyResult = null;
+    try {
+      dependencyResult = system.resolveDependencies(session, dependencyRequest);
+    } catch (DependencyResolutionException e) {
+      throw new BuildException("Failed to retrieve dependencies.", e);
+    }
 
     List<URL> urls = new ArrayList<>();
     for (ArtifactResult result : dependencyResult.getArtifactResults()) {
-      urls.add(result.getArtifact().getFile().toURI().toURL());
+      try {
+        urls.add(result.getArtifact().getFile().toURI().toURL());
+      } catch (MalformedURLException e) {
+        throw new BuildException("Malformed artifact URL", e);
+      }
     }
 
     classLoader = new URLClassLoader(urls.stream().toArray(URL[]::new));
     packageLoader = new ClasspathPackageLoader(classLoader);
+  }
 
+  public ResolvedDependency getResolvedDependency(String name) {
+    return resolved.get(name);
   }
 
   private boolean isExcluded(PackageDescription.PackageDependency depend) {
-    if(depend.getName().equals("R")) {
-      return true;
-    }
-    if(NamespaceRegistry.CORE_PACKAGES.contains(depend.getName())) {
-      return true;
-    }
-    return false;
+    return depend.getName().equals("R") ||
+            NamespaceRegistry.CORE_PACKAGES.contains(depend.getName());
   }
 
-  private Dependency qualify(PackageDescription.PackageDependency dependency) {
-    Artifact artifact = new DefaultArtifact("org.renjin.cran", dependency.getName(), "jar",
-        dependency.getVersionRange());
+  private Dependency qualify(Map<String, ResolvedDependency> resolved, PackageDescription.PackageDependency dependency) {
+
+    ResolvedDependency resolvedDependency = resolved.get(dependency.getName());
+    if(resolvedDependency == null) {
+      throw new BuildException("Failed to resolve " + dependency.getName());
+    }
+
+    Artifact artifact = new DefaultArtifact(
+        resolvedDependency.getGroupId(),
+        dependency.getName(), "jar",
+        resolvedDependency.getVersion());
+
     return new Dependency(artifact, "compile");
   }
 

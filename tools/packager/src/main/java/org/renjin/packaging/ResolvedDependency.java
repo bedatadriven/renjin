@@ -18,12 +18,31 @@
  *
  */
 
-package org.renjin.aether;
+package org.renjin.packaging;
 
 /**
  * A package dependency resolved to it's fully-name and it's
  */
 public class ResolvedDependency {
+  private String name;
   private String groupId;
   private String version;
+
+  public ResolvedDependency(String name, String groupId, String version) {
+    this.name = name;
+    this.groupId = groupId;
+    this.version = version;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public String getGroupId() {
+    return groupId;
+  }
+
+  public String getVersion() {
+    return version;
+  }
 }

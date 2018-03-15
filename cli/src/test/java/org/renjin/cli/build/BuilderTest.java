@@ -50,11 +50,6 @@ public class BuilderTest {
     File sourceRoot = findTestPackageRoot("pkgwithdeps");
 
     Builder.execute("build", new String[] { sourceRoot.getAbsolutePath() });
-
-    Session session = sessionWithTestPackage("pkgwithdeps");
-    session.getTopLevelContext().evaluate(RParser.parseSource("library(com.acme.square)"));
-    session.getTopLevelContext().evaluate(RParser.parseSource("stopifnot(sqr(2) == 4)"));
-
   }
 
   /**

@@ -21,6 +21,7 @@ package org.renjin.packaging;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Function;
+import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.ArrayListMultimap;
 import org.renjin.repackaged.guava.collect.Iterables;
@@ -41,8 +42,6 @@ import java.util.*;
 public class PackageDescription {
 
   private ArrayListMultimap<String, String> properties = ArrayListMultimap.create();
-
-
 
   public static class PackageDependency {
     private String name;
@@ -91,8 +90,6 @@ public class PackageDescription {
     public String toString() {
       return (name + "  " + versionRange).trim();
     }
-
-
   }
 
   private static class PackageDependencyParser implements Function<String, PackageDependency> {
@@ -154,19 +151,24 @@ public class PackageDescription {
     for(String line : lines) {
       if(line.length() > 0) {
         if(Character.isWhitespace(line.codePointAt(0))) {
-          if(key == null) {
-            throw new IllegalArgumentException("Expected key at line '" + line + "'");
-          }
+
+          // Continues value from previous line
+
+          Preconditions.checkArgument(key != null, "Expected key at line '%s'", line);
           value.append(" ").append(line.trim());
+
         } else {
+
+          // Starts a new field
+
           if(key != null) {
             d.properties.put(key, value.toString());
             value.setLength(0);
           }
+
           int colon = line.indexOf(':');
-          if(colon == -1) {
-            throw new IllegalArgumentException("Expected line in format key: value, found '" + line + "'");
-          }
+          Preconditions.checkArgument(colon != -1, "Expected line in format key: value, found '" + line + "'");
+
           key = line.substring(0, colon);
           value.append(line.substring(colon+1).trim());
         }

@@ -141,7 +141,7 @@ public class MavenBuildContext implements BuildContext {
   }
 
   @Override
-  public File getPackageOutputDir() {
+  public File getOutputDir() {
     return outputDir;
   }
 

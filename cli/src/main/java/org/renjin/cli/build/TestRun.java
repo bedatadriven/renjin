@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -117,33 +117,28 @@ public class TestRun {
   private boolean executeTest(File testFile)  {
 
     File outputFile = new File(testFile.getParentFile(), testFile.getName() + "out");
-    PrintStream output;
-    try {
-      output = new PrintStream(outputFile);
+    try(PrintStream output = new PrintStream(outputFile)) {
+      try {
+        Session session = newSession();
+        session.setStdOut(new PrintWriter(output));
+        session.setStdErr(new PrintWriter(output));
+
+        UnsupportedTerminal term = new UnsupportedTerminal();
+        InputStream in = new FileInputStream(testFile);
+        ConsoleReader consoleReader = new ConsoleReader(in, output, term);
+        JlineRepl repl = new JlineRepl(session, consoleReader);
+        repl.setInteractive(false);
+        repl.setEcho(true);
+        repl.setStopOnError(true);
+
+        repl.run();
+        return true;
+      } catch (Exception e) {
+        e.printStackTrace(output);
+        return false;
+      }
     } catch (FileNotFoundException e) {
       throw new BuildException("Couldn't create test output file " + outputFile.getAbsolutePath());
     }
-
-    try {
-      Session session = newSession();
-      session.setStdOut(new PrintWriter(output));
-      session.setStdErr(new PrintWriter(output));
-
-      UnsupportedTerminal term = new UnsupportedTerminal();
-      InputStream in = new FileInputStream(testFile);
-      ConsoleReader consoleReader = new ConsoleReader(in, output, term);
-      JlineRepl repl = new JlineRepl(session, consoleReader);
-      repl.setInteractive(false);
-      repl.setEcho(true);
-      repl.setStopOnError(true);
-
-      repl.run();
-      return true;
-
-    } catch (Exception e) {
-      e.printStackTrace(output);
-      return false;
-    }
   }
-
 }

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -338,9 +338,9 @@ public class DatasetsBuilder2 {
       
       File targetFile = new File(datasetDir, node.getName());
       FileOutputStream out = new FileOutputStream(targetFile);
-      RDataWriter writer = new RDataWriter(session.getTopLevelContext(), out);
-      writer.save(node.getValue());
-      out.close();    
+      try(RDataWriter writer = new RDataWriter(session.getTopLevelContext(), out)) {
+        writer.save(node.getValue());
+      }
     }
   }
 
@@ -351,11 +351,15 @@ public class DatasetsBuilder2 {
    */
   public static InputStream decompress(File file) throws IOException {
 
-    FileInputStream in = new FileInputStream(file);
-    int b1 = in.read();
-    int b2 = in.read();
-    int b3 = in.read();
-    in.close();
+    int b1;
+    int b2;
+    int b3;
+
+    try(FileInputStream in = new FileInputStream(file)) {
+      b1 = in.read();
+      b2 = in.read();
+      b3 = in.read();
+    }
     
     if(b1 == GzFileConnection.GZIP_MAGIC_BYTE1 && b2 == GzFileConnection.GZIP_MAGIC_BYTE2) {
       return new GZIPInputStream(new FileInputStream(file));

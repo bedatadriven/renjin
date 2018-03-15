@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,6 +66,7 @@ public class NamespaceBuilder2 {
     importDependencies(context, namespace);
     loadPackageData(context, namespace);
     evaluateSources(context, namespace.getNamespaceEnvironment());
+    invokeOnLoad(context, namespace.getNamespaceEnvironment());
     serializeEnvironment(context, namespace.getNamespaceEnvironment(), environmentFile);
     writeRequires();
     writePackageRds();
@@ -134,6 +135,24 @@ public class NamespaceBuilder2 {
         throw new RuntimeException("Error evaluating package source: " + sourceFile.getName(), e);
       } catch (Exception e) {
         throw new RuntimeException("Exception evaluating " + sourceFile.getName(), e);
+      }
+    }
+  }
+
+  private void invokeOnLoad(Context context, Environment namespaceEnvironment) {
+
+    Symbol onLoad = Symbol.get(".onLoad");
+    StringVector nameArgument = StringVector.valueOf(this.source.getPackageName());
+
+    if(namespaceEnvironment.exists(onLoad)) {
+      try {
+        context.evaluate(FunctionCall.newCall(onLoad, nameArgument, nameArgument), namespaceEnvironment);
+      } catch (Exception e) {
+        if(e instanceof EvalException) {
+          System.out.println("ERROR: " + e.getMessage());
+          ((EvalException) e).printRStackTrace(System.out);
+        }
+        throw new RuntimeException("Exception evaluating .onLoad() method", e);
       }
     }
   }

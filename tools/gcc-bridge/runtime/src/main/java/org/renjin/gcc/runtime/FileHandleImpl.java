@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ import java.io.RandomAccessFile;
 /**
  * C standard library file handle
  */
-public class FileHandleImpl implements FileHandle {
+public class FileHandleImpl extends AbstractFileHandle {
 
   private RandomAccessFile file;
 
@@ -40,6 +40,11 @@ public class FileHandleImpl implements FileHandle {
   @Override
   public void write(int b) throws IOException {
     file.write(b);
+  }
+
+  @Override
+  public void rewind() throws IOException {
+    file.seek(0);
   }
 
   @Override

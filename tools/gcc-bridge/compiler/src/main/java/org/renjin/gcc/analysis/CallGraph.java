@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -100,7 +100,7 @@ public class CallGraph {
       for (GimpleFunction function : unit.getFunctions()) {
         FunctionNode node = new FunctionNode(unit, function);
         unitScope.put(function.getName(), node);
-        if(function.isExtern()) {
+        if(function.isPublic()) {
           globalScope.put(function.getName(), node);
         }
         functionNodes.add(node);

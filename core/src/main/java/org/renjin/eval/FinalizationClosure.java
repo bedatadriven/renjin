@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,10 @@
  */
 package org.renjin.eval;
 
-import org.renjin.sexp.*;
+import org.renjin.sexp.Closure;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
 
 public class FinalizationClosure implements FinalizationHandler {
   private Closure function;
@@ -28,7 +31,7 @@ public class FinalizationClosure implements FinalizationHandler {
   }
 
   @Override
-  public void finalize(Context context, SEXP sexp) {
+  public void finalizeSexp(Context context, SEXP sexp) {
     context.evaluate(new FunctionCall(function, PairList.Node.singleton(sexp)));
   }
 }

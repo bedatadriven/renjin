@@ -1,5 +1,5 @@
 #  File src/library/methods/R/MethodsListClass.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 .InitMethodsListClass <- function(envir)
 {
@@ -55,6 +55,9 @@
              where = envir); clList <- c(clList, "MethodDefinition")
     ## class for default methods made from ordinary functions
     setClass("derivedDefaultMethod", "MethodDefinition")
+    ## class for methods that call and dispatch inside .Internal()
+    setClass("internalDispatchMethod", contains = "derivedDefaultMethod",
+             representation(internal = "character"))
     ## class for methods with precomputed information for callNextMethod
     setClass("MethodWithNext",
              representation("MethodDefinition", nextMethod = "PossibleMethod", excluded = "list"), where = envir); clList <- c(clList, "MethodWithNext")
@@ -193,7 +196,7 @@
                   args <- list(...)
                   objs <- names(args)
                   for(what in objs)
-                      assign(what, elNamed(args, what), envir = value)
+                      value[[what]] <- args[[what]]
                   value
               }, where = envir)
     ## from 2.11.0, the MethodsList class is deprecated

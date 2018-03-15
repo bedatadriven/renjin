@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -342,8 +342,8 @@ public class S3 {
     }
 
     PairList newArgs = reassembleAndEvaluateArgs(object, args, context, rho);
-    
-    return method.doApply(context, rho, call, newArgs);
+    Context fakeContext = context.beginFunction(rho, call, new Closure(rho, Null.INSTANCE, Null.INSTANCE), args);
+    return method.doApply(fakeContext, rho, call, newArgs);
   }
 
   private static boolean isS4DispatchSupported(String name) {
@@ -968,9 +968,10 @@ public class S3 {
   }
 
   public static SEXP getContainsSlot(Context context, String objClass) {
-    Symbol argClassObjectName = Symbol.get(".__C__" + objClass);
-    Environment environment = context.getEnvironment();
-    AttributeMap map = environment.findVariable(context, argClassObjectName).force(context).getAttributes();
+    Namespace ns = context.getNamespaceRegistry().getNamespace(context, "methods");
+    SEXP env = ns.getNamespaceEnvironment();
+    SEXP classTable = ((Environment)env).findVariableUnsafe(Symbol.get(".classTable")).force(context);
+    AttributeMap map = ((Environment)classTable).findVariable(context, Symbol.get(objClass)).getAttributes();
     return map.get("contains");
   }
 

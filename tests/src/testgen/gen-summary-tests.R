@@ -1,6 +1,6 @@
 #
 # Renjin : JVM-based interpreter for the R language for the statistical analysis
-# Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+# Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -125,7 +125,7 @@ for(fn in unary) {
   # Check combinations for min, max, range
   # But skip those with attributes to reduce explosion
   short.list <- inputs[ sapply(inputs, function(i) is.null(attributes(i))) ]
-  if(fn %in% c("min", "max")) {
+  if(fn %in% c("min", "max", "sum", "mean")) {
     for(na.rm in c(TRUE, FALSE)) {
         for(i in short.list) {
             for(j in short.list) {

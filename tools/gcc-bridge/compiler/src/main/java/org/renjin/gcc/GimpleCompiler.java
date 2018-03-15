@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,10 +31,11 @@ import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParser;
 import org.renjin.gcc.link.LinkSymbol;
+import org.renjin.gcc.logging.LogManager;
 import org.renjin.gcc.symbols.GlobalSymbolTable;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Preconditions;
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.repackaged.guava.collect.Sets;
@@ -86,7 +87,7 @@ public class GimpleCompiler  {
   private String trampolineClassName;
   private String recordClassPrefix = "record";
 
-  private TreeLogger rootLogger = new NullTreeLogger();
+  private final LogManager logManager = new LogManager();
 
   private boolean pruneUnusedSymbols = true;
   
@@ -99,16 +100,16 @@ public class GimpleCompiler  {
     functionBodyTransformers.add(VoidPointerTypeDeducer.INSTANCE);
     functionBodyTransformers.add(ResultDeclRewriter.INSTANCE);
     functionBodyTransformers.add(LocalVariableInitializer.INSTANCE);
-    globalSymbolTable = new GlobalSymbolTable(typeOracle);
+    globalSymbolTable = new GlobalSymbolTable(typeOracle, providedVariables);
     globalSymbolTable.addDefaults();
   }
 
-  public TreeLogger getLogger() {
-    return rootLogger;
+  public LogManager getLogManager() {
+    return logManager;
   }
 
-  public void setLogger(TreeLogger rootLogger) {
-    this.rootLogger = rootLogger;
+  public void setLoggingDirectory(File logDir) {
+    logManager.setLoggingDirectory(logDir);
   }
 
   /**
@@ -184,6 +185,10 @@ public class GimpleCompiler  {
     globalSymbolTable.addLibrary(lib);
   }
 
+  public void addTransformer(FunctionBodyTransformer transformer) {
+    functionBodyTransformers.add(transformer);
+  }
+
   public void addMethod(String functionName, Class declaringClass, String methodName) {
     globalSymbolTable.addMethod(functionName, declaringClass, methodName);
   }
@@ -216,12 +221,6 @@ public class GimpleCompiler  {
     try {
 
       PmfRewriter.rewrite(units);
-      GlobalVarMerger.merge(units);
-
-      // Prune unused functions
-      if(pruneUnusedSymbols) {
-        SymbolPruner.prune(rootLogger, units, entryPointPredicate);
-      }
 
       typeOracle.initRecords(units, providedRecordTypes);
 
@@ -248,9 +247,8 @@ public class GimpleCompiler  {
       }
 
       // Finally, run code generation
-      TreeLogger codegenLogger = rootLogger.branch("Generating bytecode");
       for (UnitClassGenerator generator : unitClassGenerators) {
-        generator.emit(codegenLogger);
+        generator.emit(logManager);
         writeClass(generator.getClassName(), generator.toByteArray());
 
         if(trampolineClassName == null && javadocOutputDirectory != null) {
@@ -268,7 +266,7 @@ public class GimpleCompiler  {
 
     } finally {
       try {
-        rootLogger.finish();
+        logManager.finish();
       } catch (Exception e) {
         System.out.println("Failed to write logs");
         e.printStackTrace();
@@ -362,18 +360,17 @@ public class GimpleCompiler  {
       }
       for (GimpleFunction function : unit.getFunctions()) {
         if(!function.isEmpty()) {
-          transformFunctionBody(rootLogger.branch("Transforming " + function.getName()), unit, function);
+          transformFunctionBody(logManager, unit, function);
         }
       }
     }
   }
 
-  private void transformFunctionBody(TreeLogger parentLogger, GimpleCompilationUnit unit, GimpleFunction function) {
+  private void transformFunctionBody(LogManager logger, GimpleCompilationUnit unit, GimpleFunction function) {
     boolean updated;
     do {
       updated = false;
       for(FunctionBodyTransformer transformer : functionBodyTransformers) {
-        TreeLogger logger = parentLogger.branch(TreeLogger.Level.DEBUG, "Running " + transformer.getClass().getSimpleName());
         if(transformer.transform(logger, unit, function)) {
           updated = true;
         }
@@ -444,6 +441,5 @@ public class GimpleCompiler  {
   public void setLinkClassLoader(ClassLoader linkClassLoader) {
     this.globalSymbolTable.setLinkClassLoader(linkClassLoader);
   }
-
 
 }

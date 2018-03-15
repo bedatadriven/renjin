@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Lists;
 
@@ -84,7 +83,7 @@ public class Expressions {
   }
 
 
-  public static JExpr newArray(Type valueType, int elementLength, Optional<JExpr> firstValue) {
+  public static JExpr newArray(Type valueType, int elementLength, java.util.Optional<JExpr> firstValue) {
     List<JExpr> initialValues = Lists.newArrayList();
     if(firstValue.isPresent()) {
       initialValues.add(firstValue.get());

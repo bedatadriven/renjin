@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
  */
 package org.renjin.gcc.analysis;
 
-import org.renjin.gcc.TreeLogger;
+import org.renjin.gcc.logging.LogManager;
 import org.renjin.gcc.gimple.GimpleBasicBlock;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
@@ -48,7 +48,7 @@ public class AddressableSimplifier implements FunctionBodyTransformer {
   }
 
   @Override
-  public boolean transform(TreeLogger logger, GimpleCompilationUnit unit, GimpleFunction fn) {
+  public boolean transform(LogManager logManager, GimpleCompilationUnit unit, GimpleFunction fn) {
 
     boolean updated = false;
 

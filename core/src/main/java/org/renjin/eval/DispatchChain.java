@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
  */
 package org.renjin.eval;
 
-import org.renjin.primitives.CollectionUtils;
 import org.renjin.sexp.*;
 
 import java.util.HashMap;
@@ -46,7 +45,7 @@ public class DispatchChain {
   public static DispatchChain newChain(Context context, Environment callingEnvironment, String generic, Vector classes) {
     for(int i = 0; i!=classes.length();++i) {
       Symbol method = Symbol.get(generic + "." + classes.getElementAsString(i));
-      SEXP function = callingEnvironment.findVariable(context, method, CollectionUtils.IS_FUNCTION, true);
+      SEXP function = callingEnvironment.findVariable(context, method, (x -> x instanceof Function), true);
       if(function != Symbol.UNBOUND_VALUE) {
         DispatchChain chain = new DispatchChain(context);
         chain.classes = classes;

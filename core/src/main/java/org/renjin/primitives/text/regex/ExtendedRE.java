@@ -702,6 +702,11 @@ public class ExtendedRE implements Serializable, RE {
         return -1;
     }
 
+    @Override
+    public int getGroupCount() {
+      return program.maxParens - 1;
+    }
+
     /**
      * Returns the length of a given paren level.
      *

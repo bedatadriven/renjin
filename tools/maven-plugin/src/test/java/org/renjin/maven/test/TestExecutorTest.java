@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ public class TestExecutorTest extends TestCase {
 
   public void testThatExceptionsInTestShouldNotEscape() throws Exception {
     File reportDir = Files.createTempDir();
-    List<String> defaultPackages = Collections.<String>emptyList();
+    List<String> defaultPackages = Collections.emptyList();
     TestExecutor runner = new TestExecutor("base", defaultPackages, reportDir);
     File testFile = new File(Resources.getResource("man/mean.Rd").getFile());
     runner.executeTest(testFile);

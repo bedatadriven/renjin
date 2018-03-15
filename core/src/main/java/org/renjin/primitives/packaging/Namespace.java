@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,15 +25,11 @@ import org.renjin.methods.S4;
 import org.renjin.primitives.S3;
 import org.renjin.primitives.text.regex.RE;
 import org.renjin.primitives.text.regex.REFactory;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Package namespace.
@@ -218,6 +214,18 @@ public class Namespace {
           }
         }
 
+        for (String methodName : entry.getMethods()) {
+          SEXP export = importedNamespace.getExportIfExists(Symbol.get(methodName));
+          if(export == Symbol.UNBOUND_VALUE) {
+            context.warn(String.format("Method '%s' not exported from namespace '%s'",
+                methodName,
+                importedNamespace.getName()));
+          } else {
+            importsEnvironment.setVariableUnsafe(methodName, export);
+          }
+        }
+
+
         for (String className : entry.getClasses()) {
           Symbol symbol = S4.classNameMetadata(className);
           SEXP export = importedNamespace.getExportIfExists(symbol);
@@ -381,7 +389,7 @@ public class Namespace {
         return symbol;
       }
     }
-    return Optional.absent();
+    return Optional.empty();
   }
 
   public void initExports(NamespaceFile file) {
@@ -472,7 +480,7 @@ public class Namespace {
    *
    * @param context the current evaluation context
    * @param genericName the name of the generic function (for example, "print" or "summary")
-   * @return the namespace environment in which the function was defined, or {@code Optional.absent()} if
+   * @return the namespace environment in which the function was defined, or {@code Optional.empty()} if
    * the function could not be resolved.
    */
   private Optional<Environment> resolveGenericFunctionNamespace(Context context, String genericName) {
@@ -483,7 +491,7 @@ public class Namespace {
     } else {
       SEXP genericFunction = namespaceEnvironment.findFunction(context, Symbol.get(genericName));
       if (genericFunction == null) {
-        return Optional.absent();
+        return Optional.empty();
       }
       if (genericFunction instanceof Closure) {
         return Optional.of(((Closure) genericFunction).getEnclosingEnvironment());
@@ -500,5 +508,15 @@ public class Namespace {
 
   public boolean isLoaded() {
     return loaded;
+  }
+
+  public boolean hasS4Metadata() {
+    for (Symbol symbol : namespaceEnvironment.getSymbolNames()) {
+      String symbolName = symbol.getPrintName();
+      if(symbolName.startsWith(".__C__") || symbolName.startsWith(".__T__")) {
+        return true;
+      }
+    }
+    return false;
   }
 }

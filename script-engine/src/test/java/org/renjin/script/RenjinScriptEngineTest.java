@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,11 +41,7 @@ public class RenjinScriptEngineTest {
   public void setUp() {
     // create a script engine manager
     ScriptEngineManager factory = new ScriptEngineManager();
-  
-//    engine = factory.getEngineByName("Renjin");   
-//    if(engine == null) {
-//      throw new AssertionError("Failed to create Renjin Script Engine");
-//    }
+
     engine = new RenjinScriptEngineFactory().getScriptEngine();
     invocableEngine = (Invocable)engine;
   }
@@ -136,10 +132,10 @@ public class RenjinScriptEngineTest {
   public void putNullRef() throws ScriptException {
     
     engine.put("x", 42);
-    assertThat(engine.eval("x == 42"), CoreMatchers.<Object>equalTo(LogicalVector.TRUE));
+    assertThat(engine.eval("x == 42"), CoreMatchers.equalTo(LogicalVector.TRUE));
 
     engine.put("x", null);
-    assertThat(engine.eval("is.null(x)"), CoreMatchers.<Object>equalTo(LogicalVector.TRUE));
+    assertThat(engine.eval("is.null(x)"), CoreMatchers.equalTo(LogicalVector.TRUE));
   }
   
   @Test
@@ -147,7 +143,7 @@ public class RenjinScriptEngineTest {
     Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
     
     bindings.put("x", null);
-    assertThat(engine.eval("is.null(x)"), CoreMatchers.<Object>equalTo(LogicalVector.TRUE));
+    assertThat(engine.eval("is.null(x)"), CoreMatchers.equalTo(LogicalVector.TRUE));
   }
   
   @Test

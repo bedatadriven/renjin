@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ import org.renjin.primitives.Warning;
 import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.primitives.text.regex.REFactory;
 import org.renjin.primitives.text.regex.RESyntaxException;
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 import org.renjin.repackaged.guava.base.Predicates;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.io.ByteStreams;
@@ -400,7 +400,7 @@ public class Files {
       public StringVector list() throws IOException {
 
         if(pattern == null) {
-          nameFilter = Predicates.alwaysTrue();
+          nameFilter = (x -> true);
         } else {
           try {
             nameFilter = REFactory.asPredicate(new ExtendedRE(pattern).ignoreCase(ignoreCase));
@@ -426,11 +426,11 @@ public class Files {
       }
 
       private void list(String path, FileObject folder) throws FileSystemException {
-        if(allFiles & !recursive) {
-          if(nameFilter.apply(".")) {
+        if(allFiles && !recursive) {
+          if(nameFilter.test(".")) {
             add(path, ".");
           }
-          if(nameFilter.apply("..")) {
+          if(nameFilter.test("..")) {
             add(path, "..");
           }
         }
@@ -467,7 +467,7 @@ public class Files {
         if(recursive && !includeDirs && child.getType() == FileType.FOLDER) {
           return false;
         }
-        if(!nameFilter.apply(child.getName().getBaseName())) {
+        if(!nameFilter.test(child.getName().getBaseName())) {
           return false;
         }
         return true;

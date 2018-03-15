@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,8 @@ import org.renjin.eval.Profiler;
 import java.util.Arrays;
 
 public class IntArrayVector extends IntVector {
+
+  public static final IntArrayVector NA_VECTOR = new IntArrayVector(IntVector.NA);
 
   private int[] values;
 
@@ -118,7 +120,7 @@ public class IntArrayVector extends IntVector {
       }
       values = new int[initialCapacity];
       size = initialSize;
-      Arrays.fill(values, NA);
+      Arrays.fill(values, IntVector.NA);
     }
 
     public Builder(int initialSize) {
@@ -160,6 +162,12 @@ public class IntArrayVector extends IntVector {
 
     public Builder add(double value) {
       return set(size, value);
+    }
+
+
+    public Builder fill(int value) {
+      Arrays.fill(values, value);
+      return this;
     }
 
     @Override

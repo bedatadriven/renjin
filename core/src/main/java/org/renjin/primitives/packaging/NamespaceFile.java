@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -336,10 +336,10 @@ public class NamespaceFile {
     SEXP evaluatedCondition = context.evaluate(condition, context.getBaseEnvironment());
 
     if(isTruthy(evaluatedCondition)) {
-      parse(context, call.getArgument(1));
+      parse(context, call.<SEXP>getArgument(1));
     } else {
       if(call.getArguments().length() == 3) {
-        parse(context, call.getArgument(2));
+        parse(context, call.<SEXP>getArgument(2));
       }
     }
   }
@@ -398,7 +398,7 @@ public class NamespaceFile {
     if(call.getArguments().length() < 1) {
       throw new EvalException("Expected at least one arguments to importFrom directive");
     }
-    PackageImportEntry packageImport = packageImport(call.getArgument(0));
+    PackageImportEntry packageImport = packageImport(call.<SEXP>getArgument(0));
 
     for(int i=1;i<call.getArguments().length();++i) {
       packageImport.symbols.add(parseSymbolArgument(call.getArgument(i)));
@@ -415,7 +415,7 @@ public class NamespaceFile {
       throw new EvalException("Expected at least two arguments to importClassesFrom directive");
     }
 
-    PackageImportEntry packageImport = packageImport(call.getArgument(0));
+    PackageImportEntry packageImport = packageImport(call.<SEXP>getArgument(0));
 
     for(int i=1;i<call.getArguments().length();++i) {
       packageImport.classes.add(parseStringArgument(call.getArgument(i)));
@@ -432,7 +432,7 @@ public class NamespaceFile {
       throw new EvalException("Expected at least two arguments to importMethodsFrom directive");
     }
 
-    PackageImportEntry packageImport = packageImport(call.getArgument(0));
+    PackageImportEntry packageImport = packageImport(call.<SEXP>getArgument(0));
 
     for(int i=1;i<call.getArguments().length();++i) {
       packageImport.methods.add(parseStringArgument(call.getArgument(i)));

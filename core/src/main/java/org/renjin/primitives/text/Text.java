@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,11 +22,14 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.primitives.Deparse;
+import org.renjin.primitives.matrix.IntMatrixBuilder;
 import org.renjin.primitives.print.StringPrinter;
+import org.renjin.primitives.sequence.RepStringVector;
 import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.primitives.text.regex.FuzzyMatcher;
 import org.renjin.primitives.text.regex.RE;
 import org.renjin.primitives.text.regex.REFactory;
+import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Function;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -42,6 +45,9 @@ import java.util.Set;
 import static org.renjin.repackaged.guava.collect.Iterables.transform;
 
 public class Text {
+
+  public static final IntVector NO_MATCH = new IntArrayVector(new int[] { -1 },
+          AttributeMap.newBuilder().set("match.length", new IntArrayVector(-1)).build());
 
   private Text() {}
 
@@ -497,15 +503,45 @@ public class Text {
                                   boolean fixed, boolean useBytes) {
 
     RE re = REFactory.compile(pattern, ignoreCase,  perl, fixed, useBytes);
+
     IntArrayVector.Builder position = IntArrayVector.Builder.withInitialCapacity(vector.length());
     IntArrayVector.Builder matchLength = IntArrayVector.Builder.withInitialCapacity(vector.length());
 
-    for(String text : vector) {
-      if(re.match(text)) {
+    int groups = re.getGroupCount();
+    IntMatrixBuilder captureStart = null;
+    IntMatrixBuilder captureLength = null;
+    StringVector captureNames = null;
+
+    if(groups > 0) {
+      captureNames = RepStringVector.createConstantVector("", groups);
+      captureStart = new IntMatrixBuilder(vector.length(), groups);
+      captureLength = new IntMatrixBuilder(vector.length(), groups);
+
+      captureStart.fill(-1);
+      captureLength.fill(-1);
+
+      captureStart.setColNames(captureNames);
+      captureLength.setColNames(captureNames);
+    }
+
+    for(int i = 0; i < vector.length(); ++i) {
+      if(re.match(vector.getElementAsString(i))) {
         int start = re.getGroupStart(0);
         int end = re.getGroupEnd(0);
         position.add(start+1);
         matchLength.add(end-start);
+
+        for(int group=1;group<=re.getGroupCount();++group) {
+          int groupStart = re.getGroupStart(group);
+          if(groupStart == -1) {
+            captureStart.set(i, group - 1, 0);
+            captureLength.set(i, group - 1, 0);
+          } else {
+            captureStart.set(i, group - 1, groupStart + 1);
+            captureLength.set(i, group - 1, re.getGroupEnd(group) - groupStart);
+          }
+        }
+
       } else {
         position.add(-1);
         matchLength.add(-1);
@@ -514,7 +550,49 @@ public class Text {
 
     position.setAttribute("match.length", matchLength.build());
     position.setAttribute("useBytes", new LogicalArrayVector(useBytes));
+
+    if(groups > 0) {
+      position.setAttribute("capture.start", captureStart.build());
+      position.setAttribute("capture.length", captureLength.build());
+      position.setAttribute("capture.names", captureNames);
+    }
+
     return position.build();
+  }
+
+  @Internal
+  public static ListVector regexec(String pattern, StringVector vector, boolean ignoreCase, boolean fixed, boolean useBytes) {
+    RE re = REFactory.compile(pattern, ignoreCase, false, fixed, useBytes);
+    int groupCount = re.getGroupCount();
+
+
+    ListVector.Builder results = new ListVector.Builder(0, vector.length());
+    int[] starts = new int[groupCount + 1];
+    int[] lengths = new int[groupCount + 1];
+
+    for (String text : vector) {
+
+      if(re.match(text)) {
+
+        for (int i = 0; i <= groupCount; i++) {
+          int start = re.getGroupStart(i);
+          starts[i] = start + 1;
+          lengths[i] = re.getGroupEnd(i) - start;
+        }
+
+        IntArrayVector lengthVector = new IntArrayVector(lengths);
+        AttributeMap matchAttributes = AttributeMap.builder().set("match.length", lengthVector).build();
+        IntArrayVector match = new IntArrayVector(starts, matchAttributes);
+
+        results.add(match);
+
+      } else {
+        results.add(NO_MATCH);
+      }
+    }
+
+    return results.build();
+
   }
 
 
@@ -1000,6 +1078,16 @@ public class Text {
   @Internal
   public static Vector iconv(@InvokeAsCharacter Vector x, String from, String to, String sub,
                              boolean mark, boolean toRaw) {
+
+    if(x == Null.INSTANCE) {
+      // list supported encodings
+      StringVector.Builder encodings = new StringVector.Builder();
+      for (Charset charset : Charset.availableCharsets().values()) {
+        encodings.add(charset.name().toUpperCase());
+      }
+      return encodings.build();
+    }
+
     if(toRaw) {
       Charset destCharSet = RCharsets.getByName(to);
       ListVector.Builder result = new ListVector.Builder();

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,11 +23,11 @@ import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Materialize;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
-import org.renjin.repackaged.guava.base.Objects;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.*;
 
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -97,7 +97,7 @@ public class Identical {
   }
 
   private static boolean identicalPointers(ExternalPtr x, ExternalPtr y) {
-    return Objects.equal(x, y);
+    return Objects.equals(x, y);
   }
 
   /**

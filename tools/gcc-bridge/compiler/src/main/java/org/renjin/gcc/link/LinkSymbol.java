@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,12 +22,12 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.repackaged.asm.Handle;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Charsets;
-import org.renjin.repackaged.guava.base.Optional;
 
 import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -251,13 +251,13 @@ public class LinkSymbol {
   public static Optional<LinkSymbol> lookup(ClassLoader classLoader, String name) throws IOException {
     InputStream in = classLoader.getResourceAsStream("META-INF/org.renjin.gcc.symbols/" + name);
     if(in == null) {
-      return Optional.absent();
+      return Optional.empty();
     }
     try(InputStreamReader reader = new InputStreamReader(in, Charsets.UTF_8))  {
       Properties properties = new Properties();
       properties.load(reader);
 
-      return Optional.of(fromDescriptor(name, properties)); 
+      return Optional.of(fromDescriptor(name, properties));
     }
   }
 

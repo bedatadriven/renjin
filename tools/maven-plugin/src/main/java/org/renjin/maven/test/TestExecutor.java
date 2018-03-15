@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
  */
 package org.renjin.maven.test;
 
-import org.renjin.repackaged.guava.base.Throwables;
 import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 import org.renjin.eval.Context;
@@ -29,6 +28,7 @@ import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.base.Throwables;
 import org.renjin.repackaged.guava.io.Files;
 import org.renjin.repl.JlineRepl;
 import org.renjin.sexp.*;
@@ -300,10 +300,13 @@ public class TestExecutor {
 
     // Setup options for testthat so that test results are written in junit format
     // to the expected location
+    StringVector testOut = StringVector.valueOf(
+        new File(testReportDirectory, "TEST-testthat-results.xml").getAbsolutePath());
+
     PairList.Builder options = new PairList.Builder();
     options.add("testthat.default_check_reporter", StringVector.valueOf("junit"));
-    options.add("testthat.junit.output_file", StringVector.valueOf(
-        new File(testReportDirectory, "TEST-testthat-results.xml").getAbsolutePath()));
+    options.add("testthat.junit.output_file", testOut);
+    options.add("testthat.output_file", testOut);
 
     session.getTopLevelContext().evaluate(new FunctionCall(Symbol.get("options"), options.build()));
 

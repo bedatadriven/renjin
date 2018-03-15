@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 package org.renjin.packaging;
 
 import org.renjin.gcc.GimpleCompiler;
-import org.renjin.gcc.HtmlTreeLogger;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
@@ -28,7 +27,6 @@ import org.renjin.gnur.GnurSourcesCompiler;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
-import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.io.Files;
 import org.renjin.repackaged.guava.io.LineProcessor;
@@ -37,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
@@ -199,15 +198,12 @@ public class NativeSourceBuilder {
     compiler.setPackageName(source.getGroupId() + "." +
         Namespace.sanitizePackageNameForClassFiles(source.getPackageName()));
     compiler.setClassName(findLibraryName());
-
-    if (buildContext.getCompileLogDir() != null) {
-      compiler.setLogger(new HtmlTreeLogger(buildContext.getCompileLogDir()));
-    }
+    compiler.setLoggingDirectory(buildContext.getCompileLogDir());
 
     if(entryPoints != null && !entryPoints.isEmpty()) {
       compiler.setEntryPointPredicate(new Predicate<GimpleFunction>() {
         @Override
-        public boolean apply(GimpleFunction input) {
+        public boolean test(GimpleFunction input) {
           return entryPoints.contains(input.getMangledName());
         }
       });

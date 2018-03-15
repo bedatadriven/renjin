@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -426,6 +426,10 @@ public final class Rinternals {
       return SexpType.SYMSXP;
     } else if(s instanceof GnuCharSexp) {
       return SexpType.CHARSXP;
+    } else if(s instanceof SpecialFunction) {
+      return SexpType.SPECIALSXP;
+    } else if(s instanceof Function) {
+      return SexpType.BUILTINSXP;
     } else {
       throw new UnsupportedOperationException("Unknown SEXP Type: " + s.getClass().getName());
     }
@@ -457,9 +461,12 @@ public final class Rinternals {
   }
 
   public static void SET_TYPEOF(SEXP x, int v) {
-    throw new UnimplementedGnuApiMethod("SET_TYPEOF");
+    if(TYPEOF(x) != v) {
+      throw new UnimplementedGnuApiMethod(String.format("Cannot change SEXP of type '%s' to '%s'",
+          SexpType.typeName(TYPEOF(x)),
+          SexpType.typeName(v)));
+    }
   }
-
 
   public static void SET_ATTRIB(SEXP x, SEXP v) {
     if(v instanceof PairList) {
@@ -1025,8 +1032,8 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("SET_FRAME");
   }
 
-  public static void SET_ENCLOS(SEXP x, SEXP v) {
-    throw new UnimplementedGnuApiMethod("SET_ENCLOS");
+  public static void SET_ENCLOS(SEXP env, SEXP parent) {
+    ((Environment) env).setParent(((Environment) parent));
   }
 
   public static void SET_HASHTAB(SEXP x, SEXP v) {
@@ -1283,6 +1290,14 @@ public final class Rinternals {
       list.add(R_NilValue, R_NilValue);
     }
     return list.build();
+  }
+
+  public static SEXP Rf_allocLang(int n) {
+    FunctionCall.Builder lang = new FunctionCall.Builder();
+    for(int i = 0; i < n; i++) {
+      lang.add(R_NilValue, R_NilValue);
+    }
+    return lang.build();
   }
 
   /** Create an S4 object.
@@ -1819,15 +1834,25 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_namesgets");
   }
 
+  @Deprecated
   public static SEXP Rf_mkChar(BytePtr string) {
-    if(string.array == null) {
-      return GnuCharSexp.NA_STRING;
-    }
-    return Rf_mkCharLen(string, string.nullTerminatedStringLength());
+    return Rf_mkChar((Ptr)string);
   }
 
+  public static SEXP Rf_mkChar(Ptr string) {
+    if(string.isNull()) {
+      return GnuCharSexp.NA_STRING;
+    }
+    return Rf_mkCharLen(string, Stdlib.strlen(string));
+  }
+
+  @Deprecated
   public static SEXP Rf_mkCharLen(BytePtr string, int length) {
-    if(string.array == null) {
+    return Rf_mkCharLen((Ptr)string, length);
+  }
+
+  public static SEXP Rf_mkCharLen(Ptr string, int length) {
+    if(string.isNull()) {
       return GnuCharSexp.NA_STRING;
     }
 
@@ -1835,10 +1860,10 @@ public final class Rinternals {
       return R_BlankString;
     }
 
-    byte[] copy = new byte[length+1];
-    System.arraycopy(string.array, string.offset, copy, 0, length);
+    BytePtr copy = BytePtr.malloc(length+1);
+    copy.memcpy(string, length);
 
-    return new GnuCharSexp(copy);
+    return new GnuCharSexp(copy.array);
   }
 
   public static boolean Rf_NonNullStringMatch(SEXP p0, SEXP p1) {
@@ -1976,6 +2001,8 @@ public final class Rinternals {
         return SexpType.STRSXP;
       case IntVector.TYPE_NAME:
         return SexpType.INTSXP;
+      case DoubleVector.TYPE_NAME:
+        return SexpType.REALSXP;
       case RawVector.TYPE_NAME:
         return SexpType.RAWSXP;
       case LogicalVector.TYPE_NAME:
@@ -2044,7 +2071,7 @@ public final class Rinternals {
   }
 
   public static void Rf_unprotect_ptr(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_unprotect_ptr");
+    // NOOP
   }
 
   public static void R_signal_protect_error() {
@@ -2281,7 +2308,7 @@ public final class Rinternals {
   public static void R_RegisterCFinalizerEx (SEXP s, final MethodHandle fun, boolean onexit) {
     FinalizationHandler handler = new FinalizationHandler() {
       @Override
-      public void finalize(Context context, SEXP sexp) {
+      public void finalizeSexp(Context context, SEXP sexp) {
         try {
           fun.invoke(sexp);
         } catch (Throwable throwable) {

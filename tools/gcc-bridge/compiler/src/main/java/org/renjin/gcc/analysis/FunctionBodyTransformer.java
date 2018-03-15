@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
  */
 package org.renjin.gcc.analysis;
 
-import org.renjin.gcc.TreeLogger;
+import org.renjin.gcc.logging.LogManager;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 
@@ -29,12 +29,12 @@ public interface FunctionBodyTransformer {
 
   /**
    * Applies a transformation to the body of the function.
-   * @param logger
+   * @param logManager
    * @param unit
    * @param fn
    * @return true if the body was updated
    */
-  boolean transform(TreeLogger logger, GimpleCompilationUnit unit, GimpleFunction fn);
+  boolean transform(LogManager logManager, GimpleCompilationUnit unit, GimpleFunction fn);
 
 
 }

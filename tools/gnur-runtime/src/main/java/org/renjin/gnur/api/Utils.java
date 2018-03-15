@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.primitives.files.Files;
 
 import java.nio.charset.StandardCharsets;
@@ -102,8 +103,14 @@ public final class Utils {
     throw new UnimplementedGnuApiMethod("Rf_isBlankString");
   }
 
+  @Deprecated
   public static double R_atof(BytePtr str) {
-    throw new UnimplementedGnuApiMethod("R_atof");
+    return Defn.R_atof((Ptr)str);
+  }
+
+  @Deprecated
+  public static double R_atof(Ptr str) {
+    return Defn.R_atof(str);
   }
 
   // double R_strtod (const char *c, char **end)

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ package org.renjin.primitives.packaging;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Native;
-import org.renjin.repackaged.guava.base.Optional;
+import java.util.function.Predicate;
 import org.renjin.sexp.*;
 
 import java.lang.reflect.InvocationTargetException;
@@ -30,6 +30,7 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * A dynamically loaded "native" library.
@@ -96,7 +97,7 @@ public class DllInfo {
   }
 
   public Optional<DllSymbol> getRegisteredSymbol(String name) {
-    return Optional.fromNullable(registeredSymbols.get(name));
+    return Optional.ofNullable(registeredSymbols.get(name));
   }
 
 
@@ -109,7 +110,7 @@ public class DllInfo {
     if(useDynamicSymbols) {
       return lookupWithReflection(DllSymbol.Convention.C, name);
     }
-    return Optional.absent();
+    return Optional.empty();
   }
 
   public Iterable<DllSymbol> getRegisteredSymbols() {
@@ -165,7 +166,7 @@ public class DllInfo {
         return Optional.of(method);
       }
     }
-    return Optional.absent();
+    return Optional.empty();
   }
 
   private String sanitizeLibraryName(String libraryName) {
@@ -179,7 +180,7 @@ public class DllInfo {
   public Optional<DllSymbol> lookup(DllSymbol.Convention convention, String symbolName) {
 
     if(forceSymbols) {
-      return Optional.absent();
+      return Optional.empty();
     }
 
     Optional<DllSymbol> registeredSymbol = lookupRegisteredSymbol(convention, symbolName);
@@ -191,7 +192,7 @@ public class DllInfo {
       return lookupWithReflection(convention, symbolName);
     }
 
-    return Optional.absent();
+    return Optional.empty();
   }
 
   private Optional<DllSymbol> lookupRegisteredSymbol(DllSymbol.Convention convention, String symbolName) {
@@ -202,7 +203,7 @@ public class DllInfo {
       symbolName = symbolName.toLowerCase();
     }
 
-    return Optional.fromNullable(registeredSymbols.get(symbolName));
+    return Optional.ofNullable(registeredSymbols.get(symbolName));
   }
 
   private Optional<DllSymbol> lookupWithReflection(DllSymbol.Convention convention, String symbolName) {
@@ -218,7 +219,7 @@ public class DllInfo {
         return Optional.of(new DllSymbol(method));
       }
     }
-    return Optional.absent();
+    return Optional.empty();
   }
 
   /**
@@ -260,4 +261,14 @@ public class DllInfo {
     return object.build();
   }
 
+  public boolean isLoaded(String name, Predicate<DllSymbol> predicate) {
+    if(registeredSymbols.containsKey(name)) {
+      DllSymbol symbol = registeredSymbols.get(name);
+      if(predicate.test(symbol)) {
+        return true;
+      }
+    }
+    return false;
+
+  }
 }

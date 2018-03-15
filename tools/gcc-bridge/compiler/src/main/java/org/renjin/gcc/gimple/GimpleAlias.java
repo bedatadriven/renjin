@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ public class GimpleAlias {
 
   private String alias;
   private String definition;
-  private boolean extern;
+  private boolean _public;
 
   public String getAlias() {
     return alias;
@@ -43,11 +43,11 @@ public class GimpleAlias {
     this.definition = definition;
   }
 
-  public boolean isExtern() {
-    return extern;
+  public boolean isPublic() {
+    return _public;
   }
 
-  public void setExtern(boolean extern) {
-    this.extern = extern;
+  public void setPublic(boolean _public) {
+    this._public = _public;
   }
 }

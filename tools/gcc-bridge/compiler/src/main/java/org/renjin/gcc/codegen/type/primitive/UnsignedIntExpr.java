@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,9 +30,6 @@ import org.renjin.gcc.runtime.IntPtr;
 
 import javax.annotation.Nullable;
 
-import static org.renjin.gcc.codegen.expr.Expressions.constantLong;
-import static org.renjin.gcc.codegen.expr.Expressions.i2l;
-
 /**
  * 32-bit unsigned integer
  */
@@ -60,8 +57,7 @@ public class UnsignedIntExpr extends AbstractIntExpr {
   }
 
   private JExpr jlongExpr() {
-    JExpr longValue = i2l(jexpr());
-    return Expressions.bitwiseAnd(longValue, constantLong(0xffffffffL));
+    return Expressions.staticMethodCall(Integer.class, "toUnsignedLong", "(I)J", jexpr());
   }
 
   @Override
@@ -76,7 +72,7 @@ public class UnsignedIntExpr extends AbstractIntExpr {
 
   @Override
   public UnsignedIntExpr divide(GExpr operand) {
-    return lift(Expressions.staticMethodCall(IntPtr.class, "unsignedDivide", "(II)I", jexpr(), jexpr(operand)));
+    return lift(Expressions.staticMethodCall(Integer.class, "divideUnsigned", "(II)I", jexpr(), jexpr(operand)));
   }
 
   @Override
@@ -103,7 +99,7 @@ public class UnsignedIntExpr extends AbstractIntExpr {
 
   @Override
   public UnsignedIntExpr remainder(GExpr operand) {
-    return lift(Expressions.staticMethodCall(IntPtr.class, "unsignedRemainder", "(II)I", jexpr(), jexpr(operand)));
+    return lift(Expressions.staticMethodCall(Integer.class, "remainderUnsigned", "(II)I", jexpr(), jexpr(operand)));
   }
 
   @Override
@@ -199,7 +195,7 @@ public class UnsignedIntExpr extends AbstractIntExpr {
         return new IntegerComparison(op, jexpr(), jexpr(operand));
 
       default:
-        return new Comparison(op, Expressions.staticMethodCall(IntPtr.class, "unsignedCompare", "(II)I",
+        return new Comparison(op, Expressions.staticMethodCall(Integer.class, "compareUnsigned", "(II)I",
             jexpr(), jexpr(operand)));
     }
   }

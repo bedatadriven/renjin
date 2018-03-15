@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,11 +22,11 @@ import org.renjin.pipeliner.ComputeMethod;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.sexp.Vector;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Optional;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
@@ -139,13 +139,13 @@ public class BinaryVectorOpNode extends LoopNode {
     // The Java bytecode verifier will not accept that multiple execution paths
     // arrive at the same point with different types on the stack.
 
-    Optional<Label> argNaLabel = Optional.absent();
+    Optional<Label> argNaLabel = Optional.empty();
     if(naLabel.isPresent() &&
             (operands[0].mustCheckForIntegerNAs() || operands[1].mustCheckForIntegerNAs())) {
       argNaLabel = Optional.of(new Label());
     }
 
-    Optional<Label> done = Optional.absent();
+    Optional<Label> done = Optional.empty();
     if(argNaLabel.isPresent()) {
       done = Optional.of(new Label());
     }
@@ -205,17 +205,17 @@ public class BinaryVectorOpNode extends LoopNode {
     // two positions on the stack.
 
 
-    Optional<Label> argNaLabel1 = Optional.absent();
+    Optional<Label> argNaLabel1 = Optional.empty();
     if(integerNaLabel.isPresent() && operands[0].mustCheckForIntegerNAs()) {
       argNaLabel1 = Optional.of(new Label());
     }
 
-    Optional<Label> argNaLabel2 = Optional.absent();
+    Optional<Label> argNaLabel2 = Optional.empty();
     if(integerNaLabel.isPresent() && operands[1].mustCheckForIntegerNAs()) {
       argNaLabel2 = Optional.of(new Label());
     }
 
-    Optional<Label> done = Optional.absent();
+    Optional<Label> done = Optional.empty();
     if(argNaLabel1.isPresent() || argNaLabel2.isPresent()) {
       done = Optional.of(new Label());
     }

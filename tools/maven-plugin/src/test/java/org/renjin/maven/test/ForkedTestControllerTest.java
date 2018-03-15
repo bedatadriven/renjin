@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@ package org.renjin.maven.test;
 
 import junit.framework.TestCase;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.io.Resources;
@@ -47,7 +48,7 @@ public class ForkedTestControllerTest extends TestCase {
   protected void setUp() throws Exception {
     testOutputDirectory = Files.createTempDirectory("testOutput").toFile();
 
-    forkedTestController = new ForkedTestController();
+    forkedTestController = new ForkedTestController(new SystemStreamLog());
     forkedTestController.setClassPath(getCurrentClassPath());
     forkedTestController.setNamespaceUnderTest("base");
     forkedTestController.setTestReportDirectory(testOutputDirectory);

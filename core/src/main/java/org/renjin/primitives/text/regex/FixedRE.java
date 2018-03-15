@@ -101,4 +101,9 @@ public class FixedRE implements RE {
 			return start + pattern.length();
 		}
 	}
+
+	@Override
+	public int getGroupCount() {
+		return 0;
+	}
 }

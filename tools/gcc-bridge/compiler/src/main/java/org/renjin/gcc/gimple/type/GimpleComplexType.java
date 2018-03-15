@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ public class GimpleComplexType extends AbstractGimpleType {
   }
   
   public GimpleComplexType(GimpleRealType partType) {
-    setSize(partType.getSize() * 2);
+    setSize(Math.multiplyExact(partType.getSize(), 2));
   }
 
   @Override
@@ -45,11 +45,6 @@ public class GimpleComplexType extends AbstractGimpleType {
   @Override
   public String toString() {
     return "complex";
-  }
-
-  @Override
-  public void setSize(long size) {
-    super.setSize(size);
   }
 
   /**

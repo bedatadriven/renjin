@@ -4,8 +4,9 @@
 #ifdef MY_CPP_DEFINE
 
 static const R_CallMethodDef callMethods[] = {
-    {"Cmysum",     (DL_FUNC) &Cmysum,  1},
-    {"Cmydsum",     (DL_FUNC) &Cmydsum,  1},
+    {"Cmysum",       (DL_FUNC) &Cmysum,  1},
+    {"Cmydsum",      (DL_FUNC) &Cmydsum,  1},
+    {"Cinvokeupper", (DL_FUNC) &Cinvokeupper, 1},
     { NULL, NULL, 0 }
 };
 

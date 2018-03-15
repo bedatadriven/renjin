@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,8 @@ import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.*;
 
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -98,6 +100,21 @@ public class Contexts {
 
   }
 
+  @Internal("sys.parents")
+  public static SEXP sysParents(@Current Context context) {
+
+    Context cptr = findCallingContext(context);
+
+    int nframe = cptr.getFrameDepth();
+    int[] rval = new int[nframe];
+
+    for(int i = 0; i < nframe; i++) {
+      rval[i] = R_sysparent(nframe - i, cptr);
+    }
+
+    return new IntArrayVector(rval);
+  }
+
   /** Find the environment that can be returned by sys.frame
    * (so it needs to be on the cloenv pointer of a context) that matches
    * the environment where the closure arguments are to be evaluated.
@@ -145,6 +162,34 @@ public class Contexts {
     return n;
   }
 
+  @Internal("sys.frames")
+  public static SEXP sysFrames(@Current Context context) {
+    Context current = findCallingContext(context);
+    List<Environment> environments = new ArrayList<>();
+    while(!current.isTopLevel()) {
+      if(current.getEnvironment() != Environment.EMPTY) {
+        environments.add(current.getEnvironment());
+      }
+      current = current.getParent();
+    }
+
+    ListVector.Builder frames = new ListVector.Builder();
+    for(int i = environments.size()-1; i >= 0; i--) {
+      frames.add(environments.get(i));
+    }
+
+    return frames.build();
+  }
+
+  @Internal("sys.frame")
+  public static Environment sysFrame(@Current Context context, int which) {
+    if(which == 0) {
+      return context.getGlobalEnvironment();
+    }
+
+    return findContext(context, which).getEnvironment();
+  }
+
   @Internal("sys.calls")
   public static PairList sysCalls(@Current Context context) {
     Context current = findCallingContext(context);
@@ -156,15 +201,6 @@ public class Contexts {
       current = current.getParent();
     }
     return head;
-  }
-
-  @Internal("sys.frame")
-  public static Environment sysFrame(@Current Context context, int which) {
-    if(which == 0) {
-      return context.getGlobalEnvironment();
-    }
-
-    return findContext(context, which).getEnvironment();
   }
 
   @Internal("sys.call")

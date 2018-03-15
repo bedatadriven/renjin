@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -407,7 +407,7 @@ public class SubsettingTest extends EvalTestCase {
   public void emptyDoubleVectorIsNotNull() {
     eval("select <- TRUE[-1]");
     eval("x <- 1[-1]");
-    assertThat(eval(" x[select]"), identicalTo((SEXP) DoubleVector.EMPTY));
+    assertThat(eval(" x[select]"), identicalTo((SEXP) DoubleArrayVector.EMPTY));
   }
   
   @Test
@@ -820,7 +820,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("x <- logical(0)");
     eval("x[] <- 3");
     
-    assertThat(eval("x"), identicalTo((SEXP)DoubleVector.EMPTY));
+    assertThat(eval("x"), identicalTo((SEXP) DoubleArrayVector.EMPTY));
   }
   
   @Test

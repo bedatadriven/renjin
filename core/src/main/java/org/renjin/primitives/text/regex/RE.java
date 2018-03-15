@@ -126,5 +126,10 @@ public interface RE {
    * was not matched. 
    */
   int getGroupEnd(int groupIndex);
+
+  /**
+   * @return the number of sub expressions. This is zero if there are no sub expressions in the regular expression.
+   */
+  int getGroupCount();
   
 }

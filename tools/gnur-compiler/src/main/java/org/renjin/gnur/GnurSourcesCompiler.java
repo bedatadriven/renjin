@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,6 @@ import org.apache.commons.math.special.Erf;
 import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GccException;
 import org.renjin.gcc.GimpleCompiler;
-import org.renjin.gcc.HtmlTreeLogger;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gnur.api.*;
 import org.renjin.gnur.api.Error;
@@ -150,9 +149,7 @@ public class GnurSourcesCompiler {
 
       setupCompiler(compiler);
 
-      if(loggingDir != null) {
-        compiler.setLogger(new HtmlTreeLogger(loggingDir));
-      }
+      compiler.setLoggingDirectory(loggingDir);
 
       compiler.compile(units);
     }
@@ -211,6 +208,8 @@ public class GnurSourcesCompiler {
     compiler.addReferenceClass(Rdynload.class);
     compiler.addRecordClass("_DllInfo", DllInfo.class);
     compiler.addReferenceClass(RenjinFiles.class);
+
+    compiler.addTransformer(new SetTypeRewriter());
   }
 
   private boolean checkUpToDate() {

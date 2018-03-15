@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,19 +30,20 @@ import org.renjin.gcc.codegen.type.NumericExpr;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.complex.ComplexExpr;
 import org.renjin.gcc.codegen.type.fun.FunPtrExpr;
+import org.renjin.gcc.codegen.type.primitive.NumericIntExpr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveExpr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveType;
+import org.renjin.gcc.codegen.type.primitive.PtrCarryingExpr;
 import org.renjin.gcc.codegen.type.record.ProvidedPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.*;
-import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 
 import java.lang.invoke.MethodHandle;
+import java.util.Optional;
 
 import static org.renjin.gcc.codegen.expr.Expressions.objectEquals;
 
@@ -66,7 +67,7 @@ public class VPtrExpr implements PtrExpr {
   public VPtrExpr(JExpr ref) {
     this.baseRef = ref;
     this.address = null;
-    this.offset = Optional.absent();
+    this.offset = Optional.empty();
   }
 
   public VPtrExpr(JExpr baseRef, JExpr offset) {
@@ -78,7 +79,7 @@ public class VPtrExpr implements PtrExpr {
   public VPtrExpr(JExpr ptr, PtrExpr address) {
     this.baseRef = ptr;
     this.address = address;
-    this.offset = Optional.absent();
+    this.offset = Optional.empty();
   }
 
   @Override
@@ -117,7 +118,7 @@ public class VPtrExpr implements PtrExpr {
    * @return the offset in bytes relative to the {@code baseRef}
    */
   public JExpr getOffset() {
-    return offset.or(Expressions.zero());
+    return offset.orElse(Expressions.zero());
   }
 
   @Override
@@ -143,10 +144,12 @@ public class VPtrExpr implements PtrExpr {
 
   @Override
   public PrimitiveExpr toPrimitiveExpr() throws UnsupportedCastException {
-    return PrimitiveType.UINT32.fromStackValue(
-        Expressions.staticMethodCall(IntPtr.class, "fromPtr",
-            Type.getMethodDescriptor(Type.INT_TYPE, Type.getType(Ptr.class)),
-                getRef()));
+    JExpr pointerExpr = getRef();
+    NumericIntExpr integerValue = (NumericIntExpr) PrimitiveType.UINT32.fromStackValue(
+        Expressions.methodCall(pointerExpr, Ptr.class, "getOffsetInBytes",
+            Type.getMethodDescriptor(Type.INT_TYPE)));
+
+    return new PtrCarryingExpr(integerValue, baseRef);
   }
 
   @Override

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -57,34 +57,34 @@ public class LazyLoadFrameBuilder {
   
   public void build(Environment env) throws IOException {
 
-    Iterable<NamedValue> toWrite = Iterables.filter(env.namedValues(), filter);
+    Iterable<NamedValue> toWrite =  Iterables.filter(env.namedValues(), filter);
 
 
     // Now write an index of symbols
     File indexFile = new File(outputDir, "environment");
-    DataOutputStream indexOut = new DataOutputStream(new FileOutputStream(indexFile));
+    try(DataOutputStream indexOut = new DataOutputStream(new FileOutputStream(indexFile))) {
 
-    // mark this format as version 2
-    indexOut.writeInt(VERSION_2);
+      // mark this format as version 2
+      indexOut.writeInt(VERSION_2);
 
-    // write out each (large) symbols to a separate resource file.
-    // Small values will be serialized directly in the index file
+      // write out each (large) symbols to a separate resource file.
+      // Small values will be serialized directly in the index file
 
-    indexOut.writeInt(Iterables.size(toWrite));
-    for(NamedValue namedValue : toWrite) {
+      indexOut.writeInt(Iterables.size(toWrite));
+      for (NamedValue namedValue : toWrite) {
 
-      indexOut.writeUTF(namedValue.getName());
-      byte[] bytes = serializeSymbol(namedValue);
+        indexOut.writeUTF(namedValue.getName());
+        byte[] bytes = serializeSymbol(namedValue);
 
-      if(bytes.length > 1024) {
-        indexOut.writeInt(-1);
-        Files.write(bytes, new File(outputDir, SerializedPromise.resourceName(namedValue.getName())));
-      } else {
-        indexOut.writeInt(bytes.length);
-        indexOut.write(bytes);
+        if (bytes.length > 1024) {
+          indexOut.writeInt(-1);
+          Files.write(bytes, new File(outputDir, SerializedPromise.resourceName(namedValue.getName())));
+        } else {
+          indexOut.writeInt(bytes.length);
+          indexOut.write(bytes);
+        }
       }
     }
-    indexOut.close();
   }
 
   private byte[] serializeSymbol(NamedValue namedValue) throws IOException {

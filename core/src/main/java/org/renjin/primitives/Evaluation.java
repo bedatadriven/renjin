@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,14 +29,11 @@ import org.renjin.parser.RParser;
 import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.special.ReturnException;
-import org.renjin.primitives.text.RCharsets;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.io.CharSource;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.ArrayDeque;
 import java.util.List;
 
@@ -290,7 +287,7 @@ public class Evaluation {
        * changes any of the components named in the (pair)list, the changes are lost.
        */
       Environment parent = enclosing == Null.INSTANCE ? context.getBaseEnvironment() :
-          EvalException.<Environment>checkedCast(enclosing);
+          EvalException.checkedCast(enclosing);
 
       rho = Environment.createChildEnvironment(parent).build();
 
@@ -481,8 +478,7 @@ public class Evaluation {
             
       } else if(file.inherits("connection")) {
         Connection conn = Connections.getConnection(context, file);
-        Reader reader = new InputStreamReader(conn.getInputStream(), RCharsets.getByName(encoding));
-        return RParser.parseAllSource(reader, sourceFile);
+        return RParser.parseAllSource(conn.getReader(), sourceFile);
       
       } else {
         throw new EvalException("unsupported parsing source");

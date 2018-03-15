@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ public class ExamplesParserTest extends TestCase {
     File testFile = new File(getClass().getResource("/man/p.hboxp.Rd").getFile());
     String examples = ExamplesParser.parseExamples(testFile);
     
-    TestExecutor runner = new TestExecutor("base",  Lists.<String>newArrayList(), reportDir);
+    TestExecutor runner = new TestExecutor("base",  Lists.newArrayList(), reportDir);
     runner.executeTestFile(testFile, examples);
 
   }

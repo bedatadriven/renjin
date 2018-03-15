@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -587,6 +587,7 @@ public class Primitives {
     f("sub", Text.class, 11);
     f("gsub", Text.class, 11);
     f("regexpr", Text.class, 11);
+    f("regexec", Text.class, 11);
     f("gregexpr", Text.class, 11);
     f("agrep", Text.class, 11);
     f("tolower", Text.class, 11);
@@ -684,7 +685,7 @@ public class Primitives {
     f("seq_len", Sequences.class, 1);
     f("list", Vectors.class, "list", 1);
     f("split",  Split.class, 11);
-    f("is.loaded", /*isloaded*/ null, -1);
+    f("is.loaded", Native.class, 11);
     f(".C", Native.class, -1);
     f(".Fortran", Native.class, -1);
     f(".External",  Native.class, -1);
@@ -928,8 +929,8 @@ public class Primitives {
     f("isatty", Connections.class, 11);
     f("readLines",Connections.class, 11);
     f("writeLines", Connections.class, 11);
-    f("readBin", /*readbin*/ null, 11);
-    f("writeBin", /*writebin*/ null, 211);
+    f("readBin", Connections.class, 11);
+    f("writeBin", Connections.class, 211);
     f("readChar", Connections.class, 11);
     f("writeChar", /*writechar*/ null, 211);
     f("open", Connections.class, 11);

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -280,7 +280,7 @@ public class RuntimeState {
     SEXP methodTableMethodsPkg;
     List<Environment> methodTableList = new ArrayList<>();
     
-    if (SPECIAL.contains(opName)) {
+    if (SPECIAL.contains(opName.getPrintName())) {
       Namespace methodsNamespace = context.getNamespaceRegistry().getNamespace(context, "methods");
       Frame methodFrame = methodsNamespace.getNamespaceEnvironment().getFrame();
       methodTableMethodsPkg = methodFrame.getVariable(opName).force(context);

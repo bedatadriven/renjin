@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -344,5 +344,11 @@ public interface Ptr extends Comparable<Ptr> {
 
   @Override
   int compareTo(Ptr o);
+
+  /**
+   * @return a new pointer using the same array and the new offset in bytes. The new {@code offset} is considered
+   * to be absolute.
+   */
+  Ptr withOffset(int offset);
 
 }

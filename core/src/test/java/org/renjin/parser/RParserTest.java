@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,8 +29,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 import static org.renjin.ExpMatchers.*;
 
@@ -56,7 +55,7 @@ public class RParserTest {
   @Test
   public void parseWithSourceRefs() throws IOException {
     ExpressionVector sexps = RParser.parseAllSource(new StringReader("x+1\nx+y\n"));
-    assertThat(sexps.getAttributes().get(Symbols.SRC_REF), not(CoreMatchers.<SEXP>is(Null.INSTANCE)));
+    assertThat(sexps.getAttributes().get(Symbols.SRC_REF), not(is(Null.INSTANCE)));
   }
 
   @Test

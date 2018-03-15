@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,15 +23,14 @@ import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.SessionScoped;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.*;
 import org.renjin.repackaged.guava.io.CharSource;
 import org.renjin.sexp.*;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 
 /**
  * Session-level registry of namespaces
@@ -55,14 +54,14 @@ public class NamespaceRegistry {
   /**
    * Maps local names to namespaces
    */
-  private Multimap<Symbol, Namespace> localNameMap = HashMultimap.create();
+  private Map<Symbol, Namespace> localNameMap = new HashMap<>();
   private Map<FqPackageName, Namespace> namespaceMap = Maps.newHashMap();
 
   private Map<Environment, Namespace> envirMap = Maps.newIdentityHashMap();
 
   private final Namespace baseNamespace;
 
-  public NamespaceRegistry(PackageLoader loader, Context context, Environment baseNamespaceEnv) {
+  public NamespaceRegistry(PackageLoader loader, Environment baseNamespaceEnv) {
     this.loader = loader;
 
     baseNamespace = new BaseNamespace(baseNamespaceEnv);
@@ -92,12 +91,7 @@ public class NamespaceRegistry {
   }
   
   public Optional<Namespace> getNamespaceIfPresent(Symbol name) {
-    Collection<Namespace> matching = localNameMap.get(name);
-    if(matching.size() == 1) {
-      return Optional.of(matching.iterator().next());
-    } else {
-      return Optional.absent();
-    }
+    return Optional.ofNullable(localNameMap.get(name));
   }
 
   public Namespace getNamespace(Context context, String name) {
@@ -105,16 +99,10 @@ public class NamespaceRegistry {
   }
 
   public Namespace getNamespace(Context context, Symbol symbol) {
-    if(symbol.getPrintName().equals("base")) {
-      return baseNamespace;
-    }
 
-    // try to match name to currently loaded namespaces
-    for (FqPackageName fqPackageName : namespaceMap.keySet()) {
-      if(symbol.getPrintName().equals(fqPackageName.toString('.')) ||
-          symbol.getPrintName().equals(fqPackageName.getPackageName())) {
-        return namespaceMap.get(fqPackageName);
-      }
+    Namespace localMatch = localNameMap.get(symbol);
+    if(localMatch != null) {
+      return localMatch;
     }
 
     // There are a small number of "core" packages that are part of the 
@@ -136,7 +124,7 @@ public class NamespaceRegistry {
     candidates.add(new FqPackageName("org.renjin.bioconductor", symbol.getPrintName()));
     candidates.add(new FqPackageName("org.renjin.cran", symbol.getPrintName()));
 
-    Optional<Namespace> namespace = Optional.absent();
+    Optional<Namespace> namespace = empty();
 
     for (FqPackageName candidate : candidates) {
       namespace = tryGetNamespace(context, candidate);
@@ -175,7 +163,7 @@ public class NamespaceRegistry {
    */
   private Optional<Namespace> tryGetNamespace(Context context, FqPackageName fqName) {
     if(namespaceMap.containsKey(fqName)) {
-      return Optional.of(namespaceMap.get(fqName));
+      return of(namespaceMap.get(fqName));
     } else {
       return tryLoad(context, fqName);
     }
@@ -185,7 +173,7 @@ public class NamespaceRegistry {
 
     Optional<Package> loadResult = loader.load(fqName);
     if(!loadResult.isPresent()) {
-      return Optional.absent();
+      return empty();
     } else {
       Package pkg = loadResult.get();
       try {
@@ -215,17 +203,20 @@ public class NamespaceRegistry {
 
         // S4 classes are declared in a namespace, but once the namespace is loaded,
         // they are loaded into the global metadata cache
-        maybeUpdateS4MetadataCache(context, namespace);
+        if(namespace.hasS4Metadata()) {
+          maybeUpdateS4MetadataCache(context, namespace);
+        }
 
         namespace.loaded = true;
 
-        return Optional.of(namespace);
+        return of(namespace);
 
       } catch(Exception e) {
         throw new EvalException("IOException while loading package " + fqName + ": " + e.getMessage(), e);
       }
     }
   }
+
 
   private boolean couldBeFullyQualified(Symbol name) {
     String string = name.getPrintName();

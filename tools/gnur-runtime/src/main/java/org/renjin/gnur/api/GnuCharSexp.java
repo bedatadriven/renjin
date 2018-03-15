@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,8 @@
 package org.renjin.gnur.api;
 
 import org.renjin.gcc.runtime.BytePtr;
+import org.renjin.gcc.runtime.Ptr;
+import org.renjin.gcc.runtime.Stdlib;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.sexp.AbstractSEXP;
 import org.renjin.sexp.SexpVisitor;
@@ -52,6 +54,11 @@ public class GnuCharSexp extends AbstractSEXP {
     } else {
       return new GnuCharSexp(BytePtr.nullTerminatedString(value, Charsets.UTF_8).array);
     }
+  }
+
+  @Override
+  public int length() {
+    return Stdlib.strlen((Ptr)new BytePtr(value));
   }
 
   @Override

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
  */
 package org.renjin.maven;
 
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -61,7 +60,7 @@ public class GnurBuildMojo extends AbstractMojo {
           .setPackageName(project.getArtifactId())
           .build();
       
-      MavenBuildContext buildContext = new MavenBuildContext(project, Collections.<Artifact>emptySet(), getLog());
+      MavenBuildContext buildContext = new MavenBuildContext(project, Collections.emptySet(), getLog());
       buildContext.setDefaultPackagesIfDependencies();
       
       PackageBuilder builder = new PackageBuilder(packageSource, buildContext);

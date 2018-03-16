@@ -194,7 +194,7 @@ public class NativeSourceBuilder {
 
     GimpleCompiler compiler = new GimpleCompiler();
     compiler.setLinkClassLoader(buildContext.getClassLoader());
-    compiler.setOutputDirectory(buildContext.getPackageOutputDir());
+    compiler.setOutputDirectory(buildContext.getOutputDir());
     compiler.setPackageName(source.getGroupId() + "." +
         Namespace.sanitizePackageNameForClassFiles(source.getPackageName()));
     compiler.setClassName(findLibraryName());

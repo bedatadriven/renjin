@@ -21,6 +21,7 @@ package org.renjin.s4;
 import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.Current;
+import org.renjin.methods.Methods;
 import org.renjin.primitives.Primitives;
 import org.renjin.sexp.*;
 
@@ -30,6 +31,8 @@ import java.util.Map;
 import static org.renjin.methods.MethodDispatch.*;
 
 public class S4 {
+
+  private static final String PREFIX_CLASS = ".__C__";
 
 
   /**
@@ -59,14 +62,16 @@ public class S4 {
 
     Closure function = selectedMethod.getMethodDefinition();
 
+    PairList.Builder coercedArgs = Methods.coerceArguments(context, arguments, classCache, selectedMethod);
+
     if (dispatchWithoutMeta(opName, source, selectedMethod)) {
-      FunctionCall call = new FunctionCall(function, arguments.getPromisedArgs());
+      FunctionCall call = new FunctionCall(function, coercedArgs.build());
       return context.evaluate(call);
       
     } else {
       Map<Symbol, SEXP> metadata = generateCallMetaData(selectedMethod, arguments, opName);
       FunctionCall call = new FunctionCall(function, arguments.getPromisedArgs());
-      return ClosureDispatcher.apply(context, rho, call, function, arguments.getPromisedArgs(), metadata);
+      return ClosureDispatcher.apply(context, rho, call, function, coercedArgs.build(), metadata);
     }
   }
 
@@ -95,7 +100,7 @@ public class S4 {
      * c("methods", ".GlobalEnv","methods")
      */
 
-    int sigLength = method.getMethod().getSignatureLength();
+    int sigLength = method.getSignatureLength();
     Signature targetSignature = arguments.getSignature(sigLength);
     metadata.put(R_dot_defined, Symbol.get(method.getMethodSignature()));
     metadata.put(R_dot_target, Symbol.get(targetSignature.toString()));
@@ -125,13 +130,13 @@ public class S4 {
   }
 
   public static SEXP computeDataClassesS4(Context context, String className) {
-    Symbol argClassObjectName = Symbol.get(".__C__" + className);
+    Symbol argClassObjectName = Symbol.get(PREFIX_CLASS + className);
     Environment environment = context.getEnvironment();
     AttributeMap map = environment.findVariable(context, argClassObjectName).force(context).getAttributes();
     return map.get("contains").getNames();
   }
 
   public static Symbol classNameMetadata(String className) {
-    return Symbol.get(".__C__" + className);
+    return Symbol.get(PREFIX_CLASS + className);
   }
 }

@@ -33,8 +33,6 @@ import org.renjin.sexp.*;
 
 import java.util.Map;
 
-import static org.renjin.methods.MethodDispatch.R_dot_defined;
-import static org.renjin.methods.MethodDispatch.R_dot_target;
 import static org.renjin.s4.S4.generateCallMetaData;
 
 public class Methods {
@@ -373,14 +371,11 @@ public class Methods {
       return null;
     }
 
-    int sigLength = selectedMethod.getMethod().getSignatureLength();
     Closure function = selectedMethod.getMethodDefinition();
-    Signature definedSignature = selectedMethod.getMethod().getSignature();
-    Signature targetSignature = arguments.getSignature(sigLength);
 
     Map<Symbol, SEXP> metadata = generateCallMetaData(selectedMethod, arguments, fname);
 
-    PairList.Builder coercedArgs = coerceArguments(context, arguments, classCache, sigLength, definedSignature, targetSignature);
+    PairList.Builder coercedArgs = coerceArguments(context, arguments, classCache, selectedMethod);
 
     if("initialize".equals(fname)) {
       FunctionCall call = new FunctionCall(function, arguments.getPromisedArgs());
@@ -391,23 +386,21 @@ public class Methods {
     return result;
   }
 
-  public static PairList.Builder coerceArguments(@Current Context context, CallingArguments arguments, S4ClassCache classCache, int sigLength, Signature definedSignature, Signature targetSignature) {
+  public static PairList.Builder coerceArguments(@Current Context context, CallingArguments arguments, S4ClassCache classCache, RankedMethod method) {
+
+    int signatureLength = method.getSignatureLength();
+
     PairList.Builder coercedArgs = new PairList.Builder();
     int step = 0;
     for(PairList.Node arg : arguments.getPromisedArgs().nodes()) {
       SEXP value = arg.getValue();
-      if(step < sigLength) {
-        String from = targetSignature.getClass(step);
-        String to = definedSignature.getClass(step);
-        if(to.equals(from) || to.equals("ANY")) {
+      if(step < signatureLength) {
+        String from = arguments.getArgumentClass(step);
+        String to = method.getArgumentClass(step);
+        if(to.equals(from) || to.equals("ANY") || classCache.needsCoerce(from, to)) {
           coercedArgs.add(arg.getRawTag(), value);
         } else {
-          SEXP coercedArg;
-          if(classCache.isSimpleCoerce(from, to)) {
-            coercedArg = classCache.coerceSimple(context, value, from, to);
-          } else {
-            coercedArg = classCache.coerceComplex(context, value, from, to);
-          }
+          SEXP coercedArg = classCache.coerceComplex(context, value, from, to);
           coercedArgs.add(arg.getRawTag(), coercedArg);
         }
         step += 1;

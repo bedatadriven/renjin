@@ -135,18 +135,25 @@ public class CallingArguments {
     Iterator<PairList.Node> argumentIt = promisedArgs.nodes().iterator();
     for(int index = 0; index < length; ++index) {
       if(argumentIt.hasNext()) {
-        SEXP actual = argumentIt.next().getValue();
-        SEXP evaluated = actual.force(context);
-        if (evaluated == Symbol.MISSING_ARG) {
-          classes[index] = "missing";
-        } else {
-          classes[index] = computeDateClass(evaluated);
-        }
+        classes[index] = getArgumentClass(index);
       } else {
         classes[index] = "missing";
       }
     }
     return new Signature(classes);
+  }
+
+  public String getArgumentClass(int index) {
+    if(index >= promisedArgs.length()) {
+      return "missing";
+    }
+    SEXP actual = promisedArgs.getElementAsSEXP(index);
+    SEXP evaluated = actual.force(context);
+    if (evaluated == Symbol.MISSING_ARG) {
+      return "missing";
+    } else {
+      return computeDateClass(evaluated);
+    }
   }
 
   private String computeDateClass(SEXP evaluated) {

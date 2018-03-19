@@ -32,8 +32,8 @@ public class RankedMethod {
 
   public RankedMethod(Method method, Signature callingSignature, DistanceCalculator distanceCalculator) {
     this.method = method;
-    this.distances = new int[method.getSignatureLength()];
-    for (int i = 0; i < method.getSignatureLength(); i++) {
+    this.distances = new int[getSignatureLength()];
+    for (int i = 0; i < getSignatureLength(); i++) {
       String definedClass = method.getSignature().getClass(i);
       if (definedClass.equals(callingSignature.getClass(i))) {
         // matches exactly
@@ -113,5 +113,13 @@ public class RankedMethod {
         ", exact=" + exact +
         ", distances=" + Arrays.toString(distances) +
         '}';
+  }
+
+  public String getArgumentClass(int index) {
+    return method.getSignature().getClass(index);
+  }
+
+  public int getSignatureLength() {
+    return method.getSignature().getLength();
   }
 }

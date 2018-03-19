@@ -38,7 +38,7 @@ public class S4ClassCache {
     }
   }
 
-  public Environment findClassTable(Context context, Namespace namespace) {
+  private Environment findClassTable(Context context, Namespace namespace) {
     SEXP classTableSexp = namespace.getNamespaceEnvironment().getVariableUnsafe(".classTable");
     if(classTableSexp == Symbol.UNBOUND_VALUE) {
       return Environment.EMPTY;
@@ -60,7 +60,7 @@ public class S4ClassCache {
     }
   }
 
-  public boolean isSimpleCoerce(String from, String to) {
+  public boolean needsCoerce(String from, String to) {
     SEXP classDef = classTable.getVariableUnsafe(from);
     ListVector contains = (ListVector) classDef.getAttribute(S4Class.CONTAINS);
     int index = contains.getIndexByName(to);
@@ -70,20 +70,6 @@ public class S4ClassCache {
       return ((LogicalArrayVector) simple).isElementTrue(0);
     }
     return true;
-  }
-
-  public SEXP coerceSimple(Context context, SEXP value, String from, String to) {
-    SEXP classDef = classTable.getVariableUnsafe(from);
-    ListVector contains = (ListVector) classDef.getAttribute(S4Class.CONTAINS);
-    int toIndex = contains.getIndexByName(to);
-    if(toIndex != -1) {
-      S4Object fromClass = (S4Object) contains.getElementAsSEXP(toIndex);
-      Closure coerce = (Closure) fromClass.getAttribute(S4Class.COERCE);
-      FunctionCall call = new FunctionCall(coerce, new PairList.Node(value, Null.INSTANCE));
-      SEXP res = context.evaluate(call);
-      return res;
-    }
-    return value;
   }
 
   public SEXP coerceComplex(Context context, SEXP value, String from, String to) {
@@ -98,11 +84,9 @@ public class S4ClassCache {
       Closure coerce = (Closure) fromClass.getAttribute(S4Class.COERCE);
       FunctionCall call = new FunctionCall(coerce, new PairList.Node(value, Null.INSTANCE));
 
-      // get the "by" field. to know which coerce function to use to get to final format
-      String by = fromClass.getAttribute(S4Class.BY).asString();
       SEXP res = context.evaluate(call);
 
-      if(by.isEmpty()) {
+      if(fromClass.getAttribute(S4Class.BY).length() == 0) {
         return res;
       } else {
         // the "by" field is provided. the coercion should be followed with
@@ -110,6 +94,7 @@ public class S4ClassCache {
 
         // get the "by" class information, if "by" is not in contained classes than
         // assume its a function
+        String by = fromClass.getAttribute(S4Class.BY).asString();
         int byIndex = contains.getIndexByName(by);
         if(byIndex != -1) {
           S4Object byClass = (S4Object) contains.getElementAsSEXP(byIndex);

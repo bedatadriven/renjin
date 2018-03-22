@@ -388,7 +388,7 @@ public class Methods {
 
   public static PairList.Builder coerceArguments(@Current Context context, CallingArguments arguments, S4ClassCache classCache, RankedMethod method) {
 
-    int signatureLength = method.getSignatureLength();
+    int signatureLength = method.getMethodSignatureLength();
 
     PairList.Builder coercedArgs = new PairList.Builder();
     int step = 0;

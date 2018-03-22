@@ -100,7 +100,7 @@ public class S4 {
      * c("methods", ".GlobalEnv","methods")
      */
 
-    int sigLength = method.getSignatureLength();
+    int sigLength = method.getMethodSignatureLength();
     Signature targetSignature = arguments.getSignature(sigLength);
     metadata.put(R_dot_defined, Symbol.get(method.getMethodSignature()));
     metadata.put(R_dot_target, Symbol.get(targetSignature.toString()));

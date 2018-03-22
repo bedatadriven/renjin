@@ -24,11 +24,9 @@ import org.renjin.eval.Context;
 import org.renjin.packaging.SerializedPromise;
 import org.renjin.primitives.S3;
 import org.renjin.repackaged.guava.collect.Maps;
-import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.*;
 
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Provides access to the runtime environment at the moment of compilation,

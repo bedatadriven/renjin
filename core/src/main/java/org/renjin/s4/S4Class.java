@@ -18,9 +18,7 @@
  */
 package org.renjin.s4;
 
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
 public class S4Class {
 
@@ -30,6 +28,7 @@ public class S4Class {
   public static final Symbol REPLACE = Symbol.get("replace");
   public static final Symbol BY = Symbol.get("by");
   public static final Symbol SIMPLE = Symbol.get("simple");
+  public static final Symbol TEST = Symbol.get("test");
 
   private SEXP classRepresentation;
 
@@ -48,9 +47,26 @@ public class S4Class {
       int index = containsList.getIndexByName(otherClassName);
       if(index != -1) {
         SEXP classExtension = containsList.getElementAsSEXP(index);
-        SEXP distanceAttribute = classExtension.getAttribute(DISTANCE);
 
-        return distanceAttribute.asInt();
+        /*
+         * when using setIs a conditional inheritance can be provided with "test" argument.
+         * setClass("A")
+         * setClass("B", representation(x="numeric"))
+         * setIs("B","A", test=function(x) x > 100 )
+         *
+         * The function provided to "test" argument is stored in "test" field of class "B".
+         * The default value for the "test" field is TRUE. If there is an conditional
+         * inheritance defined in "test" field than this inheritence is not considered for
+         * method dispatch
+         */
+        Closure test = (Closure) classExtension.getAttribute(S4Class.TEST);
+        if(test.getBody() instanceof LogicalArrayVector) {
+          LogicalArrayVector condition = (LogicalArrayVector) test.getBody();
+          if(condition.isElementTrue(0)) {
+            SEXP distanceAttribute = classExtension.getAttribute(DISTANCE);
+            return distanceAttribute.asInt();
+          }
+        }
       }
     }
     return -1;

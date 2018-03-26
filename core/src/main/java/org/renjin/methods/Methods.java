@@ -373,7 +373,7 @@ public class Methods {
 
     Closure function = selectedMethod.getMethodDefinition();
 
-    Map<Symbol, SEXP> metadata = generateCallMetaData(selectedMethod, arguments, fname);
+    Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, arguments, fname);
 
     PairList.Builder coercedArgs = coerceArguments(context, arguments, classCache, selectedMethod);
 

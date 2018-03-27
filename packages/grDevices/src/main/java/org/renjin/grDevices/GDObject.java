@@ -23,10 +23,12 @@
 
 package org.renjin.grDevices;
 
+import org.renjin.gcc.runtime.Ptr;
+
 import java.awt.*;
+import java.awt.color.ColorSpace;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
-import java.awt.color.ColorSpace;
 import java.awt.image.*;
 
 /** GDObject is an arbitrary object that can be painted */
@@ -190,16 +192,17 @@ class GDFont extends GDObject {
 
 class GDPolygon extends GDObject {
     int n;
-    double x[],y[];
     int xi[], yi[];
     boolean isPolyline;
-    public GDPolygon(int n, double[] x, double[] y, boolean isPolyline) {
-        this.x=x; this.y=y; this.n=n; this.isPolyline=isPolyline;
+    public GDPolygon(int n, Ptr x, Ptr y, boolean isPolyline) {
+        this.n=n;
+        this.isPolyline=isPolyline;
         int i=0;
-        xi=new int[n]; yi=new int[n];
+        xi=new int[n];
+        yi=new int[n];
         while (i<n) {
-            xi[i]=(int)(x[i]+0.5);
-            yi[i]=(int)(y[i]+0.5);
+            xi[i]=(int)(x.getAlignedDouble(i)+0.5);
+            yi[i]=(int)(y.getAlignedDouble(i)+0.5);
             i++;
         }
     }

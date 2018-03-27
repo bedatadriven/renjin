@@ -2196,6 +2196,12 @@ public final class Rinternals {
   public static Ptr Rf_reEnc(BytePtr x, int ce_in, int ce_out, int subst) {
     if(ce_in == ce_out) {
       return x;
+    } else if(ce_in == -1 && ce_out == CE_UTF8) {
+      return x;
+    } else if(ce_in == CE_NATIVE && ce_out == CE_UTF8) {
+      return x;
+    } else if(ce_in == CE_ANY && ce_out == CE_UTF8) {
+      return x;
     } else {
       throw new UnsupportedOperationException(String.format("Rf_reEnc: from %d to %d", ce_in, ce_out));
     }

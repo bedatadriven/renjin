@@ -51,34 +51,142 @@ Rboolean newJavaGDDeviceDriver(NewDevDesc *dd,
 			    double height,
                             double initps)
 {
+  newJavaGDDesc *xd;
 
 #ifdef JGD_DEBUG
   printf("TD: newJavaGDDeviceDriver(\"%s\", %f, %f, %f)\n",disp_name,width,height,initps);
 #endif
 
-//  xd = Rf_allocNewJavaGDDeviceDesc(initps);
-  if (!newJavaGD_Open((NewDevDesc*)(dd), disp_name, width, height, initps)) {
+  xd = Rf_allocNewJavaGDDeviceDesc(initps);
+  if (!newJavaGD_Open((NewDevDesc*)(dd), xd, disp_name, width, height)) {
+    free(xd);
     return FALSE;
   }
   
-  //Rf_setNewJavaGDDeviceData((NewDevDesc*)(dd), 0.6, xd);
+  Rf_setNewJavaGDDeviceData((NewDevDesc*)(dd), 0.6, xd);
   
   return TRUE;
 }
 
+/**
+  This fills the general device structure (dd) with the JavaGD-specific
+  methods/functions. It also specifies the current values of the
+  dimensions of the device, and establishes the fonts, line styles, etc.
+ */
+int
+Rf_setNewJavaGDDeviceData(NewDevDesc *dd, double gamma_fac, newJavaGDDesc *xd)
+{
+#ifdef JGD_DEBUG
+	printf("Rf_setNewJavaGDDeviceData\n");
+#endif
+
+    /*	Set up Data Structures. */
+    setupJavaGDfunctions(dd);
+
+    /* Set required graphics parameters. */
+
+    /* Window Dimensions in Pixels */
+    /* Initialise the clipping rect too */
+
+    dd->left = dd->clipLeft = 0;			/* left */
+    dd->right = dd->clipRight = xd->windowWidth;	/* right */
+    dd->bottom = dd->clipBottom = xd->windowHeight;	/* bottom */
+    dd->top = dd->clipTop = 0;			/* top */
+
+    /* Nominal Character Sizes in Pixels */
+
+    dd->cra[0] = 8;
+    dd->cra[1] = 11;
+
+    /* Character Addressing Offsets */
+    /* These are used to plot a single plotting character */
+    /* so that it is exactly over the plotting point */
+
+    dd->xCharOffset = 0.4900;
+    dd->yCharOffset = 0.3333;
+    dd->yLineBias = 0.1;
+
+    /* Inches per raster unit */
+
+    dd->ipr[0] = 1/jGDdpiX;
+    dd->ipr[1] = 1/jGDdpiY;
+#if R_GE_version < 4
+    dd->asp = jGDasp;
+
+    /* Device capabilities */
+    dd->canResizePlot = TRUE;
+    dd->canChangeFont = TRUE;
+    dd->canRotateText = TRUE;
+    dd->canResizeText = TRUE;
+#endif
+    dd->canClip = TRUE;
+    dd->canHAdj = 2;
+    dd->canChangeGamma = FALSE;
+
+    dd->startps = xd->basefontsize;
+    dd->startcol = xd->col;
+    dd->startfill = xd->fill;
+    dd->startlty = LTY_SOLID;
+    dd->startfont = 1;
+    dd->startgamma = gamma_fac;
+
+    dd->deviceSpecific = (void *) xd;
+
+    dd->displayListOn = TRUE;
+
+    return(TRUE);
+}
+
+
+/**
+ This allocates an newJavaGDDesc instance  and sets its default values.
+ */
+newJavaGDDesc * Rf_allocNewJavaGDDeviceDesc(double ps)
+{
+    newJavaGDDesc *xd;
+    /* allocate new device description */
+    if (!(xd = (newJavaGDDesc*)calloc(1, sizeof(newJavaGDDesc))))
+	return FALSE;
+
+    /* From here on, if we need to bail out with "error", */
+    /* then we must also free(xd). */
+
+    /*	Font will load at first use.  */
+
+    if (ps < 6 || ps > 24) ps = 12;
+    xd->fontface = -1;
+    xd->fontsize = -1;
+    xd->basefontface = 1;
+    xd->basefontsize = ps;
+
+    return(xd);
+}
 
 
 typedef Rboolean (*JavaGDDeviceDriverRoutine)(NewDevDesc*, char*, 
 					      double, double);
 
+/*
+static char *SaveString(SEXP sxp, int offset)
+{
+    char *s;
+    if(!isString(sxp) || length(sxp) <= offset)
+	error("invalid string argument");
+    s = R_alloc(strlen(CHAR(STRING_ELT(sxp, offset)))+1, sizeof(char));
+    strcpy(s, CHAR(STRING_ELT(sxp, offset)));
+    return s;
+} */
 
+/* we don't have access to R_MaxDdevices, so we just track the highest number we ever use */
+static int maxJdeviceNum;
 
 static GEDevDesc* 
 Rf_addJavaGDDevice(const char *display, double width, double height, double initps)
 {
     NewDevDesc *dev = NULL;
     GEDevDesc *dd;
-    
+    int myDevID;
+
     char *devname="JavaGD";
 
     R_CheckDeviceAvailable();
@@ -110,9 +218,15 @@ Rf_addJavaGDDevice(const char *display, double width, double height, double init
 	gsetVar(install(".Device"), mkString(devname), R_NilValue);
 	dd = GEcreateDevDesc(dev);
 	GEaddDevice(dd);
+	/* the fastest way is to use curDevice() since GEaddDevice()
+	   sets the current device. Another alternative would be
+	   ndevNumber(dd) in case that assumption is broken */
+	myDevID = curDevice();
+	if (myDevID > maxJdeviceNum)
+	    maxJdeviceNum = myDevID;
 	GEinitDisplayList(dd);
 #ifdef JGD_DEBUG
-	printf("JavaGD> devNum=%d, dd=%lx\n", ndevNumber(dd), (unsigned long)dd);
+	printf("JavaGD> devNum=%d, dd=%lx\n", myDevID, (unsigned long)dd);
 #endif
 #ifdef BEGIN_SUSPEND_INTERRUPTS
     } END_SUSPEND_INTERRUPTS;
@@ -135,7 +249,7 @@ void reloadJavaGD(int *dn) {
 }
 
 SEXP javaGDobjectCall(SEXP dev) {
-  int ds=NumDevices();
+    int ds = maxJdeviceNum + 1;
   int dn;
   GEDevDesc *gd;
   void *ptr=0;
@@ -155,7 +269,7 @@ SEXP javaGDobjectCall(SEXP dev) {
 }
 
 static void javaGDresize_(int dev) {
-    int ds = NumDevices();
+    int ds = maxJdeviceNum + 1;
     int i = 0;
     if (dev >= 0 && dev < ds) {
 	i = dev;
@@ -215,7 +329,7 @@ SEXP newJavaGD(SEXP name, SEXP sw, SEXP sh, SEXP sps) {
 SEXP javaGDgetSize(SEXP sDev) {
     SEXP res = R_NilValue;
     int dev = asInteger(sDev);
-    int ds = NumDevices();
+    int ds = maxJdeviceNum + 1;
     if (dev < 0 || dev >= ds)
 	Rf_error("invalid device");    
     {

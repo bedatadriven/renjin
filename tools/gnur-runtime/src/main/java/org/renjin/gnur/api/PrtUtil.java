@@ -22,6 +22,12 @@ package org.renjin.gnur.api;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.sexp.DoubleVector;
+
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 
 @SuppressWarnings("unused")
 public final class PrtUtil {
@@ -38,7 +44,7 @@ public final class PrtUtil {
     throw new UnimplementedGnuApiMethod("Rf_formatInteger");
   }
 
-  public static void Rf_formatReal(DoublePtr p0, /*R_xlen_t*/ int p1, IntPtr p2, IntPtr p3, IntPtr p4, int p5) {
+  public static void Rf_formatReal(DoublePtr x, int n, IntPtr w, IntPtr d, IntPtr e, int nsmall) {
     throw new UnimplementedGnuApiMethod("Rf_formatReal");
   }
 
@@ -52,8 +58,35 @@ public final class PrtUtil {
     throw new UnimplementedGnuApiMethod("Rf_EncodeInteger");
   }
 
-  public static BytePtr Rf_EncodeReal0(double p0, int p1, int p2, int p3, BytePtr p4) {
-    throw new UnimplementedGnuApiMethod("Rf_EncodeReal0");
+  public static BytePtr Rf_EncodeReal0(double x, int w, int d, int e, BytePtr dec) {
+    String result;
+    /* IEEE allows signed zeros (yuck!) */
+    if (x == 0.0) {
+      x = 0.0;
+    }
+    if (!Double.isFinite(x)) {
+      if(DoubleVector.isNA(x)) {
+        result = "NA";
+      } else if(DoubleVector.isNaN(x)) {
+        result = "NaN";
+      } else if(x > 0) {
+        result = "Inf";
+      } else {
+        result = "-Inf";
+      }
+    } else if (e != 0) {
+      if(d != 0) {
+        throw new UnsupportedOperationException("e != && d != 0");
+      } else {
+        throw new UnsupportedOperationException("e != && d == 0");
+      }
+    } else { /* e = 0 */
+      NumberFormat format = DecimalFormat.getNumberInstance();
+      format.setMinimumFractionDigits(d);
+      format.setGroupingUsed(false);
+      result = format.format(x);
+    }
+    return BytePtr.nullTerminatedString(Strings.padStart(result, w, ' '), Charsets.UTF_8);
   }
 
   // const char* Rf_EncodeComplex (Rcomplex, int, int, int, int, int, int, const char *)

@@ -22,15 +22,15 @@
 package org.renjin.grDevices;
 
 import java.awt.*;
-import java.awt.event.*;
-import java.lang.reflect.Method;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
-/** JavaGD is an implementation of the {@link GDInterface} protocol which displays the R graphics in an AWT window (via {@link GDCanvas}). It can be used as an example gfor implementing custom display classes which can then be used by JavaGD. Three sample back-ends are included in the JavaGD sources: {@link GDCanvas} (AWT), {@link JGDPanel} (Swing) and {@link JGDBufferedPanel} (Swing with cached update). */
-public class JavaGD extends GDInterface implements WindowListener {
+/** JavaGD is an implementation of the {@link GraphicsDevice} protocol which displays the R graphics in an AWT window (via {@link GDCanvas}). It can be used as an example gfor implementing custom display classes which can then be used by JavaGD. Three sample back-ends are included in the JavaGD sources: {@link GDCanvas} (AWT), {@link JGDPanel} (Swing) and {@link JGDBufferedPanel} (Swing with cached update). */
+public class JavaGD extends GraphicsDevice implements WindowListener {
     /** frame containing the graphics canvas */ 
     public Frame f;
     
-    /** default, public constructor - creates a new JavaGD instance. The actual window (and canvas) is not created until {@link #gdOpen} is called. */
+    /** default, public constructor - creates a new JavaGD instance. The actual window (and canvas) is not created until {@link #open} is called. */
     public JavaGD() {
         super();
     }
@@ -38,8 +38,8 @@ public class JavaGD extends GDInterface implements WindowListener {
     /** creates a new graphics window containing a canvas
      *  @param w width of the canvas
      *  @param h height of the canvas */
-    public void     gdOpen(double w, double h) {
-        if (f!=null) gdClose();
+    public void open(double w, double h) {
+        if (f!=null) close();
 
         f=new Frame("JavaGD");
         f.addWindowListener(this);
@@ -49,16 +49,16 @@ public class JavaGD extends GDInterface implements WindowListener {
         f.setVisible(true);
     }
 
-    public void     gdActivate() {
-        super.gdActivate();
+    public void activate() {
+        super.activate();
         if (f!=null) {
             f.requestFocus();
             f.setTitle("JavaGD "+((devNr>0)?("("+(devNr+1)+")"):"")+" *active*");
         }
     }
 
-    public void     gdClose() {
-        super.gdClose();
+    public void close() {
+        super.close();
         if (f!=null) {
             c=null;
             f.removeAll();
@@ -67,13 +67,13 @@ public class JavaGD extends GDInterface implements WindowListener {
         }
     }
 
-    public void     gdDeactivate() {
-        super.gdDeactivate();
+    public void deactivate() {
+        super.deactivate();
         if (f!=null) f.setTitle("JavaGD "+((devNr>0)?("("+(devNr+1)+")"):""));
     }
 
-    public void     gdNewPage(int devNr) { // new API: provides the device Nr.
-        super.gdNewPage(devNr);
+    public void newPage(int devNr) { // new API: provides the device Nr.
+        super.newPage(devNr);
         if (f!=null) f.setTitle("JavaGD ("+(devNr+1)+")"+(active?" *active*":""));
     }
 

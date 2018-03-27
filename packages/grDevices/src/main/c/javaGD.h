@@ -1,7 +1,7 @@
 #ifndef _DEV_JAVAGD_H
 #define _DEV_JAVAGD_H
 
-#define JAVAGD_VER 0x000601 /* JavaGD v0.6-1 */
+#define JAVAGD_VER 0x000602 /* JavaGD v0.6-2 */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
@@ -13,7 +13,15 @@
 #include <R_ext/GraphicsEngine.h>
 #include <R_ext/GraphicsDevice.h>
 
-/* for compatibility with older R versions */ 
+#ifdef _RENJIN
+typedef void * jobject;
+typedef void * jclass;
+typedef void JNIEnv;
+#else
+#include <jni.h>
+#endif
+
+/* for compatibility with older R versions */
 #if R_GE_version < 4
 #include <Rgraphics.h>
 #include <Rdevices.h>
@@ -75,8 +83,8 @@ typedef struct {
     int windowHeight;			/* Window height (pixels) */
     int resize;				/* Window resized */
 
-    void * talk; /* object associated with this graphics */
-    void *  talkClass; /* class of the talk object (cached) */
+    void* talk; /* object associated with this graphics */
+    void*  talkClass; /* class of the talk object (cached) */
 
     int holdlevel;                      /* current hold level (0=no holding) */
 } newJavaGDDesc;
@@ -85,4 +93,3 @@ newJavaGDDesc * Rf_allocNewJavaGDDeviceDesc(double ps);
 int Rf_setNewJavaGDDeviceData(NewDevDesc *dd, double gamma_fac, newJavaGDDesc *xd);
 
 #endif
-

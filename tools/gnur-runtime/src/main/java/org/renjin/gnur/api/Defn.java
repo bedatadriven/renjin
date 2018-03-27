@@ -74,6 +74,13 @@ public final class Defn {
 
   public static int R_Visible = 1;
 
+  public static int R_dec_min_exponent = -308;
+
+  /**
+   * Decimal point used for output
+   */
+  public static Ptr OutDec = new BytePtr((byte)'.', (byte)0);
+
   private Defn() { }
 
 
@@ -645,7 +652,22 @@ public final class Defn {
   }
 
   public static void Rf_PrintDefaults() {
-    throw new UnimplementedGnuApiMethod("Rf_PrintDefaults");
+//    R_print.na_string = NA_STRING;
+//    R_print.na_string_noquote = mkChar("<NA>");
+//    R_print.na_width = (int) strlen(CHAR(R_print.na_string));
+//    R_print.na_width_noquote = (int) strlen(CHAR(R_print.na_string_noquote));
+//    R_print.quote = 1;
+//    R_print.right = Rprt_adj_left;
+//    R_print.digits = GetOptionDigits();
+//    R_print.scipen = asInteger(GetOption1(install("scipen")));
+//    if (R_print.scipen == NA_INTEGER) R_print.scipen = 0;
+//    R_print.max = asInteger(GetOption1(install("max.print")));
+//    if (R_print.max == NA_INTEGER || R_print.max < 0) R_print.max = 99999;
+//    else if(R_print.max == INT_MAX) R_print.max--; // so we can add
+//    R_print.gap = 1;
+//    R_print.width = GetOptionWidth();
+//    R_print.useSource = USESOURCE;
+//    R_print.cutoff = GetOptionCutoff();
   }
 
   public static void Rf_PrintGreeting() {

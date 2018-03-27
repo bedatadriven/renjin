@@ -22,10 +22,12 @@
 
 package org.renjin.grDevices;
 
+import org.renjin.gcc.runtime.Ptr;
+
 import java.awt.*;
 import java.lang.reflect.Method;
 
-/** <code>CGInterface</code> defines an interface (and provides a simple implementation) between the JavaGD R device and the Java code. Any back-end that desires to display R graphics in Java can subclass this class are provide its name to JavaGD package via JAVAGD_CLASS_NAME environment variable. The default implementation handles most callbacks, but subclasses should override at least {@link #gdOpen} to create an instance of {@link GDContainer} {@link #c} which will be used for all subsequent drawing.
+/** <code>CGInterface</code> defines an interface (and provides a simple implementation) between the JavaGD R device and the Java code. Any back-end that desires to display R graphics in Java can subclass this class are provide its name to JavaGD package via JAVAGD_CLASS_NAME environment variable. The default implementation handles most callbacks, but subclasses should override at least {@link #open} to create an instance of {@link GDContainer} {@link #c} which will be used for all subsequent drawing.
  <p>
  <b>external API: those methods are called via JNI from the GD C code</b>
  <p>
@@ -61,8 +63,8 @@ import java.lang.reflect.Method;
  public void gdcSetLine(double lwd, int lty);
  public void gdcSetFont(double cex, double ps, double lineheight, int fontface, String fontfamily);
  </pre>
-*/
-public class GDInterface {
+ */
+public class GraphicsDevice {
     /** flag indicating whether this device is active (current) in R */
     public boolean active=false;
     /** flag indicating whether this device has currently an open instance */
@@ -71,22 +73,22 @@ public class GDInterface {
     public boolean holding = false;
     /** device number as supplied by R in {@link #newPage()} (-1 if undefined) */
     int devNr=-1;
-    
-    /** container that will receive all drawing methods. It should be created by subclasses in the {@link #gdOpen} method. */
+
+    /** container that will receive all drawing methods. It should be created by subclasses in the {@link #open} method. */
     public GDContainer c=null;
-    
+
     /** synchronization object for locator calls */
     public LocatorSync ls=null;
-    
+
     /** requests a new device of the specified size
      *  @param w width of the device
      *  @param h height of the device */
-    public void     gdOpen(double w, double h) {
+    public void open(double w, double h) {
         open=true;
     }
 
-    /** the device became active (current) */ 
-    public void     gdActivate() {
+    /** the device became active (current) */
+    public void activate() {
         active=true;
     }
 
@@ -94,7 +96,7 @@ public class GDInterface {
      *  @param x x coordinate of the center
      *  @param y y coordinate of the center
      *  @param r radius */
-    public void     gdCircle(double x, double y, double r) {
+    public void circle(double x, double y, double r) {
         if (c==null) return;
         c.add(new GDCircle(x,y,r));
     }
@@ -104,24 +106,24 @@ public class GDInterface {
      *  @param x1 right coordinate
      *  @param y0 top coordinate
      *  @param y1 bottom coordinate */
-    public void     gdClip(double x0, double x1, double y0, double y1) {
+    public void clip(double x0, double x1, double y0, double y1) {
         if (c==null) return;
         c.add(new GDClip(x0, y0, x1, y1));
     }
 
     /** close the display */
-    public void     gdClose() {
+    public void close() {
         if (c!=null) c.closeDisplay();
         open=false;
     }
 
     /** the device became inactive (i.e. another device is now current) */
-    public void     gdDeactivate() {
+    public void deactivate() {
         active=false;
     }
 
     /** (unimplemented - this call is now obsolete in R) */
-    public void     gdHold() {
+    public void hold() {
     }
 
     /** hold/flush
@@ -131,18 +133,18 @@ public class GDInterface {
      *         the flush must either be synchronous, or it must be guaranteed that
      *         shown content will be identical to the state up till now, otherwise
      *         the device will break animations. */
-    public void     gdFlush(boolean flush) {
-	holding = !flush;
-	if (flush && c != null)
-	    c.syncDisplay(true);
+    public void flush(boolean flush) {
+        holding = !flush;
+        if (flush && c != null)
+            c.syncDisplay(true);
     }
 
     /** invoke the locator
      *  @return array of indices or <code>null</code> is cancelled */
-    public double[] gdLocator() {
-	if (c==null) return null;
-	if (ls==null) ls=new LocatorSync();
-	if (!c.prepareLocator(ls)) return null;
+    public double[] locator() {
+        if (c==null) return null;
+        if (ls==null) ls=new LocatorSync();
+        if (!c.prepareLocator(ls)) return null;
         return ls.waitForAction();
     }
 
@@ -151,7 +153,7 @@ public class GDInterface {
      *  @param y1 y coordinate of the origin
      *  @param x2 x coordinate of the end
      *  @param y2 y coordinate of the end */
-    public void     gdLine(double x1, double y1, double x2, double y2) {
+    public void line(double x1, double y1, double x2, double y2) {
         if (c==null) return;
         c.add(new GDLine(x1, y1, x2, y2));
     }
@@ -159,7 +161,7 @@ public class GDInterface {
     /** retrieve font metrics info for the given unicode character
      *  @param ch character (encoding may depend on the font type)
      *  @return an array consisting for three doubles: ascent, descent and width */
-    public double[] gdMetricInfo(int ch) {
+    public double[] metricInfo(int ch) {
         double[] res=new double[3];
         double ascent=0.0, descent=0.0, width=8.0;
         if (c!=null) {
@@ -182,18 +184,18 @@ public class GDInterface {
 
     /** R signalled a mode change
      *  @param mode mode as signalled by R (currently 0=R stopped drawing, 1=R started drawing, 2=graphical input exists) */
-    public void     gdMode(int mode) {
+    public void mode(int mode) {
         if (!holding && c != null) c.syncDisplay(mode==0);
     }
 
     /** create a new, blank page (old API, not used anymore) */
-    public void     gdNewPage() {
+    public void newPage() {
         if (c!=null) c.reset();
     }
 
-    /** create a new, blank page 
+    /** create a new, blank page
      *  @param devNr device number assigned to this device by R */
-    public void     gdNewPage(int devNr) { // new API: provides the device Nr.
+    public void newPage(int devNr) { // new API: provides the device Nr.
         this.devNr=devNr;
         if (c!=null) {
             c.reset();
@@ -203,34 +205,34 @@ public class GDInterface {
 
     /** create multi-polygon path
      *  @param winding: use winding rule (true) or odd-even rule (false) */
-    public void     gdPath(int npoly, int[] nper, double[] x, double[] y, boolean winding) {
+    public void path(int npoly, int[] nper, double[] x, double[] y, boolean winding) {
         if (c==null) return;
         c.add(new GDPath(nper, x, y, winding));
     }
 
-    public void     gdPolygon(int n, double[] x, double[] y) {
+    public void polygon(int n, Ptr x, Ptr y) {
         if (c==null) return;
         c.add(new GDPolygon(n, x, y, false));
     }
 
-    public void     gdPolyline(int n, double[] x, double[] y) {
+    public void polyline(int n, Ptr x, Ptr y) {
         if (c==null) return;
         c.add(new GDPolygon(n, x, y, true));
     }
 
-    public void     gdRect(double x0, double y0, double x1, double y1) {
+    public void rect(double x0, double y0, double x1, double y1) {
         if (c==null) return;
         c.add(new GDRect(x0, y0, x1, y1));
     }
 
-    public void     gdRaster(byte img[], int img_w, int img_h, double x, double y, double w, double h, double rot, boolean interpolate) {
-	if (c == null) return;
-	c.add(new GDRaster(img, img_w, img_h, x, y, w, h, rot, interpolate));
+    public void raster(byte img[], int img_w, int img_h, double x, double y, double w, double h, double rot, boolean interpolate) {
+        if (c == null) return;
+        c.add(new GDRaster(img, img_w, img_h, x, y, w, h, rot, interpolate));
     }
 
     /** retrieve the current size of the device
      *  @return an array of four doubles: 0, width, height, 0 */
-    public double[] gdSize() {
+    public double[] size() {
         double[] res=new double[4];
         double width=0d, height=0d;
         if (c != null) {
@@ -248,7 +250,7 @@ public class GDInterface {
     /** retrieve width of the given text when drawn in the current font
      *  @param str text
      *  @return width of the text */
-    public double   gdStrWidth(String str) {
+    public double strWidth(String str) {
         double width=(double)(8*str.length()); // rough estimate
         if (c!=null) { // if canvas is active, we can do better
             Graphics g=c.getGraphics();
@@ -269,7 +271,7 @@ public class GDInterface {
      *  @param str text to draw
      *  @param rot rotation (in degrees)
      *  @param hadj horizontal adjustment with respect to the text size (0=left-aligned wrt origin, 0.5=centered, 1=right-aligned wrt origin) */
-    public void     gdText(double x, double y, String str, double rot, double hadj) {
+    public void text(double x, double y, String str, double rot, double hadj) {
         if (c==null) return;
         c.add(new GDText(x, y, rot, hadj, str));
     }
@@ -277,14 +279,14 @@ public class GDInterface {
     /*-- GDC - manipulation of the current graphics state */
     /** set drawing color
      *  @param cc color */
-    public void gdcSetColor(int cc) {
+    public void setColor(int cc) {
         if (c==null) return;
         c.add(new GDColor(cc));
     }
 
     /** set fill color
      *  @param cc color */
-    public void gdcSetFill(int cc) {
+    public void setFill(int cc) {
         if (c==null) return;
         c.add(new GDFill(cc));
     }
@@ -292,7 +294,7 @@ public class GDInterface {
     /** set line width and type
      *  @param lwd line width (see <code>lwd</code> parameter in R)
      *  @param lty line type (see <code>lty</code> parameter in R) */
-    public void gdcSetLine(double lwd, int lty) {
+    public void setLine(double lwd, int lty) {
         if (c==null) return;
         c.add(new GDLinePar(lwd, lty));
     }
@@ -303,7 +305,7 @@ public class GDInterface {
      *  @param lineheight line height
      *  @param fontface font face (see <code>font</code> parameter in R: 1=plain, 2=bold, 3=italic, 4=bold-italic, 5=symbol)
      *  @param fontfamily font family (see <code>family</code> parameter in R) */
-    public void gdcSetFont(double cex, double ps, double lineheight, int fontface, String fontfamily) {
+    public void setFont(double cex, double ps, double lineheight, int fontface, String fontfamily) {
         if (c==null) return;
         GDFont f=new GDFont(cex, ps, lineheight, fontface, fontfamily);
         c.add(f);
@@ -336,5 +338,5 @@ public class GDInterface {
         } catch (Exception e) {
             System.out.println(">> can't find Rengine, close function disabled. [x:"+e.getMessage()+"]");
         }
-    }    
+    }
 }

@@ -375,15 +375,9 @@ public class Methods {
 
     Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, arguments, fname);
 
-    PairList.Builder coercedArgs = coerceArguments(context, arguments, classCache, selectedMethod);
-
-    if("initialize".equals(fname)) {
-      FunctionCall call = new FunctionCall(function, arguments.getPromisedArgs());
-      return ClosureDispatcher.apply(context, context.getEnvironment(), call, function, arguments.getPromisedArgs(), metadata);
-    }
-    FunctionCall call = new FunctionCall(function, coercedArgs.build());
-    SEXP result = ClosureDispatcher.apply(context, context.getEnvironment(), call, function, coercedArgs.build(), metadata);
-    return result;
+    PairList coercedArgs = coerceArguments(context, arguments, classCache, selectedMethod).build();
+    FunctionCall call = new FunctionCall(function, coercedArgs);
+    return ClosureDispatcher.apply(context, context.getEnvironment(), call, function, coercedArgs, metadata);
   }
 
   public static PairList.Builder coerceArguments(@Current Context context, CallingArguments arguments, S4ClassCache classCache, RankedMethod method) {

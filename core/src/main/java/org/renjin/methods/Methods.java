@@ -377,7 +377,7 @@ public class Methods {
 
     PairList coercedArgs = coerceArguments(context, arguments, classCache, selectedMethod).build();
     FunctionCall call = new FunctionCall(function, coercedArgs);
-    return ClosureDispatcher.apply(context, context.getEnvironment(), call, function, coercedArgs, metadata);
+    return ClosureDispatcher.apply(context, context.getCallingEnvironment(), call, function, coercedArgs, metadata);
   }
 
   public static PairList.Builder coerceArguments(@Current Context context, CallingArguments arguments, S4ClassCache classCache, RankedMethod method) {

@@ -309,7 +309,7 @@ public class Namespace {
     // PACKAGE argument.
 
     for (NamespaceFile.DynLibSymbol declaredSymbol : entry.getSymbols()) {
-      Optional<DllSymbol> symbol = library.getRegisteredSymbol(declaredSymbol.getSymbolName());
+      Optional<DllSymbol> symbol = library.findMethod(DllSymbol.Convention.C, declaredSymbol.getSymbolName());
       if(symbol.isPresent()) {
         namespaceEnvironment.setVariableUnsafe(entry.getPrefix() + declaredSymbol.getAlias(), symbol.get().buildNativeSymbolInfoSexp());
       }

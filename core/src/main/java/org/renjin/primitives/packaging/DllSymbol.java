@@ -49,13 +49,16 @@ public class DllSymbol {
     }
   }
 
-  private String name;
-  private MethodHandle methodHandle;
-  private Convention convention;
-  private boolean registered;
+  private final String name;
+  private final MethodHandle methodHandle;
+  private final Convention convention;
+  private final boolean registered;
 
 
   public DllSymbol(String name, MethodHandle methodHandle, Convention convention, boolean registered) {
+    if(methodHandle == null) {
+      throw new NullPointerException("Null method handle for symbol '" + name + "'");
+    }
     this.name = name;
     this.methodHandle = methodHandle;
     this.convention = convention;
@@ -67,23 +70,22 @@ public class DllSymbol {
     this(name, methodHandle, convention, true);
   }
 
-  public DllSymbol(Method method) {
+  public DllSymbol(Convention convention, Method method) {
     this.name = method.getName();
     this.registered = false;
+    this.convention = convention;
     try {
       this.methodHandle = MethodHandles.publicLookup().unreflect(method);
     } catch (IllegalAccessException e) {
       throw new EvalException("Cannot access method '%s': %s", method.getName(), e.getMessage(), e);
     }
+    if(this.methodHandle == null) {
+      throw new NullPointerException("unreflect() returned null for " + method);
+    }
   }
 
   public String getName() {
     return name;
-  }
-
-  @Deprecated
-  public void setName(String name) {
-    this.name = name;
   }
 
   public MethodHandle getMethodHandle() {

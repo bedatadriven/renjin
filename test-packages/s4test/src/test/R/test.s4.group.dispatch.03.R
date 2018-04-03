@@ -47,8 +47,8 @@ a4 <- new("A4", x=44, y = "<A4>")
 b1 <- new("B1", x=22, y = "<B1>")
 b4 <- new("B4", x=33, y = "<B4>")
 
-test.group.01 = function() { assertThat(add(a1,a1) , identicalTo(22L)) }
-test.group.02 = function() { assertThat(add(a1,a4) , identicalTo(55L)) }
+test.group.01 = function() { assertThat(add(a1,a1) , identicalTo(22)) }
+test.group.02 = function() { assertThat(add(a1,a4) , identicalTo(55)) }
 test.group.03 = function() { assertThat(add(b1,b1) , identicalTo("<B1>:<B1>")) }
 test.group.04 = function() { assertThat(add(b1,b4) , identicalTo("<B1>:<B4>*")) }
 test.group.05 = function() { assertThat(add(b4,b4) , identicalTo("<B4>*:<B4>")) } # and warning that: Note: method with signature ‘B2#B1’ chosen for function ‘add’,

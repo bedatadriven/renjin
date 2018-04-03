@@ -355,7 +355,7 @@ public class Methods {
     }
 
     String packageName = context.getFunction().getAttribute(Symbol.get("package")).asString();
-    Generic generic = Generic.standardGeneric(fname, packageName);
+    Generic generic = Generic.standardGeneric(context, fname, packageName);
     MethodLookupTable lookupTable = new MethodLookupTable(generic, context);
     if(lookupTable.isEmpty()) {
       throw new EvalException("No methods found!");

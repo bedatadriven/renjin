@@ -18,12 +18,12 @@
  */
 package org.renjin.s4;
 
+import org.renjin.eval.Context;
 import org.renjin.repackaged.guava.collect.Sets;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringArrayVector;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -47,19 +47,58 @@ public class Generic {
   private final String packageName;
   private final String group;
   private final String subGroup;
+  private final List<String> stdGenericGroups;
+  private final boolean stdGeneric;
 
   public static Generic primitive(String name, String group) {
     return new Generic(name, group, "base");
   }
 
-  public static Generic standardGeneric(String name, String packageName) {
+  public static Generic standardGeneric(Context context, String name, String packageName) {
+    Environment namespaceEnv;
+    if (".GlobalEnv".equals(packageName)) {
+      namespaceEnv = context.getGlobalEnvironment();
+    } else {
+      namespaceEnv = context.getNamespaceRegistry().getNamespace(context, packageName).getNamespaceEnvironment();
+    }
+    SEXP generic = namespaceEnv.getVariableUnsafe(name).force(context);
+    if (generic == Symbol.UNBOUND_VALUE) {
+      return new Generic(name, null, packageName);
+    }
+    SEXP groupSlot = generic.getAttribute(Symbol.get("group"));
+    if (groupSlot instanceof ListVector) {
+      int groupSize = ((ListVector) groupSlot).length();
+      if (groupSize > 0) {
+        List<String> groups = new ArrayList<>();
+        for (int i = 0; i < groupSize; i++) {
+          groups.add(((ListVector) groupSlot).getElementAsString(i));
+        }
+        return new Generic(name, null, packageName, groups);
+      }
+    }
     return new Generic(name, null, packageName);
+  }
+
+  public Generic(String name, String group, String packageName, List<String> groups) {
+    this.name = applyAliases(name);
+    this.packageName = packageName;
+    this.group = group;
+    this.stdGenericGroups = groups;
+    this.stdGeneric = true;
+
+    if ("Ops".equals(group)) {
+      this.subGroup = opsSubGroupOf(name);
+    } else {
+      this.subGroup = null;
+    }
   }
 
   private Generic(String name, String group, String packageName) {
     this.name = applyAliases(name);
     this.packageName = packageName;
     this.group = group;
+    this.stdGenericGroups = null;
+    this.stdGeneric = false;
 
     if ("Ops".equals(group)) {
       this.subGroup = opsSubGroupOf(name);
@@ -88,6 +127,10 @@ public class Generic {
     }
   }
 
+  public List<String> getGenericGroups() {
+    return stdGenericGroups;
+  }
+
   public String getPackageName() {
     return packageName;
   }
@@ -98,6 +141,10 @@ public class Generic {
 
   public boolean isGroupGeneric() {
     return group != null;
+  }
+
+  public boolean isStandardGeneric() {
+    return stdGeneric;
   }
 
   public boolean isOps() {
@@ -120,16 +167,17 @@ public class Generic {
 
   public Symbol getGroupGenericMethodTableName() {
     assert group != null;
-    return Symbol.get(METHOD_PREFIX + name + ":base");
+    return Symbol.get(METHOD_PREFIX + group + ":" + packageName);
+  }
+
+  public Symbol getGroupStdGenericMethodTableName(String group) {
+    assert group != null;
+    return Symbol.get(METHOD_PREFIX + group + ":" + packageName);
   }
 
   public Symbol getSubGroupGenericMethodTableName() {
     assert subGroup != null;
-    if(subGroup.equals("Compare")) {
-      return Symbol.get(METHOD_PREFIX + subGroup + ":methods");
-    } else {
-      return Symbol.get(METHOD_PREFIX + subGroup + ":base");
-    }
+    return Symbol.get(METHOD_PREFIX + subGroup + ":" + packageName);
   }
 
   @Override

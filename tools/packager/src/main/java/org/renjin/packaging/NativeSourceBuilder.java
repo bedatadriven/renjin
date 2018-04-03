@@ -210,7 +210,7 @@ public class NativeSourceBuilder {
     }
 
     try {
-      GnurSourcesCompiler.setupCompiler(compiler);
+      GnurSourcesCompiler.setupCompiler(compiler, compiler.getPackageName());
     } catch (ClassNotFoundException e) {
       throw new BuildException("Failed to setup Gimple Compiler", e);
     }

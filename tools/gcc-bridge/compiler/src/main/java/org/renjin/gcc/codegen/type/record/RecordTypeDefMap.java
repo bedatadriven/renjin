@@ -45,17 +45,17 @@ public class RecordTypeDefMap {
    */
   private Map<Type, ProvidedTypeStrategy> providedTypeMap = new HashMap<>();
 
-  public void init(TypeOracle typeOracle, List<GimpleCompilationUnit> units, Map<String, Class> providedRecordTypes) {
+  public void init(TypeOracle typeOracle, List<GimpleCompilationUnit> units, Map<String, Type> providedRecordTypes) {
     for (GimpleCompilationUnit unit : units) {
       for (GimpleRecordTypeDef recordTypeDef : unit.getRecordTypes()) {
         typeDefMap.put(recordTypeDef.getId(), recordTypeDef);
 
         if (providedRecordTypes.containsKey(recordTypeDef.getName())) {
-          Class jvmClass = providedRecordTypes.get(recordTypeDef.getName());
-          ProvidedTypeStrategy strategy = new ProvidedTypeStrategy(recordTypeDef, Type.getType(jvmClass));
+          Type jvmClass = providedRecordTypes.get(recordTypeDef.getName());
+          ProvidedTypeStrategy strategy = new ProvidedTypeStrategy(recordTypeDef, jvmClass);
 
           recordNameMap.put(recordTypeDef.getName(), strategy);
-          providedTypeMap.put(Type.getType(jvmClass), strategy);
+          providedTypeMap.put(jvmClass, strategy);
         }
       }
     }

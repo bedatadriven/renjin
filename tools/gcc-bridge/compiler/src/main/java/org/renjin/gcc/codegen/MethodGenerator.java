@@ -32,9 +32,19 @@ import java.util.Arrays;
 public class MethodGenerator extends InstructionAdapter {
 
   private final LocalVarAllocator localVarAllocator = new LocalVarAllocator();
+  private final Type ownerClass;
 
-  public MethodGenerator(MethodVisitor mv) {
+  public MethodGenerator(Type ownerClass, MethodVisitor mv) {
     super(Opcodes.ASM5, mv);
+    this.ownerClass = ownerClass;
+  }
+
+  public MethodGenerator(String className, MethodVisitor mv) {
+    this(Type.getType("L" + className + ";"), mv);
+  }
+
+  public Type getOwnerClass() {
+    return ownerClass;
   }
 
   public LocalVarAllocator getLocalVarAllocator() {

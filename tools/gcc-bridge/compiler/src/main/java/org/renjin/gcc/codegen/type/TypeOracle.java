@@ -76,7 +76,7 @@ public class TypeOracle {
   }
 
 
-  public void initRecords(List<GimpleCompilationUnit> units, Map<String, Class> providedRecordTypes) {
+  public void initRecords(List<GimpleCompilationUnit> units, Map<String, Type> providedRecordTypes) {
     recordTypes.init(this, units, providedRecordTypes);
   }
 

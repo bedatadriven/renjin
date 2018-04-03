@@ -22,66 +22,69 @@ package org.renjin.gnur.api;
 import org.renjin.gcc.runtime.BytePtr;
 
 /**
- * GNU R API methods defined in the "R_ext/GraphicsDevice.h" header file
+ * GNU R API methods defined in the "R_ext/GraphicsDevice.h" header file.
+ *
+ * <p>These are now implemented by C-language functions in the grDevices module. </p>
  */
 @SuppressWarnings("unused")
 public final class GraphicsDevice {
 
   private GraphicsDevice() { }
 
-
-
-  // int Rf_ndevNumber (pDevDesc)
-
+  @Deprecated
   public static int Rf_NumDevices() {
-    throw new UnimplementedGnuApiMethod("Rf_NumDevices");
+    throw new RuntimeException("Please recompile with the latest version of Renjin.");
   }
 
+  @Deprecated
   public static void R_CheckDeviceAvailable() {
-    throw new UnimplementedGnuApiMethod("R_CheckDeviceAvailable");
+    throw new RuntimeException("Please recompile with the latest version of Renjin.");
   }
 
+  @Deprecated
   public static boolean R_CheckDeviceAvailableBool() {
-    throw new UnimplementedGnuApiMethod("R_CheckDeviceAvailableBool");
+    throw new RuntimeException("Please recompile with the latest version of Renjin.");
   }
 
+  @Deprecated
   public static int Rf_curDevice() {
-    return 0;
+    throw new RuntimeException("Please recompile with the latest version of Renjin.");
   }
 
+  @Deprecated
   public static int Rf_nextDevice(int p0) {
-    throw new UnimplementedGnuApiMethod("Rf_nextDevice");
+    throw new RuntimeException("Please recompile with the latest version of Renjin.");
   }
 
+  @Deprecated
   public static int Rf_prevDevice(int p0) {
-    throw new UnimplementedGnuApiMethod("Rf_prevDevice");
+    throw new RuntimeException("Please recompile with the latest version of Renjin.");
   }
 
+  @Deprecated
   public static int Rf_selectDevice(int p0) {
-    throw new UnimplementedGnuApiMethod("Rf_selectDevice");
+    throw new RuntimeException("Please recompile with the latest version of Renjin.");
   }
 
+  @Deprecated
   public static void Rf_killDevice(int p0) {
-    throw new UnimplementedGnuApiMethod("Rf_killDevice");
+    throw new RuntimeException("Please recompile with the latest version of Renjin.");
   }
 
+  @Deprecated
   public static int Rf_NoDevices() {
-    throw new UnimplementedGnuApiMethod("Rf_NoDevices");
+    throw new RuntimeException("Please recompile with the latest version of Renjin.");
   }
 
-  // void Rf_NewFrameConfirm (pDevDesc)
-
-  // void Rf_doMouseEvent (pDevDesc dd, R_MouseEvent event, int buttons, double x, double y)
-
-  // void Rf_doKeybd (pDevDesc dd, R_KeyName rkey, const char *keyname)
-
+  @Deprecated
   public static void Rf_onintr() {
-    throw new UnimplementedGnuApiMethod("Rf_onintr");
+    throw new RuntimeException("Please recompile with the latest version of Renjin.");
   }
 
+  @Deprecated
   public static Object Rf_AdobeSymbol2utf8(BytePtr out, BytePtr in, /*size_t*/ int nwork) {
-    throw new UnimplementedGnuApiMethod("Rf_AdobeSymbol2utf8");
+    throw new RuntimeException("Please recompile with the latest version of Renjin.");
   }
 
-  // size_t Rf_ucstoutf8 (char *s, const unsigned int c)
+
 }

@@ -63,7 +63,7 @@ setGeneric("devide", valueClass = "character", group = "AXlimited", function(e1,
 setMethod("devide", signature(e1 = "numeric", e2 = "numeric"), function(e1, e2) if((x <- e1 / e2) > 1) "text" else x )
 
 test.group.06 = function() { assertThat(devide(a1, a4), throwsError()) }
-test.group.07 = function() { assertThat(devide(a4, a1), identical("text")) }
+test.group.07 = function() { assertThat(devide(a4, a1), identicalTo("text")) }
 
 
 

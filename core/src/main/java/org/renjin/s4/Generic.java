@@ -177,6 +177,9 @@ public class Generic {
 
   public Symbol getSubGroupGenericMethodTableName() {
     assert subGroup != null;
+    if(subGroup.equals("Compare")) {
+      return Symbol.get(METHOD_PREFIX + subGroup + ":methods");
+    }
     return Symbol.get(METHOD_PREFIX + subGroup + ":" + packageName);
   }
 

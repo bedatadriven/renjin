@@ -399,7 +399,9 @@ public class Methods {
         }
         step += 1;
       } else {
-        coercedArgs.add(arg.getRawTag(), value);
+        if(value != Symbol.MISSING_ARG) {
+          coercedArgs.add(arg.getRawTag(), value);
+        }
       }
     }
     return coercedArgs;

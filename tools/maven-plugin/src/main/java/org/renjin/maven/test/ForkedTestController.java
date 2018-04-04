@@ -175,7 +175,7 @@ public class ForkedTestController {
               break;
           }
         }
-        if(stopwatch.elapsed(TimeUnit.MILLISECONDS) > timeoutMillis) {
+        if(timeoutMillis > 0 && stopwatch.elapsed(TimeUnit.MILLISECONDS) > timeoutMillis) {
           reporter.timeout(timeoutMillis);
           return false;
         }

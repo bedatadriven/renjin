@@ -183,6 +183,13 @@ public class RECompilerTest {
     new ExtendedRE("[A-Z]\\");
   }
 
+  @Test
+  public void punctSubClass() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("[[:punct:]]");
+    assertTrue(re.match("."));
+    assertFalse(re.match("A"));
+    assertTrue(re.match("+"));
+  }
 
   @Ignore("not implemented")
   @Test

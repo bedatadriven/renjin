@@ -562,8 +562,40 @@ public class RECompiler
                         range.include('\t', include);
                         range.include('\r', include);
                         range.include('\n', include);
-                        range.include((char)11, include); // vertical tab
+                        range.include((char) 11, include); // vertical tab
                         range.include('\f', include);
+                      } else if(className.equals("punct")) {
+                        range.include('!', include);
+                        range.include('"', include);
+                        range.include('#', include);
+                        range.include('$', include);
+                        range.include('%', include);
+                        range.include('&', include);
+                        range.include('\'', include);
+                        range.include('(', include);
+                        range.include(')', include);
+                        range.include('*', include);
+                        range.include('+', include);
+                        range.include('-', include);
+                        range.include('.', include);
+                        range.include('/', include);
+                        range.include(':', include);
+                        range.include(';', include);
+                        range.include('<', include);
+                        range.include('=', include);
+                        range.include('>', include);
+                        range.include('?', include);
+                        range.include('@', include);
+                        range.include('[', include);
+                        range.include('\\', include);
+                        range.include(']', include);
+                        range.include('^', include);
+                        range.include('_', include);
+                        range.include('`', include);
+                        range.include('{', include);
+                        range.include('|', include);
+                        range.include('}', include);
+                        range.include('~', include);
                       } else {
                         throw new RESyntaxException("Posix class " + className + " not implemented");
                       }

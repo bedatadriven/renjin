@@ -200,6 +200,21 @@ public class PointerPtr extends AbstractPtr {
   }
 
   @Override
+  public void memmove(Ptr source, int numBytes) {
+    if(numBytes % BYTES != 0) {
+      throw new UnsupportedOperationException("PointerPtr.memmove(PointerPtr, " + numBytes + ")");
+    }
+    int numPtr = numBytes / BYTES;
+    Ptr[] buffer = new Ptr[numPtr];
+    for (int i = 0; i < numPtr; i++) {
+      buffer[i] = source.getAlignedPointer(i);
+    }
+    for (int i = 0; i < numPtr; i++) {
+      array[offset + i] = buffer[i];
+    }
+  }
+
+  @Override
   public Ptr copyOf(int offset, int numBytes) {
     throw new UnsupportedOperationException("TODO");
   }

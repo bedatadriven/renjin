@@ -129,7 +129,11 @@ public class VPtrStrategy implements PointerTypeStrategy {
 
   @Override
   public GExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
-    throw new UnsupportedOperationException("TODO");
+    if(!expr.getType().equals(Type.getType(Ptr.class))) {
+      throw new UnsupportedOperationException("Cannot create expression for provided global variable " +
+            decl + " with JVM type " + expr.getType());
+    }
+    return new VPtrExpr(expr);
   }
 
   @Override

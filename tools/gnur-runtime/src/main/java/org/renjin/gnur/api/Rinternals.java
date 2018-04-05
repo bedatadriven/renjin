@@ -908,6 +908,10 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("SET_BODY");
   }
 
+  public static int IS_CACHED(SEXP x) {
+    return 0;
+  }
+
   /** Replace the environment of a closure.
    *
    * @param x Pointer to a closure object.

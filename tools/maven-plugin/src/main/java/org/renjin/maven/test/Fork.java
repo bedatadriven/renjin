@@ -34,7 +34,7 @@ class Fork {
 
   private boolean readError = false;
 
-  private final ArrayBlockingQueue<ForkMessage> incomingQueue = new ArrayBlockingQueue<>(100);
+  private final ArrayBlockingQueue<ForkMessage> incomingQueue = new ArrayBlockingQueue<>(500);
 
   public Fork(Log log, Process process) {
     this.log = log;
@@ -110,7 +110,13 @@ class Fork {
           log.debug("[CHANNEL] " + line);
         }
         if (line.startsWith(TestExecutor.MESSAGE_PREFIX)) {
-          incomingQueue.add(new ForkMessage(line));
+          try {
+            incomingQueue.put(new ForkMessage(line));
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Listener interrupted while waiting to enqueue message from fork");
+            return;
+          }
         }
       }
     }

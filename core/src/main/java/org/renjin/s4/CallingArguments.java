@@ -89,12 +89,19 @@ public class CallingArguments {
   public static CallingArguments standardGenericArguments(Context context, ArgumentMatcher argumentMatcher) {
     Environment environment = context.getEnvironment();
     PairList.Builder promisedArgs = new PairList.Builder();
-    for (String formalName : argumentMatcher.getFormalNames()) {
+    for (int i = 0; i < argumentMatcher.getFormalNames().size(); i++) {
+      String formalName = argumentMatcher.getFormalNames().get(i);
+      SEXP formalDefault = argumentMatcher.getDefaultValue(i);
       SEXP promisedArg = environment.getVariableUnsafe(formalName);
       if(formalName.equals("...")) {
         promisedArgs.addAll(((PairList) promisedArg));
       } else {
-        promisedArgs.add(promisedArg);
+        if(((promisedArg instanceof Promise && ((Promise) promisedArg).getExpression() == Null.INSTANCE) && formalDefault == Null.INSTANCE)
+            || (promisedArg instanceof Symbol && promisedArg == Null.INSTANCE)) {
+          promisedArgs.add(Symbol.MISSING_ARG);
+        } else {
+          promisedArgs.add(promisedArg);
+        }
       }
     }
     return new CallingArguments(context, promisedArgs.build());

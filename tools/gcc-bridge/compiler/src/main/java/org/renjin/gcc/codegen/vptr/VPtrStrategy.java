@@ -39,6 +39,7 @@ import java.util.Optional;
  */
 public class VPtrStrategy implements PointerTypeStrategy {
 
+  private static final Type POINTER_INTERFACE_TYPE = Type.getType(Ptr.class);
   private GimpleType baseType;
   private PointerType pointerType;
 
@@ -111,29 +112,41 @@ public class VPtrStrategy implements PointerTypeStrategy {
   public GExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
       GimplePointerType pointerType = this.baseType.pointerTo();
-      JLValue unitArray = allocator.reserveUnitArray(decl.getNameIfPresent(), Type.getType(Ptr.class), Optional.empty());
-      VPtrValueFunction valueFunction = new VPtrValueFunction(pointerType);
-      FatPtrPair address = new FatPtrPair(valueFunction, unitArray, Expressions.constantInt(0));
-      return address.valueOf(pointerType);
+      JLValue unitArray = allocator.reserveUnitArray(decl.getNameIfPresent(), POINTER_INTERFACE_TYPE, Optional.empty());
+      return addressableExprFromUnitArray(pointerType, unitArray);
 
     } else {
       // For "normal" local variables, allocate an extra "offset" variable so that
       // we don't need to create new Ptr instances for pointer arithmatic within the function body.
 
-      JLValue pointer = allocator.reserve(decl.getNameIfPresent(), Type.getType(Ptr.class));
+      JLValue pointer = allocator.reserve(decl.getNameIfPresent(), POINTER_INTERFACE_TYPE);
       JLValue offset = allocator.reserveOffsetInt(decl.getNameIfPresent());
 
       return new VPtrExpr(pointer, offset);
     }
   }
 
+
   @Override
   public GExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
-    if(!expr.getType().equals(Type.getType(Ptr.class))) {
-      throw new UnsupportedOperationException("Cannot create expression for provided global variable " +
-            decl + " with JVM type " + expr.getType());
+    if(expr.getType().equals(POINTER_INTERFACE_TYPE)) {
+      return new VPtrExpr(expr);
+
+    } else if(expr.getType().getSort() == Type.ARRAY &&
+              expr.getType().getElementType().equals(POINTER_INTERFACE_TYPE)) {
+
+      return addressableExprFromUnitArray(((GimplePointerType) decl.getType()), ((JLValue) expr));
     }
-    return new VPtrExpr(expr);
+
+    throw new UnsupportedOperationException("Cannot create expression for provided global variable " +
+          decl + " with JVM type " + expr.getType());
+  }
+
+
+  private GExpr addressableExprFromUnitArray(GimplePointerType pointerType, JLValue unitArray) {
+    VPtrValueFunction valueFunction = new VPtrValueFunction(pointerType);
+    FatPtrPair address = new FatPtrPair(valueFunction, unitArray, Expressions.constantInt(0));
+    return address.valueOf(pointerType);
   }
 
   @Override

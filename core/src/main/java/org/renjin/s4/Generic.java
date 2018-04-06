@@ -39,7 +39,7 @@ public class Generic {
 
   private static final Set<String> COMPARE_GROUP = Sets.newHashSet("==", ">", "<", "!=", "<=", ">=");
 
-  private static final Set<String> LOGIC_GROUP = Sets.newHashSet("&", "&&", "|", "||", "xor");
+  private static final Set<String> LOGIC_GROUP = Sets.newHashSet("!", "&", "&&", "|", "||", "xor");
 
   private static final String METHOD_PREFIX = ".__T__";
 

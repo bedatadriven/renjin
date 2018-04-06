@@ -61,16 +61,16 @@ public class S4 {
 
     Closure function = selectedMethod.getMethodDefinition();
 
-    PairList.Builder coercedArgs = Methods.coerceArguments(context, arguments, classCache, selectedMethod);
+    PairList coercedArgs = Methods.coerceArguments(context, arguments, classCache, selectedMethod).build();
 
     if (dispatchWithoutMeta(opName, source, selectedMethod)) {
-      FunctionCall call = new FunctionCall(function, coercedArgs.build());
+      FunctionCall call = new FunctionCall(function, args);
       return context.evaluate(call);
       
     } else {
       Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, arguments, opName);
       FunctionCall call = new FunctionCall(function, arguments.getPromisedArgs());
-      return ClosureDispatcher.apply(context, rho, call, function, coercedArgs.build(), metadata);
+      return ClosureDispatcher.apply(context, rho, call, function, coercedArgs, metadata);
     }
   }
 

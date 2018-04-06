@@ -96,7 +96,7 @@ public class StringByteArrayVector extends StringVector {
 
   @Override
   public boolean isElementNA(int index) {
-    return offsets[index] == -1;
+    return offsets[index] < 0;
   }
 
   @Override

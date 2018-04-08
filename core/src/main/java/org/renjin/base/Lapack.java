@@ -281,7 +281,7 @@ public class Lapack {
         rz, n, isuppz,
         tmp, lwork, itmp, liwork, info);
     if (info.val != 0) {
-      throw new EvalException("error code %d from Lapack routine '%s'", info, "dsyevr");
+      throw new EvalException("error code %d from Lapack routine '%s'", info.val, "dsyevr");
     }
 
     lwork = (int) tmp[0];
@@ -295,7 +295,7 @@ public class Lapack {
         rz, n, isuppz,
         work, lwork, iwork, liwork, info);
     if (info.val != 0) {
-      throw new EvalException("error code %d from Lapack routine '%s'", info, "dsyevr");
+      throw new EvalException("error code %d from Lapack routine '%s'", info.val, "dsyevr");
     }
 
     ListVector.NamedBuilder ret = ListVector.newNamedBuilder();
@@ -350,9 +350,9 @@ public class Lapack {
       LAPACK.getInstance().dpotrf("Upper", m, matrix, m, info);
       if (info.val != 0) {
         if (info.val > 0) {
-          throw new EvalException("the leading minor of order %d is not positive definite", info);
+          throw new EvalException("the leading minor of order %d is not positive definite", info.val);
         } else {
-          throw new EvalException("argument %d of Lapack routine %s had invalid value", info, "dpotrf");
+          throw new EvalException("argument %d of Lapack routine %s had invalid value", info.val, "dpotrf");
         }
       }
       return DoubleArrayVector.unsafe(matrix, a.getAttributes());
@@ -795,7 +795,7 @@ public class Lapack {
     lapack.dgeev(jobVL, jobVR, n, xvals, n, wR, wI, left, n, right, n, tmp, lwork, info);
 
     if (info.val != 0) {
-      throw new EvalException("error code %d from Lapack routine '%s'", info, "dgeev");
+      throw new EvalException("error code %d from Lapack routine '%s'", info.val, "dgeev");
     }
 
     lwork = (int) tmp[0];
@@ -803,7 +803,7 @@ public class Lapack {
     lapack.dgeev(jobVL, jobVR, n, xvals, n, wR, wI, left, n, right, n, work, lwork, info);
 
     if (info.val != 0) {
-      throw new EvalException("error code %d from Lapack routine '%s'", info, "dgeev");
+      throw new EvalException("error code %d from Lapack routine '%s'", info.val, "dgeev");
     }
 
     ListVector.NamedBuilder ret = new ListVector.NamedBuilder();

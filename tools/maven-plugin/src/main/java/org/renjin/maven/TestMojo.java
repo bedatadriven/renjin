@@ -152,8 +152,14 @@ public class TestMojo extends AbstractMojo {
 
   private List<Artifact> getDependencies() {
     List<Artifact> artifacts = Lists.newArrayList();
-    artifacts.addAll(project.getTestArtifacts());
+
+    // First add this plugin's dependencies, which include matching, and probably latest versions
+    // of renjin-core, renjin-repl. We want to use these versions rather than whatever mismatch of versions
+    // that can potentially get pulled in by dependencies
     artifacts.addAll(pluginDependencies);
+
+    // Now add this project's dependencies.
+    artifacts.addAll(project.getTestArtifacts());
     return artifacts;
   }
 

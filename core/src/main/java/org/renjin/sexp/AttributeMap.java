@@ -789,6 +789,10 @@ public class AttributeMap {
         this.dimNames = attributes.dimNames;
         this.empty = false;
       }
+      if(attributes.s4) {
+        this.s4 = attributes.s4;
+        this.empty = false;
+      }
       if(attributes.map != null) {
         for(Map.Entry<Symbol, SEXP> entry : attributes.map.entrySet()) {
           if(this.map == null) {

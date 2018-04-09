@@ -499,8 +499,8 @@ public class Evaluation {
   }
 
   @Builtin
-  public static int nargs(@Current Context context) {
-    return context.getArguments().length();
+  public static int nargs(@Current Context context, @Current Environment environment) {
+    return Contexts.findCallingContext(context, environment).getArguments().length();
   }
   
   @Builtin(".Primitive")

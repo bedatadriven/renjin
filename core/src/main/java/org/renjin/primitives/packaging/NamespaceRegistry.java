@@ -23,9 +23,14 @@ import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.SessionScoped;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
-import org.renjin.repackaged.guava.collect.*;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Maps;
+import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.repackaged.guava.io.CharSource;
-import org.renjin.sexp.*;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
 
 import java.util.*;
 
@@ -209,13 +214,6 @@ public class NamespaceRegistry {
         }
 
         namespace.registerS3Methods(context, namespaceFile);
-
-        // S4 classes are declared in a namespace, but once the namespace is loaded,
-        // they are loaded into the global metadata cache
-        if(namespace.hasS4Metadata()) {
-          maybeUpdateS4MetadataCache(context, namespace);
-        }
-
         namespace.loaded = true;
 
         return of(namespace);
@@ -232,27 +230,6 @@ public class NamespaceRegistry {
     return string.indexOf(':') != -1 || string.indexOf('.') != -1;
   }
 
-
-  private static void maybeUpdateS4MetadataCache(Context context, Namespace namespace) {
-
-    if(namespace.getFullyQualifiedName().getGroupId().equals("org.renjin") &&
-        namespace.getFullyQualifiedName().getPackageName().equals("methods")) {
-      return;
-    }
-
-    //methods:::cacheMetaData(ns, TRUE, ns)
-    Optional<Namespace> methods = context.getNamespaceRegistry()
-        .getNamespaceIfPresent(Symbol.get("methods"));
-    if(methods.isPresent() && methods.get().isLoaded()) {
-      SEXP cacheFunction = methods.get().getEntry(Symbol.get("cacheMetaData"));
-      FunctionCall cacheCall = FunctionCall.newCall(cacheFunction,
-          namespace.getNamespaceEnvironment(),
-          LogicalVector.TRUE,
-          namespace.getNamespaceEnvironment());
-
-      context.evaluate(cacheCall);
-    }
-  }
 
   public boolean isRegistered(Symbol name) {
     return localNameMap.containsKey(name);

@@ -19,36 +19,37 @@
 package org.renjin.s4;
 
 import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.sexp.*;
 
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 
 public class S4ClassCache {
 
   private final Environment classTable;
 
   public S4ClassCache(Context context) {
-    Optional<Namespace> methods = context.getNamespaceRegistry().getNamespaceIfPresent(Symbol.get("methods"));
-    if(methods.isPresent()) {
-      this.classTable = findClassTable(context, methods.get());
-    } else {
-      this.classTable = Environment.EMPTY;
-    }
-  }
 
-  private Environment findClassTable(Context context, Namespace namespace) {
-    SEXP classTableSexp = namespace.getNamespaceEnvironment().getVariableUnsafe(".classTable");
-    if(classTableSexp == Symbol.UNBOUND_VALUE) {
-      return Environment.EMPTY;
+    Frame classes = new HashFrame();
+
+    List<Frame> loaded = new ArrayList<>();
+    loaded.add(context.getGlobalEnvironment().getFrame());
+    for(Namespace namespace : context.getNamespaceRegistry().getLoadedNamespaces()) {
+      loaded.add(namespace.getNamespaceEnvironment().getFrame());
     }
-    SEXP forcedClassTable = classTableSexp.force(context);
-    if(forcedClassTable instanceof Environment) {
-      return (Environment) forcedClassTable;
-    } else {
-      throw new EvalException("Expected '.classTable' to be an environment");
+
+    for(Frame frame : loaded) {
+      for(Symbol object : frame.getSymbols()) {
+        if(object.getPrintName().startsWith(".__C__")) {
+          String shortName = object.getPrintName().split(".__C__")[1];
+          classes.setVariable(Symbol.get(shortName), frame.getVariable(object).force(context));
+        }
+      }
     }
+
+    Environment.Builder classTableBuilder = new Environment.Builder(context.getBaseEnvironment(), classes);
+    this.classTable = classTableBuilder.build();
   }
 
   public S4Class lookupClass(String name) {

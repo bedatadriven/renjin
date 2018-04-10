@@ -150,12 +150,8 @@ public class S4 {
     if("ANY".equals(objClass) || "signature".equals(objClass)) {
       return "methods";
     }
-    Environment methodsEnv = context.getNamespaceRegistry()
-        .getNamespace(context, "methods")
-        .getNamespaceEnvironment();
 
-    Environment classTable = (Environment) methodsEnv
-        .findVariableUnsafe(Symbol.get(".classTable")).force(context);
+    Environment classTable = S4ClassCache.makeClassTable(context);
 
     SEXP classDef = classTable
         .findVariable(context, Symbol.get(objClass));
@@ -165,12 +161,8 @@ public class S4 {
   }
 
   public static AtomicVector getSuperClassesS4(Context context, String objClass) {
-    Environment methodsEnv = context.getNamespaceRegistry()
-        .getNamespace(context, "methods")
-        .getNamespaceEnvironment();
 
-    Environment classTable = (Environment) methodsEnv
-        .findVariableUnsafe(Symbol.get(".classTable")).force(context);
+    Environment classTable = S4ClassCache.makeClassTable(context);
 
     SEXP classDef = classTable
         .findVariable(context, Symbol.get(objClass));

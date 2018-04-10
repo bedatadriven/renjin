@@ -94,7 +94,7 @@ public class Builder {
     try {
       system.install( session, installRequest );
     } catch (InstallationException e) {
-      throw new BuildException("Exception installing artifact " + build.getJarFile().getAbsolutePath());
+      throw new BuildException("Exception installing artifact " + build.getJarFile().getAbsolutePath(), e);
     }
   }
 }

@@ -30,7 +30,10 @@ public class S4ClassCache {
   private final Environment classTable;
 
   public S4ClassCache(Context context) {
+    this.classTable = makeClassTable(context);
+  }
 
+  public static Environment makeClassTable(Context context) {
     Frame classes = new HashFrame();
 
     List<Frame> loaded = new ArrayList<>();
@@ -48,8 +51,7 @@ public class S4ClassCache {
       }
     }
 
-    Environment.Builder classTableBuilder = new Environment.Builder(context.getBaseEnvironment(), classes);
-    this.classTable = classTableBuilder.build();
+    return new Environment.Builder(context.getBaseEnvironment(), classes).build();
   }
 
   public S4Class lookupClass(String name) {

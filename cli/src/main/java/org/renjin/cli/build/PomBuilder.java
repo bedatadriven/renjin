@@ -58,7 +58,7 @@ public class PomBuilder {
     this.description = build.getSource().getDescription();
   }
 
-  public void writePomFile() {
+  public File writePomFile() {
 
     File pomFile = new File(build.getMavenMetaDir(), "pom.xml");
 
@@ -68,9 +68,11 @@ public class PomBuilder {
     } catch (IOException e) {
       throw new BuildException("Exception writing "   + pomFile.getAbsolutePath());
     }
+
+    return pomFile;
   }
 
-  public void writePomProperties() {
+  public File writePomProperties() {
 
     File propertiesFile = new File(build.getMavenMetaDir(), "pom.properties");
 
@@ -85,6 +87,8 @@ public class PomBuilder {
     } catch (IOException e) {
       throw new BuildException("Exception writing " + propertiesFile.getAbsolutePath());
     }
+
+    return propertiesFile;
   }
 
 

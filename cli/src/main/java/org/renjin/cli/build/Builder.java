@@ -86,7 +86,7 @@ public class Builder {
     jarArtifact = jarArtifact.setFile(build.getJarFile());
 
     Artifact pomArtifact = new SubArtifact( jarArtifact, "", "pom" );
-    pomArtifact = pomArtifact.setFile( new File( "pom.xml" ) );
+    pomArtifact = pomArtifact.setFile( new File(build.getMavenMetaDir(), "pom.xml"));
 
     InstallRequest installRequest = new InstallRequest();
     installRequest.addArtifact( jarArtifact ).addArtifact( pomArtifact );

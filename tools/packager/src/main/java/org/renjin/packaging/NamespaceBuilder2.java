@@ -18,9 +18,11 @@
  */
 package org.renjin.packaging;
 
+import org.apache.commons.vfs2.FileSystemException;
 import org.joda.time.DateTime;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.io.serialization.HeadlessWriteContext;
@@ -98,8 +100,14 @@ public class NamespaceBuilder2 {
     SessionBuilder builder = new SessionBuilder();
     builder.setPackageLoader(buildContext.getPackageLoader());
     builder.setClassLoader(buildContext.getClassLoader());
-    
-    Context context = builder.build().getTopLevelContext();
+
+    Session session = builder.build();
+    try {
+      session.setWorkingDirectory(source.getPackageDir());
+    } catch (FileSystemException e) {
+      throw new BuildException("Could not set working directory to " + source.getPackageDir().getAbsolutePath(), e);
+    }
+    Context context = session.getTopLevelContext();
     for(String name : buildContext.getDefaultPackages()) {
       context.evaluate(FunctionCall.newCall(Symbol.get("library"), StringVector.valueOf(name)));
     }

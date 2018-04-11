@@ -232,27 +232,28 @@ getClassDef <-
   function(Class, where = topenv(parent.frame()), package = packageSlot(Class),
            inherits = TRUE)
 {
-    if(inherits) #includes both the lookup and Class being alread a definition
-      value <- .getClassFromCache(Class, where)
-    else # want to force a search for the metadata in this case (Why?)
-      value <- NULL
-    if(is.null(value)) {
-	cname <-
-	    classMetaName(if(length(Class) > 1L)
-			  ## S3 class; almost certainly has no packageSlot,
-			  ## but we'll continue anyway
-			  Class[[1L]] else Class)
-	## a string with a package slot strongly implies the class definition
-	## should be in that package.
-	if(identical(nzchar(package), TRUE)) {
-	    whereP <- .requirePackage(package)
-	    if(exists(cname, whereP, inherits = inherits))
-		value <- get(cname, whereP)
-	}
-	if(is.null(value) && exists(cname, where, inherits = inherits))
-	    value <- get(cname, where)
-    }
-    value
+#    if(inherits) #includes both the lookup and Class being alread a definition
+#      value <- .getClassFromCache(Class, where)
+#    else # want to force a search for the metadata in this case (Why?)
+#      value <- NULL
+#    if(is.null(value)) {
+#	cname <-
+#	    classMetaName(if(length(Class) > 1L)
+#			  ## S3 class; almost certainly has no packageSlot,
+#			  ## but we'll continue anyway
+#			  Class[[1L]] else Class)
+#	## a string with a package slot strongly implies the class definition
+#	## should be in that package.
+#	if(identical(nzchar(package), TRUE)) {
+#	    whereP <- .requirePackage(package)
+#	    if(exists(cname, whereP, inherits = inherits))
+#		value <- get(cname, whereP)
+#	}
+#	if(is.null(value) && exists(cname, where, inherits = inherits))
+#	    value <- get(cname, where)
+#    }
+#    value
+    .Internal(getClassDef(as.character(Class)[1]))
 }
 
 getClass <-

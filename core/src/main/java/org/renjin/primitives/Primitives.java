@@ -916,6 +916,7 @@ public class Primitives {
     f("UseMethod", S3.class, 200);
     f("NextMethod", S3.class, 210);
     f("standardGeneric", Methods.class, 201);
+    f("getClassDef", Methods.class, 11);
 
 /* Modelling Functionality */
 

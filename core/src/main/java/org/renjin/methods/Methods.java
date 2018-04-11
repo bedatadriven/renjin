@@ -24,6 +24,7 @@ import org.renjin.eval.Context.Type;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.methods.PrimitiveMethodTable.prim_methods_t;
 import org.renjin.primitives.Types;
 import org.renjin.primitives.special.SubstituteFunction;
@@ -339,6 +340,16 @@ public class Methods {
       throw new EvalException("invalid primitive methods code (\"%s\"): should be \"clear\", \"reset\", \"set\", or \"suppress\"", code_string);
     }
     return code;
+  }
+
+  @Internal
+  public static SEXP getClassDef(@Current Context context, String className) {
+    Environment classTable = S4ClassCache.makeClassTable(context);
+    SEXP classDef = classTable.getVariable(context, className);
+    if(classDef == Symbol.UNBOUND_VALUE) {
+      return Null.INSTANCE;
+    }
+    return classDef;
   }
 
   @Builtin

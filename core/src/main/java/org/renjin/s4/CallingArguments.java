@@ -91,16 +91,15 @@ public class CallingArguments {
     PairList.Builder promisedArgs = new PairList.Builder();
     for (int i = 0; i < argumentMatcher.getFormalNames().size(); i++) {
       String formalName = argumentMatcher.getFormalNames().get(i);
-      SEXP formalDefault = argumentMatcher.getDefaultValue(i);
       SEXP promisedArg = environment.getVariableUnsafe(formalName);
+      boolean missing = environment.isMissingArgument(Symbol.get(formalName));
       if(formalName.equals("...")) {
         promisedArgs.addAll(((PairList) promisedArg));
       } else {
-        if(((promisedArg instanceof Promise && ((Promise) promisedArg).getExpression() == Null.INSTANCE) && formalDefault == Null.INSTANCE)
-            || (promisedArg instanceof Symbol && promisedArg == Null.INSTANCE)) {
-          promisedArgs.add(Symbol.MISSING_ARG);
+        if(!missing) {
+          promisedArgs.add(formalName, promisedArg);
         } else {
-          promisedArgs.add(promisedArg);
+          promisedArgs.add(formalName, Symbol.MISSING_ARG);
         }
       }
     }
@@ -148,6 +147,22 @@ public class CallingArguments {
       }
     }
     return new Signature(classes);
+  }
+  public StringBuilder getFullSignatureString(int length) {
+    StringBuilder sb = new StringBuilder();
+    Iterator<PairList.Node> argumentIt = promisedArgs.nodes().iterator();
+    for(int i = 0; i < length; i++) {
+      if(argumentIt.hasNext()) {
+        sb.append(" '");
+        sb.append(getArgumentClass(i));
+        if(i == length-1) {
+          sb.append("'");
+        } else {
+          sb.append("', ");
+        }
+      }
+    }
+    return sb;
   }
 
   public String getArgumentClass(int index) {

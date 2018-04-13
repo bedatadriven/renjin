@@ -379,19 +379,20 @@ public class Methods {
 
     RankedMethod selectedMethod = lookupTable.selectMethod(arguments, calculator);
     if(selectedMethod == null) {
-      return null;
+      throw new EvalException("unable to find an inherited method for function '" + fname +
+          "' for signature " + arguments.getFullSignatureString(lookupTable.getMaximumSignatureLength()));
     }
 
     Closure function = selectedMethod.getMethodDefinition();
 
     Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, arguments, fname);
 
-    PairList coercedArgs = coerceArguments(context, arguments, classCache, selectedMethod).build();
+    PairList coercedArgs = coerce(context, arguments, classCache, selectedMethod).build();
     FunctionCall call = new FunctionCall(function, coercedArgs);
     return ClosureDispatcher.apply(context, context.getCallingEnvironment(), call, function, coercedArgs, metadata);
   }
 
-  public static PairList.Builder coerceArguments(@Current Context context, CallingArguments arguments, S4ClassCache classCache, RankedMethod method) {
+  public static PairList.Builder coerce(@Current Context context, CallingArguments arguments, S4ClassCache classCache, RankedMethod method) {
 
     int signatureLength = method.getMethodSignatureLength();
 
@@ -402,7 +403,7 @@ public class Methods {
       if(step < signatureLength) {
         String from = arguments.getArgumentClass(step);
         String to = method.getArgumentClass(step);
-        if(to.equals(from) || to.equals("ANY") || classCache.needsCoerce(from, to)) {
+        if(to.equals(from) || to.equals("ANY") || classCache.isSimple(from, to)) {
           coercedArgs.add(arg.getRawTag(), value);
         } else {
           SEXP coercedArg = classCache.coerceComplex(context, value, from, to);

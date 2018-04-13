@@ -61,7 +61,7 @@ public class S4 {
 
     Closure function = selectedMethod.getMethodDefinition();
 
-    PairList coercedArgs = Methods.coerceArguments(context, arguments, classCache, selectedMethod).build();
+    PairList coercedArgs = Methods.coerce(context, arguments, classCache, selectedMethod).build();
 
     if (dispatchWithoutMeta(opName, source, selectedMethod)) {
       FunctionCall call = new FunctionCall(function, args);

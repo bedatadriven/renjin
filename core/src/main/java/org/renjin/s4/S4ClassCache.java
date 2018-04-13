@@ -63,7 +63,7 @@ public class S4ClassCache {
     }
   }
 
-  public boolean needsCoerce(String from, String to) {
+  public boolean isSimple(String from, String to) {
     SEXP classDef = classTable.getVariableUnsafe(from);
     ListVector contains = (ListVector) classDef.getAttribute(S4Class.CONTAINS);
     int index = contains.getIndexByName(to);

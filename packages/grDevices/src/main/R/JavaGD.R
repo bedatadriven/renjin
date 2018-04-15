@@ -46,6 +46,6 @@ png <- function(filename = "Rplot%03d.png",
 }
 
 JavaGD <- function(name="JavaGD", deviceClass = "org.renjin.grDevices.JavaGD", width=400, height=300, ps=12) {
-  invisible(.Call(C_newJavaGD, name, width, height, ps, deviceClass))
+  invisible(.Call(C_newJavaGD, name, width, height, ps, deviceClass, list()))
 }
 

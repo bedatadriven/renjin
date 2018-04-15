@@ -1,4 +1,4 @@
 type=METHOD
 class=org/renjin/grDevices/GraphicsDevices
-descriptor=()Lorg/renjin/gcc/runtime/Ptr;
+descriptor=(Lorg/renjin/gcc/runtime/Ptr;Lorg/renjin/sexp/SEXP;)Lorg/renjin/gcc/runtime/Ptr;
 member=newDevice

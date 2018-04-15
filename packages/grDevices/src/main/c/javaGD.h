@@ -38,7 +38,7 @@ typedef void JNIEnv;
 #endif
 #endif
 
-Rboolean newJavaGDDeviceDriver(NewDevDesc*, const char*, double, double, double);
+Rboolean newJavaGDDeviceDriver(NewDevDesc*, const char*, const char*, SEXP, double, double, double);
 
 /********************************************************/
 /* Each driver can have its own device-specic graphical */

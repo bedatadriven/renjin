@@ -2746,8 +2746,8 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_conformable");
   }
 
-  public static SEXP Rf_elt(SEXP p0, int p1) {
-    throw new UnimplementedGnuApiMethod("Rf_elt");
+  public static SEXP Rf_elt(SEXP vector, int index) {
+    return vector.getElementAsSEXP(index);
   }
 
   public static boolean Rf_inherits(SEXP p0, BytePtr p1) {

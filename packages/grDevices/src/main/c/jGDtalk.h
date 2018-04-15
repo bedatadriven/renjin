@@ -9,7 +9,7 @@
 
 extern void setupJavaGDfunctions(NewDevDesc *dd);
 
-Rboolean newJavaGD_Open(NewDevDesc *dd, newJavaGDDesc *xd, const char *dsp, double w, double h);
+Rboolean newJavaGD_Open(NewDevDesc *dd, newJavaGDDesc *xd, const char *dsp, const char *device_class, SEXP options, double w, double h);
 
 
 #endif

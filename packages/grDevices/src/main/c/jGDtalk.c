@@ -51,9 +51,9 @@ void    GraphicsDevices_setFont(void *p, double cex, double ps, double lineheigh
 // The rest of these functions are in C and adapted from Simon's
 // JNI glue code.
 
-int initJavaGD(newJavaGDDesc* xd) {
+int initJavaGD(newJavaGDDesc* xd, const char * driverClass, SEXP deviceOptions) {
 
-    xd->talk = GraphicsDevices_newDevice();
+    xd->talk = GraphicsDevices_newDevice(driverClass, deviceOptions);
     return 0;
 }
 
@@ -97,9 +97,9 @@ static void sendAllGC(newJavaGDDesc *xd, R_GE_gcontext *gc) {
 
 /*------- the R callbacks begin here ... ------------------------*/
 
-Rboolean newJavaGD_Open(NewDevDesc *dd, newJavaGDDesc *xd, const char *dsp, double w, double h)
+Rboolean newJavaGD_Open(NewDevDesc *dd, newJavaGDDesc *xd, const char *dsp, const char *deviceClass, SEXP deviceOptions, double w, double h)
 {
-    if (initJavaGD(xd)) return FALSE;
+    if (initJavaGD(xd, deviceClass, deviceOptions)) return FALSE;
 
     xd->fill = 0xffffffff; /* transparent, was R_RGB(255, 255, 255); */
     xd->col = R_RGB(0, 0, 0);

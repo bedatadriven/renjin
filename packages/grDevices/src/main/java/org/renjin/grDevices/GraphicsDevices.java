@@ -20,47 +20,67 @@
 
 package org.renjin.grDevices;
 
+import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.gcc.runtime.RecordUnitPtr;
 import org.renjin.gcc.runtime.Stdlib;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.SEXP;
 
 public class GraphicsDevices {
 
-  public static Ptr newDevice() {
-    return new RecordUnitPtr<>(new JavaGD());
+  public static Ptr newDevice(Ptr deviceClassPtr, SEXP deviceOptions) {
+
+    String deviceClassName = Stdlib.nullTerminatedString(deviceClassPtr);
+
+    Class deviceClass;
+    try {
+      deviceClass = Class.forName(deviceClassName);
+    } catch (ClassNotFoundException e) {
+      throw new EvalException("Could not find graphics device class '" + deviceClassName + "'", e);
+    }
+
+    GraphicsDevice device;
+    try {
+      device = (GraphicsDevice) deviceClass.getConstructor(ListVector.class).newInstance((ListVector)deviceOptions);
+    } catch (Exception e) {
+      throw new EvalException("Could not create graphics device", e);
+    }
+
+    return new RecordUnitPtr<>(device);
   }
 
   public static void open(Ptr p, double w, double h) {
-    ((JavaGD) p.getArray()).open(w, h);
+    ((GraphicsDevice) p.getArray()).open(w, h);
   }
 
   public static void close(Ptr p) {
-    ((JavaGD) p.getArray()).close();
+    ((GraphicsDevice) p.getArray()).close();
   }
 
   public static void activate(Ptr p) {
-    ((JavaGD) p.getArray()).activate();
+    ((GraphicsDevice) p.getArray()).activate();
   }
 
   public static void circle(Ptr p, double x, double y, double r) {
-    ((JavaGD) p.getArray()).circle(x, y, r);
+    ((GraphicsDevice) p.getArray()).circle(x, y, r);
   }
 
   public static void clip(Ptr p,  double x0, double x1, double y0, double y1) {
-    ((JavaGD) p.getArray()).clip(x0, x1, y0, y1);
+    ((GraphicsDevice) p.getArray()).clip(x0, x1, y0, y1);
   }
 
   public static void deactivate(Ptr p) {
-    ((JavaGD) p.getArray()).deactivate();
+    ((GraphicsDevice) p.getArray()).deactivate();
   }
 
   public static void hold(Ptr p) {
-    ((JavaGD) p.getArray()).hold();
+    ((GraphicsDevice) p.getArray()).hold();
   }
 
   public static void flush(Ptr p, boolean hold) {
-    ((JavaGD) p.getArray()).flush(hold);
+    ((GraphicsDevice) p.getArray()).flush(hold);
   }
 
   public static Ptr locator(Ptr p) {

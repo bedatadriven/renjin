@@ -47,9 +47,11 @@ double jGDasp  = 1.0;
 
 Rboolean newJavaGDDeviceDriver(NewDevDesc *dd,
 			    const char *disp_name,
+			    const char *device_class,
+			    SEXP device_options,
 			    double width,
 			    double height,
-                            double initps)
+                double initps)
 {
   newJavaGDDesc *xd;
 
@@ -58,7 +60,7 @@ Rboolean newJavaGDDeviceDriver(NewDevDesc *dd,
 #endif
 
   xd = Rf_allocNewJavaGDDeviceDesc(initps);
-  if (!newJavaGD_Open((NewDevDesc*)(dd), xd, disp_name, width, height)) {
+  if (!newJavaGD_Open((NewDevDesc*)(dd), xd, disp_name, device_class, device_options, width, height)) {
     free(xd);
     return FALSE;
   }
@@ -181,7 +183,7 @@ static char *SaveString(SEXP sxp, int offset)
 static int maxJdeviceNum;
 
 static GEDevDesc* 
-Rf_addJavaGDDevice(const char *display, double width, double height, double initps)
+Rf_addJavaGDDevice(const char *display, const char * device_class, SEXP device_options, double width, double height, double initps)
 {
     NewDevDesc *dev = NULL;
     GEDevDesc *dd;
@@ -209,7 +211,7 @@ Rf_addJavaGDDevice(const char *display, double width, double height, double init
 	 * R base graphics parameters.  
 	 * This is supposed to happen via addDevice now.
 	 */
-	if (!newJavaGDDeviceDriver(dev, display, width, height, initps))
+	if (!newJavaGDDeviceDriver(dev, display, device_class, device_options, width, height, initps))
 	  {
 	    free(dev);
 		error("unable to start device %s", devname);
@@ -316,13 +318,20 @@ void resizedJavaGD(NewDevDesc *dd) {
 		GEplayDisplayList(GEgetDevice(devNum));
 }
 
-SEXP newJavaGD(SEXP name, SEXP sw, SEXP sh, SEXP sps) {
-    double w = asReal(sw), h = asReal(sh), ps = asReal(sps);
-    if (TYPEOF(name) != STRSXP || LENGTH(name) < 1)
-	Rf_error("invalid name");
-    if (ISNAN(w) || w <= 0.0 || ISNAN(h) || h <= 0.0 || ISNAN(ps) || ps <= 0.0)
-	Rf_error("invalid width, height or ps");
-    Rf_addJavaGDDevice(CHAR(STRING_ELT(name, 0)), w, h, ps);
+SEXP newJavaGD(SEXP name, SEXP sw, SEXP sh, SEXP sps, SEXP deviceClass, SEXP deviceOptions) {
+    double w = asReal(sw);
+    double h = asReal(sh);
+    double ps = asReal(sps);
+    if (TYPEOF(name) != STRSXP || LENGTH(name) < 1) {
+	    Rf_error("invalid name");
+	}
+	if (TYPEOF(deviceClass) != STRSXP || LENGTH(deviceClass) < 1) {
+    	    Rf_error("invalid deviceClass");
+    }
+    if (ISNAN(w) || w <= 0.0 || ISNAN(h) || h <= 0.0 || ISNAN(ps) || ps <= 0.0) {
+	    Rf_error("invalid width, height or ps");
+	}
+    Rf_addJavaGDDevice(CHAR(STRING_ELT(name, 0)), CHAR(STRING_ELT(deviceClass, 0)), deviceOptions, w, h, ps);
     return name;
 }
 

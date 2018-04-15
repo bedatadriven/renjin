@@ -16,21 +16,21 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.test;
+package org.renjin.maven.test;
 
-import org.junit.Test;
+class ForkMessage {
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
+  private final String[] parts;
 
-public class AlphaTest {
-  
-  @Test
-  public void scriptEngineTest() throws ScriptException {
-    ScriptEngineManager sem = new ScriptEngineManager();
-    ScriptEngine renjin = sem.getEngineByName("Renjin");
-    renjin.eval("library(org.renjin.test.alpha)");
-    renjin.eval("stopifnot(alphaName() == 'Alpha')");
+  ForkMessage(String line) {
+    parts = line.substring(TestExecutor.MESSAGE_PREFIX.length()).split(TestExecutor.MESSAGE_PREFIX);
+  }
+
+  public String getType() {
+    return parts[0];
+  }
+
+  public String getArgument() {
+    return parts[1];
   }
 }

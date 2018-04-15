@@ -376,6 +376,9 @@ public class Print {
       }
 
       private void appendAligned(String s, int size, Alignment alignment) {
+        if(StringVector.isNA(s)) {
+          s = "<NA>";
+        }
         if(alignment == Alignment.LEFT) {
           out.append(s);
         }

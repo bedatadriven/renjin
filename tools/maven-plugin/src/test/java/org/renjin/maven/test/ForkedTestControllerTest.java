@@ -102,12 +102,16 @@ public class ForkedTestControllerTest extends TestCase {
   }
   
   public void testTimeout() throws MojoExecutionException, IOException {
-    File testFile = testFile("timeout.R");
-    
-    forkedTestController.setTimeout(1, TimeUnit.SECONDS);
-    forkedTestController.executeTest(testFile);
+    File timedOutFile = testFile("timeout.R");
+    File successfulFile = testFile("good.R");
 
-    assertTestCaseSucceeded(testFile, false);
+    forkedTestController.setTimeout(1, TimeUnit.SECONDS);
+    forkedTestController.executeTest(timedOutFile);
+    forkedTestController.setTimeout(10, TimeUnit.SECONDS);
+    forkedTestController.executeTest(successfulFile);
+
+    assertTestCaseSucceeded(timedOutFile, false);
+    assertTestCaseSucceeded(successfulFile, true);
   }
   
   public void testOutOfMemory() throws MojoExecutionException, IOException {

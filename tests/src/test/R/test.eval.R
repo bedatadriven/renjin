@@ -17,16 +17,17 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
+Sys.setlocale('LC_COLLATE', 'C')
 
-library(org.renjin.test.beta)
 library(hamcrest)
 
+test.zero.length.names <- function() {
 
-test.jtsVersion <- function() {
-    assertThat(betaVersion(), identicalTo("1.12.0"))
+    e <- list(1, 2, 3, 4)
+    names(e) <- c("a", "b", "", NA)
+
+    assertThat(eval(quote(sort(ls())), envir = e), identicalTo(c("NA", "a", "b")))
+    assertThat(eval(quote(a+b), envir = e), identicalTo(3))
+    assertThat(eval(quote(a+`NA`), envir = e), identicalTo(5))
+
 }
-
-test.invokeClassesInPackage <- function() {
-    assertThat(betaName(), identicalTo("Beta"))
-}
-

@@ -21,10 +21,11 @@ package org.renjin.maven.test;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
-import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.base.Stopwatch;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,11 +47,11 @@ public class ForkedTestController {
 
   private Map<String, String> environmentVariables = new HashMap<>();
 
-  private Process process;
-  private DataOutputStream processChannel;
   private File testReportsDirectory;
   private TestReporter reporter;
   private String argLine;
+
+  private Fork fork;
 
   public ForkedTestController() {
     this(new SystemStreamLog());
@@ -114,7 +115,7 @@ public class ForkedTestController {
       reporter.start();
     }
 
-    if(process == null) {
+    if(fork == null) {
       startFork();
     }
 
@@ -122,31 +123,74 @@ public class ForkedTestController {
 
     try {
       // Send the command to run the test
-      processChannel.writeUTF(testFile.getAbsolutePath());
-      processChannel.flush();
+      fork.sendCommand(testFile.getAbsolutePath());
+
     } catch (IOException e) {
       log.error("Failed to send command to fork", e);
+      shutdown();
     }
 
-    // Listen for test results
-
-    ResultListener listener = new ResultListener(process.getInputStream());
-    Thread listeningThread = new Thread(listener);
-    listeningThread.start();
-    try {
-      listeningThread.join(timeoutMillis);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      reporter.testCaseInterrupted();
-      reporter.fileComplete();
-      return;
-    }
-    if(listeningThread.isAlive()) {
-      // if we didn't succeed in joining, then it means we have timed out.
-      reporter.timeout(timeoutMillis);
+    if(!pollResults()) {
+      // If the test file timed out, or the forked JVM otherwise
+      // barfed, then clean up our fork so that the next test file starts
+      // with a fresh JVM.
       destroyFork();
     }
+
     reporter.fileComplete();
+  }
+
+  /**
+   *
+   * @return true if the test run completed in the allotted time with the JVM in the ready state.
+   */
+  private boolean pollResults() {
+
+    // Impose a total timeout on this test file
+    Stopwatch stopwatch = Stopwatch.createStarted();
+
+    // Listen for test results
+    try {
+      while (true) {
+        ForkMessage message = fork.readMessage(500, TimeUnit.MILLISECONDS);
+        if (message != null) {
+          switch (message.getType()) {
+            case TestExecutor.START_MESSAGE:
+              reporter.testCaseStarting(message.getArgument());
+              break;
+
+            case TestExecutor.FAIL_MESSAGE:
+              reporter.testCaseFailed();
+              break;
+
+            case TestExecutor.PASS_MESSAGE:
+              reporter.testCaseSucceeded();
+              break;
+
+            case TestExecutor.DONE_MESSAGE:
+              return true;
+
+            default:
+              log.error("Unknown message: " + message.getType());
+              break;
+          }
+        }
+        if(timeoutMillis > 0 && stopwatch.elapsed(TimeUnit.MILLISECONDS) > timeoutMillis) {
+          reporter.timeout(timeoutMillis);
+          return false;
+        }
+      }
+    } catch (InterruptedException e) {
+      log.debug("ForkedTestController interrupted.");
+      Thread.currentThread().interrupt();
+      reporter.testCaseInterrupted();
+      return false;
+
+    } catch (Exception e) {
+      log.debug("ForkedTestController received exception while waiting for results.", e);
+      reporter.testCaseFailed();
+      return false;
+    }
   }
 
   private void startFork() throws MojoExecutionException {
@@ -164,37 +208,23 @@ public class ForkedTestController {
       processBuilder.command(command);
       processBuilder.environment().putAll(environmentVariables);
       processBuilder.redirectErrorStream(true);
-      process = processBuilder.start();
-      processChannel = new DataOutputStream(process.getOutputStream());
+
+      this.fork = new Fork(log, processBuilder.start());
+
     } catch (Exception e) {
       throw new MojoExecutionException("Could not start forked JVM", e);
     }
   }
 
   public void shutdown() {
-    if(process != null) {
-      try {
-        processChannel.close();
-        process.destroy();
-      } catch (Exception e) {
-        log.error("Error shutting down fork", e);
-      } finally {
-        process = null;
-        processChannel = null;
-      }
+    if(fork != null) {
+      destroyFork();
     }
   }
 
   private void destroyFork() {
-    if(process != null) {
-      try {
-        process.destroy();
-      } catch (Exception e) {
-        log.error("Error destroying fork", e);
-      }
-      process = null;
-      processChannel = null;
-    }
+    fork.shutdown();
+    fork = null;
   }
 
   public boolean allTestsSucceeded() {
@@ -205,84 +235,4 @@ public class ForkedTestController {
     this.argLine = argLine;
   }
 
-  private class ResultListener implements Runnable {
-
-    private final BufferedReader reader;
-
-    private boolean processRunning = true;
-
-    public ResultListener(InputStream in) {
-      this.reader = new BufferedReader(new InputStreamReader(in, Charsets.UTF_8));
-    }
-
-    @Override
-    public void run() {
-      while(processRunning) {
-        String line;
-        try {
-          line = reader.readLine();
-        } catch (IOException e) {
-          onErrorReadingFork(e);
-          return;
-        }
-        if(line == null) {
-          onEndOfInput();
-          return;
-        }
-
-        onMessageReceived(line);
-      }
-    }
-
-    private void onErrorReadingFork(IOException e) {
-      // Not sure under what situation this could happen but consider it a test failure
-      log.error("Error reading from forked test executor: " + e.getMessage(), e);
-      reporter.testCaseFailed();
-      destroyFork();
-    }
-
-    private void onEndOfInput() {
-      // Process exited!!
-      reporter.testCaseFailed();
-      try {
-        if(process != null) {
-          log.error("Forked JVM exited with code " + process.waitFor());
-        }
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        log.error("Interrupted while waiting for process to exit.");
-      }
-      destroyFork();
-    }
-
-
-    private void onMessageReceived(String line) {
-      if(DEBUG_FORKING) {
-        log.debug("[CHANNEL] " + line);
-      }
-      if (line.startsWith(TestExecutor.MESSAGE_PREFIX)) {
-        String[] message = line.substring(TestExecutor.MESSAGE_PREFIX.length()).split(TestExecutor.MESSAGE_PREFIX);
-        switch (message[0]) {
-          case TestExecutor.START_MESSAGE:
-            reporter.testCaseStarting(message[1]);
-            break;
-
-          case TestExecutor.FAIL_MESSAGE:
-            reporter.testCaseFailed();
-            break;
-
-          case TestExecutor.PASS_MESSAGE:
-            reporter.testCaseSucceeded();
-            break;
-
-          case TestExecutor.DONE_MESSAGE:
-            processRunning = false;
-            break;
-
-          default:
-            log.error("Unknown message: " + message[0]);
-        }
-      }
-    }
-  }
 }

@@ -29,7 +29,6 @@ import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.primitives.text.regex.FuzzyMatcher;
 import org.renjin.primitives.text.regex.RE;
 import org.renjin.primitives.text.regex.REFactory;
-import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Function;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -187,12 +186,12 @@ public class Text {
         return "";
       } else if(input instanceof AtomicVector) {
         AtomicVector vector = (AtomicVector) input;
-        if(vector.isElementNA(index % input.length())) {
+        String elementValue = vector.getElementAsString(index % input.length());
+        if(StringVector.isNA(elementValue)) {
           return "NA";
         } else {
-          return vector.getElementAsString(index % input.length());
+          return elementValue;
         }
-
       } else if(input instanceof ListVector) {
         SEXP element = ((ListVector) input).getElementAsSEXP(index % input.length());
         return listElementToString(element);

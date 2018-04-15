@@ -220,7 +220,7 @@ public class Evaluation {
       /* build a call
          f(dots[[1]][[4]],dots[[2]][[4]],dots[[3]][[4]],d=7)
       */
-      
+
       PairList.Builder args = new PairList.Builder();
       for(int j = 0; j!=varyingArgs.length();++ j) {
         SEXP arg = varyingArgs.getElementAsSEXP(j);
@@ -293,7 +293,13 @@ public class Evaluation {
 
       if(environment instanceof ListVector) {
         for(NamedValue namedValue : ((ListVector) environment).namedValues()) {
-          if(!StringVector.isNA(namedValue.getName())) {
+
+          // Skip elements with blank ("") names, but include NA names
+          // as symbol named "NA"
+
+          if(StringVector.isNA(namedValue.getName())) {
+            rho.setVariable(context, Symbol.get("NA"), namedValue.getValue());
+          } else if(namedValue.getName().length() > 0) {
             rho.setVariable(context, Symbol.get(namedValue.getName()), namedValue.getValue());
           }
         }

@@ -782,12 +782,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
   @Test
   public void memcpy() throws Exception {
-    Class clazz = compile("memcpy.c");
-
-    Method test = clazz.getMethod("test_memcpy");
-    Integer result = (Integer) test.invoke(null);
-
-    assertThat(result, equalTo(1));
+    compileAndTest("memcpy.c");
   }
 
   @Test

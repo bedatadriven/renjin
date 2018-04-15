@@ -86,3 +86,11 @@ test.eval <- function() {
     # only matching arguments are evaluated
     assertThat(switch("z", a=stop("a"), b=stop("b"), z=99+2, stop("default")), identicalTo(101))
 }
+
+test.expr.abbrv <- function() {
+    assertThat(switch(EXPR="a", a=1, b=2), identicalTo(1))
+    assertThat(switch(EXP ="a", a=1, b=2), identicalTo(1))
+    assertThat(switch(EX  ="a", a=1, b=2), identicalTo(1))
+    assertThat(switch(E   ="a", a=1, b=2), identicalTo(1))
+
+}

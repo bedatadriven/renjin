@@ -23,6 +23,7 @@ import org.renjin.sexp.*;
 public class S4Class {
 
   public static final Symbol CONTAINS = Symbol.get("contains");
+  public static final Symbol SUBCLASSES = Symbol.get("subclasses");
   public static final Symbol DISTANCE = Symbol.get("distance");
   public static final Symbol COERCE = Symbol.get("coerce");
   public static final Symbol REPLACE = Symbol.get("replace");
@@ -41,11 +42,15 @@ public class S4Class {
    * Finds the distance between this class and the {@code otherClassName}. If {@code otherClassName} is
    * not a super class (not "contained"), this method will return -1.
    */
-  public int getDistanceToSuperClass(String otherClassName) {
+  public int extractDistanceFromS4Class(String otherClassName) {
     SEXP containsSexp = classRepresentation.getAttribute(CONTAINS);
-    if(containsSexp instanceof ListVector) {
-      ListVector containsList = (ListVector) containsSexp;
-      int index = containsList.getIndexByName(otherClassName);
+    return extractDistanceFromS4Class(containsSexp, otherClassName);
+  }
+
+  private int extractDistanceFromS4Class(SEXP superclassSlot, String className) {
+    if(superclassSlot instanceof ListVector) {
+      ListVector containsList = (ListVector) superclassSlot;
+      int index = containsList.getIndexByName(className);
       if(index != -1) {
         SEXP classExtension = containsList.getElementAsSEXP(index);
 
@@ -71,5 +76,15 @@ public class S4Class {
       }
     }
     return -1;
+  }
+
+  public int extractDistanceFromUnionClass(String fromClass, String toClass) {
+    SEXP subclasses = classRepresentation.getAttribute(SUBCLASSES);
+    int from = extractDistanceFromS4Class(subclasses, fromClass);
+    int to = extractDistanceFromS4Class(subclasses, toClass);
+    if(to == -1) {
+      return -1;
+    }
+    return Math.abs(from - to) + 1;
   }
 }

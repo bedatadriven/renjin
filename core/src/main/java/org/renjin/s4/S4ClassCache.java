@@ -20,17 +20,62 @@ package org.renjin.s4;
 
 import org.renjin.eval.Context;
 import org.renjin.primitives.packaging.Namespace;
+import org.renjin.repackaged.guava.collect.HashMultimap;
+import org.renjin.repackaged.guava.collect.Multimap;
 import org.renjin.sexp.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 public class S4ClassCache {
 
   private final Environment classTable;
+  private final Environment classUnionTable;
+  private final Multimap<String, String> mapClassToUnion;
 
   public S4ClassCache(Context context) {
     this.classTable = makeClassTable(context);
+    this.classUnionTable = makeClassUnionTable(context, this.classTable);
+    this.mapClassToUnion = mapClassUnionToClass(this.classUnionTable);
+  }
+
+  private Multimap<String, String> mapClassUnionToClass(Environment classUnionTable) {
+    Multimap<String, String> map = HashMultimap.create();
+    for(Symbol union : classUnionTable.getFrame().getSymbols()) {
+      SEXP unionDef = classUnionTable.getVariableUnsafe(union);
+      SEXP subclasses = unionDef.getAttribute(S4Class.SUBCLASSES).getAttribute(Symbol.get("names"));
+      if(subclasses instanceof StringArrayVector) {
+        String[] names = ((StringArrayVector) subclasses).toArray();
+        for(String name : names) {
+          map.put(name, union.getPrintName());
+        }
+      }
+    }
+    return map;
+  }
+
+  private Environment makeClassUnionTable(Context context, Environment classTable) {
+
+    Frame classes = new HashFrame();
+
+    for(Symbol className : classTable.getFrame().getSymbols()) {
+      SEXP classDef = classTable.getVariableUnsafe(className);
+      if(classDef instanceof S4Object) {
+        String objClass = classDef.getAttribute(Symbols.CLASS).asString();
+        if("ClassUnionRepresentation".equals(objClass)) {
+          classes.setVariable(className, classDef);
+        }
+      }
+    }
+
+    return new Environment.Builder(context.getBaseEnvironment(), classes).build();
+  }
+
+  public Iterator<String> getUnionClasses(String className) {
+    Collection<String> unions = mapClassToUnion.get(className);
+    return unions.iterator();
   }
 
   public static Environment makeClassTable(Context context) {

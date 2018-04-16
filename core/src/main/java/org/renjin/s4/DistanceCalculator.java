@@ -18,10 +18,6 @@
  */
 package org.renjin.s4;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 public class DistanceCalculator {
 
   private static final int FAR_AWAY = Integer.MAX_VALUE - 1;
@@ -54,22 +50,11 @@ public class DistanceCalculator {
 
     // inheritances distance to the "to" class are defined in the "contains" slot of providedClass.
     // In addition, inheritance can be defined using "setUnionClass", in which case a new class
-    // is created with the provided name. The members of the class of a distance of "1" to each other
-    // and a distance of 2 or more to superclasses of members
+    // is created with the provided name. The distance to union class to input class is stored in
+    // subclasses slot.
     if(distanceToSuperClass == -1) {
-//    if(false) {
-      // First lookup which union classes include the class of input
-      // Loop through each union class and lookup the distance
-      Iterator<String> iterator = classCache.getUnionClasses(from);
-      List<String> unions = new ArrayList<>();
-      while(iterator.hasNext()) {
-        unions.add(iterator.next());
-      }
-
-      if(unions.contains(to)) {
-        // distance of "input class" to "union class" containing the input class is always 1
-        distanceToSuperClass = 1;
-      }
+      S4Class subclasses = classCache.lookupClass(to);
+      distanceToSuperClass = subclasses.getDistanceToUnionClass(from);
     }
 
     return distanceToSuperClass;

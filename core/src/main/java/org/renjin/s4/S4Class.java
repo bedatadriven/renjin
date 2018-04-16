@@ -78,13 +78,12 @@ public class S4Class {
     return -1;
   }
 
-  public int extractDistanceFromUnionClass(String fromClass, String toClass) {
-    SEXP subclasses = classRepresentation.getAttribute(SUBCLASSES);
-    int from = extractDistanceFromS4Class(subclasses, fromClass);
-    int to = extractDistanceFromS4Class(subclasses, toClass);
-    if(to == -1) {
-      return -1;
+  public int getDistanceToUnionClass(String className) {
+    String objClass = classRepresentation.getAttribute(Symbols.CLASS).asString();
+    if("ClassUnionRepresentation".equals(objClass)) {
+      SEXP subclasses = classRepresentation.getAttribute(SUBCLASSES);
+      return extractDistanceFromS4Class(subclasses, className);
     }
-    return Math.abs(from - to) + 1;
+    return -1;
   }
 }

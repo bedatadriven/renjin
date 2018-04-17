@@ -374,10 +374,11 @@ public class Methods {
 
     CallingArguments arguments = CallingArguments.standardGenericArguments(context, lookupTable.getArgumentMatcher());
 
+
     S4ClassCache classCache = new S4ClassCache(context);
     DistanceCalculator calculator = new DistanceCalculator(classCache);
 
-    RankedMethod selectedMethod = lookupTable.selectMethod(arguments, calculator);
+    RankedMethod selectedMethod = lookupTable.selectMethod(calculator, arguments.getSignature(lookupTable.getMaximumSignatureLength()));
     if(selectedMethod == null) {
       throw new EvalException("unable to find an inherited method for function '" + fname +
           "' for signature " + arguments.getFullSignatureString(lookupTable.getMaximumSignatureLength()));

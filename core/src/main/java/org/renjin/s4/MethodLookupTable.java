@@ -165,9 +165,9 @@ public class MethodLookupTable {
   }
 
 
-  public RankedMethod selectMethod(CallingArguments arguments, DistanceCalculator distanceCalculator) {
+  public RankedMethod selectMethod(DistanceCalculator distanceCalculator, Signature signature) {
 
-    Signature callingSignature = arguments.getSignature(maximumSignatureLength);
+    Signature callingSignature = signature;
 
     RankedMethod bestMatch = null;
 

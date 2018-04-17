@@ -1168,7 +1168,7 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_VectorToPairList(SEXP x) {
-    throw new UnimplementedGnuApiMethod("Rf_VectorToPairList");
+    return PairList.Node.fromVector(((Vector) x));
   }
 
   public static SEXP Rf_asCharacterFactor(SEXP x) {
@@ -1787,8 +1787,8 @@ public final class Rinternals {
     return Symbol.get(name.nullTerminatedString());
   }
 
-  public static SEXP Rf_installChar(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_installChar");
+  public static SEXP Rf_installChar(SEXP charSexp) {
+    return Rf_install(((GnuCharSexp) charSexp).getValue());
   }
 
   public static SEXP Rf_installDDVAL(int i) {

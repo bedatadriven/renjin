@@ -44,7 +44,7 @@ public class S4 {
   public static SEXP tryS4DispatchFromPrimitive(@Current Context context, SEXP source, PairList args,
                                                 Environment rho, String group, String opName) {
 
-    Generic generic = Generic.primitive(opName, group);
+    Generic generic = Generic.primitive(opName, Arrays.asList(group));
     MethodLookupTable lookupTable = new MethodLookupTable(generic, context);
     if(lookupTable.isEmpty()) {
       return null;

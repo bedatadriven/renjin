@@ -67,8 +67,8 @@ public class MethodLookupTable {
         addMethods(context, frame, generic.getGroupGenericMethodTableName(), Method.SPECIFICITY_GROUP);
       }
       if(generic.isStandardGeneric()) {
-        for(int i = 0; i < generic.getGenericGroups().size(); i++) {
-          String group = generic.getGenericGroups().get(i);
+        for(int i = 0; i < generic.getGroup().size(); i++) {
+          String group = generic.getGroup().get(i);
           addMethods(context, frame, generic.getGroupStdGenericMethodTableName(group), Method.SPECIFICITY_SUB_GROUP);
         }
       }

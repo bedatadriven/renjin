@@ -45,12 +45,11 @@ public class Generic {
 
   private final String name;
   private final String packageName;
-  private final String group;
+  private final List<String> group;
   private final String subGroup;
-  private final List<String> stdGenericGroups;
   private final boolean stdGeneric;
 
-  public static Generic primitive(String name, String group) {
+  public static Generic primitive(String name, List<String> group) {
     return new Generic(name, group, "base");
   }
 
@@ -63,9 +62,9 @@ public class Generic {
     }
     SEXP generic = namespaceEnv.getVariableUnsafe(name).force(context);
     if (generic == Symbol.UNBOUND_VALUE) {
-      return new Generic(name, null, packageName);
+      return new Generic(name, new ArrayList<String>(0), packageName);
     }
-    SEXP groupSlot = generic.getAttribute(Symbol.get("group"));
+    SEXP groupSlot = generic.getAttribute(S4Class.GROUP);
     if (groupSlot instanceof ListVector) {
       int groupSize = ((ListVector) groupSlot).length();
       if (groupSize > 0) {
@@ -73,34 +72,19 @@ public class Generic {
         for (int i = 0; i < groupSize; i++) {
           groups.add(((ListVector) groupSlot).getElementAsString(i));
         }
-        return new Generic(name, null, packageName, groups);
+        return new Generic(name, groups, packageName);
       }
     }
-    return new Generic(name, null, packageName);
+    return new Generic(name, new ArrayList<String>(0), packageName);
   }
 
-  public Generic(String name, String group, String packageName, List<String> groups) {
+  public Generic(String name, List<String> groups, String packageName) {
     this.name = applyAliases(name);
     this.packageName = packageName;
-    this.group = group;
-    this.stdGenericGroups = groups;
+    this.group = groups;
     this.stdGeneric = true;
 
-    if ("Ops".equals(group)) {
-      this.subGroup = opsSubGroupOf(name);
-    } else {
-      this.subGroup = null;
-    }
-  }
-
-  private Generic(String name, String group, String packageName) {
-    this.name = applyAliases(name);
-    this.packageName = packageName;
-    this.group = group;
-    this.stdGenericGroups = null;
-    this.stdGeneric = false;
-
-    if ("Ops".equals(group)) {
+    if (group.size() > 0 && "Ops".equals(group.get(0))) {
       this.subGroup = opsSubGroupOf(name);
     } else {
       this.subGroup = null;
@@ -127,10 +111,6 @@ public class Generic {
     }
   }
 
-  public List<String> getGenericGroups() {
-    return stdGenericGroups;
-  }
-
   public String getPackageName() {
     return packageName;
   }
@@ -140,7 +120,7 @@ public class Generic {
   }
 
   public boolean isGroupGeneric() {
-    return group != null;
+    return group.size() > 0;
   }
 
   public boolean isStandardGeneric() {
@@ -156,8 +136,7 @@ public class Generic {
     return subGroup;
   }
 
-  public String getGroup() {
-    assert group != null : "generic is not group-generic";
+  public List<String> getGroup() {
     return group;
   }
 
@@ -166,8 +145,8 @@ public class Generic {
   }
 
   public Symbol getGroupGenericMethodTableName() {
-    assert group != null;
-    return Symbol.get(METHOD_PREFIX + group + ":" + packageName);
+    assert group.size() > 0;
+    return Symbol.get(METHOD_PREFIX + group.get(0) + ":" + packageName);
   }
 
   public Symbol getGroupStdGenericMethodTableName(String group) {
@@ -219,7 +198,7 @@ public class Generic {
   public SEXP asSEXP() {
     StringArrayVector.Builder builder = new StringVector.Builder();
     if(name.isEmpty()) {
-      builder.add(group);
+      builder.add(group.get(0));
     } else {
       builder.add(name);
     }

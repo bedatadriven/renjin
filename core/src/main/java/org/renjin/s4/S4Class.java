@@ -31,6 +31,7 @@ public class S4Class {
   public static final Symbol SIMPLE = Symbol.get("simple");
   public static final Symbol TEST = Symbol.get("test");
   public static final Symbol PACKAGE = Symbol.get("package");
+  public static final Symbol GROUP = Symbol.get("group");
 
   private SEXP classRepresentation;
 

@@ -1332,7 +1332,7 @@ public final class Rinternals {
 
   // SEXP Rf_arraySubscript (int, SEXP, SEXP, SEXP(*)(SEXP, SEXP), SEXP(*)(SEXP, int), SEXP)
 
-  public static SEXP Rf_classgets(SEXP p0, SEXP p1) {
+  public static SEXP Rf_classgets(SEXP object, SEXP classNames) {
     throw new UnimplementedGnuApiMethod("Rf_classgets");
   }
 

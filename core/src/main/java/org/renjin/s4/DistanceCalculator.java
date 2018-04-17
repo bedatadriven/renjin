@@ -54,7 +54,9 @@ public class DistanceCalculator {
     // subclasses slot.
     if(distanceToSuperClass == -1) {
       S4Class subclasses = classCache.lookupClass(to);
-      distanceToSuperClass = subclasses.getDistanceToUnionClass(from);
+      if(subclasses != null && subclasses.isUnionClass()) {
+        distanceToSuperClass = subclasses.getDistanceToUnionClass(from);
+      }
     }
 
     return distanceToSuperClass;

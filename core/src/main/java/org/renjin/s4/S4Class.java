@@ -80,11 +80,15 @@ public class S4Class {
   }
 
   public int getDistanceToUnionClass(String className) {
-    String objClass = classRepresentation.getAttribute(Symbols.CLASS).asString();
-    if("ClassUnionRepresentation".equals(objClass)) {
+    if(isUnionClass()) {
       SEXP subclasses = classRepresentation.getAttribute(SUBCLASSES);
       return extractDistanceFromS4Class(subclasses, className);
     }
     return -1;
+  }
+
+  public boolean isUnionClass() {
+    String objClass = classRepresentation.getAttribute(Symbols.CLASS).asString();
+    return "ClassUnionRepresentation".equals(objClass);
   }
 }

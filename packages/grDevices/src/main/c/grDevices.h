@@ -42,6 +42,8 @@ SEXP PDF(SEXP);
 SEXP Type1FontInUse(SEXP, SEXP);
 SEXP CIDFontInUse(SEXP, SEXP);
 
+SEXP recordGraphics(SEXP, SEXP, SEXP);
+
 #ifndef _WIN32
 SEXP Quartz(SEXP);
 SEXP makeQuartzDefault();

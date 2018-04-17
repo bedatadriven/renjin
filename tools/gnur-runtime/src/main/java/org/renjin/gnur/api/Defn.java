@@ -21,6 +21,7 @@ package org.renjin.gnur.api;
 
 import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.*;
+import org.renjin.gnur.api.annotations.Allocator;
 import org.renjin.parser.NumericLiterals;
 import org.renjin.primitives.Deparse;
 import org.renjin.primitives.Native;
@@ -635,8 +636,41 @@ public final class Defn {
     return LogicalVector.TRUE;
   }
 
-  public static SEXP Rf_NewEnvironment(SEXP p0, SEXP p1, SEXP p2) {
-    throw new UnimplementedGnuApiMethod("Rf_NewEnvironment");
+  /**
+   * Create an environment by extending "rho" with a frame obtained by
+   * pairing the variable names given by the tags on "namelist" with
+   * the values given by the elements of "valuelist".
+   *
+   * NewEnvironment is defined directly to avoid the need to protect its
+   * arguments unless a GC will actually occur.  This definition allows
+   * the namelist argument to be shorter than the valuelist; in this
+   * case the remaining values must be named already.  (This is useful
+   * in cases where the entire valuelist is already named--namelist can
+   * then be R_NilValue.)
+   *
+   * The valuelist is destructively modified and used as the
+   * environment's frame.
+   */
+  @Allocator
+  public static SEXP Rf_NewEnvironment(SEXP namelist, SEXP valuelist, SEXP parentEnv) {
+
+    Environment.Builder newEnv = new Environment.Builder(((Environment) parentEnv), new HashFrame());
+
+    Iterator<PairList.Node> valueIt = ((PairList) valuelist).nodes().iterator();
+    Iterator<PairList.Node> nameIt = ((PairList) namelist).nodes().iterator();
+
+    while(nameIt.hasNext() && valueIt.hasNext()) {
+      newEnv.setVariable((Symbol)nameIt.next().getValue(), valueIt.next());
+    }
+
+    while(valueIt.hasNext()) {
+      PairList.Node node = valueIt.next();
+      if(node.hasTag()) {
+        newEnv.setVariable(node.getTag(), node.getValue());
+      }
+    }
+
+    return newEnv.build();
   }
 
   public static void Rf_onintr() {

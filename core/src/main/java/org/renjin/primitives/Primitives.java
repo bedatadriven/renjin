@@ -696,9 +696,6 @@ public class Primitives {
     f("getRegisteredSymbols", Native.class, 11);
     f("getRegisteredRoutines", Native.class, 11);
 
-    f(".External.graphics", /*Externalgr*/ null, 1);
-    f(".Call.graphics", /*dotcallgr*/ null, 1);
-    f("recordGraphics", /*recordGraphics*/ null, 211);
     f("dyn.load", null, 111);
     f("dyn.unload", null, 111);
     f("ls", Environments.class, 11);

@@ -76,6 +76,7 @@ static const R_CallMethodDef CallEntries[] = {
     CALLDEF(palette, 1),
     CALLDEF(palette2, 1),
     CALLDEF(newJavaGD, 4),
+    CALLDEF(recordGraphics, 3),
 
 #ifndef _WIN32
     CALLDEF(makeQuartzDefault, 0),

@@ -266,9 +266,8 @@ dev.displaylist <- function()
     .External(C_devdisplaylist)
 }
 
-## This records graphics ops and manipulates visibility, so needs to stay .Internal
 recordGraphics <- function(expr, list, env)
-  .Internal(recordGraphics(substitute(expr), list, env))
+  .Call(C_recordGraphics, substitute(expr), list, env)
 
 graphics.off <- function ()
 {

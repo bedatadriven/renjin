@@ -29,7 +29,3 @@ piechart <- function(x, labels = names(x), edges = 200, radius = 0.8,
 
 # not yet
 # .onUnload <- function(libpath) .Call(RunregisterBase);
-
-# TODO(renjin) support recording?
-.Call.graphics <- .Call
-.External.graphics <- .External

@@ -340,7 +340,7 @@ void initGPar(pGEDevDesc dd)
     SET_VECTOR_ELT(gpar, GP_LEX, gplex);
     PROTECT(class = allocVector(STRSXP, 1));
     SET_STRING_ELT(class, 0, mkChar("gpar"));
-    classgets(gpar, class);
+    gpar = classgets(gpar, class);
     SET_VECTOR_ELT(gsd, GSS_GPAR, gpar);
     UNPROTECT(18);
 }

@@ -205,6 +205,7 @@ public class GnurSourcesCompiler {
     compiler.addReferenceClass(RenjinFiles.class);
 
     compiler.addTransformer(new SetTypeRewriter());
+    compiler.addTransformer(new MutationRewriter());
 
     compiler.addPlugin(new GlobalVarPlugin(packageName));
 

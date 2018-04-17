@@ -119,8 +119,8 @@ public class GraphicsDevices {
     ((GraphicsDevice) p.getArray()).rect(x0, y0, x1, y1);
   }
 
-  public static double[] size(Ptr p) {
-    return ((GraphicsDevice) p.getArray()).size();
+  public static Ptr size(Ptr p) {
+    return new DoublePtr( ((GraphicsDevice) p.getArray()).size() );
   }
 
   public static double strWidth(Ptr p, Ptr str) {

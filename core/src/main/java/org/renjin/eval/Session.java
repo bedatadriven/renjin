@@ -198,6 +198,11 @@ public class Session {
     return instance;
   }
 
+
+  public Options getOptions() {
+    return getSingleton(Options.class);
+  }
+
   public void setSessionController(SessionController sessionController) {
     this.sessionController = sessionController;
   }

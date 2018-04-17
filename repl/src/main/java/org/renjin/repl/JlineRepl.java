@@ -288,8 +288,24 @@ public class JlineRepl {
     return reader;
   }
 
+
+  public void close() {
+    maybeShutdownGraphicsDevices();
+  }
+
+  /**
+   * If the grDevices namespace is loaded, then close up any open graphics devices.
+   */
+  private void maybeShutdownGraphicsDevices() {
+    session.getNamespaceRegistry().getNamespaceIfPresent(Symbol.get("grDevices")).ifPresent(namespace -> {
+      SEXP shutdownFunction = namespace.getEntry(Symbol.get("shutdown"));
+      session.getTopLevelContext().evaluate(FunctionCall.newCall(shutdownFunction));
+    });
+  }
+
   public static void main(String[] args) throws Exception {
     JlineRepl repl = new JlineRepl(SessionBuilder.buildDefault());
     repl.run();
   }
+
 }

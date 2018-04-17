@@ -559,8 +559,12 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("Rf_jump_to_toplevel");
   }
 
+  /**
+   * @deprecated implemented by C language code in grDevices package
+   */
+  @Deprecated
   public static void Rf_KillAllDevices() {
-    throw new UnimplementedGnuApiMethod("Rf_KillAllDevices");
+    throw new RuntimeException("Please recompile with the latest version of Renjin");
   }
 
   public static SEXP Rf_levelsgets(SEXP p0, SEXP p1) {

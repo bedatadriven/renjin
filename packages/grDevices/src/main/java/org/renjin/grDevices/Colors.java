@@ -20,24 +20,14 @@
 
 package org.renjin.grDevices;
 
-import org.renjin.sexp.ListVector;
-
 import java.awt.*;
 
-public class FileDevice extends GraphicsDevice {
+public class Colors {
 
-  private final String filename;
-  private final String format;
-  private final Color backgroundColor;
-
-  public FileDevice(ListVector deviceOptions) {
-    this.filename = deviceOptions.getElementAsString("filename");
-    this.format = deviceOptions.getElementAsString("format");
-    this.backgroundColor = Color.WHITE;
-  }
-
-  @Override
-  public void open(double w, double h) {
-    c = new ImageContainer(filename, format, backgroundColor, (int)w, (int)h);
+  public static Color valueOf(int col) {
+      return new Color(((float)(col&255))/255f,
+                   ((float)((col>>8)&255))/255f,
+                   ((float)((col>>16)&255))/255f,
+                   ((float)((col>>24)&255))/255f);
   }
 }

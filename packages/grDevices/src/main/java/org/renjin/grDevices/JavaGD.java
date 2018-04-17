@@ -21,6 +21,8 @@
 
 package org.renjin.grDevices;
 
+import org.renjin.sexp.ListVector;
+
 import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -36,7 +38,7 @@ public class JavaGD extends GraphicsDevice implements WindowListener {
   public Frame f;
 
   /** default, public constructor - creates a new JavaGD instance. The actual window (and canvas) is not created until {@link #open} is called. */
-  public JavaGD() {
+  public JavaGD(ListVector options) {
     super();
   }
 

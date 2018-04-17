@@ -62,7 +62,7 @@ public class TestExecutor {
   private String namespaceUnderTest;
   private File testReportDirectory;
   private List<String> defaultPackages;
-  private int maxOutputBytes;
+  private int maxOutputBytes = Integer.MAX_VALUE;
 
 
   public static void main(String[] args) throws IOException {
@@ -148,6 +148,17 @@ public class TestExecutor {
     }
   }
 
+  private File createPlotDirectory(File testFile) {
+    File directory = new File(testReportDirectory, TestReporter.suiteName(testFile));
+    if(!directory.exists()) {
+      boolean created = directory.mkdirs();
+      if(!created) {
+        throw new EvalException("Could not create directory '" + directory.getAbsolutePath() + "'");
+      }
+    }
+    return directory;
+  }
+
   private void loadLibrary(Session session, String namespaceName, PrintStream testOutput) {
     try {
       session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("library"), Symbol.get(namespaceName)));
@@ -184,6 +195,7 @@ public class TestExecutor {
       sendMessage(START_MESSAGE, TestCaseResult.ROOT_TEST_CASE);
 
       Session session = createSession(testOutput, sourceFile.getParentFile());
+      session.getOptions().set("device", graphicsDevice(session, sourceFile));
 
       // Examples assume that the package is already on the search path
       if (sourceFile.getName().endsWith(".Rd")) {
@@ -227,9 +239,24 @@ public class TestExecutor {
           }
         }
       }
+
+      // Cleanup graphics, etc.
+      repl.close();
+
     } finally {
       testOutput.close();
     }
+  }
+
+  private SEXP graphicsDevice(Session session, File sourceFile) {
+
+    PairList.Builder arguments = new PairList.Builder();
+    arguments.add("filename", StringArrayVector.valueOf(createPlotDirectory(sourceFile).getAbsolutePath() + File.separator + "Rplot%03d.png"));
+
+    Closure closure = new Closure(session.getGlobalEnvironment(), Null.INSTANCE,
+        new FunctionCall(Symbol.get("png"), arguments.build()));
+
+    return closure;
   }
 
 

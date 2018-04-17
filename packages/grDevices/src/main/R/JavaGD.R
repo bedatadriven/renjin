@@ -41,7 +41,8 @@ png <- function(filename = "Rplot%03d.png",
     invisible(.Call(C_newJavaGD, filename, width, height, pointsize,
         "org.renjin.grDevices.FileDevice",
         list(filename = filename,
-             format = "png")
+             format = "png",
+             bg = col2rgb(bg))
     ))
 }
 

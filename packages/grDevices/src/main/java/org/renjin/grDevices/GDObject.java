@@ -264,10 +264,7 @@ class GDColor extends GDObject {
         //System.out.println(">> COLOR: "+Integer.toString(col,16));
         if ((col&0xff000000)==0) gc=null; // opacity=0 -> no color -> don't paint
         else
-            gc=new Color(((float)(col&255))/255f,
-                         ((float)((col>>8)&255))/255f,
-                         ((float)((col>>16)&255))/255f,
-                         ((float)((col>>24)&255))/255f);
+            gc= Colors.valueOf(col);
         //System.out.println("          "+gc);
     }
 

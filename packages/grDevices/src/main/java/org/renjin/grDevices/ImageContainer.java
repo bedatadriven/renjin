@@ -21,12 +21,14 @@
 package org.renjin.grDevices;
 
 import org.renjin.eval.EvalException;
+import org.renjin.primitives.Native;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 public class ImageContainer implements GDContainer {
 
@@ -35,25 +37,36 @@ public class ImageContainer implements GDContainer {
   private final Dimension size;
   private int deviceNumber;
   private final BufferedImage bufferedImage;
-  private final String filename;
+  private final String filenameFormat;
   private String formatName;
 
-  public ImageContainer(String filename, String formatName, int width, int height) {
-    this.filename = filename;
+  private boolean empty = true;
+
+  private int pageNumber = 1;
+
+  public ImageContainer(String filenameFormat, String formatName, Color backgroundColor, int width, int height) {
+    this.filenameFormat = filenameFormat;
     this.formatName = formatName;
     this.bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     this.size = new Dimension(width, height);
     this.graphics = bufferedImage.createGraphics();
+    this.graphics.setBackground(backgroundColor);
+    this.graphics.clearRect(0, 0, (int)size.getWidth(), (int)size.getHeight());
     this.state = new GDState();
   }
 
   @Override
   public void add(GDObject o) {
+    empty = false;
     o.paint(null, state, graphics);
   }
 
   @Override
   public void reset() {
+    if(!empty) {
+      flush();
+    }
+    graphics.clearRect(0, 0, (int) size.getWidth(), (int) size.getHeight());
   }
 
   @Override
@@ -82,9 +95,23 @@ public class ImageContainer implements GDContainer {
 
   @Override
   public void closeDisplay() {
+    flush();
+  }
+
+  private void flush() {
     try {
       formatName = "png";
-      ImageIO.write(bufferedImage, formatName, new File(filename));
+      PrintWriter stdOut = Native.currentContext().getSession().getStdOut();
+
+      String filename = String.format(filenameFormat, pageNumber++);
+      File outputFile = new File(filename).getAbsoluteFile();
+      if(!outputFile.getParentFile().exists() || !outputFile.getParentFile().isDirectory()) {
+        throw new EvalException("could not open file '" + outputFile.getAbsolutePath() + "'");
+      }
+
+      stdOut.println("Writing to " + filename) ;
+      stdOut.flush();
+      ImageIO.write(bufferedImage, formatName, outputFile);
     } catch (IOException e) {
       throw new EvalException("Failed to write image: " + e.getMessage(), e);
     }

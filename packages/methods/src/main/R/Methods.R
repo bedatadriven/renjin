@@ -792,7 +792,6 @@ dumpMethods <- function(f, file = "", signature = NULL, methods= findMethods(f, 
         dumpMethod(f, sigs[[i]], file = "", def = methods[[i]])
 }
 
-
 selectMethod <-
     ## Returns the method (a function) that R would use to evaluate a call to
     ## generic 'f' with arguments corresponding to the specified signature.
@@ -800,64 +799,7 @@ selectMethod <-
 	     mlist = if(!is.null(fdef)) getMethodsForDispatch(fdef),
 	     fdef = getGeneric(f, !optional), verbose = FALSE, doCache = FALSE)
 {
-    if(is.environment(mlist))  {# using methods tables
-        fenv <- environment(fdef)
-        nsig <- .getGenericSigLength(fdef, fenv, FALSE)
-        if(verbose)
-            cat("* mlist environment with", length(mlist),"potential methods\n")
-        if(length(signature) < nsig)
-            signature[(length(signature)+1):nsig] <- "ANY"
-        if(identical(fdef@signature, "...")) {
-            method <- .selectDotsMethod(signature, mlist,
-                 if(useInherited) getMethodsForDispatch(fdef, inherited = TRUE))
-            if(is.null(method) && !optional)
-              stop(gettextf("no method for %s matches class %s",
-                            sQuote("..."), dQuote(signature)),
-                   domain = NA)
-            return(method)
-        }
-        method <- .findMethodInTable(signature, mlist, fdef)
-	if(is.null(method)) {
-	    if(missing(useInherited))
-		useInherited <- (is.na(match(signature, "ANY")) & # -> vector
-				 if(identical(fdef, coerce))# careful !
-				 c(TRUE,FALSE) else TRUE)
-	    if(verbose) cat("  no direct match found to signature (",
-			    paste(signature, collapse=", "),")\n", sep="")
-	    methods <-
-		if(any(useInherited)) {
-		    allmethods <- .getMethodsTable(fdef, fenv, check=FALSE,
-                                                   inherited=TRUE)
-		    ## look in the supplied (usually standard) table
-		    .findInheritedMethods(signature, fdef,
-					  mtable = allmethods, table = mlist,
-					  useInherited = useInherited,
-                                          verbose = verbose, doCache = doCache)
-		    ##MM: TODO? allow 'excluded' to be passed
-		}
-		## else list() : just look in the direct table
-
-	    if(length(methods))
-		return(methods[[1L]])
-	    else if(optional)
-		return(NULL)
-	    else stop(gettextf("no method found for signature %s",
-			       paste(signature, collapse=", ")))
-	}
-	else
-	  return(method)
-    }
-    else if(is.null(mlist)) {
-	if(optional)
-	    return(mlist)
-	else
-	    stop(gettextf("%s has no methods defined",
-                          sQuote(f)),
-                 domain = NA)
-    }
-    else ## mlist not an environment nor NULL :
-	stop("selectMethod(): mlist is not an environment or NULL :\n",
-	     "** should no longer happen!", domain = NA)
+    .Internal(selectMethod(f, signature, fdef, mlist))
 }
 
 hasMethod <-

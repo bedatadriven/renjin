@@ -352,6 +352,25 @@ public class Methods {
     return classDef;
   }
 
+  @Internal
+  public static SEXP selectMethod(@Current Context context, StringArrayVector fname, StringArrayVector args, SEXP fdef, SEXP mlist) {
+
+    String packageName;
+    if(fdef instanceof Closure) {
+      packageName = fdef.getAttribute(Symbol.get("package")).asString();
+    } else {
+      packageName = context.getFunction().getAttribute(Symbol.get("package")).asString();
+    }
+    Generic generic = Generic.standardGeneric(context, fname.getElementAsString(0), packageName);
+    MethodLookupTable lookupTable = new MethodLookupTable(generic, context);
+
+    S4ClassCache classCache = new S4ClassCache(context);
+    DistanceCalculator calculator = new DistanceCalculator(classCache);
+
+    RankedMethod selectedMethod = lookupTable.selectMethod(calculator, new Signature(args.toArray()));
+    return selectedMethod.getMethodDefinition();
+  }
+
   @Builtin
   public static SEXP standardGeneric(@Current Context context, Symbol fname, SEXP fdef) {
     throw new UnsupportedOperationException();
@@ -373,6 +392,7 @@ public class Methods {
     }
 
     CallingArguments arguments = CallingArguments.standardGenericArguments(context, lookupTable.getArgumentMatcher());
+
 
 
     S4ClassCache classCache = new S4ClassCache(context);

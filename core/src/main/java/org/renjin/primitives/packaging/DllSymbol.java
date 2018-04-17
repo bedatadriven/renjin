@@ -24,6 +24,7 @@ import org.renjin.sexp.*;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
+import java.util.Optional;
 
 /**
  * A symbol registered with a dynamic library
@@ -51,7 +52,7 @@ public class DllSymbol {
 
   private final String name;
   private final MethodHandle methodHandle;
-  private final Convention convention;
+  private final Optional<Convention> convention;
   private final boolean registered;
 
 
@@ -61,7 +62,7 @@ public class DllSymbol {
     }
     this.name = name;
     this.methodHandle = methodHandle;
-    this.convention = convention;
+    this.convention = Optional.of(convention);
     this.registered = registered;
   }
 
@@ -71,6 +72,10 @@ public class DllSymbol {
   }
 
   public DllSymbol(Convention convention, Method method) {
+    this(Optional.of(convention), method);
+  }
+
+  public DllSymbol(Optional<Convention> convention, Method method) {
     this.name = method.getName();
     this.registered = false;
     this.convention = convention;
@@ -93,7 +98,7 @@ public class DllSymbol {
   }
 
   public Convention getConvention() {
-    return convention;
+    return convention.orElse(null);
   }
 
 
@@ -107,8 +112,8 @@ public class DllSymbol {
     symbol.add("address", buildAddressSexp());
     symbol.add("numParameters", methodHandle.type().parameterCount());
 
-    if (convention != null){
-      symbol.setAttribute(Symbols.CLASS, new StringArrayVector(convention.getClassName(), "NativeSymbolInfo"));
+    if (convention.isPresent()){
+      symbol.setAttribute(Symbols.CLASS, new StringArrayVector(convention.get().getClassName(), "NativeSymbolInfo"));
     } else {
       symbol.setAttribute(Symbols.CLASS, new StringArrayVector("NativeSymbolInfo"));
     }

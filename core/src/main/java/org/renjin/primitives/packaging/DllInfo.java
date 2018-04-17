@@ -228,7 +228,7 @@ public class DllInfo {
 
     for(Method method : libraryClass.getMethods()) {
       if(method.getName().equals(symbolName) && isPublicStatic(method)) {
-        return Optional.of(new DllSymbol(convention, method));
+        return Optional.of(new DllSymbol(Optional.empty(), method));
       }
     }
     return Optional.empty();

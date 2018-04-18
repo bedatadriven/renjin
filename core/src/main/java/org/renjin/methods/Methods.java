@@ -353,17 +353,21 @@ public class Methods {
   }
 
   @Internal
-  public static SEXP selectMethod(@Current Context context, StringArrayVector fname, StringArrayVector args, SEXP fdef, SEXP mlist, SEXP opt) {
+  public static SEXP selectMethod(@Current Context context, StringArrayVector fname, StringArrayVector args,
+                                  SEXP opt, SEXP useInherited, SEXP mlist, SEXP fdef, SEXP verbose, SEXP doCache) {
+
     boolean optional = ((LogicalArrayVector) opt).isElementTrue(0);
+
     String packageName;
     if(fdef instanceof Closure) {
       packageName = fdef.getAttribute(Symbol.get("package")).asString();
     } else {
       packageName = context.getFunction().getAttribute(Symbol.get("package")).asString();
     }
+
     Generic generic = Generic.standardGeneric(context, fname.getElementAsString(0), packageName);
     MethodLookupTable lookupTable = new MethodLookupTable(generic, context);
-    System.out.println("selectMethod> made MethodLookupTable of size: " + lookupTable.size());
+
     if(lookupTable.isEmpty()) {
       if (optional) {
         return Null.INSTANCE;

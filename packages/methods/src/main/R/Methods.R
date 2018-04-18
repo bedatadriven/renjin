@@ -799,7 +799,7 @@ selectMethod <-
 	     mlist = if(!is.null(fdef)) getMethodsForDispatch(fdef),
 	     fdef = getGeneric(f, !optional), verbose = FALSE, doCache = FALSE)
 {
-    .Internal(selectMethod(f, signature, fdef, mlist, optional))
+    .Internal(selectMethod(f, signature, optional, useInherited, mlist, fdef, verbose, doCache))
 }
 
 hasMethod <-

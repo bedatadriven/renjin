@@ -128,7 +128,7 @@ public class Generic {
   }
 
   public boolean isOps() {
-    return "Ops".equals(group);
+    return ARITH_GROUP.contains(name) || COMPARE_GROUP.contains(name) || LOGIC_GROUP.contains(name);
   }
 
   public String getSubGroup() {

@@ -353,8 +353,8 @@ public class Methods {
   }
 
   @Internal
-  public static SEXP selectMethod(@Current Context context, StringArrayVector fname, StringArrayVector args, SEXP fdef, SEXP mlist) {
-
+  public static SEXP selectMethod(@Current Context context, StringArrayVector fname, StringArrayVector args, SEXP fdef, SEXP mlist, SEXP opt) {
+    boolean optional = ((LogicalArrayVector) opt).isElementTrue(0);
     String packageName;
     if(fdef instanceof Closure) {
       packageName = fdef.getAttribute(Symbol.get("package")).asString();
@@ -363,11 +363,28 @@ public class Methods {
     }
     Generic generic = Generic.standardGeneric(context, fname.getElementAsString(0), packageName);
     MethodLookupTable lookupTable = new MethodLookupTable(generic, context);
+    System.out.println("selectMethod> made MethodLookupTable of size: " + lookupTable.size());
+    if(lookupTable.isEmpty()) {
+      if (optional) {
+        return Null.INSTANCE;
+      } else {
+        throw new EvalException("No methods found!");
+      }
+    }
 
     S4ClassCache classCache = new S4ClassCache(context);
     DistanceCalculator calculator = new DistanceCalculator(classCache);
 
     RankedMethod selectedMethod = lookupTable.selectMethod(calculator, new Signature(args.toArray()));
+
+    if(selectedMethod == null) {
+      if(optional) {
+        return Null.INSTANCE;
+      } else {
+        throw new EvalException("No methods found!");
+      }
+    }
+
     return selectedMethod.getMethodDefinition();
   }
 

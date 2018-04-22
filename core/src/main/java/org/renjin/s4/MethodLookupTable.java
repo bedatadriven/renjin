@@ -165,12 +165,12 @@ public class MethodLookupTable {
   }
 
 
-  public RankedMethod selectMethod(DistanceCalculator distanceCalculator, Signature signature) {
+  public RankedMethod selectMethod(DistanceCalculator distanceCalculator, Signature signature, boolean[] useInheritance) {
 
     RankedMethod bestMatch = null;
 
     for (Method method : methods) {
-      RankedMethod rankedMethod = new RankedMethod(method, signature, distanceCalculator);
+      RankedMethod rankedMethod = new RankedMethod(method, signature, distanceCalculator, useInheritance);
       if(rankedMethod.isCandidate() && (bestMatch == null || rankedMethod.isBetterThan(bestMatch))) {
         bestMatch = rankedMethod;
       }

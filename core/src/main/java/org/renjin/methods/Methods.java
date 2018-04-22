@@ -32,6 +32,7 @@ import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.s4.*;
 import org.renjin.sexp.*;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import static org.renjin.s4.S4.generateCallMetaData;
@@ -379,7 +380,30 @@ public class Methods {
     S4ClassCache classCache = new S4ClassCache(context);
     DistanceCalculator calculator = new DistanceCalculator(classCache);
 
-    RankedMethod selectedMethod = lookupTable.selectMethod(calculator, new Signature(args.toArray()));
+    // useInherited argument provided to selectMethod() is used to decide
+    // if inheritance is used for each argument. if length of useInherited
+    // is shorter than number of arguments, it is repeated. Inharitance is
+    // not used in case of "ANY".
+    boolean[] inheritance = new boolean[lookupTable.getMaximumSignatureLength()];
+    int inheritedLength = useInherited.length();
+    int j = 0;
+    for(int i = 0; i < args.length(); i++, j++) {
+      if(j == inheritedLength) {
+        j = 0;
+      }
+      inheritance[i] = ((LogicalArrayVector) useInherited).isElementTrue(j) && !("ANY".equals(args.getElementAsString(i)));
+    }
+
+    // "coerce" is a special case. It has only two arguments and inheritance is used only on first
+    // use of inheritance is not allowed for "primitive" functions
+    if("coerce".equals(generic.getName())) {
+      inheritance = new boolean[]{true, false};
+    } else if(generic.isOps()) {
+      Arrays.fill(inheritance, Boolean.FALSE);
+    }
+
+
+    RankedMethod selectedMethod = lookupTable.selectMethod(calculator, new Signature(args.toArray()), inheritance);
 
     if(selectedMethod == null) {
       if(optional) {
@@ -419,7 +443,10 @@ public class Methods {
     S4ClassCache classCache = new S4ClassCache(context);
     DistanceCalculator calculator = new DistanceCalculator(classCache);
 
-    RankedMethod selectedMethod = lookupTable.selectMethod(calculator, arguments.getSignature(lookupTable.getMaximumSignatureLength()));
+    boolean[] useInheritance = new boolean[lookupTable.getMaximumSignatureLength()];
+    Arrays.fill(useInheritance, Boolean.TRUE);
+
+    RankedMethod selectedMethod = lookupTable.selectMethod(calculator, arguments.getSignature(lookupTable.getMaximumSignatureLength()), useInheritance);
     if(selectedMethod == null) {
       throw new EvalException("unable to find an inherited method for function '" + fname +
           "' for signature " + arguments.getFullSignatureString(lookupTable.getMaximumSignatureLength()));

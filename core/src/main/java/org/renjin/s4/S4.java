@@ -54,7 +54,10 @@ public class S4 {
     S4ClassCache classCache = new S4ClassCache(context);
     DistanceCalculator calculator = new DistanceCalculator(classCache);
 
-    RankedMethod selectedMethod = lookupTable.selectMethod(calculator, arguments.getSignature(lookupTable.getMaximumSignatureLength()));
+    boolean[] useInheritance = new boolean[lookupTable.getMaximumSignatureLength()];
+    Arrays.fill(useInheritance, Boolean.TRUE);
+
+    RankedMethod selectedMethod = lookupTable.selectMethod(calculator, arguments.getSignature(lookupTable.getMaximumSignatureLength()), useInheritance);
     if(selectedMethod == null) {
       return null;
     }

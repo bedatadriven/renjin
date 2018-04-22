@@ -30,7 +30,7 @@ public class RankedMethod {
   private boolean exact = true;
   private int[] distances;
 
-  public RankedMethod(Method method, Signature callingSignature, DistanceCalculator distanceCalculator) {
+  public RankedMethod(Method method, Signature callingSignature, DistanceCalculator distanceCalculator, boolean[] useInheritance) {
     this.method = method;
     this.distances = new int[getMethodSignatureLength()];
     for (int i = 0; i < getMethodSignatureLength(); i++) {
@@ -40,7 +40,7 @@ public class RankedMethod {
         distances[i] = 0;
         has0 = true;
 
-      } else {
+      } else if(useInheritance[i]) {
         exact = false;
         int distance = distanceCalculator.distance(callingSignature.getClass(i), definedClass);
         if (distance == -1) {
@@ -48,6 +48,9 @@ public class RankedMethod {
           break;
         }
         distances[i] = distance;
+      } else {
+        candidate = false;
+        break;
       }
     }
   }

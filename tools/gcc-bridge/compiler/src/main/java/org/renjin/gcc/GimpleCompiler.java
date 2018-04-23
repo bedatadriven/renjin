@@ -228,6 +228,7 @@ public class GimpleCompiler  {
     try {
 
       PmfRewriter.rewrite(units);
+      GlobalVarMerger.merge(units);
 
       typeOracle.initRecords(units, providedRecordTypes);
 

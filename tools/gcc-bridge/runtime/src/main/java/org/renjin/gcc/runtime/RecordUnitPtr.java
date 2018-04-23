@@ -61,7 +61,7 @@ public class RecordUnitPtr<T> implements Ptr {
     if(bytes == 0) {
       return this;
     }
-    throw new UnsupportedOperationException("TODO");
+    return new OffsetPtr(this, bytes);
   }
 
   @Override

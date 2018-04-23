@@ -216,7 +216,7 @@ static SEXP baseCallback(GEevent task, pGEDevDesc dd, SEXP data)
         /* Bail out if necessary */
         if (!bss) return result;
 	/* Make sure initialized, or valgrind may complain. */
-//        memset(bss, 0, sizeof(baseSystemState));
+        memset(bss, 0, sizeof(baseSystemState));
 	ddp = &(bss->dp);
 	GInit(ddp);
 	/* For some things, the device sets the starting value at least. */
@@ -268,9 +268,9 @@ static SEXP baseCallback(GEevent task, pGEDevDesc dd, SEXP data)
             bss = dd->gesd[baseRegisterIndex]->systemSpecific;
             /* Changed from INTSXP in 2.7.0: but saved graphics lists
                are protected by an R version number */
+            printf("GE_SaveSnapshotState\n");
             PROTECT(result = allocVector(RAWSXP, sizeof(GPar)));
-            //copyGPar(&(bss->dpSaved), (GPar*) RAW(result));
-            // TODO(renjin) error("Unsupported: GE_SaveSnapshotState");
+            copyGPar(&(bss->dpSaved), (GPar*) RAW(result));
             PROTECT(pkgName = mkString("graphics"));
             setAttrib(result, install("pkgName"), pkgName);
             UNPROTECT(2);
@@ -312,8 +312,7 @@ static SEXP baseCallback(GEevent task, pGEDevDesc dd, SEXP data)
                     error(_("Incompatible graphics state"));
                 }
                 bss = dd->gesd[baseRegisterIndex]->systemSpecific;
-                // TODO: copyGPar((GPar*) RAW(graphicsState), &(bss->dpSaved));
-                error("TODO: GE_RestoreSnapshotState");
+                copyGPar((GPar*) RAW(graphicsState), &(bss->dpSaved));
                 /* These are probably redundant because GE_RestoreState
                  * will follow from GEplayDisplayList(), but no harm
                  * is done 

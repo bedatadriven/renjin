@@ -18,8 +18,10 @@
  */
 package org.renjin.gcc.logging;
 
+import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.symbols.SymbolTable;
+import org.renjin.gcc.symbols.UnitSymbolTable;
 import org.renjin.repackaged.asm.tree.MethodNode;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.io.Files;
@@ -90,7 +92,7 @@ public class LogManager {
       return Logger.NULL;
     }
 
-    return getLogger(logFile(gimpleFunction, logName + ".log"));
+    return getLogger(logFile(gimpleFunction, logName + "log"));
   }
 
 
@@ -105,7 +107,7 @@ public class LogManager {
       return;
     }
 
-    File logFile = logFile(function, "." + logType);
+    File logFile = logFile(function, logType);
 
     try {
       Files.write(object.toString(), logFile, Charsets.UTF_8);
@@ -126,6 +128,19 @@ public class LogManager {
     try {
       log(function, "html",
           new HtmlFunctionRenderer(symbolTable, function, methodNode).render());
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+
+  public void logRecords(GimpleCompilationUnit unit, UnitSymbolTable symbolTable) {
+    if(!isEnabled()) {
+      return;
+    }
+    File logFile = logFile(unit.getSourceName(), "records", "html");
+    try {
+      Files.write(new HtmlRecordRenderer(symbolTable, unit).render(), logFile, Charsets.UTF_8);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -158,4 +173,5 @@ public class LogManager {
     }
     openLoggers.clear();
   }
+
 }

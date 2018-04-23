@@ -56,7 +56,7 @@ public class HtmlFunctionRenderer {
 
 
   private CharSequence renderGimple() {
-    return new GimpleRenderer(symbolTable, gimpleFunction).render();
+    return new GimpleRenderer(symbolTable, gimpleFunction.getUnit()).renderFunction(gimpleFunction);
   }
 
   private CharSequence renderBytecode() {

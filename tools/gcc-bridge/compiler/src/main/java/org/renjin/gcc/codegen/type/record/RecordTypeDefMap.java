@@ -19,7 +19,6 @@
 package org.renjin.gcc.codegen.type.record;
 
 import org.renjin.gcc.codegen.type.PointerTypeStrategy;
-import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.vptr.VPtrRecordTypeStrategy;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
@@ -45,7 +44,7 @@ public class RecordTypeDefMap {
    */
   private Map<Type, ProvidedTypeStrategy> providedTypeMap = new HashMap<>();
 
-  public void init(TypeOracle typeOracle, List<GimpleCompilationUnit> units, Map<String, Type> providedRecordTypes) {
+  public void init(List<GimpleCompilationUnit> units, Map<String, Type> providedRecordTypes) {
     for (GimpleCompilationUnit unit : units) {
       for (GimpleRecordTypeDef recordTypeDef : unit.getRecordTypes()) {
         typeDefMap.put(recordTypeDef.getId(), recordTypeDef);

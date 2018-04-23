@@ -82,7 +82,7 @@ public class UnitClassGenerator {
 
 
   public UnitClassGenerator(TypeOracle typeOracle,
-                            GlobalSymbolTable functionTable,
+                            GlobalSymbolTable globalSymbolTable,
                             List<GlobalVarTransformer> globalVarTransformers,
                             GimpleCompilationUnit unit,
                             String className) {
@@ -90,7 +90,7 @@ public class UnitClassGenerator {
     this.className = className;
     this.typeOracle = typeOracle;
     this.globalVarAllocator = new GlobalVarAllocator(className);
-    this.symbolTable = new UnitSymbolTable(functionTable, unit);
+    this.symbolTable = new UnitSymbolTable(globalSymbolTable, unit);
 
     // Setup global variables that have global scoping
     Set<String> visited = new HashSet<>();
@@ -170,14 +170,14 @@ public class UnitClassGenerator {
     return false;
   }
 
-
-
   public String getClassName() {
     return className;
   }
 
   public void emit(LogManager parentLogger) {
-    
+
+    parentLogger.logRecords(unit, symbolTable);
+
     sw = new StringWriter();
     pw = new PrintWriter(sw);
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS) {

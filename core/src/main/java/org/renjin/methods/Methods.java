@@ -355,9 +355,9 @@ public class Methods {
 
   @Internal
   public static SEXP selectMethod(@Current Context context, StringArrayVector fname, StringArrayVector args,
-                                  SEXP opt, SEXP useInherited, SEXP mlist, SEXP fdef, SEXP verbose, SEXP doCache) {
+                                  LogicalArrayVector opt, LogicalArrayVector useInherited, SEXP mlist, SEXP fdef, SEXP verbose, SEXP doCache) {
 
-    boolean optional = ((LogicalArrayVector) opt).isElementTrue(0);
+    boolean optional = opt.isElementTrue(0);
 
     String packageName;
     if(fdef instanceof Closure) {
@@ -386,19 +386,25 @@ public class Methods {
     // Inheritance is not used in case of "ANY".
     boolean[] inheritance = new boolean[lookupTable.getMaximumSignatureLength()];
     int inheritedLength = useInherited.length();
-    int j = 0;
-    for(int i = 0; i < args.length(); i++, j++) {
-      if(j == inheritedLength) {
-        j = 0;
+
+    if(inheritedLength == 1) {
+      Arrays.fill(inheritance, useInherited.isElementTrue(0));
+    } else {
+      int j = 0;
+      for(int i = 0; i < args.length(); i++, j++) {
+        if(j == inheritedLength) {
+          j = 0;
+        }
+        inheritance[i] = useInherited.isElementTrue(j)
+            && !("ANY".equals(args.getElementAsString(i)));
       }
-      inheritance[i] = ((LogicalArrayVector) useInherited).isElementTrue(j)
-          && !("ANY".equals(args.getElementAsString(i)));
     }
 
-    // "coerce" is a special case. It always has two arguments and inheritance is
-    // used only for the first argument.
+
+    // "coerce" is a special case. It always has two arguments and inheritance
+    // might be used only for the first argument.
     if("coerce".equals(generic.getName())) {
-      inheritance = new boolean[]{true, false};
+      inheritance = new boolean[]{inheritance[0], false};
     }
 
 

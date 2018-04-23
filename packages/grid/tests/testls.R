@@ -152,7 +152,7 @@ grid.ls(sampleGTree, print=pathListing)
 # path listing, viewports only
 grid.ls(sampleGTree, view=TRUE, grob=FALSE, print=pathListing)
 # raw flat listing
-#str(grid.ls(sampleGTree, view=TRUE, print=FALSE))
+str(grid.ls(sampleGTree, view=TRUE, print=FALSE))
 
 
 

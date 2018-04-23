@@ -54,6 +54,10 @@
   					<phase>test</phase>
 					<configuration>
 						<testSourceDirectory>${basedir}/tests</testSourceDirectory>
+						<defaultPackages>
+							<defaultPackage>grDevices</defaultPackage>
+							<defaultPackage>utils</defaultPackage>
+						</defaultPackages>
 					</configuration>
   				</execution>
   			</executions>

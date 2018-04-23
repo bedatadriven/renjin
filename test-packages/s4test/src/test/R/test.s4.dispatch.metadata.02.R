@@ -34,6 +34,8 @@ b <- new("BB")
 
 test.s4.dispatch.metadata.04a = function() {
     v <- a[b]
+    assertThat( as.character(v$.target) , identicalTo( c("AA", "BB") ))
+    assertThat( as.character(v$.defined) , identicalTo( c("AA" , "ANY") ))
     assertThat( attr(v$.target, "package") , identicalTo( c("methods", "methods") ))
     assertThat( attr(v$.defined, "package"), identicalTo( c(".GlobalEnv", "methods") ))
 }

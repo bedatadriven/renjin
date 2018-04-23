@@ -381,8 +381,8 @@ public class Methods {
     DistanceCalculator calculator = new DistanceCalculator(classCache);
 
     // useInherited argument provided to selectMethod() is used to decide
-    // if inheritance is used for each argument. if length of useInherited
-    // is shorter than number of arguments, it is repeated. Inharitance is
+    // if inheritance is used for each argument. if the length of useInherited
+    // is shorter than number of arguments, it is repeated. Inheritance is
     // not used in case of "ANY".
     boolean[] inheritance = new boolean[lookupTable.getMaximumSignatureLength()];
     int inheritedLength = useInherited.length();
@@ -391,11 +391,13 @@ public class Methods {
       if(j == inheritedLength) {
         j = 0;
       }
-      inheritance[i] = ((LogicalArrayVector) useInherited).isElementTrue(j) && !("ANY".equals(args.getElementAsString(i)));
+      inheritance[i] = ((LogicalArrayVector) useInherited).isElementTrue(j)
+          && !("ANY".equals(args.getElementAsString(i)));
     }
 
-    // "coerce" is a special case. It has only two arguments and inheritance is used only on first
-    // use of inheritance is not allowed for "primitive" functions
+    // "coerce" is a special case. It has only two arguments and inheritance is
+    // used only on first. Use of inheritance is not allowed for "primitive"
+    // functions.
     if("coerce".equals(generic.getName())) {
       inheritance = new boolean[]{true, false};
     } else if(generic.isOps()) {
@@ -403,7 +405,8 @@ public class Methods {
     }
 
 
-    RankedMethod selectedMethod = lookupTable.selectMethod(calculator, new Signature(args.toArray()), inheritance);
+    Signature signature = new Signature(args.toArray());
+    RankedMethod selectedMethod = lookupTable.selectMethod(calculator, signature, inheritance);
 
     if(selectedMethod == null) {
       if(optional) {
@@ -446,7 +449,8 @@ public class Methods {
     boolean[] useInheritance = new boolean[lookupTable.getMaximumSignatureLength()];
     Arrays.fill(useInheritance, Boolean.TRUE);
 
-    RankedMethod selectedMethod = lookupTable.selectMethod(calculator, arguments.getSignature(lookupTable.getMaximumSignatureLength()), useInheritance);
+    Signature signature = arguments.getSignature(lookupTable.getMaximumSignatureLength());
+    RankedMethod selectedMethod = lookupTable.selectMethod(calculator, signature, useInheritance);
     if(selectedMethod == null) {
       throw new EvalException("unable to find an inherited method for function '" + fname +
           "' for signature " + arguments.getFullSignatureString(lookupTable.getMaximumSignatureLength()));
@@ -454,7 +458,7 @@ public class Methods {
 
     Closure function = selectedMethod.getMethodDefinition();
 
-    Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, arguments, fname);
+    Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, signature, fname);
 
     PairList coercedArgs = coerce(context, arguments, classCache, selectedMethod).build();
     FunctionCall call = new FunctionCall(function, coercedArgs);

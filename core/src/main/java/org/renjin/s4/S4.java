@@ -57,7 +57,8 @@ public class S4 {
     boolean[] useInheritance = new boolean[lookupTable.getMaximumSignatureLength()];
     Arrays.fill(useInheritance, Boolean.TRUE);
 
-    RankedMethod selectedMethod = lookupTable.selectMethod(calculator, arguments.getSignature(lookupTable.getMaximumSignatureLength()), useInheritance);
+    Signature signature = arguments.getSignature(lookupTable.getMaximumSignatureLength());
+    RankedMethod selectedMethod = lookupTable.selectMethod(calculator, signature, useInheritance);
     if(selectedMethod == null) {
       return null;
     }
@@ -71,7 +72,7 @@ public class S4 {
       return context.evaluate(call);
       
     } else {
-      Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, arguments, opName);
+      Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, signature, opName);
       FunctionCall call = new FunctionCall(function, arguments.getPromisedArgs());
       return ClosureDispatcher.apply(context, rho, call, function, coercedArgs, metadata);
     }
@@ -83,7 +84,7 @@ public class S4 {
     return (!opName.contains("<-") && (genericExact || hasS3Class));
   }
 
-  public static Map<Symbol, SEXP> generateCallMetaData(Context context, RankedMethod method, CallingArguments arguments, String opName) {
+  public static Map<Symbol, SEXP> generateCallMetaData(Context context, RankedMethod method, Signature signature, String opName) {
     Map<Symbol, SEXP> metadata = new HashMap<>();
 
     /**
@@ -103,7 +104,7 @@ public class S4 {
      */
 
     metadata.put(R_dot_defined, buildDotDefined(context, method));
-    metadata.put(R_dot_target, buildDotTarget(method));
+    metadata.put(R_dot_target, buildDotTarget(method, signature));
     metadata.put(DOT_GENERIC, method.getMethod().getGeneric().asSEXP());
     metadata.put(R_dot_Method, method.getMethodDefinition());
     if(Primitives.isPrimitive(opName)) {
@@ -114,9 +115,9 @@ public class S4 {
     return metadata;
   }
 
-  private static SEXP buildDotTarget(RankedMethod method) {
+  private static SEXP buildDotTarget(RankedMethod method, Signature signature) {
 
-    List<String> argumentClasses = method.getMethod().getSignature().getClasses();
+    List<String> argumentClasses = signature.getClasses();
     List<String> argumentPackages = new ArrayList<String>(Collections.nCopies(argumentClasses.size(), "methods"));
 
     return new StringVector.Builder()

@@ -953,7 +953,17 @@ public final class Defn {
   }
 
   public static boolean Rf_strIsASCII(BytePtr str) {
-    throw new UnimplementedGnuApiMethod("Rf_strIsASCII");
+    for (int i = 0; ; i++) {
+      byte c = str.getByte(i);
+      if(c == 0) {
+        break;
+      }
+      // c is signed, so c < 0 is equivalent to c > 0x7F
+      if(c < 0) {
+        return false;
+      }
+    }
+    return true;
   }
 
   // int utf8clen (char c)

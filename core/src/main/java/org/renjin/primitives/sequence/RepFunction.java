@@ -18,14 +18,20 @@
  */
 package org.renjin.primitives.sequence;
 
-import org.renjin.eval.ClosureDispatcher;
+import org.renjin.eval.ArgumentMatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.MatchedArguments;
 import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.primitives.S3;
 import org.renjin.sexp.*;
 
 public class RepFunction extends SpecialFunction {
+
+  private static final ArgumentMatcher MATCHER =
+      new ArgumentMatcher("x", "times", "length.out", "each", "...");
+
+  private static final IntArrayVector DEFAULT_TIMES = new IntArrayVector(1);
 
   public RepFunction() {
     super("rep");
@@ -41,7 +47,7 @@ public class RepFunction extends SpecialFunction {
     // even if 'x' is provided as named argument elsewhere
 
     // check for zero args -- the result should be null
-    if(arguments == Null.INSTANCE) {
+    if (arguments == Null.INSTANCE) {
       context.setInvisibleFlag();
       return Null.INSTANCE;
     }
@@ -49,42 +55,42 @@ public class RepFunction extends SpecialFunction {
     // evaluate the first arg
     ArgumentIterator argIt = new ArgumentIterator(context, rho, arguments);
     PairList.Node firstArgNode = argIt.nextNode();
-    SEXP firstArg = context.evaluate( firstArgNode.getValue(), rho);
-    if(firstArg.isObject()) {
+    SEXP firstArg = context.evaluate(firstArgNode.getValue(), rho);
+    if (firstArg.isObject()) {
       SEXP result = S3.tryDispatchFromPrimitive(context, rho, call, "rep", firstArg, arguments);
-      if(result != null) {
+      if (result != null) {
         return result;
       }
     }
 
-    // create a new pair list of evaluated arguments
-    PairList.Builder evaled = new PairList.Builder();
-    evaled.add(firstArgNode.getRawTag(), firstArg);
-    while(argIt.hasNext()) {
-      PairList.Node node = argIt.nextNode();
-      evaled.add(node.getRawTag(), context.evaluate( node.getValue(), rho));
+    MatchedArguments matched = MATCHER.match(arguments);
+    SEXP x =  context.evaluate(matched.getActualForFormal(0), rho);
+
+    Vector times;
+    int timesIndex = matched.getActualIndex(1);
+    if(timesIndex == -1) {
+      times = DEFAULT_TIMES;
+    } else {
+      times = (Vector) context.evaluate(matched.getActualValue(timesIndex), rho);
+    }
+    int lengthOut;
+    int lengthOutIndex = matched.getActualIndex(2);
+    if (lengthOutIndex == -1) {
+      lengthOut = IntVector.NA;
+    } else {
+      Vector lengthOutVector = (Vector) context.evaluate(matched.getActualValue(lengthOutIndex), rho);
+      lengthOut = lengthOutVector.getElementAsInt(0);
+    }
+    int each;
+    int eachIndex = matched.getActualIndex(3);
+    if (eachIndex == -1) {
+      each = IntVector.NA;
+    } else {
+      Vector eachVector = (Vector) context.evaluate(matched.getActualValue(eachIndex), rho);
+      each = eachVector.getElementAsInt(0);
     }
 
-    // declare formals
-    PairList.Builder formals = new PairList.Builder();
-    formals.add("x", Symbol.MISSING_ARG);
-    formals.add("times", Symbol.MISSING_ARG);
-    formals.add("length.out", Symbol.MISSING_ARG);
-    formals.add("each", Symbol.MISSING_ARG);
-    formals.add(Symbols.ELLIPSES, Symbol.MISSING_ARG);
-
-    PairList matched = ClosureDispatcher.matchArguments(formals.build(), evaled.build(), true);
-
-    SEXP x = matched.findByTag(Symbol.get("x"));
-    SEXP times = matched.findByTag(Symbol.get("times"));
-    SEXP lengthOut = matched.findByTag(Symbol.get("length.out"));
-    SEXP each = matched.findByTag(Symbol.get("each"));
-
-    return rep(
-        (Vector) x,
-        times == Symbol.MISSING_ARG ? new IntArrayVector(1) : (Vector) times,
-        lengthOut == Symbol.MISSING_ARG ? IntVector.NA : ((Vector) lengthOut).getElementAsInt(0),
-        each == Symbol.MISSING_ARG ? IntVector.NA : ((Vector) each).getElementAsInt(0));
+    return rep((Vector) x, times, lengthOut, each);
   }
 
 
@@ -108,7 +114,7 @@ public class RepFunction extends SpecialFunction {
       }
     }
     if(!IntVector.isNA(each)) {
-      resultLength = x.length() * each;
+      resultLength = resultLength * each;
     } else {
       each = 1;
     }

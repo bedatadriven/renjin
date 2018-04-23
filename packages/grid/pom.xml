@@ -52,6 +52,9 @@
   						<goal>test</goal>
   					</goals>
   					<phase>test</phase>
+					<configuration>
+						<testSourceDirectory>${basedir}/tests</testSourceDirectory>
+					</configuration>
   				</execution>
   			</executions>
   		</plugin>

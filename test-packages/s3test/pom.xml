@@ -30,6 +30,11 @@
             <artifactId>stats</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.renjin</groupId>
+            <artifactId>grid</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

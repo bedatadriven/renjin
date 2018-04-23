@@ -53,29 +53,33 @@ public class Generic {
     return new Generic(name, group, "base");
   }
 
-  public static Generic standardGeneric(Context context, String name, String packageName) {
+  public static Generic standardGeneric(Context context, String fname, String packageName) {
     Environment namespaceEnv;
+    List<String> group = new ArrayList<>();
     if (".GlobalEnv".equals(packageName)) {
       namespaceEnv = context.getGlobalEnvironment();
     } else {
       namespaceEnv = context.getNamespaceRegistry().getNamespace(context, packageName).getNamespaceEnvironment();
     }
-    SEXP generic = namespaceEnv.getVariableUnsafe(name).force(context);
+    SEXP generic = namespaceEnv.getVariableUnsafe(fname).force(context);
     if (generic == Symbol.UNBOUND_VALUE) {
-      return new Generic(name, new ArrayList<String>(0), packageName);
+      return new Generic(fname, group, packageName);
     }
-    SEXP groupSlot = generic.getAttribute(S4Class.GROUP);
-    if (groupSlot instanceof ListVector) {
-      int groupSize = ((ListVector) groupSlot).length();
-      if (groupSize > 0) {
-        List<String> groups = new ArrayList<>();
-        for (int i = 0; i < groupSize; i++) {
-          groups.add(((ListVector) groupSlot).getElementAsString(i));
+    if(isOps(fname)) {
+      // case when selectMethod() is used to find a method for a primitive function
+      group.add("Ops");
+    } else {
+      SEXP groupSlot = generic.getAttribute(S4Class.GROUP);
+      if (groupSlot instanceof ListVector) {
+        int groupSize = groupSlot.length();
+        if (groupSize > 0) {
+          for (int i = 0; i < groupSize; i++) {
+            group.add(((ListVector) groupSlot).getElementAsString(i));
+          }
         }
-        return new Generic(name, groups, packageName);
       }
     }
-    return new Generic(name, new ArrayList<String>(0), packageName);
+    return new Generic(fname, group, packageName);
   }
 
   public Generic(String name, List<String> groups, String packageName) {
@@ -131,6 +135,10 @@ public class Generic {
     return ARITH_GROUP.contains(name) || COMPARE_GROUP.contains(name) || LOGIC_GROUP.contains(name);
   }
 
+  public static boolean isOps(String fname) {
+    return ARITH_GROUP.contains(fname) || COMPARE_GROUP.contains(fname) || LOGIC_GROUP.contains(fname);
+  }
+
   public String getSubGroup() {
     assert subGroup != null : "not a member of the Ops group";
     return subGroup;
@@ -156,7 +164,7 @@ public class Generic {
 
   public Symbol getSubGroupGenericMethodTableName() {
     assert subGroup != null;
-    if(subGroup.equals("Compare")) {
+    if("Compare".equals(subGroup)) {
       return Symbol.get(METHOD_PREFIX + subGroup + ":methods");
     }
     return Symbol.get(METHOD_PREFIX + subGroup + ":" + packageName);

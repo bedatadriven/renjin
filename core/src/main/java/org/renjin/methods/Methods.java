@@ -380,10 +380,10 @@ public class Methods {
     S4ClassCache classCache = new S4ClassCache(context);
     DistanceCalculator calculator = new DistanceCalculator(classCache);
 
-    // useInherited argument provided to selectMethod() is used to decide
-    // if inheritance is used for each argument. if the length of useInherited
-    // is shorter than number of arguments, it is repeated. Inheritance is
-    // not used in case of "ANY".
+    // useInherited argument provided to selectMethod() is used to indicate
+    // if inherited methods can be used for each given argument. if the length
+    // of useInherited is shorter than the number of arguments, it is repeated.
+    // Inheritance is not used in case of "ANY".
     boolean[] inheritance = new boolean[lookupTable.getMaximumSignatureLength()];
     int inheritedLength = useInherited.length();
     int j = 0;
@@ -395,13 +395,10 @@ public class Methods {
           && !("ANY".equals(args.getElementAsString(i)));
     }
 
-    // "coerce" is a special case. It has only two arguments and inheritance is
-    // used only on first. Use of inheritance is not allowed for "primitive"
-    // functions.
+    // "coerce" is a special case. It always has two arguments and inheritance is
+    // used only for the first argument.
     if("coerce".equals(generic.getName())) {
       inheritance = new boolean[]{true, false};
-    } else if(generic.isOps()) {
-      Arrays.fill(inheritance, Boolean.FALSE);
     }
 
 

@@ -24,6 +24,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 package org.renjin.grDevices;
 
 import org.renjin.eval.Session;
+import org.renjin.gcc.runtime.DoublePtr;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.sexp.ListVector;
 
 import java.awt.*;
@@ -41,6 +43,8 @@ public class AwtDevice extends GraphicsDevice implements WindowListener {
    * frame containing the graphics canvas
    */
   private Frame frame;
+
+  private final LocatorSync locator = new LocatorSync();
 
   /**
    * default, public constructor - creates a new JavaGD instance.
@@ -63,6 +67,8 @@ public class AwtDevice extends GraphicsDevice implements WindowListener {
     }
 
     AwtContainer awtContainer = new AwtContainer((int)w, (int)h);
+    awtContainer.getPanel().addMouseListener(locator);
+
     this.container = awtContainer;
 
     frame = new Frame("JavaGD");
@@ -107,6 +113,14 @@ public class AwtDevice extends GraphicsDevice implements WindowListener {
     if (frame != null) {
       frame.setTitle("JavaGD (" + (deviceNumber + 1) + ")" + (isActive() ? " *active*" : ""));
     }
+  }
+
+  @Override
+  public Ptr locator() {
+    return locator
+        .waitForClick()
+        .map(p -> new DoublePtr(p.getX(), p.getX()))
+        .orElse(DoublePtr.NULL);
   }
 
   /*-- WindowListener interface methods */

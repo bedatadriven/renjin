@@ -25,11 +25,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 package org.renjin.grDevices;
 
 import java.awt.*;
-import java.awt.event.InputEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 
-public class AwtContainer implements GDContainer, MouseListener {
+public class AwtContainer implements GDContainer {
 
   private AwtPanel panel;
   private GDState state;
@@ -90,55 +87,6 @@ public class AwtContainer implements GDContainer, MouseListener {
   @Override
   public synchronized void reset() {
     panel.reset();
-  }
-
-  LocatorSync lsCallback = null;
-
-  @Override
-  public synchronized boolean prepareLocator(LocatorSync ls) {
-    if (lsCallback != null && lsCallback != ls) // make sure we cause no deadlock
-      lsCallback.triggerAction(null);
-    lsCallback = ls;
-
-    return true;
-  }
-
-  // MouseListener for the Locator support
-  @Override
-  public void mouseClicked(MouseEvent e) {
-    if (lsCallback != null) {
-      double[] pos = null;
-      if ((e.getModifiers() & InputEvent.BUTTON1_MASK) > 0 && (e.getModifiers() & (InputEvent.BUTTON2_MASK | InputEvent.BUTTON3_MASK)) == 0) { // B1 = return position
-        pos = new double[2];
-        pos[0] = (double) e.getX();
-        pos[1] = (double) e.getY();
-      }
-
-      // pure security measure to make sure the trigger doesn't mess with the locator sync object
-      LocatorSync ls = lsCallback;
-      lsCallback = null; // reset the callback - we'll get a new one if necessary
-      ls.triggerAction(pos);
-    }
-  }
-
-  @Override
-  public void mousePressed(MouseEvent e) {
-    // No action
-  }
-
-  @Override
-  public void mouseReleased(MouseEvent e) {
-    // No action
-  }
-
-  @Override
-  public void mouseEntered(MouseEvent e) {
-    // No action
-  }
-
-  @Override
-  public void mouseExited(MouseEvent e) {
-    // No action
   }
 
   public AwtPanel getPanel() {

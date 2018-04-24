@@ -194,10 +194,13 @@ static Rboolean newJavaGD_Locator(double *x, double *y, NewDevDesc *dd)
     }
 
     double *coords = GraphicsDevices_locator(xd->talk);
-    *x = coords[0];
-    *y = coords[1];
-
-    return TRUE;
+    if(coords) {
+        *x = coords[0];
+        *y = coords[1];
+        return TRUE;
+    } else {
+        return FALSE;
+    }
 }
 
 

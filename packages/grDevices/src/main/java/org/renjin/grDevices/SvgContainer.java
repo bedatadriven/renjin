@@ -86,12 +86,8 @@ public class SvgContainer implements GDContainer {
   }
 
   @Override
-  public boolean prepareLocator(LocatorSync ls) {
-    return false;
-  }
-
-  @Override
   public void syncDisplay(boolean finish) {
+    // No action: we do not have a display
   }
 
   @Override

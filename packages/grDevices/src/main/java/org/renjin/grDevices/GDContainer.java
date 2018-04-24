@@ -55,16 +55,6 @@ public interface GDContainer {
     Graphics getGraphics(); // implementation is free to return null
 
     /**
-     * this method is called to notify the contained that a locator request is pending; the container must either
-     * return <code>false</code> and ignore the <code>ls</code> parameter *or* return <code>true</code> and call
-     * @link{LocatorSync.triggerAction} method at some point in the future (which may well be after returning from
-     * this method)
-     *
-     * @param ls locator synchronization object
-     */
-    boolean prepareLocator(LocatorSync ls);
-
-    /**
      * synchronize display with the graphics objects
      *  @param finish flag denoting whether the synchronization is desired or not (<code>true</code>
      *                for a finished batch, <code>false</code> when a batch starts)
@@ -90,4 +80,6 @@ public interface GDContainer {
      *  @return size of the container
      */
     Dimension getSize();
+
+
 }

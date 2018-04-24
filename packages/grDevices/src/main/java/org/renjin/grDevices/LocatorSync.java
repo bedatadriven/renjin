@@ -24,44 +24,83 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 package org.renjin.grDevices;
 
-import org.renjin.gcc.runtime.DoublePtr;
+import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.Optional;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * a simple synchronization class that can be used by a separate thread to wake JavaGD from waiting for a
- * locator result. The waiting thread calls {@link #waitForAction()} which returns only after another
- * thread calls {@link #triggerAction}.
+ * locator result.
  */
-public class LocatorSync {
-  private double[] locResult = null;
-  private boolean notificationArrived = false;
+public class LocatorSync implements MouseListener {
+
+  private static final Point CANCELLED = new Point();
+
+  private final BlockingQueue<Point> points = new ArrayBlockingQueue<>(10);
+
+  private boolean waiting = false;
 
   /**
-   * this internal method waits until {@link #triggerAction} is called by another thread.
-   * It is implemented by using {@link #wait()} and checking {@link #notificationArrived}.
-   *
-   * @return result supplied when {@link #triggerAction} was called - essentially the results to be returned by locator
+   * Waits for a mouse a click
    */
-  public synchronized DoublePtr waitForAction() {
-    while (!notificationArrived) {
-      try {
-        wait();
-      } catch (InterruptedException e) {
+  public synchronized Optional<Point> waitForClick() {
+    points.clear();
+    waiting = true;
 
+    try {
+      Point point = points.take();
+      if(point == CANCELLED) {
+        return Optional.empty();
+      } else {
+        return Optional.of(point);
       }
+    } catch (InterruptedException e) {
+      // Mark this thread as interrupted and
+      // and return NULL to signal that it was cancelled
+      Thread.currentThread().interrupt();
+      return Optional.empty();
+    } finally {
+      waiting = false;
     }
-    notificationArrived = false;
-    return new DoublePtr(locResult);
   }
 
-  /**
-   * this methods awakens {@link #waitForAction()}. It is implemented by setting {@link #notificationArrived}
-   * to <code>true</code>, setting {@link #locResult} to the passed result and finally calling {@link #notifyAll()}.
-   *
-   * @param result result to pass to {@link #waitForAction()}
-   */
-  public synchronized void triggerAction(double[] result) {
-    locResult = result;
-    notificationArrived = true;
-    notifyAll();
+  @Override
+  public void mouseClicked(MouseEvent e) {
+    if(waiting) {
+      if(e.getButton() == MouseEvent.BUTTON1) {
+        // Offer will return false if the queue is full, but that
+        // it is ok because that means we already have our event.
+        points.offer(e.getPoint());
+
+      } else {
+
+        // Clicking the right button cancels the sequence.
+        // We pass a specific instance to signal the cancellation
+        points.offer(CANCELLED);
+      }
+    }
+  }
+
+  @Override
+  public void mousePressed(MouseEvent e) {
+    // No action
+  }
+
+  @Override
+  public void mouseReleased(MouseEvent e) {
+    // No action
+  }
+
+  @Override
+  public void mouseEntered(MouseEvent e) {
+    // No action
+  }
+
+  @Override
+  public void mouseExited(MouseEvent e) {
+    // No action
   }
 }

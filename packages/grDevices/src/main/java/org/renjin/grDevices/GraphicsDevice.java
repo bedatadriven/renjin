@@ -58,10 +58,7 @@ public abstract class GraphicsDevice {
    */
   protected GDContainer container = null;
 
-  /**
-   * synchronization object for locator calls
-   */
-  protected LocatorSync locatorSync = null;
+
 
   /**
    * requests a new device of the specified size
@@ -147,21 +144,13 @@ public abstract class GraphicsDevice {
   }
 
   /**
-   * invoke the locator
+   * Block until the user selects a point from the canvas, or until
+   * the operation is cancelled.
    *
    * @return array of indices or <code>null</code> is cancelled
    */
   public Ptr locator() {
-    if (container == null) {
-      return DoublePtr.NULL;
-    }
-    if (locatorSync == null) {
-      locatorSync = new LocatorSync();
-    }
-    if (!container.prepareLocator(locatorSync)) {
-      return DoublePtr.NULL;
-    }
-    return locatorSync.waitForAction();
+    return DoublePtr.NULL;
   }
 
   /**
@@ -374,9 +363,11 @@ public abstract class GraphicsDevice {
    * set current font
    *
    * @param cex        character expansion (see <code>cex</code> parameter in R)
-   * @param ps         point size (see <code>ps</code> parameter in R - for all practical purposes the requested font size in points is <code>cex * ps</code>)
+   * @param ps         point size (see <code>ps</code> parameter in R - for all practical purposes the
+   *                   requested font size in points is <code>cex * ps</code>)
    * @param lineheight line height
-   * @param fontface   font face (see <code>font</code> parameter in R: 1=plain, 2=bold, 3=italic, 4=bold-italic, 5=symbol)
+   * @param fontface   font face (see <code>font</code> parameter in R: 1=plain, 2=bold, 3=italic,
+   *                   4=bold-italic, 5=symbol)
    * @param fontfamily font family (see <code>family</code> parameter in R)
    */
   public void setFont(double cex, double ps, double lineheight, int fontface, String fontfamily) {

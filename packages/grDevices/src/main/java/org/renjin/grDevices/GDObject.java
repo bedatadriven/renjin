@@ -43,16 +43,40 @@ interface GDObject {
  * object storing the current graphics state
  */
 class GDState {
-  public Color col;
-  public Color fill;
-  public Font font;
+  private Color col;
+  private Color fill;
+  private Font font;
+
+  public Color getCol() {
+    return col;
+  }
+
+  public void setCol(Color col) {
+    this.col = col;
+  }
+
+  public Color getFill() {
+    return fill;
+  }
+
+  public void setFill(Color fill) {
+    this.fill = fill;
+  }
+
+  public Font getFont() {
+    return font;
+  }
+
+  public void setFont(Font font) {
+    this.font = font;
+  }
 }
 
 class GDLine implements GDObject {
-  double x1;
-  double y1;
-  double x2;
-  double y2;
+  private double x1;
+  private double y1;
+  private double x2;
+  private double y2;
 
   public GDLine(double x1, double y1, double x2, double y2) {
     this.x1 = x1;
@@ -63,17 +87,17 @@ class GDLine implements GDObject {
 
   @Override
   public void paint(Component c, GDState gs, Graphics g) {
-    if (gs.col != null) {
+    if (gs.getCol() != null) {
       g.drawLine((int) (x1 + 0.5), (int) (y1 + 0.5), (int) (x2 + 0.5), (int) (y2 + 0.5));
     }
   }
 }
 
 class GDRect implements GDObject {
-  double x1;
-  double y1;
-  double x2;
-  double y2;
+  private double x1;
+  private double y1;
+  private double x2;
+  private double y2;
 
   public GDRect(double x1, double y1, double x2, double y2) {
     double tmp;
@@ -99,14 +123,14 @@ class GDRect implements GDObject {
     int y = (int) (y1 + 0.5);
     int w = (int) (x2 + 0.5) - x;
     int h = (int) (y2 + 0.5) - y;
-    if (gs.fill != null) {
-      g.setColor(gs.fill);
+    if (gs.getFill() != null) {
+      g.setColor(gs.getFill());
       g.fillRect(x, y, w + 1, h + 1);
-      if (gs.col != null) {
-        g.setColor(gs.col);
+      if (gs.getCol() != null) {
+        g.setColor(gs.getCol());
       }
     }
-    if (gs.col != null) {
+    if (gs.getCol() != null) {
       g.drawRect(x, y, w, h);
     }
   }
@@ -143,9 +167,9 @@ class GDClip implements GDObject {
 }
 
 class GDCircle implements GDObject {
-  double x;
-  double y;
-  double r;
+  private double x;
+  private double y;
+  private double r;
 
   public GDCircle(double x, double y, double r) {
     this.x = x;
@@ -155,25 +179,25 @@ class GDCircle implements GDObject {
 
   @Override
   public void paint(Component c, GDState gs, Graphics g) {
-    if (gs.fill != null) {
-      g.setColor(gs.fill);
+    if (gs.getFill() != null) {
+      g.setColor(gs.getFill());
       g.fillOval((int) (x - r + 0.5), (int) (y - r + 0.5), (int) (r + r + 1.5), (int) (r + r + 1.5));
-      if (gs.col != null) {
-        g.setColor(gs.col);
+      if (gs.getCol() != null) {
+        g.setColor(gs.getCol());
       }
     }
-    if (gs.col != null) {
+    if (gs.getCol() != null) {
       g.drawOval((int) (x - r + 0.5), (int) (y - r + 0.5), (int) (r + r + 1.5), (int) (r + r + 1.5));
     }
   }
 }
 
 class GDText implements GDObject {
-  double x;
-  double y;
-  double r;
-  double h;
-  String txt;
+  private double x;
+  private double y;
+  private double r;
+  private double h;
+  private String txt;
 
   public GDText(double x, double y, double r, double h, String txt) {
     this.x = x;
@@ -185,16 +209,19 @@ class GDText implements GDObject {
 
   @Override
   public void paint(Component c, GDState gs, Graphics g) {
-    if (gs.col != null) {
-      double rx = x, ry = y;
+    if (gs.getCol() != null) {
+      double rx = x;
+      double ry = y;
       double hc = 0d;
+
       if (h != 0d) {
         FontMetrics fm = g.getFontMetrics();
         int w = fm.stringWidth(txt);
         hc = ((double) w) * h;
         rx = x - (((double) w) * h);
       }
-      int ix = (int) (rx + 0.5), iy = (int) (ry + 0.5);
+      int ix = (int) (rx + 0.5);
+      int iy = (int) (ry + 0.5);
 
       if (r != 0d) {
         Graphics2D g2d = (Graphics2D) g;
@@ -222,24 +249,12 @@ class GDFont implements GDObject {
 
   private Font font;
 
-  public static boolean useSymbolFont = true;
-
-  static { // this is to work around a bug in Java on Windows where the Symbol font is incorrectly mapped and
-    // requires us to force another font for the Symbol characters (yes, it's stupid but apparently for
-    // backward compatibility ... *sigh*)
-    // we let the user override this detection by setting javagd.usesymbolfont property to
-    // true/false (we also support yes/no and 1/0)
-
-    String sfp = System.getProperty("javagd.usesymbolfont");
-    if (sfp != null && sfp.length() > 0) {
-      useSymbolFont = (sfp.equals("true") || sfp.equals("yes") || sfp.equals("1"));
-    } else { // ok - my tests show that Mac OS X is fine with Symbol, Windows is not, so we'll fix this for Windows only
-      String os = System.getProperty("os.name");
-      if (os.length() > 2 && os.substring(0, 3).equals("Win")) {
-        useSymbolFont = false;
-      }
-    }
-  }
+  /**
+   * this is to work around a bug in Java on Windows where the Symbol font is incorrectly mapped and
+   * requires us to force another font for the Symbol characters. According to
+   * Simon Urbanek, Mac OS X is fine with Symbol, Windows is not, so we'll fix this for Windows only
+   */
+  private static final boolean USE_SYMBOL_FONT = !System.getProperty("os.name", "").startsWith("Win");
 
   public GDFont(double cex, double ps, double lineheight, int face, String family) {
     int jFT = Font.PLAIN;
@@ -252,7 +267,7 @@ class GDFont implements GDObject {
     if (face == 4) {
       jFT = Font.BOLD | Font.ITALIC;
     }
-    if (face == 5 && useSymbolFont) {
+    if (face == 5 && USE_SYMBOL_FONT) {
       family = "Symbol";
     }
     font = new Font(family.equals("") ? null : family, jFT, (int) (cex * ps + 0.5));
@@ -265,15 +280,15 @@ class GDFont implements GDObject {
   @Override
   public void paint(Component c, GDState gs, Graphics g) {
     g.setFont(font);
-    gs.font = font;
+    gs.setFont(font);
   }
 }
 
 class GDPolygon implements GDObject {
-  int n;
-  int[] xi;
-  int[] yi;
-  boolean isPolyline;
+  private int n;
+  private int[] xi;
+  private int[] yi;
+  private boolean isPolyline;
 
   public GDPolygon(int n, Ptr x, Ptr y, boolean isPolyline) {
     this.n = n;
@@ -290,14 +305,14 @@ class GDPolygon implements GDObject {
 
   @Override
   public void paint(Component c, GDState gs, Graphics g) {
-    if (gs.fill != null && !isPolyline) {
-      g.setColor(gs.fill);
+    if (gs.getFill() != null && !isPolyline) {
+      g.setColor(gs.getFill());
       g.fillPolygon(xi, yi, n);
-      if (gs.col != null) {
-        g.setColor(gs.col);
+      if (gs.getCol() != null) {
+        g.setColor(gs.getCol());
       }
     }
-    if (gs.col != null) {
+    if (gs.getCol() != null) {
       if (isPolyline) {
         g.drawPolyline(xi, yi, n);
       } else {
@@ -309,27 +324,15 @@ class GDPolygon implements GDObject {
 
 class GDPath implements GDObject {
 
-  /**
-   * # of points per path (np.length == # of paths)
-   */
-  int[] np;
+  private GeneralPath path;
 
-  /**
-   * winding rule (true) or odd/even rule (false)
-   */
-  boolean winding;
-
-  GeneralPath path;
-
-  public GDPath(int[] np, double[] x, double[] y, boolean winding) {
-    this.np = np;
-    this.winding = winding;
+  public GDPath(int[] numberOfPointsPerPath, double[] x, double[] y, boolean winding) {
 
     path = new GeneralPath(winding ? GeneralPath.WIND_NON_ZERO : GeneralPath.WIND_EVEN_ODD, x.length);
     int k = 0;
     int end = 0;
-    for (int i = 0; i < np.length; i++) {
-      end += np[i];
+    for (int i = 0; i < numberOfPointsPerPath.length; i++) {
+      end += numberOfPointsPerPath[i];
       path.moveTo((float) x[k], (float) y[k]);
       k++;
       for (; k < end; k++) {
@@ -342,25 +345,23 @@ class GDPath implements GDObject {
   @Override
   public void paint(Component c, GDState gs, Graphics g) {
     Graphics2D g2 = (Graphics2D) g;
-    if (gs.fill != null) {
-      g2.setColor(gs.fill);
+    if (gs.getFill() != null) {
+      g2.setColor(gs.getFill());
       g2.fill(path);
-      if (gs.col != null) {
-        g2.setColor(gs.col);
+      if (gs.getCol() != null) {
+        g2.setColor(gs.getCol());
       }
     }
-    if (gs.col != null) {
+    if (gs.getCol() != null) {
       g2.draw(path);
     }
   }
 }
 
 class GDColor implements GDObject {
-  int col;
-  Color gc;
+  private Color gc;
 
   public GDColor(int col) {
-    this.col = col;
     if ((col & 0xff000000) == 0) {
       gc = null; // opacity=0 -> no color -> don't paint
     } else {
@@ -370,7 +371,7 @@ class GDColor implements GDObject {
 
   @Override
   public void paint(Component c, GDState gs, Graphics g) {
-    gs.col = gc;
+    gs.setCol(gc);
     if (gc != null) {
       g.setColor(gc);
     }
@@ -378,11 +379,9 @@ class GDColor implements GDObject {
 }
 
 class GDFill implements GDObject {
-  int col;
-  Color gc;
+  private Color gc;
 
   public GDFill(int col) {
-    this.col = col;
     if ((col & 0xff000000) == 0) {
       gc = null; // opacity=0 -> no color -> don't paint
     } else {
@@ -395,7 +394,7 @@ class GDFill implements GDObject {
 
   @Override
   public void paint(Component c, GDState gs, Graphics g) {
-    gs.fill = gc;
+    gs.setFill(gc);
   }
 }
 
@@ -436,9 +435,9 @@ class GDLinePar implements GDObject {
 }
 
 class GDRaster implements GDObject {
-  boolean interpolate;
-  Image image;
-  AffineTransform atrans;
+  private boolean interpolate;
+  private Image image;
+  private AffineTransform atrans;
 
   public GDRaster(byte[] image, int imageWidth, int imageHeight, double x, double y, double w, double h, double rot, boolean interpolate) {
     this.interpolate = interpolate;

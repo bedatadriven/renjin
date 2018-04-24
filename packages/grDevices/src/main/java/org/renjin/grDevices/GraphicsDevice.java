@@ -194,9 +194,9 @@ public abstract class GraphicsDevice {
     if (container != null) {
       Graphics g = container.getGraphics();
       if (g != null) {
-        Font f = container.getGState().font;
+        Font f = container.getGState().getFont();
         if (f != null) {
-          FontMetrics fm = g.getFontMetrics(container.getGState().font);
+          FontMetrics fm = g.getFontMetrics(container.getGState().getFont());
           if (fm != null) {
             ascent = (double) fm.getAscent();
             descent = (double) fm.getDescent();
@@ -312,7 +312,7 @@ public abstract class GraphicsDevice {
     if (container != null) { // if canvas is active, we can do better
       Graphics g = container.getGraphics();
       if (g != null) {
-        Font f = container.getGState().font;
+        Font f = container.getGState().getFont();
         if (f != null) {
           FontMetrics fm = g.getFontMetrics(f);
           if (fm != null) width = (double) fm.stringWidth(str);
@@ -383,7 +383,7 @@ public abstract class GraphicsDevice {
     if (container == null) return;
     GDFont f = new GDFont(cex, ps, lineheight, fontface, fontfamily);
     container.add(f);
-    container.getGState().font = f.getFont();
+    container.getGState().setFont(f.getFont());
   }
 
   /**

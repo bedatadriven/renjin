@@ -40,7 +40,7 @@ public class AwtContainer implements GDContainer, MouseListener {
   public AwtContainer(int w, int h) {
     this.size = new Dimension(w, h);
     this.state = new GDState();
-    this.state.font = new Font(null, 0, 12);
+    this.state.setFont(new Font(null, 0, 12));
 
     panel = new AwtPanel(size);
     panel.setBackground(Color.white);

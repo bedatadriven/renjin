@@ -37,13 +37,13 @@ setMethod("doIt", signature = c(x = "numeric", i = "ANY", j = "ANY", value = "AN
 
 x = doIt(x=10, i=20, j=30, q=33, z=55, value=100)
 
-#assertThat(x$input, identicalTo(c(10,20,30,100)))
-#assertThat(names(x$inputEllipses), identicalTo(c("q","z")))
-#assertThat(x$inputEllipses$q, identicalTo(33))
-#assertThat(x$inputEllipses$z, identicalTo(55))
-#
-#assertThat(x$dotLocal, identicalTo(c(10,20,30)))
-#assertThat(names(x$inputEllipses), identicalTo(c("q","z")))
-#assertThat(x$inputEllipses$q, identicalTo(33))
-#assertThat(x$inputEllipses$z, identicalTo(55))
+assertThat(x$input, identicalTo(c(10,20,30,100)))
+assertThat(names(x$inputEllipses), identicalTo(c("q","z")))
+assertThat(x$inputEllipses$q, identicalTo(33))
+assertThat(x$inputEllipses$z, identicalTo(55))
+
+assertThat(x$dotLocal, identicalTo(c(10,20,30)))
+assertThat(names(x$inputEllipses), identicalTo(c("q","z")))
+assertThat(x$inputEllipses$q, identicalTo(33))
+assertThat(x$inputEllipses$z, identicalTo(55))
 

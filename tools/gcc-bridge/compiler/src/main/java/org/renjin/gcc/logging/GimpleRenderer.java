@@ -152,39 +152,34 @@ public class GimpleRenderer {
 
       html.append("<table>");
       html.append("<thead>");
-      html.append("<tr>");
-      html.append("<th class=\"offset\">Bit</th>");
-      html.append("<th class=\"offset\">Byte</th>");
-      html.append("<th class=\"offset\">Offset</th>");
-      html.append("<th class=\"field-type\">Type</th>");
-      html.append("<th class=\"field-name\">Name</th>");
-      html.append("<th class=\"field-size\">Size</th>");
-      html.append("</tr>");
+      startRow();
+      appendTableHeader("Bit", "offset");
+      appendTableHeader("Byte", "offset");
+      appendTableHeader("Word", "offset");
+      appendTableHeader("Type", "field-type");
+      appendTableHeader("Name", "field-name");
+      appendTableHeader("Size", "field-size");
+      endRow();
       html.append("</thead>");
       html.append("<tbody>");
 
       for (GimpleField field : typeDef.getFields()) {
-        html.append("<tr>");
-        html.append("<td class=\"offset\">").append(field.getOffset()).append("</td>");
-        html.append("<td class=\"offset\">");
-        if(field.getOffset() % 8 == 0) {
-          html.append(field.getOffset() / 8);
-        }
-        html.append("</td>");
-        html.append("<td class=\"offset\">");
-        if(field.getOffset() % 32 == 0) {
-          html.append(field.getOffset() / 32);
-        }
-        html.append("</td>");
-        html.append("<td class=\"field-type\">");
+
+        startRow();
+
+        offsetCell(field, 1);
+        offsetCell(field, 8);
+        offsetCell(field, 32);
+
+        startCell("field-type");
         appendHtml(renderType(field.getType(), false));
-        html.append("</td>");
-        html.append("<td class=\"field-name\">");
+        endCell();
+        startCell("field-name");
         appendEscaped(field.getName());
-        html.append("</td>");
-        html.append("<td class=\"field-size\">");
-        html.append("</td>");
-        html.append("</tr>");
+        endCell();
+        startCell("field-size");
+        endCell();
+        endRow();
       }
 
       html.append("</tbody>");
@@ -192,6 +187,35 @@ public class GimpleRenderer {
     }
 
     return html.toString();
+  }
+
+  private void offsetCell(GimpleField field, int multiple) {
+    startCell("offset");
+    if(field.getOffset() % multiple == 0) {
+      html.append(field.getOffset() / multiple);
+    }
+    endCell();
+  }
+
+  private void startRow() {
+    html.append("<tr>");
+  }
+
+  private StringBuilder startCell(final String className) {
+    return html.append("<td class=\"").append(className).append("\">");
+  }
+
+  private StringBuilder endCell() {
+    return html.append("</td>");
+  }
+
+  private void endRow() {
+    html.append("</tr>");
+  }
+
+
+  private StringBuilder appendTableHeader(final String text, final String className) {
+    return html.append("<th class=\"").append(className).append("\">").append(text).append("</th>");
   }
 
   private void renderStatement(GimpleStatement statement) {

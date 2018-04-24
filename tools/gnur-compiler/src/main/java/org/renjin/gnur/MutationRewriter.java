@@ -36,15 +36,21 @@ public class MutationRewriter implements FunctionBodyTransformer {
       for (GimpleStatement statement : basicBlock.getStatements()) {
         if(statement instanceof GimpleCall) {
           GimpleCall call = (GimpleCall) statement;
-          if(apiOracle.isPotentialMutator(call.getFunctionName())) {
-            if(call.getLhs() == null) {
-              System.err.println("WARNING: Call to " + call.getFunctionName() + " discards result in "
-                  + fn.getName() + " at " + call.getSourceFile() + ":" + call.getLineNumber());
-            }
+          if(isDangerousMutation(call)) {
+            logManager.warning(String.format("Call to %s discards result in %s at %s:%d",
+                call.getFunctionName(),
+                fn.getName(),
+                call.getSourceFile(),
+                call.getLineNumber()));
           }
         }
       }
     }
     return false;
+  }
+
+  private boolean isDangerousMutation(GimpleCall call) {
+    return apiOracle.isPotentialMutator(call.getFunctionName()) &&
+        call.getLhs() == null;
   }
 }

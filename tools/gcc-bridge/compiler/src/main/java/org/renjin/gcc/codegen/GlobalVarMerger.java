@@ -30,7 +30,9 @@ import java.util.Map;
  * except if they have an initial value defined.
  *
  */
-public class GlobalVarMerger {
+public final class GlobalVarMerger {
+
+  private GlobalVarMerger() {}
 
   public static void merge(List<GimpleCompilationUnit> units) {
 
@@ -39,18 +41,29 @@ public class GlobalVarMerger {
     // First add those global variables with an initial value
     // If two global variables with the same name are both initialized, then throw an error
 
+    findDeclarationsWithInitializers(units, canonical);
+
+    // Otherwise accept the first definition we see as the one to keep
+    
+    markFirstDeclarationAsCanonical(units, canonical);
+
+    // Now mark all the remaining definitions as 'extern'
+
+    markNonCanonical(units, canonical);
+  }
+
+  private static void markNonCanonical(List<GimpleCompilationUnit> units, Map<String, GimpleVarDecl> canonical) {
     for (GimpleCompilationUnit unit : units) {
       for (GimpleVarDecl varDecl : unit.getGlobalVariables()) {
-        if(varDecl.isPublic() && !varDecl.isExtern() && varDecl.getValue() != null) {
-          GimpleVarDecl previousValue = canonical.put(varDecl.getMangledName(), varDecl);
-          if(previousValue != null) {
-            throw new IllegalStateException("multiple definition of `" + varDecl.getMangledName() + "'");
-          }
+        if(varDecl.isPublic() && !varDecl.isExtern() &&
+              canonical.get(varDecl.getMangledName()) != varDecl) {
+          varDecl.setExtern(true);
         }
       }
     }
+  }
 
-    // Otherwise accept the first definition we see as the one to keep
+  private static void markFirstDeclarationAsCanonical(List<GimpleCompilationUnit> units, Map<String, GimpleVarDecl> canonical) {
     for (GimpleCompilationUnit unit : units) {
       for (GimpleVarDecl varDecl : unit.getGlobalVariables()) {
         if(varDecl.isPublic() && !varDecl.isExtern() &&
@@ -59,13 +72,16 @@ public class GlobalVarMerger {
         }
       }
     }
+  }
 
-    // Now mark all the remaining definitions as 'extern'
+  private static void findDeclarationsWithInitializers(List<GimpleCompilationUnit> units, Map<String, GimpleVarDecl> canonical) {
     for (GimpleCompilationUnit unit : units) {
       for (GimpleVarDecl varDecl : unit.getGlobalVariables()) {
-        if(varDecl.isPublic() && !varDecl.isExtern() &&
-              canonical.get(varDecl.getMangledName()) != varDecl) {
-          varDecl.setExtern(true);
+        if(varDecl.isPublic() && !varDecl.isExtern() && varDecl.getValue() != null) {
+          GimpleVarDecl previousValue = canonical.put(varDecl.getMangledName(), varDecl);
+          if(previousValue != null) {
+            throw new IllegalStateException("multiple definition of `" + varDecl.getMangledName() + "'");
+          }
         }
       }
     }

@@ -34,13 +34,11 @@ import java.util.List;
  */
 public class GlobalVarRewriter implements GlobalVarTransformer {
 
-  private final Type contextClass;
   private final ContextVarAllocator allocator;
 
   private List<GimpleVarDecl> contextVars = new ArrayList<>();
 
   public GlobalVarRewriter(Type contextClass) {
-    this.contextClass = contextClass;
     allocator = new ContextVarAllocator(contextClass);
   }
 

@@ -18,6 +18,7 @@
  */
 package org.renjin.gcc.logging;
 
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.symbols.SymbolTable;
@@ -28,6 +29,7 @@ import org.renjin.repackaged.guava.io.Files;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,6 +47,8 @@ public class LogManager {
   private File loggingDirectory;
 
   private final Map<String, Logger> openLoggers = new HashMap<>();
+
+  private final PrintStream warningStream = System.err;
 
   public LogManager() {
   }
@@ -112,7 +116,7 @@ public class LogManager {
     try {
       Files.write(object.toString(), logFile, Charsets.UTF_8);
     } catch (IOException e) {
-      System.err.println("Exception dumping to " + logFile.getAbsolutePath());
+      warning("Exception dumping to " + logFile.getAbsolutePath());
     }
   }
 
@@ -129,7 +133,7 @@ public class LogManager {
       log(function, "html",
           new HtmlFunctionRenderer(symbolTable, function, methodNode).render());
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new InternalCompilerException(e);
     }
   }
 
@@ -142,7 +146,7 @@ public class LogManager {
     try {
       Files.write(new HtmlRecordRenderer(symbolTable, unit).render(), logFile, Charsets.UTF_8);
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new InternalCompilerException(e);
     }
   }
 
@@ -174,4 +178,11 @@ public class LogManager {
     openLoggers.clear();
   }
 
+  public void warning(String message) {
+    warningStream.println("WARNING: " + message);
+  }
+
+  public void note(String message) {
+    warningStream.print("NOTE: " + message);
+  }
 }

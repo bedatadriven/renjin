@@ -87,7 +87,7 @@ public class SetTypeRewriter implements FunctionBodyTransformer {
         int targetType = Iterables.getOnlyElement(types);
         if(allocSite.isFunctionNamed("Rf_allocList") && targetType == SexpType.LANGSXP) {
           allocSite.setFunction(new GimpleAddressOf(new GimpleFunctionRef("Rf_allocLang")));
-          System.err.println("NOTE: changed Rf_allocList to Rf_allocLang at " +
+          logManager.note("changed Rf_allocList to Rf_allocLang at " +
               allocSite.getSourceFile() + ":" + allocSite.getLineNumber());
           changed = true;
         }

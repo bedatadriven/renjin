@@ -54,14 +54,12 @@ import java.util.List;
 public class GlobalVarPlugin extends GimpleCompilerPlugin {
 
 
-  private final String packageName;
   private final Type contextClass;
 
   private GlobalVarRewriter globalVarRewriter;
 
 
   public GlobalVarPlugin(String packageName) {
-    this.packageName = packageName;
     this.contextClass = Type.getType("L" + packageName.replace('.', '/') + "/Context;");
     this.globalVarRewriter = new GlobalVarRewriter(contextClass);
   }

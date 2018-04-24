@@ -71,7 +71,7 @@ public class AwtDevice extends GraphicsDevice implements WindowListener {
 
     this.container = awtContainer;
 
-    frame = new Frame("JavaGD");
+    frame = new Frame("Renjin");
     frame.setSize(new Dimension((int)w, (int)h));
     frame.setResizable(false);
     frame.add(awtContainer.getPanel());
@@ -84,7 +84,7 @@ public class AwtDevice extends GraphicsDevice implements WindowListener {
     super.activate();
     if (frame != null) {
       frame.requestFocus();
-      frame.setTitle("JavaGD " + ((deviceNumber > 0) ? ("(" + (deviceNumber + 1) + ")") : "") + " *active*");
+      frame.setTitle("Renjin " + ((deviceNumber > 0) ? ("(" + (deviceNumber + 1) + ")") : "") + " *active*");
     }
   }
 
@@ -103,7 +103,7 @@ public class AwtDevice extends GraphicsDevice implements WindowListener {
   public void deactivate() {
     super.deactivate();
     if (frame != null) {
-      frame.setTitle("JavaGD " + ((deviceNumber > 0) ? ("(" + (deviceNumber + 1) + ")") : ""));
+      frame.setTitle("Renjin " + ((deviceNumber > 0) ? ("(" + (deviceNumber + 1) + ")") : ""));
     }
   }
 
@@ -111,7 +111,7 @@ public class AwtDevice extends GraphicsDevice implements WindowListener {
   public void newPage(int deviceNumber) { // new API: provides the device Nr.
     super.newPage(deviceNumber);
     if (frame != null) {
-      frame.setTitle("JavaGD (" + (deviceNumber + 1) + ")" + (isActive() ? " *active*" : ""));
+      frame.setTitle("Renjin (" + (deviceNumber + 1) + ")" + (isActive() ? " *active*" : ""));
     }
   }
 

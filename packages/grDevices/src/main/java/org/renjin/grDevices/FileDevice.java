@@ -38,6 +38,10 @@ public class FileDevice extends GraphicsDevice {
 
   @Override
   public void open(double w, double h) {
-    c = new ImageContainer(filename, format, backgroundColor, (int)w, (int)h);
+    if(format.equals("svg")) {
+      c = new SvgContainer(filename, (int) w, (int) h, backgroundColor);
+    } else {
+      c = new ImageContainer(filename, format, backgroundColor, (int) w, (int) h);
+    }
   }
 }

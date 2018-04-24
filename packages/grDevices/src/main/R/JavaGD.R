@@ -46,6 +46,25 @@ png <- function(filename = "Rplot%03d.png",
     ))
 }
 
+svg <- function (filename = if (onefile) "Rplots.svg" else "Rplot%03d.svg",
+    width = 7, height = 7, pointsize = 12, onefile = FALSE, family = "sans",
+    bg = "white", antialias = c("default", "none", "gray", "subpixel"))
+{
+    if (!checkIntFormat(filename))
+        stop("invalid 'filename'")
+
+    antialiases <- eval(formals()$antialias)
+    antialias <- match(match.arg(antialias, antialiases), antialiases)
+    invisible(.Call(C_newJavaGD, filename, 72 * width, 72 * height, pointsize,
+            "org.renjin.grDevices.FileDevice",
+            list(filename = filename,
+                 format = "svg",
+                 bg = col2rgb(bg))
+        ))
+
+
+}
+
 JavaGD <- function(name="JavaGD", deviceClass = "org.renjin.grDevices.JavaGD", width=400, height=300, ps=12) {
   invisible(.Call(C_newJavaGD, name, width, height, ps, deviceClass, list()))
 }

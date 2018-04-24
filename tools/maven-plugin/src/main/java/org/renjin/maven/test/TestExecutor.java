@@ -251,12 +251,10 @@ public class TestExecutor {
   private SEXP graphicsDevice(Session session, File sourceFile) {
 
     PairList.Builder arguments = new PairList.Builder();
-    arguments.add("filename", StringArrayVector.valueOf(createPlotDirectory(sourceFile).getAbsolutePath() + File.separator + "Rplot%03d.png"));
+    arguments.add("filename", StringArrayVector.valueOf(createPlotDirectory(sourceFile).getAbsolutePath() + File.separator + "Rplot%03d.svg"));
 
-    Closure closure = new Closure(session.getGlobalEnvironment(), Null.INSTANCE,
-        new FunctionCall(Symbol.get("png"), arguments.build()));
-
-    return closure;
+    return new Closure(session.getGlobalEnvironment(), Null.INSTANCE,
+        new FunctionCall(Symbol.get("svg"), arguments.build()));
   }
 
 

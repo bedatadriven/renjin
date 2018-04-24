@@ -20,37 +20,31 @@
 
 package org.renjin.grDevices;
 
+import org.apache.pdfbox.util.Charsets;
 import org.jfree.graphics2d.svg.SVGGraphics2D;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.Native;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 
-public class ImageContainer implements GDContainer {
+public class SvgContainer implements GDContainer {
 
+  private final SVGGraphics2D graphics;
   private final GDState state;
   private final Dimension size;
   private int deviceNumber;
-  private final BufferedImage bufferedImage;
   private final String filenameFormat;
-  private String formatName;
 
-  private Graphics2D graphics;
   private boolean empty = true;
 
   private int pageNumber = 1;
 
-  public ImageContainer(String filenameFormat, String formatName, Color backgroundColor, int width, int height) {
+  public SvgContainer(String filenameFormat, int width, int height, Color backgroundColor) {
+    super();
     this.filenameFormat = filenameFormat;
-    this.formatName = formatName;
-    this.bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     this.size = new Dimension(width, height);
-    this.graphics = bufferedImage.createGraphics();
+    this.graphics = new SVGGraphics2D(width, height);
     this.graphics.setBackground(backgroundColor);
     this.graphics.clearRect(0, 0, (int)size.getWidth(), (int)size.getHeight());
     this.state = new GDState();
@@ -67,7 +61,6 @@ public class ImageContainer implements GDContainer {
     if(!empty) {
       flush();
     }
-    graphics = new SVGGraphics2D((int)size.getWidth(), (int)size.getHeight());
     graphics.clearRect(0, 0, (int) size.getWidth(), (int) size.getHeight());
   }
 
@@ -88,6 +81,7 @@ public class ImageContainer implements GDContainer {
 
   @Override
   public void syncDisplay(boolean finish) {
+
   }
 
   @Override
@@ -100,25 +94,6 @@ public class ImageContainer implements GDContainer {
     flush();
   }
 
-  private void flush() {
-    try {
-      formatName = "png";
-      PrintWriter stdOut = Native.currentContext().getSession().getStdOut();
-
-      String filename = String.format(filenameFormat, pageNumber++);
-      File outputFile = new File(filename).getAbsoluteFile();
-      if(!outputFile.getParentFile().exists() || !outputFile.getParentFile().isDirectory()) {
-        throw new EvalException("could not open file '" + outputFile.getAbsolutePath() + "'");
-      }
-
-      stdOut.println("Writing to " + filename) ;
-      stdOut.flush();
-      ImageIO.write(bufferedImage, formatName, outputFile);
-    } catch (IOException e) {
-      throw new EvalException("Failed to write image: " + e.getMessage(), e);
-    }
-  }
-
   @Override
   public int getDeviceNumber() {
     return deviceNumber;
@@ -127,5 +102,17 @@ public class ImageContainer implements GDContainer {
   @Override
   public Dimension getSize() {
     return size;
+  }
+
+  public void flush() {
+    String svg = graphics.getSVGDocument();
+
+    String filename = String.format(filenameFormat, pageNumber++);
+    File to = new File(filename);
+    try {
+      org.renjin.repackaged.guava.io.Files.write(svg, to, Charsets.UTF_8);
+    } catch (IOException e) {
+      throw new EvalException("Exception writing to " + to.getAbsolutePath(), e);
+    }
   }
 }

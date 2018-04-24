@@ -31,6 +31,11 @@
       <artifactId>pdfbox</artifactId>
       <version>2.0.9</version>
     </dependency>
+    <dependency>
+      <groupId>org.jfree</groupId>
+      <artifactId>jfreesvg</artifactId>
+      <version>3.3</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

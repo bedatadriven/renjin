@@ -27,7 +27,6 @@ package org.renjin.grDevices;
 import org.renjin.gcc.runtime.Ptr;
 
 import java.awt.*;
-import java.lang.reflect.Method;
 
 /**
  * <code>GraphicsDevice</code> defines an interface (and provides a simple implementation) between the JavaGD R device
@@ -202,9 +201,9 @@ public class GraphicsDevice {
     if (container != null) {
       Graphics g = container.getGraphics();
       if (g != null) {
-        Font f = container.getGState().f;
+        Font f = container.getGState().font;
         if (f != null) {
-          FontMetrics fm = g.getFontMetrics(container.getGState().f);
+          FontMetrics fm = g.getFontMetrics(container.getGState().font);
           if (fm != null) {
             ascent = (double) fm.getAscent();
             descent = (double) fm.getDescent();
@@ -320,7 +319,7 @@ public class GraphicsDevice {
     if (container != null) { // if canvas is active, we can do better
       Graphics g = container.getGraphics();
       if (g != null) {
-        Font f = container.getGState().f;
+        Font f = container.getGState().font;
         if (f != null) {
           FontMetrics fm = g.getFontMetrics(f);
           if (fm != null) width = (double) fm.stringWidth(str);
@@ -391,7 +390,7 @@ public class GraphicsDevice {
     if (container == null) return;
     GDFont f = new GDFont(cex, ps, lineheight, fontface, fontfamily);
     container.add(f);
-    container.getGState().f = f.getFont();
+    container.getGState().font = f.getFont();
   }
 
   /**
@@ -403,29 +402,4 @@ public class GraphicsDevice {
     return (container == null) ? deviceNumber : container.getDeviceNumber();
   }
 
-  /**
-   * close the device in R associated with this instance
-   */
-  public void executeDevOff() {
-    if (container == null || container.getDeviceNumber() < 0) return;
-    try { // for now we use no cache - just pure reflection API for: Rengine.getMainEngine().eval("...")
-      Class cl = Class.forName("org.rosuda.JRI.Rengine");
-      if (cl == null)
-        System.out.println(">> can't find Rengine, close function disabled. [c=null]");
-      else {
-        Method m = cl.getMethod("getMainEngine", null);
-        Object o = m.invoke(null, null);
-        if (o != null) {
-          Class[] par = new Class[1];
-          par[0] = Class.forName("java.lang.String");
-          m = cl.getMethod("eval", par);
-          Object[] pars = new Object[1];
-          pars[0] = "try({ dev.set(" + (container.getDeviceNumber() + 1) + "); dev.off()},silent=TRUE)";
-          m.invoke(o, pars);
-        }
-      }
-    } catch (Exception e) {
-      System.out.println(">> can't find Rengine, close function disabled. [x:" + e.getMessage() + "]");
-    }
-  }
 }

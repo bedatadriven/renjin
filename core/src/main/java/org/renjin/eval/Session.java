@@ -41,6 +41,7 @@ import java.lang.invoke.MethodHandle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -131,6 +132,15 @@ public class Session {
    */
   Context conditionStack = null;
 
+
+  /**
+   * A queue of commands to be executed in this session.
+   *
+   * <p>This queue can be used by other threads to schedule actions to run against the main session at the
+   * appropriate time. When a Session is bound to a Read-Event-Print-Loop (REPL) for example, pending commands
+   * submitted as the result of a user interaction should be executed after the current command completes.</p>
+   */
+  private ConcurrentLinkedQueue<SEXP> evaluationQueue = new ConcurrentLinkedQueue<>();
 
   Session(FileSystemManager fileSystemManager,
           ClassLoader classLoader,
@@ -332,7 +342,26 @@ public class Session {
     return classLoader;
   }
 
+  /**
+   * Enqueues a command to evaluated by the main Renjin thread. A Renjin Session is not <strong>necessarily</strong>
+   * linked to an event loop, but if it is part of a Read-Eval-Print-Loop (REPL), then the command will be executed
+   * when the current evaluation completes, or while waiting for user input.
+   *
+   * @param sexp an S-Expression to evaluate
+   */
+  public void enqueueEvaluation(SEXP sexp) {
+    evaluationQueue.offer(sexp);
+  }
 
+  /**
+   * Evaluates all pending S-Expressions.
+   */
+  public void evaluateQueue() {
+    SEXP sexp;
+    while((sexp=evaluationQueue.poll())!= null) {
+      topLevelContext.evaluate(sexp);
+    }
+  }
 
   public void registerFinalizer(SEXP sexp, FinalizationHandler handler, boolean onExit) {
     if(finalizers == null) {

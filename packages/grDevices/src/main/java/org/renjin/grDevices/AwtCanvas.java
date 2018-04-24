@@ -24,65 +24,68 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 package org.renjin.grDevices;
 
+import org.renjin.eval.Session;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
+
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.lang.reflect.Method;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
-public class GDCanvas extends Canvas implements GDContainer, MouseListener {
+public class AwtCanvas extends Canvas implements GDContainer, MouseListener {
 
-  Vector l;
+  private static boolean forceAntiAliasing = true;
+  private final Session session;
 
-  boolean listChanged;
+  private List<GDObject> list;
+  private boolean listChanged;
 
-  public static boolean forceAntiAliasing = true;
+  private GDState state;
 
-  GDState gs;
+  private Refresher refresher;
 
-  Refresher r;
+  private Dimension lastSize;
 
-  Dimension lastSize;
+  public int deviceNumber = -1;
 
-  public int devNr = -1;
-
-  public GDCanvas(double w, double h) {
-    this((int) w, (int) h);
-  }
-
-  public GDCanvas(int w, int h) {
-    l = new Vector();
-    gs = new GDState();
-    gs.f = new Font(null, 0, 12);
+  public AwtCanvas(Session session, int w, int h) {
+    this.session = session;
+    list = new ArrayList<>();
+    state = new GDState();
+    state.font = new Font(null, 0, 12);
     setSize(w, h);
     lastSize = getSize();
     setBackground(Color.white);
     addMouseListener(this);
-    (r = new Refresher(this)).start();
+    (refresher = new Refresher(this)).start();
   }
 
   public GDState getGState() {
-    return gs;
+    return state;
   }
 
   public void setDeviceNumber(int dn) {
-    devNr = dn;
+    deviceNumber = dn;
   }
 
   public int getDeviceNumber() {
-    return devNr;
+    return deviceNumber;
   }
 
   public void closeDisplay() {
   }
 
   public synchronized void cleanup() {
-    r.active = false;
-    r.interrupt();
+    refresher.active = false;
+    refresher.interrupt();
     reset();
-    r = null;
-    l = null;
+    refresher = null;
+    list = null;
   }
 
   public void syncDisplay(boolean finish) {
@@ -90,34 +93,23 @@ public class GDCanvas extends Canvas implements GDContainer, MouseListener {
   }
 
   public void initRefresh() {
-    try { // for now we use no cache - just pure reflection API for: Rengine.getMainEngine().eval("...")
-      Class c = Class.forName("org.rosuda.JRI.Rengine");
-      if (c == null)
-        System.out.println(">> can't find Rengine, automatic resizing disabled. [c=null]");
-      else {
-        Method m = c.getMethod("getMainEngine", null);
-        Object o = m.invoke(null, null);
-        if (o != null) {
-          Class[] par = new Class[1];
-          par[0] = Class.forName("java.lang.String");
-          m = c.getMethod("eval", par);
-          Object[] pars = new Object[1];
-          pars[0] = "try(JavaGD:::.javaGD.resize(" + devNr + "),silent=TRUE)";
-          m.invoke(o, pars);
-        }
-      }
-    } catch (Exception e) {
-      System.out.println(">> can't find Rengine, automatic resizing disabled. [x:" + e.getMessage() + "]");
-    }
+
+    FunctionCall function = FunctionCall.newCall(Symbol.get(":"),
+        StringVector.valueOf("grDevices"),
+        StringVector.valueOf(".javaGD.resize"));
+
+    FunctionCall resizeCall = FunctionCall.newCall(function, IntVector.valueOf(deviceNumber));
+
+    session.enqueueEvaluation(resizeCall);
   }
 
   public synchronized void add(GDObject o) {
-    l.add(o);
+    list.add(o);
     listChanged = true;
   }
 
   public synchronized void reset() {
-    l.removeAllElements();
+    list.clear();
     listChanged = true;
   }
 
@@ -161,10 +153,6 @@ public class GDCanvas extends Canvas implements GDContainer, MouseListener {
   }
 
 
-  public synchronized Vector getGDOList() {
-    return l;
-  }
-
   long lastUpdate;
   long lastUpdateFinished;
   boolean updatePending = false;
@@ -176,7 +164,7 @@ public class GDCanvas extends Canvas implements GDContainer, MouseListener {
         g.setColor(Color.white);
         g.fillRect(0, 0, 250, 25);
         g.setColor(Color.blue);
-        g.drawString("Building plot... (" + l.size() + " objects)", 10, 10);
+        g.drawString("Building plot... (" + list.size() + " objects)", 10, 10);
         lastUpdateFinished = System.currentTimeMillis();
       }
       lastUpdate = System.currentTimeMillis();
@@ -188,10 +176,10 @@ public class GDCanvas extends Canvas implements GDContainer, MouseListener {
   }
 
   class Refresher extends Thread {
-    GDCanvas c;
+    AwtCanvas c;
     boolean active;
 
-    public Refresher(GDCanvas c) {
+    public Refresher(AwtCanvas c) {
       this.c = c;
     }
 
@@ -213,6 +201,7 @@ public class GDCanvas extends Canvas implements GDContainer, MouseListener {
     }
   }
 
+  @Override
   public synchronized void paint(Graphics g) {
     updatePending = false;
     Dimension d = getSize();
@@ -227,13 +216,13 @@ public class GDCanvas extends Canvas implements GDContainer, MouseListener {
       g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     }
 
-    int i = 0, j = l.size();
-    g.setFont(gs.f);
+    g.setFont(state.font);
     g.setClip(0, 0, d.width, d.height); // reset clipping rect
-    while (i < j) {
-      GDObject o = (GDObject) l.elementAt(i++);
-      o.paint(this, gs, g);
+
+    for (GDObject gdObject : list) {
+      gdObject.paint(this, state, g);
     }
+
     lastUpdate = System.currentTimeMillis();
   }
 }

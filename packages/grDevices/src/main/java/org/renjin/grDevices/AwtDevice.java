@@ -23,18 +23,23 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 package org.renjin.grDevices;
 
+import org.renjin.eval.Session;
+import org.renjin.sexp.IntVector;
 import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Symbol;
 
 import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
+import static org.renjin.sexp.FunctionCall.newCall;
+
 /**
  * JavaGD is an implementation of the {@link GraphicsDevice} protocol which displays the R graphics in
- * an AWT window (via {@link GDCanvas}). It can be used as an example for implementing custom display classes
- * which can then be used by JavaGD. Three sample back-ends are included in the JavaGD sources: {@link GDCanvas} (AWT)
+ * an AWT window (via {@link AwtCanvas}). It can be used as an example for implementing custom display classes
+ * which can then be used by JavaGD. Three sample back-ends are included in the JavaGD sources: {@link AwtCanvas} (AWT)
  */
-public class JavaGD extends GraphicsDevice implements WindowListener {
+public class AwtDevice extends GraphicsDevice implements WindowListener {
 
   /**
    * frame containing the graphics canvas
@@ -42,10 +47,16 @@ public class JavaGD extends GraphicsDevice implements WindowListener {
   private Frame frame;
 
   /**
+   * The Renjin session to which this device belongs.
+   */
+  private final Session session;
+
+  /**
    * default, public constructor - creates a new JavaGD instance. The actual window (and canvas) is not created until {@link #open} is called.
    */
-  public JavaGD(ListVector options) {
+  public AwtDevice(Session session, ListVector options) {
     super();
+    this.session = session;
   }
 
   /**
@@ -63,11 +74,11 @@ public class JavaGD extends GraphicsDevice implements WindowListener {
     }
 
     frame = new Frame("JavaGD");
-    frame.addWindowListener(this);
-    container = new GDCanvas(w, h);
-    frame.add((GDCanvas) container);
+    container = new AwtCanvas(session, (int)w, (int)h);
+    frame.add((AwtCanvas) container);
     frame.pack();
     frame.setVisible(true);
+    frame.addWindowListener(this);
   }
 
   @Override
@@ -111,26 +122,52 @@ public class JavaGD extends GraphicsDevice implements WindowListener {
   /**
    * listener response to "Close" - effectively invokes <code>dev.off()</code> on the device
    */
+  @Override
   public void windowClosing(WindowEvent e) {
-    if (container != null) executeDevOff();
+    if (container != null) {
+      executeDevOff();
+    }
   }
 
+  @Override
   public void windowClosed(WindowEvent e) {
+    // No action
   }
 
+  @Override
   public void windowOpened(WindowEvent e) {
+    // No action
   }
 
+  @Override
   public void windowIconified(WindowEvent e) {
+    // No action
   }
 
+  @Override
   public void windowDeiconified(WindowEvent e) {
+    // No action
   }
 
+  @Override
   public void windowActivated(WindowEvent e) {
+    // No action
   }
 
+  @Override
   public void windowDeactivated(WindowEvent e) {
+    // No action
   }
 
+  /**
+   * close the device in R associated with this instance
+   */
+  public void executeDevOff() {
+    if (container == null || container.getDeviceNumber() < 0) {
+      return;
+    }
+
+    session.enqueueEvaluation(newCall(Symbol.get("dev.set"), IntVector.valueOf(container.getDeviceNumber() + 1)));
+    session.enqueueEvaluation(newCall(Symbol.get("dev.off")));
+  }
 }

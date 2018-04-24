@@ -45,7 +45,7 @@ abstract class GDObject {
 class GDState {
   public Color col;
   public Color fill;
-  public Font f;
+  public Font font;
 }
 
 class GDLine extends GDObject {
@@ -58,6 +58,7 @@ class GDLine extends GDObject {
     this.y2 = y2;
   }
 
+  @Override
   public void paint(Component c, GDState gs, Graphics g) {
     if (gs.col != null) {
       g.drawLine((int) (x1 + 0.5), (int) (y1 + 0.5), (int) (x2 + 0.5), (int) (y2 + 0.5));
@@ -86,6 +87,7 @@ class GDRect extends GDObject {
     this.y2 = y2;
   }
 
+  @Override
   public void paint(Component c, GDState gs, Graphics g) {
     int x = (int) (x1 + 0.5);
     int y = (int) (y1 + 0.5);
@@ -128,6 +130,7 @@ class GDClip extends GDObject {
     this.y2 = y2;
   }
 
+  @Override
   public void paint(Component c, GDState gs, Graphics g) {
     g.setClip((int) (x1 + 0.5), (int) (y1 + 0.5), (int) (x2 - x1 + 1.7), (int) (y2 - y1 + 1.7));
   }
@@ -144,6 +147,7 @@ class GDCircle extends GDObject {
     this.r = r;
   }
 
+  @Override
   public void paint(Component c, GDState gs, Graphics g) {
     if (gs.fill != null) {
       g.setColor(gs.fill);
@@ -170,6 +174,7 @@ class GDText extends GDObject {
     this.txt = txt;
   }
 
+  @Override
   public void paint(Component c, GDState gs, Graphics g) {
     if (gs.col != null) {
       double rx = x, ry = y;
@@ -258,9 +263,10 @@ class GDFont extends GDObject {
     return font;
   }
 
+  @Override
   public void paint(Component c, GDState gs, Graphics g) {
     g.setFont(font);
-    gs.f = font;
+    gs.font = font;
   }
 }
 
@@ -283,6 +289,7 @@ class GDPolygon extends GDObject {
     }
   }
 
+  @Override
   public void paint(Component c, GDState gs, Graphics g) {
     if (gs.fill != null && !isPolyline) {
       g.setColor(gs.fill);
@@ -333,6 +340,7 @@ class GDPath extends GDObject {
     }
   }
 
+  @Override
   public void paint(Component c, GDState gs, Graphics g) {
     Graphics2D g2 = (Graphics2D) g;
     if (gs.fill != null) {
@@ -361,6 +369,7 @@ class GDColor extends GDObject {
     }
   }
 
+  @Override
   public void paint(Component c, GDState gs, Graphics g) {
     gs.col = gc;
     if (gc != null) {
@@ -385,6 +394,7 @@ class GDFill extends GDObject {
     }
   }
 
+  @Override
   public void paint(Component c, GDState gs, Graphics g) {
     gs.fill = gc;
   }
@@ -422,6 +432,7 @@ class GDLinePar extends GDObject {
     }
   }
 
+  @Override
   public void paint(Component c, GDState gs, Graphics g) {
     if (bs != null) {
       ((Graphics2D) g).setStroke(bs);
@@ -457,6 +468,7 @@ class GDRaster extends GDObject {
     this.image = new BufferedImage(cm, raster, false, null);
   }
 
+  @Override
   public void paint(Component c, GDState gs, Graphics g) {
     Graphics2D g2 = (Graphics2D) g;
     Object oh = g2.getRenderingHint(RenderingHints.KEY_INTERPOLATION);

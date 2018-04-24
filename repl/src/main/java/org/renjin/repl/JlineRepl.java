@@ -219,6 +219,7 @@ public class JlineRepl {
 
           case ERROR:
             throw new ParseException(parser.getResultStatus().toString());
+
           case EOF:
             break parseLoop;
         }
@@ -263,13 +264,11 @@ public class JlineRepl {
     return true;
   }
 
-
   private void printException(Exception e) throws IOException {
     reader.getOutput().flush();
     errorStream.println("ERROR: " + e.getMessage());
     e.printStackTrace(errorStream);
     errorStream.flush();
-  //  reader.killLine();
   }
 
   private void printEvalException(EvalException e) throws IOException {
@@ -280,7 +279,6 @@ public class JlineRepl {
     }
     e.printRStackTrace(errorStream);
     errorStream.flush();
-  //  reader.killLine();
   }
 
 

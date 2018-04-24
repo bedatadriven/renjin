@@ -20,23 +20,27 @@
 
 package org.renjin.grDevices;
 
+import org.apache.commons.vfs2.FileObject;
 import org.jfree.graphics2d.svg.SVGGraphics2D;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.Native;
+import org.renjin.eval.Session;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.OutputStream;
 
+/**
+ * Container for writing a raster images to files.
+ */
 public class ImageContainer implements GDContainer {
 
   private final GDState state;
   private final Dimension size;
   private int deviceNumber;
   private final BufferedImage bufferedImage;
+  private final Session session;
   private final String filenameFormat;
   private String formatName;
 
@@ -45,7 +49,8 @@ public class ImageContainer implements GDContainer {
 
   private int pageNumber = 1;
 
-  public ImageContainer(String filenameFormat, String formatName, Color backgroundColor, int width, int height) {
+  public ImageContainer(Session session, String filenameFormat, String formatName, Color backgroundColor, int width, int height) {
+    this.session = session;
     this.filenameFormat = filenameFormat;
     this.formatName = formatName;
     this.bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
@@ -102,18 +107,12 @@ public class ImageContainer implements GDContainer {
 
   private void flush() {
     try {
-      formatName = "png";
-      PrintWriter stdOut = Native.currentContext().getSession().getStdOut();
-
       String filename = String.format(filenameFormat, pageNumber++);
-      File outputFile = new File(filename).getAbsoluteFile();
-      if(!outputFile.getParentFile().exists() || !outputFile.getParentFile().isDirectory()) {
-        throw new EvalException("could not open file '" + outputFile.getAbsolutePath() + "'");
-      }
+      FileObject fileObject = session.getFileSystemManager().resolveFile(filename);
 
-      stdOut.println("Writing to " + filename) ;
-      stdOut.flush();
-      ImageIO.write(bufferedImage, formatName, outputFile);
+      try(OutputStream outputStream = fileObject.getContent().getOutputStream()) {
+        ImageIO.write(bufferedImage, formatName, outputStream);
+      }
     } catch (IOException e) {
       throw new EvalException("Failed to write image: " + e.getMessage(), e);
     }

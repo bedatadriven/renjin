@@ -20,17 +20,20 @@
 
 package org.renjin.grDevices;
 
+import org.renjin.eval.Session;
 import org.renjin.sexp.ListVector;
 
 import java.awt.*;
 
 public class FileDevice extends GraphicsDevice {
 
+  private final Session session;
   private final String filename;
   private final String format;
   private final Color backgroundColor;
 
-  public FileDevice(ListVector deviceOptions) {
+  public FileDevice(Session session, ListVector deviceOptions) {
+    this.session = session;
     this.filename = deviceOptions.getElementAsString("filename");
     this.format = deviceOptions.getElementAsString("format");
     this.backgroundColor = Color.WHITE;
@@ -39,9 +42,9 @@ public class FileDevice extends GraphicsDevice {
   @Override
   public void open(double w, double h) {
     if(format.equals("svg")) {
-      container = new SvgContainer(filename, (int) w, (int) h, backgroundColor);
+      container = new SvgContainer(session, filename, (int) w, (int) h, backgroundColor);
     } else {
-      container = new ImageContainer(filename, format, backgroundColor, (int) w, (int) h);
+      container = new ImageContainer(session, filename, format, backgroundColor, (int) w, (int) h);
     }
   }
 }

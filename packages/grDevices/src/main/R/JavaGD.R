@@ -65,7 +65,7 @@ svg <- function (filename = if (onefile) "Rplots.svg" else "Rplot%03d.svg",
 
 }
 
-JavaGD <- function(name="JavaGD", deviceClass = "org.renjin.grDevices.JavaGD", width=400, height=300, ps=12) {
+JavaGD <- function(name="JavaGD", deviceClass = "org.renjin.grDevices.AwtDevice", width=400, height=300, ps=12) {
   invisible(.Call(C_newJavaGD, name, width, height, ps, deviceClass, list()))
 }
 

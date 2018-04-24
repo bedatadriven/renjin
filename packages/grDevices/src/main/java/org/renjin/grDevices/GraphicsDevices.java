@@ -21,12 +21,16 @@
 package org.renjin.grDevices;
 
 import org.renjin.eval.EvalException;
+import org.renjin.eval.Session;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.gcc.runtime.RecordUnitPtr;
 import org.renjin.gcc.runtime.Stdlib;
+import org.renjin.primitives.Native;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;
+
+import java.lang.reflect.Constructor;
 
 /**
  * Provides entry points into the Java-based graphics devices from the C code.
@@ -49,7 +53,9 @@ public class GraphicsDevices {
 
     GraphicsDevice device;
     try {
-      device = (GraphicsDevice) deviceClass.getConstructor(ListVector.class).newInstance((ListVector)deviceOptions);
+      Constructor constructor = deviceClass.getConstructor(Session.class, ListVector.class);
+      Session session = Native.currentContext().getSession();
+      device = (GraphicsDevice) constructor.newInstance(session, deviceOptions);
     } catch (Exception e) {
       throw new EvalException("Could not create graphics device", e);
     }

@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-${$file.lastModified.year} BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,9 @@ package org.renjin.grDevices;
 
 import java.awt.*;
 
-public class Colors {
+public final class Colors {
+
+  private Colors() {}
 
   public static Color valueOf(int col) {
       return new Color(((float)(col&255))/255f,

@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-${$file.lastModified.year} BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,9 +39,9 @@ public class FileDevice extends GraphicsDevice {
   @Override
   public void open(double w, double h) {
     if(format.equals("svg")) {
-      c = new SvgContainer(filename, (int) w, (int) h, backgroundColor);
+      container = new SvgContainer(filename, (int) w, (int) h, backgroundColor);
     } else {
-      c = new ImageContainer(filename, format, backgroundColor, (int) w, (int) h);
+      container = new ImageContainer(filename, format, backgroundColor, (int) w, (int) h);
     }
   }
 }

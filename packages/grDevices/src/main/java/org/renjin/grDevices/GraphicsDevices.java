@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-${year} BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,13 @@ import org.renjin.gcc.runtime.Stdlib;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;
 
+/**
+ * Provides entry points into the Java-based graphics devices from the C code.
+ */
+@SuppressWarnings("unused")
 public class GraphicsDevices {
+
+  private GraphicsDevices() {}
 
   public static Ptr newDevice(Ptr deviceClassPtr, SEXP deviceOptions) {
 

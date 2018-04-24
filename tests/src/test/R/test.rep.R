@@ -44,3 +44,9 @@ test.rep.with.times.and.each <- function() {
 test.rep.with.extra.args <- function() {
     assertThat(rep("x", 3, foo = 9, BAA = "BAA"), identicalTo(c("x", "x", "x")))
 }
+
+test.rep.forwarded.args <- function() {
+    f <- function(...) rep(42L, ...)
+
+    assertThat(f(times=3), identicalTo(c(42L, 42L, 42L)))
+}

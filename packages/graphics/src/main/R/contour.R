@@ -1,5 +1,7 @@
 #  File src/library/graphics/R/contour.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 contour <- function(x, ...) UseMethod("contour")
 
@@ -55,18 +57,19 @@ function (x = seq(0, 1, length.out = nrow(z)),
 	localTitle(...)
     }
     ##- don't lose  dim(.)
-    if (!is.double(z)) storage.mode(z) <- "double"
     method <- pmatch(method[1L], c("simple", "edge", "flattest"))
     if (missing(vfont))
-       vfont <- if(.Call("Rg_contourDef", PACKAGE="base")) NULL else c("sans serif", "plain")
+       vfont <- if(.Call(C_contourDef)) NULL else c("sans serif", "plain")
     if (!is.null(vfont))
         vfont <- c(typeface = pmatch(vfont[1L], Hershey$typeface),
-                   fontindex= pmatch(vfont[2L], Hershey$fontindex))
-    if (!is.null(labels))
+                   fontindex = pmatch(vfont[2L], Hershey$fontindex))
+    if (!is.null(labels)) {
         labels <- as.character(labels)
-    .Internal(contour(as.double(x), as.double(y), z, as.double(levels),
-		      labels, labcex, drawlabels, method, vfont,
-		      col = col, lty = lty, lwd = lwd))
+	if (drawlabels && !length(labels))
+	    stop("'labels' is length zero.  Use 'drawlabels = FALSE' to suppress labels.")
+    }
+    .External.graphics(C_contour, x, y, z, levels, labels, labcex, drawlabels,
+                       method, vfont, col, lty, lwd)
     if(!add) {
         ## at least col, lty, lwd are not needed,
         ## but easiest to be consistent with plot.default

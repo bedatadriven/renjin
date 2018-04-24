@@ -21,7 +21,6 @@ package org.renjin.primitives.packaging;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Native;
-import java.util.function.Predicate;
 import org.renjin.sexp.*;
 
 import java.lang.reflect.InvocationTargetException;
@@ -31,6 +30,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * A dynamically loaded "native" library.
@@ -177,12 +177,24 @@ public class DllInfo {
     return Modifier.isStatic(method.getModifiers()) && Modifier.isPublic(method.getModifiers());
   }
 
+  /**
+   * Looks up a symbol name in this dynamic library, <strong>if</strong> dynamic lookup for this library has not
+   * been disabled.
+   */
   public Optional<DllSymbol> lookup(DllSymbol.Convention convention, String symbolName) {
-
     if(forceSymbols) {
       return Optional.empty();
     }
+    return findMethod(convention, symbolName);
+  }
 
+  /**
+   * Finds a "native" method in this dynamic library by name.
+   *
+   * @param convention the calling convention
+   * @param symbolName the name of the method
+   */
+  public Optional<DllSymbol> findMethod(DllSymbol.Convention convention, String symbolName) {
     Optional<DllSymbol> registeredSymbol = lookupRegisteredSymbol(convention, symbolName);
     if(registeredSymbol.isPresent()) {
       return registeredSymbol;
@@ -216,7 +228,7 @@ public class DllInfo {
 
     for(Method method : libraryClass.getMethods()) {
       if(method.getName().equals(symbolName) && isPublicStatic(method)) {
-        return Optional.of(new DllSymbol(method));
+        return Optional.of(new DllSymbol(Optional.empty(), method));
       }
     }
     return Optional.empty();

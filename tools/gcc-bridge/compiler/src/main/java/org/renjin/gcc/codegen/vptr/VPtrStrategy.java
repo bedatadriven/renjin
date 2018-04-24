@@ -40,6 +40,7 @@ import java.util.Optional;
 public class VPtrStrategy implements PointerTypeStrategy {
 
   private static final Type POINTER_INTERFACE_TYPE = Type.getType(Ptr.class);
+
   private GimpleType baseType;
   private PointerType pointerType;
 

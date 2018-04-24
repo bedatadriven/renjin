@@ -1,5 +1,7 @@
 #  File src/library/grDevices/R/device.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 
 .known_interactive.devices <-
@@ -58,7 +60,7 @@ dev.cur <- function()
 {
     if(!exists(".Devices"))
 	.Devices <- list("null device")
-    num.device <- .Internal(dev.cur())
+    num.device <- .External(C_devcur)
     names(num.device) <- .Devices[[num.device]]
     num.device
 }
@@ -66,7 +68,7 @@ dev.cur <- function()
 dev.set <-
     function(which = dev.next())
 {
-    which <- .Internal(dev.set(as.integer(which)))
+    which <- .External(C_devset, as.integer(which))
     names(which) <- .Devices[[which]]
     which
 }
@@ -76,7 +78,7 @@ dev.next <-
 {
     if(!exists(".Devices"))
 	.Devices <- list("null.device")
-    num.device <- .Internal(dev.next(as.integer(which)))
+    num.device <- .External(C_devnext, as.integer(which))
     names(num.device) <- .Devices[[num.device]]
     num.device
 }
@@ -86,7 +88,7 @@ dev.prev <-
 {
     if(!exists(".Devices"))
 	.Devices <- list("null device")
-    num.device <- .Internal(dev.prev(as.integer(which)))
+    num.device <- .External(C_devprev, as.integer(which))
     names(num.device) <- .Devices[[num.device]]
     num.device
 }
@@ -96,7 +98,7 @@ dev.off <-
 {
     if(which == 1)
 	stop("cannot shut down device 1 (the null device)")
-    .Internal(dev.off(as.integer(which)))
+    .External(C_devoff, as.integer(which))
     dev.cur()
 }
 
@@ -121,7 +123,7 @@ dev.copy <- function(device, ..., which = dev.next())
     }
     ## protect against failure
     on.exit(dev.set(old.device))
-    .Internal(dev.copy(old.device))
+    .External(C_devcopy, old.device)
     on.exit()
     dev.cur()
 }
@@ -132,9 +134,9 @@ dev.print <- function(device = postscript, ...)
     nm <- names(current.device)[1L]
     if(nm == "null device") stop("no device to print from")
     if(!dev.displaylist())
-        stop("can only print from screen device")
+        stop("can only print from a screen device")
     oc <- match.call()
-    oc[[1L]] <- as.name("dev.copy")
+    oc[[1L]] <- quote(grDevices::dev.copy)
     oc$device <- device
     din <- graphics::par("din"); w <- din[1L]; h <- din[2L]
     if(missing(device)) { ## safe way to recognize postscript
@@ -159,9 +161,9 @@ dev.print <- function(device = postscript, ...)
             ## fits portrait but not landscape
             hz <- FALSE
         } else {
-            h0 <- ifelse(hz, wp, hp)
+            h0 <- if(hz) wp else hp
             if(h > h0) { w <- w * h0/h; h <- h0 }
-            w0 <- ifelse(hz, hp, wp)
+            w0 <- if(hz) hp else wp
             if(w > w0) { h <- h * w0/w; w <- w0 }
         }
         if(is.null(oc$pointsize)) {
@@ -194,7 +196,7 @@ dev.copy2eps <- function(...)
     if(!dev.displaylist())
         stop("can only print from a screen device")
     oc <- match.call()
-    oc[[1L]] <- as.name("dev.copy")
+    oc[[1L]] <- quote(grDevices::dev.copy)
     oc$device <- postscript
     oc$onefile <- FALSE
     oc$horizontal <- FALSE
@@ -220,7 +222,7 @@ dev.copy2pdf <- function(..., out.type = "pdf")
     if(!dev.displaylist())
         stop("can only print from a screen device")
     oc <- match.call()
-    oc[[1L]] <- as.name("dev.copy")
+    oc[[1L]] <- quote(grDevices::dev.copy)
     if(out.type == "quartz" && capabilities("aqua")) {
         oc$device <- quartz
         oc$type <- "pdf"
@@ -234,6 +236,7 @@ dev.copy2pdf <- function(..., out.type = "pdf")
         oc$onefile <- FALSE
         if(is.null(oc$paper)) oc$paper <- "special"
     }
+    oc$out.type <- NULL
     din <- dev.size("in"); w <- din[1L]; h <- din[2L]
     if(is.null(oc$width))
         oc$width <- if(!is.null(oc$height)) w/h * eval.parent(oc$height) else w
@@ -251,7 +254,7 @@ dev.control <- function(displaylist = c("inhibit", "enable"))
         stop("dev.control() called without an open graphics device")
     if(!missing(displaylist)) {
         displaylist <- match.arg(displaylist)
-	.Internal(dev.control(displaylist == "enable"))
+	.External(C_devcontrol, displaylist == "enable")
     } else stop("argument is missing with no default")
     invisible()
 }
@@ -260,12 +263,11 @@ dev.displaylist <- function()
 {
     if(dev.cur() <= 1)
         stop("dev.displaylist() called without an open graphics device")
-    .Internal(dev.displaylist())
+    .External(C_devdisplaylist)
 }
 
-recordGraphics <- function(expr, list, env) {
-  .Internal(recordGraphics(substitute(expr), list, env))
-}
+recordGraphics <- function(expr, list, env)
+  .Call(C_recordGraphics, substitute(expr), list, env)
 
 graphics.off <- function ()
 {
@@ -273,14 +275,16 @@ graphics.off <- function ()
     invisible()
 }
 
-dev.new <- function(...)
+dev.new <- function(..., noRStudioGD = FALSE)
 {
     dev <- getOption("device")
     if(!is.character(dev) && !is.function(dev))
         stop("invalid setting for 'getOption(\"device\")'")
+    if(noRStudioGD && is.character(dev) && dev == "RStudioGD")
+        dev <- .select_device()
     if(is.character(dev)) {
         ## this is documented to be searched for from workspace,
-        ## then in graphics namespace.
+        ## then in the grDevices namespace.
         ## We could restrict the search to functions, but the C
         ## code in devices.c does not.
         dev <- if(exists(dev, .GlobalEnv)) get(dev, .GlobalEnv)
@@ -295,7 +299,7 @@ dev.new <- function(...)
     if(identical(dev, pdf)) {
         ## Take care not to open device on top of another.
         if(is.null(a[["file"]]) && file.exists("Rplots.pdf")) {
-            fe <- file.exists(tmp <- paste("Rplots", 1L:999, ".pdf", sep=""))
+            fe <- file.exists(tmp <- paste0("Rplots", 1L:999, ".pdf"))
             if(all(fe)) stop("no suitable unused file name for pdf()")
             message(gettextf("dev.new(): using pdf(file=\"%s\")", tmp[!fe][1L]),
                     domain=NA)
@@ -304,7 +308,7 @@ dev.new <- function(...)
     } else if(identical(dev, postscript)) {
         ## Take care not to open device on top of another.
         if(is.null(a[["file"]]) && file.exists("Rplots.ps")) {
-            fe <- file.exists(tmp <- paste("Rplots", 1L:999, ".ps", sep=""))
+            fe <- file.exists(tmp <- paste0("Rplots", 1L:999, ".ps"))
             if(all(fe)) stop("no suitable unused file name for postscript()")
             message(gettextf("dev.new(): using postscript(file=\"%s\")",
                              tmp[!fe][1L]), domain=NA)
@@ -333,24 +337,24 @@ checkIntFormat <- function(s)
     length(grep("%", s)) == 0L
 }
 
-devAskNewPage <- function(ask=NULL) .Internal(devAskNewPage(ask))
+devAskNewPage <- function(ask=NULL) .External2(C_devAskNewPage, ask)
 
 dev.size <- function(units = c("in", "cm", "px"))
 {
     units <- match.arg(units)
-    size <- .Internal(dev.size())
+    size <- .External(C_devsize)
     if(units == "px") size else size * graphics::par("cin")/graphics::par("cra") *
         if(units == "cm") 2.54 else 1
 }
 
-dev.hold <- function(level = 1L) warning("graphics are not yet implemented.") # .Internal(devHoldFlush(max(0L, level)))
-dev.flush <- function(level = 1L) warning("graphics are not yet implemented.") # .Internal(devHoldFlush(-max(0L, level)))
+dev.hold <- function(level = 1L) .External(C_devholdflush, max(0L, level))
+dev.flush <- function(level = 1L) .External(C_devholdflush, -max(0L, level))
 
-dev.capture <- function(native = FALSE) .Internal(devCapture(native))
+dev.capture <- function(native = FALSE) .External(C_devcapture, native)
 
 dev.capabilities <- function(what = NULL)
 {
-    zz <- .Internal(dev.capabilities())
+    zz <- .External(C_devcap)
     z <- vector("list", 6L)
     names(z) <-  c("semiTransparency", "transparentBackground",
                    "rasterImage", "capture", "locator",
@@ -366,4 +370,25 @@ dev.capabilities <- function(what = NULL)
                   if (zz[8L]) "MouseUp",
                   if (zz[9L]) "Keybd" )[-1L]
     if (!is.null(what)) z[charmatch(what, names(z), 0L)] else z
+}
+
+## for use in dev.new and .onLoad
+.select_device <- function() {
+    ## Use device functions rather than names to make it harder to get masked.
+    if(!nzchar(defdev <- Sys.getenv("R_DEFAULT_DEVICE"))) defdev <- JavaGD
+    if(interactive()) {
+        if(nzchar(intdev <- Sys.getenv("R_INTERACTIVE_DEVICE"))) intdev
+        else {
+            if(.Platform$OS.type == "windows") windows
+            else {
+                ## This detects if quartz() was built and if we are
+                ## running at the macOS console (both of which have to
+                ## be true under R.app).
+                if(.Platform$GUI == "AQUA" ||.Call(C_makeQuartzDefault)) quartz
+                else if(nzchar(Sys.getenv("DISPLAY"))
+                        && .Platform$GUI %in% c("X11", "Tk")) X11
+                else defdev
+            }
+        }
+    } else defdev
 }

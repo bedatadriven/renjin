@@ -131,7 +131,6 @@ public class Session {
    */
   Context conditionStack = null;
 
-
   Session(FileSystemManager fileSystemManager,
           ClassLoader classLoader,
           PackageLoader packageLoader,
@@ -196,6 +195,11 @@ public class Session {
       singletons.put(clazz, instance);
     }
     return instance;
+  }
+
+
+  public Options getOptions() {
+    return getSingleton(Options.class);
   }
 
   public void setSessionController(SessionController sessionController) {
@@ -326,8 +330,6 @@ public class Session {
   public ClassLoader getClassLoader() {
     return classLoader;
   }
-
-
 
   public void registerFinalizer(SEXP sexp, FinalizationHandler handler, boolean onExit) {
     if(finalizers == null) {

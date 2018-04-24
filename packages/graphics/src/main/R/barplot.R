@@ -1,5 +1,7 @@
 #  File src/library/graphics/R/barplot.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 barplot <- function(height, ...) UseMethod("barplot")
 
@@ -49,7 +51,7 @@ function(height, width = 1, space = NULL, names.arg = NULL,
     } else if (is.matrix(height)) {
 	## In the matrix case, we use "colors" by default.
 	if(is.null(col))
-	    col <- grey.colors(nrow(height))
+	    col <- gray.colors(nrow(height))
     }
     else
 	stop("'height' must be a vector or a matrix")
@@ -74,12 +76,12 @@ function(height, width = 1, space = NULL, names.arg = NULL,
     if (beside) {
 	if (length(space) == 2)
 	    space <- rep.int(c(space[2L], rep.int(space[1L], NR - 1)), NC)
-	width <- rep(width, length.out = NR)
+	width <- rep_len(width, NR)
     } else {
-	width <- rep(width, length.out = NC)
+	width <- rep_len(width, NC)
     }
 
-    offset <- rep(as.vector(offset), length.out = length(width))
+    offset <- rep_len(as.vector(offset), length(width))
 
     delta <- width / 2
     w.r <- cumsum(space + width)
@@ -124,24 +126,22 @@ function(height, width = 1, space = NULL, names.arg = NULL,
     if (beside)
 	w.m <- matrix(w.m, ncol = NC)
     if(plot) { ##-------- Plotting :
-		warning("graphics are not yet implemented.\n")
-        #dev.hold()
+        dev.hold()
 	opar <-
 	    if (horiz)	par(xaxs = "i", xpd = xpd)
 	    else	par(yaxs = "i", xpd = xpd)
-	#on.exit({dev.flush();par(opar)})
+	on.exit({dev.flush();par(opar)})
 
 	if (!add) {
-	    #plot.new()
-	    #plot.window(xlim, ylim, log = log, ...)
+	    plot.new()
+	    plot.window(xlim, ylim, log = log, ...)
 	}
 
 	xyrect <- function(x1,y1, x2,y2, horizontal = TRUE, ...) {
-	    #if(horizontal)
-		#rect(x1,y1, x2,y2, ...)
-	    #else
-		#rect(y1,x1, y2,x2, ...)
-		warning("graphics are not yet implemented.\n")
+	    if(horizontal)
+		rect(x1,y1, x2,y2, ...)
+	    else
+		rect(y1,x1, y2,x2, ...)
 	}
 	if (beside)
 	    xyrect(rectbase + offset, w.l, c(height) + offset, w.r,
@@ -168,34 +168,34 @@ function(height, width = 1, space = NULL, names.arg = NULL,
 		else
 		    stop("incorrect number of names")
 	    } else w.m
-	    #axis(if(horiz) 2 else 1, at = at.l, labels = names.arg,
-		# lty = axis.lty, cex.axis = cex.names, ...)
+	    axis(if(horiz) 2 else 1, at = at.l, labels = names.arg,
+		 lty = axis.lty, cex.axis = cex.names, ...)
 	}
 	if(!is.null(legend.text)) {
-	    legend.col <- rep(col, length.out = length(legend.text))
+	    legend.col <- rep_len(col, length(legend.text))
 	    if((horiz & beside) || (!horiz & !beside)){
 		legend.text <- rev(legend.text)
 		legend.col <- rev(legend.col)
 		density <- rev(density)
 		angle <- rev(angle)
 	    }
-	    #xy <- par("usr")
-            #if(is.null(args.legend)) {
-            #    legend(xy[2L] - xinch(0.1), xy[4L] - yinch(0.1),
-            #           legend = legend.text, angle = angle, density = density,
-            #           fill = legend.col, xjust = 1, yjust = 1)
-            #} else {
-            #    args.legend1 <- list(x = xy[2L] - xinch(0.1),
-            #                         y = xy[4L] - yinch(0.1),
-            #                         legend = legend.text,
-            #                         angle = angle, density = density,
-            #                         fill = legend.col, xjust = 1, yjust = 1)
-            #    args.legend1[names(args.legend)] <- args.legend
-            #    do.call("legend", args.legend1)
-            #}
+	    xy <- par("usr")
+            if(is.null(args.legend)) {
+                legend(xy[2L] - xinch(0.1), xy[4L] - yinch(0.1),
+                       legend = legend.text, angle = angle, density = density,
+                       fill = legend.col, xjust = 1, yjust = 1)
+            } else {
+                args.legend1 <- list(x = xy[2L] - xinch(0.1),
+                                     y = xy[4L] - yinch(0.1),
+                                     legend = legend.text,
+                                     angle = angle, density = density,
+                                     fill = legend.col, xjust = 1, yjust = 1)
+                args.legend1[names(args.legend)] <- args.legend
+                do.call("legend", args.legend1)
+            }
 	}
-	#title(main = main, sub = sub, xlab = xlab, ylab = ylab, ...)
-	#if(axes) axis(if(horiz) 1 else 2, cex.axis = cex.axis, ...)
+	title(main = main, sub = sub, xlab = xlab, ylab = ylab, ...)
+	if(axes) axis(if(horiz) 1 else 2, cex.axis = cex.axis, ...)
 	invisible(w.m)
     } else w.m
 }

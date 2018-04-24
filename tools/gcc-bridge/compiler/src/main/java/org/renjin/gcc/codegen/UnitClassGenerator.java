@@ -20,8 +20,6 @@ package org.renjin.gcc.codegen;
 
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.ProvidedGlobalVar;
-import org.renjin.gcc.logging.LogManager;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.ParamStrategy;
@@ -37,6 +35,7 @@ import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.link.LinkSymbol;
+import org.renjin.gcc.logging.LogManager;
 import org.renjin.gcc.symbols.GlobalSymbolTable;
 import org.renjin.gcc.symbols.UnitSymbolTable;
 import org.renjin.repackaged.asm.ClassVisitor;
@@ -51,7 +50,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
@@ -80,15 +82,15 @@ public class UnitClassGenerator {
 
 
   public UnitClassGenerator(TypeOracle typeOracle,
-                            GlobalSymbolTable functionTable,
-                            Map<String, ProvidedGlobalVar> providedVariables,
+                            GlobalSymbolTable globalSymbolTable,
+                            List<GlobalVarTransformer> globalVarTransformers,
                             GimpleCompilationUnit unit,
                             String className) {
     this.unit = unit;
     this.className = className;
     this.typeOracle = typeOracle;
     this.globalVarAllocator = new GlobalVarAllocator(className);
-    this.symbolTable = new UnitSymbolTable(functionTable, unit);
+    this.symbolTable = new UnitSymbolTable(globalSymbolTable, unit);
 
     // Setup global variables that have global scoping
     Set<String> visited = new HashSet<>();
@@ -99,27 +101,8 @@ public class UnitClassGenerator {
       if(!visited.add(decl.getMangledName())) {
         continue;
       }
-      GExpr varGenerator;
-
-      if (isProvided(providedVariables, decl)) {
-        ProvidedGlobalVar providedField = providedVariables.get(decl.getName());
-        varGenerator = providedField.createExpr(decl, typeOracle);
-
-      } else {
-        try {
-          TypeStrategy typeStrategy = typeOracle.forType(decl.getType());
-          varGenerator = typeStrategy.variable(decl, globalVarAllocator);
-
-        } catch (Exception e) {
-          throw new InternalCompilerException("Global variable " + decl.getName() + " in " + unit.getSourceName(), e);
-        }
-        varToGenerate.add(decl);
-
-        if(!decl.isStatic()) {
-          globalVariableSymbols.add(LinkSymbol.forGlobalVariable(decl.getMangledName(), Type.getType(className)));
-        }
-      }
-      symbolTable.addGlobalVariable(decl, varGenerator);
+      symbolTable.addGlobalVariable(decl,
+            generatorForGlobalVar(globalVarTransformers, decl));
     }
 
     for (GimpleFunction function : unit.getFunctions()) {
@@ -142,6 +125,39 @@ public class UnitClassGenerator {
     }
   }
 
+  public UnitSymbolTable getSymbolTable() {
+    return symbolTable;
+  }
+
+  public GimpleCompilationUnit getUnit() {
+    return unit;
+  }
+
+  private GExpr generatorForGlobalVar(List<GlobalVarTransformer> globalVarTransformers,
+                                      GimpleVarDecl decl) {
+
+    for (GlobalVarTransformer transformer : globalVarTransformers) {
+      if(transformer.accept(decl)) {
+        return transformer.generator(typeOracle, this.unit, decl);
+      }
+    }
+
+    GExpr varGenerator;
+    try {
+      TypeStrategy typeStrategy = this.typeOracle.forType(decl.getType());
+      varGenerator = typeStrategy.variable(decl, globalVarAllocator);
+
+    } catch (Exception e) {
+      throw new InternalCompilerException("Global variable " + decl.getName() + " in " + this.unit.getSourceName(), e);
+    }
+    varToGenerate.add(decl);
+
+    if(!decl.isStatic()) {
+      globalVariableSymbols.add(LinkSymbol.forGlobalVariable(decl.getMangledName(), Type.getType(this.className)));
+    }
+    return varGenerator;
+  }
+
   public List<LinkSymbol> getGlobalVariableSymbols() {
     return globalVariableSymbols;
   }
@@ -154,16 +170,14 @@ public class UnitClassGenerator {
     return false;
   }
 
-  private boolean isProvided(Map<String, ProvidedGlobalVar> providedVariables, GimpleVarDecl decl) {
-    return decl.isPublic() && providedVariables.containsKey(decl.getName());
-  }
-
   public String getClassName() {
     return className;
   }
 
   public void emit(LogManager parentLogger) {
-    
+
+    parentLogger.logRecords(unit, symbolTable);
+
     sw = new StringWriter();
     pw = new PrintWriter(sw);
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS) {
@@ -207,7 +221,7 @@ public class UnitClassGenerator {
     globalVarAllocator.writeFields(cv);
     
     // and any static initialization that is required
-    MethodGenerator mv = new MethodGenerator(cv.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null));
+    MethodGenerator mv = new MethodGenerator(className, cv.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null));
     mv.visitCode();
 
     ExprFactory exprFactory = new ExprFactory(typeOracle, symbolTable, mv);
@@ -262,7 +276,7 @@ public class UnitClassGenerator {
                                  GimpleExpr initialValue) {
 
     String initMethodName = VarAllocator.toJavaSafeName(decl.getMangledName()) + "$$clinit";
-    MethodGenerator mv = new MethodGenerator(cv.visitMethod(ACC_STATIC, initMethodName, "()V", null, null));
+    MethodGenerator mv = new MethodGenerator(className, cv.visitMethod(ACC_STATIC, initMethodName, "()V", null, null));
     ExprFactory exprFactory = new ExprFactory(typeOracle, symbolTable, mv);
     mv.visitCode();
     tryWriteInitCode(mv, exprFactory, decl, varGenerator, initialValue);

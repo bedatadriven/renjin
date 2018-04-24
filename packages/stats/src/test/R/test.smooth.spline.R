@@ -13,10 +13,10 @@ y18 <- c(1:3, 5, 4, 7:3, 2*(2:5), rep(10, 4))
 (s2. <- smooth.spline(y18, cv = TRUE,
                       control = list(trace=TRUE, tol = 1e-6,
                                      low = if(use.l3) -3 else -2)))
-plot(y18)
+#plot(y18)
 xx <- seq(1,length(y18), len=201)
-lines(predict(s2., xx), col = 4)
-mtext(deparse(s2.$call,200), side= 1, line= -1, cex= 0.8, col= 4)
+#lines(predict(s2., xx), col = 4)
+#mtext(deparse(s2.$call,200), side= 1, line= -1, cex= 0.8, col= 4)
 
 (sdf8 <- smooth.spline(y18, df = 8, control=list(trace=TRUE)))# 11 iter.
 sdf8$df - 8 # -0.0009159978
@@ -46,10 +46,10 @@ stopifnot(all.equal(ssGet1("crit"), ssGet1("cv.crit"), tol = 1e-10))# seeing rel
 ## Interesting:  for really large lambda, solution "diverges" from the straight line
 ssGet(c("lambda", "df", "crit", "pen.crit"))
 
-plot(y18); lines(predict(s2., xx), lwd = 5, col = adjustcolor(4, 1/4))
-invisible(lapply(seq_along(ssok), function(i) lines(predict(ssok[[i]], xx), col=i)))
+#plot(y18); lines(predict(s2., xx), lwd = 5, col = adjustcolor(4, 1/4))
+#invisible(lapply(seq_along(ssok), function(i) lines(predict(ssok[[i]], xx), col=i)))
 i18 <- 1:18
-abline(lm(y18 ~ i18), col = adjustcolor('tomato',1/2), lwd = 5, lty = 3)
+#abline(lm(y18 ~ i18), col = adjustcolor('tomato',1/2), lwd = 5, lty = 3)
 ## --> lambda = 10^10 is clearly wrong: a *line* but not the L.S. one
 #legend("topleft", lamExp[ok], ncol = 2, bty = "n", col = seq_along(ssok), lty=1)
 
@@ -59,8 +59,8 @@ s2   <- smooth.spline(y18, cv = TRUE, keep.stuff=TRUE)
 
 s2.7  <- smooth.spline(y18, cv = TRUE, keep.stuff=TRUE, nknots = 7)
 s2.11 <- smooth.spline(y18, cv = TRUE, keep.stuff=TRUE, nknots = 11)
-plot(y18)
-lines(predict(s2, xx), lwd = 5, col = adjustcolor(4, 1/4))
-lines(predict(s2.7,  xx), lwd = 3, col = adjustcolor("red", 1/4))
-lines(predict(s2.11, xx), lwd = 2, col = adjustcolor("forestgreen", 1/4))
+#plot(y18)
+#lines(predict(s2, xx), lwd = 5, col = adjustcolor(4, 1/4))
+#lines(predict(s2.7,  xx), lwd = 3, col = adjustcolor("red", 1/4))
+#lines(predict(s2.11, xx), lwd = 2, col = adjustcolor("forestgreen", 1/4))
 ## s2.11 is very close to 's2'

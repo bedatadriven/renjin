@@ -20,12 +20,14 @@ package org.renjin.gcc.codegen;
 
 
 import org.renjin.gcc.GimpleCompiler;
+import org.renjin.gcc.GimpleCompilerPlugin;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.repackaged.asm.*;
 import org.renjin.repackaged.asm.util.TraceClassVisitor;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
@@ -61,13 +63,17 @@ public class TrampolineClassGenerator {
     mv.visitEnd();
   }
   
-  public void emitTrampolineMethod(FunctionGenerator functionGenerator) {
+  public void emitTrampolineMethod(List<GimpleCompilerPlugin> plugins, FunctionGenerator functionGenerator) {
     MethodVisitor mv = cv.visitMethod(ACC_PUBLIC | ACC_STATIC,
         functionGenerator.getSafeMangledName(),
         functionGenerator.getFunctionDescriptor(),
         null, null);
     
     mv.visitCode();
+
+    for (GimpleCompilerPlugin plugin : plugins) {
+      plugin.writeTrampolinePrelude(mv, functionGenerator);
+    }
     
     int varIndex = 0;
     for (ParamStrategy generator : functionGenerator.getParamStrategies()) {

@@ -23,10 +23,10 @@ import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.repackaged.guava.base.Joiner;
-import java.util.function.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 public class GimpleCall extends GimpleStatement {
 
@@ -66,14 +66,21 @@ public class GimpleCall extends GimpleStatement {
   }
 
   public boolean isFunctionNamed(String name) {
+    return name.equals(getFunctionName());
+  }
+
+  /**
+   * @return the name of the function if this is a static call, or "" if this is a call to a function pointer.
+   */
+  public String getFunctionName() {
     if(function instanceof GimpleAddressOf) {
       GimpleExpr value = ((GimpleAddressOf) function).getValue();
       if (value instanceof GimpleFunctionRef) {
         GimpleFunctionRef ref = (GimpleFunctionRef) value;
-        return ref.getName().equals(name);
+        return ref.getName();
       }
     }
-    return false;
+    return "";
   }
 
   @Override

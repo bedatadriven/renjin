@@ -34,8 +34,6 @@ import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.primitives.packaging.DllSymbol;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.base.Charsets;
-import java.util.function.Predicate;
-import org.renjin.repackaged.guava.base.Predicates;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
 
@@ -45,6 +43,7 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 public class Native {
 
@@ -364,6 +363,9 @@ public class Native {
     DllSymbol method = findMethod(context, methodExp, packageName, className, DllSymbol.Convention.CALL);
 
     MethodHandle methodHandle = method.getMethodHandle();
+    if(methodHandle == null) {
+      throw new NullPointerException("methodHandle for " + method.getName() + " is null.");
+    }
     if(methodHandle.type().parameterCount() != callArguments.length()) {
       throw new EvalException("Expected %d arguments, found %d in call to %s",
           methodHandle.type().parameterCount(),
@@ -404,7 +406,7 @@ public class Native {
                               SEXP methodExp,
                               @ArgumentList ListVector callArguments,
                               @NamedFlag("PACKAGE") String packageName,
-                              @NamedFlag("CLASS") String className) throws ClassNotFoundException {
+                              @NamedFlag("CLASS") String className) {
 
 
     DllSymbol symbol = findMethod(context, methodExp, packageName, className, DllSymbol.Convention.EXTERNAL);
@@ -538,7 +540,7 @@ public class Native {
     }
 
     if(method instanceof ExternalPtr) {
-      return findMethodFromExternalPointer((ExternalPtr<?>) method);
+      return findMethodFromExternalPointer(convention, (ExternalPtr<?>) method);
     }
 
     if(method instanceof StringVector) {
@@ -548,9 +550,9 @@ public class Native {
     throw new EvalException("Invalid method object of type '%s'", method.getTypeName());
   }
 
-  private static DllSymbol findMethodFromExternalPointer(ExternalPtr<?> method)  {
+  private static DllSymbol findMethodFromExternalPointer(DllSymbol.Convention convention, ExternalPtr<?> method)  {
     if (method.getInstance() instanceof Method) {
-      return new DllSymbol((Method) method.getInstance());
+      return new DllSymbol(convention, (Method) method.getInstance());
     }
     throw new EvalException("Invalid method external pointer of (java) class '%s'", method.getInstance().getClass().getName());
   }
@@ -558,7 +560,7 @@ public class Native {
   private static DllSymbol findMethodByName(Context context, String methodName, String packageName, String className, DllSymbol.Convention convention) {
 
     if(className != null) {
-      return findMethodByReflection(methodName, className);
+      return findMethodByReflection(methodName, convention, className);
     }
 
     if(packageName == null) {
@@ -576,7 +578,7 @@ public class Native {
     }
   }
 
-  private static DllSymbol findMethodByReflection(String methodName, String className) {
+  private static DllSymbol findMethodByReflection(String methodName, DllSymbol.Convention convention, String className) {
     Class<?> declaringClass = null;
     try {
       declaringClass = Class.forName(className);
@@ -584,17 +586,17 @@ public class Native {
       throw new EvalException("Could not find Java class " + className);
     }
 
-    return findMethodByReflection(methodName, declaringClass);
+    return findMethodByReflection(methodName, convention, declaringClass);
   }
 
-  private static DllSymbol findMethodByReflection(String methodName, Class<?> declaringClass) {
+  private static DllSymbol findMethodByReflection(String methodName, DllSymbol.Convention convention, Class<?> declaringClass) {
     for(Method method : declaringClass.getMethods()) {
       if(method.getName().equals(methodName) &&
           Modifier.isPublic(method.getModifiers()) &&
           Modifier.isStatic(method.getModifiers())) {
 
 
-        return new DllSymbol(method);
+        return new DllSymbol(convention, method);
       }
     }
 

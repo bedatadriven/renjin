@@ -22,6 +22,9 @@ package org.renjin.gnur.api;
 import org.renjin.eval.*;
 import org.renjin.gcc.annotations.GlobalVar;
 import org.renjin.gcc.runtime.*;
+import org.renjin.gnur.api.annotations.Allocator;
+import org.renjin.gnur.api.annotations.Mutee;
+import org.renjin.gnur.api.annotations.PotentialMutator;
 import org.renjin.methods.MethodDispatch;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.*;
@@ -460,7 +463,7 @@ public final class Rinternals {
     }
   }
 
-  public static void SET_TYPEOF(SEXP x, int v) {
+  public static void SET_TYPEOF(@Mutee SEXP x, int v) {
     if(TYPEOF(x) != v) {
       throw new UnimplementedGnuApiMethod(String.format("Cannot change SEXP of type '%s' to '%s'",
           SexpType.typeName(TYPEOF(x)),
@@ -681,7 +684,7 @@ public final class Rinternals {
    *
    * @param v Pointer to CHARSXP representing the new value.
    */
-  public static void SET_STRING_ELT(SEXP x, /*R_xlen_t*/ int i, SEXP v) {
+  public static void SET_STRING_ELT(@Mutee SEXP x, /*R_xlen_t*/ int i, SEXP v) {
     if(x instanceof GnuStringVector) {
       GnuStringVector stringVector = (GnuStringVector) x;
       GnuCharSexp charValue = (GnuCharSexp) v;
@@ -1165,7 +1168,7 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_VectorToPairList(SEXP x) {
-    throw new UnimplementedGnuApiMethod("Rf_VectorToPairList");
+    return PairList.Node.fromVector(((Vector) x));
   }
 
   public static SEXP Rf_asCharacterFactor(SEXP x) {
@@ -1288,6 +1291,7 @@ public final class Rinternals {
    *
    * @return The constructed list, or R_NilValue if {@code n} is zero.
    */
+  @Allocator
   public static SEXP Rf_allocList(int n) {
     PairList.Builder list = new PairList.Builder();
     for(int i = 0; i < n; i++) {
@@ -1296,6 +1300,7 @@ public final class Rinternals {
     return list.build();
   }
 
+  @Allocator
   public static SEXP Rf_allocLang(int n) {
     FunctionCall.Builder lang = new FunctionCall.Builder();
     for(int i = 0; i < n; i++) {
@@ -1308,10 +1313,12 @@ public final class Rinternals {
    *
    * @return Pointer to the created object.
    */
+  @Allocator
   public static SEXP Rf_allocS4Object() {
     throw new UnimplementedGnuApiMethod("Rf_allocS4Object");
   }
 
+  @Allocator
   public static SEXP Rf_allocSExp(/*SEXPTYPE*/ int p0) {
     throw new UnimplementedGnuApiMethod("Rf_allocSExp");
   }
@@ -1332,8 +1339,9 @@ public final class Rinternals {
 
   // SEXP Rf_arraySubscript (int, SEXP, SEXP, SEXP(*)(SEXP, SEXP), SEXP(*)(SEXP, int), SEXP)
 
-  public static SEXP Rf_classgets(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_classgets");
+  @PotentialMutator
+  public static SEXP Rf_classgets(@Mutee SEXP object, SEXP classNames) {
+    return Native.currentContext().evaluate(FunctionCall.newCall(Symbol.get("class<-"), object, classNames));
   }
 
   /** Creates a pairlist with a specified car and tail.
@@ -1779,8 +1787,8 @@ public final class Rinternals {
     return Symbol.get(name.nullTerminatedString());
   }
 
-  public static SEXP Rf_installChar(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_installChar");
+  public static SEXP Rf_installChar(SEXP charSexp) {
+    return Rf_install(((GnuCharSexp) charSexp).getValue());
   }
 
   public static SEXP Rf_installDDVAL(int i) {
@@ -1957,7 +1965,7 @@ public final class Rinternals {
    * @return Refer to source code.  (Sometimes vec, sometimes 
    * val, sometime R_NilValue ...)
    */
-  public static SEXP Rf_setAttrib(SEXP vec, SEXP name, SEXP val) {
+  public static SEXP Rf_setAttrib(@Mutee SEXP vec, SEXP name, SEXP val) {
     if(name == null) {
       throw new IllegalArgumentException("attributeName is NULL");
     }
@@ -2199,6 +2207,12 @@ public final class Rinternals {
 
   public static Ptr Rf_reEnc(BytePtr x, int ce_in, int ce_out, int subst) {
     if(ce_in == ce_out) {
+      return x;
+    } else if(ce_in == -1 && ce_out == CE_UTF8) {
+      return x;
+    } else if(ce_in == CE_NATIVE && ce_out == CE_UTF8) {
+      return x;
+    } else if(ce_in == CE_ANY && ce_out == CE_UTF8) {
       return x;
     } else {
       throw new UnsupportedOperationException(String.format("Rf_reEnc: from %d to %d", ce_in, ce_out));
@@ -2713,6 +2727,7 @@ public final class Rinternals {
    *
    * @return Pointer to the created vector.
    */
+  @Allocator
   public static SEXP Rf_allocVector(/*SEXPTYPE*/ int stype, /*R_xlen_t*/ int length) {
     switch (stype) {
       case SexpType.INTSXP:
@@ -2740,8 +2755,8 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_conformable");
   }
 
-  public static SEXP Rf_elt(SEXP p0, int p1) {
-    throw new UnimplementedGnuApiMethod("Rf_elt");
+  public static SEXP Rf_elt(SEXP vector, int index) {
+    return vector.getElementAsSEXP(index);
   }
 
   public static boolean Rf_inherits(SEXP p0, BytePtr p1) {

@@ -1,5 +1,7 @@
 #  File src/library/grDevices/R/smooth2d.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 
 ## need some standard blues to plot ; output of brewer.pal(9, "Blues"):
@@ -27,9 +29,9 @@ blues9 <- c("#F7FBFF", "#DEEBF7", "#C6DBEF", "#9ECAE1", "#6BAED6",
 	stop("'nbin' must be numeric of length 1 or 2")
 
     if (missing(bandwidth)) { ## cheap
-	bandwidth <- diff(apply(x, 2, quantile,
+	bandwidth <- diff(apply(x, 2, stats::quantile,
 				probs = c(0.05, 0.95),
-                                na.rm = TRUE, names=FALSE)) / 25
+                                na.rm = TRUE, names = FALSE)) / 25
 	bandwidth[bandwidth==0] <- 1
     }
     else {
@@ -43,11 +45,11 @@ blues9 <- c("#F7FBFF", "#DEEBF7", "#C6DBEF", "#9ECAE1", "#6BAED6",
     rv
 }
 
-densCols <- function(x, y=NULL, nbin=128, bandwidth,
-		     colramp=colorRampPalette(blues9[-(1:3)]))
+densCols <- function(x, y = NULL, nbin = 128, bandwidth,
+		     colramp = colorRampPalette(blues9[-(1:3)]))
 {
     ## similar as in plot.default
-    xy <- xy.coords(x, y)
+    xy <- xy.coords(x, y, setLab = FALSE)
 
     ## deal with NA, etc
     select <- is.finite(xy$x) & is.finite(xy$y)
@@ -58,14 +60,14 @@ densCols <- function(x, y=NULL, nbin=128, bandwidth,
 
     ## bin  x- and y- values
     mkBreaks <- function(u) u - diff(range(u))/(length(u)-1)/2
-    xbin <- cut(x[,1], mkBreaks(map$x1), labels=FALSE)
-    ybin <- cut(x[,2], mkBreaks(map$x2), labels=FALSE)
+    xbin <- cut(x[,1], mkBreaks(map$x1), labels = FALSE)
+    ybin <- cut(x[,2], mkBreaks(map$x2), labels = FALSE)
 
     dens <- map$fhat[cbind(xbin, ybin)]
-    dens[is.na(dens)]<- 0
+    dens[is.na(dens)] <- 0
 
     ## transform densities to colors
-    colpal <- cut(dens, length(dens), labels=FALSE)
+    colpal <- cut(dens, length(dens), labels = FALSE)
     cols   <- rep(NA_character_, length(select))
     cols[select] <- colramp(length(dens))[colpal]
 

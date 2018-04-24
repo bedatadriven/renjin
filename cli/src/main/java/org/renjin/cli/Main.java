@@ -160,7 +160,7 @@ public class Main {
     }
   }
 
-  public void initSession() throws Exception {
+  public void initSession() {
     threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     packageLoader = new AetherPackageLoader();

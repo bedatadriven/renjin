@@ -21,7 +21,6 @@ package org.renjin.packaging;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParser;
 import org.renjin.gnur.GnurSourcesCompiler;
 import org.renjin.primitives.packaging.Namespace;
@@ -35,7 +34,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
@@ -51,9 +49,6 @@ public class NativeSourceBuilder {
 
   private PackageSource source;
   private BuildContext buildContext;
-
-  private List<String> entryPoints;
-
 
   public NativeSourceBuilder(PackageSource source, BuildContext buildContext) {
     this.source = source;
@@ -200,17 +195,8 @@ public class NativeSourceBuilder {
     compiler.setClassName(findLibraryName());
     compiler.setLoggingDirectory(buildContext.getCompileLogDir());
 
-    if(entryPoints != null && !entryPoints.isEmpty()) {
-      compiler.setEntryPointPredicate(new Predicate<GimpleFunction>() {
-        @Override
-        public boolean test(GimpleFunction input) {
-          return entryPoints.contains(input.getMangledName());
-        }
-      });
-    }
-
     try {
-      GnurSourcesCompiler.setupCompiler(compiler);
+      GnurSourcesCompiler.setupCompiler(compiler, compiler.getPackageName());
     } catch (ClassNotFoundException e) {
       throw new BuildException("Failed to setup Gimple Compiler", e);
     }
@@ -251,7 +237,7 @@ public class NativeSourceBuilder {
       private boolean defined = false;
 
       @Override
-      public boolean processLine(String line) throws IOException {
+      public boolean processLine(String line) {
         if(definitionRegexp.matcher(line).find()) {
           defined = true;
           return false;

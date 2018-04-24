@@ -20,28 +20,39 @@
 
 package org.renjin.grDevices;
 
+import org.apache.commons.vfs2.FileObject;
 import org.apache.pdfbox.util.Charsets;
 import org.jfree.graphics2d.svg.SVGGraphics2D;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.Session;
+import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.hash.Hashing;
+import org.renjin.repackaged.guava.io.Files;
 
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 public class SvgContainer implements GDContainer {
+
+  private static final String RENJINCI_PLOT_DIR = System.getenv("RENJINCI_PLOT_DIR");
 
   private final SVGGraphics2D graphics;
   private final GDState state;
   private final Dimension size;
   private int deviceNumber;
+  private final Session session;
   private final String filenameFormat;
 
   private boolean empty = true;
 
   private int pageNumber = 1;
 
-  public SvgContainer(String filenameFormat, int width, int height, Color backgroundColor) {
+  public SvgContainer(Session session, String filenameFormat, int width, int height, Color backgroundColor) {
     super();
+    this.session = session;
     this.filenameFormat = filenameFormat;
     this.size = new Dimension(width, height);
     this.graphics = new SVGGraphics2D(width, height);
@@ -104,14 +115,42 @@ public class SvgContainer implements GDContainer {
   }
 
   public void flush() {
+
     String svg = graphics.getSVGDocument();
 
-    String filename = String.format(filenameFormat, pageNumber++);
-    File to = new File(filename);
     try {
-      org.renjin.repackaged.guava.io.Files.write(svg, to, Charsets.UTF_8);
+
+      if(!Strings.isNullOrEmpty(RENJINCI_PLOT_DIR)) {
+        flushCiObject(svg);
+      }
+
+      String filename = String.format(filenameFormat, pageNumber++);
+      FileObject fileObject = session.getFileSystemManager().resolveFile(filename);
+
+      try(Writer writer = new OutputStreamWriter(fileObject.getContent().getOutputStream(), Charsets.UTF_8)) {
+        writer.write(svg);
+      }
     } catch (IOException e) {
-      throw new EvalException("Exception writing to " + to.getAbsolutePath(), e);
+      throw new EvalException("Failed to write SVG file: " + e.getMessage(), e);
     }
+  }
+
+  private void flushCiObject(String svg) throws IOException {
+    String hashCode = Hashing.sha256().hashString(svg, Charsets.UTF_8).toString();
+
+    File plotDir = new File(RENJINCI_PLOT_DIR);
+    if(!plotDir.exists()) {
+      boolean created = plotDir.mkdirs();
+      if(!created) {
+        throw new IOException("Could not create directory " + plotDir.getAbsolutePath());
+      }
+    }
+
+    File plotFile = new File(plotDir, hashCode + ".svg");
+
+    Files.write(svg, plotFile, Charsets.UTF_8);
+
+    session.getStdOut().println("<<<<plot:" + hashCode + ".svg>>>>");
+    session.getStdOut().flush();
   }
 }

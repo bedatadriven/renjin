@@ -268,7 +268,6 @@ static SEXP baseCallback(GEevent task, pGEDevDesc dd, SEXP data)
             bss = dd->gesd[baseRegisterIndex]->systemSpecific;
             /* Changed from INTSXP in 2.7.0: but saved graphics lists
                are protected by an R version number */
-            printf("GE_SaveSnapshotState\n");
             PROTECT(result = allocVector(RAWSXP, sizeof(GPar)));
             copyGPar(&(bss->dpSaved), (GPar*) RAW(result));
             PROTECT(pkgName = mkString("graphics"));

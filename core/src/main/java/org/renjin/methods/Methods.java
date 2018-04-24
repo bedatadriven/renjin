@@ -451,8 +451,7 @@ public class Methods {
 
     boolean[] useInheritance = new boolean[lookupTable.getMaximumSignatureLength()];
     Arrays.fill(useInheritance, Boolean.TRUE);
-
-    Signature signature = arguments.getSignature(lookupTable.getMaximumSignatureLength());
+    Signature signature = arguments.getSignature(lookupTable.getMaximumSignatureLength(), lookupTable.getSignatureArgumentNames());
     RankedMethod selectedMethod = lookupTable.selectMethod(calculator, signature, useInheritance);
     if(selectedMethod == null) {
       throw new EvalException("unable to find an inherited method for function '" + fname +

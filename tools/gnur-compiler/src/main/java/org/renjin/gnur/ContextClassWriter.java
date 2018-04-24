@@ -241,10 +241,8 @@ public class ContextClassWriter {
   private void writeGlobalVarInit(CodeGenerationContext generationContext, MethodGenerator mv, GimpleVarDecl globalVar) {
 
     GimpleExpr initialValue = globalVar.getValue();
-    if(initialValue == null) {
-      if(globalVar.getType() instanceof GimpleIndirectType) {
-        initialValue = ((GimpleIndirectType) globalVar.getType()).nullValue();
-      }
+    if(initialValue == null && globalVar.getType() instanceof GimpleIndirectType) {
+      initialValue = ((GimpleIndirectType) globalVar.getType()).nullValue();
     }
 
     if(initialValue != null) {

@@ -48,9 +48,10 @@ public class LogManager {
 
   private final Map<String, Logger> openLoggers = new HashMap<>();
 
-  private final PrintStream warningStream = System.err;
+  private final PrintStream warningStream;
 
-  public LogManager() {
+  public LogManager(PrintStream stream) {
+    warningStream = stream;
   }
 
   public File getLoggingDirectory() {

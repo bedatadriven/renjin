@@ -85,9 +85,7 @@ public class GimpleCompiler  {
   private String trampolineClassName;
   private String recordClassPrefix = "record";
 
-  private final LogManager logManager = new LogManager();
-
-  private boolean pruneUnusedSymbols = true;
+  private final LogManager logManager = new LogManager(System.err);
 
   public GimpleCompiler() {
     functionBodyTransformers.add(AddressableSimplifier.INSTANCE);
@@ -138,10 +136,6 @@ public class GimpleCompiler  {
    */
   public void setJavadocOutputDirectory(File javadocOutputDirectory) {
     this.javadocOutputDirectory = javadocOutputDirectory;
-  }
-
-  public void setPruneUnusedSymbols(boolean pruneUnusedSymbols) {
-    this.pruneUnusedSymbols = pruneUnusedSymbols;
   }
 
   /**

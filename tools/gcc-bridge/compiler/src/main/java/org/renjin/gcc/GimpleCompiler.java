@@ -47,7 +47,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
-import java.util.function.Predicate;
 
 /**
  * Compiles a set of {@link GimpleCompilationUnit}s to bytecode
@@ -139,9 +138,6 @@ public class GimpleCompiler  {
    */
   public void setJavadocOutputDirectory(File javadocOutputDirectory) {
     this.javadocOutputDirectory = javadocOutputDirectory;
-  }
-
-  public void setEntryPointPredicate(Predicate<GimpleFunction> entryPointPredicate) {
   }
 
   public void setPruneUnusedSymbols(boolean pruneUnusedSymbols) {

@@ -40,6 +40,7 @@ import java.util.List;
 public class AwtCanvas extends Canvas implements GDContainer, MouseListener {
 
   private static boolean forceAntiAliasing = true;
+
   private final Session session;
 
   private List<GDObject> list;
@@ -51,7 +52,7 @@ public class AwtCanvas extends Canvas implements GDContainer, MouseListener {
 
   private Dimension lastSize;
 
-  public int deviceNumber = -1;
+  private int deviceNumber = -1;
 
   public AwtCanvas(Session session, int w, int h) {
     this.session = session;
@@ -62,21 +63,27 @@ public class AwtCanvas extends Canvas implements GDContainer, MouseListener {
     lastSize = getSize();
     setBackground(Color.white);
     addMouseListener(this);
-    (refresher = new Refresher(this)).start();
+
+    refresher = new Refresher(this);
+    refresher.start();
   }
 
+  @Override
   public GDState getGState() {
     return state;
   }
 
+  @Override
   public void setDeviceNumber(int dn) {
     deviceNumber = dn;
   }
 
+  @Override
   public int getDeviceNumber() {
     return deviceNumber;
   }
 
+  @Override
   public void closeDisplay() {
   }
 
@@ -88,6 +95,7 @@ public class AwtCanvas extends Canvas implements GDContainer, MouseListener {
     list = null;
   }
 
+  @Override
   public void syncDisplay(boolean finish) {
     repaint();
   }
@@ -103,11 +111,13 @@ public class AwtCanvas extends Canvas implements GDContainer, MouseListener {
     session.enqueueEvaluation(resizeCall);
   }
 
+  @Override
   public synchronized void add(GDObject o) {
     list.add(o);
     listChanged = true;
   }
 
+  @Override
   public synchronized void reset() {
     list.clear();
     listChanged = true;
@@ -115,6 +125,7 @@ public class AwtCanvas extends Canvas implements GDContainer, MouseListener {
 
   LocatorSync lsCallback = null;
 
+  @Override
   public synchronized boolean prepareLocator(LocatorSync ls) {
     if (lsCallback != null && lsCallback != ls) // make sure we cause no deadlock
       lsCallback.triggerAction(null);
@@ -124,6 +135,7 @@ public class AwtCanvas extends Canvas implements GDContainer, MouseListener {
   }
 
   // MouseListener for the Locator support
+  @Override
   public void mouseClicked(MouseEvent e) {
     if (lsCallback != null) {
       double[] pos = null;
@@ -140,16 +152,24 @@ public class AwtCanvas extends Canvas implements GDContainer, MouseListener {
     }
   }
 
+  @Override
   public void mousePressed(MouseEvent e) {
+    // No action
   }
 
+  @Override
   public void mouseReleased(MouseEvent e) {
+    // No action
   }
 
+  @Override
   public void mouseEntered(MouseEvent e) {
+    // No action
   }
 
+  @Override
   public void mouseExited(MouseEvent e) {
+    // No action
   }
 
 
@@ -157,6 +177,7 @@ public class AwtCanvas extends Canvas implements GDContainer, MouseListener {
   long lastUpdateFinished;
   boolean updatePending = false;
 
+  @Override
   public void update(Graphics g) {
     if (System.currentTimeMillis() - lastUpdate < 200) {
       updatePending = true;
@@ -183,6 +204,7 @@ public class AwtCanvas extends Canvas implements GDContainer, MouseListener {
       this.c = c;
     }
 
+    @Override
     public void run() {
       active = true;
       while (active) {

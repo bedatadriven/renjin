@@ -162,7 +162,7 @@ public class AwtDevice extends GraphicsDevice implements WindowListener {
   /**
    * close the device in R associated with this instance
    */
-  public void executeDevOff() {
+  private void executeDevOff() {
     if (container == null || container.getDeviceNumber() < 0) {
       return;
     }

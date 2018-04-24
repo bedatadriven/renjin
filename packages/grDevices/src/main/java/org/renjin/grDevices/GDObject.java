@@ -35,8 +35,8 @@ import java.awt.image.*;
 /**
  * GDObject is an arbitrary object that can be painted
  */
-abstract class GDObject {
-  public abstract void paint(Component c, GDState gs, Graphics g);
+interface GDObject {
+  void paint(Component c, GDState gs, Graphics g);
 }
 
 /**
@@ -48,8 +48,11 @@ class GDState {
   public Font font;
 }
 
-class GDLine extends GDObject {
-  double x1, y1, x2, y2;
+class GDLine implements GDObject {
+  double x1;
+  double y1;
+  double x2;
+  double y2;
 
   public GDLine(double x1, double y1, double x2, double y2) {
     this.x1 = x1;
@@ -66,8 +69,11 @@ class GDLine extends GDObject {
   }
 }
 
-class GDRect extends GDObject {
-  double x1, y1, x2, y2;
+class GDRect implements GDObject {
+  double x1;
+  double y1;
+  double x2;
+  double y2;
 
   public GDRect(double x1, double y1, double x2, double y2) {
     double tmp;
@@ -106,7 +112,7 @@ class GDRect extends GDObject {
   }
 }
 
-class GDClip extends GDObject {
+class GDClip implements GDObject {
   private double x1;
   private double y1;
   private double x2;
@@ -136,7 +142,7 @@ class GDClip extends GDObject {
   }
 }
 
-class GDCircle extends GDObject {
+class GDCircle implements GDObject {
   double x;
   double y;
   double r;
@@ -162,8 +168,11 @@ class GDCircle extends GDObject {
   }
 }
 
-class GDText extends GDObject {
-  double x, y, r, h;
+class GDText implements GDObject {
+  double x;
+  double y;
+  double r;
+  double h;
   String txt;
 
   public GDText(double x, double y, double r, double h, String txt) {
@@ -209,14 +218,9 @@ class GDText extends GDObject {
 }
 
 
-class GDFont extends GDObject {
-  private double cex;
-  private double ps;
-  private double lineheight;
-  private int face;
-  private String family;
+class GDFont implements GDObject {
 
-  Font font;
+  private Font font;
 
   public static boolean useSymbolFont = true;
 
@@ -238,11 +242,6 @@ class GDFont extends GDObject {
   }
 
   public GDFont(double cex, double ps, double lineheight, int face, String family) {
-    this.cex = cex;
-    this.ps = ps;
-    this.lineheight = lineheight;
-    this.face = face;
-    this.family = family;
     int jFT = Font.PLAIN;
     if (face == 2) {
       jFT = Font.BOLD;
@@ -270,7 +269,7 @@ class GDFont extends GDObject {
   }
 }
 
-class GDPolygon extends GDObject {
+class GDPolygon implements GDObject {
   int n;
   int[] xi;
   int[] yi;
@@ -308,7 +307,7 @@ class GDPolygon extends GDObject {
   }
 }
 
-class GDPath extends GDObject {
+class GDPath implements GDObject {
 
   /**
    * # of points per path (np.length == # of paths)
@@ -356,7 +355,7 @@ class GDPath extends GDObject {
   }
 }
 
-class GDColor extends GDObject {
+class GDColor implements GDObject {
   int col;
   Color gc;
 
@@ -378,7 +377,7 @@ class GDColor extends GDObject {
   }
 }
 
-class GDFill extends GDObject {
+class GDFill implements GDObject {
   int col;
   Color gc;
 
@@ -400,14 +399,10 @@ class GDFill extends GDObject {
   }
 }
 
-class GDLinePar extends GDObject {
-  private double lwd;
-  private int lty;
+class GDLinePar implements GDObject {
   private BasicStroke bs;
 
   public GDLinePar(double lwd, int lty) {
-    this.lwd = lwd;
-    this.lty = lty;
     bs = null;
     if (lty == 0) {
       bs = new BasicStroke((float) lwd);
@@ -440,7 +435,7 @@ class GDLinePar extends GDObject {
   }
 }
 
-class GDRaster extends GDObject {
+class GDRaster implements GDObject {
   boolean interpolate;
   Image image;
   AffineTransform atrans;

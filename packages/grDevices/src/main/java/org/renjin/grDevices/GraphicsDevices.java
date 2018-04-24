@@ -96,7 +96,7 @@ public class GraphicsDevices {
   }
 
   public static Ptr locator(Ptr p) {
-    return new DoublePtr( ((GraphicsDevice) p.getArray()).locator() );
+    return ((GraphicsDevice) p.getArray()).locator();
   }
 
   public static void line(Ptr p, double x1, double y1, double x2, double y2) {

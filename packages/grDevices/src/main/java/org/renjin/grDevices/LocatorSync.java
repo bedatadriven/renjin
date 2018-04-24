@@ -24,6 +24,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 package org.renjin.grDevices;
 
+import org.renjin.gcc.runtime.DoublePtr;
+
 /**
  * a simple synchronization class that can be used by a separate thread to wake JavaGD from waiting for a
  * locator result. The waiting thread calls {@link #waitForAction()} which returns only after another
@@ -39,7 +41,7 @@ public class LocatorSync {
    *
    * @return result supplied when {@link #triggerAction} was called - essentially the results to be returned by locator
    */
-  public synchronized double[] waitForAction() {
+  public synchronized DoublePtr waitForAction() {
     while (!notificationArrived) {
       try {
         wait();
@@ -48,7 +50,7 @@ public class LocatorSync {
       }
     }
     notificationArrived = false;
-    return locResult;
+    return new DoublePtr(locResult);
   }
 
   /**

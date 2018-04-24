@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 package org.renjin.grDevices;
 
+import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.Ptr;
 
 import java.awt.*;
@@ -43,14 +44,9 @@ public class GraphicsDevice {
   private boolean active = false;
 
   /**
-   * flag indicating whether this device has currently an open instance
-   */
-  public boolean open = false;
-
-  /**
    * flag indicating whether hold is in progress
    */
-  public boolean holding = false;
+  private boolean holding = false;
 
   /**
    * device number as supplied by R in {@link #newPage()} (-1 if undefined)
@@ -60,12 +56,12 @@ public class GraphicsDevice {
   /**
    * container that will receive all drawing methods. It should be created by subclasses in the {@link #open} method.
    */
-  public GDContainer container = null;
+  protected GDContainer container = null;
 
   /**
    * synchronization object for locator calls
    */
-  public LocatorSync locatorSync = null;
+  protected LocatorSync locatorSync = null;
 
   /**
    * requests a new device of the specified size
@@ -74,7 +70,6 @@ public class GraphicsDevice {
    * @param h height of the device
    */
   public void open(double w, double h) {
-    open = true;
   }
 
   /**
@@ -118,7 +113,6 @@ public class GraphicsDevice {
     if (container != null) {
       container.closeDisplay();
     }
-    open = false;
   }
 
   /**
@@ -158,15 +152,15 @@ public class GraphicsDevice {
    *
    * @return array of indices or <code>null</code> is cancelled
    */
-  public double[] locator() {
+  public Ptr locator() {
     if (container == null) {
-      return null;
+      return DoublePtr.NULL;
     }
     if (locatorSync == null) {
       locatorSync = new LocatorSync();
     }
     if (!container.prepareLocator(locatorSync)) {
-      return null;
+      return DoublePtr.NULL;
     }
     return locatorSync.waitForAction();
   }
@@ -280,7 +274,7 @@ public class GraphicsDevice {
     container.add(new GDRect(x0, y0, x1, y1));
   }
 
-  public void raster(byte image[], int imageWidth, int imageHeight, double x, double y, double w, double h, double rot, boolean interpolate) {
+  public void raster(byte[] image, int imageWidth, int imageHeight, double x, double y, double w, double h, double rot, boolean interpolate) {
     if (container == null) {
       return;
     }

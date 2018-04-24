@@ -24,20 +24,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 package org.renjin.grDevices;
 
 import org.renjin.eval.Session;
-import org.renjin.sexp.IntVector;
 import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Symbol;
 
 import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
-import static org.renjin.sexp.FunctionCall.newCall;
-
 /**
  * JavaGD is an implementation of the {@link GraphicsDevice} protocol which displays the R graphics in
- * an AWT window (via {@link AwtCanvas}). It can be used as an example for implementing custom display classes
- * which can then be used by JavaGD. Three sample back-ends are included in the JavaGD sources: {@link AwtCanvas} (AWT)
+ * an AWT window (via {@link AwtContainer}). It can be used as an example for implementing custom display classes
+ * which can then be used by JavaGD. Three sample back-ends are included in the JavaGD sources: {@link AwtContainer} (AWT)
  */
 public class AwtDevice extends GraphicsDevice implements WindowListener {
 
@@ -47,16 +43,11 @@ public class AwtDevice extends GraphicsDevice implements WindowListener {
   private Frame frame;
 
   /**
-   * The Renjin session to which this device belongs.
-   */
-  private final Session session;
-
-  /**
-   * default, public constructor - creates a new JavaGD instance. The actual window (and canvas) is not created until {@link #open} is called.
+   * default, public constructor - creates a new JavaGD instance.
+   * The actual window (and canvas) is not created until {@link #open} is called.
    */
   public AwtDevice(Session session, ListVector options) {
     super();
-    this.session = session;
   }
 
   /**
@@ -67,16 +58,17 @@ public class AwtDevice extends GraphicsDevice implements WindowListener {
    */
   @Override
   public void open(double w, double h) {
-    super.open(w, h);
-
     if (frame != null) {
       close();
     }
 
+    AwtContainer awtContainer = new AwtContainer((int)w, (int)h);
+    this.container = awtContainer;
+
     frame = new Frame("JavaGD");
-    container = new AwtCanvas(session, (int)w, (int)h);
-    frame.add((AwtCanvas) container);
-    frame.pack();
+    frame.setSize(new Dimension((int)w, (int)h));
+    frame.setResizable(false);
+    frame.add(awtContainer.getPanel());
     frame.setVisible(true);
     frame.addWindowListener(this);
   }
@@ -124,9 +116,7 @@ public class AwtDevice extends GraphicsDevice implements WindowListener {
    */
   @Override
   public void windowClosing(WindowEvent e) {
-    if (container != null) {
-      executeDevOff();
-    }
+    // TODO: execute dev.off() in the enclosing session
   }
 
   @Override
@@ -159,15 +149,4 @@ public class AwtDevice extends GraphicsDevice implements WindowListener {
     // No action
   }
 
-  /**
-   * close the device in R associated with this instance
-   */
-  private void executeDevOff() {
-    if (container == null || container.getDeviceNumber() < 0) {
-      return;
-    }
-
-    session.enqueueEvaluation(newCall(Symbol.get("dev.set"), IntVector.valueOf(container.getDeviceNumber() + 1)));
-    session.enqueueEvaluation(newCall(Symbol.get("dev.off")));
-  }
 }

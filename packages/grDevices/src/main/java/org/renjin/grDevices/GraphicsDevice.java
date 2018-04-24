@@ -36,7 +36,7 @@ import java.awt.*;
  * callbacks, but subclasses should override at least {@link #open} to create an instance of {@link GDContainer}
  * {@link #container} which will be used for all subsequent drawing.
  */
-public class GraphicsDevice {
+public abstract class GraphicsDevice {
 
   /**
    * flag indicating whether this device is active (current) in R
@@ -69,8 +69,7 @@ public class GraphicsDevice {
    * @param w width of the device
    * @param h height of the device
    */
-  public void open(double w, double h) {
-  }
+  public abstract void open(double w, double h);
 
   /**
    * the device became active (current)
@@ -144,7 +143,7 @@ public class GraphicsDevice {
   public void flush(boolean flush) {
     holding = !flush;
     if (flush && container != null)
-      container.syncDisplay(true);
+      container.syncDisplay(false);
   }
 
   /**

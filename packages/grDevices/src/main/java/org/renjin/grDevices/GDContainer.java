@@ -64,7 +64,8 @@ public interface GDContainer {
      */
     boolean prepareLocator(LocatorSync ls);
 
-    /** synchronize display with the graphics objects
+    /**
+     * synchronize display with the graphics objects
      *  @param finish flag denoting whether the synchronization is desired or not (<code>true</code>
      *                for a finished batch, <code>false</code> when a batch starts)
      */

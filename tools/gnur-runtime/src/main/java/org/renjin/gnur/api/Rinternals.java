@@ -1160,8 +1160,20 @@ public final class Rinternals {
         return Vectors.asComplex((Vector)p0).setAttributes(p0.getAttributes());
       case SexpType.STRSXP:
         return Vectors.asCharacter(Native.currentContext(), (Vector)p0).setAttributes(p0.getAttributes());
+      case SexpType.EXPRSXP:
+        return toExpressionList(p0);
     }
     throw new UnimplementedGnuApiMethod("Rf_coerceVector: " + type);
+  }
+
+  private static SEXP toExpressionList(SEXP sexp) {
+    if(sexp instanceof Vector) {
+      return Vectors.asVector(((Vector) sexp), "expression");
+    } else if(sexp instanceof PairList) {
+      return toExpressionList(((PairList) sexp).toVector());
+    } else {
+      throw new UnsupportedOperationException("Rf_coerceVector: from: " + sexp.getTypeName() + " to EXPRSXP");
+    }
   }
 
   public static SEXP Rf_PairToVectorList(SEXP x) {

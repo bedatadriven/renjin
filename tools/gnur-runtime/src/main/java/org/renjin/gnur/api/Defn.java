@@ -89,35 +89,35 @@ public final class Defn {
     return 0;
   }
 
-  public void SET_BYTES(SEXP x) {
+  public static void SET_BYTES(SEXP x) {
     throw new UnimplementedGnuApiMethod("SET_BYTES");
   }
 
-  public int IS_LATIN1(SEXP x) {
+  public static int IS_LATIN1(SEXP x) {
     // All renjin strings are Unicode
     return 0;
   }
-  public void SET_LATIN1(SEXP x) {
+  public static void SET_LATIN1(SEXP x) {
     throw new UnimplementedGnuApiMethod("SET_LATIN1");
   }
 
-  public int IS_ASCII(SEXP x) {
+  public static int IS_ASCII(SEXP x) {
     // All renjin strings are Unicode
     return 0;
   }
 
-  public void SET_ASCII(SEXP x) {
+  public static void SET_ASCII(SEXP x) {
     // All renjin strings are Unicode
     throw new UnimplementedGnuApiMethod("SET_ASCII");
   }
 
-  public int IS_UTF8(SEXP x) {
-    // All renjin strings can Unicode
+  public static int IS_UTF8(SEXP x) {
+    // All renjin strings are Unicode
     return 1;
   }
 
-  public void SET_UTF8(SEXP x) {
-    // NOOP: All renjin strings can Unicode
+  public static void SET_UTF8(SEXP x) {
+    // NOOP: All renjin strings are Unicode
   }
 
   public static void Rf_CoercionWarning(int p0) {

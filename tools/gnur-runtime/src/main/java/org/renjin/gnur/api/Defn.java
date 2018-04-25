@@ -84,6 +84,41 @@ public final class Defn {
 
   private Defn() { }
 
+  public static int IS_BYTES(SEXP x) {
+    // All renjin strings are Unicode
+    return 0;
+  }
+
+  public void SET_BYTES(SEXP x) {
+    throw new UnimplementedGnuApiMethod("SET_BYTES");
+  }
+
+  public int IS_LATIN1(SEXP x) {
+    // All renjin strings are Unicode
+    return 0;
+  }
+  public void SET_LATIN1(SEXP x) {
+    throw new UnimplementedGnuApiMethod("SET_LATIN1");
+  }
+
+  public int IS_ASCII(SEXP x) {
+    // All renjin strings are Unicode
+    return 0;
+  }
+
+  public void SET_ASCII(SEXP x) {
+    // All renjin strings are Unicode
+    throw new UnimplementedGnuApiMethod("SET_ASCII");
+  }
+
+  public int IS_UTF8(SEXP x) {
+    // All renjin strings can Unicode
+    return 1;
+  }
+
+  public void SET_UTF8(SEXP x) {
+    // NOOP: All renjin strings can Unicode
+  }
 
   public static void Rf_CoercionWarning(int p0) {
     throw new UnimplementedGnuApiMethod("Rf_CoercionWarning");

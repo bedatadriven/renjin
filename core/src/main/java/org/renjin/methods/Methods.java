@@ -33,6 +33,7 @@ import org.renjin.s4.*;
 import org.renjin.sexp.*;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static org.renjin.s4.S4.generateCallMetaData;
@@ -451,7 +452,7 @@ public class Methods {
 
     boolean[] useInheritance = new boolean[lookupTable.getMaximumSignatureLength()];
     Arrays.fill(useInheritance, Boolean.TRUE);
-    Signature signature = arguments.getSignature(lookupTable.getMaximumSignatureLength(), lookupTable.getSignatureArgumentNames());
+    Signature signature = arguments.getSignature(lookupTable.getMaximumSignatureLength(), generic.getSignatureArgumentNames());
     RankedMethod selectedMethod = lookupTable.selectMethod(calculator, signature, useInheritance);
     if(selectedMethod == null) {
       throw new EvalException("unable to find an inherited method for function '" + fname +
@@ -475,7 +476,9 @@ public class Methods {
     int step = 0;
     for(PairList.Node arg : arguments.getPromisedArgs().nodes()) {
       SEXP value = arg.getValue();
-      if(step < signatureLength) {
+      SEXP tag = arg.getRawTag();
+      List<String> argNames = method.getMethod().getGeneric().getSignatureArgumentNames();
+      if(step < signatureLength && (tag != Null.INSTANCE && argNames.contains(arg.getTag().getPrintName()))) {
         String from = arguments.getArgumentClass(step);
         String to = method.getArgumentClass(step);
         if(to.equals(from) || to.equals("ANY") || classCache.isSimple(from, to)) {

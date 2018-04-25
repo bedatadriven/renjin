@@ -24,7 +24,6 @@ import org.renjin.eval.Context;
 import org.renjin.eval.MatchedArguments;
 import org.renjin.sexp.*;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -151,15 +150,14 @@ public class CallingArguments {
     return new Signature(classes);
   }
 
-  public Signature getSignature(int length, String[] args) {
-    List<String> argNames = Arrays.asList(args);
+  public Signature getSignature(int length, List<String> args) {
     String[] classes = new String[length];
     Iterator<PairList.Node> argumentIt = promisedArgs.nodes().iterator();
     int step = 0;
     for(int index = 0; step < length; ++index) {
       if(argumentIt.hasNext()) {
         String nodeTag = argumentIt.next().getTag().getPrintName();
-        if(argNames.size() == 0 || argNames.contains(nodeTag)) {
+        if(args.size() == 0 || args.contains(nodeTag)) {
           classes[step] = getArgumentClass(index);
           step++;
         }

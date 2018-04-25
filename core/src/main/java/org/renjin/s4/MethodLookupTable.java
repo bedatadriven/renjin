@@ -43,7 +43,6 @@ public class MethodLookupTable {
    * Maps a signature string (for example, "integer#ANY#integer") to the method definition.
    */
   private Map<String, Method> signatureMap = new HashMap<>();
-  private Closure genericFunction;
 
 
   private int maximumSignatureLength = 0;
@@ -68,15 +67,6 @@ public class MethodLookupTable {
         addMethods(context, frame, generic.getGroupGenericMethodTableName(), Method.SPECIFICITY_GROUP);
       }
       if(generic.isStandardGeneric()) {
-
-        SEXP genericFunction = frame.getVariable(Symbol.get(generic.getName()));
-        if(genericFunction instanceof Closure) {
-          SEXP funClass = genericFunction.getAttribute(Symbols.CLASS);
-          if(funClass instanceof StringArrayVector && "standardGeneric".equals(((StringArrayVector) funClass).getElementAsString(0))) {
-            this.genericFunction = (Closure) genericFunction;
-          }
-        }
-
         for(int i = 0; i < generic.getGroup().size(); i++) {
           String group = generic.getGroup().get(i);
           addMethods(context, frame, generic.getGroupStdGenericMethodTableName(group), Method.SPECIFICITY_SUB_GROUP);
@@ -173,18 +163,6 @@ public class MethodLookupTable {
   public int getMaximumSignatureLength() {
     return maximumSignatureLength;
   }
-
-  public String[] getSignatureArgumentNames() {
-    if(genericFunction != null) {
-      SEXP signature = genericFunction.getAttribute(Symbol.get("signature"));
-      if(signature instanceof StringArrayVector) {
-        return ((StringArrayVector) signature).toArray();
-      }
-    }
-    return new String[0];
-  }
-
-
 
   public RankedMethod selectMethod(DistanceCalculator distanceCalculator, Signature signature, boolean[] useInheritance) {
 

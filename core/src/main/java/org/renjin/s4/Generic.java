@@ -22,10 +22,7 @@ import org.renjin.eval.Context;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A generic is a function that can have many {@code Methods} that handle different classes of arguments.
@@ -48,12 +45,16 @@ public class Generic {
   private final List<String> group;
   private final String subGroup;
   private final boolean stdGeneric;
+  private final Closure genericFunction;
 
   public static Generic primitive(String name, List<String> group) {
-    return new Generic(name, group, "base");
+    return new Generic(name, group, "base", null);
   }
 
   public static Generic standardGeneric(Context context, String fname, String packageName) {
+
+    Closure genericFunction = findGenericFunction(context, fname, packageName);
+
     Environment namespaceEnv;
     List<String> group = new ArrayList<>();
     if (".GlobalEnv".equals(packageName)) {
@@ -63,7 +64,7 @@ public class Generic {
     }
     SEXP generic = namespaceEnv.getVariableUnsafe(fname).force(context);
     if (generic == Symbol.UNBOUND_VALUE) {
-      return new Generic(fname, group, packageName);
+      return new Generic(fname, group, packageName, genericFunction);
     }
     if(isOps(fname)) {
       // case when selectMethod() is used to find a method for a primitive function
@@ -79,14 +80,36 @@ public class Generic {
         }
       }
     }
-    return new Generic(fname, group, packageName);
+    return new Generic(fname, group, packageName, genericFunction);
   }
 
-  public Generic(String name, List<String> groups, String packageName) {
+  public static Closure findGenericFunction(Context context, String fname, String packageName) {
+    Closure genericFunction = null;
+    Frame packageFrame;
+    if(".GlobalEnv".equals(packageName)) {
+      packageFrame = context.getGlobalEnvironment().getFrame();
+    } else {
+      packageFrame = context.getNamespaceRegistry().getNamespace(context, packageName).getNamespaceEnvironment().getFrame();
+    }
+    SEXP foundFunction = packageFrame.getVariable(Symbol.get(fname)).force(context);
+    if(foundFunction instanceof Closure) {
+      SEXP funClass = foundFunction.getAttribute(Symbols.CLASS);
+      if(funClass instanceof StringArrayVector) {
+        StringArrayVector fclass = (StringArrayVector) funClass;
+        if ("standardGeneric".equals(fclass.getElementAsString(0)) || "nonstandardGenericFunction".equals(fclass.getElementAsString(0))) {
+          genericFunction = (Closure) foundFunction;
+        }
+      }
+    }
+    return genericFunction;
+  }
+
+  public Generic(String name, List<String> groups, String packageName, Closure genericFunction) {
     this.name = applyAliases(name);
     this.packageName = packageName;
     this.group = groups;
     this.stdGeneric = true;
+    this.genericFunction = genericFunction;
 
     if (group.size() > 0 && "Ops".equals(group.get(0))) {
       this.subGroup = opsSubGroupOf(name);
@@ -129,6 +152,20 @@ public class Generic {
 
   public boolean isStandardGeneric() {
     return stdGeneric;
+  }
+
+  public Closure getGenericFunction() {
+    return genericFunction;
+  }
+
+  public List<String> getSignatureArgumentNames() {
+    if(genericFunction != null) {
+      SEXP signature = genericFunction.getAttribute(Symbol.get("signature"));
+      if(signature instanceof StringArrayVector) {
+        return Arrays.asList(((StringArrayVector) signature).toArray());
+      }
+    }
+    return new ArrayList<>();
   }
 
   public boolean isOps() {

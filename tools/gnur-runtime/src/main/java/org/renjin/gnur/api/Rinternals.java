@@ -904,11 +904,11 @@ public final class Rinternals {
   }
 
   public static void SET_FORMALS(SEXP x, SEXP v) {
-    throw new UnimplementedGnuApiMethod("SET_FORMALS");
+    ((Closure) x).unsafeSetFormals(((PairList) v));
   }
 
   public static void SET_BODY(SEXP x, SEXP v) {
-    throw new UnimplementedGnuApiMethod("SET_BODY");
+    ((Closure) x).unsafeSetBody(v);
   }
 
   public static int IS_CACHED(SEXP x) {
@@ -924,7 +924,7 @@ public final class Rinternals {
    *          R_NilValue is not permissible.
    */
   public static void SET_CLOENV(SEXP x, SEXP v) {
-    throw new UnimplementedGnuApiMethod("SET_CLOENV");
+    ((Closure) x).unsafeSetEnclosingEnvironment(((Environment) v));
   }
 
   /** Symbol name.
@@ -1321,8 +1321,12 @@ public final class Rinternals {
   }
 
   @Allocator
-  public static SEXP Rf_allocSExp(/*SEXPTYPE*/ int p0) {
-    throw new UnimplementedGnuApiMethod("Rf_allocSExp");
+  public static SEXP Rf_allocSExp(/*SEXPTYPE*/ int type) {
+    switch (type) {
+      case SexpType.CLOSXP:
+        return new Closure(Environment.EMPTY, Null.INSTANCE, Null.INSTANCE);
+    }
+    throw new UnimplementedGnuApiMethod("Rf_allocSExp: " + type);
   }
 
   // SEXP Rf_allocVector3 (SEXPTYPE, R_xlen_t, R_allocator_t *)
@@ -2747,10 +2751,22 @@ public final class Rinternals {
         Arrays.fill(strings, GnuCharSexp.NA_STRING);
         return new GnuStringVector(strings);
 
+      case SexpType.LISTSXP:
+        return new ListVector(elements(length));
+
+      case SexpType.EXPRSXP:
+        return new ExpressionVector(elements(length));
+
       case SexpType.RAWSXP:
         return new RawVector(new byte[length]);
     }
     throw new UnimplementedGnuApiMethod("Rf_allocVector: type = " + stype);
+  }
+
+  private static SEXP[] elements(int length) {
+    SEXP[] array = new SEXP[length];
+    Arrays.fill(array, Null.INSTANCE);
+    return array;
   }
 
   public static boolean Rf_conformable(SEXP p0, SEXP p1) {

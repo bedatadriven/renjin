@@ -77,7 +77,10 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     termsform,
     updateform,
 
-    lminfl = lminfl_
+    lminfl = lminfl_,
+
+    doD,
+    deriv
 
     )
 

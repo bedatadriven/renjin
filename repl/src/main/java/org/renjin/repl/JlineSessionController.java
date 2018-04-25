@@ -65,6 +65,11 @@ public class JlineSessionController extends SessionController {
 
   @Override
   public String readLine(String prompt) {
+
+    if(!interactive) {
+      return "";
+    }
+
     try {
       return reader.readLine(prompt);
     } catch (IOException e) {

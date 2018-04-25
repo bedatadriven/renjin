@@ -2987,8 +2987,13 @@ public final class Rinternals {
     }
   }
 
+  @Deprecated
   public static SEXP Rf_mkString(BytePtr string) {
-    return new StringArrayVector(string.nullTerminatedString());
+    return Rf_mkString((Ptr)string);
+  }
+
+  public static SEXP Rf_mkString(Ptr string) {
+    return new StringArrayVector(Stdlib.nullTerminatedString(string));
   }
 
   public static int Rf_nlevels(SEXP p0) {

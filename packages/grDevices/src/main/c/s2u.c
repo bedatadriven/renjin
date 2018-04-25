@@ -45,6 +45,9 @@ static unsigned char work[warea];
 /* convert symbol encoding to UTF8.
    returns a static buffer limited to 32k */
 char *symbol2utf8(const char *c0) {
+
+  printf("symbol2utf8 in = %s%n", c0);
+
   const unsigned char *c = (const unsigned char*) c0;
   unsigned char *t = work;
   while (*c) {
@@ -67,5 +70,7 @@ char *symbol2utf8(const char *c0) {
     c++;
   }
   *t = 0;
+    printf("symbol2utf8 out = %s%n", (char*)work );
+
   return (char*) work;
 }

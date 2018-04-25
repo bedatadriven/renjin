@@ -339,17 +339,17 @@ static void newJavaGD_Size(double *left, double *right,  double *bottom, double 
 
 static const char *convertToUTF8(const char *str, R_GE_gcontext *gc)
 {
-    if (gc->fontface == 5) /* symbol font needs re-coding to UTF-8 */
-	str = symbol2utf8(str);
-#ifdef translateCharUTF8
-    else { /* first check whether we are dealing with non-ASCII at all */
-	int ascii = 1;
-	const unsigned char *c = (const unsigned char*) str;
-	while (*c) { if (*c > 127) { ascii = 0; break; } c++; }
-	if (!ascii) /* non-ASCII, we need to convert it to UTF8 */
-	    str = translateCharUTF8(mkCharCE(str, CE_NATIVE));
-    }
-#endif
+    //if (gc->fontface == 5) /* symbol font needs re-coding to UTF-8 */
+	//str = symbol2utf8(str);
+//#ifdef translateCharUTF8
+//    else { /* first check whether we are dealing with non-ASCII at all */
+//	int ascii = 1;
+//	const unsigned char *c = (const unsigned char*) str;
+//	while (*c) { if (*c > 127) { ascii = 0; break; } c++; }
+//	if (!ascii) /* non-ASCII, we need to convert it to UTF8 */
+//	    str = translateCharUTF8(mkCharCE(str, CE_NATIVE));
+//    }
+//#endif
     return str;
 }
 
@@ -369,7 +369,7 @@ static double newJavaGD_StrWidthUTF8(const char *str,  R_GE_gcontext *gc,  NewDe
 
 static double newJavaGD_StrWidth(const char *str,  R_GE_gcontext *gc,  NewDevDesc *dd)
 {
-    return newJavaGD_strWidthUTF8(convertToUTF8(str, gc), gc, dd);
+    return newJavaGD_StrWidthUTF8(convertToUTF8(str, gc), gc, dd);
 }
 
 

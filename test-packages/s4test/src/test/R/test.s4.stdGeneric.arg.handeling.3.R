@@ -27,21 +27,21 @@ setMethod("add", signature(y="character"), function(x=TRUE, y, z=FALSE) c(x, y, 
 setMethod("add", signature(y="logical"), function(x, y, z) c(x, y, z) )
 
 test.signature.01 = function() { assertThat(add(x=0, y=), identicalTo( c("0", "100", "zArg") ))   }
-test.signature.02 = function() { assertThat(add(x=0,y=10 ), identicalTo( c(0, 10, 0) ))   }
-test.signature.03 = function() { assertThat(add(x=0,y="a"), identicalTo( c("0", "a", "TRUE") ))   }
+test.signature.02 = function() { assertThat(add(x=0,y=10 ), identicalTo( c(0, 10, 1) ))   }
+test.signature.03 = function() { assertThat(add(x=0,y="a"), identicalTo( c("0", "a", "FALSE") ))   }
 test.signature.04 = function() { assertThat(add(x=0,y=TRUE), identicalTo( c(0, 1, 1) ))   }
 test.signature.05 = function() { assertThat(add(), identicalTo( c("FALSE", "100", "zArg") ))   }
-test.signature.06 = function() { assertThat(add(y=10 ), identicalTo( c(1, 10, 0) ))   }
-test.signature.07 = function() { assertThat(add(y="a"), identicalTo( c("FALSE", "a", "TRUE") ))   }
+test.signature.06 = function() { assertThat(add(y=10 ), identicalTo( c(0, 10, 1) ))   }
+test.signature.07 = function() { assertThat(add(y="a"), identicalTo( c("TRUE", "a", "FALSE") ))   }
 test.signature.08 = function() { assertThat(add(y=TRUE), identicalTo( c(FALSE, TRUE, TRUE) ))   }
 test.signature.09 = function() { assertThat(add(z="hah"), identicalTo( c("FALSE", "100", "hah") ))   }
-test.signature.10 = function() { assertThat(add(y=10, z=200 ), identicalTo( c(1, 10, 200) ))   }
-test.signature.11 = function() { assertThat(add(y="a", z=32), identicalTo( c("FALSE", "a", "32") ))   }
+test.signature.10 = function() { assertThat(add(y=10, z=200 ), identicalTo( c(0, 10, 200) ))   }
+test.signature.11 = function() { assertThat(add(y="a", z=32), identicalTo( c("TRUE", "a", "32") ))   }
 test.signature.12 = function() { assertThat(add(y=TRUE, z=32), identicalTo( c(0, 1, 32) ))   }
 test.signature.13 = function() { assertThat(add("hah"), identicalTo( c("hah", "100", "zArg") ))   }
-test.signature.14 = function() { assertThat(add(10, 200 ), identicalTo( c(10, 200, 0) ))   }
-test.signature.15 = function() { assertThat(add("a", 32), identicalTo( c("a", "32", "FALSE") ))   }
-test.signature.16 = function() { assertThat(add(TRUE, 32), identicalTo( c(1, 32, 0) ))   }
+test.signature.14 = function() { assertThat(add(10, 200 ), identicalTo( c(10, 200, 1) ))   }
+test.signature.15 = function() { assertThat(add("a", 32), identicalTo( c("a", "32", "TRUE") ))   }
+test.signature.16 = function() { assertThat(add(TRUE, 32), identicalTo( c(1, 32, 1) ))   }
 
 
 

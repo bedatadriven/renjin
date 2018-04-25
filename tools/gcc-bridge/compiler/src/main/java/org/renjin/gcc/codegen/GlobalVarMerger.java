@@ -78,10 +78,7 @@ public final class GlobalVarMerger {
     for (GimpleCompilationUnit unit : units) {
       for (GimpleVarDecl varDecl : unit.getGlobalVariables()) {
         if(varDecl.isPublic() && !varDecl.isExtern() && varDecl.getValue() != null) {
-          GimpleVarDecl previousValue = canonical.put(varDecl.getMangledName(), varDecl);
-          if(previousValue != null) {
-            throw new IllegalStateException("multiple definition of `" + varDecl.getMangledName() + "'");
-          }
+          canonical.put(varDecl.getMangledName(), varDecl);
         }
       }
     }

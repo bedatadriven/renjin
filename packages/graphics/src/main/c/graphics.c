@@ -3168,7 +3168,6 @@ void GBox(int which, pGEDevDesc dd)
     }
 }
 
-#if 0
 /* in src/main/graphics.c */
 #define LPR_SMALL  2
 #define LPR_MEDIUM 3
@@ -3214,7 +3213,6 @@ void GPretty(double *lo, double *up, int *ndiv)
 {
     GEPretty(lo, up, ndiv);
 }
-#endif
 
 #define SMALL	0.25
 #define RADIUS	0.375

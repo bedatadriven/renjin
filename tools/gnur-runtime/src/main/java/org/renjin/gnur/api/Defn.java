@@ -25,6 +25,7 @@ import org.renjin.gnur.api.annotations.Allocator;
 import org.renjin.parser.NumericLiterals;
 import org.renjin.primitives.Deparse;
 import org.renjin.primitives.Native;
+import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.sexp.*;
 import org.renjin.util.CDefines;
 
@@ -214,7 +215,17 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("R_primitive_generic");
   }
 
-  // int R_ReadConsole (const char *, unsigned char *, int, int)
+  public static int R_ReadConsole (Ptr promptPtr, Ptr buffer, int bufferLength, int addToHistory) {
+    String promptString = Stdlib.nullTerminatedString(promptPtr);
+    String result = Native.currentContext().getSession().getSessionController().readLine(promptString);
+    byte[] resultBytes = result.getBytes(Charsets.UTF_8);
+    int i;
+    for (i = 0; i < bufferLength - 1 && i < resultBytes.length; i++) {
+      buffer.setByte(i, resultBytes[i]);
+    }
+    buffer.setByte(i, (byte)0);
+    return i;
+  }
 
   public static void R_WriteConsole(BytePtr p0, int p1) {
     throw new UnimplementedGnuApiMethod("R_WriteConsole");

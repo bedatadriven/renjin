@@ -75,8 +75,9 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     modelframe,
     modelmatrix,
     termsform,
-    updateform
+    updateform,
 
+    lminfl = lminfl_
 
     )
 

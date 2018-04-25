@@ -65,7 +65,7 @@ public class JlineRepl {
     this.session = session;
     this.topLevelContext = session.getTopLevelContext();
     this.reader = reader;
-    this.sessionController = new JlineSessionController(reader.getTerminal());
+    this.sessionController = new JlineSessionController(reader);
     this.session.setSessionController(sessionController);
     this.errorStream = new PrintStream(System.err);
   }

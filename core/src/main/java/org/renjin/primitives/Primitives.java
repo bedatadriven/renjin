@@ -670,10 +670,10 @@ public class Primitives {
     f("deparseRd", /*deparseRd*/ null, 11);
     f("dump", /*dump*/ null, 111);
     add(new SubstituteFunction());
-    add(new QuoteFunction());// f("quote", Evaluation.class, 0, 0, 1);
+    add(new QuoteFunction());
     f("quit", Sessions.class, 111);
     f("interactive", Sessions.class, 0);
-    f("readline", /*readln*/ null, 11);
+    f("readline", Sessions.class, 11);
     f("print.default", Print.class, 111);
     f("print.function", Print.class, 111);
     f("prmatrix", /*prmatrix*/ null, 111);

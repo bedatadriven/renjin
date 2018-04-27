@@ -739,6 +739,9 @@ public final class Rinternals {
   }
 
   public static SEXP CDR(SEXP e) {
+    if(e instanceof Null) {
+      return Null.INSTANCE;
+    }
     return ((PairList.Node) e).getNext();
   }
 

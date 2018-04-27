@@ -45,7 +45,7 @@ public class NativeSourceBuilder {
   private static final List<String> SOURCE_EXTENSIONS = Lists.newArrayList(
       "c",
       "f", "f77", "f90", "f95", "f03", "for",
-      "cpp", "cxx");
+      "cpp", "cxx", "cc");
 
   private PackageSource source;
   private BuildContext buildContext;

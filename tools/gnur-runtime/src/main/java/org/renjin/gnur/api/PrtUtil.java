@@ -86,7 +86,11 @@ public final class PrtUtil {
           format = String.format("%%#%d.%de", w, d);
         }
       } else {
-        format = String.format("%%%d.%de", w, d);
+        if(w == 0) {
+          format = String.format("%%.%de", d);
+        } else {
+          format = String.format("%%%d.%de", w, d);
+        }
       }
 
       result = String.format(format, x);

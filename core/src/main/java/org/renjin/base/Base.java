@@ -26,7 +26,6 @@ import org.renjin.primitives.Types;
 import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.matrix.Matrix;
 import org.renjin.primitives.matrix.MatrixBuilder;
-import org.renjin.primitives.vector.BinCodeVector;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -228,24 +227,5 @@ public class Base {
     return Methods.R_do_new_object(classRepresentation);
   }
 
-
-  /* bincode  cuts up the data using half open intervals defined as [a,b)
-     (if right = FALSE) or (a, b] (if right = TRUE)
-  */
-  public static ListVector bincode(DoubleVector x, int n, DoubleVector breaks, int nb, IntVector code_,
-                             boolean right, boolean include_border, boolean naok) {
-
-    // if we NAs are not ok, we have to check and throw an error now, not later
-    if(!naok) {
-      if(x.indexOfNA() != -1) {
-        throw new EvalException("NA's in bincode(NAOK=FALSE)");
-      }
-    }
-    IntVector codedVector = new BinCodeVector(x, breaks.toDoubleArray(), !right, include_border, AttributeMap.EMPTY);
-
-    ListVector.NamedBuilder result = new ListVector.NamedBuilder();
-    result.add("code", codedVector);
-    return result.build();
-  }
 
 }

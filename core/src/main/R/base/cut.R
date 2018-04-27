@@ -67,6 +67,42 @@ cut.default <-
 }
 
 ## called from image.default and for use in packages.
-.bincode <- function(x, breaks, right = TRUE, include.lowest = FALSE)
-    .Internal(bincode(x, breaks, right, include.lowest))
+.bincode <- function(x, breaks, right = TRUE, include.lowest = FALSE) {
+    code <- rep.int(NA_integer_, times=length(x))
+    n <- length(breaks)
+    if(n == 1) {
+        if(include.lowest) {
+            code[ x == breaks ] <- 1L
+        }
+    } else if(n >= 2) {
+        if(right) {
 
+            # Open on the left, closed on the right
+
+            if(include.lowest) {
+                code[ x >= breaks[1] & x <= breaks[2] ] <- 1L
+            } else {
+                code[ x >  breaks[1] & x <= breaks[2] ] <- 1L
+            }
+
+            for(i in seq(from=2, n-1)) {
+                code[ x > breaks[i] & x <= breaks[i+1] ] <- i
+            }
+
+        } else {
+
+            # Closed on the left, open on the right
+
+            for(i in seq(from=1, n-2)) {
+                code[ x >= breaks[i] & x < breaks[i+1] ] <- i
+            }
+
+            if(include.lowest) {
+                code[ x >= breaks[n-1] & x <= breaks[n] ] <- n-1L
+            } else {
+                code[ x >= breaks[n-1] & x < breaks[n] ] <- n-1L
+            }
+        }
+    }
+    code
+}

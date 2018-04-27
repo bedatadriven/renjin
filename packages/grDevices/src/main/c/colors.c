@@ -127,6 +127,7 @@ static void hsv2rgb(double h, double s, double v,
     default:
 	error(_("bad hsv to rgb color conversion"));
     }
+    printf("b = %f\n", b);
 }
 
 /* rgb2hsv() -- the reverse (same reference as above)

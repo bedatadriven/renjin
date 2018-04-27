@@ -326,20 +326,29 @@ class GDPath implements GDObject {
 
   private GeneralPath path;
 
-  public GDPath(int[] numberOfPointsPerPath, double[] x, double[] y, boolean winding) {
+  public GDPath(int npoly, Ptr numberOfPointsPerPath, Ptr x, Ptr y, boolean winding) {
 
-    path = new GeneralPath(winding ? GeneralPath.WIND_NON_ZERO : GeneralPath.WIND_EVEN_ODD, x.length);
+    path = new GeneralPath(winding ? GeneralPath.WIND_NON_ZERO : GeneralPath.WIND_EVEN_ODD,
+        countPoints(npoly, numberOfPointsPerPath));
     int k = 0;
     int end = 0;
-    for (int i = 0; i < numberOfPointsPerPath.length; i++) {
-      end += numberOfPointsPerPath[i];
-      path.moveTo((float) x[k], (float) y[k]);
+    for (int i = 0; i < npoly; i++) {
+      end += numberOfPointsPerPath.getAlignedInt(i);
+      path.moveTo((float) x.getAlignedDouble(k), (float) y.getAlignedDouble(k));
       k++;
       for (; k < end; k++) {
-        path.lineTo((float) x[k], (float) y[k]);
+        path.lineTo((float) x.getAlignedDouble(k), (float) y.getAlignedDouble(k));
       }
       path.closePath();
     }
+  }
+
+  private int countPoints(int npoly, Ptr numberOfPointsPerPath) {
+    int count = 0;
+    for (int i = 0; i < npoly; i++) {
+      count += numberOfPointsPerPath.getAlignedInt(i);
+    }
+    return count;
   }
 
   @Override

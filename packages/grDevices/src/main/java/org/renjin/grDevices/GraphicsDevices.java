@@ -116,7 +116,7 @@ public class GraphicsDevices {
   }
 
   public static void path(Ptr p, int npoly, Ptr nper, Ptr x, Ptr y, boolean winding) {
-    ((GraphicsDevice) p.getArray()).path(npoly, toIntArray(nper), toDoubleArray(x), toDoubleArray(y), winding);
+    ((GraphicsDevice) p.getArray()).path(npoly, nper, x, y, winding);
   }
 
   public static void polygon(Ptr p, int n, Ptr x, Ptr y) {
@@ -161,14 +161,6 @@ public class GraphicsDevices {
 
   public static void setFont(Ptr p, double cex, double ps, double lineheight, int fontface, Ptr fontfamily) {
     ((GraphicsDevice) p.getArray()).setFont(cex, ps, lineheight, fontface, Stdlib.nullTerminatedString(fontfamily));
-  }
-
-  private static double[] toDoubleArray(Ptr p) {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  private static int[] toIntArray(Ptr p) {
-    throw new UnsupportedOperationException("TODO");
   }
 
 }

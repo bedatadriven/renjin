@@ -232,13 +232,16 @@ public abstract class GraphicsDevice {
   /**
    * create multi-polygon path
    *
-   * @param winding: use winding rule (true) or odd-even rule (false)
+   * @param nper
+   * @param x
+   * @param y
+   * @param winding : use winding rule (true) or odd-even rule (false)
    */
-  public void path(int npoly, int[] nper, double[] x, double[] y, boolean winding) {
+  public void path(int npoly, Ptr nper, Ptr x, Ptr y, boolean winding) {
     if (container == null) {
       return;
     }
-    container.add(new GDPath(nper, x, y, winding));
+    container.add(new GDPath(npoly, nper, x, y, winding));
   }
 
   public void polygon(int n, Ptr x, Ptr y) {

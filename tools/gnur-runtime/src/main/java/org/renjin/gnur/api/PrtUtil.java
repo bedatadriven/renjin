@@ -75,17 +75,32 @@ public final class PrtUtil {
         result = "-Inf";
       }
     } else if (e != 0) {
+
+      // Use scientific notation
+
+      String format;
       if(d != 0) {
-        throw new UnsupportedOperationException("e != && d != 0");
+        if(w == 0) {
+          format = String.format("%%#.%de", d);
+        } else {
+          format = String.format("%%#%d.%de", w, d);
+        }
       } else {
-        throw new UnsupportedOperationException("e != && d == 0");
+        format = String.format("%%%d.%de", w, d);
       }
-    } else { /* e = 0 */
+
+      result = String.format(format, x);
+
+    } else {
+
+      // e=0, do not use scientific notation
+
       NumberFormat format = DecimalFormat.getNumberInstance();
       format.setMinimumFractionDigits(d);
       format.setGroupingUsed(false);
       result = format.format(x);
     }
+
     return BytePtr.nullTerminatedString(Strings.padStart(result, w, ' '), Charsets.UTF_8);
   }
 

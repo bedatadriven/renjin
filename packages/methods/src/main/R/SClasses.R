@@ -253,7 +253,7 @@ getClassDef <-
 #	    value <- get(cname, where)
 #    }
 #    value
-    .Internal(getClassDef(as.character(Class)[1]))
+    .Internal(getClassDef(as.character(Class)[1], where, package, inherits))
 }
 
 getClass <-

@@ -18,6 +18,7 @@
  */
 package org.renjin.s4;
 
+import org.renjin.eval.Context;
 import org.renjin.sexp.*;
 
 public class S4Class {
@@ -90,5 +91,57 @@ public class S4Class {
   public boolean isUnionClass() {
     String objClass = classRepresentation.getAttribute(Symbols.CLASS).asString();
     return "ClassUnionRepresentation".equals(objClass);
+  }
+
+  public boolean isSimpleCoercion(String targetClass) {
+    ListVector contains = (ListVector) classRepresentation.getAttribute(S4Class.CONTAINS);
+    int index = contains.getIndexByName(targetClass);
+    if(index != -1) {
+      SEXP classExtension = contains.getElementAsSEXP(index);
+      SEXP simple = classExtension.getAttribute(S4Class.SIMPLE);
+      return ((LogicalArrayVector) simple).isElementTrue(0);
+    }
+    return true;
+  }
+
+  public SEXP coerceTo(Context context, SEXP value, String to) {
+    ListVector contains = (ListVector) classRepresentation.getAttribute(S4Class.CONTAINS);
+    int toIndex = contains.getIndexByName(to);
+    if(toIndex != -1) {
+      // get sloth with information about target class and create
+      // new function call to perform the coercion (if "by" field is defined
+      // this is an intermediate stage).
+      S4Object fromClass = (S4Object) contains.getElementAsSEXP(toIndex);
+      Closure coerce = (Closure) fromClass.getAttribute(S4Class.COERCE);
+      FunctionCall call = new FunctionCall(coerce, new PairList.Node(value, Null.INSTANCE));
+
+      SEXP res = context.evaluate(call);
+
+      if(fromClass.getAttribute(S4Class.BY).length() == 0) {
+        return res;
+      } else {
+        // the "by" field is provided. the coercion should be followed with
+        // coercion provided in "by" class
+
+        // get the "by" class information, if "by" is not in contained classes than
+        // assume its a function
+        String by = fromClass.getAttribute(S4Class.BY).asString();
+        int byIndex = contains.getIndexByName(by);
+        if(byIndex != -1) {
+          S4Object byClass = (S4Object) contains.getElementAsSEXP(byIndex);
+          Closure byCoerce = (Closure) byClass.getAttribute(S4Class.COERCE);
+          FunctionCall byCall = new FunctionCall(byCoerce, new PairList.Node(value, Null.INSTANCE));
+          return context.evaluate(byCall);
+        } else {
+          FunctionCall byCall = new FunctionCall(Symbol.get(by), new PairList.Node(call, Null.INSTANCE));
+          return context.evaluate(byCall);
+        }
+      }
+    }
+    return value;
+  }
+
+  public SEXP getDefinition() {
+    return classRepresentation;
   }
 }

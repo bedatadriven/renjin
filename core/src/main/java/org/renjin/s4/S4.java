@@ -21,6 +21,7 @@ package org.renjin.s4;
 import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.Primitives;
 import org.renjin.sexp.*;
@@ -31,7 +32,7 @@ import static org.renjin.methods.MethodDispatch.*;
 
 public class S4 {
 
-  private static final String PREFIX_CLASS = ".__C__";
+  public static final String CLASS_PREFIX = ".__C__";
 
 
   /**
@@ -51,21 +52,21 @@ public class S4 {
     }
 
     CallingArguments arguments = CallingArguments.primitiveArguments(context, rho, lookupTable.getArgumentMatcher(), source, args);
-    S4ClassCache classCache = new S4ClassCache(context);
-    DistanceCalculator calculator = new DistanceCalculator(classCache);
+
+    DistanceCalculator calculator = new DistanceCalculator(context.getSession().getS4Cache().getS4ClassCache());
 
     boolean[] useInheritance = new boolean[lookupTable.getMaximumSignatureLength()];
     Arrays.fill(useInheritance, Boolean.TRUE);
 
     Signature signature = arguments.getSignature(lookupTable.getMaximumSignatureLength());
-    RankedMethod selectedMethod = lookupTable.selectMethod(calculator, signature, useInheritance);
+    RankedMethod selectedMethod = lookupTable.selectMethod(context, calculator, signature, useInheritance);
     if(selectedMethod == null) {
       return null;
     }
 
     Closure function = selectedMethod.getMethodDefinition();
 
-    PairList coercedArgs = Methods.coerce(context, arguments, classCache, selectedMethod).build();
+    PairList coercedArgs = Methods.coerce(context, arguments, context.getSession().getS4Cache().getS4ClassCache(), selectedMethod).build();
 
     if (dispatchWithoutMeta(opName, source, selectedMethod)) {
       FunctionCall call = new FunctionCall(function, arguments.getPromisedArgs());
@@ -87,7 +88,7 @@ public class S4 {
   public static Map<Symbol, SEXP> generateCallMetaData(Context context, RankedMethod method, Signature signature, String opName) {
     Map<Symbol, SEXP> metadata = new HashMap<>();
 
-    /**
+    /*
      * Current GNU R (v3.3.1) seems to set the package-attribute in '.target' to
      * 'methods' for all the arguments (independent of input and method signature).
      * <p>
@@ -155,10 +156,8 @@ public class S4 {
       return "methods";
     }
 
-    Environment classTable = S4ClassCache.makeClassTable(context);
-
-    SEXP classDef = classTable
-        .findVariable(context, Symbol.get(objClass));
+    S4Class classTable = context.getSession().lookupS4ClassCache(context, objClass);
+    SEXP classDef = classTable.getDefinition();
 
     StringArrayVector packageSlot = (StringArrayVector) classDef.getAttribute(S4Class.PACKAGE);
     return packageSlot.getElementAsString(0);
@@ -166,23 +165,27 @@ public class S4 {
 
   public static AtomicVector getSuperClassesS4(Context context, String objClass) {
 
-    Environment classTable = S4ClassCache.makeClassTable(context);
-
-    SEXP classDef = classTable
-        .findVariable(context, Symbol.get(objClass));
+    S4Class classTable = context.getSession().lookupS4ClassCache(context, objClass);
+    SEXP classDef = classTable.getDefinition();
 
     SEXP containsSlot = classDef.getAttribute(S4Class.CONTAINS);
     return containsSlot.getNames();
   }
 
   public static SEXP computeDataClassesS4(Context context, String className) {
-    Symbol argClassObjectName = Symbol.get(PREFIX_CLASS + className);
+    Symbol argClassObjectName = Symbol.get(CLASS_PREFIX + className);
     Environment environment = context.getEnvironment();
     AttributeMap map = environment.findVariable(context, argClassObjectName).force(context).getAttributes();
     return map.get("contains").getNames();
   }
 
   public static Symbol classNameMetadata(String className) {
-    return Symbol.get(PREFIX_CLASS + className);
+    return Symbol.get(CLASS_PREFIX + className);
+  }
+
+  @Internal
+  public static void invalidateS4ClassCache(@Current Context context) {
+    System.out.println("invalidated S4Cache");
+    context.getSession().getS4Cache().recacheS4Classes(context);
   }
 }

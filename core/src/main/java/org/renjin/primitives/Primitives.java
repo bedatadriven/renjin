@@ -49,6 +49,7 @@ import org.renjin.primitives.text.Text;
 import org.renjin.primitives.time.Time;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
+import org.renjin.s4.S4;
 import org.renjin.sexp.*;
 import org.renjin.stats.internals.CompleteCases;
 import org.renjin.stats.internals.Distributions;
@@ -915,6 +916,7 @@ public class Primitives {
     f("inherits", Attributes.class, 11);
     f("UseMethod", S3.class, 200);
     f("NextMethod", S3.class, 210);
+    f("invalidateS4ClassCache", S4.class, 0);
     f("standardGeneric", Methods.class, 201);
     f("getClassDef", Methods.class, 11);
     f("selectMethod", Methods.class, 11);

@@ -18,6 +18,7 @@
  */
 package org.renjin.s4;
 
+import org.renjin.eval.Context;
 import org.renjin.sexp.Closure;
 
 import java.util.Arrays;
@@ -30,19 +31,21 @@ public class RankedMethod {
   private boolean exact = true;
   private int[] distances;
 
-  public RankedMethod(Method method, Signature callingSignature, DistanceCalculator distanceCalculator, boolean[] useInheritance) {
+  public RankedMethod(Context context, Method method, Signature callingSignature, DistanceCalculator distanceCalculator, boolean[] useInheritance) {
     this.method = method;
     this.distances = new int[getMethodSignatureLength()];
     for (int i = 0; i < getMethodSignatureLength(); i++) {
       String definedClass = method.getSignature().getClass(i);
       if (definedClass.equals(callingSignature.getClass(i))) {
+      String targetClass = callingSignature.getClass(i);
+      if (definedClass.equals(targetClass)) {
         // matches exactly
         distances[i] = 0;
         has0 = true;
 
       } else if(useInheritance[i]) {
         exact = false;
-        int distance = distanceCalculator.distance(callingSignature.getClass(i), definedClass);
+        int distance = distanceCalculator.distance(context, targetClass, definedClass);
         if (distance == -1) {
           candidate = false;
           break;

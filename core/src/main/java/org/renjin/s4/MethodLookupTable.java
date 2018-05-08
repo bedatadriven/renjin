@@ -164,12 +164,12 @@ public class MethodLookupTable {
     return maximumSignatureLength;
   }
 
-  public RankedMethod selectMethod(DistanceCalculator distanceCalculator, Signature signature, boolean[] useInheritance) {
+  public RankedMethod selectMethod(Context context, DistanceCalculator distanceCalculator, Signature signature, boolean[] useInheritance) {
 
     RankedMethod bestMatch = null;
 
     for (Method method : methods) {
-      RankedMethod rankedMethod = new RankedMethod(method, signature, distanceCalculator, useInheritance);
+      RankedMethod rankedMethod = new RankedMethod(context, method, signature, distanceCalculator, useInheritance);
       if(rankedMethod.isCandidate() && (bestMatch == null || rankedMethod.isBetterThan(bestMatch))) {
         bestMatch = rankedMethod;
       }

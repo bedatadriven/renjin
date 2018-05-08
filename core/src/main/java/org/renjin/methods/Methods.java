@@ -378,8 +378,7 @@ public class Methods {
       }
     }
 
-    S4ClassCache classCache = new S4ClassCache(context);
-    DistanceCalculator calculator = new DistanceCalculator(classCache);
+    DistanceCalculator calculator = new DistanceCalculator(context.getSession().getS4Cache().getS4ClassCache());
 
     // useInherited argument provided to selectMethod() is used to indicate
     // if inherited methods can be used for each given argument. if the length
@@ -410,7 +409,7 @@ public class Methods {
 
 
     Signature signature = new Signature(args.toArray());
-    RankedMethod selectedMethod = lookupTable.selectMethod(calculator, signature, inheritance);
+    RankedMethod selectedMethod = lookupTable.selectMethod(context, calculator, signature, inheritance);
 
     if(selectedMethod == null) {
       if(optional) {
@@ -445,15 +444,12 @@ public class Methods {
 
     CallingArguments arguments = CallingArguments.standardGenericArguments(context, lookupTable.getArgumentMatcher());
 
-
-
-    S4ClassCache classCache = new S4ClassCache(context);
-    DistanceCalculator calculator = new DistanceCalculator(classCache);
+    DistanceCalculator calculator = new DistanceCalculator(context.getSession().getS4Cache().getS4ClassCache());
 
     boolean[] useInheritance = new boolean[lookupTable.getMaximumSignatureLength()];
     Arrays.fill(useInheritance, Boolean.TRUE);
     Signature signature = arguments.getSignature(lookupTable.getMaximumSignatureLength(), generic.getSignatureArgumentNames());
-    RankedMethod selectedMethod = lookupTable.selectMethod(calculator, signature, useInheritance);
+    RankedMethod selectedMethod = lookupTable.selectMethod(context, calculator, signature, useInheritance);
     if(selectedMethod == null) {
       throw new EvalException("unable to find an inherited method for function '" + fname +
           "' for signature " + arguments.getFullSignatureString(lookupTable.getMaximumSignatureLength()));
@@ -463,12 +459,12 @@ public class Methods {
 
     Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, signature, fname);
 
-    PairList coercedArgs = coerce(context, arguments, classCache, selectedMethod).build();
+    PairList coercedArgs = coerce(context, arguments, context.getSession().getS4Cache().getS4ClassCache(), selectedMethod).build();
     FunctionCall call = new FunctionCall(function, coercedArgs);
     return ClosureDispatcher.apply(context, context.getCallingEnvironment(), call, function, coercedArgs, metadata);
   }
 
-  public static PairList.Builder coerce(@Current Context context, CallingArguments arguments, S4ClassCache classCache, RankedMethod method) {
+  public static PairList.Builder coerce(Context context, CallingArguments arguments, S4ClassCache classCache, RankedMethod method) {
 
     int signatureLength = method.getMethodSignatureLength();
 

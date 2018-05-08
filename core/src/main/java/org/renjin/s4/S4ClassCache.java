@@ -19,22 +19,25 @@
 package org.renjin.s4;
 
 import org.renjin.eval.Context;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.sexp.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class S4ClassCache {
 
-  private final Environment classTable;
+  private Map<String, S4Class> classTable = null;
 
   public S4ClassCache(Context context) {
-    this.classTable = makeClassTable(context);
   }
 
-  public static Environment makeClassTable(Context context) {
-    Frame classes = new HashFrame();
+  private void initializeCache(Context context) {
+
+    classTable = new HashMap<>();
 
     List<Frame> loaded = new ArrayList<>();
     loaded.add(context.getGlobalEnvironment().getFrame());
@@ -43,73 +46,40 @@ public class S4ClassCache {
     }
 
     for(Frame frame : loaded) {
-      for(Symbol object : frame.getSymbols()) {
-        if(object.getPrintName().startsWith(".__C__")) {
-          String shortName = object.getPrintName().split(".__C__")[1];
-          classes.setVariable(Symbol.get(shortName), frame.getVariable(object).force(context));
+      for(Symbol symbol : frame.getSymbols()) {
+        if(symbol.getPrintName().startsWith(S4.CLASS_PREFIX)) {
+          String className = symbol.getPrintName().substring(S4.CLASS_PREFIX.length());
+          S4Object classRepresentation = (S4Object) frame.getVariable(symbol).force(context);
+          classTable.put(className, new S4Class(classRepresentation));
         }
       }
     }
-
-    return new Environment.Builder(context.getBaseEnvironment(), classes).build();
   }
 
-  public S4Class lookupClass(String name) {
-    SEXP classRepresentation = classTable.getVariableUnsafe(name);
-    if(classRepresentation == Symbol.UNBOUND_VALUE) {
-      return null;
-    } else {
-      return new S4Class(classRepresentation);
+  /**
+   *
+   * @param context the current evaluation context
+   * @param className the name of the class to lookup
+   * @return the {@link S4Class} if defined, otherwise {@code null}.
+   */
+  public S4Class lookupClass(Context context, String className) {
+    if(classTable == null) {
+      initializeCache(context);
     }
+    return classTable.get(className);
   }
 
   public boolean isSimple(String from, String to) {
-    SEXP classDef = classTable.getVariableUnsafe(from);
-    ListVector contains = (ListVector) classDef.getAttribute(S4Class.CONTAINS);
-    int index = contains.getIndexByName(to);
-    if(index != -1) {
-      SEXP classExtension = contains.getElementAsSEXP(index);
-      SEXP simple = classExtension.getAttribute(S4Class.SIMPLE);
-      return ((LogicalArrayVector) simple).isElementTrue(0);
-    }
-    return true;
+    S4Class classDef = classTable.get(from);
+    return classDef.isSimpleCoercion(to);
+  }
+
+  public void reCache(Context context) {
+    initializeCache(context);
   }
 
   public SEXP coerceComplex(Context context, SEXP value, String from, String to) {
-    SEXP classDef = classTable.getVariableUnsafe(from);
-    ListVector contains = (ListVector) classDef.getAttribute(S4Class.CONTAINS);
-    int toIndex = contains.getIndexByName(to);
-    if(toIndex != -1) {
-      // get sloth with information about target class and create
-      // new function call to perform the coercion (if "by" field is defined
-      // this is an intermediate stage).
-      S4Object fromClass = (S4Object) contains.getElementAsSEXP(toIndex);
-      Closure coerce = (Closure) fromClass.getAttribute(S4Class.COERCE);
-      FunctionCall call = new FunctionCall(coerce, new PairList.Node(value, Null.INSTANCE));
-
-      SEXP res = context.evaluate(call);
-
-      if(fromClass.getAttribute(S4Class.BY).length() == 0) {
-        return res;
-      } else {
-        // the "by" field is provided. the coercion should be followed with
-        // coercion provided in "by" class
-
-        // get the "by" class information, if "by" is not in contained classes than
-        // assume its a function
-        String by = fromClass.getAttribute(S4Class.BY).asString();
-        int byIndex = contains.getIndexByName(by);
-        if(byIndex != -1) {
-          S4Object byClass = (S4Object) contains.getElementAsSEXP(byIndex);
-          Closure byCoerce = (Closure) byClass.getAttribute(S4Class.COERCE);
-          FunctionCall byCall = new FunctionCall(byCoerce, new PairList.Node(value, Null.INSTANCE));
-          return context.evaluate(byCall);
-        } else {
-          FunctionCall byCall = new FunctionCall(Symbol.get(by), new PairList.Node(call, Null.INSTANCE));
-          return context.evaluate(byCall);
-        }
-      }
-    }
-    return value;
+    S4Class classDef = classTable.get(from);
+    return classDef.coerceTo(context, value, to);
   }
 }

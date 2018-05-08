@@ -18,6 +18,8 @@
  */
 package org.renjin.s4;
 
+import org.renjin.eval.Context;
+
 public class DistanceCalculator {
 
   private static final int FAR_AWAY = Integer.MAX_VALUE - 1;
@@ -28,7 +30,7 @@ public class DistanceCalculator {
     this.classCache = classCache;
   }
 
-  public int distance(String from, String to) {
+  public int distance(Context context, String from, String to) {
     if (to.equals("ANY")) {
       // Classes are equidistant but far from "ANY"
       // ... but missing is even further.
@@ -39,7 +41,7 @@ public class DistanceCalculator {
       }
     }
 
-    S4Class providedClass = classCache.lookupClass(from);
+    S4Class providedClass = classCache.lookupClass(context, from);
     if(providedClass == null) {
       return -1;
     }
@@ -53,7 +55,7 @@ public class DistanceCalculator {
     // is created with the provided name. The distance to union class to input class is stored in
     // subclasses slot.
     if(distanceToSuperClass == -1) {
-      S4Class subclasses = classCache.lookupClass(to);
+      S4Class subclasses = classCache.lookupClass(context, to);
       if(subclasses != null && subclasses.isUnionClass()) {
         distanceToSuperClass = subclasses.getDistanceToUnionClass(from);
       }

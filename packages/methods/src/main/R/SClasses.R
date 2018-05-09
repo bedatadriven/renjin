@@ -406,6 +406,7 @@ removeClass <-  function(Class, where = topenv(parent.frame())) {
     .undefineMethod("initialize", Class, classWhere)
     what <- classMetaName(Class)
     rm(list=what, pos=classWhere)
+    invalidateS4ClassCache(paste("removeClass(",Class,")",sep=""))
     TRUE
 }
 

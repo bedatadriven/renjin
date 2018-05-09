@@ -18,27 +18,12 @@
  */
 package org.renjin.s4;
 
-import org.renjin.eval.Context;
-
 public class S4Cache {
 
-  private S4ClassCache classCache;
-
-  public void S4Cache(Context context) {
-    this.classCache = new S4ClassCache(context);
-  }
-
-
-  public void setS4ClassCache(S4ClassCache classCache) {
-    this.classCache = classCache;
-  }
+  private S4ClassCache classCache = new S4ClassCache();
 
   public S4ClassCache getS4ClassCache() {
     return classCache;
-  }
-
-  public void recacheS4Classes(Context context) {
-    this.classCache = new S4ClassCache(context);
   }
 
 }

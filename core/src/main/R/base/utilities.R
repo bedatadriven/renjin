@@ -22,4 +22,4 @@ is.R <-
     function() exists("version") && !is.null(vl <- version$language) && vl == "R"
 
 
-invalidateS4ClassCache <- function() .Internal(invalidateS4ClassCache())
+invalidateS4ClassCache <- function(msg=" ") .Internal(invalidateS4ClassCache(as.character(msg)))

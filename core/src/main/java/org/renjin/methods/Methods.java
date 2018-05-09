@@ -32,6 +32,7 @@ import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.s4.*;
 import org.renjin.sexp.*;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -345,7 +346,7 @@ public class Methods {
   }
 
   @Internal
-  public static SEXP getClassDef(@Current Context context, String className, SEXP where, SEXP packageName, SEXP inherits) {
+  public static SEXP getClassDef(@Current Context context, String className, SEXP where, SEXP packageName, SEXP inherits) throws IOException {
 
 //#    if(inherits) #includes both the lookup and Class being alread a definition
 //#      value <- .getClassFromCache(Class, where)
@@ -370,9 +371,10 @@ public class Methods {
 //#    value
     SEXP classDef = Symbol.UNBOUND_VALUE;
 
-    S4Class s4class = context.getSession().lookupS4ClassCache(context, className);
-    if(s4class != null) {
-      classDef = s4class.getDefinition();
+    S4Cache s4Cache = context.getSession().getS4Cache();
+    S4Class s4Class = s4Cache.getS4ClassCache().lookupClass(context, className);
+    if(s4Class != null) {
+      classDef = s4Class.getDefinition();
     }
 
     if(classDef == Symbol.UNBOUND_VALUE) {

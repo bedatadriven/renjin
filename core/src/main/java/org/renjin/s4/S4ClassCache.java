@@ -19,9 +19,11 @@
 package org.renjin.s4;
 
 import org.renjin.eval.Context;
-import org.renjin.invoke.annotations.Current;
 import org.renjin.primitives.packaging.Namespace;
-import org.renjin.sexp.*;
+import org.renjin.sexp.Frame;
+import org.renjin.sexp.S4Object;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,7 +34,7 @@ public class S4ClassCache {
 
   private Map<String, S4Class> classTable = null;
 
-  public S4ClassCache(Context context) {
+  S4ClassCache() {
   }
 
   private void initializeCache(Context context) {
@@ -72,10 +74,6 @@ public class S4ClassCache {
   public boolean isSimple(String from, String to) {
     S4Class classDef = classTable.get(from);
     return classDef.isSimpleCoercion(to);
-  }
-
-  public void reCache(Context context) {
-    initializeCache(context);
   }
 
   public SEXP coerceComplex(Context context, SEXP value, String from, String to) {

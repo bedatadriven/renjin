@@ -36,7 +36,7 @@ public class Packages {
       @Current NamespaceRegistry namespaceRegistry, 
       String packageName) throws IOException {
 
-    context.getSession().getS4Cache().recacheS4Classes(context);
+    context.getSession().reloadS4ClassCache();
     Namespace namespace = namespaceRegistry.getNamespace(context, packageName);
     
     // Check to see if already on the search path...

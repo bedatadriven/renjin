@@ -31,8 +31,6 @@ import org.renjin.repackaged.guava.collect.ImmutableList;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.s4.S4Cache;
-import org.renjin.s4.S4Class;
-import org.renjin.s4.S4ClassCache;
 import org.renjin.sexp.*;
 import org.renjin.stats.internals.distributions.RNG;
 import org.renjin.util.FileSystemUtils;
@@ -42,7 +40,6 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.lang.invoke.MethodHandle;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -337,12 +334,8 @@ public class Session {
     return cache;
   }
 
-  public void emptyS4ClassCache(Context context) {
-    cache.getS4ClassCache().reCache(context);
-  }
-
-  public S4Class lookupS4ClassCache(Context context, String className) {
-    return cache.getS4ClassCache().lookupClass(context, className);
+  public void reloadS4ClassCache() {
+    cache = new S4Cache();
   }
 
   public void registerFinalizer(SEXP sexp, FinalizationHandler handler, boolean onExit) {

@@ -156,8 +156,9 @@ public class S4 {
       return "methods";
     }
 
-    S4Class classTable = context.getSession().lookupS4ClassCache(context, objClass);
-    SEXP classDef = classTable.getDefinition();
+    S4Cache s4Cache = context.getSession().getS4Cache();
+    S4Class s4Class = s4Cache.getS4ClassCache().lookupClass(context, objClass);
+    SEXP classDef = s4Class.getDefinition();
 
     StringArrayVector packageSlot = (StringArrayVector) classDef.getAttribute(S4Class.PACKAGE);
     return packageSlot.getElementAsString(0);
@@ -165,8 +166,9 @@ public class S4 {
 
   public static AtomicVector getSuperClassesS4(Context context, String objClass) {
 
-    S4Class classTable = context.getSession().lookupS4ClassCache(context, objClass);
-    SEXP classDef = classTable.getDefinition();
+    S4Cache s4Cache = context.getSession().getS4Cache();
+    S4Class s4Class = s4Cache.getS4ClassCache().lookupClass(context, objClass);
+    SEXP classDef = s4Class.getDefinition();
 
     SEXP containsSlot = classDef.getAttribute(S4Class.CONTAINS);
     return containsSlot.getNames();
@@ -184,8 +186,8 @@ public class S4 {
   }
 
   @Internal
-  public static void invalidateS4ClassCache(@Current Context context) {
-    System.out.println("invalidated S4Cache");
-    context.getSession().getS4Cache().recacheS4Classes(context);
+  public static void invalidateS4ClassCache(@Current Context context, String msg) {
+    // System.out.println("invalidateS4ClassCache() @ " + msg)
+    context.getSession().reloadS4ClassCache();
   }
 }

@@ -36,7 +36,6 @@ public class RankedMethod {
     this.distances = new int[getMethodSignatureLength()];
     for (int i = 0; i < getMethodSignatureLength(); i++) {
       String definedClass = method.getSignature().getClass(i);
-      if (definedClass.equals(callingSignature.getClass(i))) {
       String targetClass = callingSignature.getClass(i);
       if (definedClass.equals(targetClass)) {
         // matches exactly

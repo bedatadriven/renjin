@@ -212,6 +212,7 @@ setGeneric <-
             gwhere <- .genEnv(group, where)
             gdef@groupMembers <- c(gdef@groupMembers, list(fdef@generic))
             assign(group, gdef, gwhere)
+            invalidateS4MethodCache(paste("setGeneric(",f,").2",sep=""))
         }
     }
     .GenericAssign(name, fdef, where)
@@ -219,6 +220,7 @@ setGeneric <-
 
 .GenericAssign <- function(name, fdef, where) {
     assign(name, fdef, where)
+    invalidateS4MethodCache(paste(".GenericAssign(",name,").1",sep=""))
     .cacheGeneric(name, fdef)
     methods <- fdef@default # empty or containing the default
     assignMethodsMetaData(name, methods, fdef, where)
@@ -494,6 +496,7 @@ setMethod <-
                              sQuote(getPackageName(gwhere)))
                 message(strwrap(msg), domain = NA)
                 assign(f, fdef, where)
+                invalidateS4MethodCache(paste("setMethod(",f,").1",sep=""))
                 gwhere <- where
             }
         }

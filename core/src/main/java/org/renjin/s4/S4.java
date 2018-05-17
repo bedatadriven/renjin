@@ -46,20 +46,28 @@ public class S4 {
                                                 Environment rho, String group, String opName) {
 
     Generic generic = Generic.primitive(opName, Arrays.asList(group));
-    MethodLookupTable lookupTable = new MethodLookupTable(generic, context);
-    if(lookupTable.isEmpty()) {
+
+    S4MethodCache methodCache = context.getSession().getS4Cache().getS4MethodCache();
+    S4ClassCache classCache = context.getSession().getS4Cache().getS4ClassCache();
+
+    methodCache.cacheMethod(context, generic, opName);
+
+    S4Method method = methodCache.getMethod(opName);
+
+    if(method == null || method.isEmpty()) {
       return null;
     }
 
-    CallingArguments arguments = CallingArguments.primitiveArguments(context, rho, lookupTable.getArgumentMatcher(), source, args);
+    CallingArguments arguments = CallingArguments.primitiveArguments(context, rho, method.getArgumentMatcher(), source, args);
 
-    DistanceCalculator calculator = new DistanceCalculator(context.getSession().getS4Cache().getS4ClassCache());
+    DistanceCalculator calculator = new DistanceCalculator(classCache);
 
-    boolean[] useInheritance = new boolean[lookupTable.getMaximumSignatureLength()];
+    boolean[] useInheritance = new boolean[method.getMaximumSignatureLength()];
     Arrays.fill(useInheritance, Boolean.TRUE);
 
-    Signature signature = arguments.getSignature(lookupTable.getMaximumSignatureLength());
-    RankedMethod selectedMethod = lookupTable.selectMethod(context, calculator, signature, useInheritance);
+    Signature signature = arguments.getSignature(method.getMaximumSignatureLength());
+
+    RankedMethod selectedMethod = method.selectMethod(context, generic, calculator, signature, useInheritance);
     if(selectedMethod == null) {
       return null;
     }
@@ -186,8 +194,14 @@ public class S4 {
   }
 
   @Internal
-  public static void invalidateS4ClassCache(@Current Context context, String msg) {
-    // System.out.println("invalidateS4ClassCache() @ " + msg)
-    context.getSession().reloadS4ClassCache();
+  public static void invalidateS4Cache(@Current Context context, String msg) {
+//    System.out.println("invalidateS4Cache() @ " + msg);
+    context.getSession().reloadS4Cache();
+  }
+
+  @Internal
+  public static void invalidateS4MethodCache(@Current Context context, String msg) {
+//    System.out.println("invalidateS4MethodCache() @ " + msg);
+    context.getSession().reloadS4MethodCache();
   }
 }

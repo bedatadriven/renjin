@@ -334,8 +334,13 @@ public class Session {
     return cache;
   }
 
-  public void reloadS4ClassCache() {
-    cache = new S4Cache();
+  public void reloadS4Cache() {
+    cache.resetS4ClassCache();
+    cache.resetS4MethodCache();
+  }
+
+  public void reloadS4MethodCache() {
+    cache.resetS4MethodCache();
   }
 
   public void registerFinalizer(SEXP sexp, FinalizationHandler handler, boolean onExit) {

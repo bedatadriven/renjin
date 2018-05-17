@@ -278,8 +278,10 @@
   label <- .sigLabel(sig)
   isCurrent <- exists(label, envir = table, inherits = FALSE)
   if(is.null(def)) { # remove the method (convention for setMethod)
-      if(isCurrent)
+      if(isCurrent) {
           remove(list = label, envir = table)
+          invalidateS4MethodCache(paste(".cacheMethodInTable(",label,").1",sep=""))
+      }
   }
   else {
       dupl <- .duplicateClassesExist()
@@ -290,6 +292,7 @@
       ##    if(dupl || isCurrent)
       def <- .methodPackageSlots(def, label, table, dupl, isCurrent)
       assign(label, def, envir = table)
+      invalidateS4MethodCache( paste(".cacheMethodInTable(",label,").1",sep="") )
   }
 }
 
@@ -1012,10 +1015,12 @@
         ## a new method to mtable is responsible for copying it to allTable as well.
         allObjects <- names(allTable)
         remove(list = setdiff(allObjects, direct), envir = allTable)
+        invalidateS4MethodCache(paste(".resetInheritedMethods().1",sep=""))
     }
     else {
         allTable <- new.env(TRUE, fenv)
         assign(".AllMTable", allTable, envir = fenv)
+        invalidateS4MethodCache(paste(".resetInheritedMethods().2",sep=""))
     }
     ## check for missing direct objects; usually a non-existent AllMTable?
     if(any(is.na(match(direct, allObjects)))) {
@@ -1026,6 +1031,7 @@
         if (is(m, "MethodWithNext"))
             allTable[[d]] <- as(m, "MethodDefinition")
     }
+        invalidateS4MethodCache(paste(".resetInheritedMethods().3",sep=""))
     NULL
 }
 
@@ -1447,6 +1453,7 @@ listFromMethods <- function(generic, where, table) {
     if(missing(table))
 	table <- .copyEnv(.getMethodsTable(generic))
     assign(what, table, envir = as.environment(where))
+    invalidateS4MethodCache(paste(".assignMethodsTableMetaData(", name, ")", sep=""))
 }
 
 .getMethodsTableMetaData <-  function(generic, where, optional = FALSE) {

@@ -527,7 +527,7 @@ assignClassDef <-
       }
       else {
           assign(mname, def, where)
-          invalidateS4ClassCache(paste("assignClassDef(",Class,")",sep=""))
+          invalidateS4Cache(paste("assignClassDef(",Class,")",sep=""))
       }
       if(cacheOnAssign(where)) { # will be FALSE for sourceEnvironment's
           .cacheClass(clName, def, is(def, "ClassUnionRepresentation"), where)
@@ -569,7 +569,7 @@ assignClassDef <-
     assign(classMetaName("classRepresentation"), object, where)
     ## the list of needed generics, initially empty (see .InitStructureMethods)
     assign(".NeedPrimitiveMethods", list(), where)
-    invalidateS4ClassCache(".InitClassDefinition()")
+    invalidateS4Cache(".InitClassDefinition()")
 }
 
 .classNameFromMethods <- function(what) {
@@ -1943,7 +1943,7 @@ assign("#HAS_DUPLICATE_CLASS_NAMES", FALSE, envir = .classTable)
                 base:::.cache_class(name, .extendsForS3(def))
 ##                base:::.cache_class(name, extends(def))
                 res <- assign(name, def, envir = .classTable)
-                invalidateS4ClassCache(paste(".cacheClass(",name,").1",sep=""))
+                invalidateS4Cache(paste(".cacheClass(",name,").1",sep=""))
                 return(res)
             }
             else if(.simpleDuplicateClass(def, prev))
@@ -1962,7 +1962,7 @@ assign("#HAS_DUPLICATE_CLASS_NAMES", FALSE, envir = .classTable)
         .duplicateClassesExist(TRUE)
     }
     assign(name, def, envir = .classTable)
-    invalidateS4ClassCache(paste(".cacheClass(",name,").2",sep=""))
+    invalidateS4Cache(paste(".cacheClass(",name,").2",sep=""))
 }
 
 ## test for identical def, prev class definitions
@@ -2184,7 +2184,7 @@ assign("#HAS_DUPLICATE_CLASS_NAMES", FALSE, envir = .classTable)
                             .assignOverBinding(cmeta, newdef, penv, FALSE)
                         else {
                             assign(cmeta, newdef, envir = penv)
-                            invalidateS4ClassCache(paste(".removeSubClass(class:",class,"; subclass: ", subclass,")",sep="")) }
+                            invalidateS4Cache(paste(".removeSubClass(class:",class,"; subclass: ", subclass,")",sep="")) }
                     }
                 }
             }
@@ -2232,7 +2232,7 @@ assign("#HAS_DUPLICATE_CLASS_NAMES", FALSE, envir = .classTable)
             newdef <- .deleteSuperClass(cdef, superclass)
             if(!is.null(newdef)) {
               assignClassDef(class, newdef,  where, TRUE)
-              invalidateS4ClassCache(paste(".removeSuperClass(class:",class,"; superclass: ", superclass,")",sep=""))
+              invalidateS4Cache(paste(".removeSuperClass(class:",class,"; superclass: ", superclass,")",sep=""))
               ## message("deleted ",superclass, " from ",class, "in environment")
           }
         }

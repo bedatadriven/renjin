@@ -916,7 +916,8 @@ public class Primitives {
     f("inherits", Attributes.class, 11);
     f("UseMethod", S3.class, 200);
     f("NextMethod", S3.class, 210);
-    f("invalidateS4ClassCache", S4.class, 1);
+    f("invalidateS4Cache", S4.class, 1);
+    f("invalidateS4MethodCache", S4.class, 1);
     f("standardGeneric", Methods.class, 201);
     f("getClassDef", Methods.class, 11);
     f("selectMethod", Methods.class, 11);

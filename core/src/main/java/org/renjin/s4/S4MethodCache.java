@@ -18,25 +18,35 @@
  */
 package org.renjin.s4;
 
-public class S4Cache {
+import org.renjin.eval.Context;
 
-  private S4ClassCache classCache = new S4ClassCache();
-  private S4MethodCache methodCache = new S4MethodCache();
+import java.util.HashMap;
+import java.util.Map;
 
-  public S4ClassCache getS4ClassCache() {
-    return classCache;
+public class S4MethodCache {
+
+  private Map<String, S4Method> methodCache = null;   // <fname, <signature, RankedMethod>>
+
+  S4MethodCache() {
   }
 
-  public S4MethodCache getS4MethodCache() {
-    return methodCache;
+  private void initializeMethodCache() {
+    methodCache = new HashMap<>();
   }
 
-  public void resetS4ClassCache() {
-    classCache = new S4ClassCache();
+  public void cacheMethod(Context context, Generic generic, String fname) {
+
+    if(this.methodCache == null) {
+      initializeMethodCache();
+    }
+
+    S4Method methodTable = new S4Method(context, generic);
+
+    this.methodCache.put(fname, methodTable);
   }
 
-  public void resetS4MethodCache() {
-    methodCache = new S4MethodCache();
+  public S4Method getMethod(String fname) {
+    return methodCache.get(fname);
   }
 
 }

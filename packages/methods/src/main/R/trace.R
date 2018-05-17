@@ -497,19 +497,19 @@ setCacheOnAssign <- function(env, onOff = cacheOnAssign(env))
                                              ) && bindingIsLocked(what, fenv)) {
             unlockBinding(what, fenv)
             assign(what, value, fenv)
-            invalidateS4ClassCache(paste(".assignOverBinding(",sQuote(what),").1",sep=""))
+            invalidateS4Cache(paste(".assignOverBinding(",sQuote(what),").1",sep=""))
             lockBinding(what, fenv)
         }
     }
     if(exists(what, envir = where, inherits = FALSE) && bindingIsLocked(what, where)) {
       unlockBinding(what, where)
       assign(what, value, where)
-      invalidateS4ClassCache(paste(".assignOverBinding(",sQuote(what),").2",sep=""))
+      invalidateS4Cache(paste(".assignOverBinding(",sQuote(what),").2",sep=""))
       lockBinding(what, where)
     }
     else {
       assign(what, value, where)
-      invalidateS4ClassCache(paste(".assignOverBinding(",sQuote(what),").3",sep=""))
+      invalidateS4Cache(paste(".assignOverBinding(",sQuote(what),").3",sep=""))
     }
 }
 

@@ -391,10 +391,11 @@ public class Methods {
   }
 
   @Internal
-  public static SEXP selectMethod(@Current Context context, StringArrayVector fname, StringArrayVector args,
+  public static SEXP selectMethod(@Current Context context, StringArrayVector functionName, StringArrayVector args,
                                   LogicalArrayVector opt, LogicalArrayVector useInherited, SEXP mlist, SEXP fdef, SEXP verbose, SEXP doCache) {
 
     boolean optional = opt.isElementTrue(0);
+    String fname = functionName.getElementAsString(0);
 
     String packageName;
     if(fdef instanceof Closure) {
@@ -403,24 +404,31 @@ public class Methods {
       packageName = context.getFunction().getAttribute(Symbol.get("package")).asString();
     }
 
-    Generic generic = Generic.standardGeneric(context, fname.getElementAsString(0), packageName);
-    MethodLookupTable lookupTable = new MethodLookupTable(generic, context);
+    Generic generic = Generic.standardGeneric(context, fname, packageName);
 
-    if(lookupTable.isEmpty()) {
+
+    S4MethodCache methodCache = context.getSession().getS4Cache().getS4MethodCache();
+    S4ClassCache classCache = context.getSession().getS4Cache().getS4ClassCache();
+
+    methodCache.cacheMethod(context, generic, fname);
+
+    S4Method method = methodCache.getMethod(fname);
+
+    if(method == null || method.isEmpty()) {
       if (optional) {
         return Null.INSTANCE;
       } else {
-        throw new EvalException("No methods found!");
+        throw new EvalException("selectMethod(" + fname + "): No methods found!");
       }
     }
 
-    DistanceCalculator calculator = new DistanceCalculator(context.getSession().getS4Cache().getS4ClassCache());
+    DistanceCalculator calculator = new DistanceCalculator(classCache);
 
     // useInherited argument provided to selectMethod() is used to indicate
     // if inherited methods can be used for each given argument. if the length
     // of useInherited is shorter than the number of arguments, it is repeated.
     // Inheritance is not used in case of "ANY".
-    boolean[] inheritance = new boolean[lookupTable.getMaximumSignatureLength()];
+    boolean[] inheritance = new boolean[method.getMaximumSignatureLength()];
     int inheritedLength = useInherited.length();
 
     if(inheritedLength == 1) {
@@ -445,13 +453,14 @@ public class Methods {
 
 
     Signature signature = new Signature(args.toArray());
-    RankedMethod selectedMethod = lookupTable.selectMethod(context, calculator, signature, inheritance);
+
+    RankedMethod selectedMethod = method.selectMethod(context, generic, calculator, signature, inheritance);
 
     if(selectedMethod == null) {
       if(optional) {
         return Null.INSTANCE;
       } else {
-        throw new EvalException("No methods found!");
+        throw new EvalException("selectMethod(" + fname + "): No matching methods found! 'optional' is set to FALSE.");
       }
     }
 
@@ -473,22 +482,32 @@ public class Methods {
 
     String packageName = context.getFunction().getAttribute(Symbol.get("package")).asString();
     Generic generic = Generic.standardGeneric(context, fname, packageName);
-    MethodLookupTable lookupTable = new MethodLookupTable(generic, context);
-    if(lookupTable.isEmpty()) {
-      throw new EvalException("No methods found!");
+
+    S4MethodCache methodCache = context.getSession().getS4Cache().getS4MethodCache();
+    S4ClassCache classCache = context.getSession().getS4Cache().getS4ClassCache();
+
+    methodCache.cacheMethod(context, generic, fname);
+
+    S4Method method = methodCache.getMethod(fname);
+
+    if(method == null || method.isEmpty()) {
+      throw new EvalException("standardGeneric(" + fname + "): No methods found!");
     }
 
-    CallingArguments arguments = CallingArguments.standardGenericArguments(context, lookupTable.getArgumentMatcher());
+    CallingArguments arguments = CallingArguments.standardGenericArguments(context, method.getArgumentMatcher());
 
-    DistanceCalculator calculator = new DistanceCalculator(context.getSession().getS4Cache().getS4ClassCache());
+    DistanceCalculator calculator = new DistanceCalculator(classCache);
 
-    boolean[] useInheritance = new boolean[lookupTable.getMaximumSignatureLength()];
+    boolean[] useInheritance = new boolean[method.getMaximumSignatureLength()];
     Arrays.fill(useInheritance, Boolean.TRUE);
-    Signature signature = arguments.getSignature(lookupTable.getMaximumSignatureLength(), generic.getSignatureArgumentNames());
-    RankedMethod selectedMethod = lookupTable.selectMethod(context, calculator, signature, useInheritance);
+
+    Signature signature = arguments.getSignature(method.getMaximumSignatureLength(), generic.getSignatureArgumentNames());
+
+    RankedMethod selectedMethod = method.selectMethod(context, generic, calculator, signature, useInheritance);
+
     if(selectedMethod == null) {
       throw new EvalException("unable to find an inherited method for function '" + fname +
-          "' for signature " + arguments.getFullSignatureString(lookupTable.getMaximumSignatureLength()));
+          "' for signature " + arguments.getFullSignatureString(method.getMaximumSignatureLength()));
     }
 
     Closure function = selectedMethod.getMethodDefinition();

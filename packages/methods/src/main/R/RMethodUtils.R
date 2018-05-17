@@ -570,17 +570,22 @@ getGeneric <-
         newpkg <- def@package
         prev <- get(name, envir = table)
         if(is.function(prev))  # we might worry if  prev not identical
-            return(remove(list = name, envir = table))
+            res <- remove(list = name, envir = table)
+            invalidateS4MethodCache(paste(".uncacheGenericTable(",name,").1",sep=""))
+            return(res)
         i <- match(newpkg, names(prev))
         if(!is.na(i))
             prev[[i]] <- NULL
         else           # we might warn about unchaching more than once
             return()
-        if(length(prev) == 0L)
-            return(remove(list = name, envir = table))
-        else if(length(prev) == 1L)
+        if(length(prev) == 0L) {
+            res <- remove(list = name, envir = table)
+            invalidateS4MethodCache(paste(".uncacheGenericTable(",name,").2",sep=""))
+            return(res)
+        } else if(length(prev) == 1L)
             prev <- prev[[1L]]
         assign(name, prev, envir  = table)
+        invalidateS4MethodCache(paste(".uncacheGenericTable(",name,").3",sep=""))
     }
 }
 
@@ -735,11 +740,15 @@ assignMethodsMetaData <-
         if(exists(mname, envir = where, inherits = FALSE) &&
            bindingIsLocked(mname, where))
           {}        # may be called from trace() with locked binding; ignore
-        else
+        else {
           assign(mname, value, where)
+          invalidateS4MethodCache(paste("assignMethodsMetaData(",f,").1",sep=""))
+          }
     }
-    if(dispatchIsInternal(fdef))
+    if(dispatchIsInternal(fdef)) {
         setPrimitiveMethods(f, fdef@default, "reset", fdef, NULL)
+        invalidateS4MethodCache(paste("assignMethodsMetaData(",f,").2",sep=""))
+    }
     if(is(fdef, "groupGenericFunction")) # reset or turn on members of group
         cacheGenericsMetaData(f, fdef, where = where, package = fdef@package)
 }
@@ -904,10 +913,12 @@ cacheGenericsMetaData <- function(f, fdef, attach = TRUE,
 ### and then only for the old non-table case.
     deflt <- finalDefaultMethod(fdef@default) #only to detect primitives
     if(dispatchIsInternal(fdef)) {
-	if(missing(methods)) ## "reset"
+	if(missing(methods)) {## "reset"
 	    setPrimitiveMethods(f, deflt, "reset", fdef, NULL)
-	else ## "set"
+	    invalidateS4MethodCache("cacheGenericsMetaData()1")
+	} else ## "set"
 	    setPrimitiveMethods(f, deflt, "set", fdef, methods)
+	    invalidateS4MethodCache("cacheGenericsMetaData()2")
     }
     else if(isGroup(f, fdef = fdef)) {
 	members <- fdef@groupMembers
@@ -1378,6 +1389,7 @@ metaNameUndo <- function(strings, prefix, searchForm = FALSE)
 {
     ev <- environment(fdef)
     assign(".Methods", methods, ev)
+    invalidateS4MethodCache(paste(".genericAssign(",f,")",sep=""))
 }
 
 ## Mark the method as derived from a non-generic.

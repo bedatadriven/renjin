@@ -280,7 +280,7 @@
   if(is.null(def)) { # remove the method (convention for setMethod)
       if(isCurrent) {
           remove(list = label, envir = table)
-          invalidateS4MethodCache(paste(".cacheMethodInTable(",label,").1",sep=""))
+#          invalidateS4MethodCache(paste(".cacheMethodInTable(",label,").1",sep=""))
       }
   }
   else {
@@ -292,7 +292,7 @@
       ##    if(dupl || isCurrent)
       def <- .methodPackageSlots(def, label, table, dupl, isCurrent)
       assign(label, def, envir = table)
-      invalidateS4MethodCache( paste(".cacheMethodInTable(",label,").1",sep="") )
+#      invalidateS4MethodCache( paste(".cacheMethodInTable(",label,").1",sep="") )
   }
 }
 

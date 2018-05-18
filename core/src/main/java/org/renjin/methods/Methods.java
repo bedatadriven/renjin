@@ -409,10 +409,14 @@ public class Methods {
 
     S4MethodCache methodCache = context.getSession().getS4Cache().getS4MethodCache();
     S4ClassCache classCache = context.getSession().getS4Cache().getS4ClassCache();
+    S4Method method;
 
-    methodCache.cacheMethod(context, generic, fname);
-
-    S4Method method = methodCache.getMethod(fname);
+    if(methodCache.hasMethod(fname)) {
+      method = methodCache.getMethod(fname);
+    } else {
+      methodCache.cacheMethod(context, generic, fname);
+      method = methodCache.getMethod(fname);
+    }
 
     if(method == null || method.isEmpty()) {
       if (optional) {
@@ -422,7 +426,9 @@ public class Methods {
       }
     }
 
-    DistanceCalculator calculator = new DistanceCalculator(classCache);
+    Signature signature = new Signature(args.toArray());
+
+    RankedMethod selectedMethod;
 
     // useInherited argument provided to selectMethod() is used to indicate
     // if inherited methods can be used for each given argument. if the length
@@ -451,10 +457,16 @@ public class Methods {
       inheritance = new boolean[]{inheritance[0], false};
     }
 
-
-    Signature signature = new Signature(args.toArray());
-
-    RankedMethod selectedMethod = method.selectMethod(context, generic, calculator, signature, inheritance);
+    // different methods can be selected with same input signature depending on
+    // the useInherited argument. This happens for `coerce` function used in
+    // R internals, but can happen with any input function. For each cached
+    // method we need additional book keeping field for useInherited.
+    if(!"coerce".equals(generic.getName()) && method.hasCachedRankedMethod(signature.toString(), inheritance)) {
+      selectedMethod = method.getCachedRankedMethod(signature.toString());
+    } else {
+      DistanceCalculator calculator = new DistanceCalculator(classCache);
+      selectedMethod = method.selectMethod(context, generic, calculator, signature, inheritance);
+    }
 
     if(selectedMethod == null) {
       if(optional) {
@@ -485,10 +497,14 @@ public class Methods {
 
     S4MethodCache methodCache = context.getSession().getS4Cache().getS4MethodCache();
     S4ClassCache classCache = context.getSession().getS4Cache().getS4ClassCache();
+    S4Method method;
 
-    methodCache.cacheMethod(context, generic, fname);
-
-    S4Method method = methodCache.getMethod(fname);
+    if(methodCache.hasMethod(fname)) {
+      method = methodCache.getMethod(fname);
+    } else {
+      methodCache.cacheMethod(context, generic, fname);
+      method = methodCache.getMethod(fname);
+    }
 
     if(method == null || method.isEmpty()) {
       throw new EvalException("standardGeneric(" + fname + "): No methods found!");
@@ -496,14 +512,19 @@ public class Methods {
 
     CallingArguments arguments = CallingArguments.standardGenericArguments(context, method.getArgumentMatcher());
 
-    DistanceCalculator calculator = new DistanceCalculator(classCache);
+    Signature signature = arguments.getSignature(method.getMaximumSignatureLength(), generic.getSignatureArgumentNames());
+
+    RankedMethod selectedMethod;
 
     boolean[] useInheritance = new boolean[method.getMaximumSignatureLength()];
     Arrays.fill(useInheritance, Boolean.TRUE);
 
-    Signature signature = arguments.getSignature(method.getMaximumSignatureLength(), generic.getSignatureArgumentNames());
-
-    RankedMethod selectedMethod = method.selectMethod(context, generic, calculator, signature, useInheritance);
+    if(method.hasCachedRankedMethod(signature.toString(), useInheritance)) {
+      selectedMethod = method.getCachedRankedMethod(signature.toString());
+    } else {
+      DistanceCalculator calculator = new DistanceCalculator(classCache);
+      selectedMethod = method.selectMethod(context, generic, calculator, signature, useInheritance);
+    }
 
     if(selectedMethod == null) {
       throw new EvalException("unable to find an inherited method for function '" + fname +
@@ -514,7 +535,7 @@ public class Methods {
 
     Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, signature, fname);
 
-    PairList coercedArgs = coerce(context, arguments, context.getSession().getS4Cache().getS4ClassCache(), selectedMethod).build();
+    PairList coercedArgs = coerce(context, arguments, classCache, selectedMethod).build();
     FunctionCall call = new FunctionCall(function, coercedArgs);
     return ClosureDispatcher.apply(context, context.getCallingEnvironment(), call, function, coercedArgs, metadata);
   }

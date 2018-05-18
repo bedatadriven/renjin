@@ -45,6 +45,10 @@ public class S4MethodCache {
     this.methodCache.put(fname, methodTable);
   }
 
+  public boolean hasMethod(String fname) {
+    return methodCache != null && methodCache.containsKey(fname);
+  }
+
   public S4Method getMethod(String fname) {
     return methodCache.get(fname);
   }

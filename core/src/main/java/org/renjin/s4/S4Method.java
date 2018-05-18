@@ -24,10 +24,7 @@ import org.renjin.eval.EvalException;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.sexp.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class S4Method {
 
@@ -47,6 +44,7 @@ public class S4Method {
 //  private List<String> relatedClasses = new ArrayList<>();
 
   private Map<String, RankedMethod> signaturRankedMethod = new HashMap<>();
+  private Map<String, boolean[]> signaturRankedMethodInherit = new HashMap<>();
 
   S4Method(Context context, Generic generic) {
     this.initializeS4Method(context, generic);
@@ -198,10 +196,15 @@ public class S4Method {
       }
     }
     signaturRankedMethod.put(signature.toString(), bestMatch);
+    signaturRankedMethodInherit.put(signature.toString(), useInheritance);
     return bestMatch;
   }
 
   public RankedMethod getCachedRankedMethod(String signature) {
     return signaturRankedMethod.get(signature);
+  }
+
+  public boolean hasCachedRankedMethod(String signature, boolean[] inheritance) {
+    return signaturRankedMethod.containsKey(signature) && Arrays.equals(signaturRankedMethodInherit.get(signature), inheritance);
   }
 }

@@ -49,10 +49,14 @@ public class S4 {
 
     S4MethodCache methodCache = context.getSession().getS4Cache().getS4MethodCache();
     S4ClassCache classCache = context.getSession().getS4Cache().getS4ClassCache();
+    S4Method method;
 
-    methodCache.cacheMethod(context, generic, opName);
-
-    S4Method method = methodCache.getMethod(opName);
+    if(methodCache.hasMethod(opName)) {
+      method = methodCache.getMethod(opName);
+    } else {
+      methodCache.cacheMethod(context, generic, opName);
+      method = methodCache.getMethod(opName);
+    }
 
     if(method == null || method.isEmpty()) {
       return null;
@@ -60,21 +64,27 @@ public class S4 {
 
     CallingArguments arguments = CallingArguments.primitiveArguments(context, rho, method.getArgumentMatcher(), source, args);
 
-    DistanceCalculator calculator = new DistanceCalculator(classCache);
+    Signature signature = arguments.getSignature(method.getMaximumSignatureLength());
+
+    RankedMethod selectedMethod;
 
     boolean[] useInheritance = new boolean[method.getMaximumSignatureLength()];
     Arrays.fill(useInheritance, Boolean.TRUE);
 
-    Signature signature = arguments.getSignature(method.getMaximumSignatureLength());
+    if(method.hasCachedRankedMethod(signature.toString(), useInheritance)) {
+      selectedMethod = method.getCachedRankedMethod(signature.toString());
+    } else {
+      DistanceCalculator calculator = new DistanceCalculator(classCache);
+      selectedMethod = method.selectMethod(context, generic, calculator, signature, useInheritance);
+    }
 
-    RankedMethod selectedMethod = method.selectMethod(context, generic, calculator, signature, useInheritance);
     if(selectedMethod == null) {
       return null;
     }
 
     Closure function = selectedMethod.getMethodDefinition();
 
-    PairList coercedArgs = Methods.coerce(context, arguments, context.getSession().getS4Cache().getS4ClassCache(), selectedMethod).build();
+    PairList coercedArgs = Methods.coerce(context, arguments, classCache, selectedMethod).build();
 
     if (dispatchWithoutMeta(opName, source, selectedMethod)) {
       FunctionCall call = new FunctionCall(function, arguments.getPromisedArgs());

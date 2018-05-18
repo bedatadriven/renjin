@@ -212,7 +212,7 @@ setGeneric <-
             gwhere <- .genEnv(group, where)
             gdef@groupMembers <- c(gdef@groupMembers, list(fdef@generic))
             assign(group, gdef, gwhere)
-            invalidateS4MethodCache(paste("setGeneric(",f,").2",sep=""))
+            invalidateS4MethodCache(paste("setGeneric(",name,").2",sep=""))
         }
     }
     .GenericAssign(name, fdef, where)

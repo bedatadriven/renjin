@@ -88,17 +88,6 @@ public class S4Method {
     }
   }
 
-//  public void cacheMethodTable(String fname, RankedMethod method) {
-//    this.methodTable.put(fname, method);
-//    List<String> newRelated = new ArrayList<>(method.getRelatedClasses());
-//    newRelated.removeAll(this.relatedClasses);
-//    this.relatedClasses.addAll(newRelated);
-//  }
-
-//  public boolean invalidate(String className) {
-//    return relatedClasses.contains(className);
-//  }
-
   /**
    * Add methods listed in a namespace's method table. The table is an environment
    * where each defined method is bound to its signature. For example:

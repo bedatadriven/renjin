@@ -71,8 +71,8 @@ public class S4 {
     boolean[] useInheritance = new boolean[method.getMaximumSignatureLength()];
     Arrays.fill(useInheritance, Boolean.TRUE);
 
-    if(method.hasCachedRankedMethod(signature.toString(), useInheritance)) {
-      selectedMethod = method.getCachedRankedMethod(signature.toString());
+    if(method.hasCachedRankedMethod(signature, useInheritance)) {
+      selectedMethod = method.getCachedRankedMethod(signature, useInheritance);
     } else {
       DistanceCalculator calculator = new DistanceCalculator(classCache);
       selectedMethod = method.selectMethod(context, generic, calculator, signature, useInheritance);

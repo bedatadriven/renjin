@@ -34,8 +34,8 @@ import org.renjin.sexp.*;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.renjin.s4.S4.generateCallMetaData;
 
@@ -461,8 +461,8 @@ public class Methods {
     // the useInherited argument. This happens for `coerce` function used in
     // R internals, but can happen with any input function. For each cached
     // method we need additional book keeping field for useInherited.
-    if(!"coerce".equals(generic.getName()) && method.hasCachedRankedMethod(signature.toString(), inheritance)) {
-      selectedMethod = method.getCachedRankedMethod(signature.toString());
+    if(!"coerce".equals(generic.getName()) && method.hasCachedRankedMethod(signature, inheritance)) {
+      selectedMethod = method.getCachedRankedMethod(signature, inheritance);
     } else {
       DistanceCalculator calculator = new DistanceCalculator(classCache);
       selectedMethod = method.selectMethod(context, generic, calculator, signature, inheritance);
@@ -519,8 +519,8 @@ public class Methods {
     boolean[] useInheritance = new boolean[method.getMaximumSignatureLength()];
     Arrays.fill(useInheritance, Boolean.TRUE);
 
-    if(method.hasCachedRankedMethod(signature.toString(), useInheritance)) {
-      selectedMethod = method.getCachedRankedMethod(signature.toString());
+    if(method.hasCachedRankedMethod(signature, useInheritance)) {
+      selectedMethod = method.getCachedRankedMethod(signature, useInheritance);
     } else {
       DistanceCalculator calculator = new DistanceCalculator(classCache);
       selectedMethod = method.selectMethod(context, generic, calculator, signature, useInheritance);
@@ -549,7 +549,7 @@ public class Methods {
     for(PairList.Node arg : arguments.getPromisedArgs().nodes()) {
       SEXP value = arg.getValue();
       SEXP tag = arg.getRawTag();
-      List<String> argNames = method.getMethod().getGeneric().getSignatureArgumentNames();
+      Set<String> argNames = method.getMethod().getGeneric().getSignatureArgumentNames();
       if(step < signatureLength && (tag != Null.INSTANCE && argNames.contains(arg.getTag().getPrintName()))) {
         String from = arguments.getArgumentClass(step);
         String to = method.getArgumentClass(step);

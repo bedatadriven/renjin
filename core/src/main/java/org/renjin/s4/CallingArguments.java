@@ -25,7 +25,7 @@ import org.renjin.eval.MatchedArguments;
 import org.renjin.sexp.*;
 
 import java.util.Iterator;
-import java.util.List;
+import java.util.Set;
 
 /**
  * Prepares the arguments to the call for matching.
@@ -150,7 +150,7 @@ public class CallingArguments {
     return new Signature(classes);
   }
 
-  public Signature getSignature(int length, List<String> args) {
+  public Signature getSignature(int length, Set<String> args) {
     String[] classes = new String[length];
     Iterator<PairList.Node> argumentIt = promisedArgs.nodes().iterator();
     int step = 0;

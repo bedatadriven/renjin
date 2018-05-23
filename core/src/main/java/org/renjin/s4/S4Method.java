@@ -183,10 +183,6 @@ public class S4Method {
       initializeS4Method(context, generic);
     }
 
-    if(signaturRankedMethod.containsKey(signature.toString())) {
-      return signaturRankedMethod.get(signature.toString());
-    }
-
     RankedMethod bestMatch = null;
 
     for (Method method : methods) {
@@ -195,16 +191,19 @@ public class S4Method {
         bestMatch = rankedMethod;
       }
     }
-    signaturRankedMethod.put(signature.toString(), bestMatch);
-    signaturRankedMethodInherit.put(signature.toString(), useInheritance);
+
+    String methodKey = signature.toString() + Arrays.toString(useInheritance);
+    signaturRankedMethod.put(methodKey, bestMatch);
     return bestMatch;
   }
 
-  public RankedMethod getCachedRankedMethod(String signature) {
-    return signaturRankedMethod.get(signature);
+  public RankedMethod getCachedRankedMethod(Signature signature, boolean[] useInheritance) {
+    String methodKey = signature.toString() + Arrays.toString(useInheritance);
+    return signaturRankedMethod.get(methodKey);
   }
 
-  public boolean hasCachedRankedMethod(String signature, boolean[] inheritance) {
-    return signaturRankedMethod.containsKey(signature) && Arrays.equals(signaturRankedMethodInherit.get(signature), inheritance);
+  public boolean hasCachedRankedMethod(Signature signature, boolean[] useInheritance) {
+    String methodKey = signature.toString() + Arrays.toString(useInheritance);
+    return signaturRankedMethod.containsKey(methodKey);
   }
 }

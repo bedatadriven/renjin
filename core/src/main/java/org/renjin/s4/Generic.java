@@ -158,14 +158,14 @@ public class Generic {
     return genericFunction;
   }
 
-  public List<String> getSignatureArgumentNames() {
+  public Set<String> getSignatureArgumentNames() {
     if(genericFunction != null) {
       SEXP signature = genericFunction.getAttribute(Symbol.get("signature"));
       if(signature instanceof StringArrayVector) {
-        return Arrays.asList(((StringArrayVector) signature).toArray());
+        return new HashSet<>(Arrays.asList(((StringArrayVector) signature).toArray()));
       }
     }
-    return new ArrayList<>();
+    return new HashSet<>();
   }
 
   public boolean isOps() {

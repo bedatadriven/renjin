@@ -34,21 +34,6 @@ public class S4MethodCache {
     methodCache = new HashMap<>();
   }
 
-  public void cacheMethod(Context context, Generic generic, String fname) {
-
-    if(this.methodCache == null) {
-      initializeMethodCache();
-    }
-
-    S4MethodTable methodTable = new S4MethodTable(context, generic);
-
-    this.methodCache.put(fname, methodTable);
-  }
-
-  public boolean hasMethod(String fname) {
-    return methodCache != null && methodCache.containsKey(fname);
-  }
-
   public S4MethodTable getMethod(Context context, Generic generic, String fname) {
     if(methodCache != null && methodCache.containsKey(fname)) {
       return methodCache.get(fname);

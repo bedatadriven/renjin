@@ -24,7 +24,10 @@ import org.renjin.eval.EvalException;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.sexp.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class S4MethodTable {
 
@@ -41,7 +44,7 @@ public class S4MethodTable {
    */
   private Map<String, Method> signatureMap = new HashMap<>();
 
-  private Map<String, RankedMethod> cachedMethods = new HashMap<>();
+  private Map<SignatureAndInheritance, RankedMethod> cachedMethods = new HashMap<>();
 
   S4MethodTable(Context context, Generic generic) {
     this.initializeS4Method(context, generic);
@@ -106,8 +109,8 @@ public class S4MethodTable {
   private void addMethods(Context context, Frame namespaceFrame, Symbol methodTableName, int groupLevel) {
 
 
-    // S4 methods for each generic function is stored in method table of type environment. methods for each signature is stored
-    // separately using the signature as name. for example
+    // S4 methods for each generic function is stored in method table of type environment. methods for each
+    // signature is stored separately using the signature as name. for example
     // setMethod("[", signature("AA","BB","CC"), function(x, i, j, ...))
     // is stored as `AA#BB#CC` in an environment named `.__T__[:base` (we call this the methodCache)
     // here we get the first method from the method table and split the name by # to know what the expected
@@ -165,7 +168,7 @@ public class S4MethodTable {
 
   public RankedMethod selectMethod(Context context, Generic generic, Signature signature, boolean[] useInheritance) {
 
-    String methodKey = signature.toString() + Arrays.toString(useInheritance);
+    SignatureAndInheritance methodKey = new SignatureAndInheritance(signature.getArguments(), useInheritance);
     if(isEmpty()) {
       initializeS4Method(context, generic);
     } else {
@@ -188,15 +191,5 @@ public class S4MethodTable {
 
     cachedMethods.put(methodKey, bestMatch);
     return bestMatch;
-  }
-
-  public RankedMethod getCachedRankedMethod(Signature signature, boolean[] useInheritance) {
-    String methodKey = signature.toString() + Arrays.toString(useInheritance);
-    return cachedMethods.get(methodKey);
-  }
-
-  public boolean hasCachedRankedMethod(Signature signature, boolean[] useInheritance) {
-    String methodKey = signature.toString() + Arrays.toString(useInheritance);
-    return cachedMethods.containsKey(methodKey);
   }
 }

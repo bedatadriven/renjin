@@ -104,10 +104,7 @@ public class Primitives {
   private static boolean isPrimitive(IdentityHashMap<Symbol, Entry> entryMap,
                                      ConcurrentHashMap<Symbol, PrimitiveFunction> cache,
                                      Symbol symbol) {
-    if(cache.get(symbol) != null || entryMap.get(symbol) != null) {
-      return true;
-    }
-    return false;
+    return cache.get(symbol) != null || entryMap.get(symbol) != null;
   }
 
   private static PrimitiveFunction getPrimitive(IdentityHashMap<Symbol, Entry> entryMap,

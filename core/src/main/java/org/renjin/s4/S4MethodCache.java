@@ -25,7 +25,7 @@ import java.util.Map;
 
 public class S4MethodCache {
 
-  private Map<String, S4Method> methodCache = null;   // <fname, <signature, RankedMethod>>
+  private Map<String, S4MethodTable> methodCache = null;   // <fname, <signature, RankedMethod>>
 
   S4MethodCache() {
   }
@@ -40,7 +40,7 @@ public class S4MethodCache {
       initializeMethodCache();
     }
 
-    S4Method methodTable = new S4Method(context, generic);
+    S4MethodTable methodTable = new S4MethodTable(context, generic);
 
     this.methodCache.put(fname, methodTable);
   }
@@ -49,8 +49,17 @@ public class S4MethodCache {
     return methodCache != null && methodCache.containsKey(fname);
   }
 
-  public S4Method getMethod(String fname) {
-    return methodCache.get(fname);
+  public S4MethodTable getMethod(Context context, Generic generic, String fname) {
+    if(methodCache != null && methodCache.containsKey(fname)) {
+      return methodCache.get(fname);
+    } else {
+      if(methodCache == null) {
+        initializeMethodCache();
+      }
+      S4MethodTable methodTable = new S4MethodTable(context, generic);
+      this.methodCache.put(fname, methodTable);
+      return methodTable;
+    }
   }
 
 }

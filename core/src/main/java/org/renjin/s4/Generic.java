@@ -109,7 +109,7 @@ public class Generic {
     this.stdGeneric = true;
     this.genericFunction = genericFunction;
 
-    if (group.size() > 0 && "Ops".equals(group.get(0))) {
+    if (!group.isEmpty() && "Ops".equals(group.get(0))) {
       this.subGroup = opsSubGroupOf(name);
     } else {
       this.subGroup = null;
@@ -145,7 +145,7 @@ public class Generic {
   }
 
   public boolean isGroupGeneric() {
-    return group.size() > 0;
+    return !group.isEmpty();
   }
 
   public boolean isStandardGeneric() {
@@ -188,12 +188,12 @@ public class Generic {
   }
 
   public Symbol getGroupGenericMethodTableName() {
-    assert group.size() > 0;
+    assert !group.isEmpty();
     return Symbol.get(S4.METHOD_PREFIX + group.get(0) + ":" + packageName);
   }
 
   public Symbol getGroupStdGenericMethodTableName(String group) {
-    assert group != null;
+    assert group != null && !group.isEmpty();
     return Symbol.get(S4.METHOD_PREFIX + group + ":" + packageName);
   }
 

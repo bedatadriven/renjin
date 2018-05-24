@@ -32,7 +32,6 @@ import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.s4.*;
 import org.renjin.sexp.*;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
@@ -346,29 +345,7 @@ public class Methods {
   }
 
   @Internal
-  public static SEXP getClassDef(@Current Context context, String className, SEXP where, SEXP packageName, SEXP inherits) throws IOException {
-
-//#    if(inherits) #includes both the lookup and Class being alread a definition
-//#      value <- .getClassFromCache(Class, where)
-//#    else # want to force a search for the metadata in this case (Why?)
-//#      value <- NULL
-//#    if(is.null(value)) {
-//#	cname <-
-//#	    classMetaName(if(length(Class) > 1L)
-//#			  ## S3 class; almost certainly has no packageSlot,
-//#			  ## but we'll continue anyway
-//#			  Class[[1L]] else Class)
-//#	## a string with a package slot strongly implies the class definition
-//#	## should be in that package.
-//#	if(identical(nzchar(package), TRUE)) {
-//#	    whereP <- .requirePackage(package)
-//#	    if(exists(cname, whereP, inherits = inherits))
-//#		value <- get(cname, whereP)
-//#	}
-//#	if(is.null(value) && exists(cname, where, inherits = inherits))
-//#	    value <- get(cname, where)
-//#    }
-//#    value
+  public static SEXP getClassDef(@Current Context context, String className, SEXP where, SEXP packageName, SEXP inherits) {
     SEXP classDef = Symbol.UNBOUND_VALUE;
 
     S4Cache s4Cache = context.getSession().getS4Cache();
@@ -377,11 +354,9 @@ public class Methods {
       classDef = s4Class.getDefinition();
     }
 
-    if(classDef == Symbol.UNBOUND_VALUE) {
-      if(where instanceof Environment) {
-        Environment env = (Environment) where;
-        classDef = env.getVariableUnsafe(className);
-      }
+    if(classDef == Symbol.UNBOUND_VALUE && where instanceof Environment) {
+      Environment env = (Environment) where;
+      classDef = env.getVariableUnsafe(className);
     }
 
     if(classDef == Symbol.UNBOUND_VALUE) {
@@ -399,26 +374,17 @@ public class Methods {
 
     String packageName;
     if(fdef instanceof Closure) {
-      packageName = fdef.getAttribute(Symbol.get("package")).asString();
+      packageName = fdef.getAttribute(S4.PACKAGE).asString();
     } else {
-      packageName = context.getFunction().getAttribute(Symbol.get("package")).asString();
+      packageName = context.getFunction().getAttribute(S4.PACKAGE).asString();
     }
 
     Generic generic = Generic.standardGeneric(context, fname, packageName);
 
-
     S4MethodCache methodCache = context.getSession().getS4Cache().getS4MethodCache();
-    S4ClassCache classCache = context.getSession().getS4Cache().getS4ClassCache();
-    S4Method method;
+    S4MethodTable methodTable = methodCache.getMethod(context, generic, fname);
 
-    if(methodCache.hasMethod(fname)) {
-      method = methodCache.getMethod(fname);
-    } else {
-      methodCache.cacheMethod(context, generic, fname);
-      method = methodCache.getMethod(fname);
-    }
-
-    if(method == null || method.isEmpty()) {
+    if(methodTable == null || methodTable.isEmpty()) {
       if (optional) {
         return Null.INSTANCE;
       } else {
@@ -434,7 +400,7 @@ public class Methods {
     // if inherited methods can be used for each given argument. if the length
     // of useInherited is shorter than the number of arguments, it is repeated.
     // Inheritance is not used in case of "ANY".
-    boolean[] inheritance = new boolean[method.getMaximumSignatureLength()];
+    boolean[] inheritance = new boolean[methodTable.getMaximumSignatureLength()];
     int inheritedLength = useInherited.length();
 
     if(inheritedLength == 1) {
@@ -457,16 +423,7 @@ public class Methods {
       inheritance = new boolean[]{inheritance[0], false};
     }
 
-    // different methods can be selected with same input signature depending on
-    // the useInherited argument. This happens for `coerce` function used in
-    // R internals, but can happen with any input function. For each cached
-    // method we need additional book keeping field for useInherited.
-    if(!"coerce".equals(generic.getName()) && method.hasCachedRankedMethod(signature, inheritance)) {
-      selectedMethod = method.getCachedRankedMethod(signature, inheritance);
-    } else {
-      DistanceCalculator calculator = new DistanceCalculator(classCache);
-      selectedMethod = method.selectMethod(context, generic, calculator, signature, inheritance);
-    }
+    selectedMethod = methodTable.selectMethod(context, generic, signature, inheritance);
 
     if(selectedMethod == null) {
       if(optional) {
@@ -492,57 +449,46 @@ public class Methods {
       throw new EvalException("argument to 'standardGeneric' must be a non-empty character string");
     }
 
-    String packageName = context.getFunction().getAttribute(Symbol.get("package")).asString();
+    String packageName = context.getFunction().getAttribute(S4.PACKAGE).asString();
     Generic generic = Generic.standardGeneric(context, fname, packageName);
 
     S4MethodCache methodCache = context.getSession().getS4Cache().getS4MethodCache();
-    S4ClassCache classCache = context.getSession().getS4Cache().getS4ClassCache();
-    S4Method method;
+    S4MethodTable methodTable = methodCache.getMethod(context, generic, fname);
 
-    if(methodCache.hasMethod(fname)) {
-      method = methodCache.getMethod(fname);
-    } else {
-      methodCache.cacheMethod(context, generic, fname);
-      method = methodCache.getMethod(fname);
-    }
-
-    if(method == null || method.isEmpty()) {
+    if(methodTable == null || methodTable.isEmpty()) {
       throw new EvalException("standardGeneric(" + fname + "): No methods found!");
     }
 
-    CallingArguments arguments = CallingArguments.standardGenericArguments(context, method.getArgumentMatcher());
+    CallingArguments arguments = CallingArguments.standardGenericArguments(context, methodTable.getArgumentMatcher());
 
-    Signature signature = arguments.getSignature(method.getMaximumSignatureLength(), generic.getSignatureArgumentNames());
+    Signature signature = arguments.getSignature(methodTable.getMaximumSignatureLength(), generic.getSignatureArgumentNames());
 
-    RankedMethod selectedMethod;
-
-    boolean[] useInheritance = new boolean[method.getMaximumSignatureLength()];
+    boolean[] useInheritance = new boolean[methodTable.getMaximumSignatureLength()];
     Arrays.fill(useInheritance, Boolean.TRUE);
 
-    if(method.hasCachedRankedMethod(signature, useInheritance)) {
-      selectedMethod = method.getCachedRankedMethod(signature, useInheritance);
-    } else {
-      DistanceCalculator calculator = new DistanceCalculator(classCache);
-      selectedMethod = method.selectMethod(context, generic, calculator, signature, useInheritance);
-    }
+    RankedMethod selectedMethod = methodTable.selectMethod(context, generic, signature, useInheritance);
 
     if(selectedMethod == null) {
       throw new EvalException("unable to find an inherited method for function '" + fname +
-          "' for signature " + arguments.getFullSignatureString(method.getMaximumSignatureLength()));
+          "' for signature " + arguments.getFullSignatureString(methodTable.getMaximumSignatureLength()));
     }
 
     Closure function = selectedMethod.getMethodDefinition();
 
     Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, signature, fname);
 
-    PairList coercedArgs = coerce(context, arguments, classCache, selectedMethod).build();
+    PairList coercedArgs = coerce(context, arguments, selectedMethod);
+
     FunctionCall call = new FunctionCall(function, coercedArgs);
+
     return ClosureDispatcher.apply(context, context.getCallingEnvironment(), call, function, coercedArgs, metadata);
   }
 
-  public static PairList.Builder coerce(Context context, CallingArguments arguments, S4ClassCache classCache, RankedMethod method) {
+  public static PairList coerce(Context context, CallingArguments arguments, RankedMethod method) {
 
     int signatureLength = method.getMethodSignatureLength();
+
+    S4ClassCache classCache = context.getSession().getS4Cache().getS4ClassCache();
 
     PairList.Builder coercedArgs = new PairList.Builder();
     int step = 0;
@@ -566,7 +512,7 @@ public class Methods {
         }
       }
     }
-    return coercedArgs;
+    return coercedArgs.build();
   }
 
 

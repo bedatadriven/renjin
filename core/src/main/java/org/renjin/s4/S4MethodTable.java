@@ -26,7 +26,7 @@ import org.renjin.sexp.*;
 
 import java.util.*;
 
-public class S4Method {
+public class S4MethodTable {
 
   private Generic generic;
 
@@ -43,7 +43,7 @@ public class S4Method {
 
   private Map<String, RankedMethod> cachedMethods = new HashMap<>();
 
-  S4Method(Context context, Generic generic) {
+  S4MethodTable(Context context, Generic generic) {
     this.initializeS4Method(context, generic);
   }
 
@@ -163,22 +163,29 @@ public class S4Method {
     return maximumSignatureLength;
   }
 
-  public RankedMethod selectMethod(Context context, Generic generic, DistanceCalculator distanceCalculator, Signature signature, boolean[] useInheritance) {
+  public RankedMethod selectMethod(Context context, Generic generic, Signature signature, boolean[] useInheritance) {
 
+    String methodKey = signature.toString() + Arrays.toString(useInheritance);
     if(isEmpty()) {
       initializeS4Method(context, generic);
+    } else {
+      if(cachedMethods.containsKey(methodKey)) {
+        return cachedMethods.get(methodKey);
+      }
     }
+
+    S4ClassCache classCache = context.getSession().getS4Cache().getS4ClassCache();
+    DistanceCalculator calculator = new DistanceCalculator(classCache);
 
     RankedMethod bestMatch = null;
 
     for (Method method : methods) {
-      RankedMethod rankedMethod = new RankedMethod(context, method, signature, distanceCalculator, useInheritance);
+      RankedMethod rankedMethod = new RankedMethod(context, method, signature, calculator, useInheritance);
       if(rankedMethod.isCandidate() && (bestMatch == null || rankedMethod.isBetterThan(bestMatch))) {
         bestMatch = rankedMethod;
       }
     }
 
-    String methodKey = signature.toString() + Arrays.toString(useInheritance);
     cachedMethods.put(methodKey, bestMatch);
     return bestMatch;
   }

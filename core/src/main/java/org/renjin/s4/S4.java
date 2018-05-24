@@ -45,6 +45,12 @@ public class S4 {
   public static final Symbol PACKAGE = Symbol.get("package");
   public static final Symbol GROUP = Symbol.get("group");
 
+  private static final String METHODS = "methods";
+
+
+  private S4() {
+    throw new IllegalStateException("'S4' is a utility class and cannot be instantiated.");
+  }
 
   /**
    * Attempts to dispatch to an S4 method based on the calling arguments.
@@ -59,35 +65,20 @@ public class S4 {
     Generic generic = Generic.primitive(opName, Arrays.asList(group));
 
     S4MethodCache methodCache = context.getSession().getS4Cache().getS4MethodCache();
-    S4ClassCache classCache = context.getSession().getS4Cache().getS4ClassCache();
-    S4Method method;
+    S4MethodTable methodTable = methodCache.getMethod(context, generic, opName);
 
-    if(methodCache.hasMethod(opName)) {
-      method = methodCache.getMethod(opName);
-    } else {
-      methodCache.cacheMethod(context, generic, opName);
-      method = methodCache.getMethod(opName);
-    }
-
-    if(method == null || method.isEmpty()) {
+    if(methodTable == null || methodTable.isEmpty()) {
       return null;
     }
 
-    CallingArguments arguments = CallingArguments.primitiveArguments(context, rho, method.getArgumentMatcher(), source, args);
+    CallingArguments arguments = CallingArguments.primitiveArguments(context, rho, methodTable.getArgumentMatcher(), source, args);
 
-    Signature signature = arguments.getSignature(method.getMaximumSignatureLength());
+    Signature signature = arguments.getSignature(methodTable.getMaximumSignatureLength());
 
-    RankedMethod selectedMethod;
-
-    boolean[] useInheritance = new boolean[method.getMaximumSignatureLength()];
+    boolean[] useInheritance = new boolean[methodTable.getMaximumSignatureLength()];
     Arrays.fill(useInheritance, Boolean.TRUE);
 
-    if(method.hasCachedRankedMethod(signature, useInheritance)) {
-      selectedMethod = method.getCachedRankedMethod(signature, useInheritance);
-    } else {
-      DistanceCalculator calculator = new DistanceCalculator(classCache);
-      selectedMethod = method.selectMethod(context, generic, calculator, signature, useInheritance);
-    }
+    RankedMethod selectedMethod = methodTable.selectMethod(context, generic, signature, useInheritance);
 
     if(selectedMethod == null) {
       return null;
@@ -95,7 +86,7 @@ public class S4 {
 
     Closure function = selectedMethod.getMethodDefinition();
 
-    PairList coercedArgs = Methods.coerce(context, arguments, classCache, selectedMethod).build();
+    PairList coercedArgs = Methods.coerce(context, arguments, selectedMethod);
 
     FunctionCall call = new FunctionCall(function, arguments.getPromisedArgs());
 
@@ -147,7 +138,7 @@ public class S4 {
   private static SEXP buildDotTarget(RankedMethod method, Signature signature) {
 
     List<String> argumentClasses = signature.getClasses();
-    List<String> argumentPackages = new ArrayList<String>(Collections.nCopies(argumentClasses.size(), "methods"));
+    List<String> argumentPackages = new ArrayList<>(Collections.nCopies(argumentClasses.size(), METHODS));
 
     return new StringVector.Builder()
       .addAll(argumentClasses)
@@ -176,12 +167,12 @@ public class S4 {
 
   private static SEXP signatureClass() {
     return StringVector.valueOf("signature")
-      .setAttribute("package", StringVector.valueOf("methods"));
+      .setAttribute("package", StringVector.valueOf(METHODS));
   }
 
   public static String getClassPackage(Context context, String objClass) {
     if("ANY".equals(objClass) || "signature".equals(objClass)) {
-      return "methods";
+      return METHODS;
     }
 
     S4Cache s4Cache = context.getSession().getS4Cache();
@@ -215,13 +206,13 @@ public class S4 {
 
   @Internal
   public static void invalidateS4Cache(@Current Context context, String msg) {
-//    System.out.println("invalidateS4Cache() @ " + msg);
+    // System.out.println("invalidateS4Cache() @ " + msg);
     context.getSession().reloadS4Cache();
   }
 
   @Internal
   public static void invalidateS4MethodCache(@Current Context context, String msg) {
-//    System.out.println("invalidateS4MethodCache() @ " + msg);
+    // System.out.println("invalidateS4MethodCache() @ " + msg);
     context.getSession().reloadS4MethodCache();
   }
 }

@@ -33,6 +33,8 @@ import java.util.Set;
  */
 public class CallingArguments {
 
+  private final String MISSING = "missing";
+
   private final Context context;
   private final PairList promisedArgs;
 
@@ -144,7 +146,7 @@ public class CallingArguments {
       if(argumentIt.hasNext()) {
         classes[index] = getArgumentClass(index);
       } else {
-        classes[index] = "missing";
+        classes[index] = MISSING;
       }
     }
     return new Signature(classes);
@@ -157,12 +159,12 @@ public class CallingArguments {
     for(int index = 0; step < length; ++index) {
       if(argumentIt.hasNext()) {
         String nodeTag = argumentIt.next().getTag().getPrintName();
-        if(args.size() == 0 || args.contains(nodeTag)) {
+        if(args.isEmpty() || args.contains(nodeTag)) {
           classes[step] = getArgumentClass(index);
           step++;
         }
       } else {
-        classes[step] = "missing";
+        classes[step] = MISSING;
         step++;
       }
     }
@@ -188,12 +190,12 @@ public class CallingArguments {
 
   public String getArgumentClass(int index) {
     if(index >= promisedArgs.length()) {
-      return "missing";
+      return MISSING;
     }
     SEXP actual = promisedArgs.getElementAsSEXP(index);
     SEXP evaluated = actual.force(context);
     if (evaluated == Symbol.MISSING_ARG) {
-      return "missing";
+      return MISSING;
     } else {
       return computeDateClass(evaluated);
     }

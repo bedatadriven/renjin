@@ -105,10 +105,6 @@ public class RankedMethod {
     return method.getDefinition();
   }
 
-  public String getMethodSignature() {
-    return method.getSignature().toString();
-  }
-
   @Override
   public String toString() {
     return "RankedMethod{" +

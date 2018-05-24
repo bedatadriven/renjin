@@ -38,8 +38,6 @@ public class Generic {
 
   private static final Set<String> LOGIC_GROUP = Sets.newHashSet("!", "&", "&&", "|", "||", "xor");
 
-  private static final String METHOD_PREFIX = ".__T__";
-
   private final String name;
   private final String packageName;
   private final List<String> group;
@@ -70,7 +68,7 @@ public class Generic {
       // case when selectMethod() is used to find a method for a primitive function
       group.add("Ops");
     } else {
-      SEXP groupSlot = generic.getAttribute(S4Class.GROUP);
+      SEXP groupSlot = generic.getAttribute(S4.GROUP);
       if (groupSlot instanceof ListVector) {
         int groupSize = groupSlot.length();
         if (groupSize > 0) {
@@ -186,25 +184,25 @@ public class Generic {
   }
 
   public Symbol getGenericMethodTableName() {
-    return Symbol.get(METHOD_PREFIX + name + ":" + packageName);
+    return Symbol.get(S4.METHOD_PREFIX + name + ":" + packageName);
   }
 
   public Symbol getGroupGenericMethodTableName() {
     assert group.size() > 0;
-    return Symbol.get(METHOD_PREFIX + group.get(0) + ":" + packageName);
+    return Symbol.get(S4.METHOD_PREFIX + group.get(0) + ":" + packageName);
   }
 
   public Symbol getGroupStdGenericMethodTableName(String group) {
     assert group != null;
-    return Symbol.get(METHOD_PREFIX + group + ":" + packageName);
+    return Symbol.get(S4.METHOD_PREFIX + group + ":" + packageName);
   }
 
   public Symbol getSubGroupGenericMethodTableName() {
     assert subGroup != null;
     if("Compare".equals(subGroup)) {
-      return Symbol.get(METHOD_PREFIX + subGroup + ":methods");
+      return Symbol.get(S4.METHOD_PREFIX + subGroup + ":methods");
     }
-    return Symbol.get(METHOD_PREFIX + subGroup + ":" + packageName);
+    return Symbol.get(S4.METHOD_PREFIX + subGroup + ":" + packageName);
   }
 
   @Override

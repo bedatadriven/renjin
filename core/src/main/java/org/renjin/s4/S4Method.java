@@ -41,10 +41,7 @@ public class S4Method {
    */
   private Map<String, Method> signatureMap = new HashMap<>();
 
-//  private List<String> relatedClasses = new ArrayList<>();
-
-  private Map<String, RankedMethod> signaturRankedMethod = new HashMap<>();
-  private Map<String, boolean[]> signaturRankedMethodInherit = new HashMap<>();
+  private Map<String, RankedMethod> cachedMethods = new HashMap<>();
 
   S4Method(Context context, Generic generic) {
     this.initializeS4Method(context, generic);
@@ -182,17 +179,17 @@ public class S4Method {
     }
 
     String methodKey = signature.toString() + Arrays.toString(useInheritance);
-    signaturRankedMethod.put(methodKey, bestMatch);
+    cachedMethods.put(methodKey, bestMatch);
     return bestMatch;
   }
 
   public RankedMethod getCachedRankedMethod(Signature signature, boolean[] useInheritance) {
     String methodKey = signature.toString() + Arrays.toString(useInheritance);
-    return signaturRankedMethod.get(methodKey);
+    return cachedMethods.get(methodKey);
   }
 
   public boolean hasCachedRankedMethod(Signature signature, boolean[] useInheritance) {
     String methodKey = signature.toString() + Arrays.toString(useInheritance);
-    return signaturRankedMethod.containsKey(methodKey);
+    return cachedMethods.containsKey(methodKey);
   }
 }

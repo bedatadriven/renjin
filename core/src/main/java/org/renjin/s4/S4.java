@@ -33,6 +33,17 @@ import static org.renjin.methods.MethodDispatch.*;
 public class S4 {
 
   public static final String CLASS_PREFIX = ".__C__";
+  public static final String METHOD_PREFIX = ".__T__";
+  public static final Symbol CONTAINS = Symbol.get("contains");
+  public static final Symbol SUBCLASSES = Symbol.get("subclasses");
+  public static final Symbol DISTANCE = Symbol.get("distance");
+  public static final Symbol COERCE = Symbol.get("coerce");
+  public static final Symbol REPLACE = Symbol.get("replace");
+  public static final Symbol BY = Symbol.get("by");
+  public static final Symbol SIMPLE = Symbol.get("simple");
+  public static final Symbol TEST = Symbol.get("test");
+  public static final Symbol PACKAGE = Symbol.get("package");
+  public static final Symbol GROUP = Symbol.get("group");
 
 
   /**
@@ -86,13 +97,12 @@ public class S4 {
 
     PairList coercedArgs = Methods.coerce(context, arguments, classCache, selectedMethod).build();
 
+    FunctionCall call = new FunctionCall(function, arguments.getPromisedArgs());
+
     if (dispatchWithoutMeta(opName, source, selectedMethod)) {
-      FunctionCall call = new FunctionCall(function, arguments.getPromisedArgs());
       return context.evaluate(call);
-      
     } else {
       Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, signature, opName);
-      FunctionCall call = new FunctionCall(function, arguments.getPromisedArgs());
       return ClosureDispatcher.apply(context, rho, call, function, coercedArgs, metadata);
     }
   }
@@ -178,7 +188,7 @@ public class S4 {
     S4Class s4Class = s4Cache.getS4ClassCache().lookupClass(context, objClass);
     SEXP classDef = s4Class.getDefinition();
 
-    StringArrayVector packageSlot = (StringArrayVector) classDef.getAttribute(S4Class.PACKAGE);
+    StringArrayVector packageSlot = (StringArrayVector) classDef.getAttribute(S4.PACKAGE);
     return packageSlot.getElementAsString(0);
   }
 
@@ -188,7 +198,7 @@ public class S4 {
     S4Class s4Class = s4Cache.getS4ClassCache().lookupClass(context, objClass);
     SEXP classDef = s4Class.getDefinition();
 
-    SEXP containsSlot = classDef.getAttribute(S4Class.CONTAINS);
+    SEXP containsSlot = classDef.getAttribute(S4.CONTAINS);
     return containsSlot.getNames();
   }
 

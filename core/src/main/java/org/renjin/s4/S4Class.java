@@ -23,17 +23,6 @@ import org.renjin.sexp.*;
 
 public class S4Class {
 
-  public static final Symbol CONTAINS = Symbol.get("contains");
-  public static final Symbol SUBCLASSES = Symbol.get("subclasses");
-  public static final Symbol DISTANCE = Symbol.get("distance");
-  public static final Symbol COERCE = Symbol.get("coerce");
-  public static final Symbol REPLACE = Symbol.get("replace");
-  public static final Symbol BY = Symbol.get("by");
-  public static final Symbol SIMPLE = Symbol.get("simple");
-  public static final Symbol TEST = Symbol.get("test");
-  public static final Symbol PACKAGE = Symbol.get("package");
-  public static final Symbol GROUP = Symbol.get("group");
-
   private SEXP classRepresentation;
 
   public S4Class(SEXP classRepresentation) {
@@ -45,7 +34,7 @@ public class S4Class {
    * not a super class (not "contained"), this method will return -1.
    */
   public int extractDistanceFromS4Class(String otherClassName) {
-    SEXP containsSexp = classRepresentation.getAttribute(CONTAINS);
+    SEXP containsSexp = classRepresentation.getAttribute(S4.CONTAINS);
     return extractDistanceFromS4Class(containsSexp, otherClassName);
   }
 
@@ -67,11 +56,11 @@ public class S4Class {
          * inheritance defined in "test" field than this inheritence is not considered for
          * method dispatch
          */
-        Closure test = (Closure) classExtension.getAttribute(S4Class.TEST);
+        Closure test = (Closure) classExtension.getAttribute(S4.TEST);
         if(test.getBody() instanceof LogicalArrayVector) {
           LogicalArrayVector condition = (LogicalArrayVector) test.getBody();
           if(condition.isElementTrue(0)) {
-            SEXP distanceAttribute = classExtension.getAttribute(DISTANCE);
+            SEXP distanceAttribute = classExtension.getAttribute(S4.DISTANCE);
             return distanceAttribute.asInt();
           }
         }
@@ -82,7 +71,7 @@ public class S4Class {
 
   public int getDistanceToUnionClass(String className) {
     if(isUnionClass()) {
-      SEXP subclasses = classRepresentation.getAttribute(SUBCLASSES);
+      SEXP subclasses = classRepresentation.getAttribute(S4.SUBCLASSES);
       return extractDistanceFromS4Class(subclasses, className);
     }
     return -1;
@@ -94,30 +83,30 @@ public class S4Class {
   }
 
   public boolean isSimpleCoercion(String targetClass) {
-    ListVector contains = (ListVector) classRepresentation.getAttribute(S4Class.CONTAINS);
+    ListVector contains = (ListVector) classRepresentation.getAttribute(S4.CONTAINS);
     int index = contains.getIndexByName(targetClass);
     if(index != -1) {
       SEXP classExtension = contains.getElementAsSEXP(index);
-      SEXP simple = classExtension.getAttribute(S4Class.SIMPLE);
+      SEXP simple = classExtension.getAttribute(S4.SIMPLE);
       return ((LogicalArrayVector) simple).isElementTrue(0);
     }
     return true;
   }
 
   public SEXP coerceTo(Context context, SEXP value, String to) {
-    ListVector contains = (ListVector) classRepresentation.getAttribute(S4Class.CONTAINS);
+    ListVector contains = (ListVector) classRepresentation.getAttribute(S4.CONTAINS);
     int toIndex = contains.getIndexByName(to);
     if(toIndex != -1) {
       // get sloth with information about target class and create
       // new function call to perform the coercion (if "by" field is defined
       // this is an intermediate stage).
       S4Object fromClass = (S4Object) contains.getElementAsSEXP(toIndex);
-      Closure coerce = (Closure) fromClass.getAttribute(S4Class.COERCE);
+      Closure coerce = (Closure) fromClass.getAttribute(S4.COERCE);
       FunctionCall call = new FunctionCall(coerce, new PairList.Node(value, Null.INSTANCE));
 
       SEXP res = context.evaluate(call);
 
-      if(fromClass.getAttribute(S4Class.BY).length() == 0) {
+      if(fromClass.getAttribute(S4.BY).length() == 0) {
         return res;
       } else {
         // the "by" field is provided. the coercion should be followed with
@@ -125,11 +114,11 @@ public class S4Class {
 
         // get the "by" class information, if "by" is not in contained classes than
         // assume its a function
-        String by = fromClass.getAttribute(S4Class.BY).asString();
+        String by = fromClass.getAttribute(S4.BY).asString();
         int byIndex = contains.getIndexByName(by);
         if(byIndex != -1) {
           S4Object byClass = (S4Object) contains.getElementAsSEXP(byIndex);
-          Closure byCoerce = (Closure) byClass.getAttribute(S4Class.COERCE);
+          Closure byCoerce = (Closure) byClass.getAttribute(S4.COERCE);
           FunctionCall byCall = new FunctionCall(byCoerce, new PairList.Node(value, Null.INSTANCE));
           return context.evaluate(byCall);
         } else {

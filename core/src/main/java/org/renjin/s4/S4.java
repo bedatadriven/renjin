@@ -128,7 +128,7 @@ public class S4 {
     metadata.put(R_dot_target, buildDotTarget(method, signature));
     metadata.put(DOT_GENERIC, method.getMethod().getGeneric().asSEXP());
     metadata.put(R_dot_Method, method.getMethodDefinition());
-    if(Primitives.isPrimitive(opName)) {
+    if(Primitives.isBuiltin(opName)) {
       metadata.put(s_dot_Methods, Symbol.get(".Primitive(\"" + opName + "\")"));
     } else {
       metadata.put(s_dot_Methods, Null.INSTANCE);

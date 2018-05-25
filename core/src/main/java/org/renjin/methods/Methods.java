@@ -446,7 +446,7 @@ public class Methods {
 
   @Builtin
   public static SEXP standardGeneric(@Current Context context, Symbol fname, SEXP fdef) {
-    throw new UnsupportedOperationException();
+    return standardGeneric(context, Environment.EMPTY, fname.getPrintName());
   }
 
   @Builtin

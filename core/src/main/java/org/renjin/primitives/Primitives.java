@@ -92,15 +92,9 @@ public class Primitives {
     return getPrimitive(INSTANCE.internalEntries, INSTANCE.internals, symbol);
   }
 
-  public static boolean isPrimitive(String opName) {
+  public static boolean isBuiltin(String opName) {
     Symbol symbol = Symbol.get(opName);
-    return isPrimitive(INSTANCE.internalEntries, INSTANCE.internals, symbol);
-  }
-
-  private static boolean isPrimitive(IdentityHashMap<Symbol, Entry> entryMap,
-                                     ConcurrentHashMap<Symbol, PrimitiveFunction> cache,
-                                     Symbol symbol) {
-    return cache.get(symbol) != null || entryMap.get(symbol) != null;
+    return INSTANCE.builtinEntries.containsKey(symbol);
   }
 
   private static PrimitiveFunction getPrimitive(IdentityHashMap<Symbol, Entry> entryMap,

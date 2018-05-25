@@ -58,3 +58,14 @@ test.assignment.12 = function() { assertThat(d[[1]], identicalTo("something")) }
 test.assignment.13 = function() { assertThat(d@x, identicalTo(1)) }
 test.assignment.14 = function() { assertThat(d@y, identicalTo(1)) }
 
+  x1 = try( setGeneric("+", function(x,y) standardGeneric("+")) )
+  x2 = try( setGeneric("isS4", function(x,y) standardGeneric("isS4")) )
+  x3 = try( setGeneric("pchisq", function(x,y) standardGeneric("pchisq")) )
+  x4 = try( setGeneric("nchar", function(x,y) standardGeneric("nchar")) )
+
+test.generic.for.builtin = function() {
+  assertThat(is(x1, "try-error"), identicalTo(TRUE) )
+  assertThat(is(x2, "try-error"), identicalTo(TRUE) )
+  assertThat(is(x3, "try-error"), identicalTo(FALSE) )
+  assertThat(is(x4, "try-error"), identicalTo(FALSE) )
+}

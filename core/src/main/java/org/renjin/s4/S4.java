@@ -63,7 +63,12 @@ public class S4 {
   public static SEXP tryS4DispatchFromPrimitive(@Current Context context, SEXP source, PairList args,
                                                 Environment rho, String group, String opName) {
 
-    Generic generic = Generic.primitive(opName, Arrays.asList(group));
+    Generic generic;
+    if(group == null) {
+      generic = Generic.primitive(opName, new ArrayList<>());
+    } else {
+      generic = Generic.primitive(opName, Collections.singletonList(group));
+    }
 
     S4MethodCache methodCache = context.getSession().getS4Cache().getS4MethodCache();
     S4MethodTable methodTable = methodCache.getMethod(context, generic, opName);

@@ -53,14 +53,12 @@ public class Generic {
 
     Closure genericFunction = findGenericFunction(context, fname, packageName);
 
-    Environment namespaceEnv;
     List<String> group = new ArrayList<>();
-    if (".GlobalEnv".equals(packageName)) {
-      namespaceEnv = context.getGlobalEnvironment();
-    } else {
-      namespaceEnv = context.getNamespaceRegistry().getNamespace(context, packageName).getNamespaceEnvironment();
-    }
+
+    Environment namespaceEnv = getPackageNamespaceEnvironment(context, packageName);
+
     SEXP generic = namespaceEnv.getVariableUnsafe(fname).force(context);
+
     if (generic == Symbol.UNBOUND_VALUE) {
       return new Generic(fname, group, packageName, genericFunction);
     }
@@ -79,6 +77,16 @@ public class Generic {
       }
     }
     return new Generic(fname, group, packageName, genericFunction);
+  }
+
+  private static Environment getPackageNamespaceEnvironment(Context context, String packageName) {
+    Environment namespaceEnv;
+    if (".GlobalEnv".equals(packageName)) {
+      namespaceEnv = context.getGlobalEnvironment();
+    } else {
+      namespaceEnv = context.getNamespaceRegistry().getNamespace(context, packageName).getNamespaceEnvironment();
+    }
+    return namespaceEnv;
   }
 
   public static Closure findGenericFunction(Context context, String fname, String packageName) {
@@ -145,11 +153,11 @@ public class Generic {
   }
 
   public boolean isGroupGeneric() {
-    return !group.isEmpty();
+    return group != null && group.size() > 0;
   }
 
-  public boolean isStandardGeneric() {
-    return stdGeneric;
+  public boolean isStdGenericWithGroup() {
+    return stdGeneric && group != null && group.size() > 0;
   }
 
   public Closure getGenericFunction() {
@@ -183,21 +191,20 @@ public class Generic {
     return group;
   }
 
-  public Symbol getGenericMethodTableName() {
+  Symbol getGenericMethodTableName() {
     return Symbol.get(S4.METHOD_PREFIX + name + ":" + packageName);
   }
 
-  public Symbol getGroupGenericMethodTableName() {
+  Symbol getGroupGenericMethodTableName() {
     assert !group.isEmpty();
     return Symbol.get(S4.METHOD_PREFIX + group.get(0) + ":" + packageName);
   }
 
-  public Symbol getGroupStdGenericMethodTableName(String group) {
-    assert group != null && !group.isEmpty();
-    return Symbol.get(S4.METHOD_PREFIX + group + ":" + packageName);
+  Symbol getGroupStdGenericMethodTableName(String grp) {
+    return Symbol.get(S4.METHOD_PREFIX + grp + ":" + packageName);
   }
 
-  public Symbol getSubGroupGenericMethodTableName() {
+  Symbol getSubGroupGenericMethodTableName() {
     assert subGroup != null;
     if("Compare".equals(subGroup)) {
       return Symbol.get(S4.METHOD_PREFIX + subGroup + ":methods");

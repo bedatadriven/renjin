@@ -69,9 +69,8 @@ public class S4MethodTable {
       if(generic.isGroupGeneric()) {
         addMethods(context, frame, generic.getGroupGenericMethodTableName(), Method.SPECIFICITY_GROUP);
       }
-      if(generic.isStandardGeneric()) {
-        for(int i = 0; i < generic.getGroup().size(); i++) {
-          String group = generic.getGroup().get(i);
+      if(generic.isStdGenericWithGroup()) {
+        for (String group : generic.getGroup()) {
           addMethods(context, frame, generic.getGroupStdGenericMethodTableName(group), Method.SPECIFICITY_SUB_GROUP);
         }
       }

@@ -1,5 +1,7 @@
 #  File src/library/graphics/R/cdplot.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,10 +14,9 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
-## CD plots
-## written by Achim Zeileis <Achim.Zeileis@R-project.org>
+## CD plots contributed by Achim Zeileis
 
 cdplot <- function(x, ...) {
   UseMethod("cdplot")
@@ -32,8 +33,8 @@ function(formula, data = list(),
     ## extract x, y from formula
     m <- match.call(expand.dots = FALSE)
     m <- m[c(1L, match(c("formula", "data", "subset"), names(m), 0L))]
-    require(stats, quietly=TRUE)
-    m[[1L]] <- as.name("model.frame")
+    ## need stats:: for non-standard evaluation
+    m[[1L]] <- quote(stats::model.frame)
     mf <- eval.parent(m)
     if(NCOL(mf) != 2L)
         stop("'formula' should specify exactly two variables")
@@ -67,7 +68,7 @@ function(x, y,
     if(is.null(xlab)) xlab <- deparse(substitute(x))
     if(is.null(ylab)) ylab <- deparse(substitute(y))
     if(is.null(col)) col <- gray.colors(length(levels(y)))
-    col <- rep(col, length.out = length(levels(y)))
+    col <- rep_len(col, length.out = length(levels(y)))
     if(is.null(yaxlabels)) yaxlabels <- levels(y)
 
     ## coerce x and check y

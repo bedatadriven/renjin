@@ -33,7 +33,7 @@ import org.renjin.sexp.Symbol;
 public class GnuCharSexp extends AbstractSEXP {
 
   public static final GnuCharSexp NA_STRING = new GnuCharSexp(new byte[] { 'N', 'A', 0 });
-  public static final GnuCharSexp BLANK_STRING = new GnuCharSexp(new byte[] { (int)0 });
+  public static final GnuCharSexp BLANK_STRING = new GnuCharSexp(new byte[] { (byte)0 });
 
   private byte[] value;
 

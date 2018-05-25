@@ -18,7 +18,6 @@
  */
 package org.renjin.gnur;
 
-import org.renjin.gcc.logging.LogManager;
 import org.renjin.gcc.analysis.ControlFlowGraph;
 import org.renjin.gcc.analysis.DataFlowAnalysis;
 import org.renjin.gcc.analysis.FunctionBodyTransformer;
@@ -28,6 +27,7 @@ import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.statement.GimpleStatement;
+import org.renjin.gcc.logging.LogManager;
 import org.renjin.repackaged.guava.collect.HashMultimap;
 import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.repackaged.guava.collect.Multimap;
@@ -57,7 +57,6 @@ public class SetTypeRewriter implements FunctionBodyTransformer {
     ControlFlowGraph cfg = new ControlFlowGraph(fn);
     SexpFlowFunction flowFunction = new SexpFlowFunction(unit, fn);
     DataFlowAnalysis<Multimap<Long, GimpleCall>> flowAnalysis = new DataFlowAnalysis<>(cfg, flowFunction);
-    flowAnalysis.dump();
 
     // Now identify the target types of the allocations
     Multimap<GimpleCall, Integer> typeMap = HashMultimap.create();
@@ -88,6 +87,8 @@ public class SetTypeRewriter implements FunctionBodyTransformer {
         int targetType = Iterables.getOnlyElement(types);
         if(allocSite.isFunctionNamed("Rf_allocList") && targetType == SexpType.LANGSXP) {
           allocSite.setFunction(new GimpleAddressOf(new GimpleFunctionRef("Rf_allocLang")));
+          logManager.note("changed Rf_allocList to Rf_allocLang at " +
+              allocSite.getSourceFile() + ":" + allocSite.getLineNumber());
           changed = true;
         }
       }

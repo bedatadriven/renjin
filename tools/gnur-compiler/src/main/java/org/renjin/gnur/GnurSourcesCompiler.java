@@ -147,7 +147,7 @@ public class GnurSourcesCompiler {
       compiler.setLinkClassLoader(linkClassLoader);
       compiler.addMathLibrary();
 
-      setupCompiler(compiler);
+      setupCompiler(compiler, compiler.getPackageName());
 
       compiler.setLoggingDirectory(loggingDir);
 
@@ -155,7 +155,7 @@ public class GnurSourcesCompiler {
     }
   }
 
-  public static void setupCompiler(GimpleCompiler compiler) throws ClassNotFoundException {
+  public static void setupCompiler(GimpleCompiler compiler, String packageName) throws ClassNotFoundException {
     compiler.addReferenceClass(Class.forName("org.renjin.appl.Appl"));
     compiler.addReferenceClass(Class.forName("org.renjin.math.Blas"));
     Class distributionsClass = Class.forName("org.renjin.stats.internals.Distributions");
@@ -172,9 +172,6 @@ public class GnurSourcesCompiler {
     compiler.addReferenceClass(Fileio.class);
     compiler.addReferenceClass(GetText.class);
     compiler.addReferenceClass(GetX11Image.class);
-    compiler.addReferenceClass(Graphics.class);
-    compiler.addReferenceClass(GraphicsBase.class);
-    compiler.addReferenceClass(GraphicsEngine.class);
     compiler.addReferenceClass(Internal.class);
     compiler.addReferenceClass(Memory.class);
     compiler.addReferenceClass(Parse.class);
@@ -208,6 +205,10 @@ public class GnurSourcesCompiler {
     compiler.addReferenceClass(RenjinFiles.class);
 
     compiler.addTransformer(new SetTypeRewriter());
+    compiler.addTransformer(new MutationRewriter());
+
+    compiler.addPlugin(new GlobalVarPlugin(packageName));
+
   }
 
   private boolean checkUpToDate() {

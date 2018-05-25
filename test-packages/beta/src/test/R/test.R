@@ -22,8 +22,8 @@ library(org.renjin.test.beta)
 library(hamcrest)
 
 
-test.jacksonVersion <- function() {
-    assertThat(betaVersion(), identicalTo("2.0.0"))
+test.jtsVersion <- function() {
+    assertThat(betaVersion(), identicalTo("1.12.0"))
 }
 
 test.invokeClassesInPackage <- function() {

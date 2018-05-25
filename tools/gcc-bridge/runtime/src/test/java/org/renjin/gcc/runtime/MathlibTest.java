@@ -37,6 +37,7 @@ public class MathlibTest {
   public void modf() {
     checkModf(3.145, 3, 0.145);
     checkModf(-3.145, -3, -0.145);
+    checkModf(1.9666662000000001, 1, 0.9666662000000001);
   }
 
   private void checkModf(double x, double expectedInteger, double expectedFraction) {

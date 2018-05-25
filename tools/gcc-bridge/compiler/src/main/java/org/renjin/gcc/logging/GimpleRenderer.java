@@ -35,19 +35,54 @@ import java.util.Map;
 public class GimpleRenderer {
 
   private SymbolTable symbolTable;
-  private final GimpleFunction function;
   private final StringBuilder html = new StringBuilder();
 
   private final Map<String, GimpleRecordTypeDef> typedefMap;
+  private final Map<String, String> recordNameMap = new HashMap<>();
 
-  public GimpleRenderer(SymbolTable symbolTable, GimpleFunction function) {
+  public GimpleRenderer(SymbolTable symbolTable, GimpleCompilationUnit unit) {
     this.symbolTable = symbolTable;
-    this.function = function;
 
     typedefMap = new HashMap<>();
-    for (GimpleRecordTypeDef recordTypeDef : function.getUnit().getRecordTypes()) {
+    for (GimpleRecordTypeDef recordTypeDef : unit.getRecordTypes()) {
       typedefMap.put(recordTypeDef.getId(), recordTypeDef);
     }
+
+    abbreviateIds();
+
+
+  }
+
+  private void abbreviateIds() {
+    for (GimpleRecordTypeDef typeDef : typedefMap.values()) {
+      if(typeDef.getName() != null) {
+        recordNameMap.put(typeDef.getId(), typeDef.getName());
+      } else {
+        int abbrLength = 4;
+        while(!uniqueEnough(typeDef.getId(), abbrLength)) {
+          abbrLength ++;
+        }
+
+        recordNameMap.put(typeDef.getId(), "anonymous_" +
+            typeDef.getId().substring(typeDef.getId().length() - abbrLength));
+      }
+    }
+  }
+
+  private boolean uniqueEnough(String id, int length) {
+
+    if(id.length() <= length) {
+      return true;
+    }
+
+    String abbr = id.substring(id.length() - length);
+
+    for (String otherId : typedefMap.keySet()) {
+      if(!id.equals(otherId) && otherId.endsWith(abbr)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private void appendEscaped(String text) {
@@ -58,7 +93,7 @@ public class GimpleRenderer {
     this.html.append(html);
   }
 
-  public String render() {
+  public String renderFunction(GimpleFunction function) {
     appendHtml("<div>\n");
 
     appendHtml("<div class=\"funcdecl\">");
@@ -73,7 +108,7 @@ public class GimpleRenderer {
         symbol(", ");
       }
       GimpleParameter param = function.getParameters().get(i);
-      appendEscaped(renderType(param.getType()));
+      appendHtml(renderType(param.getType(), false));
       appendHtml(" ");
       if(param.getName() == null) {
         appendEscaped("P" + param.getId());
@@ -108,6 +143,81 @@ public class GimpleRenderer {
     return html.toString();
   }
 
+  public String renderRecords() {
+
+    for (GimpleRecordTypeDef typeDef : typedefMap.values()) {
+      html.append("<h2 id=\"").append(typeDef.getId()).append("\">");
+      html.append(recordName(typeDef));
+      html.append("</h2>");
+
+      html.append("<table>");
+      html.append("<thead>");
+      startRow();
+      appendTableHeader("Bit", "offset");
+      appendTableHeader("Byte", "offset");
+      appendTableHeader("Word", "offset");
+      appendTableHeader("Type", "field-type");
+      appendTableHeader("Name", "field-name");
+      appendTableHeader("Size", "field-size");
+      endRow();
+      html.append("</thead>");
+      html.append("<tbody>");
+
+      for (GimpleField field : typeDef.getFields()) {
+
+        startRow();
+
+        offsetCell(field, 1);
+        offsetCell(field, 8);
+        offsetCell(field, 32);
+
+        startCell("field-type");
+        appendHtml(renderType(field.getType(), false));
+        endCell();
+        startCell("field-name");
+        appendEscaped(field.getName());
+        endCell();
+        startCell("field-size");
+        endCell();
+        endRow();
+      }
+
+      html.append("</tbody>");
+      html.append("</table>");
+    }
+
+    return html.toString();
+  }
+
+  private void offsetCell(GimpleField field, int multiple) {
+    startCell("offset");
+    if(field.getOffset() % multiple == 0) {
+      html.append(field.getOffset() / multiple);
+    }
+    endCell();
+  }
+
+  private void startRow() {
+    html.append("<tr>");
+  }
+
+  private StringBuilder startCell(final String className) {
+    return html.append("<td class=\"").append(className).append("\">");
+  }
+
+  private StringBuilder endCell() {
+    return html.append("</td>");
+  }
+
+  private void endRow() {
+    html.append("</tr>");
+  }
+
+
+  private StringBuilder appendTableHeader(final String text, final String className) {
+    return html.append("<th class=\"").append(className).append("\">").append(text).append("</th>");
+  }
+
   private void renderStatement(GimpleStatement statement) {
     html.append("<div class=\"gstatement");
     if(statement.getLineNumber() != null) {
@@ -131,6 +241,7 @@ public class GimpleRenderer {
 
   private void renderCall(GimpleCall statement) {
     if(statement.getLhs() != null) {
+      renderLhsType(statement.getLhs());
       expr(statement.getLhs());
       html.append(" ");
       symbol("=");
@@ -163,9 +274,16 @@ public class GimpleRenderer {
   }
 
   private void renderAssignment(GimpleAssignment statement) {
+    renderLhsType(statement.getLHS());
     expr(statement.getLHS());
     html.append(" = ");
     renderOperation(statement.getOperator(), statement.getOperands());
+  }
+
+  private void renderLhsType(GimpleLValue lhs) {
+    appendHtml("<span class=\"lhs-type\">");
+    appendHtml(renderType(lhs.getType(), false));
+    appendHtml("</span> ");
   }
 
   private void renderOperation(GimpleOp operator, List<GimpleExpr> operands) {
@@ -334,8 +452,7 @@ public class GimpleRenderer {
 
   private void expr(final GimpleExpr expr) {
     html.append(String.format("<span class=\"gexpr %s\" title=\"%s\">",
-        expr.getClass().getSimpleName(),
-        HtmlEscapers.htmlEscaper().escape(renderType(expr.getType()))));
+        expr.getClass().getSimpleName(), renderType(expr.getType(), true)));
 
     expr.accept(new GimpleExprVisitor() {
 
@@ -503,21 +620,55 @@ public class GimpleRenderer {
         expr instanceof GimpleParamRef;
   }
 
-  private String renderType(GimpleType type) {
+  private String renderType(GimpleType type, boolean tooltip) {
     if(type instanceof GimpleRecordType) {
-      GimpleRecordTypeDef recordTypeDef = typedefMap.get(((GimpleRecordType) type).getId());
-      if(recordTypeDef.getName() != null) {
-        return recordTypeDef.getName();
+
+      GimpleRecordType recordType = (GimpleRecordType) type;
+      if(tooltip) {
+        return recordName(recordType.getId());
       } else {
-        return "struct";
+        return "<a href=\"records.html#" + recordType.getId() + "\">" +
+            HtmlEscapers.htmlEscaper().escape(recordName(recordType.getId())) + "</a>";
       }
+
     } else if(type instanceof GimpleIndirectType) {
-      return renderType(type.getBaseType()) + "*";
+      return renderType(type.getBaseType(), tooltip) + "*";
+
     } else if(type instanceof GimpleFunctionType) {
       return "FUN";
+
+    } else if(type instanceof GimpleArrayType) {
+      GimpleArrayType arrayType = (GimpleArrayType) type;
+      StringBuilder sb = new StringBuilder();
+      sb.append(renderType(arrayType.getComponentType(), tooltip));
+      sb.append("[");
+      if(arrayType.getUbound() != null) {
+        if(arrayType.getLbound() != 0) {
+          sb.append(arrayType.getLbound());
+          sb.append(":");
+          sb.append(arrayType.getUbound());
+        } else {
+          sb.append(arrayType.getElementCount());
+        }
+      }
+      sb.append("]");
+      return sb.toString();
+
     } else {
-      return type.toString();
+      return HtmlEscapers.htmlEscaper().escape(type.toString());
     }
+  }
+
+  private String recordName(String id) {
+    String name = recordNameMap.get(id);
+    if(name != null) {
+      return name;
+    }
+    return "undef_" + id.replace("0x", "");
+  }
+
+  private String recordName(GimpleRecordTypeDef typeDef) {
+    return recordName(typeDef.getId());
   }
 
   public static String stringLiteral(String string) {

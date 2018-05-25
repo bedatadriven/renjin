@@ -21,9 +21,11 @@ package org.renjin.gnur.api;
 
 import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.*;
+import org.renjin.gnur.api.annotations.Allocator;
 import org.renjin.parser.NumericLiterals;
 import org.renjin.primitives.Deparse;
 import org.renjin.primitives.Native;
+import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.sexp.*;
 import org.renjin.util.CDefines;
 
@@ -58,9 +60,66 @@ public final class Defn {
   public static final  SEXP R_dot_GenericCallEnv = Symbol.get(".GenericCallEnv");
   public static final  SEXP R_dot_GenericDefEnv = Symbol.get(".GenericDefEnv");
 
+  public static int R_interrupts_suspended = 0;
+
+  public static int R_interrupts_pending = 0;
+
+  public static int R_Interactive = 1;
+
+  public static int known_to_be_latin1 = 0;
+
+  public static int utf8locale = 0;
+
+  public static int mbcslocale = 0;
+
+  public static int max_contour_segments = 25000;
+
+  public static int R_Visible = 1;
+
+  public static int R_dec_min_exponent = -308;
+
+  /**
+   * Decimal point used for output
+   */
+  public static Ptr OutDec = new BytePtr((byte)'.', (byte)0);
+
   private Defn() { }
 
+  public static int IS_BYTES(SEXP x) {
+    // All renjin strings are Unicode
+    return 0;
+  }
 
+  public static void SET_BYTES(SEXP x) {
+    throw new UnimplementedGnuApiMethod("SET_BYTES");
+  }
+
+  public static int IS_LATIN1(SEXP x) {
+    // All renjin strings are Unicode
+    return 0;
+  }
+  public static void SET_LATIN1(SEXP x) {
+    throw new UnimplementedGnuApiMethod("SET_LATIN1");
+  }
+
+  public static int IS_ASCII(SEXP x) {
+    // All renjin strings are Unicode
+    return 0;
+  }
+
+  public static void SET_ASCII(SEXP x) {
+    // All renjin strings are Unicode
+    throw new UnimplementedGnuApiMethod("SET_ASCII");
+  }
+
+  public static int IS_UTF8(SEXP x) {
+    // All renjin strings are Unicode
+    return 1;
+  }
+
+  public static void SET_UTF8(SEXP x) {
+    // NOOP: All renjin strings are Unicode
+  }
 
   public static void Rf_CoercionWarning(int p0) {
     throw new UnimplementedGnuApiMethod("Rf_CoercionWarning");
@@ -156,7 +215,17 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("R_primitive_generic");
   }
 
-  // int R_ReadConsole (const char *, unsigned char *, int, int)
+  public static int R_ReadConsole (Ptr promptPtr, Ptr buffer, int bufferLength, int addToHistory) {
+    String promptString = Stdlib.nullTerminatedString(promptPtr);
+    String result = Native.currentContext().getSession().getSessionController().readLine(promptString);
+    byte[] resultBytes = result.getBytes(Charsets.UTF_8);
+    int i;
+    for (i = 0; i < bufferLength - 1 && i < resultBytes.length; i++) {
+      buffer.setByte(i, resultBytes[i]);
+    }
+    buffer.setByte(i, (byte)0);
+    return i;
+  }
 
   public static void R_WriteConsole(BytePtr p0, int p1) {
     throw new UnimplementedGnuApiMethod("R_WriteConsole");
@@ -537,8 +606,12 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("Rf_jump_to_toplevel");
   }
 
+  /**
+   * @deprecated implemented by C language code in grDevices package
+   */
+  @Deprecated
   public static void Rf_KillAllDevices() {
-    throw new UnimplementedGnuApiMethod("Rf_KillAllDevices");
+    throw new RuntimeException("Please recompile with the latest version of Renjin");
   }
 
   public static SEXP Rf_levelsgets(SEXP p0, SEXP p1) {
@@ -609,8 +682,41 @@ public final class Defn {
     return LogicalVector.TRUE;
   }
 
-  public static SEXP Rf_NewEnvironment(SEXP p0, SEXP p1, SEXP p2) {
-    throw new UnimplementedGnuApiMethod("Rf_NewEnvironment");
+  /**
+   * Create an environment by extending "rho" with a frame obtained by
+   * pairing the variable names given by the tags on "namelist" with
+   * the values given by the elements of "valuelist".
+   *
+   * NewEnvironment is defined directly to avoid the need to protect its
+   * arguments unless a GC will actually occur.  This definition allows
+   * the namelist argument to be shorter than the valuelist; in this
+   * case the remaining values must be named already.  (This is useful
+   * in cases where the entire valuelist is already named--namelist can
+   * then be R_NilValue.)
+   *
+   * The valuelist is destructively modified and used as the
+   * environment's frame.
+   */
+  @Allocator
+  public static SEXP Rf_NewEnvironment(SEXP namelist, SEXP valuelist, SEXP parentEnv) {
+
+    Environment.Builder newEnv = new Environment.Builder(((Environment) parentEnv), new HashFrame());
+
+    Iterator<PairList.Node> valueIt = ((PairList) valuelist).nodes().iterator();
+    Iterator<PairList.Node> nameIt = ((PairList) namelist).nodes().iterator();
+
+    while(nameIt.hasNext() && valueIt.hasNext()) {
+      newEnv.setVariable((Symbol)nameIt.next().getValue(), valueIt.next());
+    }
+
+    while(valueIt.hasNext()) {
+      PairList.Node node = valueIt.next();
+      if(node.hasTag()) {
+        newEnv.setVariable(node.getTag(), node.getValue());
+      }
+    }
+
+    return newEnv.build();
   }
 
   public static void Rf_onintr() {
@@ -630,7 +736,22 @@ public final class Defn {
   }
 
   public static void Rf_PrintDefaults() {
-    throw new UnimplementedGnuApiMethod("Rf_PrintDefaults");
+//    R_print.na_string = NA_STRING;
+//    R_print.na_string_noquote = mkChar("<NA>");
+//    R_print.na_width = (int) strlen(CHAR(R_print.na_string));
+//    R_print.na_width_noquote = (int) strlen(CHAR(R_print.na_string_noquote));
+//    R_print.quote = 1;
+//    R_print.right = Rprt_adj_left;
+//    R_print.digits = GetOptionDigits();
+//    R_print.scipen = asInteger(GetOption1(install("scipen")));
+//    if (R_print.scipen == NA_INTEGER) R_print.scipen = 0;
+//    R_print.max = asInteger(GetOption1(install("max.print")));
+//    if (R_print.max == NA_INTEGER || R_print.max < 0) R_print.max = 99999;
+//    else if(R_print.max == INT_MAX) R_print.max--; // so we can add
+//    R_print.gap = 1;
+//    R_print.width = GetOptionWidth();
+//    R_print.useSource = USESOURCE;
+//    R_print.cutoff = GetOptionCutoff();
   }
 
   public static void Rf_PrintGreeting() {
@@ -878,7 +999,17 @@ public final class Defn {
   }
 
   public static boolean Rf_strIsASCII(BytePtr str) {
-    throw new UnimplementedGnuApiMethod("Rf_strIsASCII");
+    for (int i = 0; ; i++) {
+      byte c = str.getByte(i);
+      if(c == 0) {
+        break;
+      }
+      // c is signed, so c < 0 is equivalent to c > 0x7F
+      if(c < 0) {
+        return false;
+      }
+    }
+    return true;
   }
 
   // int utf8clen (char c)

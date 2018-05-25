@@ -22,12 +22,12 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.FinalizationClosure;
 import org.renjin.invoke.annotations.*;
-import java.util.function.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 /**
  * R primitive functions which operate on {@code Environment}s
@@ -407,6 +407,29 @@ public final class Environments {
     return newEnv;
   }
 
+  @Internal
+  public static void detach(@Current Context context, int pos) {
+    if(pos < 2) {
+      throw new EvalException("Attachment position must be 2 or greater");
+    }
+
+    Environment before = null;
+    Environment env = context.getGlobalEnvironment();
+
+    while(pos > 1 && env != Environment.EMPTY) {
+      before = env;
+      env = env.getParent();
+      pos--;
+    }
+
+    if(env == Environment.EMPTY) {
+      throw new EvalException("No such environment");
+    }
+
+    // Remove environment from the path
+    before.setParent(env.getParent());
+
+  }
 
   /**
    * Registers an R function to be called upon garbage collection of

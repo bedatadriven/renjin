@@ -62,6 +62,18 @@ public class ArgumentMatcher {
     }
   }
 
+  public ArgumentMatcher(String... formalNames) {
+    this.formalNames = Arrays.copyOf(formalNames, formalNames.length);
+    this.defaultValues = new SEXP[formalNames.length];
+    Arrays.fill(defaultValues, Symbol.MISSING_ARG);
+    this.formalEllipses = -1;
+    for (int i = 0; i < formalNames.length; i++) {
+      if(formalNames[i].equals("...")) {
+        formalEllipses = i;
+      }
+    }
+  }
+
   /**
    * @return the number of formal arguments, excluding the '...' if present.
    */

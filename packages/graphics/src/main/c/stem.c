@@ -39,8 +39,6 @@
 #define _(String) (String)
 #endif
 
-#include "graphics.h"
-
 static void stem_print(int close, int dist, int ndigits)
 {
     if((close/10 == 0) && (dist < 0))

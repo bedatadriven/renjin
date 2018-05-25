@@ -20,9 +20,7 @@ package org.renjin.gcc;
 
 import org.renjin.gcc.analysis.*;
 import org.renjin.gcc.annotations.GlobalVar;
-import org.renjin.gcc.codegen.FunctionGenerator;
-import org.renjin.gcc.codegen.TrampolineClassGenerator;
-import org.renjin.gcc.codegen.UnitClassGenerator;
+import org.renjin.gcc.codegen.*;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunctionCallGenerator;
 import org.renjin.gcc.codegen.lib.SymbolLibrary;
@@ -33,9 +31,10 @@ import org.renjin.gcc.gimple.GimpleParser;
 import org.renjin.gcc.link.LinkSymbol;
 import org.renjin.gcc.logging.LogManager;
 import org.renjin.gcc.symbols.GlobalSymbolTable;
+import org.renjin.gcc.symbols.SymbolTable;
+import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Preconditions;
-import java.util.function.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.repackaged.guava.collect.Sets;
@@ -47,10 +46,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Compiles a set of {@link GimpleCompilationUnit}s to bytecode
@@ -81,17 +77,15 @@ public class GimpleCompiler  {
 
   private final TypeOracle typeOracle = new TypeOracle();
 
-  private final Map<String, Class> providedRecordTypes = Maps.newHashMap();
+  private final Map<String, Type> providedRecordTypes = Maps.newHashMap();
   private final Map<String, ProvidedGlobalVar> providedVariables = Maps.newHashMap();
+
+  private final List<GimpleCompilerPlugin> plugins = new ArrayList<>();
 
   private String trampolineClassName;
   private String recordClassPrefix = "record";
 
-  private final LogManager logManager = new LogManager();
-
-  private boolean pruneUnusedSymbols = true;
-  
-  private Predicate<GimpleFunction> entryPointPredicate = new DefaultEntryPointPredicate();
+  private final LogManager logManager = new LogManager(System.err);
 
   public GimpleCompiler() {
     functionBodyTransformers.add(AddressableSimplifier.INSTANCE);
@@ -121,6 +115,10 @@ public class GimpleCompiler  {
     this.packageName = name;
   }
 
+  public String getPackageName() {
+    return packageName;
+  }
+
   /**
    * Sets the output directory to place compiled class files.
    *
@@ -138,14 +136,6 @@ public class GimpleCompiler  {
    */
   public void setJavadocOutputDirectory(File javadocOutputDirectory) {
     this.javadocOutputDirectory = javadocOutputDirectory;
-  }
-
-  public void setEntryPointPredicate(Predicate<GimpleFunction> entryPointPredicate) {
-    this.entryPointPredicate = entryPointPredicate;
-  }
-
-  public void setPruneUnusedSymbols(boolean pruneUnusedSymbols) {
-    this.pruneUnusedSymbols = pruneUnusedSymbols;
   }
 
   /**
@@ -169,7 +159,7 @@ public class GimpleCompiler  {
     }
 
     for (Field field : clazz.getFields()) {
-      if(Modifier.isStatic(field.getModifiers()) && Modifier.isStatic(field.getModifiers()) &&
+      if(Modifier.isStatic(field.getModifiers()) && Modifier.isPublic(field.getModifiers()) &&
           field.getAnnotation(Deprecated.class) == null) {
         addVariable(field.getName(), field);
       }
@@ -189,14 +179,21 @@ public class GimpleCompiler  {
     functionBodyTransformers.add(transformer);
   }
 
+  public void addPlugin(GimpleCompilerPlugin plugin) {
+    plugins.add(plugin);
+  }
+
   public void addMethod(String functionName, Class declaringClass, String methodName) {
     globalSymbolTable.addMethod(functionName, declaringClass, methodName);
   }
 
   public void addRecordClass(String typeName, Class recordClass) {
-    providedRecordTypes.put(typeName, recordClass);
+    addRecordClass(typeName, Type.getType(recordClass));
   }
 
+  public void addRecordClass(String typeName, Type recordClass) {
+    providedRecordTypes.put(typeName, recordClass);
+  }
 
   public void compileSources(List<File> sourceFiles) throws Exception {
     GimpleParser parser = new GimpleParser();
@@ -221,6 +218,7 @@ public class GimpleCompiler  {
     try {
 
       PmfRewriter.rewrite(units);
+      GlobalVarMerger.merge(units);
 
       typeOracle.initRecords(units, providedRecordTypes);
 
@@ -231,8 +229,14 @@ public class GimpleCompiler  {
       AddressableFinder addressableFinder = new AddressableFinder(units);
       addressableFinder.mark();
 
+      // Queue up the global variable transforms
+      List<GlobalVarTransformer> globalVarTransformers = new ArrayList<>();
+      globalVarTransformers.add(new ProvidedVarTransformer(typeOracle, providedVariables));
+      for (GimpleCompilerPlugin plugin : plugins) {
+        globalVarTransformers.addAll(plugin.createGlobalVarTransformers());
+      }
 
-      // Next, do a round of compilation units to make sure all externally visible functions and 
+      // Next, do a round of compilation units to make sure all externally visible functions and
       // symbols are added to the global symbol table.
       // This allows us to effectively do linking at the same time as code generation
       List<UnitClassGenerator> unitClassGenerators = Lists.newArrayList();
@@ -241,12 +245,13 @@ public class GimpleCompiler  {
         UnitClassGenerator generator = new UnitClassGenerator(
             typeOracle,
             globalSymbolTable,
-            providedVariables,
+            globalVarTransformers,
             unit, className);
         unitClassGenerators.add(generator);
       }
 
       // Finally, run code generation
+      Map<GimpleCompilationUnit, SymbolTable> symbolTableMap = new HashMap<>();
       for (UnitClassGenerator generator : unitClassGenerators) {
         generator.emit(logManager);
         writeClass(generator.getClassName(), generator.toByteArray());
@@ -254,6 +259,8 @@ public class GimpleCompiler  {
         if(trampolineClassName == null && javadocOutputDirectory != null) {
           generator.emitJavaDoc(javadocOutputDirectory);
         }
+
+        symbolTableMap.put(generator.getUnit(), generator.getSymbolTable());
       }
 
       // Write link metadata to META-INF/org.renjin.gcc.symbols
@@ -264,6 +271,8 @@ public class GimpleCompiler  {
         writeTrampolineClass();
       }
 
+      writePluginClasses(globalSymbolTable, symbolTableMap);
+
     } finally {
       try {
         logManager.finish();
@@ -273,6 +282,7 @@ public class GimpleCompiler  {
       }
     }
   }
+
 
   private void writeLinkMetadata(List<UnitClassGenerator> unitClassGenerators) throws IOException {
 
@@ -395,7 +405,7 @@ public class GimpleCompiler  {
         if (functionCallGenerator.getStrategy() instanceof FunctionGenerator) {
           FunctionGenerator functionGenerator = (FunctionGenerator) functionCallGenerator.getStrategy();
           if(!names.contains(functionGenerator.getMangledName())) {
-            classGenerator.emitTrampolineMethod(functionGenerator);
+            classGenerator.emitTrampolineMethod(plugins, functionGenerator);
             names.add(functionGenerator.getMangledName());
           }
         }
@@ -403,6 +413,37 @@ public class GimpleCompiler  {
     }
 
     writeClass(getInternalClassName(trampolineClassName), classGenerator.generateClassFile());
+  }
+
+
+  private void writePluginClasses(GlobalSymbolTable globalSymbolTable,
+                                  Map<GimpleCompilationUnit, SymbolTable> symbolTableMap) throws IOException {
+    CodeGenerationContext context = new CodeGenerationContext() {
+      @Override
+      public TypeOracle getTypeOracle() {
+        return typeOracle;
+      }
+
+      @Override
+      public GlobalSymbolTable getGlobalSymbolTable() {
+        return globalSymbolTable;
+      }
+
+      @Override
+      public SymbolTable getSymbolTable(GimpleCompilationUnit unit) {
+        return symbolTableMap.get(unit);
+      }
+
+      @Override
+      public void writeClassFile(Type className, byte[] bytes) throws IOException {
+        GimpleCompiler.this.writeClass(className.getInternalName(), bytes);
+      }
+    };
+
+    for (GimpleCompilerPlugin plugin : plugins) {
+      plugin.writeClasses(context);
+    }
+
   }
 
 

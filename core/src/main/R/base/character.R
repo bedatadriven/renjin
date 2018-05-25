@@ -207,3 +207,18 @@ function(x, base = 0L)
 {
     .Internal(strtoi(as.character(x), as.integer(base)))
 }
+
+
+strrep <-
+function(x, times)
+{
+    if(!is.character(x)) x <- as.character(x)
+    times <- as.integer(times)
+
+    mapply(x, times, SIMPLIFY = TRUE, USE.NAMES = FALSE, FUN = function(x, times) {
+        if(times < 0) {
+            error("invalid 'times' value")
+        }
+        paste(rep.int(x, times), collapse = "")
+    })
+}

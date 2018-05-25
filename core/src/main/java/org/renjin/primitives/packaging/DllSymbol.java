@@ -24,6 +24,7 @@ import org.renjin.sexp.*;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
+import java.util.Optional;
 
 /**
  * A symbol registered with a dynamic library
@@ -49,16 +50,19 @@ public class DllSymbol {
     }
   }
 
-  private String name;
-  private MethodHandle methodHandle;
-  private Convention convention;
-  private boolean registered;
+  private final String name;
+  private final MethodHandle methodHandle;
+  private final Optional<Convention> convention;
+  private final boolean registered;
 
 
   public DllSymbol(String name, MethodHandle methodHandle, Convention convention, boolean registered) {
+    if(methodHandle == null) {
+      throw new NullPointerException("Null method handle for symbol '" + name + "'");
+    }
     this.name = name;
     this.methodHandle = methodHandle;
-    this.convention = convention;
+    this.convention = Optional.of(convention);
     this.registered = registered;
   }
 
@@ -67,13 +71,21 @@ public class DllSymbol {
     this(name, methodHandle, convention, true);
   }
 
-  public DllSymbol(Method method) {
+  public DllSymbol(Convention convention, Method method) {
+    this(Optional.of(convention), method);
+  }
+
+  public DllSymbol(Optional<Convention> convention, Method method) {
     this.name = method.getName();
     this.registered = false;
+    this.convention = convention;
     try {
       this.methodHandle = MethodHandles.publicLookup().unreflect(method);
     } catch (IllegalAccessException e) {
       throw new EvalException("Cannot access method '%s': %s", method.getName(), e.getMessage(), e);
+    }
+    if(this.methodHandle == null) {
+      throw new NullPointerException("unreflect() returned null for " + method);
     }
   }
 
@@ -81,17 +93,12 @@ public class DllSymbol {
     return name;
   }
 
-  @Deprecated
-  public void setName(String name) {
-    this.name = name;
-  }
-
   public MethodHandle getMethodHandle() {
     return methodHandle;
   }
 
   public Convention getConvention() {
-    return convention;
+    return convention.orElse(null);
   }
 
 
@@ -105,8 +112,8 @@ public class DllSymbol {
     symbol.add("address", buildAddressSexp());
     symbol.add("numParameters", methodHandle.type().parameterCount());
 
-    if (convention != null){
-      symbol.setAttribute(Symbols.CLASS, new StringArrayVector(convention.getClassName(), "NativeSymbolInfo"));
+    if (convention.isPresent()){
+      symbol.setAttribute(Symbols.CLASS, new StringArrayVector(convention.get().getClassName(), "NativeSymbolInfo"));
     } else {
       symbol.setAttribute(Symbols.CLASS, new StringArrayVector("NativeSymbolInfo"));
     }

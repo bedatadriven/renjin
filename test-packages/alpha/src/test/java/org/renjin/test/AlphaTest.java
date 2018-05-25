@@ -31,6 +31,6 @@ public class AlphaTest {
     ScriptEngineManager sem = new ScriptEngineManager();
     ScriptEngine renjin = sem.getEngineByName("Renjin");
     renjin.eval("library(org.renjin.test.alpha)");
-    renjin.eval("stopifnot(parseAlpha('true')$nodeType == 'BOOLEAN')");
+    renjin.eval("stopifnot(alphaName() == 'Alpha')");
   }
 }

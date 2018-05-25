@@ -638,22 +638,23 @@ public class S3 {
 
       if(next != null) {
         return next;
-      } else {
-        Environment methodTable = getMethodTable();
-        GenericMethod function = findNext(methodTable, genericMethodName, "default");
-        if(function != null) {
-          return function;
-        }
-
-        // as a last step, we call BACK into the primitive
-        // to get the default implementation  - ~ YECK ~
-        PrimitiveFunction primitive = Primitives.getBuiltin(genericMethodName);
-        if(primitive != null) {
-          return new GenericMethod(this, Symbol.get(genericMethodName + ".default"), null, primitive);
-        }
-
-        return null;
       }
+
+      // Look up the .default method in the calling environment
+      // and the original *definition environment*, *NOT* the methods table.
+      GenericMethod function = findNext(definitionEnvironment, genericMethodName, "default");
+      if(function != null) {
+        return function;
+      }
+
+      // as a last step, we call BACK into the primitive
+      // to get the default implementation  - ~ YECK ~
+      PrimitiveFunction primitive = Primitives.getBuiltin(genericMethodName);
+      if(primitive != null) {
+        return new GenericMethod(this, Symbol.get(genericMethodName + ".default"), null, primitive);
+      }
+
+      return null;
     }
 
     public GenericMethod findNext() {

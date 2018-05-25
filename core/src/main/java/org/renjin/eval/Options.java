@@ -25,8 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Session-level options for 
- * @author Alex
+ * Session-level options for an R session.
  *
  */
 public class Options {

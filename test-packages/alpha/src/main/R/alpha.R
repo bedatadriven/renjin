@@ -19,15 +19,8 @@
 
 
 
-parseAlpha <- function(json) {
-    om <- ObjectMapper$new()
-    om$readTree(json)
-}
-
-
 alphaVersion <- function() {
-    om <- ObjectMapper$new()
-    om$version()$toString()
+    JTSVersion$CURRENT_VERSION$toString()
 }
 
 alphaName <- function() {

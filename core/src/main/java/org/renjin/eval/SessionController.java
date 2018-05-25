@@ -30,7 +30,8 @@ import java.io.IOException;
  * <p>Proper implementations need to be provided by the host environment</p>
  */
 public class SessionController {
-  
+
+
   public enum SaveMode {
     NO,
     YES,
@@ -57,5 +58,10 @@ public class SessionController {
    */
   public boolean isTerminal() {
     return false;
+  }
+
+
+  public String readLine(String prompt) {
+    return "";
   }
 }

@@ -82,4 +82,21 @@ public class MatchedArguments {
   public boolean areAllFormalsMatched() {
     return matchedPositions.allFormalsMatched();
   }
+
+  public SEXP getActualForFormal(int formalIndex, SEXP defaultValue) {
+    int actualIndex = getActualIndex(formalIndex);
+    if(actualIndex == -1) {
+      return defaultValue;
+    } else {
+      return actualValues[actualIndex];
+    }
+  }
+
+  public SEXP getActualForFormal(int formalIndex) {
+    int actualIndex = getActualIndex(formalIndex);
+    if(actualIndex == -1) {
+      throw new EvalException("Arugment \"" + getFormalName(formalIndex).getPrintName() + "\" is missing, with no default");
+    }
+    return actualValues[actualIndex];
+  }
 }

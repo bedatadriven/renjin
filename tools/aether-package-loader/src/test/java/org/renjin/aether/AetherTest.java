@@ -53,7 +53,7 @@ public class AetherTest {
         "library(org.renjin.test.alpha);" +
             "alphaVersion()\n";
 
-    assertThat(evaluate(script), equalTo("2.5.1"));
+    assertThat(evaluate(script), equalTo("1.13.0"));
   }
 
   @Test
@@ -63,7 +63,7 @@ public class AetherTest {
         "library(org.renjin.test.beta);" +
             "betaVersion()\n";
 
-    assertThat(evaluate(script), equalTo("2.0.0"));
+    assertThat(evaluate(script), equalTo("1.12.0"));
   }
 
   @Test
@@ -98,8 +98,8 @@ public class AetherTest {
 
     // Verify that none of the core libraries are loaded, they are already on
     // the classpath
-    assertThat(loader.getClassLoader().getURLs(), hasItemInArray(containing("jackson-core-2.5.1.jar")));
-    assertThat(loader.getClassLoader().getURLs(), not(hasItemInArray(containing("jackson-core-2.0.0.jar"))));
+    assertThat(loader.getClassLoader().getURLs(), hasItemInArray(containing("jts-1.13.jar")));
+    assertThat(loader.getClassLoader().getURLs(), not(hasItemInArray(containing("jts-1.12.jar"))));
   }
 
   @Test
@@ -115,7 +115,7 @@ public class AetherTest {
             "stopifnot(identical(alphaVersion(), betaVersion()));" +
             "alphaVersion();";
 
-    assertThat(evaluate(alphaFirst), equalTo("2.5.1"));
+    assertThat(evaluate(alphaFirst), equalTo("1.13.0"));
 
     String betaFirst =
         "library(org.renjin.test.beta);" +
@@ -123,7 +123,7 @@ public class AetherTest {
             "stopifnot(identical(alphaVersion(), betaVersion()));" +
             "alphaVersion();";
 
-    assertThat(evaluate(betaFirst), equalTo("2.0.0"));
+    assertThat(evaluate(betaFirst), equalTo("1.12.0"));
   }
 
   private String evaluate(String script) throws IOException {

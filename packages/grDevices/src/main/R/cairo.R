@@ -1,5 +1,7 @@
 #  File src/library/grDevices/R/cairo.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,44 +14,27 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 
-svg <- function(filename = if(onefile) "Rplots.svg" else "Rplot%03d.svg",
-                width = 7, height = 7, pointsize = 12,
-                onefile = FALSE, family = "sans", bg = "white",
-                antialias = c("default", "none", "gray", "subpixel"))
-{
-    if(!checkIntFormat(filename)) stop("invalid 'filename'")
-    new <- list()
-    antialiases <- eval(formals()$antialias)
-    antialias <- match(match.arg(antialias, antialiases), antialiases)
-    invisible(.External(devCairo, filename, 4L, 72*width, 72*height, pointsize,
-                        bg, NA_integer_, antialias, onefile, family))
-}
 
 cairo_pdf <- function(filename = if(onefile) "Rplots.pdf" else "Rplot%03d.pdf",
                       width = 7, height = 7, pointsize = 12,
                       onefile = FALSE, family = "sans", bg = "white",
-                      antialias = c("default", "none", "gray", "subpixel"))
+                      antialias = c("default", "none", "gray", "subpixel"),
+                      fallback_resolution = 300)
 {
-    if(!checkIntFormat(filename)) stop("invalid 'filename'")
-    antialiases <- eval(formals()$antialias)
-    antialias <- match(match.arg(antialias, antialiases), antialiases)
-    invisible(.External(devCairo, filename, 6L, 72*width, 72*height,
-                        pointsize, bg, NA_integer_, antialias, onefile,
-                        family))
+    stop("Renjin does not support the cairo device.")
 }
 
 cairo_ps <- function(filename = if(onefile) "Rplots.ps" else "Rplot%03d.ps",
                      width = 7, height = 7, pointsize = 12,
                      onefile = FALSE, family = "sans", bg = "white",
-                     antialias = c("default", "none", "gray", "subpixel"))
+                     antialias = c("default", "none", "gray", "subpixel"),
+                     fallback_resolution = 300)
 {
-    if(!checkIntFormat(filename)) stop("invalid 'filename'")
-    antialiases <- eval(formals()$antialias)
-    antialias <- match(match.arg(antialias, antialiases), antialiases)
-    invisible(.External(devCairo, filename, 7L, 72*width, 72*height,
-                        pointsize, bg, NA_integer_, antialias, onefile,
-                        family))
+    stop("Renjin does not support the cairo device.")
+
 }
+
+cairoVersion <- function() .Call(C_cairoVersion)

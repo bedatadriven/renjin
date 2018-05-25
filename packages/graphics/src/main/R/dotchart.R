@@ -1,5 +1,7 @@
 #  File src/library/graphics/R/dotchart.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2014 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,10 +14,11 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 dotchart <-
-function(x, labels = NULL, groups = NULL, gdata = NULL, cex = par("cex"),
+function(x, labels = NULL, groups = NULL, gdata = NULL,
+         cex = par("cex"), pt.cex = cex,
 	 pch = 21, gpch = 21, bg = par("bg"), color = par("fg"),
 	 gcolor = par("fg"), lcolor = "gray",
 	 xlim = range(x[is.finite(x)]),
@@ -35,7 +38,7 @@ function(x, labels = NULL, groups = NULL, gdata = NULL, cex = par("cex"),
 	    labels <- rownames(x)
 	if (is.null(labels))
 	    labels <- as.character(1L:nrow(x))
-	labels <- rep(labels, length.out = n)
+	labels <- rep_len(labels, n)
 	if (is.null(groups))
 	    groups <- col(x, as.factor = TRUE)
 	glabels <- levels(groups)
@@ -48,7 +51,7 @@ function(x, labels = NULL, groups = NULL, gdata = NULL, cex = par("cex"),
         }
     }
 
-    # plot.new() # for strwidth()
+    plot.new() # for strwidth()
 
     linch <-
 	if(!is.null(labels)) max(strwidth(labels, "inch"), na.rm = TRUE) else 0
@@ -60,11 +63,13 @@ function(x, labels = NULL, groups = NULL, gdata = NULL, cex = par("cex"),
 	ginch <- max(strwidth(glabels, "inch"), na.rm = TRUE)
 	goffset <- 0.4
     }
-    # if (!(is.null(labels) && is.null(glabels))) {
-	# nmai <- par("mai")
-	# nmai[2L] <- nmai[4L] + max(linch + goffset, ginch) + 0.1
-	# par(mai = nmai)
-    # }
+    if (!(is.null(labels) && is.null(glabels))) {
+        ## The intention seems to be to balance the whitespace
+        ## on each side of the labels+plot.
+	nmai <- par("mai")
+	nmai[2L] <- nmai[4L] + max(linch + goffset, ginch) + 0.1
+	par(mai = nmai)
+    }
 
     if (is.null(groups)) {
 	o <- 1L:n
@@ -75,16 +80,16 @@ function(x, labels = NULL, groups = NULL, gdata = NULL, cex = par("cex"),
 	o <- sort.list(as.numeric(groups), decreasing = TRUE)
 	x <- x[o]
 	groups <- groups[o]
-	color <- rep(color, length.out=length(groups))[o]
-	lcolor <- rep(lcolor, length.out=length(groups))[o]
+	color <- rep_len(color, length(groups))[o]
+	lcolor <- rep_len(lcolor, length(groups))[o]
 	offset <- cumsum(c(0, diff(as.numeric(groups)) != 0))
 	y <- 1L:n + 2 * offset
 	ylim <- range(0, y + 2)
     }
 
-    # plot.window(xlim = xlim, ylim = ylim, log = "")
+    plot.window(xlim = xlim, ylim = ylim, log = "")
 #    xmin <- par("usr")[1L]
-    # lheight <- par("csi")
+    lheight <- par("csi")
     if (!is.null(labels)) {
 	linch <- max(strwidth(labels, "inch"), na.rm = TRUE)
 	loffset <- (linch + 0.1)/lheight
@@ -92,21 +97,22 @@ function(x, labels = NULL, groups = NULL, gdata = NULL, cex = par("cex"),
         mtext(labs, side = 2, line = loffset, at = y, adj = 0,
               col = color, las = 2, cex = cex, ...)
     }
-    # abline(h = y, lty = "dotted", col = lcolor)
-    # points(x, y, pch = pch, col = color, bg = bg)
+    abline(h = y, lty = "dotted", col = lcolor)
+    points(x, y, pch = pch, col = color, bg = bg, cex = pt.cex/cex)
     if (!is.null(groups)) {
 	gpos <- rev(cumsum(rev(tapply(groups, groups, length)) + 2) - 1)
 	ginch <- max(strwidth(glabels, "inch"), na.rm = TRUE)
 	goffset <- (max(linch+0.2, ginch, na.rm = TRUE) + 0.1)/lheight
         mtext(glabels, side = 2, line = goffset, at = gpos,
               adj = 0, col = gcolor, las = 2, cex = cex, ...)
-	# if (!is.null(gdata)) {
-	#     abline(h = gpos, lty = "dotted")
-	#     points(gdata, gpos, pch = gpch, col = gcolor, bg = bg, ...)
-	# }
+	if (!is.null(gdata)) {
+	    abline(h = gpos, lty = "dotted")
+	    points(gdata, gpos, pch = gpch, col = gcolor, bg = bg,
+                   cex = pt.cex/cex, ...)
+	}
     }
-    # axis(1)
-    # box()
-    # title(main=main, xlab=xlab, ylab=ylab, ...)
+    axis(1)
+    box()
+    title(main=main, xlab=xlab, ylab=ylab, ...)
     invisible()
 }

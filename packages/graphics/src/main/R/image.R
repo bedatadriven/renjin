@@ -1,5 +1,7 @@
 #  File src/library/graphics/R/image.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2014 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 image <- function(x, ...) UseMethod("image")
 
@@ -42,8 +44,8 @@ image.default <- function (x = seq(0, 1, length.out = nrow(z)),
 	} else stop("no 'z' matrix specified")
     } else if (is.list(x)) {
 	xn <- deparse(substitute(x))
-	if (missing(xlab)) xlab <- paste(xn, "x", sep = "$")
-	if (missing(ylab)) ylab <- paste(xn, "y", sep = "$")
+	if (missing(xlab)) xlab <- paste0(xn, "$x")
+	if (missing(ylab)) ylab <- paste0(xn, "$y")
 	y <- x$y
 	x <- x$x
     } else {
@@ -58,15 +60,17 @@ image.default <- function (x = seq(0, 1, length.out = nrow(z)),
 	stop("increasing 'x' and 'y' values expected")
     if (!is.matrix(z))
         stop("'z' must be a matrix")
+    if (!typeof(z) %in% c("logical", "integer", "double"))
+        stop("'z' must be numeric or logical")
     if (length(x) > 1 && length(x) == nrow(z)) { # midpoints
         dx <- 0.5*diff(x)
-        x <- c(x[1L] - dx[1L], x[-length(x)]+dx,
-               x[length(x)]+dx[length(x)-1])
+        x <- c(x[1L] - dx[1L], x[-length(x)] + dx,
+               x[length(x)] + dx[length(x)-1])
     }
     if (length(y) > 1 && length(y) == ncol(z)) { # midpoints
         dy <- 0.5*diff(y)
-        y <- c(y[1L] - dy[1L], y[-length(y)]+dy,
-               y[length(y)]+dy[length(y)-1])
+        y <- c(y[1L] - dy[1L], y[-length(y)] + dy,
+               y[length(y)] + dy[length(y)-1L])
     }
 
     if (missing(breaks)) {
@@ -84,14 +88,16 @@ image.default <- function (x = seq(0, 1, length.out = nrow(z)),
 	if (length(breaks) != length(col) + 1)
 	    stop("must have one more break than colour")
 	if (any(!is.finite(breaks)))
-	    stop("breaks must all be finite")
-	zi <- .C("bincode",
-		 as.double(z), length(z), as.double(breaks), length(breaks),
-		 code = integer(length(z)), (TRUE), (TRUE), nok = TRUE,
-		 NAOK = TRUE, DUP = FALSE, PACKAGE = "base") $code - 1
+	    stop("'breaks' must all be finite")
+        if (is.unsorted(breaks)) {
+            warning("unsorted 'breaks' will be sorted before use")
+            breaks <- sort(breaks)
+        }
+        ## spatstat passes a factor matrix here, but .bincode converts to double
+        zi <- .bincode(z, breaks, TRUE, TRUE) - 1L
     }
-    if (!add)
-	plot(NA, NA, xlim = xlim, ylim = ylim, type = "n", xaxs = xaxs,
+    if (!add) # use xlim, ylim here to get dispatch on Axis.
+	plot(xlim, ylim, xlim = xlim, ylim = ylim, type = "n", xaxs = xaxs,
 	     yaxs = yaxs, xlab = xlab, ylab = ylab, ...)
     ## need plot set up before we do this
     if (length(x) <= 1) x <- par("usr")[1L:2]
@@ -108,32 +114,35 @@ image.default <- function (x = seq(0, 1, length.out = nrow(z)),
         (length(dy) && !isTRUE(all.equal(dy, rep(dy[1], length(dy)))))
     }
     if (missing(useRaster)) {
-       useRaster <-  getOption("preferRaster", FALSE)
+       useRaster <- getOption("preferRaster", FALSE)
        if (useRaster && check_irregular(x, y)) useRaster <- FALSE
        if (useRaster) {
            useRaster <- FALSE
-           ras <- dev.capabilities("raster")
+           ras <- dev.capabilities("rasterImage")$rasterImage
            if(identical(ras, "yes")) useRaster <- TRUE
-           if(identical(ras, "non-missing"))
-               useRaster <- all(!is.na(zi))
+           if(identical(ras, "non-missing")) useRaster <- all(!is.na(zi))
        }
     }
     if (useRaster) {
          if(check_irregular(x,y))
-            stop("useRaster=TRUE can only be used with a regular grid")
-        # this should be mostly equivalent to RGBpar3 with bg=NA
+            stop(gettextf("%s can only be used with a regular grid",
+                          sQuote("useRaster = TRUE")),
+                 domain = NA)
+        # this should be mostly equivalent to RGBpar3 with bg = R_TRANWHITE
         if (!is.character(col)) {
-            p <- palette()
-            pl <- length(p)
             col <- as.integer(col)
+            if (any(!is.na(col) & col < 0L))
+                stop("integer colors must be non-negative")
             col[col < 1L] <- NA_integer_
-            col <- p[((col - 1L) %% pl) + 1L]
+            p <- palette()
+            col <- p[((col - 1L) %% length(p)) + 1L]
         }
         zc <- col[zi + 1L]
         dim(zc) <- dim(z)
-        zc <- t(zc)[ncol(zc):1L,, drop=FALSE]
+        zc <- t(zc)[ncol(zc):1L,, drop = FALSE]
         rasterImage(as.raster(zc),
                     min(x), min(y), max(x), max(y),
-                    interpolate=FALSE)
-    } else warning("graphics are not yet implemented.")
+                    interpolate = FALSE)
+     } else .External.graphics(C_image, x, y, zi, col)
+    invisible()
 }

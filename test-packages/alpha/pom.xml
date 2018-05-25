@@ -12,13 +12,13 @@
   <groupId>org.renjin.test</groupId>
   <artifactId>alpha</artifactId>
   <name>Dummy Renjin Package Alpha</name>
-  <description>Package depending on Jackson 2.5.1</description>
+  <description>Package depending on JTS 1.13 </description>
 
   <dependencies>
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>2.5.1</version>
+      <groupId>com.vividsolutions</groupId>
+      <artifactId>jts</artifactId>
+      <version>1.13</version>
     </dependency>
     <dependency>
       <groupId>org.renjin</groupId>

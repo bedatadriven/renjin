@@ -146,7 +146,7 @@ public class GlobalSymbolTable implements SymbolTable {
     addFunction(BeginCatchCallGenerator.NAME, new BeginCatchCallGenerator());
     addFunction(EndCatchGenerator.NAME, new EndCatchGenerator());
     addFunction(RethrowGenerator.NAME, new RethrowGenerator());
-    
+
     addMethod("__builtin_log10__", Math.class, "log10");
 
     addFunction("memcpy", new MemCopyCallGenerator(false));
@@ -202,7 +202,7 @@ public class GlobalSymbolTable implements SymbolTable {
         if(method.getAnnotation(GlobalVar.class) != null) {
           continue;
         }
-        
+
         addFunction(method.getName(), method);
       }
     }

@@ -47,9 +47,6 @@ public class DistanceCalculator {
     }
 
     int distanceToSuperClass = providedClass.extractDistanceFromS4Class(to);
-//    System.out.println(String.format("%s => %s = %d", from, to, distanceToSuperClass));
-
-
     // inheritances distance to the "to" class are defined in the "contains" slot of providedClass.
     // In addition, inheritance can be defined using "setUnionClass", in which case a new class
     // is created with the provided name. The distance to union class to input class is stored in

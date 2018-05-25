@@ -33,7 +33,7 @@ import java.util.Set;
  */
 public class CallingArguments {
 
-  private final String MISSING = "missing";
+  private static final String MISSING = "missing";
 
   private final Context context;
   private final PairList promisedArgs;

@@ -372,12 +372,7 @@ public class Methods {
     boolean optional = opt.isElementTrue(0);
     String fname = functionName.getElementAsString(0);
 
-    String packageName;
-    if(fdef instanceof Closure) {
-      packageName = fdef.getAttribute(S4.PACKAGE).asString();
-    } else {
-      packageName = context.getFunction().getAttribute(S4.PACKAGE).asString();
-    }
+    String packageName = getPackageName(context, fdef);
 
     Generic generic = Generic.standardGeneric(context, fname, packageName);
 
@@ -394,21 +389,35 @@ public class Methods {
 
     Signature signature = new Signature(args.toArray());
 
-    RankedMethod selectedMethod;
+    boolean[] inheritance = computeUseInheritance(args, useInherited, generic, methodTable);
 
+    RankedMethod selectedMethod = methodTable.selectMethod(context, generic, signature, inheritance);
+
+    if(selectedMethod == null) {
+      if(optional) {
+        return Null.INSTANCE;
+      } else {
+        throw new EvalException("selectMethod(" + fname + "): No matching methods found! 'optional' is set to FALSE.");
+      }
+    }
+
+    return selectedMethod.getMethodDefinition();
+  }
+
+  public static boolean[] computeUseInheritance(StringArrayVector args, LogicalArrayVector useInherited, Generic generic, S4MethodTable methodTable) {
     // useInherited argument provided to selectMethod() is used to indicate
     // if inherited methods can be used for each given argument. if the length
     // of useInherited is shorter than the number of arguments, it is repeated.
     // Inheritance is not used in case of "ANY".
     boolean[] inheritance = new boolean[methodTable.getMaximumSignatureLength()];
-    int inheritedLength = useInherited.length();
+    int useInheritedLength = useInherited.length();
 
-    if(inheritedLength == 1) {
+    if(useInheritedLength == 1) {
       Arrays.fill(inheritance, useInherited.isElementTrue(0));
     } else {
       int j = 0;
       for(int i = 0; i < args.length(); i++, j++) {
-        if(j == inheritedLength) {
+        if(j == useInheritedLength) {
           j = 0;
         }
         inheritance[i] = useInherited.isElementTrue(j)
@@ -422,18 +431,17 @@ public class Methods {
     if("coerce".equals(generic.getName())) {
       inheritance = new boolean[]{inheritance[0], false};
     }
+    return inheritance;
+  }
 
-    selectedMethod = methodTable.selectMethod(context, generic, signature, inheritance);
-
-    if(selectedMethod == null) {
-      if(optional) {
-        return Null.INSTANCE;
-      } else {
-        throw new EvalException("selectMethod(" + fname + "): No matching methods found! 'optional' is set to FALSE.");
-      }
+  public static String getPackageName(@Current Context context, SEXP fdef) {
+    String packageName;
+    if(fdef instanceof Closure) {
+      packageName = fdef.getAttribute(S4.PACKAGE).asString();
+    } else {
+      packageName = context.getFunction().getAttribute(S4.PACKAGE).asString();
     }
-
-    return selectedMethod.getMethodDefinition();
+    return packageName;
   }
 
   @Builtin

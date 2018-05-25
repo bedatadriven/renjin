@@ -32,6 +32,9 @@ import static org.renjin.methods.MethodDispatch.*;
 
 public class S4 {
 
+  private static final String R_methods = "methods";
+  private static final String R_package = "package";
+
   public static final String CLASS_PREFIX = ".__C__";
   public static final String METHOD_PREFIX = ".__T__";
   public static final Symbol CONTAINS = Symbol.get("contains");
@@ -42,10 +45,8 @@ public class S4 {
   public static final Symbol BY = Symbol.get("by");
   public static final Symbol SIMPLE = Symbol.get("simple");
   public static final Symbol TEST = Symbol.get("test");
-  public static final Symbol PACKAGE = Symbol.get("package");
+  public static final Symbol PACKAGE = Symbol.get(R_package);
   public static final Symbol GROUP = Symbol.get("group");
-
-  private static final String METHODS = "methods";
 
 
   private S4() {
@@ -138,12 +139,12 @@ public class S4 {
   private static SEXP buildDotTarget(RankedMethod method, Signature signature) {
 
     List<String> argumentClasses = signature.getClasses();
-    List<String> argumentPackages = new ArrayList<>(Collections.nCopies(argumentClasses.size(), METHODS));
+    List<String> argumentPackages = new ArrayList<>(Collections.nCopies(argumentClasses.size(), R_methods));
 
     return new StringVector.Builder()
       .addAll(argumentClasses)
       .setAttribute("names", method.getMethod().getFormalNames())
-      .setAttribute("package", new StringArrayVector(argumentPackages))
+      .setAttribute(R_package, new StringArrayVector(argumentPackages))
       .setAttribute("class", signatureClass())
       .build();
   }
@@ -160,19 +161,19 @@ public class S4 {
     return new StringVector.Builder()
       .addAll(argumentClasses)
       .setAttribute("names", method.getMethod().getFormalNames())
-      .setAttribute("package", new StringArrayVector(argumentPackages))
+      .setAttribute(R_package, new StringArrayVector(argumentPackages))
       .setAttribute("class", signatureClass())
       .build();
   }
 
   private static SEXP signatureClass() {
     return StringVector.valueOf("signature")
-      .setAttribute("package", StringVector.valueOf(METHODS));
+      .setAttribute(R_package, StringVector.valueOf(R_methods));
   }
 
   public static String getClassPackage(Context context, String objClass) {
     if("ANY".equals(objClass) || "signature".equals(objClass)) {
-      return METHODS;
+      return R_methods;
     }
 
     S4Cache s4Cache = context.getSession().getS4Cache();
@@ -206,13 +207,11 @@ public class S4 {
 
   @Internal
   public static void invalidateS4Cache(@Current Context context, String msg) {
-    // System.out.println("invalidateS4Cache() @ " + msg);
     context.getSession().reloadS4Cache();
   }
 
   @Internal
   public static void invalidateS4MethodCache(@Current Context context, String msg) {
-    // System.out.println("invalidateS4MethodCache() @ " + msg);
     context.getSession().reloadS4MethodCache();
   }
 }

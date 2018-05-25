@@ -43,6 +43,7 @@ public class RankedMethod {
         has0 = true;
 
       } else if(useInheritance[i]) {
+        // allowed to inherit
         exact = false;
         int distance = distanceCalculator.distance(context, targetClass, definedClass);
         if (distance == -1) {

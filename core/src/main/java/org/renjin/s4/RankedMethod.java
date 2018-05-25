@@ -82,7 +82,7 @@ public class RankedMethod {
     }
 
     // Otherwise, we compare the distances, starting from the first argument
-    for (int i = 0; i < distances.length; i++) {
+    for (int i = 0; i < distances.length && i < other.distances.length; i++) {
       if (this.distances[i] < other.distances[i]) {
         return true;
       } else if (this.distances[i] > other.distances[i]) {

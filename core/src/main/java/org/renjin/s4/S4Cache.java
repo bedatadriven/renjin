@@ -31,11 +31,12 @@ public class S4Cache {
     return methodCache;
   }
 
-  public void resetS4ClassCache() {
+  public void invalidate() {
     classCache = new S4ClassCache();
+    methodCache = new S4MethodCache();
   }
 
-  public void resetS4MethodCache() {
+  public void invalidateMethodCache() {
     methodCache = new S4MethodCache();
   }
 

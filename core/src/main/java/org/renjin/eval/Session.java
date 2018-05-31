@@ -58,7 +58,7 @@ public class Session {
   
   private final Context topLevelContext;
 
-  private S4Cache cache = new S4Cache();
+  private S4Cache s4Cache = new S4Cache();
 
   private FinalizerRegistry finalizers = null;
 
@@ -335,16 +335,7 @@ public class Session {
   }
 
   public S4Cache getS4Cache() {
-    return cache;
-  }
-
-  public void reloadS4Cache() {
-    cache.resetS4ClassCache();
-    cache.resetS4MethodCache();
-  }
-
-  public void reloadS4MethodCache() {
-    cache.resetS4MethodCache();
+    return s4Cache;
   }
 
   public void registerFinalizer(SEXP sexp, FinalizationHandler handler, boolean onExit) {

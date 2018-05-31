@@ -202,6 +202,8 @@ public class NamespaceRegistry {
         namespace.populateNamespace(context);
         namespace.initExports(namespaceFile);
 
+        context.getSession().getS4Cache().invalidate();
+
         // set up the imported symbols
         namespace.initImports(context, this, namespaceFile);
 

@@ -212,11 +212,11 @@ public class S4 {
 
   @Internal
   public static void invalidateS4Cache(@Current Context context, String msg) {
-    context.getSession().reloadS4Cache();
+    context.getSession().getS4Cache().invalidate();
   }
 
   @Internal
   public static void invalidateS4MethodCache(@Current Context context, String msg) {
-    context.getSession().reloadS4MethodCache();
+    context.getSession().getS4Cache().invalidateMethodCache();
   }
 }

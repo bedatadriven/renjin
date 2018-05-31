@@ -27,6 +27,7 @@ import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.methods.PrimitiveMethodTable.prim_methods_t;
 import org.renjin.primitives.Types;
+import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.special.SubstituteFunction;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.s4.*;
@@ -34,6 +35,7 @@ import org.renjin.sexp.*;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.renjin.s4.S4.generateCallMetaData;
@@ -345,22 +347,39 @@ public class Methods {
   }
 
   @Internal
-  public static SEXP getClassDef(@Current Context context, String className, SEXP where, SEXP packageName, SEXP inherits) {
+  public static SEXP getClassDef(@Current Context context, String className, Environment where, String packageName, boolean inherits) {
     SEXP classDef = Symbol.UNBOUND_VALUE;
 
-    S4Cache s4Cache = context.getSession().getS4Cache();
-    S4Class s4Class = s4Cache.getS4ClassCache().lookupClass(context, className);
-    if(s4Class != null) {
-      classDef = s4Class.getDefinition();
+    if(inherits) {
+      S4Cache s4Cache = context.getSession().getS4Cache();
+      S4Class s4Class = s4Cache.getS4ClassCache().lookupClass(context, className);
+      if(s4Class != null) {
+        classDef = s4Class.getDefinition();
+      }
     }
 
-    if(classDef == Symbol.UNBOUND_VALUE && where instanceof Environment) {
-      Environment env = (Environment) where;
-      classDef = env.getVariableUnsafe(className);
+    if(classDef == Symbol.UNBOUND_VALUE) {
+      Symbol metadataName = Symbol.get(S4.CLASS_PREFIX + className);
+
+      if(!Strings.isNullOrEmpty(packageName)) {
+        Optional<Namespace> namespace = context.getNamespaceRegistry().getNamespaceIfPresent(Symbol.get(packageName));
+        if(!namespace.isPresent()) {
+          throw new EvalException("Package " + packageName + " is not loaded");
+        }
+        classDef = namespace.get().getNamespaceEnvironment().findVariable(context, metadataName, x -> true, inherits);
+      } else {
+        classDef = where.findVariable(context, metadataName, x -> true, inherits);
+      }
     }
 
     if(classDef == Symbol.UNBOUND_VALUE) {
       return Null.INSTANCE;
+    }
+
+    classDef = classDef.force(context);
+
+    if(!Types.isS4(classDef)) {
+      throw new EvalException("ClassDefinition " + className + " is corrupted. Please rebuild package: " + classDef.getAttribute(Symbol.get("package")));
     }
     return classDef;
   }
@@ -496,27 +515,30 @@ public class Methods {
 
     int signatureLength = method.getMethodSignatureLength();
 
+    Set<String> argNames = method.getMethod().getGeneric().getSignatureArgumentNames();
+
     S4ClassCache classCache = context.getSession().getS4Cache().getS4ClassCache();
 
     PairList.Builder coercedArgs = new PairList.Builder();
+
     int step = 0;
+
     for(PairList.Node arg : arguments.getPromisedArgs().nodes()) {
       SEXP value = arg.getValue();
       SEXP tag = arg.getRawTag();
-      Set<String> argNames = method.getMethod().getGeneric().getSignatureArgumentNames();
       if(step < signatureLength && (tag != Null.INSTANCE && argNames.contains(arg.getTag().getPrintName()))) {
         String from = arguments.getArgumentClass(step);
         String to = method.getArgumentClass(step);
         if(to.equals(from) || to.equals("ANY") || classCache.isSimple(from, to)) {
-          coercedArgs.add(arg.getRawTag(), value);
+          coercedArgs.add(tag, value);
         } else {
           SEXP coercedArg = classCache.coerceComplex(context, value, from, to);
-          coercedArgs.add(arg.getRawTag(), coercedArg);
+          coercedArgs.add(tag, coercedArg);
         }
         step += 1;
       } else {
         if(value != Symbol.MISSING_ARG) {
-          coercedArgs.add(arg.getRawTag(), value);
+          coercedArgs.add(tag, value);
         }
       }
     }

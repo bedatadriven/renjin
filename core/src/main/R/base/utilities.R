@@ -21,3 +21,7 @@ mat.or.vec <- function(nr,nc)
 is.R <-
     function() exists("version") && !is.null(vl <- version$language) && vl == "R"
 
+
+invalidateS4Cache <- function(msg=" ") .Internal(invalidateS4Cache(as.character(msg)))
+
+invalidateS4MethodCache <- function(msg=" ") .Internal(invalidateS4MethodCache(as.character(msg)))

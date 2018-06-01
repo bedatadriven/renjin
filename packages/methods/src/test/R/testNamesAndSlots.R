@@ -2,7 +2,7 @@
 # Test the interaction between the names attribute and slots on S4 objects
 # adapted from https://github.com/wch/r-source/tree/trunk/src/library/methods/tests
 
-
+library(methods)
 library(hamcrest)
 
 test.warnWhenAssignNamesAndThereIsNoNamesSlot <- function() {

@@ -36,7 +36,6 @@ public class Packages {
       @Current NamespaceRegistry namespaceRegistry, 
       String packageName) throws IOException {
 
-
     Namespace namespace = namespaceRegistry.getNamespace(context, packageName);
     
     // Check to see if already on the search path...

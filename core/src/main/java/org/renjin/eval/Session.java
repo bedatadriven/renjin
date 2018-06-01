@@ -30,6 +30,7 @@ import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repackaged.guava.collect.ImmutableList;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
+import org.renjin.s4.S4Cache;
 import org.renjin.sexp.*;
 import org.renjin.stats.internals.distributions.RNG;
 import org.renjin.util.FileSystemUtils;
@@ -56,6 +57,8 @@ public class Session {
       "stats",  "graphics", "grDevices", "utils",  "datasets", "methods");
   
   private final Context topLevelContext;
+
+  private S4Cache s4Cache = new S4Cache();
 
   private FinalizerRegistry finalizers = null;
 
@@ -329,6 +332,10 @@ public class Session {
   
   public ClassLoader getClassLoader() {
     return classLoader;
+  }
+
+  public S4Cache getS4Cache() {
+    return s4Cache;
   }
 
   public void registerFinalizer(SEXP sexp, FinalizationHandler handler, boolean onExit) {

@@ -21,6 +21,7 @@ package org.renjin.eval;
 import org.renjin.sexp.*;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Matches arguments to a function call to the formal arguments declared by an R closure.
@@ -72,6 +73,18 @@ public class ArgumentMatcher {
       }
     }
   }
+
+  /**
+   * @return the number of formal arguments, excluding the '...' if present.
+   */
+  public int getNamedFormalCount() {
+    if(formalEllipses == -1) {
+      return formalNames.length;
+    } else {
+      return formalNames.length - 1;
+    }
+  }
+
 
   /**
    * Argument matching is done by a three-pass process:
@@ -155,7 +168,7 @@ public class ArgumentMatcher {
       }
     }
 
-    return new MatchedArgumentPositions(formalNames, formalToActual, matchedActuals);
+    return new MatchedArgumentPositions(formalNames, formalToActual, matchedActuals, formalEllipses);
   }
 
   public MatchedArguments match(PairList actuals) {
@@ -198,7 +211,6 @@ public class ArgumentMatcher {
     }
     return -1;
   }
-
 
   /**
    * Find an argument name that *exactly* matches the given formal name.
@@ -251,5 +263,9 @@ public class ArgumentMatcher {
 
   public SEXP getDefaultValue(int formalIndex) {
     return defaultValues[formalIndex];
+  }
+
+  public List<String> getFormalNames() {
+    return Arrays.asList(formalNames);
   }
 }

@@ -31,4 +31,5 @@ import java.lang.annotation.RetentionPolicy;
 public @interface Generic {
   boolean S3() default true;
   boolean S4() default true;
+  boolean dispatchOnAllArguments() default false;
 }

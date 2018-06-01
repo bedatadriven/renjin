@@ -44,6 +44,7 @@
     assign(".mergeClassDefSlots", ..mergeClassDefSlots, envir = where)
     assign(".addToMetaTable", ..addToMetaTable, envir = where)
     assign(".extendsForS3", ..extendsForS3, envir = where)
+    invalidateS4Cache("...load() -> added .classEnv etc...")
     .makeBasicFuns(where)
     rm(.makeGeneric, .newClassRepresentation, .possibleExtends,
        ..mergeClassDefSlots, .classGeneratorFunction, ..classEnv,
@@ -51,9 +52,11 @@
        .InitClassDefinition, .InitBasicClasses, .initClassSupport,
        .InitMethodsListClass, .setCoerceGeneric, .makeBasicFuns,
        envir = where)
+    invalidateS4Cache("...load() -> removed functions 1")
     .InitMethodDefinitions(where)
     .InitShowMethods(where)
     assign(".isPrototype", ..isPrototype, envir = where)
+    invalidateS4Cache("...load() -> added .isPrototype")
     .InitClassUnion(where)
     .InitS3Classes(where)
     .InitSpecialTypesAndClasses(where)
@@ -64,14 +67,17 @@
         sealClass(cl, where)
     assign("isSealedMethod", .isSealedMethod, envir = where)
     assign(".requirePackage", ..requirePackage, envir = where)
+    invalidateS4Cache("...load() -> added isSealedMethod etc...")
     ## initialize implicit generics for base package
     ## Note that this is done before making a non-vacuous implicitGeneric()
     ## so that non-default signatures are allowed in setGeneric()
     .initImplicitGenerics(where)
     assign("implicitGeneric", .implicitGeneric, envir = where)
+    invalidateS4Cache("...load() -> assigned implicitGeneric...")
     cacheMetaData(where, TRUE, searchWhere = .GlobalEnv, FALSE)
     assign(".checkRequiredGenerics", ..checkRequiredGenerics, envir = where)
     assign(".methodPackageSlots", ..methodPackageSlots, envir = where)
+    invalidateS4Cache("...load() -> assigned .checkRequiredGenerics etc...")
     rm(..isPrototype, .isSealedMethod, ..requirePackage, .implicitGeneric,
        ..checkRequiredGenerics, ..methodPackageSlots, .envRefMethods,
        .InitBasicClassMethods, .InitExtensions, .InitStructureMethods,
@@ -79,15 +85,18 @@
        .InitS3Classes, .InitSpecialTypesAndClasses, .InitTraceFunctions,
        .InitRefClasses, .initImplicitGenerics,
        envir = where)
+    invalidateS4Cache("...load() -> removed functions 2")
     ## unlock some bindings that must be modifiable
     unlockBinding(".BasicFunsList", where)
     assign(".saveImage", TRUE, envir = where)
+    invalidateS4Cache("...load() -> assign .saveImage")
     cat(" done\n")
 
     assign("envRefMethodNames",
 	   names(getClassDef("envRefClass")@refMethods), envir = where)
     assign(".onLoad", ..onLoad, envir = where)
     rm(...onLoad, ..onLoad, envir = where)
+    invalidateS4Cache("...load() -> assign onLoad etc...")
     dbbase <- file.path(libname, pkgname, "R", pkgname)
     ns <- asNamespace(pkgname)
     ## we need to exclude the registration vars

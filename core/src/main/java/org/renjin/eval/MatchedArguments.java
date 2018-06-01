@@ -79,6 +79,10 @@ public class MatchedArguments {
     return actualValues[actualIndex];
   }
 
+  public boolean areAllFormalsMatched() {
+    return matchedPositions.allFormalsMatched();
+  }
+
   public SEXP getActualForFormal(int formalIndex, SEXP defaultValue) {
     int actualIndex = getActualIndex(formalIndex);
     if(actualIndex == -1) {

@@ -31,29 +31,37 @@ c = new("C", d = "cd", c = "c")
 b = new("B", d = "bd", c = "bc", b = "b")
 a = new("A", d = "ad", c = "ac", b = "ab", a = "a")
 
-setMethod("[", signature("B","C","C"), function(x, i, j, ...) 3.5)
-setMethod("[", signature("B","D","B"), function(x, i, j, ...) 5.5)
-setMethod("[", signature("C","C","A"), function(x, i, j, ...) 7.5)
-setMethod("[", signature("C","A","C"), function(x, i, j, ...) 9.5)
-setMethod("[", signature("A","C","C"), function(x, i, j, ...) 11.5)
-setMethod("[", signature("A","D","B"), function(x, i, j, ...) 15.5)
+setMethod("[", signature("B","C","C"), function(x, i, j, ...) "B#C#C")
+setMethod("[", signature("B","D","B"), function(x, i, j, ...) "B#D#B")
+setMethod("[", signature("C","C","A"), function(x, i, j, ...) "C#C#A")
+setMethod("[", signature("C","A","C"), function(x, i, j, ...) "C#A#C")
+setMethod("[", signature("A","C","C"), function(x, i, j, ...) "A#C#C")
+setMethod("[", signature("A","D","B"), function(x, i, j, ...) "A#D#B")
+
+oneOf <- function(...) {
+    expected <- c(...)
+    function(actual) {
+        actual %in% expected
+    }
+}
+
 
 test.method_selection.05a = function() {
-    assertThat(a[a,a], identicalTo( c(11.5) ))
+    assertThat(a[a,a], oneOf("A#C#C", "A#D#B"))
 }
 
 test.method_selection.05b = function() {
-    assertThat(b[b,b], identicalTo( c(3.5) ))
+    assertThat(b[b,b], oneOf("B#C#C", "B#D#B"))
 }
 
 test.method_selection.05c = function() {
-    assertThat(b[b,a], identicalTo( c(7.5) ))
+    assertThat(b[b,a], oneOf("C#C#A", "B#C#C", "B#D#B"))
 }
 
 test.method_selection.05d = function() {
-    assertThat(a[a,b], identicalTo( c(11.5) ))
+    assertThat(a[a,b], oneOf("A#C#C", "A#D#B", "C#A#C"))
 }
 
 test.method_selection.05e = function() {
-    assertThat(a[b,b], identicalTo( c(11.5) ))
+    assertThat(a[b,b], oneOf("A#C#C", "A#D#B"))
 }

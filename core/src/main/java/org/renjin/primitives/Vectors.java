@@ -26,11 +26,10 @@ import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.vector.ConvertingDoubleVector;
 import org.renjin.primitives.vector.ConvertingStringVector;
 import org.renjin.repackaged.guava.base.Charsets;
-import java.util.function.Predicate;
-import org.renjin.repackaged.guava.base.Predicates;
 import org.renjin.sexp.*;
 
 import java.util.Arrays;
+import java.util.function.Predicate;
 
 /**
  * Functions which operate on Vectors
@@ -43,7 +42,9 @@ public class Vectors {
     if(length < 0) {
       throw new EvalException("%d : invalid value", length);
     }
-    
+    if(source.length() == length) {
+      return source;
+    }
     // Strange but true... 
     // if source is null, then length(source) <- x is null for all x >= 0
     if(source == Null.INSTANCE) {

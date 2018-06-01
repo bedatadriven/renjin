@@ -21,6 +21,7 @@ package org.renjin.primitives;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
+import org.renjin.s4.S4;
 import org.renjin.sexp.*;
 
 /**
@@ -330,7 +331,7 @@ public class Attributes {
       if(whatClass.equals(className)) {
         return i + 1;
       } else if(s4) {
-        AtomicVector superClasses = S3.getSuperClassesS4(context, className);
+        AtomicVector superClasses = S4.getSuperClassesS4(context, className);
         for (int j = 0; j < superClasses.length(); j++) {
           if(whatClass.equals(superClasses.getElementAsString(j))) {
             return i + 1;

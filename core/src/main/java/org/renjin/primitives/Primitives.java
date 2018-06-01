@@ -45,6 +45,7 @@ import org.renjin.primitives.text.Text;
 import org.renjin.primitives.time.Time;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
+import org.renjin.s4.S4;
 import org.renjin.sexp.*;
 import org.renjin.stats.internals.CompleteCases;
 import org.renjin.stats.internals.Distributions;
@@ -89,6 +90,11 @@ public class Primitives {
 
   public static PrimitiveFunction getInternal(Symbol symbol) {
     return getPrimitive(INSTANCE.internalEntries, INSTANCE.internals, symbol);
+  }
+
+  public static boolean isBuiltin(String opName) {
+    Symbol symbol = Symbol.get(opName);
+    return INSTANCE.builtinEntries.containsKey(symbol);
   }
 
   private static PrimitiveFunction getPrimitive(IdentityHashMap<Symbol, Entry> entryMap,
@@ -835,7 +841,11 @@ public class Primitives {
     f("inherits", Attributes.class, 11);
     f("UseMethod", S3.class, 200);
     f("NextMethod", S3.class, 210);
+    f("invalidateS4Cache", S4.class, 1);
+    f("invalidateS4MethodCache", S4.class, 1);
     f("standardGeneric", Methods.class, 201);
+    f("getClassDef", Methods.class, 11);
+    f("selectMethod", Methods.class, 11);
 
 /* Modelling Functionality */
 

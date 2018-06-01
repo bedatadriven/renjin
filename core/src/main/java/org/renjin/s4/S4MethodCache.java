@@ -16,16 +16,35 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.methods;
+package org.renjin.s4;
 
-import org.renjin.sexp.Symbol;
+import org.renjin.eval.Context;
 
-/**
- * Methods for working with S4 Metadata
- */
-public class S4 {
+import java.util.HashMap;
+import java.util.Map;
 
-  public static Symbol classNameMetadata(String className) {
-    return Symbol.get(".__C__" + className);
+public class S4MethodCache {
+
+  private Map<String, S4MethodTable> methodCache = null;   // <fname, <signature, RankedMethod>>
+
+  S4MethodCache() {
   }
+
+  private void initializeMethodCache() {
+    methodCache = new HashMap<>();
+  }
+
+  public S4MethodTable getMethod(Context context, Generic generic, String fname) {
+    if(methodCache != null && methodCache.containsKey(fname)) {
+      return methodCache.get(fname);
+    } else {
+      if(methodCache == null) {
+        initializeMethodCache();
+      }
+      S4MethodTable methodTable = new S4MethodTable(context, generic);
+      this.methodCache.put(fname, methodTable);
+      return methodTable;
+    }
+  }
+
 }

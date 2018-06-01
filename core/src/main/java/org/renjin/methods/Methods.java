@@ -18,18 +18,27 @@
  */
 package org.renjin.methods;
 
+import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.Context.Type;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.methods.PrimitiveMethodTable.prim_methods_t;
 import org.renjin.primitives.Types;
+import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.special.SubstituteFunction;
 import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.s4.*;
 import org.renjin.sexp.*;
 
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import static org.renjin.s4.S4.generateCallMetaData;
 
 public class Methods {
 
@@ -337,39 +346,204 @@ public class Methods {
     return code;
   }
 
-  @Builtin
-  public static SEXP standardGeneric(@Current Context context, Symbol fname, SEXP fdef) {
-    throw new UnsupportedOperationException();
+  @Internal
+  public static SEXP getClassDef(@Current Context context, String className, Environment where, String packageName, boolean inherits) {
+    SEXP classDef = Symbol.UNBOUND_VALUE;
+
+    if(inherits) {
+      S4Cache s4Cache = context.getSession().getS4Cache();
+      S4Class s4Class = s4Cache.getS4ClassCache().lookupClass(context, className);
+      if(s4Class != null) {
+        classDef = s4Class.getDefinition();
+      }
+    }
+
+    if(classDef == Symbol.UNBOUND_VALUE) {
+      Symbol metadataName = Symbol.get(S4.CLASS_PREFIX + className);
+
+      if(!Strings.isNullOrEmpty(packageName)) {
+        Optional<Namespace> namespace = context.getNamespaceRegistry().getNamespaceIfPresent(Symbol.get(packageName));
+        if(!namespace.isPresent()) {
+          throw new EvalException("Package " + packageName + " is not loaded");
+        }
+        classDef = namespace.get().getNamespaceEnvironment().findVariable(context, metadataName, x -> true, inherits);
+      } else {
+        classDef = where.findVariable(context, metadataName, x -> true, inherits);
+      }
+    }
+
+    if(classDef == Symbol.UNBOUND_VALUE) {
+      return Null.INSTANCE;
+    }
+
+    classDef = classDef.force(context);
+
+    if(!Types.isS4(classDef)) {
+      throw new EvalException("ClassDefinition " + className + " is corrupted. Please rebuild package: " + classDef.getAttribute(Symbol.get("package")));
+    }
+    return classDef;
+  }
+
+  @Internal
+  public static SEXP selectMethod(@Current Context context, StringArrayVector functionName, StringArrayVector args,
+                                  LogicalArrayVector opt, LogicalArrayVector useInherited, SEXP mlist, SEXP fdef, SEXP verbose, SEXP doCache) {
+
+    boolean optional = opt.isElementTrue(0);
+    String fname = functionName.getElementAsString(0);
+
+    String packageName = getPackageName(context, fdef);
+
+    Generic generic = Generic.standardGeneric(context, fname, packageName);
+
+    S4MethodCache methodCache = context.getSession().getS4Cache().getS4MethodCache();
+    S4MethodTable methodTable = methodCache.getMethod(context, generic, fname);
+
+    if(methodTable == null || methodTable.isEmpty()) {
+      if (optional) {
+        return Null.INSTANCE;
+      } else {
+        throw new EvalException("selectMethod(" + fname + "): No methods found!");
+      }
+    }
+
+    Signature signature = new Signature(args.toArray());
+
+    boolean[] inheritance = computeUseInheritance(args, useInherited, generic, methodTable);
+
+    RankedMethod selectedMethod = methodTable.selectMethod(context, generic, signature, inheritance);
+
+    if(selectedMethod == null) {
+      if(optional) {
+        return Null.INSTANCE;
+      } else {
+        throw new EvalException("selectMethod(" + fname + "): No matching methods found! 'optional' is set to FALSE.");
+      }
+    }
+
+    return selectedMethod.getMethodDefinition();
+  }
+
+  public static boolean[] computeUseInheritance(StringArrayVector args, LogicalArrayVector useInherited, Generic generic, S4MethodTable methodTable) {
+    // useInherited argument provided to selectMethod() is used to indicate
+    // if inherited methods can be used for each given argument. if the length
+    // of useInherited is shorter than the number of arguments, it is repeated.
+    // Inheritance is not used in case of "ANY".
+    boolean[] inheritance = new boolean[methodTable.getMaximumSignatureLength()];
+    int useInheritedLength = useInherited.length();
+
+    if(useInheritedLength == 1) {
+      Arrays.fill(inheritance, useInherited.isElementTrue(0));
+    } else {
+      int j = 0;
+      for(int i = 0; i < args.length(); i++, j++) {
+        if(j == useInheritedLength) {
+          j = 0;
+        }
+        inheritance[i] = useInherited.isElementTrue(j)
+            && !("ANY".equals(args.getElementAsString(i)));
+      }
+    }
+
+
+    // "coerce" is a special case. It always has two arguments and inheritance
+    // might be used only for the first argument.
+    if("coerce".equals(generic.getName())) {
+      inheritance = new boolean[]{inheritance[0], false};
+    }
+    return inheritance;
+  }
+
+  public static String getPackageName(@Current Context context, SEXP fdef) {
+    String packageName;
+    if(fdef instanceof Closure) {
+      packageName = fdef.getAttribute(S4.PACKAGE).asString();
+    } else {
+      packageName = context.getFunction().getAttribute(S4.PACKAGE).asString();
+    }
+    return packageName;
   }
 
   @Builtin
-  public static SEXP standardGeneric(@Current Context context, @Current Environment env, String fname) {
-    //      SEXP arg, value, fdef;
-    //
-    //      checkArity(op, args);
-    //      check1arg(args, call, "f");
+  public static SEXP standardGeneric(@Current Context context, Symbol fname, SEXP fdef) {
+    return standardGeneric(context, Environment.EMPTY, fname.getPrintName());
+  }
 
-    //      if(!ptr) {
-    //      warningcall(call,
-    //            _("'standardGeneric' called without 'methods' dispatch enabled (will be ignored)"));
-    //      R_set_standardGeneric_ptr(dispatchNonGeneric, NULL);
-    //      ptr = R_get_standardGeneric_ptr();
-    //      }
+  @Builtin
+  public static SEXP standardGeneric(@Current Context context, @Current Environment ev, String fname) {
 
   
     if(Strings.isNullOrEmpty(fname)) {
       throw new EvalException("argument to 'standardGeneric' must be a non-empty character string");
-    }  
-    SEXP fdef = get_this_generic(context, fname);
-    if(fdef == Null.INSTANCE) {
-      throw new EvalException("call to standardGeneric(\"%s\") apparently not from the body of that generic function", fname);
     }
 
-    return context.getSession().getSingleton(MethodDispatch.class)
-    .standardGeneric(context, Symbol.get(fname), env, fdef);
-    
+    String packageName = context.getFunction().getAttribute(S4.PACKAGE).asString();
+    Generic generic = Generic.standardGeneric(context, fname, packageName);
+
+    S4MethodCache methodCache = context.getSession().getS4Cache().getS4MethodCache();
+    S4MethodTable methodTable = methodCache.getMethod(context, generic, fname);
+
+    if(methodTable == null || methodTable.isEmpty()) {
+      throw new EvalException("standardGeneric(" + fname + "): No methods found!");
+    }
+
+    CallingArguments arguments = CallingArguments.standardGenericArguments(context, methodTable.getArgumentMatcher());
+
+    Signature signature = arguments.getSignature(methodTable.getMaximumSignatureLength(), generic.getSignatureArgumentNames());
+
+    boolean[] useInheritance = new boolean[methodTable.getMaximumSignatureLength()];
+    Arrays.fill(useInheritance, Boolean.TRUE);
+
+    RankedMethod selectedMethod = methodTable.selectMethod(context, generic, signature, useInheritance);
+
+    if(selectedMethod == null) {
+      throw new EvalException("unable to find an inherited method for function '" + fname +
+          "' for signature " + arguments.getFullSignatureString(methodTable.getMaximumSignatureLength()));
+    }
+
+    Closure function = selectedMethod.getMethodDefinition();
+
+    Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, signature, fname);
+
+    PairList coercedArgs = coerce(context, arguments, selectedMethod);
+
+    FunctionCall call = new FunctionCall(function, coercedArgs);
+
+    return ClosureDispatcher.apply(context, context.getCallingEnvironment(), call, function, coercedArgs, metadata);
   }
 
+  public static PairList coerce(Context context, CallingArguments arguments, RankedMethod method) {
+
+    int signatureLength = method.getMethodSignatureLength();
+
+    Set<String> argNames = method.getMethod().getGeneric().getSignatureArgumentNames();
+
+    S4ClassCache classCache = context.getSession().getS4Cache().getS4ClassCache();
+
+    PairList.Builder coercedArgs = new PairList.Builder();
+
+    int step = 0;
+
+    for(PairList.Node arg : arguments.getPromisedArgs().nodes()) {
+      SEXP value = arg.getValue();
+      SEXP tag = arg.getRawTag();
+      if(step < signatureLength && (tag != Null.INSTANCE && argNames.contains(arg.getTag().getPrintName()))) {
+        String from = arguments.getArgumentClass(step);
+        String to = method.getArgumentClass(step);
+        if(to.equals(from) || to.equals("ANY") || classCache.isSimple(from, to)) {
+          coercedArgs.add(tag, value);
+        } else {
+          SEXP coercedArg = classCache.coerceComplex(context, value, from, to);
+          coercedArgs.add(tag, coercedArg);
+        }
+        step += 1;
+      } else {
+        if(value != Symbol.MISSING_ARG) {
+          coercedArgs.add(tag, value);
+        }
+      }
+    }
+    return coercedArgs.build();
+  }
 
 
   /* get the generic function, defined to be the function definition for

@@ -831,6 +831,7 @@ public class Primitives {
     f("Sys.getpid",System.class, 11);
     f("normalizePath", Files.class, 11);
     f("Sys.glob", Files.class, "glob", 11);
+    f("Sys.which", Files.class, 11);
     f("unlink", Files.class, 111);
     f("local.file", Files.class, 111);
 

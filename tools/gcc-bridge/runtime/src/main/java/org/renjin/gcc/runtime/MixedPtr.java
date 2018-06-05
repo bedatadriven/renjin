@@ -101,7 +101,7 @@ public class MixedPtr implements Ptr {
 
   @Override
   public boolean getBoolean() {
-    return getByte(this.offset) != 0;
+    return this.primitives.get(this.offset) != 0;
   }
 
   @Override
@@ -211,7 +211,7 @@ public class MixedPtr implements Ptr {
 
   @Override
   public double getAlignedDouble(int index) {
-    return getDouble(this.offset + index * DoublePtr.BYTES);
+    return this.primitives.getDouble(this.offset + index * DoublePtr.BYTES);
   }
 
   @Override
@@ -230,33 +230,34 @@ public class MixedPtr implements Ptr {
   }
 
   @Override
-  public double getReal96() {
-    return getReal96(this.offset);
+  public double getReal96(int offset) {
+    return this.primitives.getDouble(this.offset + offset);
   }
 
+
   @Override
-  public double getReal96(int offset) {
-    return Double.longBitsToDouble(getLong(this.offset + offset));
+  public double getReal96() {
+    return getReal96(0);
   }
 
   @Override
   public double getAlignedReal96(int index) {
-    return getReal96(this.offset + index * 12);
+    return getReal96(index * 12);
   }
 
   @Override
   public void setReal96(double value) {
-    setReal96(this.offset, value);
+    setReal96(0, value);
   }
 
   @Override
   public void setReal96(int offset, double value) {
-    setLong(this.offset + offset, Double.doubleToRawLongBits(value));
+    setDouble(this.offset + offset, value);
   }
 
   @Override
   public void setAlignedReal96(int index, double value) {
-    setReal96(this.offset + index * 12, value);
+    setReal96(index * 12, value);
   }
 
   @Override
@@ -271,7 +272,7 @@ public class MixedPtr implements Ptr {
 
   @Override
   public float getAlignedFloat(int index) {
-    return getFloat(this.offset + index * FloatPtr.BYTES);
+    return this.primitives.getFloat(this.offset + index * FloatPtr.BYTES);
   }
 
   @Override
@@ -281,7 +282,7 @@ public class MixedPtr implements Ptr {
 
   @Override
   public void setAlignedFloat(int index, float value) {
-    setFloat(this.offset + index * FloatPtr.BYTES, value);
+    this.primitives.putFloat(this.offset + index * FloatPtr.BYTES, value);
   }
 
   @Override
@@ -331,7 +332,7 @@ public class MixedPtr implements Ptr {
 
   @Override
   public long getAlignedLong(int index) {
-    return getLong(this.offset + index * LongPtr.BYTES);
+    return this.primitives.getLong(this.offset + index * LongPtr.BYTES);
   }
 
   @Override
@@ -346,21 +347,12 @@ public class MixedPtr implements Ptr {
 
   @Override
   public void setAlignedLong(int index, long value) {
-    setLong(this.offset + index * LongPtr.BYTES, value);
+    this.primitives.putLong(this.offset + index * LongPtr.BYTES, value);
   }
 
   @Override
   public Ptr getPointer() {
-    if(this.offset % POINTER_BYTES == 0) {
-      int index = this.offset / POINTER_BYTES;
-
-      Ptr ref = (Ptr) this.references[index];
-      if (ref != null) {
-        return ref;
-      }
-    }
-
-    return BytePtr.NULL.pointerPlus(getInt());
+    return getPointer(0);
   }
 
   @Override
@@ -385,13 +377,7 @@ public class MixedPtr implements Ptr {
 
   @Override
   public void setPointer(Ptr value) {
-    if(this.offset % POINTER_BYTES != 0) {
-      throw new UnsupportedOperationException("Unaligned pointer storage");
-    }
-    int index = this.offset / POINTER_BYTES;
-    this.references[index] = value;
-
-    this.primitives.putInt(this.offset, value.toInt());
+    setPointer(0, value);
   }
 
   @Override
@@ -408,12 +394,12 @@ public class MixedPtr implements Ptr {
 
   @Override
   public void setAlignedPointer(int index, Ptr value) {
-    setPointer(this.offset + index * 4, value);
+    setPointer(index * 4, value);
   }
 
   @Override
   public int toInt() {
-    return offset;
+    return getOffsetInBytes();
   }
 
   @Override
@@ -426,7 +412,7 @@ public class MixedPtr implements Ptr {
 
   @Override
   public boolean isNull() {
-    return primitives == null;
+    return false;
   }
 
   @Override
@@ -526,5 +512,18 @@ public class MixedPtr implements Ptr {
   @Override
   public Ptr withOffset(int offset) {
     return pointerPlus(offset - getOffsetInBytes());
+  }
+
+  @Override
+  public final boolean equals(Object obj) {
+
+    if(!(obj instanceof MixedPtr)) {
+      return false;
+    }
+
+    MixedPtr that = ((MixedPtr) obj);
+
+    return this.references == that.references &&
+        this.offset == that.offset;
   }
 }

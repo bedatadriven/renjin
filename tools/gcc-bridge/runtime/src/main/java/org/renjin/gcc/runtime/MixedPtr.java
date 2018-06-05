@@ -20,6 +20,7 @@ package org.renjin.gcc.runtime;
 
 import java.lang.invoke.MethodHandle;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import static org.renjin.gcc.runtime.AbstractPtr.mallocSize;
@@ -53,7 +54,7 @@ public class MixedPtr implements Ptr {
 
   public static MixedPtr malloc(int bytes) {
     MixedPtr ptr = new MixedPtr();
-    ptr.primitives = ByteBuffer.allocateDirect(bytes);
+    ptr.primitives = ByteBuffer.allocateDirect(bytes).order(ByteOrder.nativeOrder());
     ptr.references = new Object[mallocSize(bytes, POINTER_BYTES)];
     return ptr;
   }
@@ -75,11 +76,11 @@ public class MixedPtr implements Ptr {
 
   @Override
   public Ptr realloc(int newSizeInBytes) {
-    if(newSizeInBytes == this.primitives.capacity()) {
+    if(newSizeInBytes <= this.primitives.capacity()) {
       return this;
     }
 
-    ByteBuffer clone = ByteBuffer.allocateDirect(newSizeInBytes);
+    ByteBuffer clone = ByteBuffer.allocateDirect(newSizeInBytes).order(ByteOrder.nativeOrder());
     ByteBuffer readOnlyCopy = this.primitives.asReadOnlyBuffer();
     readOnlyCopy.flip();
 
@@ -105,17 +106,17 @@ public class MixedPtr implements Ptr {
 
   @Override
   public boolean getBoolean(int offset) {
-    return getByte(this.offset + offset) != 0;
+    return this.primitives.get(this.offset + offset) != 0;
   }
 
   @Override
   public void setBoolean(int offset, boolean value) {
-    setByte(this.offset + offset, (value ? (byte)1 : (byte)0));
+    this.primitives.put(this.offset + offset, (value ? (byte)1 : (byte)0));
   }
 
   @Override
   public void setBoolean(boolean value) {
-    setByte(this.offset, (value ? (byte)1 : (byte)0));
+    this.primitives.put(this.offset, (value ? (byte)1 : (byte)0));
   }
 
   @Override
@@ -220,7 +221,7 @@ public class MixedPtr implements Ptr {
 
   @Override
   public void setDouble(int offset, double value) {
-    this.primitives.putDouble(offset, value);
+    this.primitives.putDouble(this.offset + offset, value);
   }
 
   @Override
@@ -300,7 +301,7 @@ public class MixedPtr implements Ptr {
 
   @Override
   public int getAlignedInt(int index) {
-    return getInt(this.offset + index * IntPtr.BYTES);
+    return this.primitives.getInt(this.offset + index * IntPtr.BYTES);
   }
 
   @Override
@@ -498,42 +499,23 @@ public class MixedPtr implements Ptr {
 
   @Override
   public Ptr copyOf(int offset, int numBytes) {
-    ByteBuffer readOnlyCopy = this.primitives.asReadOnlyBuffer();
-    readOnlyCopy.flip();
 
-    ByteBuffer clone = ByteBuffer.allocateDirect(numBytes);
-    MixedPtr ptr = new MixedPtr();
-    for (int i = 0; i < numBytes; i++) {
-      clone.put(i , readOnlyCopy.get(i));
-    }
-    ptr.primitives = clone;
+    ByteBuffer source = this.primitives.asReadOnlyBuffer();
+    source.flip().position(offset).limit(numBytes);
 
-    ptr.references = Arrays.copyOfRange(
+    MixedPtr copy = MixedPtr.malloc(numBytes);
+    copy.primitives.put(source);
+    copy.references = Arrays.copyOfRange(
         references,
         (this.offset + offset) / POINTER_BYTES,
         (this.offset + offset + numBytes) / POINTER_BYTES);
 
-    return ptr;
+    return copy;
   }
 
   @Override
   public Ptr copyOf(int numBytes) {
-    ByteBuffer clone = ByteBuffer.allocateDirect(numBytes);
-    ByteBuffer readOnlyCopy = this.primitives.asReadOnlyBuffer();
-    readOnlyCopy.flip();
-
-    MixedPtr ptr = new MixedPtr();
-    for (int i = 0; i < numBytes; i++) {
-      clone.put(i , readOnlyCopy.get(i));
-    }
-
-    ptr.primitives = clone;
-    ptr.references = Arrays.copyOfRange(
-        references,
-        this.offset / POINTER_BYTES,
-        (this.offset + numBytes) / POINTER_BYTES);
-
-    return ptr;
+    return copyOf(0, numBytes);
   }
 
   @Override

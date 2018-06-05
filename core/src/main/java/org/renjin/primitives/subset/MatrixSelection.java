@@ -37,9 +37,6 @@ public class MatrixSelection implements SelectionStrategy {
   
   public MatrixSelection(List<SEXP> subscripts) {
     this.subscripts = subscripts;
-    
-    assert this.subscripts.size() > 1 : 
-        "matrix selection CAN ONLY applies with two or more arguments";
   }
 
   @Override

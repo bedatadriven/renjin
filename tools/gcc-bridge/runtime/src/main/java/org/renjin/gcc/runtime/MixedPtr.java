@@ -501,14 +501,19 @@ public class MixedPtr implements Ptr {
   public Ptr copyOf(int offset, int numBytes) {
 
     ByteBuffer source = this.primitives.asReadOnlyBuffer();
-    source.flip().position(offset).limit(numBytes);
+    source.position(this.offset + offset);
+    source.limit(this.offset + offset + numBytes);
 
-    MixedPtr copy = MixedPtr.malloc(numBytes);
+    MixedPtr copy = new MixedPtr();
+    copy.primitives = ByteBuffer.allocateDirect(numBytes).order(ByteOrder.nativeOrder());
     copy.primitives.put(source);
+    copy.primitives.position(0);
     copy.references = Arrays.copyOfRange(
         references,
         (this.offset + offset) / POINTER_BYTES,
         (this.offset + offset + numBytes) / POINTER_BYTES);
+
+    assert copy.primitives.remaining() == numBytes;
 
     return copy;
   }

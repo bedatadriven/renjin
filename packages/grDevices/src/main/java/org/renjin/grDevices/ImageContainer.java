@@ -21,7 +21,6 @@
 package org.renjin.grDevices;
 
 import org.apache.commons.vfs2.FileObject;
-import org.jfree.graphics2d.svg.SVGGraphics2D;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 
@@ -72,7 +71,7 @@ public class ImageContainer implements GDContainer {
     if(!empty) {
       flush();
     }
-    graphics = new SVGGraphics2D((int)size.getWidth(), (int)size.getHeight());
+    graphics.setClip(null);
     graphics.clearRect(0, 0, (int) size.getWidth(), (int) size.getHeight());
   }
 
@@ -104,7 +103,7 @@ public class ImageContainer implements GDContainer {
   private void flush() {
     try {
       String filename = String.format(filenameFormat, pageNumber++);
-      FileObject fileObject = session.getFileSystemManager().resolveFile(filename);
+      FileObject fileObject = session.resolveFile(filename);
 
       try(OutputStream outputStream = fileObject.getContent().getOutputStream()) {
         ImageIO.write(bufferedImage, formatName, outputStream);

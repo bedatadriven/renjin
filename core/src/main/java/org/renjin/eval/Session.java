@@ -306,6 +306,23 @@ public class Session {
     return fileSystemManager;
   }
 
+  /**
+   * Translates a uri/path into a VFS {@code FileObject}.
+   *
+   * @param uri uniform resource indicator. This could be, for example:
+   * <ul>
+   * <li>jar:file:///path/to/my/libray.jar!/mylib/R/mylib.R</li>
+   * <li>/usr/lib</li>
+   * <li>c:&#92;users&#92;owner&#92;data.txt</li>
+   * </ul>
+   *
+   * @return
+   * @throws FileSystemException
+   */
+  public FileObject resolveFile(String uri) throws FileSystemException {
+    return fileSystemManager.resolveFile(workingDirectory, uri);
+  }
+
   public Environment getBaseEnvironment() {
     return baseEnvironment;
   }
@@ -394,4 +411,6 @@ public class Session {
   public void clearWarnings() {
     baseEnvironment.remove(Warning.LAST_WARNING);
   }
+
+
 }

@@ -182,6 +182,21 @@ public class MixedPtr extends AbstractPtr {
   }
 
   @Override
+  public void setInt(int value) {
+    this.primitives.putInt(this.offset, value);
+  }
+
+  @Override
+  public void setInt(int offset, int intValue) {
+    this.primitives.putInt(this.offset + offset, intValue);
+  }
+
+  @Override
+  public void setAlignedInt(int index, int value) {
+    this.primitives.putInt(this.offset + index * IntPtr.BYTES, value);
+  }
+
+  @Override
   public int toInt() {
     return getOffsetInBytes();
   }

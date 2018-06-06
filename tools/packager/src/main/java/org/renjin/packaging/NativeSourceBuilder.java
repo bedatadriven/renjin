@@ -29,6 +29,8 @@ import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.io.Files;
 import org.renjin.repackaged.guava.io.LineProcessor;
+import soot.G;
+import soot.Main;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,6 +62,12 @@ public class NativeSourceBuilder {
     make();
     compileGimple();
     buildContext.getLogger().info("Compilation of GNU R sources succeeded.");
+
+    try {
+      optimizeClasses();
+    } catch (Exception e) {
+      buildContext.getLogger().error("Soot optimization run failed", e);
+    }
   }
 
   private void configure() throws IOException, InterruptedException {
@@ -207,6 +215,48 @@ public class NativeSourceBuilder {
       throw new BuildException("Failed to compile Gimple", e);
     }
   }
+
+  private void optimizeClasses() {
+
+    List<String> classes = new ArrayList<>();
+    findClassfiles(buildContext.getOutputDir(), "", classes);
+
+    List<String> args = new ArrayList<>();
+    // Preprend maven's classpath
+    args.add("-pp");
+
+    // Classpath for soot analysis
+    args.add("-cp");
+    args.add(buildContext.getCompileClasspath());
+
+    args.add("-asm-backend");
+    args.add("-java-version");
+    args.add("1.8");
+
+    // Add classes to optimize
+    args.add("-O");
+    args.addAll(classes);
+
+    // Write out to build directory and overwrite existing classfiles
+    args.add("-d");
+    args.add(buildContext.getOutputDir().getAbsolutePath());
+
+    G.reset();
+
+    Main.v().run(args.toArray(new String[args.size()]));
+  }
+
+
+  private void findClassfiles(File file, String packageName, List<String> classes) {
+    for (File child : file.listFiles()) {
+      if(child.isFile() && child.getName().endsWith(".class")) {
+        classes.add(packageName + Files.getNameWithoutExtension(child.getName()));
+      } else if(child.isDirectory()) {
+        findClassfiles(child, packageName + child.getName() + ".", classes);
+      }
+    }
+  }
+
 
   private String findLibraryName() {
     // Packages can rename the shared library after it's build.

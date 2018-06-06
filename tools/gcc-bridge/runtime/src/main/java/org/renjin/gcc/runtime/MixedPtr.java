@@ -18,21 +18,17 @@
  */
 package org.renjin.gcc.runtime;
 
-import java.lang.invoke.MethodHandle;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
-
-import static org.renjin.gcc.runtime.AbstractPtr.mallocSize;
 
 /**
  * Pointer type that references both primitives and garbage-collected
  * references.
  */
-public class MixedPtr implements Ptr {
+public class MixedPtr extends AbstractPtr {
 
   private static final int POINTER_BYTES = 4;
-  private static final int UNSIGNED_MASK = 0xFF;
 
   private ByteBuffer primitives;
   private Object[] references;
@@ -54,8 +50,13 @@ public class MixedPtr implements Ptr {
 
   public static MixedPtr malloc(int bytes) {
     MixedPtr ptr = new MixedPtr();
-    ptr.primitives = ByteBuffer.allocateDirect(bytes).order(ByteOrder.nativeOrder());
-    ptr.references = new Object[mallocSize(bytes, POINTER_BYTES)];
+    try {
+      ptr.primitives = ByteBuffer.allocateDirect(bytes).order(ByteOrder.nativeOrder());
+      ptr.references = new Object[mallocSize(bytes, POINTER_BYTES)];
+    } catch (OutOfMemoryError e) {
+      System.err.println("MixedPtr out of memory");
+      throw e;
+    }
     return ptr;
   }
 
@@ -65,29 +66,28 @@ public class MixedPtr implements Ptr {
   }
 
   @Override
-  public int getOffset() {
-    return offset;
-  }
-
-  @Override
   public int getOffsetInBytes() {
     return this.offset;
   }
 
   @Override
   public Ptr realloc(int newSizeInBytes) {
-    if(newSizeInBytes <= this.primitives.capacity()) {
+    if(newSizeInBytes == this.primitives.capacity()) {
       return this;
     }
 
-    ByteBuffer clone = ByteBuffer.allocateDirect(newSizeInBytes).order(ByteOrder.nativeOrder());
-    ByteBuffer readOnlyCopy = this.primitives.asReadOnlyBuffer();
-    readOnlyCopy.flip();
+    ByteBuffer source = this.primitives.asReadOnlyBuffer();
+    source.position(0);
+    source.limit(Math.min(source.capacity(), newSizeInBytes));
+
+    ByteBuffer target = ByteBuffer.allocateDirect(newSizeInBytes).order(ByteOrder.nativeOrder());
+    target.put(source);
+    target.position(0);
+    target.limit(newSizeInBytes);
 
     MixedPtr ptr = new MixedPtr();
-    ptr.primitives = clone.put(readOnlyCopy);
+    ptr.primitives = target;
     ptr.references = Arrays.copyOf(this.references, mallocSize(newSizeInBytes, POINTER_BYTES));
-
     return ptr;
   }
 
@@ -100,259 +100,13 @@ public class MixedPtr implements Ptr {
   }
 
   @Override
-  public boolean getBoolean() {
-    return this.primitives.get(this.offset) != 0;
-  }
-
-  @Override
-  public boolean getBoolean(int offset) {
-    return this.primitives.get(this.offset + offset) != 0;
-  }
-
-  @Override
-  public void setBoolean(int offset, boolean value) {
-    this.primitives.put(this.offset + offset, (value ? (byte)1 : (byte)0));
-  }
-
-  @Override
-  public void setBoolean(boolean value) {
-    this.primitives.put(this.offset, (value ? (byte)1 : (byte)0));
-  }
-
-  @Override
-  public byte getByte() {
-    return this.primitives.get(this.offset);
-  }
-
-  @Override
   public byte getByte(int offset) {
     return primitives.get(this.offset + offset);
   }
 
   @Override
-  public void setByte(byte value) {
-    this.primitives.put(this.offset, value);
-  }
-
-  @Override
   public void setByte(int offset, byte value) {
     primitives.put(this.offset + offset, value);
-  }
-
-  @Override
-  public short getShort() {
-    return this.primitives.getShort(this.offset);
-  }
-
-  @Override
-  public short getShort(int offset) {
-    return this.primitives.getShort(this.offset + offset);
-  }
-
-  @Override
-  public short getAlignedShort(int index) {
-    return this.primitives.getShort(this.offset + index * ShortPtr.BYTES);
-  }
-
-  @Override
-  public void setShort(short value) {
-    this.primitives.putShort(this.offset, value);
-  }
-
-  @Override
-  public void setAlignedShort(int index, short shortValue) {
-    this.primitives.putShort(this.offset + index * ShortPtr.BYTES, shortValue);
-  }
-
-  @Override
-  public void setShort(int offset, short value) {
-    this.primitives.putShort(this.offset + offset, value);
-  }
-
-  @Override
-  public char getChar() {
-    return this.primitives.getChar(this.offset);
-  }
-
-  @Override
-  public char getAlignedChar(int index) {
-    return this.primitives.getChar(this.offset + index * CharPtr.BYTES);
-  }
-
-  @Override
-  public char getChar(int offset) {
-    return this.primitives.getChar(this.offset + offset);
-  }
-
-  @Override
-  public void setChar(char value) {
-    this.primitives.putChar(this.offset, value);
-  }
-
-  @Override
-  public void setAlignedChar(int index, char value) {
-    this.primitives.putChar(this.offset + index * CharPtr.BYTES, value);
-  }
-
-  @Override
-  public void setChar(int offset, char value) {
-    this.primitives.putChar(this.offset + offset, value);
-  }
-
-  @Override
-  public double getDouble() {
-    return this.primitives.getDouble(this.offset);
-  }
-
-  @Override
-  public double getDouble(int offset) {
-    return this.primitives.getDouble(this.offset + offset);
-  }
-
-  @Override
-  public double getAlignedDouble(int index) {
-    return this.primitives.getDouble(this.offset + index * DoublePtr.BYTES);
-  }
-
-  @Override
-  public void setDouble(double value) {
-    this.primitives.putDouble(this.offset, value);
-  }
-
-  @Override
-  public void setDouble(int offset, double value) {
-    this.primitives.putDouble(this.offset + offset, value);
-  }
-
-  @Override
-  public void setAlignedDouble(int index, double value) {
-    this.primitives.putDouble(this.offset + index * DoublePtr.BYTES, value);
-  }
-
-  @Override
-  public double getReal96(int offset) {
-    return this.primitives.getDouble(this.offset + offset);
-  }
-
-
-  @Override
-  public double getReal96() {
-    return getReal96(0);
-  }
-
-  @Override
-  public double getAlignedReal96(int index) {
-    return getReal96(index * 12);
-  }
-
-  @Override
-  public void setReal96(double value) {
-    setReal96(0, value);
-  }
-
-  @Override
-  public void setReal96(int offset, double value) {
-    setDouble(this.offset + offset, value);
-  }
-
-  @Override
-  public void setAlignedReal96(int index, double value) {
-    setReal96(index * 12, value);
-  }
-
-  @Override
-  public float getFloat() {
-    return this.primitives.getFloat(this.offset);
-  }
-
-  @Override
-  public float getFloat(int offset) {
-    return this.primitives.getFloat(this.offset + offset);
-  }
-
-  @Override
-  public float getAlignedFloat(int index) {
-    return this.primitives.getFloat(this.offset + index * FloatPtr.BYTES);
-  }
-
-  @Override
-  public void setFloat(float value) {
-    this.primitives.putFloat(this.offset, value);
-  }
-
-  @Override
-  public void setAlignedFloat(int index, float value) {
-    this.primitives.putFloat(this.offset + index * FloatPtr.BYTES, value);
-  }
-
-  @Override
-  public void setFloat(int offset, float value) {
-    this.primitives.putFloat(this.offset + offset, value);
-  }
-
-  @Override
-  public int getInt() {
-    return this.primitives.getInt(this.offset);
-  }
-
-  @Override
-  public int getInt(int offset) {
-    return this.primitives.getInt(this.offset + offset);
-  }
-
-  @Override
-  public int getAlignedInt(int index) {
-    return this.primitives.getInt(this.offset + index * IntPtr.BYTES);
-  }
-
-  @Override
-  public void setInt(int value) {
-    this.primitives.putInt(this.offset, value);
-  }
-
-  @Override
-  public void setInt(int offset, int value) {
-    this.primitives.putInt(this.offset + offset, value);
-  }
-
-  @Override
-  public void setAlignedInt(int index, int value) {
-    this.primitives.putInt(this.offset + index * IntPtr.BYTES, value);
-  }
-
-  @Override
-  public long getLong() {
-    return this.primitives.getLong(this.offset);
-  }
-
-  @Override
-  public long getLong(int offset) {
-    return this.primitives.getLong(this.offset + offset);
-  }
-
-  @Override
-  public long getAlignedLong(int index) {
-    return this.primitives.getLong(this.offset + index * LongPtr.BYTES);
-  }
-
-  @Override
-  public void setLong(long value) {
-    this.primitives.putLong(this.offset, value);
-  }
-
-  @Override
-  public void setLong(int offset, long value) {
-    this.primitives.putLong(this.offset + offset, value);
-  }
-
-  @Override
-  public void setAlignedLong(int index, long value) {
-    this.primitives.putLong(this.offset + index * LongPtr.BYTES, value);
-  }
-
-  @Override
-  public Ptr getPointer() {
-    return getPointer(0);
   }
 
   @Override
@@ -371,16 +125,6 @@ public class MixedPtr implements Ptr {
   }
 
   @Override
-  public Ptr getAlignedPointer(int index) {
-    return getPointer(index * 4);
-  }
-
-  @Override
-  public void setPointer(Ptr value) {
-    setPointer(0, value);
-  }
-
-  @Override
   public final void setPointer(int offset, Ptr value) {
     int byteStart = this.offset + offset;
     if(byteStart % POINTER_BYTES != 0) {
@@ -393,8 +137,48 @@ public class MixedPtr implements Ptr {
   }
 
   @Override
-  public void setAlignedPointer(int index, Ptr value) {
-    setPointer(index * 4, value);
+  public double getDouble() {
+    return this.primitives.getDouble(this.offset);
+  }
+
+  @Override
+  public double getDouble(int offset) {
+    return this.primitives.getDouble(this.offset + offset);
+  }
+
+  @Override
+  public double getAlignedDouble(int index) {
+    return this.primitives.getDouble(this.offset + index * DoublePtr.BYTES);
+  }
+
+  @Override
+  public void setAlignedDouble(int index, double value) {
+    this.primitives.putDouble(this.offset + index * DoublePtr.BYTES, value);
+  }
+
+  @Override
+  public void setDouble(double value) {
+    this.primitives.putDouble(this.offset, value);
+  }
+
+  @Override
+  public void setDouble(int offset, double doubleValue) {
+    this.primitives.putDouble(this.offset + offset, doubleValue);
+  }
+
+  @Override
+  public int getInt() {
+    return this.primitives.getInt(this.offset);
+  }
+
+  @Override
+  public int getAlignedInt(int index) {
+    return this.primitives.getInt(this.offset + index * IntPtr.BYTES);
+  }
+
+  @Override
+  public int getInt(int offset) {
+    return this.primitives.getInt(this.offset + offset);
   }
 
   @Override
@@ -403,45 +187,8 @@ public class MixedPtr implements Ptr {
   }
 
   @Override
-  public void memset(int intValue, int n) {
-    byte byteValue = (byte)intValue;
-    for (int i = 0; i < n; i++) {
-      setByte(i, byteValue);
-    }
-  }
-
-  @Override
   public boolean isNull() {
     return false;
-  }
-
-  @Override
-  public MethodHandle toMethodHandle() {
-    if(isNull()) {
-      return null;
-    } else {
-      return FunctionPtr.getBadHandle();
-    }
-  }
-
-  @Override
-  public int compareTo(Ptr o) {
-    return compare(this, o);
-  }
-
-  public static int compare(Ptr x, Ptr y) {
-    Object m1 = x.getArray();
-    Object m2 = y.getArray();
-
-    if(m1 != m2) {
-      return Integer.compare(System.identityHashCode(m1), System.identityHashCode(m2));
-    }
-
-    if(x.isNull() && y.isNull()) {
-      return 0;
-    }
-
-    return Integer.compare(x.getOffsetInBytes(), y.getOffsetInBytes());
   }
 
   @Override
@@ -465,25 +212,6 @@ public class MixedPtr implements Ptr {
   }
 
   @Override
-  public void memmove(Ptr source, int numBytes) {
-    this.primitives.put(this.offset, source.getByte(numBytes));
-  }
-
-  @Override
-  public int memcmp(Ptr that, int numBytes) {
-    for (int i = 0; i < numBytes; i++) {
-      int b1 = this.getByte(i) & UNSIGNED_MASK;
-      int b2 = that.getByte(i) & UNSIGNED_MASK;
-      if(b1 < b2) {
-        return -1;
-      } else if(b1 > b2) {
-        return 1;
-      }
-    }
-    return 0;
-  }
-
-  @Override
   public Ptr copyOf(int offset, int numBytes) {
 
     ByteBuffer source = this.primitives.asReadOnlyBuffer();
@@ -502,28 +230,5 @@ public class MixedPtr implements Ptr {
     assert copy.primitives.remaining() == numBytes;
 
     return copy;
-  }
-
-  @Override
-  public Ptr copyOf(int numBytes) {
-    return copyOf(0, numBytes);
-  }
-
-  @Override
-  public Ptr withOffset(int offset) {
-    return pointerPlus(offset - getOffsetInBytes());
-  }
-
-  @Override
-  public final boolean equals(Object obj) {
-
-    if(!(obj instanceof MixedPtr)) {
-      return false;
-    }
-
-    MixedPtr that = ((MixedPtr) obj);
-
-    return this.references == that.references &&
-        this.offset == that.offset;
   }
 }

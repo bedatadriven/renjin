@@ -23,6 +23,11 @@
             <artifactId>renjin-gnur-compiler</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.renjin</groupId>
+            <artifactId>renjin-soot</artifactId>
+            <version>2.9.198</version>
+        </dependency>
     </dependencies>
     
 </project>

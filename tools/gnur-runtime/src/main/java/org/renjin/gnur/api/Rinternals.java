@@ -585,6 +585,10 @@ public final class Rinternals {
     }
   }
 
+  /**
+   * @deprecated Return type changed, see {@link Rinternals2}
+   */
+  @Deprecated
   public static IntPtr INTEGER(SEXP x) {
     if(x instanceof IntArrayVector) {
       return new IntPtr(((IntArrayVector) x).toIntArrayUnsafe());

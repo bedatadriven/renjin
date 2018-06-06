@@ -168,6 +168,18 @@ public class DoublePtr extends AbstractPtr implements Ptr {
   }
 
   @Override
+  public void memcpy(Ptr source, int numBytes) {
+    int numDoubles = numBytes / BYTES;
+    for (int i = 0; i < numDoubles; i++) {
+      this.array[this.offset + i] = source.getAlignedDouble(i);
+    }
+
+    for(int i = numDoubles * BYTES;i<numBytes;++i) {
+      setByte(i, source.getByte(i));
+    }
+  }
+
+  @Override
   public double getDouble() {
     return array[offset];
   }

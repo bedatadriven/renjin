@@ -347,12 +347,13 @@ public class Methods {
   }
 
   @Internal
-  public static SEXP getClassDef(@Current Context context, String className, Environment where, String packageName, boolean inherits) {
+  public static SEXP getClassDef(@Current Context context, StringVector className, SEXP where, SEXP packageName, boolean inherits) {
     SEXP classDef = Symbol.UNBOUND_VALUE;
+    String providedPackage = null;
 
     if(inherits) {
       S4Cache s4Cache = context.getSession().getS4Cache();
-      S4Class s4Class = s4Cache.getS4ClassCache().lookupClass(context, className);
+      S4Class s4Class = s4Cache.getS4ClassCache().lookupClass(context, className.getElementAsString(0));
       if(s4Class != null) {
         classDef = s4Class.getDefinition();
       }
@@ -361,14 +362,28 @@ public class Methods {
     if(classDef == Symbol.UNBOUND_VALUE) {
       Symbol metadataName = Symbol.get(S4.CLASS_PREFIX + className);
 
-      if(!Strings.isNullOrEmpty(packageName)) {
-        Optional<Namespace> namespace = context.getNamespaceRegistry().getNamespaceIfPresent(Symbol.get(packageName));
+      if(packageName == Null.INSTANCE) {
+        SEXP packageSlot = className.getAttribute(Symbols.PACKAGE);
+        if(packageSlot != Null.INSTANCE) {
+          providedPackage = ((StringArrayVector) packageSlot).getElementAsString(0);
+        }
+      } else if(packageName instanceof StringArrayVector) {
+        providedPackage = ((StringArrayVector) packageName).getElementAsString(0);
+      }
+
+      if(!Strings.isNullOrEmpty(providedPackage)) {
+        Optional<Namespace> namespace = context.getNamespaceRegistry().getNamespaceIfPresent(Symbol.get(providedPackage));
         if(!namespace.isPresent()) {
-          throw new EvalException("Package " + packageName + " is not loaded");
+          throw new EvalException("Package " + providedPackage + " is not loaded");
         }
         classDef = namespace.get().getNamespaceEnvironment().findVariable(context, metadataName, x -> true, inherits);
       } else {
-        classDef = where.findVariable(context, metadataName, x -> true, inherits);
+        // the default value of where getClassDef where argument topenv(parent.frame()) was replaced with NULL
+        if(where == Null.INSTANCE) {
+          SEXP parentFrame = context.evaluate(FunctionCall.newCall(Symbol.get("parent.frame"), IntVector.valueOf(1)));
+          where = context.evaluate(FunctionCall.newCall(Symbol.get("topenv"), parentFrame));
+        }
+        classDef = ((Environment) where).findVariable(context, metadataName, x -> true, inherits);
       }
     }
 

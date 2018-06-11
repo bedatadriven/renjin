@@ -229,9 +229,11 @@ makeClassRepresentation <-
 
 getClassDef <-
   ## Get the definition of the class supplied as a string.
-  function(Class, where = topenv(parent.frame()), package = packageSlot(Class),
-           inherits = TRUE)
+  function(Class, where = NULL, package = NULL, inherits = TRUE)
 {
+#  function(Class, where = topenv(parent.frame()), package = packageSlot(Class),
+#           inherits = TRUE)
+#{
 #    if(inherits) #includes both the lookup and Class being alread a definition
 #      value <- .getClassFromCache(Class, where)
 #    else # want to force a search for the metadata in this case (Why?)

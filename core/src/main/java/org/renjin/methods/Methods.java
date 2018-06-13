@@ -347,6 +347,44 @@ public class Methods {
   }
 
   @Internal
+
+  @Internal
+  public static SEXP getClass(@Current Context context, SEXP className, boolean dotForce, SEXP where) {
+
+    if(className instanceof S4Object) {
+      SEXP classes = className.getAttribute(Symbol.get("class"));
+      if(classes instanceof StringVector) {
+        if("classRepresentation".equals(((StringVector)classes).getElementAsString(0))) {
+          return className;
+        }
+      }
+    }
+
+    SEXP classDef = getClassDef(context, ((StringVector)className), Null.INSTANCE, Null.INSTANCE, true);
+
+    if(dotForce && (classDef == Null.INSTANCE || classDef == Symbol.UNBOUND_VALUE)) {
+      if(dotForce) {
+        System.out.println("getClass(" + ((StringVector)className).getElementAsString(0) + ", .Force = TRUE)");
+        SEXP env;
+        if(where == Null.INSTANCE) {
+          env = context.getCallingEnvironment();
+        } else {
+          env = where;
+        }
+        PairList.Builder args = new PairList.Builder();
+        args.add(className);
+        args.add(Symbol.get("package"), StringVector.valueOf("base"));
+        args.add(Symbol.get("virtual"), LogicalVector.TRUE);
+        args.add(Symbol.get("where"), env);
+        classDef = context.evaluate(FunctionCall.newCall(Symbol.get("makeClassRepresentation"), args.build()));
+      } else {
+        throw new EvalException("'" + ((StringVector)className).getElementAsString(0) + "' is not a defined class");
+      }
+    }
+    return classDef;
+  }
+
+  @Internal
   public static SEXP getClassDef(@Current Context context, StringVector className, SEXP where, SEXP packageName, boolean inherits) {
     SEXP classDef = Symbol.UNBOUND_VALUE;
     String providedPackage = null;

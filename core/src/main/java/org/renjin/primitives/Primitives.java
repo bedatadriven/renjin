@@ -846,6 +846,7 @@ public class Primitives {
     f("invalidateS4MethodCache", S4.class, 1);
     f("standardGeneric", Methods.class, 201);
     f("getClassDef", Methods.class, 11);
+    f("getClass", Methods.class, 11);
     f("selectMethod", Methods.class, 11);
 
 /* Modelling Functionality */

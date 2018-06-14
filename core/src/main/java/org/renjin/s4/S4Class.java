@@ -21,9 +21,17 @@ package org.renjin.s4;
 import org.renjin.eval.Context;
 import org.renjin.sexp.*;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 public class S4Class {
 
+
+
   private SEXP classRepresentation;
+
+  private Map<String, S4Slot> slotMap = new HashMap<>();
 
   public S4Class(SEXP classRepresentation) {
     this.classRepresentation = classRepresentation;
@@ -133,4 +141,14 @@ public class S4Class {
   public SEXP getDefinition() {
     return classRepresentation;
   }
+
+  public S4Slot getSlot(String name) {
+    S4Slot slot = slotMap.get(name);
+    if(slot == null) {
+      slot = findSlotFromClassRepresentation(name);
+      slotMap.put(name, slot);
+    }
+    return slot;
+  }
+
 }

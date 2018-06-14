@@ -151,7 +151,7 @@ public class Primitives {
     } catch(final Exception e) {
       return new BuiltinFunction(entry.name) {
 
-        @Override
+        Override
         public SEXP apply(Context context, Environment rho,
                           FunctionCall call, PairList args) {
           throw new EvalException("Sorry! " + entry.name + " not yet implemented!", e);

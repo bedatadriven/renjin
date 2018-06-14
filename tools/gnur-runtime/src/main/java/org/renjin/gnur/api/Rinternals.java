@@ -615,6 +615,12 @@ public final class Rinternals {
     throw new EvalException("RAW(): Expected raw vector, found %s", x.getTypeName());
   }
 
+  /**
+   * Return type changed. See {@link Rinternals2#REAL}
+   * @param x
+   * @return
+   */
+  @Deprecated
   public static DoublePtr REAL(SEXP x) {
     if(x instanceof DoubleArrayVector) {
       // Return the array backing the double vector
@@ -1609,7 +1615,7 @@ public final class Rinternals {
     } else if(sexp instanceof RawVector) {
       return new RawVector(((RawVector) sexp).toByteArrayUnsafe(), sexp.getAttributes());
     } else if(sexp instanceof S4Object) {
-      return new S4Object(sexp.getAttributes());
+      return new S4Object(duplicate(sexp.getAttributes()));
     } else if(sexp instanceof ListVector) {
       SEXP[] elements = ((ListVector) sexp).toArrayUnsafe();
       for (int i = 0; i < elements.length; i++) {
@@ -1627,6 +1633,14 @@ public final class Rinternals {
       return sexp;
     }
     throw new UnimplementedGnuApiMethod("Rf_duplicate: " + sexp.getTypeName());
+  }
+
+  private static AttributeMap duplicate(AttributeMap attributes) {
+    AttributeMap.Builder copy = AttributeMap.builder();
+    for (Symbol symbol : attributes.names()) {
+      copy.set(symbol, Rf_duplicate(attributes.get(symbol)));
+    }
+    return copy.build();
   }
 
   private static SEXP duplicatePairList(PairList pairlist) {

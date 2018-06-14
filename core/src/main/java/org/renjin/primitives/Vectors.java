@@ -96,10 +96,10 @@ public class Vectors {
   public static StringVector asCharacter(@Current Context context, Vector source) {
     if(source instanceof StringVector) {
       return (StringVector) source.setAttributes(AttributeMap.EMPTY);
-    } else if(source.length() < 100) {
-      return convertToStringVector(context, new StringVector.Builder(), source);
-    } else {
+    } else if (source.length() > 100 || source.isDeferred()) {
       return new ConvertingStringVector(source);
+    } else {
+      return convertToStringVector(context, new StringVector.Builder(), source);
     }
   }
 

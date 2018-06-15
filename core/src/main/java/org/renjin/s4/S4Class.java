@@ -19,11 +19,11 @@
 package org.renjin.s4;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+import org.renjin.primitives.Attributes;
 import org.renjin.sexp.*;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class S4Class {
 
@@ -33,8 +33,15 @@ public class S4Class {
 
   private Map<String, S4Slot> slotMap = new HashMap<>();
 
+  private Map<String, String> slots = new HashMap<>();
+
   public S4Class(SEXP classRepresentation) {
     this.classRepresentation = classRepresentation;
+
+    ListVector slots = (ListVector) classRepresentation.getAttribute(Symbol.get("slots"));
+    for(int i = 0; i < slots.length(); i++) {
+      this.slots.put(slots.getAttribute(Symbols.NAMES).getElementAsSEXP(i).asString(), slots.getElementAsString(i));
+    }
   }
 
   /**
@@ -142,13 +149,35 @@ public class S4Class {
     return classRepresentation;
   }
 
-  public S4Slot getSlot(String name) {
+  public S4Slot getSlot(Context context, String name) {
     S4Slot slot = slotMap.get(name);
     if(slot == null) {
-      slot = findSlotFromClassRepresentation(name);
+      slot = findSlotFromClassRepresentation(context, name);
       slotMap.put(name, slot);
     }
     return slot;
+  }
+
+  private S4Slot findSlotFromClassRepresentation(Context context, String name) {
+
+    if(slots.containsKey(name)) {
+      List<String> classNames = new ArrayList<>();
+
+      String slotClassName = slots.get(name);
+      AtomicVector validClasses = S4.computeDataClassesS4(context, slotClassName);
+
+      classNames.add(slotClassName);
+      if(validClasses != null) {
+        for(int i = 0; i < validClasses.length(); i++) {
+          classNames.add(validClasses.getElementAsString(i));
+        }
+      }
+
+      return new S4Slot(name, classNames);
+    } else {
+      throw new EvalException(name + " is not a slot in class "
+          + Attributes.getClass(classRepresentation).getElementAsString(0));
+    }
   }
 
 }

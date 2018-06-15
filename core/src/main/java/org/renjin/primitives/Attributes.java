@@ -342,4 +342,13 @@ public class Attributes {
     return 0;
   }
 
+  public static StringVector getContainsSlotNames(SEXP exp) {
+    if(exp.getAttribute(S4.CONTAINS) != null) {
+      return (StringArrayVector) exp.getAttribute(S4.CONTAINS).getNames();
+    }
+    else {
+      return StringVector.EMPTY;
+    }
+  }
+
 }

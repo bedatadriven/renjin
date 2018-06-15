@@ -331,7 +331,7 @@ public class Attributes {
       if(whatClass.equals(className)) {
         return i + 1;
       } else if(s4) {
-        AtomicVector superClasses = S4.getSuperClassesS4(context, className);
+        AtomicVector superClasses = S4.computeDataClassesS4(context, className);
         for (int j = 0; j < superClasses.length(); j++) {
           if(whatClass.equals(superClasses.getElementAsString(j))) {
             return i + 1;

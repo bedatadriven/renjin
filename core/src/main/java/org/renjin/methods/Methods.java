@@ -347,8 +347,6 @@ public class Methods {
   }
 
   @Internal
-
-  @Internal
   public static SEXP getClass(@Current Context context, SEXP className, boolean dotForce, SEXP where) {
 
     if(className instanceof S4Object) {

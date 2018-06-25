@@ -70,7 +70,7 @@ public class S4Slot {
     } else {
 //      StringVector class1 = StringVector.valueOf(valueClass);
 //      classDef1 = Methods.getClassDef(context, class1, Null.INSTANCE, Null.INSTANCE, true);
-      StringArrayVector valueSubclasses = (StringArrayVector) classDef1.getAttribute(S4.SUBCLASSES);
+      ListVector valueSubclasses = (ListVector) classDef1.getAttribute(S4.SUBCLASSES);
 
       if(valueSubclasses != null && valueSubclasses.length() > 0) {
         String classDef2Class = ((StringArrayVector)classDef2.getAttribute(Symbols.CLASS)).getElementAsString(0);

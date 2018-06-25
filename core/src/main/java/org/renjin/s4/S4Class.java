@@ -167,11 +167,11 @@ public class S4Class {
       AtomicVector validClasses = S4.computeDataClassesS4(context, slotClassName);
 
       classNames.add(slotClassName);
-      if(validClasses != null) {
-        for(int i = 0; i < validClasses.length(); i++) {
-          classNames.add(validClasses.getElementAsString(i));
-        }
-      }
+//      if(validClasses != null) {
+//        for(int i = 0; i < validClasses.length(); i++) {
+//          classNames.add(validClasses.getElementAsString(i));
+//        }
+//      }
 
       return new S4Slot(name, classNames);
     } else {

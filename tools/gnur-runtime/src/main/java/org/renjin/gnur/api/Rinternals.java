@@ -2562,10 +2562,8 @@ public final class Rinternals {
       throw new EvalException("C level MAKE_CLASS macro called with NULL string pointer");
     }
     Context context = Native.currentContext();
-    Namespace methodsNamespace = context.getNamespaceRegistry().getNamespace(context, "methods");
 
-    return context.evaluate(FunctionCall.newCall(Symbol.get("getClass"),
-        StringVector.valueOf(what.nullTerminatedString())));
+    return Methods.getClass(context, StringVector.valueOf(what.nullTerminatedString()), false, Null.INSTANCE);
   }
 
   public static SEXP R_getClassDef(BytePtr what) {
@@ -2576,11 +2574,9 @@ public final class Rinternals {
     return R_getClassDef_R(StringArrayVector.valueOf(what.nullTerminatedString()));
   }
 
-  public static SEXP R_getClassDef_R(SEXP what) {
+  public static SEXP R_getClassDef_R(StringVector what) {
     Context context = Native.currentContext();
-    Namespace methodsNamespace = context.getNamespaceRegistry().getNamespace(context, "methods");
-
-    return context.evaluate(FunctionCall.newCall(Symbol.get("getClassDef"), what));
+    return Methods.getClassDef(context, what, Null.INSTANCE, Null.INSTANCE, true);
   }
 
   public static boolean R_has_methods_attached() {

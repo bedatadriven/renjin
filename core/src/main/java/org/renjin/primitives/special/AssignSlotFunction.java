@@ -67,13 +67,16 @@ public class AssignSlotFunction extends SpecialFunction {
     SEXP rhs = context.evaluate(args.getElementAsSEXP(2));
 
     // verify that the slot assignment is permitted
-    SEXP valueClass = Attributes.getClass(rhs);
+    StringVector valueClass = Attributes.getClass(rhs);
     SEXP objectClass = object.getS3Class();
 
-    FunctionCall checkCall = FunctionCall.newCall(Symbol.get("checkAtAssignment"),
-        objectClass, new StringArrayVector(slotName), valueClass);
+    context.getSession()
+        .getS4Cache()
+        .getS4ClassCache()
+        .lookupClass(context, objectClass.asString())
+        .getSlot(context, slotName)
+        .checkAssignment(context, valueClass.getElementAsString(0));
 
-    context.evaluate(checkCall, rho);
 
     // Good to go, make the assignment
     return Methods.R_set_slot(context, object, slotName, rhs);

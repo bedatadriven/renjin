@@ -229,9 +229,11 @@ makeClassRepresentation <-
 
 getClassDef <-
   ## Get the definition of the class supplied as a string.
-  function(Class, where = topenv(parent.frame()), package = packageSlot(Class),
-           inherits = TRUE)
+  function(Class, where = NULL, package = NULL, inherits = TRUE)
 {
+#  function(Class, where = topenv(parent.frame()), package = packageSlot(Class),
+#           inherits = TRUE)
+#{
 #    if(inherits) #includes both the lookup and Class being alread a definition
 #      value <- .getClassFromCache(Class, where)
 #    else # want to force a search for the metadata in this case (Why?)
@@ -259,23 +261,25 @@ getClassDef <-
 getClass <-
   ## Get the complete definition of the class supplied as a string,
   ## including all slots, etc. in classes that this class extends.
-  function(Class, .Force = FALSE,
-	   where = .classEnv(Class, topenv(parent.frame()), FALSE))
+  function(Class, .Force = FALSE, where = NULL)
 {
-    value <- .getClassFromCache(Class, where) # the quick way
-    if(is.null(value)) {
-        value <- getClassDef(Class, where) # searches
-        if(is.null(value)) {
-            if(!.Force)
-                stop(gettextf("%s is not a defined class",
-                              dQuote(Class)),
-                     domain = NA)
-            else
-                value <- makeClassRepresentation(Class, package = "base",
-                                                 virtual = TRUE, where = where)
-        }
-    }
-    value
+#	   where = .classEnv(Class, topenv(parent.frame()), FALSE))
+#{
+    .Internal(getClass(Class, .Force = FALSE, where = where))
+#    value <- .getClassFromCache(Class, where) # the quick way
+#    if(is.null(value)) {
+#        value <- getClassDef(Class, where) # searches
+#        if(is.null(value)) {
+#            if(!.Force)
+#                stop(gettextf("%s is not a defined class",
+#                              dQuote(Class)),
+#                     domain = NA)
+#            else
+#                value <- makeClassRepresentation(Class, package = "base",
+#                                                 virtual = TRUE, where = where)
+#        }
+#    }
+#    value
 }
 
 slot <-

@@ -18,18 +18,16 @@
  */
 package org.renjin.gnur.api;
 
-import org.renjin.gcc.runtime.AbstractPtr;
-import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.gcc.runtime.OffsetPtr;
-import org.renjin.gcc.runtime.Ptr;
+import org.renjin.gcc.runtime.*;
 import org.renjin.sexp.AtomicVector;
 
-public final class IntVectorPtr extends AbstractPtr {
+import static org.renjin.gcc.runtime.DoublePtr.BYTES;
 
+public class DoubleVectorPtr extends AbstractPtr {
   private AtomicVector vector;
   private int offset;
 
-  public IntVectorPtr(AtomicVector vector, int offset) {
+  public DoubleVectorPtr(AtomicVector vector, int offset) {
     this.vector = vector;
     this.offset = offset;
   }
@@ -55,31 +53,34 @@ public final class IntVectorPtr extends AbstractPtr {
       return this;
     }
     if(bytes % IntPtr.BYTES == 0) {
-      return new IntVectorPtr(this.vector, this.offset + (bytes / IntPtr.BYTES));
+      return new DoubleVectorPtr(this.vector, this.offset + (bytes / IntPtr.BYTES));
     }
     return new OffsetPtr(this, bytes);
   }
 
   @Override
-  public int getAlignedInt(int index) {
-    return vector.getElementAsInt(this.offset + index);
+  public double getAlignedDouble(int index) {
+    return vector.getElementAsDouble(this.offset + index);
   }
 
   @Override
-  public int getInt(int offset) {
-    if(offset % IntPtr.BYTES == 0) {
-      return getAlignedInt(offset / IntPtr.BYTES);
+  public double getDouble(int offset) {
+    if(offset % BYTES == 0) {
+      return getAlignedDouble(offset / BYTES);
     }
     return super.getInt(offset);
   }
 
-  @Override
-  public byte getByte(int offset) {
-    int byteIndex = offset;
-    int index = byteIndex / IntPtr.BYTES;
-    int shift = (byteIndex % IntPtr.BYTES) * 8;
-    return (byte)(getInt(index) >>> shift);  }
 
+  @Override
+  public byte getByte(int bytes) {
+    int index = bytes / BYTES;
+    double element = getAlignedDouble(index);
+    long elementBits = Double.doubleToRawLongBits(element);
+    int shift = (bytes % BYTES) * BITS_PER_BYTE;
+
+    return (byte)(elementBits >>> shift);
+  }
   @Override
   public void setByte(int offset, byte value) {
     throw new UnsupportedOperationException("Illegal modification of a shared vector! " +
@@ -88,7 +89,7 @@ public final class IntVectorPtr extends AbstractPtr {
 
   @Override
   public int toInt() {
-    return offset * IntPtr.BYTES;
+    return offset * DoublePtr.BYTES;
   }
 
   @Override

@@ -33,10 +33,7 @@ import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.s4.*;
 import org.renjin.sexp.*;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static org.renjin.s4.S4.generateCallMetaData;
 
@@ -174,7 +171,6 @@ public class Methods {
     // TODO: check virtual flag
 
     SEXP classNameExp = classRepresentation.getAttributes().get(Symbols.CLASS_NAME);
-    String className = ((StringVector)classNameExp).getElementAsString(0);
     SEXP prototype = classRepresentation.getAttribute(Symbols.PROTOTYPE);
     
     if(prototype instanceof S4Object || classNameExp.getAttributes().getPackage() != null) {
@@ -360,21 +356,21 @@ public class Methods {
 
     SEXP classDef = getClassDef(context, ((StringVector)className), Null.INSTANCE, Null.INSTANCE, true);
 
-    if(dotForce && (classDef == Null.INSTANCE || classDef == Symbol.UNBOUND_VALUE)) {
+    if(classDef == Null.INSTANCE || classDef == Symbol.UNBOUND_VALUE) {
       if(dotForce) {
-        System.out.println("getClass(" + ((StringVector)className).getElementAsString(0) + ", .Force = TRUE)");
-        SEXP env;
-        if(where == Null.INSTANCE) {
-          env = context.getCallingEnvironment();
-        } else {
-          env = where;
-        }
+        SEXP name = className.setAttribute(Symbol.get("package"), StringVector.valueOf("base"));
         PairList.Builder args = new PairList.Builder();
-        args.add(className);
-        args.add(Symbol.get("package"), StringVector.valueOf("base"));
+        args.add(Symbol.get("className"), name);
+        args.add(Symbol.get("slots"), ListVector.EMPTY);
+        args.add(Symbol.get("contains"), ListVector.EMPTY);
+        args.add(Symbol.get("prototype"), Null.INSTANCE);
         args.add(Symbol.get("virtual"), LogicalVector.TRUE);
-        args.add(Symbol.get("where"), env);
-        classDef = context.evaluate(FunctionCall.newCall(Symbol.get("makeClassRepresentation"), args.build()));
+        args.add(Symbol.get("validity"), Null.INSTANCE);
+        args.add(Symbol.get("access"), ListVector.EMPTY);
+        args.add(Symbol.get("package"), StringVector.valueOf("base"));
+        args.add(Symbol.get("versionKey"), new ExternalPtr(null));
+        args.add(Symbol.get("sealed"), LogicalVector.FALSE);
+        classDef = context.evaluate(FunctionCall.newCall(Symbol.get("newClassRepresentation"), args.build()));
       } else {
         throw new EvalException("'" + ((StringVector)className).getElementAsString(0) + "' is not a defined class");
       }

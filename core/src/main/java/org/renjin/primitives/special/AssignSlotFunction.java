@@ -77,7 +77,6 @@ public class AssignSlotFunction extends SpecialFunction {
         .getSlot(context, slotName)
         .checkAssignment(context, valueClass.getElementAsString(0));
 
-
     // Good to go, make the assignment
     return Methods.R_set_slot(context, object, slotName, rhs);
   }

@@ -19,6 +19,7 @@
 package org.renjin.gnur.api;
 
 import org.renjin.eval.EvalException;
+import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.sexp.*;
@@ -43,5 +44,20 @@ public class Rinternals2 {
     }
 
     throw new EvalException("INTEGER(): expected integer vector, found %s", x.getTypeName());
+  }
+
+  public static Ptr REAL(SEXP x) {
+    if(x instanceof DoubleArrayVector) {
+      // Return the array backing the double vector
+      // This is inherently unsafe because the calling code can modify the contents of the array
+      // and potentially break the contract of immutability of DoubleVector, but the GNU R API
+      // imposes essentially the same contract. We are, however, at the mercy of the C code observing
+      // this contract.
+      return new DoublePtr(((DoubleArrayVector) x).toDoubleArrayUnsafe());
+    } else if(x instanceof DoubleVector) {
+      return new DoubleVectorPtr((AtomicVector) x,0);
+    } else {
+      throw new EvalException("REAL(): expected numeric vector, found %s", x.getTypeName());
+    }
   }
 }

@@ -37,6 +37,7 @@ import org.renjin.sexp.*;
 import java.lang.System;
 import java.lang.invoke.MethodHandle;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -2612,8 +2613,8 @@ public final class Rinternals {
   }
 
   @Deprecated
-  public static int R_check_class_and_super (SEXP x, ObjectPtr<BytePtr> valid, SEXP rho) {
-    return R_check_class_and_super(x, new PointerPtr((Ptr[])valid.array, valid.offset), rho);
+  public static int R_check_class_and_super (SEXP x, ObjectPtr<BytePtr> valid) {
+    return R_check_class_and_super(x, new PointerPtr((Ptr[])valid.array, valid.offset));
   }
 
   /**
@@ -2626,7 +2627,7 @@ public final class Rinternals {
    *
    * @return index of match or -1 for no match
    */
-  public static int R_check_class_and_super (SEXP x, Ptr valid, SEXP rho) {
+  public static int R_check_class_and_super (SEXP x, Ptr valid) {
     int ans;
     SEXP cl = Rf_asChar(Rf_getAttrib(x, R_ClassSymbol));
     BytePtr class_ = R_CHAR(cl);
@@ -2647,11 +2648,20 @@ public final class Rinternals {
       Symbol s_selectSuperCl = Symbol.get(".selectSuperClasses");
       SEXP classDef = R_getClassDef(class_);
       classExts = R_do_slot(classDef, s_contains);
-      _call = Rf_lang3(s_selectSuperCl, classExts,
-                              /* dropVirtual = */ Rf_ScalarLogical(1));
-      superCl = Rf_eval(_call, rho);
-      for(int i=0; i < LENGTH(superCl); i++) {
-        BytePtr s_class = R_CHAR(STRING_ELT(superCl, i));
+
+      ArrayList<String> directSuperclasses = new ArrayList<>();
+      String[] superClasses = ((StringArrayVector) classExts.getAttribute(Symbol.get("names"))).toArray();
+
+      for(int i = 0; i < directSuperclasses.size(); i++) {
+        S4Object elm = (S4Object) ((ListVector)classExts).get(superClasses[i]);
+        DoubleArrayVector distance = (DoubleArrayVector) elm.getAttribute(Symbol.get("distance"));
+        if(distance.getElementAsDouble(0) == 1.0) {
+          directSuperclasses.add(superClasses[i]);
+        }
+      }
+
+      for(int i=0; i < directSuperclasses.size(); i++) {
+        BytePtr s_class = R_CHAR(GnuCharSexp.valueOf(directSuperclasses.get(i)));
         for (ans = 0; ; ans++) {
           if (Stdlib.strlen(valid.getAlignedPointer(ans)) == 0) {
             break;
@@ -2671,22 +2681,7 @@ public final class Rinternals {
   }
 
   public static int R_check_class_etc (SEXP x, Ptr valid) {
-    SEXP cl = Rf_getAttrib(x, R_ClassSymbol);
-    SEXP rho = R_GlobalEnv();
-    SEXP pkg;
-    Symbol meth_classEnv = Symbol.get(".classEnv");
-
-    pkg = Rf_getAttrib(cl, R_PackageSymbol); /* ==R== packageSlot(class(x)) */
-    if(!Rf_isNull(pkg)) { /* find  rho := correct class Environment */
-      SEXP clEnvCall;
-      // FIXME: fails if 'methods' is not loaded.
-      clEnvCall = Rf_lang2(meth_classEnv, cl);
-      rho = Rf_eval(clEnvCall, methodsNamespace());
-      if(!Rf_isEnvironment(rho)) {
-        throw new EvalException("could not find correct environment; please report!");
-      }
-    }
-    return R_check_class_and_super(x, valid, rho);
+    return R_check_class_and_super(x, valid);
   }
 
   private static Environment methodsNamespace() {

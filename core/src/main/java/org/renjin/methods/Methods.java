@@ -385,11 +385,20 @@ public class Methods {
   }
 
   @Internal
-  public static SEXP selectMethod(@Current Context context, StringArrayVector functionName, StringArrayVector args,
+  public static SEXP selectMethod(@Current Context context, SEXP functionName, StringArrayVector args,
                                   LogicalArrayVector opt, LogicalArrayVector useInherited, SEXP mlist, SEXP fdef, SEXP verbose, SEXP doCache) {
 
     boolean optional = opt.isElementTrue(0);
-    String fname = functionName.getElementAsString(0);
+    String fname;
+    if(functionName instanceof StringArrayVector) {
+      fname = ((StringArrayVector)functionName).getElementAsString(0);
+    } else if (functionName instanceof SpecialFunction) {
+      fname = ((SpecialFunction) functionName).getName();
+    } else if (functionName instanceof Closure) {
+      fname = ((StringArrayVector) functionName.getAttribute(Symbols.GENERIC)).getElementAsString(0);
+    } else {
+      throw new EvalException("type of f is invalid, should be string, generic function, or primitive");
+    }
 
     String packageName = getPackageName(context, fdef);
 

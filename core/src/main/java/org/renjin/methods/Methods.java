@@ -390,8 +390,8 @@ public class Methods {
 
     boolean optional = opt.isElementTrue(0);
     String fname;
-    if(functionName instanceof StringArrayVector) {
-      fname = ((StringArrayVector)functionName).getElementAsString(0);
+    if(functionName instanceof StringVector) {
+      fname = ((StringVector) functionName).getElementAsString(0);
     } else if (functionName instanceof SpecialFunction) {
       fname = ((SpecialFunction) functionName).getName();
     } else if (functionName instanceof Closure) {

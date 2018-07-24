@@ -26,8 +26,8 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     monoFC_m,
     cov,
     cor,
-    lowess,
 
+    lowess,
     lowesp,
     lowesw,
     lowesr,
@@ -39,6 +39,7 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     lowesa,
     lowesc,
 
+    DoubleCentre,
 
     loess_raw,
     loess_free,
@@ -50,10 +51,9 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     loess_prune,
     loess_grow,
 
-
-
     optim,
     optimhess,
+
     HoltWinters,
     acf,
     pacf1,
@@ -78,10 +78,8 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     updateform,
 
     lminfl = lminfl_,
-
     doD,
     deriv
-
     )
 
 # exportPattern("^[^\\.]")

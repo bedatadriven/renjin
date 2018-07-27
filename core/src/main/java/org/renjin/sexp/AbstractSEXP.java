@@ -205,6 +205,9 @@ public abstract class AbstractSEXP implements SEXP {
   
   @Override
   public SEXP setAttribute(Symbol attributeName, SEXP value) {
+    if(this instanceof S4Object) {
+      return setAttributes(this.attributes.copyS4().set(attributeName, value));
+    }
     return setAttributes(this.attributes.copy().set(attributeName, value));
   }
 

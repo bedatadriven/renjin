@@ -230,6 +230,14 @@ public class Stdlib {
       return 0;
     }
   }
+
+  public static double asinh(double x) {
+    if(Double.isInfinite(x)) {
+      return x;
+    }
+    return Math.log(x + Math.sqrt(x * x + 1));
+  }
+
   public static double atanh(double x) {
     return 0.5 * Math.log((1d + x) / (1d - x));
   }

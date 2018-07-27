@@ -45,8 +45,24 @@ public final class Utils {
 
   // void R_csort (Rcomplex *, int)
 
-  public static void rsort_with_index(DoublePtr p0, IntPtr p1, int p2) {
-    throw new UnimplementedGnuApiMethod("rsort_with_index");
+  public static void rsort_with_index(DoublePtr x, IntPtr indx, int n) {
+    double v;
+    int i, j, h, iv;
+
+    for (h = 1; h <= n / 9; h = 3 * h + 1);
+    for (; h > 0; h /= 3)
+      for (i = h; i < n; i++) {
+        v = x.getDouble(i);
+        iv = indx.getInt(i);
+        j = i;
+        while (j >= h && rcmp(x.getDouble(j - h), v, true) > 0) {
+          x.set(j, x.getDouble(j - h));
+          indx.setInt(j, indx.getInt(j - h));
+          j -= h;
+        }
+        x.set(j, v);
+        indx.setInt(j, iv);
+      }
   }
 
   public static void Rf_revsort(DoublePtr p0, IntPtr p1, int p2) {

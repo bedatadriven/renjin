@@ -28,6 +28,8 @@ import org.renjin.primitives.files.Files;
 
 import java.nio.charset.StandardCharsets;
 
+import static org.renjin.gnur.Sort.rcmp;
+
 @SuppressWarnings("unused")
 public final class Utils {
 

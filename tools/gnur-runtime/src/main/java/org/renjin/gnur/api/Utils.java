@@ -51,8 +51,16 @@ public final class Utils {
     double v;
     int i, j, h, iv;
 
-    for (h = 1; h <= n / 9; h = 3 * h + 1);
-    for (; h > 0; h /= 3)
+    h = 1;
+    boolean loop = true;
+    while(loop) {
+      if (h <= n / 9) {
+        loop = false;
+      }
+      h = 3 * h + 1;
+    }
+
+    for (; h > 0; h /= 3) {
       for (i = h; i < n; i++) {
         v = x.getDouble(i);
         iv = indx.getInt(i);
@@ -65,6 +73,7 @@ public final class Utils {
         x.set(j, v);
         indx.setInt(j, iv);
       }
+    }
   }
 
   public static void Rf_revsort(DoublePtr p0, IntPtr p1, int p2) {

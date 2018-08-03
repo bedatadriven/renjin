@@ -16,7 +16,7 @@
 
 strsplit <-
 function(x, split, fixed = FALSE, perl = FALSE, useBytes = FALSE)
-    .Internal(strsplit(x, as.character(ifelse(length(split), split, "")), fixed, perl, useBytes))
+    .Internal(strsplit(x, as.character(if(length(split)) split else ""), fixed, perl, useBytes))
 
 grep <-
 function(pattern, x, ignore.case = FALSE, perl = FALSE,

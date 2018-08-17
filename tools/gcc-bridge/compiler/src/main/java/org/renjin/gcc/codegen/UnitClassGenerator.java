@@ -50,10 +50,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
@@ -257,9 +254,42 @@ public class UnitClassGenerator {
       function.emitLocalStaticVarInitialization(mv);
     }
 
+    emitCppStaticInitialization(mv);
+
     mv.visitInsn(RETURN);
     mv.visitMaxs(1, 1);
     mv.visitEnd();
+  }
+
+  /**
+   * C++ allows global variables or static class members to be initialized. The compiler then
+   * generates a series of functions with names like {@code _Z41__static_initialization_and_destruction_0ii}
+   * which actually perform the initialization.
+   *
+   * <p>For each compilation unit, the compiler also emits a wrapper function in the form
+   * {@code _GLOBAL__sub_I_main} which invokes all required initializers.
+   *
+   * <p>This wrapper function's function-pointer is added to the .init_array section of the object file.
+   * When compiling multiple source files, each individual object file will add initialization functions to
+   * the .init_array and all of those functions will be called by the operating system before main() is called.
+   *
+   * <p>We mimic this behavior by pattern matching on {@code _GLOBAL__sub.*} and invoking this function
+   * in the unit classes' static initializer.
+   *
+   * @see <a href="https://stackoverflow.com/questions/37108163/purpose-of-static-initialization-and-destruction-and-global-sub-i-main-functio">Stackoverflow #37108163</a>
+   *
+   */
+  private void emitCppStaticInitialization(MethodGenerator mv) {
+
+    Optional<String> initializer = unit.getFunctions()
+        .stream()
+        .map(f -> f.getMangledName())
+        .filter(n -> n.startsWith("_GLOBAL__sub_"))
+        .findAny();
+
+    initializer.ifPresent(name -> {
+      mv.invokestatic(className, name, "()V", false);
+    });
   }
 
   private void writeInitMethodCall(MethodGenerator mv,

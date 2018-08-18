@@ -1595,18 +1595,25 @@ public final class Rinternals {
     }
     if(sexp instanceof DoubleVector) {
       return new DoubleArrayVector((DoubleVector)sexp);
+
     } else if(sexp instanceof IntVector) {
       return new IntArrayVector((IntVector)sexp);
+
     } else if (sexp instanceof ComplexVector) {
       return new ComplexArrayVector((ComplexVector) sexp);
+
     } else if(sexp instanceof StringVector) {
       return GnuStringVector.copyOf((StringVector) sexp);
+
     } else if(sexp instanceof LogicalVector) {
       return new LogicalArrayVector(((LogicalArrayVector) sexp).toIntArray(), sexp.getAttributes());
+
     } else if(sexp instanceof RawVector) {
       return new RawVector(((RawVector) sexp).toByteArrayUnsafe(), sexp.getAttributes());
+
     } else if(sexp instanceof S4Object) {
       return new S4Object(sexp.getAttributes());
+
     } else if(sexp instanceof ListVector) {
       SEXP[] elements = ((ListVector) sexp).toArrayUnsafe();
       for (int i = 0; i < elements.length; i++) {
@@ -1620,8 +1627,14 @@ public final class Rinternals {
     } else if(sexp instanceof PairList) {
       return duplicatePairList(((PairList) sexp));
 
-    } else if(sexp instanceof Symbol | sexp instanceof PrimitiveFunction) {
+    } else if(
+        sexp instanceof Symbol |
+        sexp instanceof PrimitiveFunction |
+        sexp instanceof ExternalPtr |
+        sexp instanceof Environment) {
+
       return sexp;
+
     }
     throw new UnimplementedGnuApiMethod("Rf_duplicate: " + sexp.getTypeName());
   }

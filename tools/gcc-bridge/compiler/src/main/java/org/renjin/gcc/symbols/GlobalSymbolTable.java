@@ -24,20 +24,22 @@ import org.renjin.gcc.ProvidedGlobalVarField;
 import org.renjin.gcc.annotations.GlobalVar;
 import org.renjin.gcc.codegen.call.*;
 import org.renjin.gcc.codegen.cpp.*;
+import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.lib.SymbolFunction;
 import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.lib.SymbolMethod;
 import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.codegen.vptr.VPtrStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
+import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.gcc.link.LinkSymbol;
 import org.renjin.gcc.runtime.*;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Maps;
-import org.renjin.repackaged.guava.collect.Sets;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -147,6 +149,13 @@ public class GlobalSymbolTable implements SymbolTable {
     addFunction(EndCatchGenerator.NAME, new EndCatchGenerator());
     addFunction(RethrowGenerator.NAME, new RethrowGenerator());
 
+    try {
+      addVariable("__dso_handle", new VPtrStrategy(new GimpleVoidType()).providedGlobalVariable(
+          new GimpleVarDecl(), Expressions.staticField(Builtins.class.getField("__dso_handle")), false));
+    } catch (NoSuchFieldException e) {
+      throw new Error(e);
+    }
+
     addMethod("__builtin_log10__", Math.class, "log10");
 
     addFunction("memcpy", new MemCopyCallGenerator(false));
@@ -160,6 +169,7 @@ public class GlobalSymbolTable implements SymbolTable {
     addMethods(Mathlib.class);
     addMethods(Std.class);
     addMethods(PosixThreads.class);
+
   }
 
   public void addLibrary(SymbolLibrary lib) {

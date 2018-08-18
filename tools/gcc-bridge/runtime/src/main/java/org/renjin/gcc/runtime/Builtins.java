@@ -273,6 +273,12 @@ public class Builtins {
   public static void __cxa_pure_virtual() {
     throw new RuntimeException("Pure virtual function invoked");
   }
+
+  /**
+   * A handle for __cxa_finalize to manage c++ local destructors.
+   */
+  public static Ptr[] __dso_handle = new Ptr[] { BytePtr.NULL };
+
   
   public static void undefined_std() {
     throw new RuntimeException("Invocation of std:: method");

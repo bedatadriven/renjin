@@ -364,11 +364,6 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
 
   @Test
-  public void pruneCpp() throws Exception {
-    compileAndTest("prune.cpp");
-  }
-
-  @Test
   public void arrayC() throws Exception {
     Class clazz = compile("array.c");
 

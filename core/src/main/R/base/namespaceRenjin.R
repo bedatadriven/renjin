@@ -274,3 +274,7 @@ getExportedValue <- function(ns, name) {
 	}
     }
 }
+
+registerS3method <- function(genname, class, method, envir = parent.frame()) {
+    .Internal(registerS3method(genname, class, method, envir))
+}

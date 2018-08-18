@@ -941,6 +941,7 @@ public class Primitives {
     f("getNamespaceName", Namespaces.class, 0);
     f("getNamespaceExports", Namespaces.class, 0);
     f("getNamespaceImports", Namespaces.class, 0);
+    f("registerS3method", Namespaces.class, 11);
 
     f("getNamespaceRegistry", Namespaces.class, 11);
 

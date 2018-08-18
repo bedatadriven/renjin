@@ -21,7 +21,6 @@ package org.renjin.primitives.packaging;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.reflection.ClassBindingImpl;
-import org.renjin.primitives.S3;
 import org.renjin.primitives.text.regex.RE;
 import org.renjin.primitives.text.regex.REFactory;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -40,7 +39,6 @@ public class Namespace {
 
   private final Environment namespaceEnvironment;
   private final Environment importsEnvironment;
-  private final Environment baseNamespaceEnvironment;
 
   private final List<Symbol> exports = Lists.newArrayList();
 
@@ -55,7 +53,6 @@ public class Namespace {
     this.pkg = pkg;
     this.namespaceEnvironment = namespaceEnvironment;
     this.importsEnvironment = namespaceEnvironment.getParent();
-    this.baseNamespaceEnvironment = importsEnvironment.getParent();
   }
 
   public String getName() {
@@ -448,7 +445,7 @@ public class Namespace {
     Function method = resolveFunction(context, entry.getFunctionName());
 
     // Find the environment in which the original generic function was defined
-    Optional<Environment> definitionEnv = resolveGenericFunctionNamespace(context, entry.getGenericMethod());
+    Optional<Environment> definitionEnv = Namespaces.resolveGenericFunctionNamespace(context, entry.getGenericMethod(), namespaceEnvironment);
     if(!definitionEnv.isPresent()) {
       context.warn(String.format("Cannot resolve namespace environment from generic function '%s'", 
           entry.getGenericMethod()));
@@ -456,11 +453,7 @@ public class Namespace {
     } 
     
     // Add an entry in a special .__S3MethodsTable__. so that UseMethod() can find this specialization
-    if (!definitionEnv.get().hasVariable(S3.METHODS_TABLE)) {
-      definitionEnv.get().setVariableUnsafe(S3.METHODS_TABLE, Environment.createChildEnvironment(context.getBaseEnvironment()).build());
-    }
-    Environment methodsTable = (Environment) definitionEnv.get().getVariableUnsafe(S3.METHODS_TABLE);
-    methodsTable.setVariableUnsafe(entry.getGenericMethod() + "." + entry.getClassName(), method);
+    Namespaces.registerS3Method(context, entry.getGenericMethod(), entry.getClassName(), method, definitionEnv.get());
   }
 
   private Function resolveFunction(Context context, String functionName) {
@@ -474,48 +467,8 @@ public class Namespace {
     return (Function) methodExp;
   }
 
-  /**
-   * Resolves the namespace environment in which the original S3 generic function is defined.
-   *
-   * @param context the current evaluation context
-   * @param genericName the name of the generic function (for example, "print" or "summary")
-   * @return the namespace environment in which the function was defined, or {@code Optional.empty()} if
-   * the function could not be resolved.
-   */
-  private Optional<Environment> resolveGenericFunctionNamespace(Context context, String genericName) {
-
-    if (S3.GROUPS.contains(genericName)) {
-      return Optional.of(baseNamespaceEnvironment);
-
-    } else {
-      SEXP genericFunction = namespaceEnvironment.findFunction(context, Symbol.get(genericName));
-      if (genericFunction == null) {
-        return Optional.empty();
-      }
-      if (genericFunction instanceof Closure) {
-        return Optional.of(((Closure) genericFunction).getEnclosingEnvironment());
-
-      } else if (genericFunction instanceof PrimitiveFunction) {
-        return Optional.of(baseNamespaceEnvironment);
-
-      } else {
-        throw new EvalException("Cannot resolve namespace environment from generic function '%s' of type '%s'",
-            genericName, genericFunction.getTypeName());
-      }
-    }
-  }
-
   public boolean isLoaded() {
     return loaded;
   }
 
-  public boolean hasS4Metadata() {
-    for (Symbol symbol : namespaceEnvironment.getSymbolNames()) {
-      String symbolName = symbol.getPrintName();
-      if(symbolName.startsWith(".__C__") || symbolName.startsWith(".__T__")) {
-        return true;
-      }
-    }
-    return false;
-  }
 }

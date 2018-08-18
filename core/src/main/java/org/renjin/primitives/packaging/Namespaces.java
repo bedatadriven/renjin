@@ -26,9 +26,11 @@ import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Unevaluated;
+import org.renjin.primitives.S3;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public class Namespaces {
 
@@ -204,5 +206,83 @@ public class Namespaces {
   @Internal("library.dynam.unload")
   public static SEXP libraryDynamUnload(@Current Context context, String name) {
     return Null.INSTANCE;
+  }
+
+  /**
+   *
+   * @param genericName 	character string giving the generic function name.
+   * @param className 	character string giving the generic function name.
+   * @param methodSexp 	character string giving the method name or a function to be registered. If this is NA or a function, the method name is constructed from genname and class
+   * @param envir the environment where the S3 method should be registered
+   */
+  @Internal
+  public static void registerS3method(@Current Context context, String genericName, String className, SEXP methodSexp, Environment environment) {
+    Optional<Environment> definitionEnv = resolveGenericFunctionNamespace(context, genericName, environment);
+    if(!definitionEnv.isPresent()) {
+      throw new EvalException("Cannot find generic function '" + genericName + "'");
+    }
+
+    Function method;
+    if(methodSexp instanceof Function) {
+      method = (Function) methodSexp;
+
+    } else if(methodSexp instanceof StringVector && methodSexp.length() == 1) {
+      StringVector methodVector = (StringVector) methodSexp;
+      Symbol methodName = Symbol.get(methodVector.getElementAsString(0));
+      method = environment.findFunction(context, methodName);
+
+    } else {
+      throw new EvalException("Invalid method argument of type " + methodSexp.getTypeName());
+    }
+
+    registerS3Method(context, genericName, className, method, definitionEnv.get());
+  }
+
+  /**
+   * Resolves the namespace environment in which the original S3 generic function is defined.
+   *
+   * @param context the current evaluation context
+   * @param genericName the name of the generic function (for example, "print" or "summary")
+   * @param environment the environment in which to start searching for the generic
+   * @return the namespace environment in which the function was defined, or {@code Optional.empty()} if
+   * the function could not be resolved.
+   */
+  public static Optional<Environment> resolveGenericFunctionNamespace(Context context, String genericName, Environment environment) {
+
+    if (S3.GROUPS.contains(genericName)) {
+      return Optional.of(context.getNamespaceRegistry().getBaseNamespaceEnv());
+
+    } else {
+      SEXP genericFunction = environment.findFunction(context, Symbol.get(genericName));
+      if (genericFunction == null) {
+        return Optional.empty();
+      }
+      if (genericFunction instanceof Closure) {
+        return Optional.of(((Closure) genericFunction).getEnclosingEnvironment());
+
+      } else if (genericFunction instanceof PrimitiveFunction) {
+        return Optional.of(context.getNamespaceRegistry().getBaseNamespaceEnv());
+
+      } else {
+        throw new EvalException("Cannot resolve namespace environment from generic function '%s' of type '%s'",
+            genericName, genericFunction.getTypeName());
+      }
+    }
+  }
+
+  /**
+   *
+   * @param context current evaluation context
+   * @param genericName the name of the generic ("print" or "summary")
+   * @param className the name of the S3 class
+   * @param method the method providing the implementation of this class
+   * @param definitionEnv the environment in which the original generic is defined.
+   */
+  public static void registerS3Method(Context context, String genericName, String className, Function method, Environment definitionEnv) {
+    if (!definitionEnv.hasVariable(S3.METHODS_TABLE)) {
+      definitionEnv.setVariableUnsafe(S3.METHODS_TABLE, Environment.createChildEnvironment(context.getBaseEnvironment()).build());
+    }
+    Environment methodsTable = (Environment) definitionEnv.getVariableUnsafe(S3.METHODS_TABLE);
+    methodsTable.setVariableUnsafe(genericName + "." + className, method);
   }
 }

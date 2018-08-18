@@ -28,6 +28,7 @@ import org.renjin.gnur.api.annotations.PotentialMutator;
 import org.renjin.methods.MethodDispatch;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.*;
+import org.renjin.primitives.match.Duplicates;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.packaging.Namespaces;
 import org.renjin.primitives.subset.Subsetting;
@@ -1347,11 +1348,11 @@ public final class Rinternals {
   // SEXP Rf_allocVector3 (SEXPTYPE, R_xlen_t, R_allocator_t *)
 
   public static /*R_xlen_t*/ int Rf_any_duplicated(SEXP x, boolean from_last) {
-    throw new UnimplementedGnuApiMethod("Rf_any_duplicated");
+    return Duplicates.anyDuplicated((Vector)x, LogicalVector.FALSE, from_last);
   }
 
   public static /*R_xlen_t*/ int Rf_any_duplicated3(SEXP x, SEXP incomp, boolean from_last) {
-    throw new UnimplementedGnuApiMethod("Rf_any_duplicated3");
+    return Duplicates.anyDuplicated((Vector)x, (AtomicVector)incomp, from_last);
   }
 
   public static SEXP Rf_applyClosure(SEXP p0, SEXP p1, SEXP p2, SEXP p3, SEXP p4) {
@@ -1619,7 +1620,7 @@ public final class Rinternals {
     } else if(sexp instanceof PairList) {
       return duplicatePairList(((PairList) sexp));
 
-    } else if(sexp instanceof Symbol) {
+    } else if(sexp instanceof Symbol | sexp instanceof PrimitiveFunction) {
       return sexp;
     }
     throw new UnimplementedGnuApiMethod("Rf_duplicate: " + sexp.getTypeName());

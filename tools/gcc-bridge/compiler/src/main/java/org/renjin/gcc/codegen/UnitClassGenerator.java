@@ -281,14 +281,13 @@ public class UnitClassGenerator {
    */
   private void emitCppStaticInitialization(MethodGenerator mv) {
 
-    Optional<String> initializer = unit.getFunctions()
+    Optional<FunctionGenerator> initializer = symbolTable.getFunctions()
         .stream()
-        .map(f -> f.getMangledName())
-        .filter(n -> n.startsWith("_GLOBAL__sub_"))
+        .filter(f -> f.getMangledName().startsWith("_GLOBAL__sub_"))
         .findAny();
 
-    initializer.ifPresent(name -> {
-      mv.invokestatic(className, name, "()V", false);
+    initializer.ifPresent(f -> {
+      mv.invokestatic(className, f.getSafeMangledName(), "()V", false);
     });
   }
 

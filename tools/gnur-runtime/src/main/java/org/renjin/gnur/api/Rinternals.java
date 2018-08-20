@@ -1163,6 +1163,8 @@ public final class Rinternals {
 
   public static SEXP Rf_coerceVector(SEXP p0, /*SEXPTYPE*/ int type) {
     switch(type) {
+      case SexpType.LISTSXP:
+        return PairList.Node.fromVector((Vector)p0);
       case SexpType.LGLSXP:
         return Vectors.asLogical(((Vector) p0)).setAttributes(p0.getAttributes());
       case SexpType.INTSXP:

@@ -140,8 +140,32 @@ public class Stdlib {
     return new OffsetPtr(string, offset);
   }
 
+  @Deprecated
   public static long strtol(Ptr string) {
-    return Long.parseLong(nullTerminatedString(string));
+    return strtol(string, BytePtr.NULL, 10);
+  }
+
+  public static long strtol(Ptr str, Ptr endptr, int radix) {
+    return strtol(str, endptr, radix, true);
+  }
+
+  /**
+   * Parses the C-string str, interpreting its content as an integral number of the specified base, which is
+   * returned as an value of type unsigned long int.
+   *
+   * @param str C-string containing the representation of an integral number.
+   * @param endptr Reference to an object of type char*, whose value is set by the function to the next character
+   *              in str after the numerical value. This parameter can also be a null pointer,
+   *               in which case it is not used.
+   * @param radix Numerical base (radix) that determines the valid characters and their interpretation.
+   *        If this is 0, the base used is determined by the format in the sequence (see strtol for details).
+   * @return On success, the function returns the converted integral number as an unsigned long int value.
+   * If no valid conversion could be performed, a zero value is returned.
+   * If the value read is out of the range of representable values by an unsigned long int, the function returns ULONG_MAX
+   * (defined in <climits>), and errno is set to ERANGE.
+   */
+  public static long strtoul(Ptr str, Ptr endptr, int radix) {
+    return strtol(str, endptr, radix, false);
   }
 
   public static double strtold(Ptr string) {
@@ -150,6 +174,78 @@ public class Stdlib {
 
   public static double strtod(Ptr string) {
     return Double.parseDouble(nullTerminatedString(string));
+  }
+
+  static long strtol(Ptr str, Ptr endptr, int radix, boolean signed) {
+
+    String s = nullTerminatedString(str);
+
+    // Find the start of the number
+    int start = 0;
+
+    // Skip beginning whitespace
+    while (start < s.length() && Character.isWhitespace(s.charAt(start))) {
+      start++;
+    }
+
+    int pos = start;
+
+    // Check for +/- prefix
+    if(pos < s.length() && (s.charAt(pos) == '-' || s.charAt(pos) == '+')) {
+      pos++;
+    }
+
+    // Check for hex prefix 0x/0X if the radix is 16 or unspecified
+    else if( (radix == 0 || radix == 16) &&
+        pos + 1 < s.length() && s.charAt(pos) == '0' &&
+        (s.charAt(pos+1) == 'x' || s.charAt(pos+1) == 'X')) {
+      start+=2;
+      pos = start;
+      radix = 16;
+
+    }
+
+    // If radix is not specified, then check for octal prefix
+    else if(radix == 0 &&  pos < s.length() && s.charAt(pos) == '0') {
+      radix = 8;
+    }
+
+    // Otherwise if radix is not specified, and there is no prefix,
+    // assume decimal
+    if(radix == 0) {
+      radix = 10;
+    }
+
+    // Advance until we run out of digits
+    while(pos < s.length() && Character.digit(s.charAt(pos), radix) != -1) {
+      pos++;
+    }
+
+    // If requested, update the endptr
+    if(!endptr.isNull()) {
+      endptr.setPointer(str.pointerPlus(pos));
+    }
+
+    // If empty, return 0 and exit
+    if(start == pos) {
+      return 0;
+    }
+
+    s = s.substring(start, pos);
+
+    if(signed) {
+      try {
+        return Long.parseLong(s, radix);
+      } catch (NumberFormatException e) {
+        return Long.MAX_VALUE;
+      }
+    } else {
+      try {
+        return Long.parseUnsignedLong(s, radix);
+      } catch (NumberFormatException e) {
+        return -1;
+      }
+    }
   }
 
   public static Ptr strdup(Ptr s) {

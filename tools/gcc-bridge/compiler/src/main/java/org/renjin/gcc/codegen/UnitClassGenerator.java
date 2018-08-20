@@ -77,7 +77,6 @@ public class UnitClassGenerator {
   private StringWriter sw;
   private PrintWriter pw;
 
-
   public UnitClassGenerator(TypeOracle typeOracle,
                             GlobalSymbolTable globalSymbolTable,
                             List<GlobalVarTransformer> globalVarTransformers,
@@ -142,7 +141,7 @@ public class UnitClassGenerator {
     GExpr varGenerator;
     try {
       TypeStrategy typeStrategy = this.typeOracle.forType(decl.getType());
-      varGenerator = typeStrategy.variable(decl, globalVarAllocator);
+      varGenerator = typeStrategy.globalVariable(decl, globalVarAllocator);
 
     } catch (Exception e) {
       throw new InternalCompilerException("Global variable " + decl.getName() + " in " + this.unit.getSourceName(), e);

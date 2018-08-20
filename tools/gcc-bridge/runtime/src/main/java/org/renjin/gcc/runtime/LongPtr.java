@@ -125,32 +125,12 @@ public class LongPtr extends AbstractPtr {
 
   @Override
   public byte getByte(int offset) {
-    int bytes = (this.offset * BYTES) + offset;
-    int index = bytes / BYTES;
-    long elementBits = array[index];
-    int shift = (bytes % BYTES) * 8;
-
-    return (byte)(elementBits >>> shift);
+    return getByteViaLong(offset);
   }
 
   @Override
   public void setByte(int offset, byte value) {
-    int bytes = (this.offset * BYTES) + offset;
-    int index = bytes / BYTES;
-    int shift = (bytes % BYTES) * BITS_PER_BYTE;
-
-    long element = array[index];
-
-    long updateMask = 0xFF << shift;
-
-    // Zero out the bits in the byte we are going to update
-    element = element & ~updateMask;
-
-    // Shift our byte into position
-    long update = (((long)value) << shift) & updateMask;
-
-    // Merge the original long and updated bits together
-    array[index] = element | update;
+    setByteViaLong(offset, value);
   }
 
   @Override

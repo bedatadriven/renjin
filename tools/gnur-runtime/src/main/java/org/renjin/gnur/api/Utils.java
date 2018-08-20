@@ -20,6 +20,7 @@
 package org.renjin.gnur.api;
 
 import org.renjin.eval.EvalException;
+import org.renjin.gcc.annotations.Noop;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
@@ -156,10 +157,12 @@ public final class Utils {
     }
   }
 
+  @Noop
   public static void R_CheckStack() {
     // Noop: JVM will throw a StackOverflowError for us if need be
   }
 
+  @Noop
   public static void R_CheckStack2(/*size_t*/ int p0) {
     // Noop: JVM will throw a StackOverflowError for us if need be
   }

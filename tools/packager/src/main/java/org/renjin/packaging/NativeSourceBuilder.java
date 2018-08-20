@@ -22,6 +22,7 @@ import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleParser;
+import org.renjin.gnur.GlobalVarPlugin;
 import org.renjin.gnur.GnurSourcesCompiler;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.base.Charsets;
@@ -51,10 +52,18 @@ public class NativeSourceBuilder {
 
   private PackageSource source;
   private BuildContext buildContext;
+  private boolean transformGlobalVariables;
 
   public NativeSourceBuilder(PackageSource source, BuildContext buildContext) {
     this.source = source;
     this.buildContext = buildContext;
+  }
+
+  /**
+   * Determines whether we attempt to transform global variables to Renjin-context scoped global variables.
+   */
+  public void setTransformGlobalVariables(boolean transformGlobalVariables) {
+    this.transformGlobalVariables = transformGlobalVariables;
   }
 
   public void build() throws IOException, InterruptedException {
@@ -204,9 +213,13 @@ public class NativeSourceBuilder {
     compiler.setLoggingDirectory(buildContext.getCompileLogDir());
 
     try {
-      GnurSourcesCompiler.setupCompiler(compiler, compiler.getPackageName());
+      GnurSourcesCompiler.setupCompiler(compiler);
     } catch (ClassNotFoundException e) {
       throw new BuildException("Failed to setup Gimple Compiler", e);
+    }
+
+    if(transformGlobalVariables) {
+      compiler.addPlugin(new GlobalVarPlugin(compiler.getPackageName()));
     }
 
     try {

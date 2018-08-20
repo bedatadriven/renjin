@@ -26,7 +26,9 @@ import org.renjin.gcc.codegen.fatptr.AddressableField;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.var.GlobalVarAllocator;
 import org.renjin.gcc.codegen.var.VarAllocator;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
@@ -90,6 +92,15 @@ public class PrimitiveTypeStrategy implements TypeStrategy<PrimitiveExpr> {
     } else {
       return type.fromStackValue(allocator.reserve(decl.getNameIfPresent(), type.localVariableType()));
     }
+  }
+
+  @Override
+  public PrimitiveExpr globalVariable(GimpleVarDecl decl, GlobalVarAllocator allocator) {
+    GlobalVarAllocator.StaticField field = allocator.reserve(decl.getNameIfPresent(), type.localVariableType());
+    JExpr ptrExpr = type.fieldPointer(field.getDeclaringClass(), field.getName());
+    PtrExpr addressExpr = new VPtrExpr(ptrExpr);
+
+    return type.fromStackValue(field, addressExpr);
   }
 
   @Override

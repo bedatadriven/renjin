@@ -21,6 +21,7 @@ package org.renjin.gnur.api;
 
 import org.renjin.eval.*;
 import org.renjin.gcc.annotations.GlobalVar;
+import org.renjin.gcc.annotations.Noop;
 import org.renjin.gcc.runtime.*;
 import org.renjin.gnur.api.annotations.Allocator;
 import org.renjin.gnur.api.annotations.Mutee;
@@ -449,6 +450,7 @@ public final class Rinternals {
     return 2;
   }
 
+  @Noop
   public static void SET_NAMED(SEXP sexp, int value) {
     // NOOP
   }
@@ -2132,6 +2134,7 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_type2str_nowarn");
   }
 
+  @Noop
   public static void Rf_unprotect_ptr(SEXP p0) {
     // NOOP
   }
@@ -2729,11 +2732,13 @@ public final class Rinternals {
     return Native.currentContext().getNamespaceRegistry().getNamespaceIfPresent(Symbol.get("methods")).get().getNamespaceEnvironment();
   }
 
+  @Noop
   public static void R_PreserveObject(SEXP p0) {
     // NOOP
     // We have a garbage collector.
   }
 
+  @Noop
   public static void R_ReleaseObject(SEXP p0) {
     // NOOP
     // We have a garbage collector.
@@ -3126,10 +3131,19 @@ public final class Rinternals {
    *          larger than the current size of the C pointer
    *          protection stack.
    */
+  @Noop
   public static void Rf_unprotect(int count) {
     // NOOP
   }
 
+
+  /**
+   * @deprecated See {@link #R_ProtectWithIndex(SEXP, Ptr)}, which accepts any pointer type
+   */
+  @Deprecated
+  public static void R_ProtectWithIndex(SEXP node, /*PROTECT_INDEX **/ IntPtr iptr) {
+    // NOOP
+  }
 
   /**
    *
@@ -3147,7 +3161,8 @@ public final class Rinternals {
    * @param iptr Pointer to a location in which the stack cell index
    *          is to be stored.
    */
-  public static void R_ProtectWithIndex(SEXP node, /*PROTECT_INDEX **/ IntPtr iptr) {
+  @Noop
+  public static void R_ProtectWithIndex(SEXP node, /*PROTECT_INDEX **/ Ptr iptr) {
     // NOOP
   }
 
@@ -3170,6 +3185,7 @@ public final class Rinternals {
    *          than the current size of the C pointer protection
    *          stack.
    */
+  @Noop
   public static void R_Reprotect(SEXP node, /*PROTECT_INDEX*/ int index) {
     // NOOP
   }

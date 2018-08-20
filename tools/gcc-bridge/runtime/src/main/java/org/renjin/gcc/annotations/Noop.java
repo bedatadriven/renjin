@@ -16,44 +16,17 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-// Initial template generated from Memory.h from R 3.2.2
-package org.renjin.gnur.api;
+package org.renjin.gcc.annotations;
 
-import org.renjin.gcc.annotations.Noop;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * GNU R API methods defined in the "R_ext/Memory.h" header file
+ * Designates a method as a "No operation" that can be safely omitted from the code
  */
-@SuppressWarnings("unused")
-public final class Memory {
-
-  private Memory() {
-  }
-
-
-  public static Object vmaxget() {
-    // NOOP
-    return null;
-  }
-
-  @Noop
-  public static void vmaxset(Object p0) {
-    // NOOP
-  }
-
-  /**
-   * Intended to invoke the R garbage collector but implemented to have no effect in Renjin.
-   */
-  @Noop
-  public static void R_gc() {
-    // NOOP
-  }
-
-  /**
-   * Intended to return TRUE if the garbage collector is running. Renjin's implementation always returns FALSE.
-   */
-  public static int R_gc_running() {
-    return 0;
-  }
-
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Noop {
 }

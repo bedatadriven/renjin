@@ -23,6 +23,7 @@ import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
+import org.renjin.gcc.codegen.var.GlobalVarAllocator;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
@@ -52,6 +53,10 @@ public interface TypeStrategy<ExprT extends GExpr> {
    * Creates an expression generator for {@link GimpleVarDecl}s of this type
    */
   ExprT variable(GimpleVarDecl decl, VarAllocator allocator);
+
+  default ExprT globalVariable(GimpleVarDecl decl, GlobalVarAllocator allocator) {
+    return variable(decl, allocator);
+  }
 
 
   /**

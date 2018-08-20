@@ -47,6 +47,7 @@ public class GnurSourcesCompiler {
   private List<File> includeDirs = Lists.newArrayList();
   private ClassLoader linkClassLoader = getClass().getClassLoader();
   private File loggingDir;
+  private boolean transformGlobalVariables;
 
   public void setPackageName(String packageName) {
     this.packageName = packageName;
@@ -84,6 +85,10 @@ public class GnurSourcesCompiler {
         }
       }
     }
+  }
+
+  public void setTransformGlobalVariables(boolean transformGlobalVariables) {
+    this.transformGlobalVariables = transformGlobalVariables;
   }
 
   private boolean isSourceFile(String name) {
@@ -147,7 +152,11 @@ public class GnurSourcesCompiler {
       compiler.setLinkClassLoader(linkClassLoader);
       compiler.addMathLibrary();
 
-      setupCompiler(compiler, compiler.getPackageName());
+      setupCompiler(compiler);
+
+      if(transformGlobalVariables) {
+        compiler.addPlugin(new GlobalVarPlugin(compiler.getPackageName()));
+      }
 
       compiler.setLoggingDirectory(loggingDir);
 
@@ -155,7 +164,7 @@ public class GnurSourcesCompiler {
     }
   }
 
-  public static void setupCompiler(GimpleCompiler compiler, String packageName) throws ClassNotFoundException {
+  public static void setupCompiler(GimpleCompiler compiler) throws ClassNotFoundException {
     compiler.addReferenceClass(Class.forName("org.renjin.appl.Appl"));
     compiler.addReferenceClass(Class.forName("org.renjin.math.Blas"));
     Class distributionsClass = Class.forName("org.renjin.stats.internals.Distributions");
@@ -207,8 +216,6 @@ public class GnurSourcesCompiler {
 
     compiler.addTransformer(new SetTypeRewriter());
     compiler.addTransformer(new MutationRewriter());
-
-    compiler.addPlugin(new GlobalVarPlugin(packageName));
 
   }
 

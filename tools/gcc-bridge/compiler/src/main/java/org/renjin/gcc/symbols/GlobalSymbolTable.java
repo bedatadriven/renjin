@@ -22,6 +22,7 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.ProvidedGlobalVar;
 import org.renjin.gcc.ProvidedGlobalVarField;
 import org.renjin.gcc.annotations.GlobalVar;
+import org.renjin.gcc.annotations.Noop;
 import org.renjin.gcc.codegen.call.*;
 import org.renjin.gcc.codegen.cpp.*;
 import org.renjin.gcc.codegen.expr.Expressions;
@@ -196,7 +197,17 @@ public class GlobalSymbolTable implements SymbolTable {
 
   public void addFunction(String functionName, Method method) {
     Preconditions.checkArgument(Modifier.isStatic(method.getModifiers()), "Method '%s' must be static", method);
-    functions.put(functionName, new FunctionCallGenerator(new StaticMethodStrategy(typeOracle, method)));
+
+    FunctionCallGenerator callGenerator = new FunctionCallGenerator(new StaticMethodStrategy(typeOracle, method));
+    if(method.isAnnotationPresent(Noop.class)) {
+      if(!method.getReturnType().equals(void.class)) {
+        throw new IllegalStateException("Method " + method + " is annotated with @" + Noop.class.getSimpleName() +
+          " but does not have a void return type.");
+      }
+      functions.put(functionName, new NoopCallGenerator(callGenerator));
+    } else {
+      functions.put(functionName, callGenerator);
+    }
   }
 
   public void addMethods(Class<?> clazz) {

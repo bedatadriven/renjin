@@ -50,6 +50,9 @@
               <goal>gnur-sources-compile</goal>
             </goals>
             <phase>compile</phase>
+            <configuration>
+             <transformGlobalVariables>true</transformGlobalVariables>
+            </configuration>
           </execution>
           <execution>
             <id>build</id>

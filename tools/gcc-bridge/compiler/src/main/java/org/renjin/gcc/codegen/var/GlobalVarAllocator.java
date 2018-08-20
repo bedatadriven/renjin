@@ -38,7 +38,7 @@ import java.util.Set;
  */
 public class GlobalVarAllocator extends VarAllocator {
 
-  private class StaticField implements JLValue {
+  public class StaticField implements JLValue {
 
     private String name;
     private Type type;
@@ -54,6 +54,14 @@ public class GlobalVarAllocator extends VarAllocator {
     @Override
     public Type getType() {
       return type;
+    }
+
+    public Type getDeclaringClass() {
+      return declaringClass;
+    }
+
+    public String getName() {
+      return name;
     }
 
     @Override
@@ -73,15 +81,16 @@ public class GlobalVarAllocator extends VarAllocator {
   private final Set<String> fieldNames = Sets.newHashSet();
 
   public GlobalVarAllocator(String declaringClass) {
-    this.declaringClass = Type.getType(declaringClass);
+    this.declaringClass = Type.getType("L" + declaringClass + ";");
+    assert this.declaringClass.getSort() == Type.OBJECT;
   }
 
   @Override
-  public JLValue reserve(String name, Type type) {
+  public StaticField reserve(String name, Type type) {
     return reserve(name, type, Optional.empty());
   }
 
-  public JLValue reserve(String name, Type type, Optional<JExpr> initialValue) {
+  public StaticField reserve(String name, Type type, Optional<JExpr> initialValue) {
     String fieldName = toJavaSafeName(name);
     if(fieldNames.contains(fieldName)) {
       throw new InternalCompilerException("Duplicate field name generated '" + name + "' [" + fieldName + "]");
@@ -93,7 +102,7 @@ public class GlobalVarAllocator extends VarAllocator {
   }
 
   @Override
-  public JLValue reserve(String name, Type type, JExpr initialValue) {
+  public StaticField reserve(String name, Type type, JExpr initialValue) {
     return reserve(name, type, Optional.of(initialValue));
   }
 

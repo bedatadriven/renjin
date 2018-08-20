@@ -111,35 +111,13 @@ public class FloatPtr extends AbstractPtr {
 
   @Override
   public byte getByte(int offset) {
-    int bytes = (this.offset * BYTES) + offset;
-    int index = bytes / BYTES;
-    float element = array[index];
-    long elementBits = Float.floatToRawIntBits(element);
-    int shift = (bytes % BYTES) * BITS_PER_BYTE;
-
-    return (byte)(elementBits >>> shift);
+    return getByteViaFloat(offset);
   }
 
   @Override
   public void setByte(int offset, byte value) {
-    int bytes = (this.offset * BYTES) + offset;
-    int index = bytes / BYTES;
-    int shift = (bytes % BYTES) * BITS_PER_BYTE;
-
-    int element = Float.floatToRawIntBits(array[index]);
-
-    int updateMask = 0xff << shift;
-
-    // Zero out the bits in the byte we are going to update
-    element = element & ~updateMask;
-
-    // Shift our byte into position
-    int update = (((int)value) << shift) & updateMask;
-
-    // Merge the original long and updated bits together
-    array[index] = Float.intBitsToFloat(element | update);
+    setByteViaFloat(offset, value);
   }
-
 
   @Override
   public int toInt() {

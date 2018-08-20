@@ -209,33 +209,12 @@ public class DoublePtr extends AbstractPtr implements Ptr {
 
   @Override
   public byte getByte(int offset) {
-    int bytes = (this.offset * BYTES) + offset;
-    int index = bytes / BYTES;
-    double element = array[index];
-    long elementBits = Double.doubleToRawLongBits(element);
-    int shift = (bytes % BYTES) * BITS_PER_BYTE;
-
-    return (byte)(elementBits >>> shift);
+    return getByteViaDouble(offset);
   }
 
   @Override
   public void setByte(int offset, byte value) {
-    int bytes = (this.offset * BYTES) + offset;
-    int index = bytes / BYTES;
-    int shift = (bytes % BYTES) * BITS_PER_BYTE;
-
-    long element = Double.doubleToRawLongBits(array[index]);
-
-    long updateMask = 0xffL << shift;
-
-    // Zero out the bits in the byte we are going to update
-    element = element & ~updateMask;
-
-    // Shift our byte into position
-    long update = (((long)value) << shift) & updateMask;
-
-    // Merge the original long and updated bits together
-    array[index] = Double.longBitsToDouble(element | update);
+    setByteViaDouble(offset, value);
   }
 
   @Override

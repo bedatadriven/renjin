@@ -23,6 +23,7 @@ import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.var.GlobalVarAllocator;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
@@ -127,6 +128,19 @@ public class VPtrStrategy implements PointerTypeStrategy {
     }
   }
 
+  @Override
+  public GExpr globalVariable(GimpleVarDecl decl, GlobalVarAllocator allocator) {
+    GlobalVarAllocator.StaticField field = allocator.reserve(decl.getNameIfPresent(), POINTER_INTERFACE_TYPE);
+    VPtrExpr addressExpr = new VPtrExpr(staticFieldPtr(field.getDeclaringClass(), field.getName()));
+    return new VPtrExpr(field, addressExpr);
+  }
+
+  private JExpr staticFieldPtr(Type declaringType, String fieldName) {
+    Type ptrClassName = Type.getType("Lorg/renjin/gcc/runtime/PointerFieldPtr;");
+    String addressOfDescriptor = Type.getMethodDescriptor(Type.getType(Ptr.class), Type.getType(Class.class), Type.getType(String.class));
+    return Expressions.staticMethodCall(ptrClassName, "addressOf", addressOfDescriptor,
+        Expressions.constantClass(declaringType), Expressions.constantString(fieldName));
+  }
 
   @Override
   public GExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {

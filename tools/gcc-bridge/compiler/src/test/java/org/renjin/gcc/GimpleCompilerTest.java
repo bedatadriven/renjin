@@ -415,6 +415,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
 
   @Test
+  public void globalPointers() throws Exception {
+    compileAndTest("global_ptr.c");
+  }
+
+  @Test
   public void enums() throws Exception {
     Class clazz = compile("enum.c");
 
@@ -744,6 +749,8 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     Integer magicNumber2 = (Integer) link2.getMethod("test_addressable_global_var").invoke(null);
     assertThat(magicNumber2, equalTo(24));
+
+    link2.getMethod("test_pointer_identity").invoke(null);
   }
 
   @Test

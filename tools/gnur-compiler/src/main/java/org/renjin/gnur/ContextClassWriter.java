@@ -249,10 +249,17 @@ public class ContextClassWriter {
       SymbolTable symbolTable = generationContext.getSymbolTable(globalVar.getUnit());
       ExprFactory exprFactory = new ExprFactory(generationContext.getTypeOracle(), symbolTable, mv);
 
-      GExpr initialValueExpr = exprFactory.findGenerator(initialValue);
-      GExpr varExpr = symbolTable.getVariable(globalVar.newRef());
+      GExpr initialValueExpr;
+      try {
+        initialValueExpr = exprFactory.findGenerator(initialValue);
 
-      varExpr.store(mv, initialValueExpr);
+        GExpr varExpr = symbolTable.getVariable(globalVar.newRef());
+
+        varExpr.store(mv, initialValueExpr);
+      } catch (Exception e) {
+        System.err.println("Exception initializing per-thread global var '" + globalVar.getMangledName() + "'");
+        e.printStackTrace(System.err);
+      }
     }
   }
 }

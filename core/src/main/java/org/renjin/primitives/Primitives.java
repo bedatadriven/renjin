@@ -151,7 +151,7 @@ public class Primitives {
     } catch(final Exception e) {
       return new BuiltinFunction(entry.name) {
 
-        @Override
+        Override
         public SEXP apply(Context context, Environment rho,
                           FunctionCall call, PairList args) {
           throw new EvalException("Sorry! " + entry.name + " not yet implemented!", e);
@@ -846,6 +846,7 @@ public class Primitives {
     f("invalidateS4MethodCache", S4.class, 1);
     f("standardGeneric", Methods.class, 201);
     f("getClassDef", Methods.class, 11);
+    f("getClass", Methods.class, 11);
     f("selectMethod", Methods.class, 11);
 
 /* Modelling Functionality */

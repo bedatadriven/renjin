@@ -189,6 +189,7 @@ public class GnurSourcesCompiler {
     compiler.addReferenceClass(Riconv.class);
     compiler.addReferenceClass(Rinterface.class);
     compiler.addReferenceClass(Rinternals.class);
+    compiler.addReferenceClass(Rinternals2.class);
     compiler.addReferenceClass(rlocale.class);
     compiler.addReferenceClass(Rmath.class);
     compiler.addReferenceClass(RStartup.class);

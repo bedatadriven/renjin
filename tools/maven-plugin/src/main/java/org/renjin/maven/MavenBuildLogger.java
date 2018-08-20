@@ -47,4 +47,9 @@ public class MavenBuildLogger implements BuildLogger {
   public void error(String message) {
     log.error(message);
   }
+
+  @Override
+  public void error(String message, Exception e) {
+    log.error(message, e);
+  }
 }

@@ -44,6 +44,14 @@ public class GlobalVarRewriter implements GlobalVarTransformer {
 
   @Override
   public boolean accept(GimpleVarDecl decl) {
+
+    // Do not include C++ run-time type information in the per-thread context.
+    // It does not change after initialization.
+
+    if(decl.getMangledName().equals("_ZTVN10__cxxabiv120__si_class_type_infoE")) {
+      return false;
+    }
+
     return true;
   }
 

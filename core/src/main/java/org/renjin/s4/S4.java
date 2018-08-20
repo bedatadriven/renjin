@@ -189,22 +189,21 @@ public class S4 {
     return packageSlot.getElementAsString(0);
   }
 
-  public static AtomicVector getSuperClassesS4(Context context, String objClass) {
+  public static AtomicVector computeDataClassesS4(Context context, String objClass) {
+    S4Class s4Class = context.getSession()
+        .getS4Cache()
+        .getS4ClassCache()
+        .lookupClass(context, objClass);
 
-    S4Cache s4Cache = context.getSession().getS4Cache();
-    S4Class s4Class = s4Cache.getS4ClassCache().lookupClass(context, objClass);
-    SEXP classDef = s4Class.getDefinition();
-
-    SEXP containsSlot = classDef.getAttribute(S4.CONTAINS);
-    return containsSlot.getNames();
+    if(s4Class != null) {
+      return s4Class.getDefinition()
+          .getAttribute(S4.CONTAINS)
+          .getNames();
+    } else {
+      return null;
+    }
   }
 
-  public static SEXP computeDataClassesS4(Context context, String className) {
-    Symbol argClassObjectName = Symbol.get(CLASS_PREFIX + className);
-    Environment environment = context.getEnvironment();
-    AttributeMap map = environment.findVariable(context, argClassObjectName).force(context).getAttributes();
-    return map.get("contains").getNames();
-  }
 
   public static Symbol classNameMetadata(String className) {
     return Symbol.get(CLASS_PREFIX + className);

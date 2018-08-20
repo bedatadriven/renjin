@@ -29,7 +29,6 @@ import org.renjin.methods.MethodDispatch;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.*;
 import org.renjin.primitives.match.Duplicates;
-import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.packaging.Namespaces;
 import org.renjin.primitives.subset.Subsetting;
 import org.renjin.primitives.vector.RowNamesVector;
@@ -586,6 +585,10 @@ public final class Rinternals {
     }
   }
 
+  /**
+   * @deprecated Return type changed, see {@link Rinternals2}
+   */
+  @Deprecated
   public static IntPtr INTEGER(SEXP x) {
     if(x instanceof IntArrayVector) {
       return new IntPtr(((IntArrayVector) x).toIntArrayUnsafe());
@@ -612,6 +615,10 @@ public final class Rinternals {
     throw new EvalException("RAW(): Expected raw vector, found %s", x.getTypeName());
   }
 
+  /**
+   * Return type changed. See {@link Rinternals2#REAL}
+   */
+  @Deprecated
   public static DoublePtr REAL(SEXP x) {
     if(x instanceof DoubleArrayVector) {
       // Return the array backing the double vector
@@ -1612,7 +1619,7 @@ public final class Rinternals {
       return new RawVector(((RawVector) sexp).toByteArrayUnsafe(), sexp.getAttributes());
 
     } else if(sexp instanceof S4Object) {
-      return new S4Object(sexp.getAttributes());
+      return new S4Object(duplicate(sexp.getAttributes()));
 
     } else if(sexp instanceof ListVector) {
       SEXP[] elements = ((ListVector) sexp).toArrayUnsafe();
@@ -1637,6 +1644,14 @@ public final class Rinternals {
 
     }
     throw new UnimplementedGnuApiMethod("Rf_duplicate: " + sexp.getTypeName());
+  }
+
+  private static AttributeMap duplicate(AttributeMap attributes) {
+    AttributeMap.Builder copy = AttributeMap.builder();
+    for (Symbol symbol : attributes.names()) {
+      copy.set(symbol, Rf_duplicate(attributes.get(symbol)));
+    }
+    return copy.build();
   }
 
   private static SEXP duplicatePairList(PairList pairlist) {
@@ -2572,10 +2587,8 @@ public final class Rinternals {
       throw new EvalException("C level MAKE_CLASS macro called with NULL string pointer");
     }
     Context context = Native.currentContext();
-    Namespace methodsNamespace = context.getNamespaceRegistry().getNamespace(context, "methods");
 
-    return context.evaluate(FunctionCall.newCall(Symbol.get("getClass"),
-        StringVector.valueOf(what.nullTerminatedString())));
+    return Methods.getClass(context, StringVector.valueOf(what.nullTerminatedString()), false, Null.INSTANCE);
   }
 
   public static SEXP R_getClassDef(BytePtr what) {
@@ -2586,11 +2599,9 @@ public final class Rinternals {
     return R_getClassDef_R(StringArrayVector.valueOf(what.nullTerminatedString()));
   }
 
-  public static SEXP R_getClassDef_R(SEXP what) {
+  public static SEXP R_getClassDef_R(StringVector what) {
     Context context = Native.currentContext();
-    Namespace methodsNamespace = context.getNamespaceRegistry().getNamespace(context, "methods");
-
-    return context.evaluate(FunctionCall.newCall(Symbol.get("getClassDef"), what));
+    return Methods.getClassDef(context, what, Null.INSTANCE, Null.INSTANCE, true);
   }
 
   public static boolean R_has_methods_attached() {
@@ -2684,6 +2695,17 @@ public final class Rinternals {
     return R_check_class_etc(x, new PointerPtr((Ptr[]) valid.array, valid.offset));
   }
 
+  /**
+   * Return the 0-based index of an is() match in a vector of class-name
+   * strings terminated by an empty string.  Returns -1 for no match.
+   * Strives to find the correct environment() for is(), using .classEnv()
+   * (from \pkg{methods}).
+   *
+   * @param x  an R object, about which we want is(x, .) information.
+   * @param valid vector of possible matches terminated by an empty string.
+   *
+   * @return index of match or -1 for no match
+   */
   public static int R_check_class_etc (SEXP x, Ptr valid) {
     SEXP cl = Rf_getAttrib(x, R_ClassSymbol);
     SEXP rho = R_GlobalEnv();

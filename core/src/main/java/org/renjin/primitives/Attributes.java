@@ -331,7 +331,7 @@ public class Attributes {
       if(whatClass.equals(className)) {
         return i + 1;
       } else if(s4) {
-        AtomicVector superClasses = S4.getSuperClassesS4(context, className);
+        AtomicVector superClasses = S4.computeDataClassesS4(context, className);
         for (int j = 0; j < superClasses.length(); j++) {
           if(whatClass.equals(superClasses.getElementAsString(j))) {
             return i + 1;
@@ -340,6 +340,15 @@ public class Attributes {
       }
     }
     return 0;
+  }
+
+  public static StringVector getContainsSlotNames(SEXP exp) {
+    if(exp.getAttribute(S4.CONTAINS) != null) {
+      return (StringArrayVector) exp.getAttribute(S4.CONTAINS).getNames();
+    }
+    else {
+      return StringVector.EMPTY;
+    }
   }
 
 }

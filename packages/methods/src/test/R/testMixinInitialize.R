@@ -2,6 +2,7 @@
 
 library(hamcrest)
 library(stats)
+library(methods)
 
 test.setClassInheritRepresentationAndContains <- function() {
 		setClass("A", representation(a="numeric"))
@@ -28,7 +29,7 @@ test.setClassInheritRepresentationAndContains <- function() {
 
 }
 
-failing.test.setClassCallSlots <- function() {
+test.setClassCallSlots <- function() {
 		setClass("A", representation(a="numeric"))
 		a1 <- new("A", a=1.5)
 		m1 <- as.matrix(1)
@@ -54,7 +55,7 @@ failing.test.setClassCallSlots <- function() {
 }
 
 
-failing.test.setClassValidateSlots <- function() {
+test.setClassValidateSlots <- function() {
 		setClass("A", representation(a="numeric"))
 		a1 <- new("A", a=1.5)
 		m1 <- as.matrix(1)
@@ -90,7 +91,7 @@ failing.test.setClassValidateSlots <- function() {
 
 
 
-ignore.test.setClassValidateSlots <- function() {
+test.setClassValidateSlots <- function() {
 	a3 <- array(1:24, 2:4)
 	a2 <- array(1:12, 3:4)
 

@@ -77,6 +77,11 @@ public class NativeSourceBuilder {
     } catch (Exception e) {
       buildContext.getLogger().error("Soot optimization run failed", e);
     }
+
+    // When soot hits an error, it can set the interrupt flag for this
+    // thread.
+    Thread.interrupted();
+
   }
 
   private void configure() throws IOException, InterruptedException {

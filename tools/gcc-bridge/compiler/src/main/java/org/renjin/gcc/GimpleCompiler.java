@@ -37,6 +37,7 @@ import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
+import org.renjin.repackaged.guava.collect.Ordering;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.repackaged.guava.io.Files;
 
@@ -240,13 +241,13 @@ public class GimpleCompiler  {
       // symbols are added to the global symbol table.
       // This allows us to effectively do linking at the same time as code generation
       List<UnitClassGenerator> unitClassGenerators = Lists.newArrayList();
+      Map<GimpleCompilationUnit, String> unitNames = nameCompilationUnits(units);
       for (GimpleCompilationUnit unit : units) {
-        String className = classNameForUnit(unit.getName());
         UnitClassGenerator generator = new UnitClassGenerator(
             typeOracle,
             globalSymbolTable,
             globalVarTransformers,
-            unit, className);
+            unit, unitNames.get(unit));
         unitClassGenerators.add(generator);
       }
 
@@ -281,6 +282,29 @@ public class GimpleCompiler  {
         e.printStackTrace();
       }
     }
+  }
+
+  private Map<GimpleCompilationUnit, String> nameCompilationUnits(List<GimpleCompilationUnit> units) {
+    // First sort compilation units by path so we get consistent names between compilations
+    units.sort(Ordering.natural().onResultOf(u -> u.getSourceFile().getAbsolutePath()));
+
+    Map<String, Integer> nameCounter = new HashMap<>();
+    Map<GimpleCompilationUnit, String> nameMap = new HashMap<>();
+    for (GimpleCompilationUnit unit : units) {
+      String className = classNameForUnit(unit.getName());
+      int duplicateIndex = nameCounter.getOrDefault(className, 0);
+      String uniqueClassName;
+      if (duplicateIndex == 0) {
+        uniqueClassName = className;
+      } else {
+        uniqueClassName = className + "$" + duplicateIndex;
+      }
+      nameMap.put(unit, uniqueClassName);
+      nameCounter.put(className, duplicateIndex + 1);
+    }
+
+    return nameMap;
+
   }
 
 

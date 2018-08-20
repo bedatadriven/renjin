@@ -513,13 +513,25 @@ public class Evaluation {
   }
 
   @Internal
-  public static void remove(StringVector names, Environment envir, boolean inherits) {
-    if(inherits) {
-      throw new EvalException("remove(inherits=TRUE) is not yet implemented");
+  public static void remove(@Current Context context, StringVector names, Environment envir, boolean inherits) {
+    for (String name : names) {
+      remove(context, Symbol.get(name), envir, inherits);
     }
-    for(String name : names) {
-      envir.remove(Symbol.get(name));
+  }
+
+  private static void remove(Context context, Symbol name, Environment envir, boolean inherits) {
+    Environment e = envir;
+    while(e != Environment.EMPTY){
+      if(e.hasVariable(name)) {
+        e.remove(name);
+        return;
+      }
+      if(!inherits) {
+        break;
+      }
+      e = e.getParent();
     }
+    Warning.emitWarning(context, false,"object '" + name.getPrintName() + "' not found");
   }
 
 }

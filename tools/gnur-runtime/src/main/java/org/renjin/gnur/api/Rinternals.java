@@ -1599,6 +1599,10 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_duplicate(SEXP sexp) {
+    return duplicate(sexp, true);
+  }
+
+  private static SEXP duplicate(SEXP sexp, boolean deep) {
     if(sexp == Null.INSTANCE) {
       return sexp;
     }
@@ -1626,21 +1630,22 @@ public final class Rinternals {
     } else if(sexp instanceof ListVector) {
       SEXP[] elements = ((ListVector) sexp).toArrayUnsafe();
       for (int i = 0; i < elements.length; i++) {
-        elements[i] = Rf_duplicate(elements[i]);
+        elements[i] = deep ? duplicate(elements[i], deep) : elements[i];
       }
       return new ListVector(elements, sexp.getAttributes());
 
     } else if(sexp instanceof FunctionCall) {
-      return duplicateCall(((FunctionCall) sexp));
+      return duplicateCall(((FunctionCall) sexp), deep);
 
     } else if(sexp instanceof PairList) {
-      return duplicatePairList(((PairList) sexp));
+      return duplicatePairList(((PairList) sexp), deep);
 
     } else if(
         sexp instanceof Symbol |
         sexp instanceof PrimitiveFunction |
         sexp instanceof ExternalPtr |
-        sexp instanceof Environment) {
+        sexp instanceof Environment |
+        sexp instanceof Promise) {
 
       return sexp;
 
@@ -1656,24 +1661,24 @@ public final class Rinternals {
     return copy.build();
   }
 
-  private static SEXP duplicatePairList(PairList pairlist) {
+  private static SEXP duplicatePairList(PairList pairlist, boolean deep) {
     PairList.Builder copy = new PairList.Builder();
     for (PairList.Node node : pairlist.nodes()) {
-      copy.add(node.getRawTag(), Rf_duplicate(node.getValue()));
+      copy.add(node.getRawTag(), deep ? Rf_duplicate(node.getValue()) : node.getValue());
     }
     return copy.build();
   }
 
-  private static SEXP duplicateCall(FunctionCall call) {
+  private static SEXP duplicateCall(FunctionCall call, boolean deep) {
     FunctionCall.Builder copy = new FunctionCall.Builder();
     for (PairList.Node node : call.nodes()) {
-      copy.add(node.getRawTag(), Rf_duplicate(node.getValue()));
+      copy.add(node.getRawTag(), deep ? Rf_duplicate(node.getValue()) : node.getValue());
     }
     return copy.build();
   }
 
   public static SEXP Rf_shallow_duplicate(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_shallow_duplicate");
+    return duplicate(p0, false);
   }
 
   public static SEXP Rf_lazy_duplicate(SEXP p0) {
@@ -2987,6 +2992,10 @@ public final class Rinternals {
 
   public static int Rf_length (SEXP sexp) {
     return sexp.length();
+  }
+
+  public static SEXP Rf_lengthgets(SEXP sexp, int length) {
+    return Vectors.setLength((Vector)sexp, length);
   }
 
   public static SEXP Rf_list1(SEXP p0) {

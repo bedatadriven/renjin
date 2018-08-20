@@ -1033,7 +1033,7 @@ public final class Rinternals {
    * @return Pointer to the enclosing environment of {@code x}.
    */
   public static SEXP ENCLOS(SEXP x) {
-    throw new UnimplementedGnuApiMethod("ENCLOS");
+    return ((Environment) x).getParent();
   }
 
   public static SEXP HASHTAB(SEXP x) {

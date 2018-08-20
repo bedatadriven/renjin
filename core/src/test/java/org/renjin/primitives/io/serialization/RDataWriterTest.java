@@ -247,6 +247,27 @@ public class RDataWriterTest extends EvalTestCase {
     assertTrue("s4 bit is read", Types.isS4(result));
   }
 
+  @Test
+  public void builtin() throws IOException {
+
+    SEXP primEval = eval("eval(quote(sys.function(0)))");
+
+    assertTrue(Types.isFunction(primEval));
+    assertThat(primEval.getTypeName(), equalTo("builtin"));
+
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    RDataWriter writer = new RDataWriter(this.topLevelContext, out);
+    writer.save(primEval);
+
+    ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+    RDataReader reader = new RDataReader(in);
+
+    SEXP result = reader.readFile();
+    assertThat(result, instanceOf(PrimitiveFunction.class));
+    assertThat(((BuiltinFunction) result).getName(), equalTo("eval"));
+  }
+
+
 
 
 

@@ -45,6 +45,9 @@
   						<goal>gnur-compile</goal>
   					</goals>
   					<phase>compile</phase>
+					<configuration>
+						<transformGlobalVariables>true</transformGlobalVariables>
+					</configuration>
   				</execution>
   				<execution>
   					<id>test</id>

@@ -243,7 +243,7 @@ public class GimpleCompiler  {
       List<UnitClassGenerator> unitClassGenerators = Lists.newArrayList();
       Map<GimpleCompilationUnit, String> unitNames = nameCompilationUnits(units);
       for (GimpleCompilationUnit unit : units) {
-        UnitClassGenerator generator = new UnitClassGenerator(
+        UnitClassGenerator generator = new  UnitClassGenerator(
             typeOracle,
             globalSymbolTable,
             globalVarTransformers,

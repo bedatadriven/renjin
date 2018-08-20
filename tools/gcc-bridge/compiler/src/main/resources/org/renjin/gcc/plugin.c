@@ -1232,7 +1232,7 @@ plugin_init (struct plugin_name_args *plugin_info,
 
   if(!json_f) {
     char jsonfile[1024];
-    sprintf(jsonfile, "%s.gimple", main_input_filename);
+    sprintf(jsonfile, "%s.gimple", aux_base_name);
     TRACE("Writing gimple to %s...\n", jsonfile);
     json_f = fopen(jsonfile, "w");
   }

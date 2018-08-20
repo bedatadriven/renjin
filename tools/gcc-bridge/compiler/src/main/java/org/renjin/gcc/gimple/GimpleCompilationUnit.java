@@ -55,11 +55,11 @@ public class GimpleCompilationUnit {
     filename = filename.substring(0, filename.length() - ".gimple".length());
 
     // Now remove the filetype extension like .c or .cc
-    int lastDot = filename.lastIndexOf('.');
-    if(lastDot == -1) {
-      throw new IllegalStateException("Expected file name ending in .xx.gimple");
+    int firstDot = filename.indexOf('.');
+    if(firstDot != -1) {
+      filename = filename.substring(0, firstDot);
     }
-    return filename.substring(0, lastDot);
+    return filename;
   }
 
   public String getSourceName() {

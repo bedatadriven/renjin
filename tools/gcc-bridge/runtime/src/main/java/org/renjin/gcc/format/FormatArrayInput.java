@@ -30,6 +30,11 @@ public class FormatArrayInput implements FormatInput {
   }
 
   @Override
+  public boolean isNA(int argumentIndex) {
+    return false;
+  }
+
+  @Override
   public int getInt(int argumentIndex) {
     Object value = arguments[argumentIndex];
     if(value instanceof Number) {

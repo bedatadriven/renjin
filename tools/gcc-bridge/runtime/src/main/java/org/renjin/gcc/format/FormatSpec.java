@@ -249,6 +249,10 @@ class FormatSpec {
 
   public String format(FormatInput input) {
 
+    if(input.isNA(argumentPosition)) {
+      return "NA";
+    }
+
     if(variableFieldWidth) {
       int providedWidth = input.getInt(argumentPositionForFieldWidth);
       leftJustify = (providedWidth < 0);

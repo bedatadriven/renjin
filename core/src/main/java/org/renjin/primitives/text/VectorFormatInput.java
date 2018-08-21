@@ -42,6 +42,11 @@ public class VectorFormatInput implements FormatInput {
   }
 
   @Override
+  public boolean isNA(int argumentIndex) {
+    return vectors[argumentIndex].isElementNA(elementIndex(argumentIndex));
+  }
+
+  @Override
   public int getInt(int argumentIndex) {
     AtomicVector vector = vectors[argumentIndex];
     int index = elementIndex(argumentIndex);

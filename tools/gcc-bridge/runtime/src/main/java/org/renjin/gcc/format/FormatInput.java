@@ -20,6 +20,7 @@ package org.renjin.gcc.format;
 
 public interface FormatInput {
 
+  boolean isNA(int argumentIndex);
   int getInt(int argumentIndex);
   long getLong(int argumentIndex);
   long getUnsignedLong(int argumentIndex);

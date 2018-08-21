@@ -168,11 +168,7 @@ class FormatSpec {
 
   int argumentPosition;
 
-  boolean positionalFieldWidth;
-
   int argumentPositionForFieldWidth;
-
-  boolean positionalPrecision;
 
   int argumentPositionForPrecision;
 
@@ -251,6 +247,10 @@ class FormatSpec {
 
   public String format(FormatInput input) {
 
+    if (literal != null) {
+      return literal;
+    }
+
     if (input.isNA(argumentPosition)) {
       return "NA";
     }
@@ -268,8 +268,6 @@ class FormatSpec {
     }
 
     switch (conversionCharacter) {
-      case '\0':
-        return literal;
       case 'd':
       case 'i':
         if (optionall) {

@@ -25,7 +25,7 @@ public class FormatArrayInput implements FormatInput {
 
   private final Object[] arguments;
 
-  public FormatArrayInput(Object[] arguments) {
+  public FormatArrayInput(Object... arguments) {
     this.arguments = arguments;
   }
 

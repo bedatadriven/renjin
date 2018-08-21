@@ -20,6 +20,7 @@ package org.renjin.gcc.runtime;
 
 import org.renjin.gcc.StdOutHandle;
 import org.renjin.gcc.annotations.Struct;
+import org.renjin.gcc.format.FormatArrayInput;
 import org.renjin.gcc.format.Formatter;
 
 import java.io.FileNotFoundException;
@@ -468,7 +469,7 @@ public class Stdlib {
   public static String format(Ptr format, Object[] arguments) {
     String formatString = nullTerminatedString(format);
     Formatter formatter = new Formatter(formatString);
-    return formatter.sprintf(arguments);
+    return formatter.format(new FormatArrayInput(arguments));
   }
 
   public static void qsort(Ptr base, int nitems, int size, MethodHandle comparator) {

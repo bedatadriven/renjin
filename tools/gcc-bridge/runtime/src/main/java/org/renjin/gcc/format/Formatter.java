@@ -36,6 +36,7 @@ import java.util.Locale;
  */
 public class Formatter {
 
+
   public enum ArgumentType {
     INTEGER,
     DOUBLE,
@@ -283,13 +284,12 @@ public class Formatter {
 
     if (consumeIf('*')) {
       currentSpec.fieldWidthSet = true;
+      currentSpec.variableFieldWidth = true;
 
       int fieldWidthArgumentIndex = maybeConsumeArgumentIndex();
       if (fieldWidthArgumentIndex != -1) {
-        currentSpec.positionalFieldWidth = true;
         currentSpec.argumentPositionForFieldWidth = fieldWidthArgumentIndex;
       } else {
-        currentSpec.variableFieldWidth = true;
         currentSpec.argumentPositionForFieldWidth = currentArgumentIndex++;
       }
 
@@ -436,15 +436,15 @@ public class Formatter {
     return argumentTypes;
   }
 
-
-  /**
-   * Format an array of objects.
-   */
-  public String sprintf(Object... arguments) {
-    return sprintf(new FormatArrayInput(arguments));
+  public ArgumentType getArgumentType(int i) {
+    if(i < argumentTypes.size()) {
+      return argumentTypes.get(i);
+    }
+    return ArgumentType.UNUSED;
   }
 
-  public String sprintf(FormatInput input) {
+
+  public String format(FormatInput input) {
     StringBuilder result = new StringBuilder();
     for (FormatSpec conversion : conversions) {
       result.append(conversion.format(input));
@@ -452,8 +452,8 @@ public class Formatter {
     return result.toString();
   }
 
-  public static String sprintf(String formatString, Object... arguments) {
-    return new Formatter(formatString).sprintf(arguments);
+  public static String format(String formatString, Object... arguments) {
+    return new Formatter(formatString).format(new FormatArrayInput(arguments));
   }
 
 }

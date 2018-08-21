@@ -141,7 +141,7 @@ public class Text {
     AtomicVector[] formatArgs = new AtomicVector[arguments.length()];
     for(int i=0;i!=formatArgs.length;++i) {
       SEXP argument = arguments.getElementAsSEXP(i);
-      if(formatters[0].getArgumentTypes().get(i) == Formatter.ArgumentType.STRING && !(argument instanceof StringVector)) {
+      if(formatters[0].getArgumentType(i) == Formatter.ArgumentType.STRING && !(argument instanceof StringVector)) {
         argument = context.evaluate( FunctionCall.newCall(Symbol.get("as.character"), argument), rho);
       }
       if(!(argument instanceof AtomicVector)) {
@@ -177,7 +177,7 @@ public class Text {
 
     for(int resultIndex=0; resultIndex != cycles; ++resultIndex) {
       Formatter formatter = formatters[resultIndex % formatters.length];
-      result.add(formatter.sprintf(input));
+      result.add(formatter.format(input));
       input.next();
     }
 

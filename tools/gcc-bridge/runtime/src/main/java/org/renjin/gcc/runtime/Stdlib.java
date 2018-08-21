@@ -18,7 +18,6 @@
  */
 package org.renjin.gcc.runtime;
 
-import org.renjin.gcc.StdOutHandle;
 import org.renjin.gcc.annotations.Struct;
 
 import java.io.FileNotFoundException;
@@ -50,6 +49,8 @@ public class Stdlib {
   public static final Ptr stdout = new RecordUnitPtr<>(new StdOutHandle(System.out));
 
   public static final Ptr stderr = new RecordUnitPtr<>(new StdOutHandle(System.err));
+
+  public static final Ptr stdin = new RecordUnitPtr<>(new StdInHandle());
 
   @Deprecated
   public static int strncmp(BytePtr x, BytePtr y, int n) {

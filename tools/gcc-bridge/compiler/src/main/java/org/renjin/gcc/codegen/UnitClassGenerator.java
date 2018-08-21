@@ -60,6 +60,8 @@ import static org.renjin.repackaged.asm.Opcodes.*;
  */
 public class UnitClassGenerator {
 
+  private static final boolean INVOKE_CXX_INITIALIZERS = false;
+
   private final GimpleCompilationUnit unit;
   private final String className;
 
@@ -279,6 +281,10 @@ public class UnitClassGenerator {
    *
    */
   private void emitCppStaticInitialization(MethodGenerator mv) {
+
+    if(!INVOKE_CXX_INITIALIZERS) {
+      return;
+    }
 
     Optional<FunctionGenerator> initializer = symbolTable.getFunctions()
         .stream()

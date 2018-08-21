@@ -37,5 +37,6 @@ assertThat(sprintf('%0.f', 3.75 ), identicalTo("4"))
 
 assertThat(sprintf("0x%x", 64), identicalTo("0x40"))
 
-
+assertThat(sprintf("Sven is %i feet tall", 7.0), identicalTo("Sven is 7 feet tall"));
+assertThat(sprintf("Sven is %i feet tall", 7.5), throwsError());
 

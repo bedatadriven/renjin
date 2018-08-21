@@ -20,6 +20,7 @@ package org.renjin.gcc.runtime;
 
 import org.renjin.gcc.StdOutHandle;
 import org.renjin.gcc.annotations.Struct;
+import org.renjin.gcc.format.Formatter;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -399,11 +400,11 @@ public class Stdlib {
   public static int printf(BytePtr format, Object... arguments) {
     String outputString;
 
-    try {
+//    try {
       outputString = format(format, arguments);
-    } catch (Exception e) {
-      return -1;
-    }
+//    } catch (Exception e) {
+//      return -1;
+//    }
 
     System.out.print(outputString);
 
@@ -428,11 +429,11 @@ public class Stdlib {
 
     String outputString;
 
-    try {
+//    try {
       outputString = format(format, arguments);
-    } catch (Exception e) {
-      return -1;
-    }
+//    } catch (Exception e) {
+//      return -1;
+//    }
 
     byte[] outputBytes = outputString.getBytes();
 
@@ -442,8 +443,10 @@ public class Stdlib {
     if(bytesToCopy > 0) {
       // copy the formatted string to the output
       System.arraycopy(outputBytes, 0, string.array, string.offset, bytesToCopy);
+    }
 
-      // terminate string with null byte
+    // terminate string with null byte
+    if(limit > 0) {
       string.array[string.offset + bytesToCopy] = 0;
     }
 
@@ -463,30 +466,9 @@ public class Stdlib {
   }
 
   public static String format(Ptr format, Object[] arguments) {
-    Object[] convertedArgs = new Object[arguments.length];
-    for (int i = 0; i < arguments.length; i++) {
-      convertedArgs[i] = convertFormatArg(arguments[i]);
-    }
-
     String formatString = nullTerminatedString(format);
-    if(formatString.equals("%2.2x")) {
-      return String.format("%02x", convertedArgs);
-    } else if(formatString.equals("%016llx")) {
-      return String.format("%016x", convertedArgs);
-    } else {
-      return String.format(formatString, convertedArgs);
-    }
-  }
-
-  private static Object convertFormatArg(Object argument) {
-    if(argument instanceof Ptr && ((Ptr) argument).isNull()) {
-      return null;
-    }
-    if(argument instanceof BytePtr || argument instanceof MixedPtr) {
-      return Stdlib.nullTerminatedString((Ptr) argument);
-    } else {
-      return argument;
-    }
+    Formatter formatter = new Formatter(formatString);
+    return formatter.sprintf(arguments);
   }
 
   public static void qsort(Ptr base, int nitems, int size, MethodHandle comparator) {

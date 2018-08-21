@@ -83,6 +83,22 @@ test.remove <- function() {
     assertFalse(exists("yy"))
 }
 
+test.assign <- function() {
+   m <- 1
+   f <- function(v) {
+      if(!missing(v)) m <<- v
+      m
+   }
+   makeActiveBinding("activef", f, environment())
+
+   g <- function() {
+    assign("activef", value=99, inherits=TRUE)
+   }
+   g()
+
+   assertThat(m, identicalTo(99))
+}
+
 test.for.loop.index <- function() {
 
     j <- 4

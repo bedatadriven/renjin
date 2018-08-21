@@ -21,7 +21,9 @@ package org.renjin.gcc.runtime;
 import org.renjin.gcc.StdOutHandle;
 import org.renjin.gcc.annotations.Struct;
 import org.renjin.gcc.format.FormatArrayInput;
+import org.renjin.gcc.format.FormatInput;
 import org.renjin.gcc.format.Formatter;
+import org.renjin.gcc.format.VarArgsInput;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -35,6 +37,7 @@ import java.util.Date;
 import java.util.Random;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 /**
  * C standard library functions
@@ -402,7 +405,7 @@ public class Stdlib {
     String outputString;
 
     try {
-      outputString = format(format, arguments);
+      outputString = format(format, f -> new FormatArrayInput(arguments));
     } catch (Exception e) {
       return -1;
     }
@@ -427,14 +430,22 @@ public class Stdlib {
   }
 
   public static int snprintf(BytePtr string, int limit, BytePtr format, Object... arguments) {
+    return sprintf(string, limit, format, f -> new FormatArrayInput(arguments));
+  }
 
+
+  public static int vsnprintf(BytePtr string, int n, BytePtr format, Ptr argumentList) {
+    return sprintf(string, n, format, f -> new VarArgsInput(f, argumentList));
+  }
+
+  private static int sprintf(BytePtr string, int limit, BytePtr format, Function<Formatter, FormatInput> arguments) {
     String outputString;
 
-    try {
+//    try {
       outputString = format(format, arguments);
-    } catch (Exception e) {
-      return -1;
-    }
+//    } catch (Exception e) {
+//      return -1;
+//    }
 
     byte[] outputBytes = outputString.getBytes();
 
@@ -458,6 +469,7 @@ public class Stdlib {
     throw new UnsupportedOperationException("TODO: implement " + Stdlib.class.getName() + ".sscanf");
   }
 
+
   public static int tolower(int c) {
     return Character.toLowerCase(c);
   }
@@ -466,10 +478,14 @@ public class Stdlib {
     return Character.toUpperCase(c);
   }
 
-  public static String format(Ptr format, Object[] arguments) {
+  public static String format(Ptr format, Object... arguments) {
+    return format(format, f -> new FormatArrayInput(arguments));
+  }
+
+  public static String format(Ptr format, Function<Formatter, FormatInput> input) {
     String formatString = nullTerminatedString(format);
     Formatter formatter = new Formatter(formatString);
-    return formatter.format(new FormatArrayInput(arguments));
+    return formatter.format(input.apply(formatter));
   }
 
   public static void qsort(Ptr base, int nitems, int size, MethodHandle comparator) {
@@ -681,7 +697,7 @@ public class Stdlib {
 
   public static int fprintf(Ptr stream, BytePtr format, Object... arguments) {
     try {
-      String outputString = format(format, arguments);
+      String outputString = format(format, f -> new FormatArrayInput(arguments));
       BytePtr outputBytes = BytePtr.nullTerminatedString(outputString, StandardCharsets.UTF_8);
       int bytesWritten = fwrite(outputBytes, 1, outputBytes.getArray().length, stream);
 

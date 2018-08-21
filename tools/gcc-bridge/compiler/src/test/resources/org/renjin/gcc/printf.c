@@ -29,6 +29,7 @@
 #include "assert.h"
 
 #include <string.h>
+#include <stdarg.h>
 #include <inttypes.h>
 
 
@@ -61,7 +62,7 @@ static void vsnprintf_builder_3(char* buffer, ...)
   va_end(args);
 }
 
-void todo_test_vsnprintf() {
+void test_vsnprintf() {
   char buffer[100];
 
   vsnprintf_builder_1(buffer, -1);

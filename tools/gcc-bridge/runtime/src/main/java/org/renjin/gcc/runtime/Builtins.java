@@ -18,6 +18,8 @@
  */
 package org.renjin.gcc.runtime;
 
+import org.renjin.gcc.format.FormatArrayInput;
+
 public class Builtins {
 
   private static final ThreadLocal<IntPtr> ERRNO = new ThreadLocal<>();
@@ -285,7 +287,7 @@ public class Builtins {
   }
 
   public static void _gfortran_runtime_error_at(Ptr position, Ptr format, Object... arguments) {
-    throw new RuntimeException(Stdlib.format(format, arguments));
+    throw new RuntimeException(Stdlib.format(format, new FormatArrayInput(arguments)));
   }
 
   private static volatile int __sync_synchronize_value = 0;

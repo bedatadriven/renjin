@@ -1253,8 +1253,8 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
 
   @Test
-  public void printfPointer() throws Exception {
-    compileAndTest("printf_pointer.c");
+  public void vsnprintf() throws Exception {
+    compileAndTest("vsnprintf.c");
   }
 }
 

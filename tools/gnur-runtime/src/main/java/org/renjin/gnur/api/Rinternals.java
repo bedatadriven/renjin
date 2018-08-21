@@ -22,6 +22,7 @@ package org.renjin.gnur.api;
 import org.renjin.eval.*;
 import org.renjin.gcc.annotations.GlobalVar;
 import org.renjin.gcc.annotations.Noop;
+import org.renjin.gcc.format.FormatArrayInput;
 import org.renjin.gcc.runtime.*;
 import org.renjin.gnur.api.annotations.Allocator;
 import org.renjin.gnur.api.annotations.Mutee;
@@ -2509,12 +2510,12 @@ public final class Rinternals {
   }
 
   public static void Rf_errorcall (SEXP call, Ptr format, Object... args) {
-    String errorMessage = Stdlib.format(format, args);
+    String errorMessage = Stdlib.format(format, new FormatArrayInput(args));
     throw new EvalException(errorMessage);
   }
 
   public static void Rf_warningcall (SEXP call, Ptr format, Object... args) {
-    String message = Stdlib.format(format, args);
+    String message = Stdlib.format(format, new FormatArrayInput(args));
     Warning.emitWarning(Native.currentContext(), (FunctionCall) call, false, message);
   }
 

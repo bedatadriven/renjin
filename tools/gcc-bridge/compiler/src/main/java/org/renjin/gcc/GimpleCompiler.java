@@ -30,6 +30,7 @@ import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParser;
 import org.renjin.gcc.link.LinkSymbol;
 import org.renjin.gcc.logging.LogManager;
+import org.renjin.gcc.runtime.*;
 import org.renjin.gcc.symbols.GlobalSymbolTable;
 import org.renjin.gcc.symbols.SymbolTable;
 import org.renjin.repackaged.asm.Type;
@@ -97,6 +98,12 @@ public class GimpleCompiler  {
     functionBodyTransformers.add(LocalVariableInitializer.INSTANCE);
     globalSymbolTable = new GlobalSymbolTable(typeOracle, providedVariables);
     globalSymbolTable.addDefaults();
+    addReferenceClass(Builtins.class);
+    addReferenceClass(Stdlib.class);
+    addReferenceClass(Stdlib2.class);
+    addReferenceClass(Mathlib.class);
+    addReferenceClass(Std.class);
+    addReferenceClass(PosixThreads.class);
   }
 
   public LogManager getLogManager() {

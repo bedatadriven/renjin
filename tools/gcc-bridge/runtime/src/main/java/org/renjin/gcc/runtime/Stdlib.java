@@ -18,7 +18,6 @@
  */
 package org.renjin.gcc.runtime;
 
-import org.renjin.gcc.StdOutHandle;
 import org.renjin.gcc.annotations.Struct;
 import org.renjin.gcc.format.FormatArrayInput;
 import org.renjin.gcc.format.FormatInput;
@@ -52,8 +51,11 @@ public class Stdlib {
   public static int timezone;
   public static int daylight;
 
-  public static final StdOutHandle stdout = new StdOutHandle(System.out);
-  public static final StdOutHandle stderr = new StdOutHandle(System.err);
+  public static final Ptr stdout = new RecordUnitPtr<>(new StdOutHandle(System.out));
+
+  public static final Ptr stderr = new RecordUnitPtr<>(new StdOutHandle(System.err));
+
+  public static final Ptr stdin = new RecordUnitPtr<>(new StdInHandle());
 
   @Deprecated
   public static int strncmp(BytePtr x, BytePtr y, int n) {
@@ -130,14 +132,47 @@ public class Stdlib {
     return 0;
   }
 
+  /**
+   * Returns a pointer to the first occurrence of character in the C string str.
+   *
+   * The terminating null-character is considered part of the C string. Therefore,
+   * it can also be located in order to retrieve a pointer to the end of a string.
+   *
+   * @param string C string.
+   * @param ch Character to be located. It is passed as its int promotion, but it is internally
+   *          converted back to char for the comparison.
+   * @return A pointer to the first occurrence of character in str.
+   *    If the character is not found, the function returns a null pointer.
+   */
   public static Ptr strchr(Ptr string, int ch) {
-    final int offset = nullTerminatedString(string).indexOf(ch);
-    return new OffsetPtr(string, offset);
+    int pos = 0;
+    while(true) {
+      int pc = string.getByte(pos);
+      if(pc == ch) {
+        return string.pointerPlus(pos);
+      }
+      if(pc == 0) {
+        break;
+      }
+      pos++;
+    }
+    return BytePtr.NULL;
   }
 
   public static Ptr strrchr(Ptr string, int ch) {
-    final int offset = nullTerminatedString(string).lastIndexOf(ch);
-    return new OffsetPtr(string, offset);
+    int len = 0;
+    while(string.getByte(len) != 0) {
+      len++;
+    }
+    int pos = len - 1;
+    while(pos > 0) {
+      int pc = string.getByte(pos);
+      if(pc == ch) {
+        return string.pointerPlus(pos);
+      }
+      pos--;
+    }
+    return BytePtr.NULL;
   }
 
   public static Ptr strstr(Ptr string, Ptr searched) {

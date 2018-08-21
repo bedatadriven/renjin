@@ -16,34 +16,24 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc;
-
-import org.renjin.gcc.runtime.AbstractFileHandle;
+package org.renjin.gcc.runtime;
 
 import java.io.IOException;
-import java.io.PrintStream;
 
-public class StdOutHandle extends AbstractFileHandle {
-
-  private final PrintStream out;
-
-  public StdOutHandle(PrintStream out) {
-    this.out = out;
-  }
-
+public class StdInHandle extends AbstractFileHandle {
   @Override
   public int read() throws IOException {
-    throw new UnsupportedOperationException("Cannot read from stdout");
+    return System.in.read();
   }
 
   @Override
   public void write(int b) throws IOException {
-    out.write(b);
+    throw new IOException("Cannot write to stdin");
   }
 
   @Override
   public void rewind() throws IOException {
-    throw new UnsupportedOperationException("Cannot rewind stdout");
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
@@ -56,16 +46,16 @@ public class StdOutHandle extends AbstractFileHandle {
 
   @Override
   public void seekSet(long offset) throws IOException {
-    throw new UnsupportedOperationException("Cannot seek stdout");
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
   public void seekCurrent(long offset) throws IOException {
-    throw new UnsupportedOperationException("Cannot seek stdout");
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
   public void seekEnd(long offset) {
-    throw new UnsupportedOperationException("Cannot seek stdout");
+    throw new UnsupportedOperationException("TODO");
   }
 }

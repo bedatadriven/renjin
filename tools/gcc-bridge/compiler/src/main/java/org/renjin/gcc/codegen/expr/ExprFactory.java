@@ -180,7 +180,8 @@ public class ExprFactory {
       }
     } else if (expr instanceof GimpleComponentRef) {
       GimpleComponentRef ref = (GimpleComponentRef) expr;
-      RecordExpr record = (RecordExpr)findGenerator(((GimpleComponentRef) expr).getValue());
+      RecordExpr record = findGenerator(((GimpleComponentRef) expr).getValue())
+          .toVPtrRecord((GimpleRecordType) ref.getValue().getType());
 
       return record.memberOf(mv, ref.getMember().getOffset(), ref.getMember().getSize(), expr.getType());
 

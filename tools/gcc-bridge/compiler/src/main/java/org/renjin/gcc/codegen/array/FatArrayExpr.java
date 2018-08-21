@@ -153,7 +153,7 @@ public class FatArrayExpr implements ArrayExpr {
 
   @Override
   public VPtrRecordExpr toVPtrRecord(GimpleRecordType recordType) {
-    throw new UnsupportedOperationException("TODO");
+    return new VPtrRecordExpr(recordType, addressOf().toVPtrExpr());
   }
 
   @Override

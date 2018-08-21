@@ -2510,13 +2510,17 @@ public final class Rinternals {
   }
 
   public static void Rf_errorcall (SEXP call, Ptr format, Object... args) {
-    String errorMessage = Stdlib.format(format, new FormatArrayInput(args));
+    String errorMessage = Stdlib.format(format, args);
     throw new EvalException(errorMessage);
   }
 
-  public static void Rf_warningcall (SEXP call, Ptr format, Object... args) {
+  public static void Rf_warningcall (SEXP callSexp, Ptr format, Object... args) {
     String message = Stdlib.format(format, new FormatArrayInput(args));
-    Warning.emitWarning(Native.currentContext(), (FunctionCall) call, false, message);
+    FunctionCall call = null;
+    if(callSexp instanceof FunctionCall) {
+      call = (FunctionCall) callSexp;
+    }
+    Warning.emitWarning(Native.currentContext(), call, false, message);
   }
 
   // void Rf_warningcall_immediate (SEXP, const char *,...)

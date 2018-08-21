@@ -65,7 +65,7 @@ public class VPtrRecordReturnStrategy implements ReturnStrategy {
 
       @Override
       public void load(@Nonnull MethodGenerator mv) {
-        strategy.malloc(mv, Expressions.constantInt(recordType.sizeOf()));
+        strategy.malloc(mv, Expressions.constantInt(recordType.sizeOf())).getRef().load(mv);
       }
     };
   }

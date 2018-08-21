@@ -441,11 +441,11 @@ public class Stdlib {
   private static int sprintf(BytePtr string, int limit, BytePtr format, Function<Formatter, FormatInput> arguments) {
     String outputString;
 
-//    try {
+    try {
       outputString = format(format, arguments);
-//    } catch (Exception e) {
-//      return -1;
-//    }
+    } catch (Exception e) {
+      return -1;
+    }
 
     byte[] outputBytes = outputString.getBytes();
 

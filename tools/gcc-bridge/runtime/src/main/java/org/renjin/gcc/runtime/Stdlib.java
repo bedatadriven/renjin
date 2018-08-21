@@ -400,11 +400,11 @@ public class Stdlib {
   public static int printf(BytePtr format, Object... arguments) {
     String outputString;
 
-//    try {
+    try {
       outputString = format(format, arguments);
-//    } catch (Exception e) {
-//      return -1;
-//    }
+    } catch (Exception e) {
+      return -1;
+    }
 
     System.out.print(outputString);
 
@@ -429,11 +429,11 @@ public class Stdlib {
 
     String outputString;
 
-//    try {
+    try {
       outputString = format(format, arguments);
-//    } catch (Exception e) {
-//      return -1;
-//    }
+    } catch (Exception e) {
+      return -1;
+    }
 
     byte[] outputBytes = outputString.getBytes();
 

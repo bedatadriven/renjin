@@ -93,6 +93,10 @@ public class DateTimeFormat  {
             // Minute as decimal number (00-59).
             builder.appendMinuteOfHour(2);
             break;
+          case 'n':
+            // New line
+            builder.appendLiteral('\n');
+            break;
           case 'p':
             // AM/PM indicator in the locale.  Used in conjunction with ‘%I’
             // and *not* with ‘%H’.  An empty string in some locales.

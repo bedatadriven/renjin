@@ -38,7 +38,7 @@ import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.gcc.link.LinkSymbol;
-import org.renjin.gcc.runtime.*;
+import org.renjin.gcc.runtime.Builtins;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Maps;
 
@@ -163,13 +163,7 @@ public class GlobalSymbolTable implements SymbolTable {
     addFunction(MemCopyCallGenerator.MEMMOVE, new MemCopyCallGenerator(true));
     addFunction("memcmp", new MemCmpCallGenerator(typeOracle));
     addFunction("memset", new MemSetGenerator(typeOracle));
-    
-    addMethods(Builtins.class);
-    addMethods(Stdlib.class);
-    addMethods(Stdlib2.class);
-    addMethods(Mathlib.class);
-    addMethods(Std.class);
-    addMethods(PosixThreads.class);
+
 
   }
 

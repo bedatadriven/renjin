@@ -1246,5 +1246,10 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void staticInitPtr() throws Exception {
     compileAndTest("static_init_ptr.cpp");
   }
+
+  @Test
+  public void standardOut() throws Exception {
+    compileAndTest("stdout.c");
+  }
 }
 

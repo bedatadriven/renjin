@@ -47,8 +47,9 @@ public class Stdlib {
   public static int timezone;
   public static int daylight;
 
-  public static final StdOutHandle stdout = new StdOutHandle(System.out);
-  public static final StdOutHandle stderr = new StdOutHandle(System.err);
+  public static final Ptr stdout = new RecordUnitPtr<>(new StdOutHandle(System.out));
+
+  public static final Ptr stderr = new RecordUnitPtr<>(new StdOutHandle(System.err));
 
   @Deprecated
   public static int strncmp(BytePtr x, BytePtr y, int n) {

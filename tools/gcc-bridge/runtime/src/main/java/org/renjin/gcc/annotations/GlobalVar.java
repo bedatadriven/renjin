@@ -28,6 +28,6 @@ import java.lang.annotation.Target;
  * value should be obtained by invoking the annotated method.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.PARAMETER})
+@Target({ElementType.METHOD})
 public @interface GlobalVar {
 }

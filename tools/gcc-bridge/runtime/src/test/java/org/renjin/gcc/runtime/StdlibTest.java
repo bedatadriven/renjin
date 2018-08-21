@@ -62,7 +62,7 @@ public class StdlibTest {
     assertThat(Stdlib.strtol(cstring("0xCAFE  "), NULL, 0), equalTo(0xCAFEL));
     assertThat(Stdlib.strtol(cstring("0600 the fo"), NULL, 8), equalTo(0600L));
     assertThat(Stdlib.strtol(cstring("-33405"), NULL, 10), equalTo(-33405L));
-    assertThat(Stdlib.strtol(cstring("+63423"), NULL, 10), equalTo(-63423L));
+    assertThat(Stdlib.strtol(cstring("+63423"), NULL, 10), equalTo(+63423L));
   }
 
   @Test

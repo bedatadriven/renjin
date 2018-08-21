@@ -70,7 +70,7 @@ public class FormatArrayInput implements FormatInput {
 
   @Override
   public double getDouble(int argumentIndex) {
-    return (Double)arguments[argumentIndex];
+    return ((Number)arguments[argumentIndex]).doubleValue();
   }
 
   @Override

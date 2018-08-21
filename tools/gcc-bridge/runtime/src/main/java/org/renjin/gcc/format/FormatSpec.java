@@ -320,6 +320,10 @@ class FormatSpec {
       case 'G':
         return printGFormat(input.getDouble(argumentPosition));
 
+      case 'a':
+      case 'A':
+        return printAFormat(input.getDouble(argumentPosition));
+
       case 'c':
         return printCFormat((char) input.getInt(argumentPosition));
 

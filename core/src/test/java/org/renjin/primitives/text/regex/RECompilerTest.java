@@ -198,4 +198,17 @@ public class RECompilerTest {
     ExtendedRE re = new ExtendedRE("~(?![^\\(].*\\))");
   //  x = c("~", "y", "1"), split = "~(?![^\\(].*\\))", out = list("", "y", "1")
   }
+
+  @Test
+  public void lookahead() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("(\\n|^)(?!$)");
+    re.subst("a\nb\nc", "\n     ");
+  }
+
+  @Test
+  public void lookahead2() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("(\\n|^)$");
+    System.out.println(re.program);
+  }
+
 }

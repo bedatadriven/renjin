@@ -199,12 +199,14 @@ public class RECompilerTest {
   //  x = c("~", "y", "1"), split = "~(?![^\\(].*\\))", out = list("", "y", "1")
   }
 
+  @Ignore("wip")
   @Test
   public void lookahead() throws RESyntaxException {
     ExtendedRE re = new ExtendedRE("(\\n|^)(?!$)");
     re.subst("a\nb\nc", "\n     ");
   }
 
+  @Ignore("wip")
   @Test
   public void lookahead2() throws RESyntaxException {
     ExtendedRE re = new ExtendedRE("Hello World([a-z]B)?$");

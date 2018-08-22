@@ -107,10 +107,7 @@ public abstract class AbstractBindFunction extends SpecialFunction {
     org.renjin.sexp.Function foundFunction = null;
 
     // Get the base method table
-    Environment methodsTable = (Environment) context
-        .getBaseEnvironment()
-        .getVariableUnsafe(S3.METHODS_TABLE)
-        .force(context);
+    Environment methodsTable = S3.findMethodTable(context, context.getBaseEnvironment());
 
     for(BindArgument argument : arguments) {
       Vector classes = argument.getClasses();

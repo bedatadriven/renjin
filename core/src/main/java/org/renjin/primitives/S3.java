@@ -667,7 +667,7 @@ public class S3 {
       if(function != null) {
         return new GenericMethod(this, method, className, (Function) function);
         
-      } else if(methodTable != null && methodTable.hasVariable(method)) {
+      } else if(methodTable.hasVariable(method)) {
         return new GenericMethod(this, method, className, (Function) methodTable.getVariableUnsafe(method).force(context));
       
       } else {
@@ -676,14 +676,19 @@ public class S3 {
     }
 
     private Environment getMethodTable() {
-      SEXP table = definitionEnvironment.getVariableUnsafe(METHODS_TABLE).force(context);
-      if(table instanceof Environment) {
-        return (Environment) table;
-      } else if(table == Symbol.UNBOUND_VALUE) {
-        return null;
-      } else {
-        throw new EvalException("Unexpected value for .__S3MethodsTable__. in " + definitionEnvironment.getName());
-      }
+      return findMethodTable(context, definitionEnvironment);
+    }
+
+  }
+
+  public static Environment findMethodTable(Context context, Environment definitionEnvironment) {
+    SEXP table = definitionEnvironment.getVariableUnsafe(METHODS_TABLE).force(context);
+    if(table instanceof Environment) {
+      return (Environment) table;
+    } else if(table == Symbol.UNBOUND_VALUE) {
+      return Environment.EMPTY;
+    } else {
+      throw new EvalException("Unexpected value for .__S3MethodsTable__. in " + definitionEnvironment.getName());
     }
   }
 

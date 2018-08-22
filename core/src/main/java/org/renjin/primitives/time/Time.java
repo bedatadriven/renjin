@@ -18,17 +18,17 @@
  */
 package org.renjin.primitives.time;
 
-import org.joda.time.*;
-import org.joda.time.chrono.ISOChronology;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.DateTimeParser;
-import org.joda.time.format.DateTimeParserBucket;
+
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Implementation of date time-related functions.
@@ -46,7 +46,8 @@ import java.util.Locale;
  */
 public class Time {
 
-  public static LocalDate EPOCH = new LocalDate(1970, 1, 1);
+  public static LocalDate EPOCH = LocalDate.of(1970, 1, 1);
+
 
   /**
    * Parses a string value into a date time value.
@@ -59,9 +60,9 @@ public class Time {
       return StringVector.EMPTY;
     }
     
-    DateTimeZone timeZone = timeZoneFromRSpecification(tz);
+    ZoneId timeZone = timeZoneFromRSpecification(tz);
 
-    List<DateTimeFormatter> formatters = DateTimeFormat.forPatterns(formats, timeZone, false);
+    List<RDateTimeFormatter> formatters = RDateTimeFormats.forPatterns(formats, false, timeZone);
     
     PosixLtVector.Builder result = new PosixLtVector.Builder();
     if(!Strings.isNullOrEmpty(tz)) {
@@ -70,47 +71,20 @@ public class Time {
     
     int resultLength = Math.max(x.length(), formats.length());
     for(int i=0;i!=resultLength;++i) {
-      DateTimeFormatter formatter = formatters.get(i % formatters.size());
+      RDateTimeFormatter formatter = formatters.get(i % formatters.size());
       String string = x.getElementAsString(i % x.length());
-      try {
-        result.add(parseIgnoreTrailingCharacters(formatter, timeZone, string));
-      } catch(IllegalArgumentException e) {
+      if(StringVector.isNA(string)) {
         result.addNA();
+      } else {
+        try {
+          result.add(formatter.parse(string));
+        } catch (DateTimeParseException e) {
+          result.addNA();
+        }
       }
-    }   
+    }
 
     return result.buildListVector();
-  }
-
-  private static DateTime parseIgnoreTrailingCharacters(
-      DateTimeFormatter formatter, 
-      DateTimeZone defaultTimeZone, 
-      String text) {
-    // this is a modified version of DateTimeFormatter.parseDateTime() that does not
-    // throw an exception on trailing characters
-    
-    Chronology chronology = ISOChronology.getInstance().withZone(defaultTimeZone);
-    DateTimeParser parser = formatter.getParser();
-    
-    Locale locale = null;
-    Integer pivotYear = null;
-    int defaultYear = 2000;
-    DateTimeZone timeZone = null;
-    
-    DateTimeParserBucket bucket = new DateTimeParserBucket(0, chronology, locale, pivotYear, defaultYear);
-    int newPos = parser.parseInto(bucket, text, 0);
-    if (newPos >= 0) {
-      long millis = bucket.computeMillis(true, text);
-      if (formatter.isOffsetParsed() && bucket.getOffsetInteger() != null) {
-        int parsedOffset = bucket.getOffsetInteger();
-        DateTimeZone parsedZone = DateTimeZone.forOffsetMillis(parsedOffset);
-        chronology = chronology.withZone(parsedZone);
-      } else if (bucket.getZone() != null) {
-        chronology = chronology.withZone(bucket.getZone());
-      } 
-      return new DateTime(millis, chronology);
-    }
-    throw new IllegalArgumentException();
   }
 
 
@@ -122,7 +96,7 @@ public class Time {
    */
   @Internal("as.POSIXct")
   public static DoubleVector asPOSIXct(ListVector x, String tz) {
-    
+
     SEXP timeZoneAttribute;
     if(Strings.isNullOrEmpty(tz)) {
       timeZoneAttribute = x.getAttribute(Symbols.TZONE);
@@ -161,11 +135,11 @@ public class Time {
     PosixLtVector ltVector = new PosixLtVector(x);
     DoubleArrayVector.Builder dateVector = DoubleArrayVector.Builder.withInitialCapacity(ltVector.length());
     for(int i=0;i!=ltVector.length();++i) {
-      DateTime date = ltVector.getElementAsDateTime(i);
+      ZonedDateTime date = ltVector.getElementAsDateTime(i);
       if(date == null) {
         dateVector.addNA();
       } else {
-        dateVector.add(Days.daysBetween(EPOCH, date.toLocalDate()).getDays());
+        dateVector.add(EPOCH.until(date, ChronoUnit.DAYS));
       }
     }
     dateVector.setAttribute(Symbols.CLASS, StringVector.valueOf("Date"));
@@ -183,7 +157,7 @@ public class Time {
       if(IntVector.isNA(daysSinceEpoch)) {
         ltVector.addNA();
       } else {
-        ltVector.add(EPOCH.plusDays(daysSinceEpoch).toDateTimeAtStartOfDay(DateTimeZone.UTC));
+        ltVector.add(EPOCH.plusDays(daysSinceEpoch));
       }
     }
     return ltVector.buildListVector();
@@ -192,7 +166,7 @@ public class Time {
   @Internal("Sys.time")
   public static DoubleVector sysTime() {
     return new PosixCtVector.Builder()
-      .add(new DateTime())
+      .add(ZonedDateTime.now())
       .buildDoubleVector();
   }
   
@@ -203,18 +177,18 @@ public class Time {
   public static StringVector formatPOSIXlt(ListVector x, StringVector patterns, boolean useTz) {
 
     PosixLtVector dateTimes = new PosixLtVector(x);
-    List<DateTimeFormatter> formatters = DateTimeFormat.forPatterns(patterns, dateTimes.getTimeZone(), useTz);
+    List<RDateTimeFormatter> formatters = RDateTimeFormats.forPatterns(patterns, useTz, dateTimes.getTimeZone());
     
     StringVector.Builder result = new StringVector.Builder();
     int resultLength = Math.max(dateTimes.length(), patterns.length());
 
     for(int i=0;i!=resultLength;++i) {
-      DateTimeFormatter formatter = formatters.get(i % formatters.size());
-      DateTime dateTime = dateTimes.getElementAsDateTime(i % dateTimes.length());
+      RDateTimeFormatter formatter = formatters.get(i % formatters.size());
+      ZonedDateTime dateTime = dateTimes.getElementAsDateTime(i % dateTimes.length());
       if (dateTime == null) {
         result.addNA();
       } else {
-        result.add(formatter.print(dateTime));
+        result.add(formatter.format(dateTime));
       }
     }
     
@@ -222,43 +196,41 @@ public class Time {
   }
   
   /**
-   * Creates a Joda {@link DateTimeZone} instance from an R timezone string.
+   * Creates a {@link ZoneId} instance from an R timezone string.
    * 
    * <p>The <a href="https://stat.ethz.ch/R-manual/R-devel/library/base/html/timezones.html">R documentation</a>
    * states that timezones are platform-dependent, but that "GMT" and "UTC" are guaranteed to be accepted on all 
    * platforms.</p>
    * 
-   * <p>We rely on Joda to map IDs to the correct timezone, and JOda in turn relies on the Olson or "tz" 
-   * database, which is commonly the source of timezones on platforms running R.</p>
-   * 
+   *
    */
-  public static DateTimeZone timeZoneFromRSpecification(String tz) {
+  public static ZoneId timeZoneFromRSpecification(String tz) {
     if(Strings.isNullOrEmpty(tz)) {
-      return DateTimeZone.getDefault();
+      return ZoneId.systemDefault();
     } else if("GMT".equals(tz)) {
-      return DateTimeZone.UTC;
+      return ZoneId.of("UTC");
     } else if("Coordinated Universal Time".equals(tz)) {
-      return DateTimeZone.UTC;
+      return ZoneId.of("UTC");
     } else {
-      return DateTimeZone.forID(tz);
+      return ZoneId.of(tz, ZoneId.SHORT_IDS);
     }
   }
   
   /**
-   * Creates a Joda {@link DateTimeZone} instance from the {@code tzone}
+   * Creates a {@link ZoneId} instance from the {@code tzone}
    * attribute of an R Posix object. Returns the current timezone if
    * there is no {@code tzone} attribute;
    */
-  public static DateTimeZone timeZoneFromPosixObject(SEXP lt) {
+  public static ZoneId timeZoneFromPosixObject(SEXP lt) {
     SEXP attribute = lt.getAttribute(Symbols.TZONE);
     return timeZoneFromTzoneAttribute(attribute);
   }
 
-  public static DateTimeZone timeZoneFromTzoneAttribute(SEXP attribute) {
+  public static ZoneId timeZoneFromTzoneAttribute(SEXP attribute) {
     if(attribute instanceof StringVector) {
       return timeZoneFromRSpecification(((StringVector) attribute).getElementAsString(0));
     } else {
-      return DateTimeZone.getDefault();
+      return ZoneId.systemDefault();
     }
   }
 }

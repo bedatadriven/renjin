@@ -18,29 +18,34 @@
  */
 package org.renjin.primitives.time;
 
-import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.DateTimeFormatterBuilder;
 import org.renjin.eval.EvalException;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.StringVector;
 
+import java.time.DayOfWeek;
+import java.time.ZoneId;
+import java.time.format.*;
+import java.time.temporal.ChronoField;
+import java.time.temporal.WeekFields;
 import java.util.List;
 
 /**
- * Factory that creates instances of DateTimeFormatter from 
+ * Factory that creates instances of DateTimeFormatter from
  * R-style date time format strings.
  */
-public class DateTimeFormat  {
+public class RDateTimeFormats {
 
-  private DateTimeFormat() { }
+  private RDateTimeFormats() { }
 
-  public static DateTimeFormatter forPattern(String patterns, boolean useTz) {
-    DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder();
+  public static RDateTimeFormatter forPattern(String pattern, boolean useTz, ZoneId timeZone) {
+    DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder().parseLenient();
 
-    for(int i=0;i<patterns.length();++i) {
-      if(patterns.charAt(i)=='%' && i+1 < patterns.length()) {
-        char specifier = patterns.charAt(++i);
+    boolean hasTime = false;
+    boolean hasZone = false;
+
+    for(int i=0;i<pattern.length();++i) {
+      if(pattern.charAt(i)=='%' && i+1 < pattern.length()) {
+        char specifier = pattern.charAt(++i);
         switch(specifier) {
           case '%':
             builder.appendLiteral("%");
@@ -48,22 +53,22 @@ public class DateTimeFormat  {
           case 'a':
             // Abbreviated weekday name in the current locale. (Also matches
             // full name on input.)
-            builder.appendDayOfWeekShortText();
+            builder.appendText(ChronoField.DAY_OF_WEEK, TextStyle.SHORT);
             break;
           case 'A':
             // Full weekday name in the current locale.  (Also matches
             // abbreviated name on input.)
-            builder.appendDayOfWeekText();
+            builder.appendText(ChronoField.DAY_OF_WEEK, TextStyle.FULL);
             break;
           case 'b':
-            // Abbreviated month name in the current locale. (Also matches        
+            // Abbreviated month name in the current locale. (Also matches
             // full name on input.)
-            builder.appendMonthOfYearShortText();
+            builder.appendText(ChronoField.MONTH_OF_YEAR, TextStyle.SHORT);
             break;
           case 'B':
             // Full month name in the current locale.  (Also matches
             // abbreviated name on input.)
-            builder.appendMonthOfYearText();
+            builder.appendText(ChronoField.MONTH_OF_YEAR, TextStyle.FULL);
             break;
           case 'c':
             //  Date and time.  Locale-specific on output, ‘"%a %b %e
@@ -71,27 +76,30 @@ public class DateTimeFormat  {
             throw new UnsupportedOperationException("%c not yet implemented");
           case 'd':
             // Day of the month as decimal number (01-31).
-            builder.appendDayOfMonth(2);
+            builder.appendValue(ChronoField.DAY_OF_MONTH, 2, 2, SignStyle.NEVER);
             break;
           case 'H':
             // Hours as decimal number (00-23).
-            builder.appendHourOfDay(2);
+            hasTime = true;
+            builder.appendValue(ChronoField.HOUR_OF_DAY, 2, 2, SignStyle.NEVER);
             break;
           case 'I':
             // Hours as decimal number (01-12).
-            builder.appendHourOfHalfday(2);
+            hasTime = true;
+            builder.appendValue(ChronoField.CLOCK_HOUR_OF_AMPM, 2, 2, SignStyle.NEVER);
             break;
           case 'j':
             // Day of year as decimal number (001-366).
-            builder.appendDayOfYear(3);
+            builder.appendValue(ChronoField.DAY_OF_YEAR, 3, 3, SignStyle.NEVER);
             break;
           case 'm':
             // Month as decimal number (01-12).
-            builder.appendMonthOfYear(2);
+            builder.appendValue(ChronoField.MONTH_OF_YEAR, 2, 2, SignStyle.NEVER);
             break;
           case 'M':
             // Minute as decimal number (00-59).
-            builder.appendMinuteOfHour(2);
+            hasTime = true;
+            builder.appendValue(ChronoField.MINUTE_OF_HOUR, 2, 2, SignStyle.NEVER);
             break;
           case 'n':
             // New line
@@ -100,13 +108,13 @@ public class DateTimeFormat  {
           case 'p':
             // AM/PM indicator in the locale.  Used in conjunction with ‘%I’
             // and *not* with ‘%H’.  An empty string in some locales.
-            builder.appendHalfdayOfDayText();
+            builder.appendText(ChronoField.AMPM_OF_DAY, TextStyle.SHORT);
             break;
           case 'O':
-            if(i+1>=patterns.length()) {
+            if(i+1>=pattern.length()) {
               builder.appendLiteral("%O");
             } else {
-              switch(patterns.charAt(++i)) {
+              switch(pattern.charAt(++i)) {
                 case 'S':
                   // Specific to R is ‘%OSn’, which for output gives the seconds to ‘0
                   // <= n <= 6’ decimal places (and if ‘%OS’ is not followed by a
@@ -116,7 +124,7 @@ public class DateTimeFormat  {
                   // not rounds) fractional parts on output.
 
                   // TODO: not sure how to handle fractional seconds here
-                  builder.appendSecondOfMinute(2);
+                  builder.appendValue(ChronoField.SECOND_OF_MINUTE, 2, 2, SignStyle.NEVER);
                   break;
                 default:
                   throw new EvalException("%O[dHImMUVwWy] not yet implemented");
@@ -130,24 +138,36 @@ public class DateTimeFormat  {
             // leap seconds).
             // TODO: I have no idea what the docs are talking about in relation
             // to leap seconds
-            builder.appendSecondOfMinute(2);
+            builder.appendValue(ChronoField.SECOND_OF_MINUTE, 2, 2, SignStyle.NEVER);
             break;
-          // case 'U':
-          // Week of the year as decimal number (00-53) using Sunday as
-          // the first day 1 of the week (and typically with the first
-          //  Sunday of the year as day 1 of week 1).  The US convention.
-          // case 'w':
-          // Weekday as decimal number (0-6, Sunday is 0).
 
-          // case 'W':
-          // Week of the year as decimal number (00-53) using Monday as
-          // the first day of week (and typically with the first Monday of
-          // the year as day 1 of week 1). The UK convention.
+          case 'U':
+            // Week of the year as decimal number (00-53) using Sunday as
+            // the first day 1 of the week (and typically with the first
+            //  Sunday of the year as day 1 of week 1).  The US convention.
+            builder.appendValue(WeekFields.of(DayOfWeek.SUNDAY, 7).weekOfYear(), 2, 2, SignStyle.NEVER);
+            break;
 
-          // ‘%x’ Date.  Locale-specific on output, ‘"%y/%m/%d"’ on input.
+          case 'w':
+            // Weekday as decimal number (0-6, Sunday is 0).
+            builder.appendValue(ZeroBasedWeekday.INSTANCE);
+            break;
 
+          case 'W':
+            // Week of the year as decimal number (00-53) using Monday as
+            // the first day of week (and typically with the first Monday of
+            // the year as day 1 of week 1). The UK convention.
+            builder.appendValue(WeekFields.of(DayOfWeek.MONDAY, 7).weekOfYear(), 2, 2, SignStyle.NEVER);
+            break;
 
-          //‘%X’ Time.  Locale-specific on output, ‘"%H:%M:%S"’ on input.
+          case 'x':
+            // Date.  Locale-specific on output, ‘"%y/%m/%d"’ on input.
+            builder.append(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT));
+            break;
+
+          case 'X':
+            builder.append(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT));
+            break;
 
           case 'y':
             // Year without century (00-99). Values 00 to 68 are prefixed by
@@ -155,66 +175,58 @@ public class DateTimeFormat  {
             // the 2004 POSIX standard, but it does also say ‘it is expected
             // that in a future version the default century inferred from a
             // 2-digit year will change’.
-            builder.appendTwoDigitYear(1968, true);
+            builder.appendValue(ChronoField.YEAR, 2, 2, SignStyle.NEVER);
             break;
+
           case 'Y':
             // Year with century
-            builder.appendYear(1,4);
+            builder.appendValue(ChronoField.YEAR, 4, 4, SignStyle.NEVER);
             break;
+
           case 'z':
             // Signed offset in hours and minutes from UTC, so ‘-0800’ is 8
             // hours behind UTC.
-            builder.appendTimeZoneOffset(null /* always show offset, even when zero */,
-                true /* show seperators */,
-                1 /* min fields (hour, minute, etc) */,
-                2 /* max fields */ );
+            hasZone = true;
+            builder.appendOffset("+HHMM", "+0000");
             break;
           case 'Z':
             // (output only.) Time zone as a character string (empty if not
             // available).
-            builder.appendTimeZoneName();
+            hasZone = true;
+            builder.appendZoneText(TextStyle.SHORT);
             break;
           default:
             throw new EvalException("%" + specifier + " not yet implemented. (Implement me!)");
         }
       } else {
-        builder.appendLiteral(patterns.substring(i,i+1));
+        builder.appendLiteral(pattern.substring(i,i+1));
       }
     }
     if(useTz) {
+      hasZone = true;
       builder.appendLiteral(" ");
-      builder.appendTimeZoneShortName();
+      builder.appendZoneText(TextStyle.SHORT);
     }
-    return builder.toFormatter();
+    return new RDateTimeFormatter(pattern, builder.toFormatter(), hasTime, hasZone, timeZone);
   }
   
 
-  public static DateTimeFormatter forPattern(String pattern) {
-    return forPattern(pattern, false);
+  public static RDateTimeFormatter forPattern(String pattern) {
+    return forPattern(pattern, false, ZoneId.systemDefault());
   }
   
   /**
    * Creates a {@code List} of {@code DateTimeFormatter}s from a {@code StringVector}
-   * 
-   * @param patterns R-Style date formatters
-   * @param timeZone the time zone in which to format the date
+   *  @param patterns R-Style date formatters
    * @param useTz true if the timezone name should be appended to the string
+   * @param timeZone the time zone in which to format the date
    */
-  public static List<DateTimeFormatter> forPatterns(StringVector patterns, DateTimeZone timeZone, boolean useTz) {
-    List<DateTimeFormatter> formatters = Lists.newArrayListWithCapacity(patterns.length());
+  public static List<RDateTimeFormatter> forPatterns(StringVector patterns, boolean useTz, ZoneId timeZone) {
+    List<RDateTimeFormatter> formatters = Lists.newArrayListWithCapacity(patterns.length());
     for(String format : patterns) {
-      formatters.add(forPattern(format, useTz).withZone(timeZone));
+      formatters.add(forPattern(format, useTz, timeZone));
     }
     return formatters;
   }
 
-  /**
-   * Creates a {@code List} of {@code DateTimeFormatter}s from a {@code StringVector}
-   *
-   * @param patterns R-Style date formatters
-   * @param timeZone the time zone in which to format the date
-   */
-  public static List<DateTimeFormatter> forPatterns(StringVector patterns, DateTimeZone timeZone) {
-    return forPatterns(patterns, timeZone, false);
-  }
 }

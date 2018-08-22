@@ -18,9 +18,10 @@
  */
 package org.renjin.primitives.time;
 
-import org.joda.time.DateTimeZone;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+
+import java.util.TimeZone;
 
 import static org.junit.Assert.assertThat;
 
@@ -30,7 +31,7 @@ public class PosixLt2DateTest extends EvalTestCase {
   @Test
   public void asDateWithFormat() {
 
-    DateTimeZone.setDefault(DateTimeZone.forID("Pacific/Pago_Pago"));
+    TimeZone.setDefault(TimeZone.getTimeZone("Pacific/Pago_Pago"));
 
     eval(" dateString <- '2016-06-1'  ");
     

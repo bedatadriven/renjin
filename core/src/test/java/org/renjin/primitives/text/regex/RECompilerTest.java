@@ -207,8 +207,10 @@ public class RECompilerTest {
 
   @Test
   public void lookahead2() throws RESyntaxException {
-    ExtendedRE re = new ExtendedRE("(\\n|^)$");
-    System.out.println(re.program);
+    ExtendedRE re = new ExtendedRE("Hello World([a-z]B)?$");
+    REPrettyPrinter prettyPrinter = new REPrettyPrinter();
+    re.match("Hello World");
+    System.out.println(prettyPrinter.prettyPrint(re.program));
   }
 
 }

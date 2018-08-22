@@ -435,6 +435,8 @@ public final class Rinternals {
       return SexpType.SPECIALSXP;
     } else if(s instanceof Function) {
       return SexpType.BUILTINSXP;
+    } else if(s instanceof ExternalPtr) {
+      return SexpType.EXTPTRSXP;
     } else {
       throw new UnsupportedOperationException("Unknown SEXP Type: " + s.getClass().getName());
     }

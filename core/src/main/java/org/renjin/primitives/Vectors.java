@@ -464,12 +464,18 @@ public class Vectors {
   }
 
   public static Predicate<SEXP> modePredicate(String mode) {
-    if(mode.equals("any")) {
-      return (x -> true);
-    } else if(mode.equals("function")){
-      return (x -> x instanceof Function);
-    } else {
-      throw new EvalException(" mode '%s' as a predicate is not implemented.", mode);
+    switch (mode) {
+      case "any":
+        return (x -> true);
+      case "function":
+        return (x -> x instanceof Function);
+      case "numeric":
+        return (x -> x instanceof IntVector || x instanceof DoubleVector);
+      case "symbol":
+      case "name":
+        return (x -> x instanceof Symbol);
+      default:
+        return (x -> x.getTypeName().equals(mode));
     }
   }
 

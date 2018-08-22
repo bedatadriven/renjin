@@ -27,7 +27,6 @@ import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.repackaged.guava.collect.PeekingIterator;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.s4.S4;
 import org.renjin.sexp.*;
@@ -418,24 +417,8 @@ public class S3 {
 
     return dispatchGroup(group, call, name, newArgs, context, rho);
   }
-  
-  private static <X> X first(Iterable<X> values) {
-    return values.iterator().next();
-  }
-  
-  private static boolean hasNextUnTagged(PeekingIterator<PairList.Node> it) {
-    return it.hasNext() && !it.peek().hasTag();
-  }
-  
-  private static PairList.Node nextUnTagged(Iterator<PairList.Node> it) {
-    PairList.Node arg = it.next() ;
-    while( arg.hasTag() ) {
-      arg = it.next();
-    }
-    return arg;
-  }
-  
-  
+
+
   public static SEXP tryDispatchSummaryFromPrimitive(Context context, Environment rho, FunctionCall call,
                                                      String name, ListVector evaluatedArguments, boolean naRm) {
 
@@ -684,7 +667,7 @@ public class S3 {
       if(function != null) {
         return new GenericMethod(this, method, className, (Function) function);
         
-      } else if(methodTable != null && methodTable.hasVariable(method)) {
+      } else if(methodTable.hasVariable(method)) {
         return new GenericMethod(this, method, className, (Function) methodTable.getVariableUnsafe(method).force(context));
       
       } else {
@@ -693,14 +676,19 @@ public class S3 {
     }
 
     private Environment getMethodTable() {
-      SEXP table = definitionEnvironment.getVariableUnsafe(METHODS_TABLE).force(context);
-      if(table instanceof Environment) {
-        return (Environment) table;
-      } else if(table == Symbol.UNBOUND_VALUE) {
-        return null;
-      } else {
-        throw new EvalException("Unexpected value for .__S3MethodsTable__. in " + definitionEnvironment.getName());
-      }
+      return findMethodTable(context, definitionEnvironment);
+    }
+
+  }
+
+  public static Environment findMethodTable(Context context, Environment definitionEnvironment) {
+    SEXP table = definitionEnvironment.getVariableUnsafe(METHODS_TABLE).force(context);
+    if(table instanceof Environment) {
+      return (Environment) table;
+    } else if(table == Symbol.UNBOUND_VALUE) {
+      return Environment.EMPTY;
+    } else {
+      throw new EvalException("Unexpected value for .__S3MethodsTable__. in " + definitionEnvironment.getName());
     }
   }
 

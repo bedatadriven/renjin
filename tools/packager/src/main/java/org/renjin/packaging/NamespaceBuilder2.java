@@ -18,7 +18,6 @@
  */
 package org.renjin.packaging;
 
-import org.joda.time.DateTime;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.SessionBuilder;
@@ -27,7 +26,7 @@ import org.renjin.primitives.io.serialization.HeadlessWriteContext;
 import org.renjin.primitives.io.serialization.RDataWriter;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.packaging.NamespaceFile;
-import org.renjin.primitives.time.DateTimeFormat;
+import org.renjin.primitives.time.RDateTimeFormats;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Iterables;
@@ -36,6 +35,7 @@ import org.renjin.repackaged.guava.io.Files;
 import org.renjin.sexp.*;
 
 import java.io.*;
+import java.time.ZonedDateTime;
 
 /**
  * Evaluates a package's sources
@@ -175,7 +175,7 @@ public class NamespaceBuilder2 {
     metadata.add("DESCRIPTION", descriptionVector());
     metadata.add("Built", new ListVector.NamedBuilder()
         .add("Platform", "")
-        .add("Date", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss ZZ").print(new DateTime()))
+        .add("Date", RDateTimeFormats.forPattern("yyyy-MM-dd HH:mm:ss ZZ").format(ZonedDateTime.now()))
         .add("OStype", "unix"));
 
     metadata.add("Rdepends", Null.INSTANCE);

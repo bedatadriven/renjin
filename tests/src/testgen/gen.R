@@ -81,7 +81,9 @@ callWithQuotedArgs <- function(fn, args) {
   if(length(call) > 1) {
     for(i in seq.int(from = 2, to = length(call))) {
       arg <- call[[i]]
-      if(typeof(arg) == "symbol" || typeof(arg) == "language") {
+      if(inherits(arg, "literal")) {
+        call[[i]] <- parse(text=arg)[[1]]
+      } else if(typeof(arg) == "symbol" || typeof(arg) == "language") {
         call[[i]] <- call("quote", arg)
       } 
     }

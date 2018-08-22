@@ -92,6 +92,7 @@ public class FunctionCall extends PairList.Node {
   
   public static PairList newCallFromVector(ListVector vector) {
     FunctionCall.Builder call = new FunctionCall.Builder();
+    call.setAttributes(vector.getAttributes());
     call.addAll(vector);
     return call.build();
   }

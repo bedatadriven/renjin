@@ -23,6 +23,7 @@ import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.StringVector;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.*;
 import java.time.temporal.ChronoField;
@@ -175,7 +176,7 @@ public class RDateTimeFormats {
             // the 2004 POSIX standard, but it does also say ‘it is expected
             // that in a future version the default century inferred from a
             // 2-digit year will change’.
-            builder.appendValue(ChronoField.YEAR, 2, 2, SignStyle.NEVER);
+            builder.appendValueReduced(ChronoField.YEAR, 2, 2, LocalDate.of(1968, 1, 1));
             break;
 
           case 'Y':

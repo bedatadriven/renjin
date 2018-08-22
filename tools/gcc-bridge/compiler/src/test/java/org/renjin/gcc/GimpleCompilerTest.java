@@ -1252,5 +1252,15 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void standardOut() throws Exception {
     compileAndTest("stdout.c");
   }
+
+  @Test
+  public void printf() throws Exception {
+    compileAndTest("printf.c");
+  }
+
+  @Test
+  public void vsnprintf() throws Exception {
+    compileAndTest("vsnprintf.c");
+  }
 }
 

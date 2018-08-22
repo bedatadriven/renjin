@@ -19,6 +19,10 @@
 package org.renjin.gcc.runtime;
 
 import org.renjin.gcc.annotations.Struct;
+import org.renjin.gcc.format.FormatArrayInput;
+import org.renjin.gcc.format.FormatInput;
+import org.renjin.gcc.format.Formatter;
+import org.renjin.gcc.format.VarArgsInput;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -32,6 +36,7 @@ import java.util.Date;
 import java.util.Random;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 /**
  * C standard library functions
@@ -435,7 +440,7 @@ public class Stdlib {
     String outputString;
 
     try {
-      outputString = format(format, arguments);
+      outputString = format(format, f -> new FormatArrayInput(arguments));
     } catch (Exception e) {
       return -1;
     }
@@ -460,7 +465,15 @@ public class Stdlib {
   }
 
   public static int snprintf(BytePtr string, int limit, BytePtr format, Object... arguments) {
+    return sprintf(string, limit, format, f -> new FormatArrayInput(arguments));
+  }
 
+
+  public static int vsnprintf(BytePtr string, int n, BytePtr format, Ptr argumentList) {
+    return sprintf(string, n, format, f -> new VarArgsInput(f, argumentList));
+  }
+
+  private static int sprintf(BytePtr string, int limit, BytePtr format, Function<Formatter, FormatInput> arguments) {
     String outputString;
 
     try {
@@ -477,8 +490,10 @@ public class Stdlib {
     if(bytesToCopy > 0) {
       // copy the formatted string to the output
       System.arraycopy(outputBytes, 0, string.array, string.offset, bytesToCopy);
+    }
 
-      // terminate string with null byte
+    // terminate string with null byte
+    if(limit > 0) {
       string.array[string.offset + bytesToCopy] = 0;
     }
 
@@ -489,6 +504,7 @@ public class Stdlib {
     throw new UnsupportedOperationException("TODO: implement " + Stdlib.class.getName() + ".sscanf");
   }
 
+
   public static int tolower(int c) {
     return Character.toLowerCase(c);
   }
@@ -497,31 +513,14 @@ public class Stdlib {
     return Character.toUpperCase(c);
   }
 
-  public static String format(Ptr format, Object[] arguments) {
-    Object[] convertedArgs = new Object[arguments.length];
-    for (int i = 0; i < arguments.length; i++) {
-      convertedArgs[i] = convertFormatArg(arguments[i]);
-    }
-
-    String formatString = nullTerminatedString(format);
-    if(formatString.equals("%2.2x")) {
-      return String.format("%02x", convertedArgs);
-    } else if(formatString.equals("%016llx")) {
-      return String.format("%016x", convertedArgs);
-    } else {
-      return String.format(formatString, convertedArgs);
-    }
+  public static String format(Ptr format, Object... arguments) {
+    return format(format, f -> new FormatArrayInput(arguments));
   }
 
-  private static Object convertFormatArg(Object argument) {
-    if(argument instanceof Ptr && ((Ptr) argument).isNull()) {
-      return null;
-    }
-    if(argument instanceof BytePtr || argument instanceof MixedPtr) {
-      return Stdlib.nullTerminatedString((Ptr) argument);
-    } else {
-      return argument;
-    }
+  public static String format(Ptr format, Function<Formatter, FormatInput> input) {
+    String formatString = nullTerminatedString(format);
+    Formatter formatter = new Formatter(formatString);
+    return formatter.format(input.apply(formatter));
   }
 
   public static void qsort(Ptr base, int nitems, int size, MethodHandle comparator) {
@@ -733,7 +732,7 @@ public class Stdlib {
 
   public static int fprintf(Ptr stream, BytePtr format, Object... arguments) {
     try {
-      String outputString = format(format, arguments);
+      String outputString = format(format, f -> new FormatArrayInput(arguments));
       BytePtr outputBytes = BytePtr.nullTerminatedString(outputString, StandardCharsets.UTF_8);
       int bytesWritten = fwrite(outputBytes, 1, outputBytes.getArray().length, stream);
 

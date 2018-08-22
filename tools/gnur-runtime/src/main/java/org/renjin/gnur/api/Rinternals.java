@@ -22,6 +22,7 @@ package org.renjin.gnur.api;
 import org.renjin.eval.*;
 import org.renjin.gcc.annotations.GlobalVar;
 import org.renjin.gcc.annotations.Noop;
+import org.renjin.gcc.format.FormatArrayInput;
 import org.renjin.gcc.runtime.*;
 import org.renjin.gnur.api.annotations.Allocator;
 import org.renjin.gnur.api.annotations.Mutee;
@@ -2514,7 +2515,7 @@ public final class Rinternals {
   }
 
   public static void Rf_warningcall (SEXP callSexp, Ptr format, Object... args) {
-    String message = Stdlib.format(format, args);
+    String message = Stdlib.format(format, new FormatArrayInput(args));
     FunctionCall call = null;
     if(callSexp instanceof FunctionCall) {
       call = (FunctionCall) callSexp;

@@ -39,7 +39,10 @@ import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.type.*;
+import org.renjin.gcc.runtime.BytePtr;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.gcc.symbols.SymbolTable;
+import org.renjin.repackaged.asm.Type;
 
 import java.util.Collections;
 import java.util.List;
@@ -548,8 +551,12 @@ public class ExprFactory {
 
   public GExpr forConstant(GimpleConstant constant) {
     if (constant.getType() instanceof GimpleIndirectType) {
-      // TODO: Treat all pointer constants as null
-      return typeOracle.forPointerType(constant.getType()).nullPointer();
+      JExpr pointer = Expressions.staticMethodCall(Type.getType(BytePtr.class), "of",
+          Type.getMethodDescriptor(Type.getType(Ptr.class), Type.INT_TYPE),
+          Expressions.constantInt(((GimpleIntegerConstant) constant).getValue().intValue()));
+
+      return new VPtrExpr(pointer);
+
 
     } else if (constant instanceof GimplePrimitiveConstant) {
 

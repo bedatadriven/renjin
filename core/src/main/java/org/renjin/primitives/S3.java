@@ -27,7 +27,6 @@ import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.repackaged.guava.collect.PeekingIterator;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.s4.S4;
 import org.renjin.sexp.*;
@@ -418,24 +417,8 @@ public class S3 {
 
     return dispatchGroup(group, call, name, newArgs, context, rho);
   }
-  
-  private static <X> X first(Iterable<X> values) {
-    return values.iterator().next();
-  }
-  
-  private static boolean hasNextUnTagged(PeekingIterator<PairList.Node> it) {
-    return it.hasNext() && !it.peek().hasTag();
-  }
-  
-  private static PairList.Node nextUnTagged(Iterator<PairList.Node> it) {
-    PairList.Node arg = it.next() ;
-    while( arg.hasTag() ) {
-      arg = it.next();
-    }
-    return arg;
-  }
-  
-  
+
+
   public static SEXP tryDispatchSummaryFromPrimitive(Context context, Environment rho, FunctionCall call,
                                                      String name, ListVector evaluatedArguments, boolean naRm) {
 

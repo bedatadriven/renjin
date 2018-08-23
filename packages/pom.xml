@@ -4,7 +4,7 @@
   <parent>
     <artifactId>parent</artifactId>
     <groupId>org.renjin</groupId>
-    <version>0.9.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -28,4 +28,27 @@
     <module>tcltk</module>
     <module>compiler</module>
   </modules>
+
+  <build>
+    <plugins>
+
+      <!-- Clean up intermediate files (*.o, *.gimple, *.so) in src/ directory -->
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>3.0.0</version>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>src</directory>
+              <includes>
+                <include>**/*.o</include>
+                <include>**/*.gimple</include>
+                <include>**/*.so</include>
+              </includes>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

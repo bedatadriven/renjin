@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -246,6 +246,27 @@ public class RDataWriterTest extends EvalTestCase {
     SEXP result = reader.readFile();
     assertTrue("s4 bit is read", Types.isS4(result));
   }
+
+  @Test
+  public void builtin() throws IOException {
+
+    SEXP primEval = eval("eval(quote(sys.function(0)))");
+
+    assertTrue(Types.isFunction(primEval));
+    assertThat(primEval.getTypeName(), equalTo("builtin"));
+
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    RDataWriter writer = new RDataWriter(this.topLevelContext, out);
+    writer.save(primEval);
+
+    ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+    RDataReader reader = new RDataReader(in);
+
+    SEXP result = reader.readFile();
+    assertThat(result, instanceOf(PrimitiveFunction.class));
+    assertThat(((BuiltinFunction) result).getName(), equalTo("eval"));
+  }
+
 
 
 

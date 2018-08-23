@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,7 +63,6 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
   public static final double NaN = Double.NaN;
   public static final double EPSILON = 2.220446e-16;
 
-  public static final DoubleVector EMPTY = new DoubleArrayVector();
   public static final int NA_PAYLOAD = 1954;
 
   protected DoubleVector(AttributeMap attributes) {

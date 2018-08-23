@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@ public class MathlibTest {
   public void modf() {
     checkModf(3.145, 3, 0.145);
     checkModf(-3.145, -3, -0.145);
+    checkModf(1.9666662000000001, 1, 0.9666662000000001);
   }
 
   private void checkModf(double x, double expectedInteger, double expectedFraction) {

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
  */
 package org.renjin.primitives.time;
 
-import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -35,6 +34,7 @@ import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -75,7 +75,7 @@ public class TimeTest extends EvalTestCase {
   }
   
   public TimeTest(String defaultTimeZoneId) {
-    DateTimeZone.setDefault(DateTimeZone.forID(defaultTimeZoneId));
+    TimeZone.setDefault(TimeZone.getTimeZone(defaultTimeZoneId));
   }
 
   @Test
@@ -130,7 +130,7 @@ public class TimeTest extends EvalTestCase {
     // offset, it will be essentially _converted_ to a POSIXlt object in the default 
     // timezone, making the output to R dependent on the current timezone in which the test is run
     // So for this test only, set the "default" time zone
-    DateTimeZone.setDefault(DateTimeZone.forID("Europe/Amsterdam"));
+    TimeZone.setDefault(TimeZone.getTimeZone("Europe/Amsterdam"));
 
     eval("t <- strptime('24/Aug/2014:17:57:26 +0200', '%d/%b/%Y:%H:%M:%S %z')");
 
@@ -163,9 +163,12 @@ public class TimeTest extends EvalTestCase {
     assertThat(eval("t$isdst"), elementsIdenticalTo(c_i(0)));
     assertThat(eval("attr(t, 'tzone')"), elementsIdenticalTo(c( "Pacific/Honolulu")));
 
-    // GNU R 3.2.2 says this should be -7200, but that doesn't make much sense to me. 
+    // GNU R 3.2.2 says this should be 7200, which corresponds to the offset in the parsed string,
+    // but NOT to the actual timezone of the other values.
+
     // Waiting for response from https://bugs.r-project.org/bugzilla/show_bug.cgi?id=16621
-    assertThat(eval("t$gmtoff"), elementsIdenticalTo(c_i(-36000)));
+
+    assertThat(eval("t$gmtoff"), elementsIdenticalTo(c_i(7200)));
 
   }
   

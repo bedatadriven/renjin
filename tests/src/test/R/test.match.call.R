@@ -1,6 +1,6 @@
 #
 # Renjin : JVM-based interpreter for the R language for the statistical analysis
-# Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+# Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -77,5 +77,6 @@ test.replace.call.by.index <- function() {
     call[[2]] <- 94
     call[3] <- 42
 
+    assertThat(attributes(call), identicalTo(NULL))
     assertThat(call, identicalTo(quote(f(a=94,b=42))))
 }

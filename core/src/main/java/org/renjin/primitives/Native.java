@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,22 +28,22 @@ import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.invoke.annotations.*;
 import org.renjin.invoke.reflection.ClassBindingImpl;
-import org.renjin.gcc.runtime.*;
-import org.renjin.invoke.annotations.*;
-import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.invoke.reflection.FunctionBinding;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.primitives.packaging.DllSymbol;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.base.Charsets;
-import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 public class Native {
 
@@ -73,6 +73,39 @@ public class Native {
     return list.build();
   }
 
+  @Internal("is.loaded")
+  public static boolean isLoaded(@Current Context context, String symbol, String packageName, String type) {
+    Iterable<DllInfo> libraries;
+    if(Strings.isNullOrEmpty(packageName)) {
+      libraries = context.getSession().getLoadedLibraries();
+    } else {
+      Optional<Namespace> namespace = context.getSession().getNamespaceRegistry().getNamespaceIfPresent(Symbol.get(symbol));
+      if(namespace.isPresent()) {
+        libraries = namespace.get().getLibraries();
+      } else {
+        libraries = Collections.emptySet();
+      }
+    }
+
+    Predicate<DllSymbol> predicate;
+    if("Fortran".equals(type)) {
+      predicate = (x -> x.getConvention() == DllSymbol.Convention.FORTRAN);
+    } else if("Call".equals(type)) {
+      predicate = (x -> x.getConvention() == DllSymbol.Convention.CALL);
+    } else if("External".equals(type)) {
+      predicate = (x -> x.getConvention() == DllSymbol.Convention.EXTERNAL);
+    } else {
+      predicate = (x -> true);
+    }
+
+    for (DllInfo library : libraries) {
+      if(library.isLoaded(symbol, predicate)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Internal
   public static ListVector getRegisteredRoutines(DllInfo dllInfo) {
     return dllInfo.buildRegisteredRoutinesSexp();
@@ -83,7 +116,7 @@ public class Native {
 
     if(packageName.isEmpty()) {
       for (DllInfo dllInfo : context.getSession().getLoadedLibraries()) {
-        Optional<DllSymbol> symbol = dllInfo.getRegisteredSymbol(name);
+        Optional<DllSymbol> symbol = dllInfo.getSymbol(name);
         if(symbol.isPresent()) {
           return symbol.get().buildNativeSymbolInfoSexp();
         }
@@ -95,7 +128,7 @@ public class Native {
       Optional<Namespace> namespace = context.getNamespaceRegistry().getNamespaceIfPresent(Symbol.get(packageName));
       if(namespace.isPresent()) {
         for (DllInfo dllInfo : namespace.get().getLibraries()) {
-          Optional<DllSymbol> symbol = dllInfo.getRegisteredSymbol(name);
+          Optional<DllSymbol> symbol = dllInfo.getSymbol(name);
           if(symbol.isPresent()) {
             return symbol.get().buildNativeSymbolInfoSexp();
           }
@@ -330,6 +363,9 @@ public class Native {
     DllSymbol method = findMethod(context, methodExp, packageName, className, DllSymbol.Convention.CALL);
 
     MethodHandle methodHandle = method.getMethodHandle();
+    if(methodHandle == null) {
+      throw new NullPointerException("methodHandle for " + method.getName() + " is null.");
+    }
     if(methodHandle.type().parameterCount() != callArguments.length()) {
       throw new EvalException("Expected %d arguments, found %d in call to %s",
           methodHandle.type().parameterCount(),
@@ -370,7 +406,7 @@ public class Native {
                               SEXP methodExp,
                               @ArgumentList ListVector callArguments,
                               @NamedFlag("PACKAGE") String packageName,
-                              @NamedFlag("CLASS") String className) throws ClassNotFoundException {
+                              @NamedFlag("CLASS") String className) {
 
 
     DllSymbol symbol = findMethod(context, methodExp, packageName, className, DllSymbol.Convention.EXTERNAL);
@@ -499,8 +535,12 @@ public class Native {
       return DllSymbol.fromSexp(method);
     }
 
+    if(method.inherits("NativeSymbol") || method.inherits("RegisteredNativeSymbol")) {
+      return DllSymbol.fromAddressSexp(method);
+    }
+
     if(method instanceof ExternalPtr) {
-      return findMethodFromExternalPointer((ExternalPtr<?>) method);
+      return findMethodFromExternalPointer(convention, (ExternalPtr<?>) method);
     }
 
     if(method instanceof StringVector) {
@@ -510,9 +550,9 @@ public class Native {
     throw new EvalException("Invalid method object of type '%s'", method.getTypeName());
   }
 
-  private static DllSymbol findMethodFromExternalPointer(ExternalPtr<?> method)  {
+  private static DllSymbol findMethodFromExternalPointer(DllSymbol.Convention convention, ExternalPtr<?> method)  {
     if (method.getInstance() instanceof Method) {
-      return new DllSymbol((Method) method.getInstance());
+      return new DllSymbol(convention, (Method) method.getInstance());
     }
     throw new EvalException("Invalid method external pointer of (java) class '%s'", method.getInstance().getClass().getName());
   }
@@ -520,7 +560,7 @@ public class Native {
   private static DllSymbol findMethodByName(Context context, String methodName, String packageName, String className, DllSymbol.Convention convention) {
 
     if(className != null) {
-      return findMethodByReflection(methodName, className);
+      return findMethodByReflection(methodName, convention, className);
     }
 
     if(packageName == null) {
@@ -538,7 +578,7 @@ public class Native {
     }
   }
 
-  private static DllSymbol findMethodByReflection(String methodName, String className) {
+  private static DllSymbol findMethodByReflection(String methodName, DllSymbol.Convention convention, String className) {
     Class<?> declaringClass = null;
     try {
       declaringClass = Class.forName(className);
@@ -546,17 +586,17 @@ public class Native {
       throw new EvalException("Could not find Java class " + className);
     }
 
-    return findMethodByReflection(methodName, declaringClass);
+    return findMethodByReflection(methodName, convention, declaringClass);
   }
 
-  private static DllSymbol findMethodByReflection(String methodName, Class<?> declaringClass) {
+  private static DllSymbol findMethodByReflection(String methodName, DllSymbol.Convention convention, Class<?> declaringClass) {
     for(Method method : declaringClass.getMethods()) {
       if(method.getName().equals(methodName) &&
           Modifier.isPublic(method.getModifiers()) &&
           Modifier.isStatic(method.getModifiers())) {
 
 
-        return new DllSymbol(method);
+        return new DllSymbol(convention, method);
       }
     }
 

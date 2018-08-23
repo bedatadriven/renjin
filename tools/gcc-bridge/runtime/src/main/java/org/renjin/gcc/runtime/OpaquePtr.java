@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -395,6 +395,11 @@ public class OpaquePtr<T> implements Ptr {
 
   @Override
   public int compareTo(Ptr o) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public Ptr withOffset(int offset) {
     throw new UnsupportedOperationException("TODO");
   }
 }

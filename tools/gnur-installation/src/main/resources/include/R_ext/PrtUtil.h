@@ -45,10 +45,10 @@ extern "C" {
 #endif
 
 /* Computation of printing formats */
-void formatLogical(int *, R_xlen_t, int *);
-void formatInteger(int *, R_xlen_t, int *);
-void formatReal(double *, R_xlen_t, int *, int *, int *, int);
-void formatComplex(Rcomplex *, R_xlen_t, int *, int *, int *, int *, int *, int *, int);
+void formatLogical(const int *, R_xlen_t, int *);
+void formatInteger(const int *, R_xlen_t, int *);
+void formatReal(const double *, R_xlen_t, int *, int *, int *, int);
+void formatComplex(const Rcomplex *, R_xlen_t, int *, int *, int *, int *, int *, int *, int);
 
 /* Formating of values */
 const char *EncodeLogical(int, int);

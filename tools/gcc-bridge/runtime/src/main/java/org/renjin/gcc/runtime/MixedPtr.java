@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,8 @@
  */
 package org.renjin.gcc.runtime;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 
 /**
@@ -28,7 +30,7 @@ public class MixedPtr extends AbstractPtr {
 
   private static final int POINTER_BYTES = 4;
 
-  private byte[] primitives;
+  private ByteBuffer primitives;
   private Object[] references;
 
   /**
@@ -40,7 +42,7 @@ public class MixedPtr extends AbstractPtr {
   private MixedPtr() {
   }
 
-  private MixedPtr(byte[] primitives, Object[] references, int offset) {
+  private MixedPtr(ByteBuffer primitives, Object[] references, int offset) {
     this.primitives = primitives;
     this.references = references;
     this.offset = offset;
@@ -48,8 +50,13 @@ public class MixedPtr extends AbstractPtr {
 
   public static MixedPtr malloc(int bytes) {
     MixedPtr ptr = new MixedPtr();
-    ptr.primitives = new byte[bytes];
-    ptr.references = new Object[mallocSize(bytes, POINTER_BYTES)];
+    try {
+      ptr.primitives = ByteBuffer.allocateDirect(bytes).order(ByteOrder.nativeOrder());
+      ptr.references = new Object[mallocSize(bytes, POINTER_BYTES)];
+    } catch (OutOfMemoryError e) {
+      System.err.println("MixedPtr out of memory");
+      throw e;
+    }
     return ptr;
   }
 
@@ -65,13 +72,22 @@ public class MixedPtr extends AbstractPtr {
 
   @Override
   public Ptr realloc(int newSizeInBytes) {
-    if(newSizeInBytes == primitives.length) {
+    if(newSizeInBytes == this.primitives.capacity()) {
       return this;
     }
-    MixedPtr ptr = new MixedPtr();
-    ptr.primitives = Arrays.copyOf(this.primitives, newSizeInBytes);
-    ptr.references = Arrays.copyOf(this.references, mallocSize(newSizeInBytes, POINTER_BYTES));
 
+    ByteBuffer source = this.primitives.asReadOnlyBuffer();
+    source.position(0);
+    source.limit(Math.min(source.capacity(), newSizeInBytes));
+
+    ByteBuffer target = ByteBuffer.allocateDirect(newSizeInBytes).order(ByteOrder.nativeOrder());
+    target.put(source);
+    target.position(0);
+    target.limit(newSizeInBytes);
+
+    MixedPtr ptr = new MixedPtr();
+    ptr.primitives = target;
+    ptr.references = Arrays.copyOf(this.references, mallocSize(newSizeInBytes, POINTER_BYTES));
     return ptr;
   }
 
@@ -85,12 +101,12 @@ public class MixedPtr extends AbstractPtr {
 
   @Override
   public byte getByte(int offset) {
-    return primitives[this.offset + offset];
+    return primitives.get(this.offset + offset);
   }
 
   @Override
   public void setByte(int offset, byte value) {
-    primitives[this.offset + offset] = value;
+    primitives.put(this.offset + offset, value);
   }
 
   @Override
@@ -120,6 +136,65 @@ public class MixedPtr extends AbstractPtr {
     setInt(offset, value.toInt());
   }
 
+  @Override
+  public double getDouble() {
+    return this.primitives.getDouble(this.offset);
+  }
+
+  @Override
+  public double getDouble(int offset) {
+    return this.primitives.getDouble(this.offset + offset);
+  }
+
+  @Override
+  public double getAlignedDouble(int index) {
+    return this.primitives.getDouble(this.offset + index * DoublePtr.BYTES);
+  }
+
+  @Override
+  public void setAlignedDouble(int index, double value) {
+    this.primitives.putDouble(this.offset + index * DoublePtr.BYTES, value);
+  }
+
+  @Override
+  public void setDouble(double value) {
+    this.primitives.putDouble(this.offset, value);
+  }
+
+  @Override
+  public void setDouble(int offset, double doubleValue) {
+    this.primitives.putDouble(this.offset + offset, doubleValue);
+  }
+
+  @Override
+  public int getInt() {
+    return this.primitives.getInt(this.offset);
+  }
+
+  @Override
+  public int getAlignedInt(int index) {
+    return this.primitives.getInt(this.offset + index * IntPtr.BYTES);
+  }
+
+  @Override
+  public int getInt(int offset) {
+    return this.primitives.getInt(this.offset + offset);
+  }
+
+  @Override
+  public void setInt(int value) {
+    this.primitives.putInt(this.offset, value);
+  }
+
+  @Override
+  public void setInt(int offset, int intValue) {
+    this.primitives.putInt(this.offset + offset, intValue);
+  }
+
+  @Override
+  public void setAlignedInt(int index, int value) {
+    this.primitives.putInt(this.offset + index * IntPtr.BYTES, value);
+  }
 
   @Override
   public int toInt() {
@@ -135,10 +210,9 @@ public class MixedPtr extends AbstractPtr {
   public void memcpy(Ptr source, int numBytes) {
     if(source instanceof MixedPtr && numBytes % POINTER_BYTES == 0) {
       MixedPtr ptr = (MixedPtr) source;
-      System.arraycopy(
-          ptr.primitives, ptr.offset,
-          this.primitives, this.offset,
-          numBytes);
+      for (int i = 0; i < numBytes; i++) {
+        setByte(i, source.getByte(i));
+      }
 
       System.arraycopy(
           ptr.references, ptr.offset / POINTER_BYTES,
@@ -154,15 +228,21 @@ public class MixedPtr extends AbstractPtr {
 
   @Override
   public Ptr copyOf(int offset, int numBytes) {
+
+    ByteBuffer source = this.primitives.asReadOnlyBuffer();
+    source.position(this.offset + offset);
+    source.limit(this.offset + offset + numBytes);
+
     MixedPtr copy = new MixedPtr();
-    copy.primitives = Arrays.copyOfRange(
-        primitives,
-        this.offset + offset,
-        this.offset + offset + numBytes);
+    copy.primitives = ByteBuffer.allocateDirect(numBytes).order(ByteOrder.nativeOrder());
+    copy.primitives.put(source);
+    copy.primitives.position(0);
     copy.references = Arrays.copyOfRange(
         references,
         (this.offset + offset) / POINTER_BYTES,
         (this.offset + offset + numBytes) / POINTER_BYTES);
+
+    assert copy.primitives.remaining() == numBytes;
 
     return copy;
   }

@@ -1,5 +1,7 @@
 #  File src/library/stats/R/deriv.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,35 +14,35 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
-D <- function(expr, name) .Internal(D(expr, name))
+D <- function(expr, name) .External(C_doD, expr, name)
 
 deriv <- function(expr, ...) UseMethod("deriv")
 
-deriv.formula <- function(expr, namevec, function.arg=NULL, tag=".expr",
+deriv.formula <- function(expr, namevec, function.arg = NULL, tag = ".expr",
                           hessian = FALSE, ...)
 {
     if((le <- length(expr)) > 1L)
-	.Internal(deriv.default(expr[[le]], namevec, function.arg, tag, hessian))
+	.External(C_deriv, expr[[le]], namevec, function.arg, tag, hessian)
     else stop("invalid formula in deriv")
 }
 
-deriv.default <- function(expr, namevec, function.arg=NULL, tag=".expr",
+deriv.default <- function(expr, namevec, function.arg = NULL, tag = ".expr",
                           hessian = FALSE, ...)
-    .Internal(deriv.default(expr, namevec, function.arg, tag, hessian))
+    .External(C_deriv, expr, namevec, function.arg, tag, hessian)
 
 deriv3 <- function(expr, ...) UseMethod("deriv3")
 
-deriv3.formula <- function(expr, namevec, function.arg=NULL, tag=".expr",
+deriv3.formula <- function(expr, namevec, function.arg = NULL, tag = ".expr",
                           hessian = TRUE, ...)
 {
     if((le <- length(expr)) > 1L)
-	.Internal(deriv.default(expr[[le]], namevec, function.arg, tag, hessian))
+	.External(C_deriv, expr[[le]], namevec, function.arg, tag, hessian)
     else stop("invalid formula in deriv")
 }
 
-deriv3.default <- function(expr, namevec, function.arg=NULL, tag=".expr",
+deriv3.default <- function(expr, namevec, function.arg = NULL, tag = ".expr",
                           hessian = TRUE, ...)
-    .Internal(deriv.default(expr, namevec, function.arg, tag, hessian))
+    .External(C_deriv, expr, namevec, function.arg, tag, hessian)
 

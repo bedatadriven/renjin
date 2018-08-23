@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -168,6 +168,18 @@ public class DoublePtr extends AbstractPtr implements Ptr {
   }
 
   @Override
+  public void memcpy(Ptr source, int numBytes) {
+    int numDoubles = numBytes / BYTES;
+    for (int i = 0; i < numDoubles; i++) {
+      this.array[this.offset + i] = source.getAlignedDouble(i);
+    }
+
+    for(int i = numDoubles * BYTES;i<numBytes;++i) {
+      setByte(i, source.getByte(i));
+    }
+  }
+
+  @Override
   public double getDouble() {
     return array[offset];
   }
@@ -197,33 +209,12 @@ public class DoublePtr extends AbstractPtr implements Ptr {
 
   @Override
   public byte getByte(int offset) {
-    int bytes = (this.offset * BYTES) + offset;
-    int index = bytes / BYTES;
-    double element = array[index];
-    long elementBits = Double.doubleToRawLongBits(element);
-    int shift = (bytes % BYTES) * BITS_PER_BYTE;
-
-    return (byte)(elementBits >>> shift);
+    return getByteViaDouble(offset);
   }
 
   @Override
   public void setByte(int offset, byte value) {
-    int bytes = (this.offset * BYTES) + offset;
-    int index = bytes / BYTES;
-    int shift = (bytes % BYTES) * BITS_PER_BYTE;
-
-    long element = Double.doubleToRawLongBits(array[index]);
-
-    long updateMask = 0xffL << shift;
-
-    // Zero out the bits in the byte we are going to update
-    element = element & ~updateMask;
-
-    // Shift our byte into position
-    long update = (((long)value) << shift) & updateMask;
-
-    // Merge the original long and updated bits together
-    array[index] = Double.longBitsToDouble(element | update);
+    setByteViaDouble(offset, value);
   }
 
   @Override

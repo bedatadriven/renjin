@@ -1,6 +1,6 @@
 
 
-importClass(com.fasterxml.jackson.databind.ObjectMapper)
+importClass(com.vividsolutions.jts.JTSVersion)
 importClass(org.renjin.test.Alpha)
 export(parseAlpha)
 export(alphaVersion)

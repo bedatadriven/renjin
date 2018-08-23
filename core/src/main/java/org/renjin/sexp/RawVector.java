@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +35,9 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
   public static int NUM_BITS = 8;
 
   private byte[] values;
+
+  private RawVector() {
+  }
 
   public RawVector(byte... values) {
     this.values = new byte[values.length];
@@ -185,6 +188,12 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
   @Override
   public Iterator<Byte> iterator() {
     return new ValueIterator();
+  }
+
+  public static RawVector unsafe(byte[] buffer) {
+    RawVector vector = new RawVector();
+    vector.values = buffer;
+    return vector;
   }
 
   /*

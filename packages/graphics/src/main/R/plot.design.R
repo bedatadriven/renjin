@@ -1,5 +1,7 @@
 #  File src/library/graphics/R/plot.design.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2014 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 plot.design <-
     function(x, y = NULL, fun = mean, data = NULL, ...,
@@ -31,7 +33,7 @@ plot.design <-
 	if(!all(sapply(x, is.factor)) & !is.factor(x)) # incl "ordered"
 	    stop("all columns/components of 'x' must be factors")
 	k <- ncol(x)
-        if(any(is.na(y))) {
+        if(anyNA(y)) {
             FUN <- fun; fun <- function(u) FUN(u [!is.na(u)])
         }
 	tot <- fun(y)
@@ -55,7 +57,7 @@ plot.design <-
 	    }
 	}
         if(axes && xaxt != "n")
-            axis(1, at = 1L:k, names(stats), xaxt= xaxt, tick = xtick,
+            axis(1, at = 1L:k, names(stats), xaxt = xaxt, tick = xtick,
                  mgp = {p <- par("mgp"); c(p[1L], if(xtick) p[2L] else 0, 0)},
                  ...)
     } ## .plot.des()

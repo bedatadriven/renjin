@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -114,30 +114,12 @@ public class ShortPtr extends AbstractPtr {
 
   @Override
   public byte getByte(int offset) {
-    int byteIndex = this.offset * BYTES + offset;
-    int index = byteIndex / BYTES;
-    int shift = (byteIndex % BYTES) * 8;
-    return (byte)(this.array[index] >>> shift);
+    return getByteViaShort(offset);
   }
 
   @Override
   public void setByte(int offset, byte value) {
-    int bytes = (this.offset * BYTES) + offset;
-    int index = bytes / BYTES;
-    int shift = (bytes % BYTES) * BITS_PER_BYTE;
-
-    int element = array[index];
-
-    int updateMask = 0xFF << shift;
-
-    // Zero out the bits in the byte we are going to update
-    element = element & ~updateMask;
-
-    // Shift our byte into position
-    int update = (((int)value) << shift) & updateMask;
-
-    // Merge the original long and updated bits together
-    array[index] = (short)(element | update);
+    setByteViaShort(offset, value);
   }
 
   @Override

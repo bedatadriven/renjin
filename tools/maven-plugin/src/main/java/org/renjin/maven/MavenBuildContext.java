@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 package org.renjin.maven;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -209,6 +210,25 @@ public class MavenBuildContext implements BuildContext {
   @Override
   public List<String> getDefaultPackages() {
     return defaultPackages;
+  }
+
+  @Override
+  public String getCompileClasspath() {
+
+    List<String> compileClasspathElements;
+    try {
+      compileClasspathElements = project.getCompileClasspathElements();
+    } catch (DependencyResolutionRequiredException e) {
+      throw new IllegalStateException("Failed to resolve classpath", e);
+    }
+
+    StringBuilder classpath = new StringBuilder();
+    classpath.append(project.getBuild().getOutputDirectory());
+    for(String element : compileClasspathElements) {
+      classpath.append(File.pathSeparator);
+      classpath.append(element);
+    }
+    return classpath.toString();
   }
 
   public void setDefaultPackagesIfDependencies() {

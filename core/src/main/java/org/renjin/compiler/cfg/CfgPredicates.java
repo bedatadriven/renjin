@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,34 +28,26 @@ public class CfgPredicates {
   private CfgPredicates() {}
   
   public static Predicate<BasicBlock> containsAssignmentTo(final Variable variable) {
-    return new Predicate<BasicBlock>() {
-
-      @Override
-      public boolean apply(BasicBlock input) {
-        for(Statement stmt : input.getStatements()) {
-          if(stmt instanceof Assignment) {
-            Assignment assignment = (Assignment) stmt;
-            if(assignment.getLHS().equals(variable)) {
-              return true;
-            }
+    return input -> {
+      for(Statement stmt : input.getStatements()) {
+        if(stmt instanceof Assignment) {
+          Assignment assignment = (Assignment) stmt;
+          if(assignment.getLHS().equals(variable)) {
+            return true;
           }
         }
-        return false;
       }
+      return false;
     };
   }
   
   public static Predicate<Statement> isPhiAssignment() {
-    return new Predicate<Statement>() {
-
-      @Override
-      public boolean apply(Statement input) {
-        if(!(input instanceof Assignment)) {
-          return false;
-        }
-        Assignment assignment = (Assignment) input;
-        return assignment.getRHS() instanceof PhiFunction;
+    return input -> {
+      if(!(input instanceof Assignment)) {
+        return false;
       }
+      Assignment assignment = (Assignment) input;
+      return assignment.getRHS() instanceof PhiFunction;
     };
   }
   

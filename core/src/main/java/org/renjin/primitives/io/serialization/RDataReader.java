@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,17 +18,17 @@
  */
 package org.renjin.primitives.io.serialization;
 
-import org.renjin.repackaged.guava.base.Charsets;
-import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.repackaged.guava.io.ByteSource;
-
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.parser.NumericLiterals;
 import org.renjin.primitives.Primitives;
 import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.primitives.vector.ConvertingStringVector;
 import org.renjin.primitives.vector.RowNamesVector;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.io.ByteSource;
 import org.renjin.sexp.*;
 
 import java.io.*;
@@ -732,7 +732,15 @@ public class RDataReader implements AutoCloseable {
   private SEXP readPrimitive(int flags) throws IOException {
     int nameLength = in.readInt();
     String name = new String(in.readString(nameLength));
-    return Primitives.getBuiltin(name);
+    PrimitiveFunction builtin = Primitives.getBuiltin(name);
+    if(builtin != null) {
+      return builtin;
+    }
+    builtin = Primitives.getInternal(Symbol.get(name));
+    if(builtin != null) {
+      return builtin;
+    }
+    throw new EvalException("Cannot read primitive '" + name + "': does not exist.");
   }
 
   private SEXP readWeakReference(int flags) throws IOException {

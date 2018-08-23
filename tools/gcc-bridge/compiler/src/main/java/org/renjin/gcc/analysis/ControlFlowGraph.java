@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ package org.renjin.gcc.analysis;
 import org.renjin.gcc.gimple.GimpleBasicBlock;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.statement.GimpleEdge;
+import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.repackaged.guava.collect.Iterators;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
@@ -79,6 +80,14 @@ public class ControlFlowGraph {
     public String toString() {
       return "<" + id + ">";
     }
+
+    public Iterable<GimpleStatement> getStatements() {
+      if(basicBlock == null) {
+        return Collections.emptySet();
+      } else {
+        return basicBlock.getStatements();
+      }
+    }
   }
   
   private Node entryNode = new Node("Entry");
@@ -105,23 +114,25 @@ public class ControlFlowGraph {
       GimpleBasicBlock sourceBlock = it.next();
       Node sourceNode = nodes.get(sourceBlock.getIndex());
 
-      List<GimpleEdge> jumps = sourceBlock.getJumps();
-      if(jumps.isEmpty()) {
-        // fall through edge
+      // explicit jumps
+      Node targetNode;
+      boolean fallsThrough = true;
+      for (GimpleEdge jump : sourceBlock.getJumps()) {
+
+        if (!jump.isExceptionThrow()) {
+          fallsThrough = false;
+        }
+        sourceNode = nodes.get(jump.getSource());
+        if (jump.getTarget() == 1) {
+          targetNode = exitNode;
+        } else {
+          targetNode = nodes.get(jump.getTarget());
+        }
+        addEdge(sourceNode, targetNode);
+      }
+      if(fallsThrough) {
         if(it.hasNext()) {
           addEdge(sourceNode, getNode(it.peek()));
-        }
-      } else {
-        // explicit jumps
-        Node targetNode;
-        for (GimpleEdge jump : jumps) {
-          sourceNode = nodes.get(jump.getSource());
-          if(jump.getTarget() == 1) {
-            targetNode = exitNode;
-          } else {
-            targetNode = nodes.get(jump.getTarget());
-          }
-          addEdge(sourceNode, targetNode);
         }
       }
     }

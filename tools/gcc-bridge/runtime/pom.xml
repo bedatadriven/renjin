@@ -19,12 +19,50 @@
   <parent>
     <groupId>org.renjin</groupId>
     <artifactId>gcc-bridge-parent</artifactId>
-    <version>0.9.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <artifactId>gcc-runtime</artifactId>
   <name>Renjin GCC Runtime</name>
   <description>Runtime classes for code translated from GCC</description>
+
+  <!-- Groovy script to generate per-type ptr classes -->
+  <!-- to avoid complicating the build, these sources are just checked into git. -->
+
+  <!-- To re-generate, run -->
+  <!-- mvn -Pgenerate generate-sources -->
+
+  <profiles>
+    <profile>
+      <id>generate</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.gmaven</groupId>
+            <artifactId>groovy-maven-plugin</artifactId>
+            <dependencies>
+              <dependency>
+                <groupId>org.freemarker</groupId>
+                <artifactId>freemarker</artifactId>
+                <version>2.3.20</version>
+              </dependency>
+            </dependencies>
+            <executions>
+              <execution>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>execute</goal>
+                </goals>
+                <configuration>
+                  <source>${project.basedir}/src/main/script/generate.groovy</source>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
 </project>

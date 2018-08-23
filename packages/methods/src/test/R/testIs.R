@@ -1,12 +1,13 @@
 # adapted from https://github.com/wch/r-source/tree/trunk/src/library/methods/tests
 
 library(stats)
+library(methods)
 library(hamcrest)
 
 test.setClassInheritNonConditionalExplicit <- function(){
 
 	## test (non-conditional) explicit inheritance
-    setClass("xy", representation(x="numeric", y="numeric"))
+    setClass("xy", representation(x = "numeric", y = "numeric"))
 
 	setIs("xy", "complex",
     		coerce = function(from) complex(real = from@x, imaginary = from@y),
@@ -19,7 +20,7 @@ test.setClassInheritNonConditionalExplicit <- function(){
 	set.seed(124)
     x1 <- rnorm(10)
     y1 <- rnorm(10)
-    cc <- complex(real = x1, imaginary=y1)
+    cc <- complex(real = x1, imaginary = y1)
     xyc <- new("xy", x = x1, y = y1)
     asxyc <- as(xyc, "complex")
 
@@ -63,10 +64,10 @@ test.setClassInheritNonConditionalExplicit <- function(){
     	identicalTo(new("xy", x = -y1, y = x1))
     	)
 
-	setGeneric("size", function(x)standardGeneric("size"))
+	setGeneric("size", function(x, y) standardGeneric("size"))
 
 	assertThat(
-		selectMethod("size", "ANY",optional=TRUE),
+		selectMethod("size", c("ANY","ANY"), optional = TRUE),
 		is.null
 		)
 
@@ -75,18 +76,18 @@ test.setClassInheritNonConditionalExplicit <- function(){
 		)
 
 	assertTrue(
-		is.null(selectMethod("size", "ANY",optional=TRUE))
+		is.null(selectMethod("size", c("ANY","ANY"), optional = TRUE))
 		)
 
-	setMethod("size", "vector", function(x)length(x))
+	setMethod("size", signature(x = "vector", y = "vector"), function(x, y) length(x) + length(y))
 
 
-	m <- getMethod("size", "vector")
-    #cat(c("attributes(m) = ", deparse(attributes(m)), "\n"))
+#	m <- getMethod("size", "vector")
+#   cat(c("attributes(m) = ", deparse(attributes(m)), "\n"))
 
     assertThat(
-    	size(xyc),
-    	identicalTo(length(x1))
+    	size(xyc, xyc),
+    	identicalTo(length(x1) + length(x1))
     	)
 
 }

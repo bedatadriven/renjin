@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,9 @@
 package org.renjin.gcc;
 
 import org.renjin.gcc.runtime.BytePtr;
+import org.renjin.gcc.runtime.Stdlib;
+
+import java.util.Objects;
 
 /**
  * Methods to be used in tests
@@ -34,6 +37,14 @@ public class GimpleAssert {
   public static void assertTrue(BytePtr message, int x) {
     if(x == 0) {
       throw new AssertionError(message.nullTerminatedString());
+    }
+  }
+
+  public static void assertStringsEqual(BytePtr actualPtr, BytePtr expectedPtr) {
+    String actual = Stdlib.nullTerminatedString(actualPtr);
+    String expected = Stdlib.nullTerminatedString(expectedPtr);
+    if(!Objects.equals(actual, expected)) {
+      throw new AssertionError(String.format("Expected '%s' but result was '%s'", expected, actual));
     }
   }
 }

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,14 +29,11 @@ import org.renjin.parser.RParser;
 import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.special.ReturnException;
-import org.renjin.primitives.text.RCharsets;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.io.CharSource;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.ArrayDeque;
 import java.util.List;
 
@@ -100,6 +97,56 @@ public class Evaluation {
     }
     builder.setAttribute(Symbols.NAMES, vector.getNames());
     return builder.build();
+  }
+
+  private static final List<String> VALID_HOW_VALUES = Lists.newArrayList("unlist", "replace", "list");
+  @Builtin
+  public static Vector rapply(@Current Context context, @Current Environment rho, Vector vector,
+      Function function, StringVector classes, SEXP deflt, String how) {
+
+    if (!VALID_HOW_VALUES.contains(how)) {
+      throw new EvalException("'how' must be one of " + VALID_HOW_VALUES);
+    }
+
+    // Retrieve the additional arguments from the `...` value
+    // in the closure that called us
+    PairList extraArgs = (PairList)rho.getVariable(context, Symbols.ELLIPSES);
+
+    ListVector.Builder builder = ListVector.newBuilder();
+    for (int i = 0; i != vector.length(); ++i) {
+      // The semantics differ in detail from lapply:
+      // in particular the arguments are evaluated before calling the C code.
+      SEXP element = vector.getElementAsSEXP(i);
+
+      if (Types.isList(element)) {
+        builder.add(rapply(context, rho, (Vector) element, function, classes, deflt, how));
+      } else if (classes.contains(StringVector.valueOf(element.getTypeName()), 0)) {
+        // each element of the list which is not itself a list and has a class included in classes
+        // is replaced by the result of applying f to the element.
+        // all non-list elements which have a class included in classes
+        // are replaced by the result of applying f to the element
+        PairList.Builder args = new PairList.Builder();
+        args.add(element);
+        args.addAll(extraArgs);
+        FunctionCall applyFunctionCall = new FunctionCall(function, args.build());
+        builder.add(context.evaluate(applyFunctionCall, rho));
+      } else {
+        if ("replace".equals(how)) {
+          builder.add(element);
+        } else {
+          // If the mode is how = "list" or how = "unlist", all others are replaced by deflt.
+          builder.add(deflt);
+        }
+      }
+    }
+    builder.setAttribute(Symbols.NAMES, vector.getNames());
+    if ("unlist".equals(how)) {
+      // Finally, if how = "unlist", unlist(recursive = TRUE) is called on the result.
+      FunctionCall funCall = FunctionCall.newCall(Symbol.get("unlist"), builder.build(), LogicalVector.TRUE, LogicalVector.TRUE);
+      return (Vector) context.evaluate(funCall, rho);
+    } else {
+      return builder.build();
+    }
   }
 
   @Internal
@@ -173,7 +220,7 @@ public class Evaluation {
       /* build a call
          f(dots[[1]][[4]],dots[[2]][[4]],dots[[3]][[4]],d=7)
       */
-      
+
       PairList.Builder args = new PairList.Builder();
       for(int j = 0; j!=varyingArgs.length();++ j) {
         SEXP arg = varyingArgs.getElementAsSEXP(j);
@@ -240,13 +287,19 @@ public class Evaluation {
        * changes any of the components named in the (pair)list, the changes are lost.
        */
       Environment parent = enclosing == Null.INSTANCE ? context.getBaseEnvironment() :
-          EvalException.<Environment>checkedCast(enclosing);
+          EvalException.checkedCast(enclosing);
 
       rho = Environment.createChildEnvironment(parent).build();
 
       if(environment instanceof ListVector) {
         for(NamedValue namedValue : ((ListVector) environment).namedValues()) {
-          if(!StringVector.isNA(namedValue.getName())) {
+
+          // Skip elements with blank ("") names, but include NA names
+          // as symbol named "NA"
+
+          if(StringVector.isNA(namedValue.getName())) {
+            rho.setVariable(context, Symbol.get("NA"), namedValue.getValue());
+          } else if(namedValue.getName().length() > 0) {
             rho.setVariable(context, Symbol.get(namedValue.getName()), namedValue.getValue());
           }
         }
@@ -431,8 +484,7 @@ public class Evaluation {
             
       } else if(file.inherits("connection")) {
         Connection conn = Connections.getConnection(context, file);
-        Reader reader = new InputStreamReader(conn.getInputStream(), RCharsets.getByName(encoding));
-        return RParser.parseAllSource(reader, sourceFile);
+        return RParser.parseAllSource(conn.getReader(), sourceFile);
       
       } else {
         throw new EvalException("unsupported parsing source");
@@ -447,8 +499,8 @@ public class Evaluation {
   }
 
   @Builtin
-  public static int nargs(@Current Context context) {
-    return context.getArguments().length();
+  public static int nargs(@Current Context context, @Current Environment environment) {
+    return Contexts.findCallingContext(context, environment).getArguments().length();
   }
   
   @Builtin(".Primitive")
@@ -461,13 +513,25 @@ public class Evaluation {
   }
 
   @Internal
-  public static void remove(StringVector names, Environment envir, boolean inherits) {
-    if(inherits) {
-      throw new EvalException("remove(inherits=TRUE) is not yet implemented");
+  public static void remove(@Current Context context, StringVector names, Environment envir, boolean inherits) {
+    for (String name : names) {
+      remove(context, Symbol.get(name), envir, inherits);
     }
-    for(String name : names) {
-      envir.remove(Symbol.get(name));
+  }
+
+  private static void remove(Context context, Symbol name, Environment envir, boolean inherits) {
+    Environment e = envir;
+    while(e != Environment.EMPTY){
+      if(e.hasVariable(name)) {
+        e.remove(name);
+        return;
+      }
+      if(!inherits) {
+        break;
+      }
+      e = e.getParent();
     }
+    Warning.emitWarning(context, false,"object '" + name.getPrintName() + "' not found");
   }
 
 }

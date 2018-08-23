@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,8 @@ package org.renjin.sexp;
 
 import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
-import org.renjin.repackaged.guava.base.Objects;
+
+import java.util.Objects;
 
 
 /**
@@ -147,6 +148,17 @@ public class Closure extends AbstractSEXP implements Function {
     return formals;
   }
 
+  public void unsafeSetFormals(PairList formals) {
+    this.formals = formals;
+  }
+
+  public void unsafeSetBody(SEXP body) {
+    this.body = body;
+  }
+
+  public void unsafeSetEnclosingEnvironment(Environment v) {
+    this.enclosingEnvironment = v;
+  }
 
   @Override
   public String toString() {
@@ -182,16 +194,17 @@ public class Closure extends AbstractSEXP implements Function {
       return false;
     }
     Closure other = (Closure) obj;
-    if(!Objects.equal(body, other.body)) {
+    if(!Objects.equals(body, other.body)) {
       return false;
     }
-    if(!Objects.equal(enclosingEnvironment, other.enclosingEnvironment)) {
+    if(!Objects.equals(enclosingEnvironment, other.enclosingEnvironment)) {
       return false;
     }
-    if(!Objects.equal(formals, other.formals)) {
+    if(!Objects.equals(formals, other.formals)) {
       return false;
     }
     return true;
   }
+
 
 }

@@ -56,7 +56,11 @@ find.package <- function(package = NULL, lib.loc = NULL, quiet = FALSE, verbose 
 	if(is.null(package)) {
 		stop("package = NULL not supported by Renjin.")
 	}
-	.Internal(find.package(package))
+	if(quiet) {
+	    tryCatch(.Internal(find.package(package)), error = function(e) character(0))
+	} else {
+	    .Internal(find.package(package))
+	}
 }
 
 loadNamespaceMethods <- function(package, ns, expClasses, expClassPatterns) {
@@ -245,4 +249,32 @@ namespaceExport <- function(ns, vars) {
             ns[[what]] <- methods::mergeMethods(m1, m2)
         }
     }
+}
+
+
+getExportedValue <- function(ns, name) {
+    ns <- asNamespace(ns)
+    if (isBaseNamespace(ns))
+	get(name, envir = ns, inherits = FALSE) # incl. error
+    else {
+	if (!is.null(oNam <- .getNamespaceInfo(ns, "exports")[[name]])) {
+	    get0(oNam, envir = ns)
+	} else { ##  <pkg> :: <dataset>  for lazydata :
+	    ld <- .getNamespaceInfo(ns, "lazydata")
+	    if (!is.null(obj <- ld[[name]]))
+		obj
+	    else { ## if there's a lazydata object with value NULL:
+		if(exists(name, envir = ld, inherits = FALSE))
+		    NULL
+		else
+		    stop(gettextf("'%s' is not an exported object from 'namespace:%s'",
+				  name, getNamespaceName(ns)),
+			 call. = FALSE, domain = NA)
+	    }
+	}
+    }
+}
+
+registerS3method <- function(genname, class, method, envir = parent.frame()) {
+    .Internal(registerS3method(genname, class, method, envir))
 }

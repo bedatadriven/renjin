@@ -24,19 +24,21 @@ callNextMethod <- function(...) {
     ## Because of the .local mechanism used to allow variable argument lists
     ## in methods (see rematchDefinition) these may be different.
     parent <- sys.parent(1)
-    maybeMethod <- sys.function(parent)
+    methodFun <- maybeMethod <- sys.function(parent)
     if(is(maybeMethod, "MethodDefinition")) {
-        callEnv <- methodEnv <- parent.frame(1)
-        mcall <- sys.call(parent)
-        dotsenv <- parent.frame(2)
-        i <- 1
+        callEnv     <- parent.frame(1)
+        methodEnv   <- parent.frame(1)
+        mcall       <- sys.call(sys.parent(1))
+        dotsenv     <- parent.frame(2)
+        i <- 1L
     }
     else {
-        callEnv <- parent.frame(1)
-        methodEnv <- parent.frame(2)
-        mcall <- sys.call(sys.parent(2))
-        dotsenv <- parent.frame(3)
-        i <- 2
+        callEnv     <- parent.frame(1)
+        methodEnv   <- parent.frame(2)
+        mcall       <- sys.call(sys.parent(2))
+        dotsenv     <- parent.frame(3)
+        maybeMethod <- sys.function(sys.parent(2))
+        i <- 2L
     }
     ## set up the nextMethod object, load it
     ## into the calling environment, and cache it
@@ -47,9 +49,13 @@ callNextMethod <- function(...) {
     }
     else if(identical(mcall[[1L]], dotNextMethod)) {
         ## a call from another callNextMethod()
-        nextMethodEnv <- parent.frame(i+1)
+        nextMethodEnv <- parent.frame(i+1L)
         nextMethod <- nextMethodEnv$.nextMethod
         f <- nextMethodEnv$.Generic
+    }
+    else if (is(maybeMethod, "MethodDefinition")) {
+        f <- maybeMethod@generic
+        method <- maybeMethod
     }
     else {
         ## may be a method call for a primitive; not available as .Method
@@ -58,7 +64,7 @@ callNextMethod <- function(...) {
         } else {
             f <- as.character(mcall[[1L]])
         }
-        fdef <- genericForPrimitive(f)
+        fdef <- genericForBasic(f)
         ## check that this could be a basic function with methods
         if(is.null(fdef))
             stop(gettextf("a call to callNextMethod() appears in a call to %s, but the call does not seem to come from either a generic function or another 'callNextMethod'",
@@ -119,16 +125,18 @@ callNextMethod <- function(...) {
                if(is.na(i) || i > length(call))
                    length(fnames) <- length(call)
                else {
-                   i <- i-1
+                   i <- i-1L
                    length(fnames) <- i
                    fnames <- c(fnames, rep("", length(call) - i))
                }
+               if (substring(f, nchar(f)-1L) == "<-")
+                   fnames[length(fnames)] <- "value"
                names(call) <- fnames
                call <- as.call(call)
            }
         }
         else
-            call <- match.call(maybeMethod, mcall, expand.dots = FALSE,
+            call <- match.call(methodFun, mcall, expand.dots = FALSE,
                                envir = dotsenv)
         .Call("R_nextMethod", call, callEnv, PACKAGE="methods")
     }

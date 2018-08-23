@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,11 +21,11 @@ package org.renjin.sexp;
 import org.renjin.base.BaseFrame;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * The Environment data type.
@@ -452,7 +452,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
       if(value instanceof Promise) {
         value = value.force(context);
       }
-      if(predicate.apply(value)) {
+      if(predicate.test(value)) {
         return value;
       }
     }
@@ -746,7 +746,8 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   }
 
   public boolean hasVariable(Symbol symbol) {
-    return frame.getVariable(symbol) != Symbol.UNBOUND_VALUE;
+    return frame.getVariable(symbol) != Symbol.UNBOUND_VALUE ||
+        (activeBindings != null && activeBindings.containsKey(symbol));
   }
 
   @Override

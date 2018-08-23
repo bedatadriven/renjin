@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,4 +52,48 @@ public final class SexpType {
   public static final int  S4SXP      = 25;    /* S4, non-vector */
   public static final int  FUNSXP    =  99;    /* Closure or Builtin or Special */
   public static final int REFSXP =           255 ;
+
+  private static final String UNKNOWN = "unknown type";
+  // @formatter:off
+  private static final String[] NAMES = new String[] { 
+    "NULL",
+    "name",
+    "pairlist",
+    "closure",
+    "environment",
+    "promise",
+    "language",
+    "special",
+    "builtin",
+    "char",
+    "logical",
+    UNKNOWN,
+    UNKNOWN,
+    "integer",
+    "numeric",
+    "complex",
+    "character",
+    "...",
+    "any",
+    "list",
+    "expression",
+    "bytecode",
+    "externalptr",
+    UNKNOWN,
+    "raw",
+    "S4",
+  };
+  // @formatter:on
+
+  public static final String typeName(int typeIndex) {
+    if (typeIndex == REFSXP) {
+      return "reference";
+    } else if (typeIndex == FUNSXP) {
+      return "function";
+    } else if (0 <= typeIndex && typeIndex <= S4SXP) {
+      return NAMES[typeIndex];
+    } else {
+      return UNKNOWN;
+    }
+  }
 }

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,11 +39,8 @@ public class LocalStaticVarAllocator extends VarAllocator {
 
   @Override
   public JLValue reserve(String name, Type type) {
-
     return globalVarAllocator.reserve(uniqueName(name), type);
   }
-
-
 
   @Override
   public JLValue reserve(String name, Type type, JExpr initialValue) {

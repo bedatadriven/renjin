@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,6 @@ import org.apache.commons.math.special.Erf;
 import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GccException;
 import org.renjin.gcc.GimpleCompiler;
-import org.renjin.gcc.HtmlTreeLogger;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gnur.api.*;
 import org.renjin.gnur.api.Error;
@@ -48,6 +47,7 @@ public class GnurSourcesCompiler {
   private List<File> includeDirs = Lists.newArrayList();
   private ClassLoader linkClassLoader = getClass().getClassLoader();
   private File loggingDir;
+  private boolean transformGlobalVariables;
 
   public void setPackageName(String packageName) {
     this.packageName = packageName;
@@ -85,6 +85,10 @@ public class GnurSourcesCompiler {
         }
       }
     }
+  }
+
+  public void setTransformGlobalVariables(boolean transformGlobalVariables) {
+    this.transformGlobalVariables = transformGlobalVariables;
   }
 
   private boolean isSourceFile(String name) {
@@ -150,9 +154,11 @@ public class GnurSourcesCompiler {
 
       setupCompiler(compiler);
 
-      if(loggingDir != null) {
-        compiler.setLogger(new HtmlTreeLogger(loggingDir));
+      if(transformGlobalVariables) {
+        compiler.addPlugin(new GlobalVarPlugin(compiler.getPackageName()));
       }
+
+      compiler.setLoggingDirectory(loggingDir);
 
       compiler.compile(units);
     }
@@ -175,9 +181,6 @@ public class GnurSourcesCompiler {
     compiler.addReferenceClass(Fileio.class);
     compiler.addReferenceClass(GetText.class);
     compiler.addReferenceClass(GetX11Image.class);
-    compiler.addReferenceClass(Graphics.class);
-    compiler.addReferenceClass(GraphicsBase.class);
-    compiler.addReferenceClass(GraphicsEngine.class);
     compiler.addReferenceClass(Internal.class);
     compiler.addReferenceClass(Memory.class);
     compiler.addReferenceClass(Parse.class);
@@ -195,6 +198,7 @@ public class GnurSourcesCompiler {
     compiler.addReferenceClass(Riconv.class);
     compiler.addReferenceClass(Rinterface.class);
     compiler.addReferenceClass(Rinternals.class);
+    compiler.addReferenceClass(Rinternals2.class);
     compiler.addReferenceClass(rlocale.class);
     compiler.addReferenceClass(Rmath.class);
     compiler.addReferenceClass(RStartup.class);
@@ -209,6 +213,10 @@ public class GnurSourcesCompiler {
     compiler.addReferenceClass(Rdynload.class);
     compiler.addRecordClass("_DllInfo", DllInfo.class);
     compiler.addReferenceClass(RenjinFiles.class);
+
+    compiler.addTransformer(new SetTypeRewriter());
+    compiler.addTransformer(new MutationRewriter());
+
   }
 
   private boolean checkUpToDate() {

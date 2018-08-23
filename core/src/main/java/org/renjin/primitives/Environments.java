@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,12 +22,12 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.FinalizationClosure;
 import org.renjin.invoke.annotations.*;
-import org.renjin.repackaged.guava.base.Objects;
-import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Predicate;
 
 /**
  * R primitive functions which operate on {@code Environment}s
@@ -106,7 +106,7 @@ public final class Environments {
 
     Environment result = context.getEnvironment();
     while(result != Environment.EMPTY) {
-      if(Objects.equal(result.getName(), name)) {
+      if(Objects.equals(result.getName(), name)) {
         return result;
       }
       if(name.equals("package:base") && result == context.getBaseEnvironment()) {
@@ -407,6 +407,29 @@ public final class Environments {
     return newEnv;
   }
 
+  @Internal
+  public static void detach(@Current Context context, int pos) {
+    if(pos < 2) {
+      throw new EvalException("Attachment position must be 2 or greater");
+    }
+
+    Environment before = null;
+    Environment env = context.getGlobalEnvironment();
+
+    while(pos > 1 && env != Environment.EMPTY) {
+      before = env;
+      env = env.getParent();
+      pos--;
+    }
+
+    if(env == Environment.EMPTY) {
+      throw new EvalException("No such environment");
+    }
+
+    // Remove environment from the path
+    before.setParent(env.getParent());
+
+  }
 
   /**
    * Registers an R function to be called upon garbage collection of

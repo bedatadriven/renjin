@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -185,7 +185,12 @@ public class Mathlib {
    *  The returned value is the fraction component (part after the decimal), and sets integer to the integer component.
    */
   public static double modf(double x, DoublePtr pInteger) {
-    double intValue = rint(x);
+    double intValue;
+    if(x < 0) {
+      intValue = Math.ceil(x);
+    } else {
+      intValue = Math.floor(x);
+    }
     double fracValue = x - intValue;
     pInteger.set(intValue);
     return fracValue;

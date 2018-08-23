@@ -15,6 +15,9 @@ library.dynam.unload <- function(chname, libpath, verbose = FALSE, file.ext = ""
     .Internal(library.dynam.unload(chname))
 }
 
+is.loaded <- function(symbol, PACKAGE = "", type = "")
+    .Internal(is.loaded(symbol, PACKAGE, type))
+
 
 getNativeSymbolInfo <- function(name, PACKAGE, unlist = TRUE,
                                  withRegistrationInfo = FALSE)

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.var.GlobalVarAllocator;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
@@ -31,12 +32,15 @@ import org.renjin.gcc.runtime.MixedPtr;
 import org.renjin.gcc.runtime.PointerPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
+
+import java.util.Optional;
 
 /**
  * Implements a C pointer using the {@link org.renjin.gcc.runtime.Ptr} interface.
  */
 public class VPtrStrategy implements PointerTypeStrategy {
+
+  private static final Type POINTER_INTERFACE_TYPE = Type.getType(Ptr.class);
 
   private GimpleType baseType;
   private PointerType pointerType;
@@ -110,16 +114,14 @@ public class VPtrStrategy implements PointerTypeStrategy {
   public GExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
       GimplePointerType pointerType = this.baseType.pointerTo();
-      JLValue unitArray = allocator.reserveUnitArray(decl.getNameIfPresent(), Type.getType(Ptr.class), Optional.<JExpr>absent());
-      VPtrValueFunction valueFunction = new VPtrValueFunction(pointerType);
-      FatPtrPair address = new FatPtrPair(valueFunction, unitArray, Expressions.constantInt(0));
-      return address.valueOf(pointerType);
+      JLValue unitArray = allocator.reserveUnitArray(decl.getNameIfPresent(), POINTER_INTERFACE_TYPE, Optional.empty());
+      return addressableExprFromUnitArray(pointerType, unitArray);
 
     } else {
       // For "normal" local variables, allocate an extra "offset" variable so that
       // we don't need to create new Ptr instances for pointer arithmatic within the function body.
 
-      JLValue pointer = allocator.reserve(decl.getNameIfPresent(), Type.getType(Ptr.class));
+      JLValue pointer = allocator.reserve(decl.getNameIfPresent(), POINTER_INTERFACE_TYPE);
       JLValue offset = allocator.reserveOffsetInt(decl.getNameIfPresent());
 
       return new VPtrExpr(pointer, offset);
@@ -127,8 +129,39 @@ public class VPtrStrategy implements PointerTypeStrategy {
   }
 
   @Override
+  public GExpr globalVariable(GimpleVarDecl decl, GlobalVarAllocator allocator) {
+    GlobalVarAllocator.StaticField field = allocator.reserve(decl.getNameIfPresent(), POINTER_INTERFACE_TYPE);
+    VPtrExpr addressExpr = new VPtrExpr(staticFieldPtr(field.getDeclaringClass(), field.getName()));
+    return new VPtrExpr(field, addressExpr);
+  }
+
+  private JExpr staticFieldPtr(Type declaringType, String fieldName) {
+    Type ptrClassName = Type.getType("Lorg/renjin/gcc/runtime/PointerFieldPtr;");
+    String addressOfDescriptor = Type.getMethodDescriptor(Type.getType(Ptr.class), Type.getType(Class.class), Type.getType(String.class));
+    return Expressions.staticMethodCall(ptrClassName, "addressOf", addressOfDescriptor,
+        Expressions.constantClass(declaringType), Expressions.constantString(fieldName));
+  }
+
+  @Override
   public GExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
-    throw new UnsupportedOperationException("TODO");
+    if(expr.getType().equals(POINTER_INTERFACE_TYPE)) {
+      return new VPtrExpr(expr);
+
+    } else if(expr.getType().getSort() == Type.ARRAY &&
+              expr.getType().getElementType().equals(POINTER_INTERFACE_TYPE)) {
+
+      return addressableExprFromUnitArray(((GimplePointerType) decl.getType()), ((JLValue) expr));
+    }
+
+    throw new UnsupportedOperationException("Cannot create expression for provided global variable " +
+          decl + " with JVM type " + expr.getType());
+  }
+
+
+  private GExpr addressableExprFromUnitArray(GimplePointerType pointerType, JLValue unitArray) {
+    VPtrValueFunction valueFunction = new VPtrValueFunction(pointerType);
+    FatPtrPair address = new FatPtrPair(valueFunction, unitArray, Expressions.constantInt(0));
+    return address.valueOf(pointerType);
   }
 
   @Override

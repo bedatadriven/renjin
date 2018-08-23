@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
  */
 package org.renjin.maven.test;
 
-import org.renjin.repackaged.guava.base.Throwables;
 import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 import org.renjin.eval.Context;
@@ -29,6 +28,7 @@ import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.base.Throwables;
 import org.renjin.repackaged.guava.io.Files;
 import org.renjin.repl.JlineRepl;
 import org.renjin.sexp.*;
@@ -62,11 +62,10 @@ public class TestExecutor {
   private String namespaceUnderTest;
   private File testReportDirectory;
   private List<String> defaultPackages;
-  private int maxOutputBytes;
+  private int maxOutputBytes = Integer.MAX_VALUE;
 
 
   public static void main(String[] args) throws IOException {
-
     TestExecutor executor = new TestExecutor();
     executor.execute();
   }
@@ -149,6 +148,17 @@ public class TestExecutor {
     }
   }
 
+  private File createPlotDirectory(File testFile) {
+    File directory = new File(testReportDirectory, TestReporter.suiteName(testFile));
+    if(!directory.exists()) {
+      boolean created = directory.mkdirs();
+      if(!created) {
+        throw new EvalException("Could not create directory '" + directory.getAbsolutePath() + "'");
+      }
+    }
+    return directory;
+  }
+
   private void loadLibrary(Session session, String namespaceName, PrintStream testOutput) {
     try {
       session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("library"), Symbol.get(namespaceName)));
@@ -185,6 +195,7 @@ public class TestExecutor {
       sendMessage(START_MESSAGE, TestCaseResult.ROOT_TEST_CASE);
 
       Session session = createSession(testOutput, sourceFile.getParentFile());
+      session.getOptions().set("device", graphicsDevice(session, sourceFile));
 
       // Examples assume that the package is already on the search path
       if (sourceFile.getName().endsWith(".Rd")) {
@@ -228,9 +239,22 @@ public class TestExecutor {
           }
         }
       }
+
+      // Cleanup graphics, etc.
+      repl.close();
+
     } finally {
       testOutput.close();
     }
+  }
+
+  private SEXP graphicsDevice(Session session, File sourceFile) {
+
+    PairList.Builder arguments = new PairList.Builder();
+    arguments.add("filename", StringArrayVector.valueOf(createPlotDirectory(sourceFile).getAbsolutePath() + File.separator + "Rplot%03d.svg"));
+
+    return new Closure(session.getGlobalEnvironment(), Null.INSTANCE,
+        new FunctionCall(Symbol.get("svg"), arguments.build()));
   }
 
 
@@ -300,10 +324,13 @@ public class TestExecutor {
 
     // Setup options for testthat so that test results are written in junit format
     // to the expected location
+    StringVector testOut = StringVector.valueOf(
+        new File(testReportDirectory, "TEST-testthat-results.xml").getAbsolutePath());
+
     PairList.Builder options = new PairList.Builder();
     options.add("testthat.default_check_reporter", StringVector.valueOf("junit"));
-    options.add("testthat.junit.output_file", StringVector.valueOf(
-        new File(testReportDirectory, "TEST-testthat-results.xml").getAbsolutePath()));
+    options.add("testthat.junit.output_file", testOut);
+    options.add("testthat.output_file", testOut);
 
     session.getTopLevelContext().evaluate(new FunctionCall(Symbol.get("options"), options.build()));
 

@@ -1,5 +1,7 @@
 #  File src/library/grDevices/R/postscript.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ## An environment not exported from namespace:graphics used to pass
 ## .PostScript.Options and .PDF.options to the windows() device for
@@ -63,18 +65,17 @@ check.options <-
                     if(!any(ii)) next
 		    doubt <- doubt | ii
 		    do.keep <- ii & !override.check
-		    warning(paste(sQuote(paste(fn,"(",names(prev[ii]),")",
-                                               sep="")),
-                                  collapse=" and "), " ",
+		    warning(paste(sQuote(paste0(fn, "(", names(prev[ii]), ")" )),
+                                  collapse = " and "), " ",
                             ngettext(as.integer(sum(ii)),
                                      "differs between new and previous",
                                      "differ between new and previous"),
                             if(any(do.keep)) {
-                                paste("\n\t ==> ",
-                                      gettext("NOT changing "),
-                                      paste(sQuote(names(prev[do.keep])),
-                                            collapse=" & "),
-                                      sep = "")} else "",
+                                paste0("\n\t ==> ",
+                                       gettextf("NOT changing %s",
+                                                paste(sQuote(names(prev[do.keep])),
+                                                      collapse=" & ")))
+                            } else "",
                             domain = NA, call. = FALSE)
 		}
 	    names(new) <- NULL
@@ -190,7 +191,7 @@ guessEncoding <- function(family)
 
 ##--> source in devPS.c :
 
-postscript <- function(file = ifelse(onefile, "Rplots.ps", "Rplot%03d.ps"),
+postscript <- function(file = if(onefile) "Rplots.ps" else "Rplot%03d.ps",
                        onefile, family, title , fonts, encoding, bg, fg,
                        width, height, horizontal, pointsize,
                        paper, pagecentre, print.it, command, colormodel,
@@ -259,8 +260,9 @@ postscript <- function(file = ifelse(onefile, "Rplots.ps", "Rplot%03d.ps"),
     }
 
     onefile <- old$onefile # for 'file'
-    if(!checkIntFormat(file)) stop("invalid 'file'")
-    .External(PostScript,
+    if(!checkIntFormat(file))
+        stop(gettextf("invalid 'file' argument '%s'", file), domain = NA)
+    .External(C_PostScript,
               file, old$paper, old$family, old$encoding, old$bg, old$fg,
               old$width, old$height, old$horizontal, old$pointsize,
               onefile, old$pagecentre, old$print.it, old$command,
@@ -270,7 +272,7 @@ postscript <- function(file = ifelse(onefile, "Rplots.ps", "Rplot%03d.ps"),
     invisible()
 }
 
-xfig <- function (file = ifelse(onefile,"Rplots.fig", "Rplot%03d.fig"),
+xfig <- function (file = if(onefile) "Rplots.fig" else "Rplot%03d.fig",
                   onefile = FALSE, encoding = "none",
                   paper = "default", horizontal = TRUE,
                   width = 0, height = 0, family = "Helvetica",
@@ -281,18 +283,18 @@ xfig <- function (file = ifelse(onefile,"Rplots.fig", "Rplot%03d.fig"),
     ## do initialization if needed
     initPSandPDFfonts()
 
-    if(!checkIntFormat(file)) stop("invalid 'file'")
-    .External(XFig, file, paper, family, bg, fg,
+    if(!checkIntFormat(file))
+        stop(gettextf("invalid 'file' argument '%s'", file), domain = NA)
+    .External(C_XFig, file, paper, family, bg, fg,
               width, height, horizontal, pointsize,
               onefile, pagecentre, defaultfont, textspecial, encoding)
     invisible()
 }
 
-pdf <- function(file = ifelse(onefile, "Rplots.pdf", "Rplot%03d.pdf"),
+pdf <- function(file = if(onefile) "Rplots.pdf" else "Rplot%03d.pdf",
                 width, height, onefile, family, title, fonts, version,
                 paper, encoding, bg, fg, pointsize, pagecentre, colormodel,
-                useDingbats, useKerning, fillOddEven, maxRasters,
-                compress)
+                useDingbats, useKerning, fillOddEven, compress)
 {
     ## do initialization if needed
     initPSandPDFfonts()
@@ -315,8 +317,6 @@ pdf <- function(file = ifelse(onefile, "Rplots.pdf", "Rplot%03d.pdf"),
     if(!missing(useDingbats)) new$useDingbats <- useDingbats
     if(!missing(useKerning)) new$useKerning <- useKerning
     if(!missing(fillOddEven)) new$fillOddEven <- fillOddEven
-    if(!missing(maxRasters))
-        warning("'maxRasters' is no longer needed, and will be ignored")
     if(!missing(compress)) new$compress <- compress
 
     old <- check.options(new, name.opt = ".PDF.Options", envir = .PSenv)
@@ -362,8 +362,9 @@ pdf <- function(file = ifelse(onefile, "Rplots.pdf", "Rplot%03d.pdf"),
         stop("invalid PDF version")
 
     onefile <- old$onefile # needed to set 'file'
-    if(!checkIntFormat(file)) stop("invalid 'file'")
-    .External(PDF,
+    if(!checkIntFormat(file))
+        stop(gettextf("invalid 'file' argument '%s'", file), domain = NA)
+    .External(C_PDF,
               file, old$paper, old$family, old$encoding, old$bg, old$fg,
               old$width, old$height, old$pointsize, onefile, old$pagecentre,
               old$title, old$fonts, version[1L], version[2L],
@@ -482,8 +483,8 @@ isPDF <- function(fontDBname) {
 
 checkFontInUse <- function(names, fontDBname) {
     for (i in names)
-        if (.Call(Type1FontInUse, i, isPDF(fontDBname))
-            || .Call(CIDFontInUse, i, isPDF(fontDBname)))
+        if (.Call(C_Type1FontInUse, i, isPDF(fontDBname))
+            || .Call(C_CIDFontInUse, i, isPDF(fontDBname)))
             stop(gettextf("font %s already in use", i), domain = NA)
     invisible()
 }
@@ -504,16 +505,16 @@ setFonts <- function(fonts, fontNames, fontDBname) {
 printFont <- function(font) UseMethod("printFont")
 
 printFont.Type1Font <- function(font)
-    paste(font$family, "\n    (", paste(font$metrics, collapse=" "),
-          "\n    ", font$encoding, "\n", sep="")
+    paste0(font$family, "\n    (", paste(font$metrics, collapse = " "),
+           "\n    ", font$encoding, "\n")
 
 printFont.CIDFont <- function(font)
-    paste(font$family, "\n    (", paste(font$metrics, collapse=" "),
-          ")\n    ", font$CMap, "\n    ", font$encoding, "\n", sep="")
+    paste0(font$family, "\n    (", paste(font$metrics, collapse = " "),
+           ")\n    ", font$CMap, "\n    ", font$encoding, "\n")
 
 printFonts <- function(fonts)
     cat(paste(names(fonts), ": ", unlist(lapply(fonts, printFont)),
-              sep="", collapse=""))
+              sep = "", collapse = ""))
 
 # If no arguments specified, return entire font database
 # If no named arguments specified, all args should be font names
@@ -562,12 +563,6 @@ CIDFont <- function(family, cmap, cmapEncoding, pdfresource="")
     checkFont(font)
 }
 
-# Deprecated in favour of Type1Font()
-postscriptFont <- function(family, metrics, encoding="default")
-{
-    .Defunct("Type1Font")
-}
-
 
 ####################
 # PDF font database
@@ -612,7 +607,7 @@ matchEncoding <- function(font, encoding) UseMethod("matchEncoding")
 
 matchEncoding.Type1Font <- function(font, encoding) {
     ## the trailing .enc is optional
-    font$encoding %in% c("default", encoding, paste(encoding, ".enc", sep=""))
+    font$encoding %in% c("default", encoding, paste0(encoding, ".enc"))
 }
 
 # Users should not be specifying a CID font AND an encoding
@@ -659,7 +654,7 @@ assign(".PostScript.Options",
 	 command    = "default",
          colormodel = "srgb",
          useKerning = TRUE,
-         fillOddEven= FALSE), envir = .PSenv)
+         fillOddEven = FALSE), envir = .PSenv)
 assign(".PostScript.Options.default",
        get(".PostScript.Options", envir = .PSenv),
        envir = .PSenv)
@@ -777,7 +772,12 @@ postscriptFonts(# Default Serif font is Times
                 URWTimes = Type1Font("URWTimes",
                   c("n021003l.afm", "n021004l.afm",
                     "n021023l.afm", "n021024l.afm",
-                    "s050000l.afm"))
+                    "s050000l.afm")),
+                ## And Monotype Arial
+                ArialMT = Type1Font("ArialMT",
+                  c("ArialMT.afm", "ArialMT-Bold.afm",
+                    "ArialMT-Italic.afm", "ArialMT-BoldItalic.afm",
+                    "Symbol.afm"))
                 )
 
 ## All of the above Type1 fonts are the same for PostScript and PDF
@@ -947,48 +947,40 @@ pdfFonts(Japan1 = CIDFont("KozMinPro-Regular-Acro", "EUC-H", "EUC-JP",
 }
 
 # Call ghostscript to process postscript or pdf file to embed fonts
-# (could also be used to convert ps or pdf to any supported  format)
+# (could also be used to convert ps or pdf to any supported format)
 embedFonts <- function(file, # The ps or pdf file to convert
                        format, # Default guessed from file suffix
                        outfile = file, # By default overwrite file
-                       fontpaths = "",
-                       options = "" # Additional options to ghostscript
+                       fontpaths = character(),
+                       options = character() # Additional options to ghostscript
                        )
 {
     if(!is.character(file) || length(file) != 1L || !nzchar(file))
         stop("'file' must be a non-empty character string")
+    gsexe <- tools::find_gs_cmd()
+    if(!nzchar(gsexe)) stop("GhostScript was not found")
+    if(.Platform$OS.type == "windows") gsexe <- shortPathName(gsexe)
     suffix <- gsub(".+[.]", "", file)
-    if (missing(format)) {
+    if (missing(format))
         format <- switch(suffix,
-                         ps = ,
-                         eps = "pswrite",
+                         ps = , eps = "ps2write",
                          pdf = "pdfwrite")
-    }
-    if (!is.character(format)) {
-        stop("Invalid output format")
-    }
-    gsexe <- Sys.getenv("R_GSCMD")
-    if(.Platform$OS.type == "windows" && !nzchar(gsexe))
-        gsexe <- Sys.getenv("GSC")
-    if(is.null(gsexe) || !nzchar(gsexe)) {
-        gsexe <- switch(.Platform$OS.type,
-                        unix = "gs",
-                        windows = "gswin32c.exe")
-    } else if(.Platform$OS.type == "windows" &&
-              length(grep(" ", gsexe, fixed=TRUE)))
-        gsexe <- shortPathName(gsexe)
+    if (!is.character(format)) stop("invalid output format")
+    check_gs_type(gsexe, format)
     tmpfile <- tempfile("Rembed")
     if (length(fontpaths))
-        fontpaths <- paste("-sFONTPATH=",
-                           paste(fontpaths, collapse=.Platform$path.sep),
-                           sep="")
-    cmd <- paste(gsexe, " -dNOPAUSE -dBATCH -q -dAutoRotatePages=/None -sDEVICE=", format,
-                 " -sOutputFile=", tmpfile, " ", fontpaths, " ",
-                 options, " ", file, sep = "")
-    ret <- system(cmd)
+        fontpaths <-
+            paste0("-sFONTPATH=",
+                   shQuote(paste(fontpaths, collapse = .Platform$path.sep)))
+    args <- c(paste0("-dNOPAUSE -dBATCH -q -dAutoRotatePages=/None -sDEVICE=", format),
+              paste0(" -sOutputFile=", tmpfile),
+              fontpaths, options, shQuote(file))
+    ret <- system2(gsexe, args)
     if(ret != 0)
         stop(gettextf("status %d in running command '%s'", ret, cmd),
              domain = NA)
+    if(outfile != file) args[2] <- paste0(" -sOutputFile=", shQuote(outfile))
+    cmd <- paste(c(shQuote(gsexe), args), collapse = " ")
     file.copy(tmpfile, outfile, overwrite = TRUE)
     invisible(cmd)
 }

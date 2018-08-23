@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,10 +23,10 @@ import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.repackaged.guava.base.Joiner;
-import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 public class GimpleCall extends GimpleStatement {
 
@@ -66,14 +66,21 @@ public class GimpleCall extends GimpleStatement {
   }
 
   public boolean isFunctionNamed(String name) {
+    return name.equals(getFunctionName());
+  }
+
+  /**
+   * @return the name of the function if this is a static call, or "" if this is a call to a function pointer.
+   */
+  public String getFunctionName() {
     if(function instanceof GimpleAddressOf) {
       GimpleExpr value = ((GimpleAddressOf) function).getValue();
       if (value instanceof GimpleFunctionRef) {
         GimpleFunctionRef ref = (GimpleFunctionRef) value;
-        return ref.getName().equals(name);
+        return ref.getName();
       }
     }
-    return false;
+    return "";
   }
 
   @Override
@@ -113,7 +120,7 @@ public class GimpleCall extends GimpleStatement {
   @Override
   public boolean lhsMatches(Predicate<? super GimpleLValue> predicate) {
     if(lhs != null) {
-      return predicate.apply(lhs);
+      return predicate.test(lhs);
     } else {
       return false;
     }
@@ -122,13 +129,13 @@ public class GimpleCall extends GimpleStatement {
   @Override
   public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
     if(lhs != null) {
-      if (predicate.apply(lhs)) {
+      if (predicate.test(lhs)) {
         lhs = (GimpleLValue) newExpr;
       } else {
         lhs.replaceAll(predicate, newExpr);
       }
     }
-    if(predicate.apply(function)) {
+    if(predicate.test(function)) {
       function = newExpr;
     } else {
       function.replaceAll(predicate, newExpr);

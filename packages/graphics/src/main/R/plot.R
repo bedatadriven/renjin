@@ -1,5 +1,7 @@
 #  File src/library/graphics/R/plot.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,30 +14,72 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ### xy.coords() is now in the imported 'grDevices' package
 
-plot <- function (x, y, ...)  {
-    warning("graphics are not yet implemented (plot).\n")
-}
+plot <- function (x, y, ...)  UseMethod("plot")
 
 
 ## xlim = NULL (instead of "missing", since it will be passed to plot.default):
 plot.function <-
     function(x, y = 0, to = 1, from = y, xlim = NULL, ylab = NULL, ...)
-    {
-        warning("graphics are not yet implemented (plot.function).\n")
+{
+    ## this is to allow things like plot(sin, 0, 2*pi)
+    if (!missing(y) && missing(from)) from <- y
+    if (is.null(xlim)) {
+	if(is.null(from)) from <- 0 # most likely from y = NULL
+    } else {
+	if(missing(from)) from <- xlim[1L]
+	if(missing(to))	to <- xlim[2L]
     }
+    if (is.null(ylab)) {
+        sx <- substitute(x)
+        ylab <- if(mode(x) != "name")
+            deparse(sx)[1L]
+        else {
+            xname <- list(...)[["xname"]]
+            if (is.null(xname)) xname <- "x"
+            paste0(sx, "(", xname, ")")
+        }
+    }
+    ## name args to avoid partial matches from ...
+    curve(expr = x, from = from, to = to, xlim = xlim, ylab = ylab, ...)
+}
 
 plot.default <-
     function(x, y = NULL, type = "p", xlim = NULL, ylim = NULL,
              log = "", main = NULL, sub = NULL, xlab = NULL, ylab = NULL,
              ann = par("ann"), axes = TRUE, frame.plot = axes,
              panel.first = NULL, panel.last = NULL, asp = NA, ...)
-    {
-        warning("graphics are not yet implemented (plot.default).\n")
+{
+    ## These col, bg, pch, cex can be vectors, so exclude them
+    ## Also, axis and box accept some of these
+    localAxis <- function(..., col, bg, pch, cex, lty, lwd) Axis(...)
+    localBox <- function(..., col, bg, pch, cex, lty, lwd) box(...)
+    localWindow <- function(..., col, bg, pch, cex, lty, lwd) plot.window(...)
+    localTitle <- function(..., col, bg, pch, cex, lty, lwd) title(...)
+    xlabel <- if (!missing(x)) deparse(substitute(x))
+    ylabel <- if (!missing(y)) deparse(substitute(y))
+    xy <- xy.coords(x, y, xlabel, ylabel, log)
+    xlab <- if (is.null(xlab)) xy$xlab else xlab
+    ylab <- if (is.null(ylab)) xy$ylab else ylab
+    xlim <- if (is.null(xlim)) range(xy$x[is.finite(xy$x)]) else xlim
+    ylim <- if (is.null(ylim)) range(xy$y[is.finite(xy$y)]) else ylim
+    dev.hold(); on.exit(dev.flush())
+    plot.new()
+    localWindow(xlim, ylim, log, asp, ...)
+    panel.first
+    plot.xy(xy, type, ...)
+    panel.last
+    if (axes) {
+	localAxis(if(is.null(y)) xy$x else x, side = 1, ...)
+	localAxis(if(is.null(y))  x   else y, side = 2, ...)
     }
+    if (frame.plot) localBox(...)
+    if (ann) localTitle(main = main, sub = sub, xlab = xlab, ylab = ylab, ...)
+    invisible()
+}
 
 plot.factor <- function(x, y, legend.text = NULL, ...)
 {
@@ -80,18 +124,15 @@ plot.table <-
 	if(is.null(xlab)) xlab <- ""
 	if(is.null(ylab)) ylab <- xnam
         is.num <- suppressWarnings(!any(is.na(xx <- as.numeric(nx))))
-	x0 <- if(is.num) xx else seq.int(x)
-	# plot(x0, unclass(x), type = type,
-	#      ylim = ylim, xlab = xlab, ylab = ylab, frame.plot = frame.plot,
-	#      lwd = lwd, ..., xaxt = "n")
-    warning("graphics are not yet implemented (plot.table).\n")
-	xaxt <-
-	    if(length(as <- list(...))) {
-		if(!is.null(as$axes) && !as$axes) "n" else as$xaxt
-	    }## else NULL
-	axis(1, at = x0, labels = nx, xaxt = xaxt)
+	x0 <- if(is.num) xx else seq_along(x)
+	plot(x0, unclass(x), type = type,
+	     ylim = ylim, xlab = xlab, ylab = ylab, frame.plot = frame.plot,
+	     lwd = lwd, ..., xaxt = "n")
+        localaxis <- function(..., col, bg, pch, cex, lty) axis(...)
+	if(!identical(list(...)$axes, FALSE))
+            localaxis(1, at = x0, labels = nx, ...)
     } else {
-	if(length(as <- list(...)) && !is.null(as$main)) # use 'main'
+	if(length(dots <- list(...)) && !is.null(dots$main)) # use 'main'
 	    mosaicplot(x, xlab = xlab, ylab = ylab, ...)
 	else # default main
 	    mosaicplot(x, xlab = xlab, ylab = ylab, main = xnam, ...)
@@ -142,7 +183,7 @@ function(formula, data = parent.frame(), ..., subset,
 	if( is.object(y) ) {
 	    found <- FALSE
 	    for(j in class(y)) {
-		funname <- paste("plot.", j, sep = "")
+		funname <- paste0("plot.", j)
 		if( exists(funname) ) {
 		    found <- TRUE
 		    break
@@ -156,7 +197,7 @@ function(formula, data = parent.frame(), ..., subset,
             on.exit(devAskNewPage(oask))
 	}
         if(length(xn)) {
-            if( !is.null(xlab<- dots[["xlab"]]) )
+            if( !is.null(xlab <- dots[["xlab"]]) )
                 dots <- dots[-match("xlab", names(dots))]
             for (i in xn) {
                 xl <- if(is.null(xlab)) i else xlab
@@ -165,7 +206,15 @@ function(formula, data = parent.frame(), ..., subset,
                 do.call(funname,
                         c(list(mf[[i]], y, ylab = yl, xlab = xl), dots))
                }
-	} else do.call(funname, c(list(y, ylab = ylab), dots))
+	} else {
+	    if(length(varnames) == 1L && length(formula) == 3L &&
+	       identical(formula[[2L]], formula[[3L]]))
+		warning(gettextf("the formula '%s' is treated as '%s'",
+				 format(formula),
+				 format(local({ f <- formula; f[[3L]] <- quote(1); f}))),
+			domain=NA)
+	    do.call(funname, c(list(y, ylab = ylab), dots))
+	}
     } else do.call("plot.data.frame", c(list(mf), dots))
     invisible()
 }
@@ -295,9 +344,7 @@ text.formula <- function(formula, data = parent.frame(), ..., subset)
 plot.xy <- function(xy, type, pch = par("pch"), lty = par("lty"),
                     col = par("col"), bg = NA, cex = 1, lwd = par("lwd"),
                     ...)
-{
-    warning("graphics are not yet implemented.\n")
-}
+    invisible(.External.graphics(C_plotXY, xy, type, pch, lty, col, bg, cex, lwd, ...))
 
 
 plot.new <- function()
@@ -305,12 +352,13 @@ plot.new <- function()
     # TODO: define a general runHook() and use instead
     for (fun in getHook("before.plot.new")) {
         if (is.character(fun)) fun <- get(fun)
-        warning("graphics are not yet implemented.")
+        try(fun())
     }
-    warning("graphics are not yet implemented.")
+    .External2(C_plot_new)
+    grDevices:::recordPalette()
     for(fun in getHook("plot.new")) {
         if(is.character(fun)) fun <- get(fun)
-        warning("graphics are not yet implemented.")
+        try(fun())
     }
     invisible()
 }
@@ -319,7 +367,8 @@ frame <- plot.new
 
 plot.window <- function(xlim, ylim, log = "", asp = NA, ...)
 {
-    warning("graphics are not yet implemented (plot.window).")
+    .External.graphics(C_plot_window, xlim, ylim, log, asp, ...)
+    invisible()
 }
 
 plot.data.frame <- function (x, ...)
@@ -360,14 +409,21 @@ grconvertX <- function(x, from = "user", to = "user")
 {
     from <- pmatch(from, .units)
     to <- pmatch(to, .units)
-    # .Internal(grconvertX(as.double(x), from, to))
-    warning("graphics are not yet implemented (grconvertX).")
+    .External(C_convertX, as.double(x), from, to)
 }
 
 grconvertY <- function(y, from = "user", to = "user")
 {
     from <- pmatch(from, .units)
     to <- pmatch(to, .units)
-    # .Internal(grconvertY(as.double(y), from, to))
-    warning("graphics are not yet implemented (grconvertY).")
+    .External(C_convertY, as.double(y), from, to)
 }
+
+## unexported helper for stats::plot.hclust
+plotHclust <-
+    function (n, merge, height, order, hang, labels, ...)
+{
+    .External.graphics(C_dendwindow, n, merge, height, hang, labels, ...)
+    .External.graphics(C_dend, n, merge, height, order, hang, labels, ...)
+}
+

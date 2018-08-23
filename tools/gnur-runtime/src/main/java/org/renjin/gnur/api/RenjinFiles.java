@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,15 +22,13 @@ import org.apache.commons.vfs2.FileContent;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.RandomAccessContent;
-import org.renjin.gcc.runtime.BytePtr;
-import org.renjin.gcc.runtime.FileHandle;
-import org.renjin.gcc.runtime.Ptr;
-import org.renjin.gcc.runtime.RecordUnitPtr;
+import org.renjin.gcc.runtime.*;
 import org.renjin.primitives.Native;
 
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import static org.renjin.gcc.runtime.Stdlib.nullTerminatedString;
 
@@ -60,60 +58,28 @@ public class RenjinFiles {
 
   private static FileHandle fopen(FileObject fileObject, String mode) throws FileSystemException {
     switch (mode) {
+      case "r":
       case "rb":
-        FileContent content = fileObject.getContent();
-        return new InputStreamHandle(content.getInputStream());
+        return new InputStreamHandle(fileObject.getContent());
+
+      case "w":
+      case "wb":
+        return new OutputStreamHandle(fileObject.getContent().getOutputStream());
 
       default:
         throw new UnsupportedOperationException("mode: " + mode);
     }
   }
 
-  private static class RandomAccessHandle implements FileHandle {
+  private static class InputStreamHandle extends AbstractFileHandle {
 
-    private RandomAccessContent content;
-
-    public RandomAccessHandle(RandomAccessContent content) {
-      this.content = content;
-    }
-
-    @Override
-    public int read() throws IOException {
-      try {
-        return content.readUnsignedByte();
-      } catch (EOFException e) {
-        return -1;
-      }
-    }
-
-    @Override
-    public void seekSet(long offset) throws IOException {
-      content.seek(offset);
-    }
-
-    @Override
-    public void seekCurrent(long offset) throws IOException {
-      throw new UnsupportedOperationException("TODO");
-    }
-
-    @Override
-    public void seekEnd(long offset) {
-      throw new UnsupportedOperationException("TODO");
-    }
-
-    @Override
-    public void close() throws IOException {
-      content.close();
-    }
-  }
-
-  private static class InputStreamHandle implements FileHandle {
-
+    private FileContent content;
     private InputStream inputStream;
     private long position = 0;
 
-    public InputStreamHandle(InputStream inputStream) {
-      this.inputStream = inputStream;
+    public InputStreamHandle(FileContent content) throws FileSystemException {
+      this.content = content;
+      this.inputStream = content.getInputStream();
     }
 
     @Override
@@ -123,6 +89,23 @@ public class RenjinFiles {
         position ++;
       }
       return b;
+    }
+
+    @Override
+    public void write(int b) throws IOException {
+      throw new UnsupportedOperationException("Cannot write on input stream handle.");
+    }
+
+    @Override
+    public void rewind() throws IOException {
+      inputStream.close();
+      inputStream = content.getInputStream();
+      position = 0;
+    }
+
+    @Override
+    public void flush() throws IOException {
+      throw new UnsupportedOperationException("Cannot flush an input stream handle.");
     }
 
     @Override
@@ -148,6 +131,55 @@ public class RenjinFiles {
       if(skipped < offset) {
         throw new EOFException();
       }
+    }
+
+    @Override
+    public void seekEnd(long offset) {
+      throw new UnsupportedOperationException("TODO");
+    }
+  }
+
+  private static class OutputStreamHandle extends AbstractFileHandle {
+
+    private OutputStream outputStream;
+
+    public OutputStreamHandle(OutputStream outputStream) {
+      this.outputStream = outputStream;
+    }
+
+    @Override
+    public int read() throws IOException {
+      throw new UnsupportedOperationException("Cannot read from output stream handle.");
+    }
+
+    @Override
+    public void write(int b) throws IOException {
+      outputStream.write(b);
+    }
+
+    @Override
+    public void rewind() throws IOException {
+      throw new UnsupportedOperationException("TODO");
+    }
+
+    @Override
+    public void flush() throws IOException {
+      outputStream.flush();
+    }
+
+    @Override
+    public void close() throws IOException {
+      outputStream.close();
+    }
+
+    @Override
+    public void seekSet(long offset) throws IOException {
+      throw new UnsupportedOperationException("TODO");
+    }
+
+    @Override
+    public void seekCurrent(long offset) throws IOException {
+      throw new UnsupportedOperationException("TODO");
     }
 
     @Override

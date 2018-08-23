@@ -1,5 +1,6 @@
 
 #include "link.h"
+#include "assert.h"
 
 // Declared elsewhere
 extern int magic_number1;
@@ -44,4 +45,14 @@ extern double test_points() {
 extern int dummy2() {
   test();
   get_unit_number();
+}
+
+static void* get_magic_number_addr() {
+    return &addressable_magic_number;
+}
+
+void test_pointer_identity() {
+    void *a = get_magic_number_addr();
+    void *b = get_magic_number_addr();
+    ASSERT(a == b)
 }

@@ -1,6 +1,6 @@
 #
 # Renjin : JVM-based interpreter for the R language for the statistical analysis
-# Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+# Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,30 +23,33 @@ library(methods)
 
 setClass("A", representation(a="numeric"))
 a <- new("A", a = 10)
-setMethod("[[", c(x="A", j="missing", i="missing"), function(x, ...)       1.4 )
-setMethod("[[", c(x="A", j="ANY",     i="ANY"    ), function(x, i, j, ...) 1.43)
-setMethod("[[", c(x="A", j="missing", i="A"      ), function(x, i, j, ...)    1.5 )
-setMethod("[[", c(x="A", j="ANY",     i="A"      ), function(x, i, j, ...) 1.55)
-setMethod("[[", c(x="A", j="A",       i="missing"), function(x, j, ...)    1.6 )
-setMethod("[[", c(x="A", j="A",       i="ANY"    ), function(x, i, j, ...) 1.7 )
+setMethod("[[", c(x="A",  i="missing", j="missing"), function(x, ...)       "A#missing#missing" )
+setMethod("[[", c(x="A", i="ANY", j="ANY"      ), function(x, i, j, ...) "A#ANY#ANY")
+setMethod("[[", c(x="A",  i="A"  ,j="missing"  ), function(x, i, j, ...)    "A#A#missing" )
+setMethod("[[", c(x="A",  i="A", j="ANY"        ), function(x, i, j, ...) "A#A#ANY")
+setMethod("[[", c(x="A",  i="missing", j="A"      ), function(x, j, ...)    "A#missing#A" )
+setMethod("[[", c(x="A", i="ANY"   , j="A"        ), function(x, i, j, ...) "A#ANY#A" )
 setMethod("[[", c(x="A", i="A",       j="A"      ), function(x, i, j, ...) 1.8 )
-test.s4.missing.01 = function() { assertThat( a[[]] , identicalTo( 1.4 )) }
+test.s4.missing.01 = function() { assertThat( a[[]] , identicalTo( "A#missing#missing" )) }
 test.s4.missing.02 = function() { assertThat( a[[a,a]] , identicalTo( 1.8 )) }
-test.s4.missing.03 = function() { assertThat( a[[a,]] , identicalTo( 1.5 )) }
-test.s4.missing.04 = function() { assertThat( a[[,a]] , identicalTo( 1.6 )) }
-test.s4.missing.05 = function() { assertThat( a[[i=a,j=]] , identicalTo( 1.5 )) }
-test.s4.missing.06 = function() { assertThat( a[[j=a,i=]] , identicalTo( 1.5 )) }
-test.s4.missing.07 = function() { assertThat( a[[a,1]] , identicalTo( 1.55 )) }
-test.s4.missing.07b = function() { assertThat( a[[j=a,i=1]] , identicalTo( 1.55 )) }
-test.s4.missing.08 = function() { assertThat( a[[1,a]] , identicalTo( 1.7 )) }
-test.s4.missing.08b = function() { assertThat( a[[j=1,i=a]] , identicalTo( 1.7 )) }
+test.s4.missing.03 = function() { assertThat( a[[a,]] , identicalTo( "A#A#missing" )) }
+test.s4.missing.04 = function() { assertThat( a[[,a]] , identicalTo( "A#missing#A" )) }
+test.s4.missing.05 = function() { assertThat( a[[i=a,j=]] , identicalTo( "A#A#missing" )) }
+test.s4.missing.06 = function() { assertThat( a[[j=a,i=]] , identicalTo( "A#A#missing" )) }
+test.s4.missing.07 = function() { assertThat( a[[a,1]] , identicalTo( "A#A#ANY" )) }
+test.s4.missing.07b = function() { assertThat( a[[j=a,i=1]] , identicalTo( "A#A#ANY" )) }
+test.s4.missing.08 = function() { assertThat( a[[1,a]] , identicalTo( "A#ANY#A" )) }
+test.s4.missing.08b = function() { assertThat( a[[j=1,i=a]] , identicalTo( "A#ANY#A" )) }
 
 setClass("B", representation(b = "numeric"))
 b <- new("B", b = 10)
 setMethod("[[", c(x = "B", i = "missing", j = "ANY"    ), function(x, j,    ...) 1.47)
 test.s4.missing.09 = function() { assertThat( b[[,1]] , identicalTo( 1.47 )) }
 test.s4.missing.10 = function() { assertThat( b[[]] , identicalTo( 1.47 ))}
-test.s4.missing.11 = function() { setMethod("[[", c(x = "B", i = "missing", j = "missing"), function(x,       ...) 1.46); assertThat( b[[]] , identicalTo( 1.46 )) }
+test.s4.missing.11 = function() {
+    setMethod("[[", c(x = "B", i = "missing", j = "missing"), function(x,       ...) 1.46);
+    assertThat( b[[]] , identicalTo( 1.46 ))
+}
 
 setClass("C", representation(c = "numeric"))
 c <- new("C", c = 10)

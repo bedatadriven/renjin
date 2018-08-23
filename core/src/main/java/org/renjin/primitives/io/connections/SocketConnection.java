@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,6 +82,13 @@ public class SocketConnection implements Connection {
   @Override
   public boolean isOpen() {
     return true;
+  }
+
+  @Override
+  public void flush() throws IOException {
+    if(writer != null) {
+      writer.flush();
+    }
   }
 
   @Override

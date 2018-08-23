@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,6 +76,27 @@ public class MatchedArguments {
   }
 
   public SEXP getActualValue(int actualIndex) {
+    return actualValues[actualIndex];
+  }
+
+  public boolean areAllFormalsMatched() {
+    return matchedPositions.allFormalsMatched();
+  }
+
+  public SEXP getActualForFormal(int formalIndex, SEXP defaultValue) {
+    int actualIndex = getActualIndex(formalIndex);
+    if(actualIndex == -1) {
+      return defaultValue;
+    } else {
+      return actualValues[actualIndex];
+    }
+  }
+
+  public SEXP getActualForFormal(int formalIndex) {
+    int actualIndex = getActualIndex(formalIndex);
+    if(actualIndex == -1) {
+      throw new EvalException("Arugment \"" + getFormalName(formalIndex).getPrintName() + "\" is missing, with no default");
+    }
     return actualValues[actualIndex];
   }
 }

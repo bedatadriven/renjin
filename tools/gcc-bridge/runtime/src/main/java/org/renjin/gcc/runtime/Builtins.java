@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,8 @@
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
 package org.renjin.gcc.runtime;
+
+import org.renjin.gcc.format.FormatArrayInput;
 
 public class Builtins {
 
@@ -273,13 +275,19 @@ public class Builtins {
   public static void __cxa_pure_virtual() {
     throw new RuntimeException("Pure virtual function invoked");
   }
+
+  /**
+   * A handle for __cxa_finalize to manage c++ local destructors.
+   */
+  public static Ptr[] __dso_handle = new Ptr[] { BytePtr.NULL };
+
   
   public static void undefined_std() {
     throw new RuntimeException("Invocation of std:: method");
   }
 
   public static void _gfortran_runtime_error_at(Ptr position, Ptr format, Object... arguments) {
-    throw new RuntimeException(Stdlib.format(format, arguments));
+    throw new RuntimeException(Stdlib.format(format, new FormatArrayInput(arguments)));
   }
 
   public static void _gfortran_concat_string(int resultLength, Ptr result, int arg1Length, Ptr arg1, int arg2Length, Ptr arg2) {

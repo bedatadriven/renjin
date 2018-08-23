@@ -1,5 +1,7 @@
 #  File src/library/graphics/R/sunflowerplot.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,12 +14,12 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 sunflowerplot <- function(x, ...) UseMethod("sunflowerplot")
 
 sunflowerplot.default <-
-    function(x, y = NULL, number, log = "", digits = 6,
+    function(x, y = NULL, number, log = "", digits = 6L,
              xlab = NULL, ylab = NULL, xlim = NULL, ylim = NULL,
              add = FALSE, rotate = FALSE,
              pch = 16, cex = 0.8, cex.fact =  1.5, col = par("col"), bg = NA,
@@ -58,13 +60,13 @@ sunflowerplot.default <-
     dev.hold(); on.exit(dev.flush())
     if(!add)
         plot(x, y, xlab = xlab, ylab = ylab,
-             xlim=xlim, ylim=ylim, log=log, type = "n", ...)
+             xlim = xlim, ylim = ylim, log = log, type = "n", ...)
 
     n.is1 <- number == 1
     if(any(n.is1))
-        points(x[ n.is1], y[ n.is1], pch=pch, col=col, bg=bg, cex= cex)
+        points(x[ n.is1], y[ n.is1], pch = pch, col = col, bg = bg, cex = cex)
     if(any(!n.is1)) {
-        points(x[!n.is1], y[!n.is1], pch=pch, col=col, bg=bg, cex= cex/cex.fact)
+        points(x[!n.is1], y[!n.is1], pch = pch, col = col, bg = bg, cex = cex/cex.fact)
         i.multi <- (1L:n)[number > 1]
         ppin <- par("pin")
         pusr <- par("usr")
@@ -93,10 +95,10 @@ sunflowerplot.formula <-
     m <- match.call(expand.dots = FALSE)
     if(is.matrix(eval(m$data, parent.frame())))
 	m$data <- as.data.frame(data)
-    m$... <- NULL
+    m$xlab <- m$ylab <- m$... <- NULL
     m$na.action <- na.action # force use of default for this method
-    require(stats, quietly = TRUE)
-    m[[1L]] <- as.name("model.frame")
+    ## need stats:: for non-standard evaluation
+    m[[1L]] <- quote(stats::model.frame)
     mf <- eval(m, parent.frame())
     if(NCOL(mf) != 2L)
         stop("'formula' should specify exactly two variables")

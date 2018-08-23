@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class Sort {
 
@@ -140,8 +141,8 @@ public class Sort {
   }
   
   @Internal("findInterval")
-  public static SEXP findInterval(DoubleArrayVector vec, DoubleArrayVector x, LogicalVector rightmostClosed,
-                                  LogicalVector allInside, LogicalVector leftOpen) {
+  public static SEXP findInterval(DoubleArrayVector vec, DoubleArrayVector x, LogicalArrayVector rightmostClosed,
+                                  LogicalArrayVector allInside, LogicalArrayVector leftOpen) {
     int n = vec.length();
     int nx = x.length();
   
@@ -193,64 +194,90 @@ public class Sort {
   }
 
   @Internal
-  public static DoubleVector qsort(DoubleVector x, LogicalVector returnIndexes) {
+  public static Vector qsort(DoubleVector x, LogicalVector returnIndexes) {
 
-    if(returnIndexes.isElementTrue(0)) {
-      throw new EvalException("qsort(indexes=TRUE) not yet implemented");
-    }
     
     double[] values = x.toDoubleArray();
     Arrays.sort(values);
     
     DoubleVector sorted = new DoubleArrayVector(values, x.getAttributes());
-    
+
+    if(returnIndexes.isElementTrue(0)) {
+      final double[] doubleArray = x.toDoubleArray();
+      int[] sortedIndices = IntStream.range(0, doubleArray.length)
+          .boxed().sorted((i, j) ->  Double.compare(doubleArray[i], doubleArray[j]) )
+          .mapToInt(ele -> ele).toArray();
+
+      ListVector.NamedBuilder builder = new ListVector.NamedBuilder();
+      builder.add("x", sorted);
+      builder.add("ix", new IntArrayVector(sortedIndices));
+      return builder.build();
+    }
+
     // drop the names attributes if present because it will not be sorted
     return (DoubleVector)sorted
             .setAttribute(Symbols.NAMES, Null.INSTANCE);  
   }
   
   @Internal
-  public static DoubleVector psort(DoubleVector x, Vector indexes) {
+  public static Vector psort(DoubleVector x, Vector indexes) {
     // stub implementation: we just do a full sort
     return qsort(x, LogicalVector.FALSE);
   }
 
   @Internal
-  public static IntVector qsort(IntVector x, LogicalVector returnIndexes) {
+  public static Vector qsort(IntVector x, LogicalVector returnIndexes) {
 
-    if(returnIndexes.isElementTrue(0)) {
-      throw new EvalException("qsort(indexes=TRUE) not yet implemented");
-    }
     
     int[] values = x.toIntArray();
     Arrays.sort(values);
     
     IntVector sorted = new IntArrayVector(values, x.getAttributes());
-    
+
+    if(returnIndexes.isElementTrue(0)) {
+      final int[] intArr = x.toIntArray();
+      int[] sortedIndices = IntStream.range(0, intArr.length)
+          .boxed().sorted((i, j) ->  Integer.compare(intArr[i], intArr[j]) )
+          .mapToInt(ele -> ele).toArray();
+
+      ListVector.NamedBuilder builder = new ListVector.NamedBuilder();
+      builder.add("x", sorted);
+      builder.add("ix", new IntArrayVector(sortedIndices));
+      return builder.build();
+    }
     // drop the names attributes if present because it will not be sorted
     return (IntVector)sorted
             .setAttribute(Symbols.NAMES, Null.INSTANCE);  
   }
 
   @Internal
-  public static IntVector psort(IntVector x, Vector indexes) {
+  public static Vector psort(IntVector x, Vector indexes) {
     return qsort(x, LogicalVector.FALSE);
   }
 
 
   @Internal
-  public static LogicalVector qsort(LogicalVector x, boolean returnIndexes) {
+  public static Vector qsort(LogicalVector x, boolean returnIndexes) {
 
-    if(returnIndexes) {
-      throw new EvalException("qsort(indexes=TRUE) not yet implemented");
-    }
-    
     int[] array = x.toIntArray();
     
     Arrays.sort(array);
 
     LogicalVector sorted = new LogicalArrayVector(array, x.getAttributes());
-    
+
+
+    if(returnIndexes) {
+      final int[] intArr = x.toIntArray();
+      int[] sortedIndices = IntStream.range(0, intArr.length)
+          .boxed().sorted((i, j) ->  Integer.compare(intArr[i], intArr[j]) )
+          .mapToInt(ele -> ele).toArray();
+
+      ListVector.NamedBuilder builder = new ListVector.NamedBuilder();
+      builder.add("x", sorted);
+      builder.add("ix", new IntArrayVector(sortedIndices));
+      return builder.build();
+//      throw new EvalException("qsort(indexes=TRUE) not yet implemented");
+    }
 
     // drop the names attributes if present because it will not be sorted
     return (LogicalVector)sorted
@@ -258,7 +285,7 @@ public class Sort {
   }
   
   @Internal
-  public static LogicalVector psort(LogicalVector x, Vector indexes) {
+  public static Vector psort(LogicalVector x, Vector indexes) {
     return qsort(x, false);
   }
 

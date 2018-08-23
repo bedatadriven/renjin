@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,9 +18,11 @@
  */
 package org.renjin.primitives.time;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.renjin.sexp.*;
+
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 
 /**
@@ -29,8 +31,6 @@ import org.renjin.sexp.*;
  *
  */
 public class PosixCtVector extends TimeVector {
-  
-  private static final int MILLISECONDS_PER_SECOND = 1000;
 
   private final AtomicVector vector;
 
@@ -39,7 +39,7 @@ public class PosixCtVector extends TimeVector {
    * the milliseconds in {@code vector}, in is only passed along so that if this object
    * is ever converted to string or a POSIXlt object, it will be converted with the original timezone.
    */
-  private final DateTimeZone dateTimeZone;
+  private final ZoneId dateTimeZone;
 
   public PosixCtVector(AtomicVector vector) {
     super();
@@ -53,8 +53,8 @@ public class PosixCtVector extends TimeVector {
   }
 
   @Override
-  public DateTime getElementAsDateTime(int i) {
-    return new DateTime((long)(vector.getElementAsDouble(i)*MILLISECONDS_PER_SECOND), dateTimeZone);
+  public ZonedDateTime getElementAsDateTime(int i) {
+    return Instant.ofEpochSecond((long) (vector.getElementAsDouble(i))).atZone(dateTimeZone);
   }
 
   public static class Builder {
@@ -72,11 +72,11 @@ public class PosixCtVector extends TimeVector {
       vector = new DoubleArrayVector.Builder(0, initialCapacity);
     }
 
-    public Builder add(DateTime dateTime) {
+    public Builder add(ZonedDateTime dateTime) {
       if(dateTime == null) {
         vector.add(DoubleVector.NA);
       } else {
-        vector.add(dateTime.getMillis() / 1000);
+        vector.add(dateTime.toInstant().getEpochSecond());
       }
       return this;
     }
@@ -86,8 +86,8 @@ public class PosixCtVector extends TimeVector {
       return this;
     }
 
-    public Builder addAll(Iterable<DateTime> dateTimes) {
-      for(DateTime dateTime : dateTimes) {
+    public Builder addAll(Iterable<ZonedDateTime> dateTimes) {
+      for(ZonedDateTime dateTime : dateTimes) {
         add(dateTime);
       }
       return this;

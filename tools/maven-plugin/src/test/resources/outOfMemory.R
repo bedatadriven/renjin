@@ -1,6 +1,6 @@
 #
 # Renjin : JVM-based interpreter for the R language for the statistical analysis
-# Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+# Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,6 +25,6 @@ print("about to allocate gobs of memory!!")
 x <- list()
 for(i in 1:100000) {
     print(i)
-    x[[i]] <- .Internal(runif(2^28, 0, 1))
+    x[[i]] <- .Internal(runif(2^30, 0, 1))
 }
 

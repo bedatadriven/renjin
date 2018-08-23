@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
  */
 package org.renjin.sexp;
 
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Iterators;
 import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
@@ -709,23 +709,15 @@ public interface PairList extends SEXP {
   abstract class Predicates {
 
     public static Predicate<Node> hasTag() {
-      return new Predicate<Node>() {
-        @Override
-        public boolean apply(Node listExp) {
-          return listExp.hasTag();
-        }
-      };
+      return listExp -> listExp.hasTag();
     }
 
     public static Predicate<Node> matches(final String name) {
-      return new Predicate<Node>() {
-        @Override
-        public boolean apply(Node input) {
-          if(input.getRawTag() instanceof Symbol) {
-            return ((Symbol) input.getRawTag()).getPrintName().equals(name);
-          } else {
-            return false;
-          }
+      return input -> {
+        if(input.getRawTag() instanceof Symbol) {
+          return ((Symbol) input.getRawTag()).getPrintName().equals(name);
+        } else {
+          return false;
         }
       };
     }
@@ -736,12 +728,7 @@ public interface PairList extends SEXP {
     }
 
     public static Predicate<Node> startsWith(final Symbol name) {
-      return new Predicate<Node>() {
-        @Override
-        public boolean apply(Node input) {
-          return input.hasTag() && input.getTag().getPrintName().startsWith(name.getPrintName());
-        }
-      };
+      return input -> input.hasTag() && input.getTag().getPrintName().startsWith(name.getPrintName());
     }
   }
 }

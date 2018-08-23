@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,12 +30,10 @@ import org.renjin.repackaged.asm.*;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.asm.tree.MethodNode;
 import org.renjin.repackaged.asm.util.Textifier;
-import org.renjin.repackaged.asm.util.TraceMethodVisitor;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 
 import java.io.PrintWriter;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.renjin.repackaged.asm.Type.getMethodDescriptor;

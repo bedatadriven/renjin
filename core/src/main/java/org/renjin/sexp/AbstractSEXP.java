@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,8 +20,9 @@ package org.renjin.sexp;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.repackaged.guava.base.Objects;
 import org.renjin.repackaged.guava.base.Preconditions;
+
+import java.util.Objects;
 
 
 /**
@@ -178,7 +179,7 @@ public abstract class AbstractSEXP implements SEXP {
       if(namesExp instanceof StringVector) {
         StringVector names = (StringVector) namesExp;
         for(int i=0;i!=names.length();++i) {
-          if(Objects.equal(names.getElementAsString(i), name)) {
+          if(Objects.equals(names.getElementAsString(i), name)) {
             return i;
           }
         }
@@ -204,6 +205,9 @@ public abstract class AbstractSEXP implements SEXP {
   
   @Override
   public SEXP setAttribute(Symbol attributeName, SEXP value) {
+    if(this instanceof S4Object) {
+      return setAttributes(this.attributes.copyS4().set(attributeName, value));
+    }
     return setAttributes(this.attributes.copy().set(attributeName, value));
   }
 

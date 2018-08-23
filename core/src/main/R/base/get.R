@@ -17,7 +17,7 @@
 get <-
     function (x, pos = -1, envir = as.environment(pos), mode = "any",
               inherits = TRUE)
-    .Internal(get(x, envir, mode, inherits))
+    .Internal(get(x[1], envir, mode, inherits))
     
     
 get0 <- function (x, envir = pos.to.env(-1L), mode = "any", inherits = TRUE,

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
  */
 package org.renjin.primitives.packaging;
 
-import org.renjin.repackaged.guava.base.Optional;
+import java.util.Optional;
 
 /**
  * Loads Packages from the class path
@@ -39,9 +39,9 @@ public class ClasspathPackageLoader implements PackageLoader {
   public Optional<Package> load(FqPackageName name) {
     ClasspathPackage pkg = new ClasspathPackage(classLoader, name);
     if(pkg.resourceExists("environment")) {
-      return Optional.<Package>of(pkg);
+      return Optional.of(pkg);
     } else {
-      return Optional.absent();
+      return Optional.empty();
     }
   }
 

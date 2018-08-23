@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,9 +18,10 @@
  */
 package org.renjin.primitives.time;
 
-import org.joda.time.DateTimeZone;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+
+import java.util.TimeZone;
 
 import static org.junit.Assert.assertThat;
 
@@ -30,7 +31,7 @@ public class PosixLt2DateTest extends EvalTestCase {
   @Test
   public void asDateWithFormat() {
 
-    DateTimeZone.setDefault(DateTimeZone.forID("Pacific/Pago_Pago"));
+    TimeZone.setDefault(TimeZone.getTimeZone("Pacific/Pago_Pago"));
 
     eval(" dateString <- '2016-06-1'  ");
     

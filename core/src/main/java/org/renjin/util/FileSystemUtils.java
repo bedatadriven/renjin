@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ package org.renjin.util;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.commons.vfs2.impl.DefaultFileReplicator;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.local.DefaultLocalFileProvider;
 import org.apache.commons.vfs2.provider.res.ResourceFileProvider;
@@ -144,6 +145,7 @@ public class FileSystemUtils {
 
   public static FileSystemManager getMinimalFileSystemManager() throws FileSystemException {
     DefaultFileSystemManager fsm = new DefaultFileSystemManager();
+    fsm.setReplicator(new DefaultFileReplicator());
     fsm.setDefaultProvider(new UrlFileProvider());
     fsm.addProvider("file", new DefaultLocalFileProvider());
     fsm.addProvider("jar", new FastJarFileProvider());

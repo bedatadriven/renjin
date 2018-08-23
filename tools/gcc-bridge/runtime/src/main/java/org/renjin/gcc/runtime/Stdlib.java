@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,10 @@
 package org.renjin.gcc.runtime;
 
 import org.renjin.gcc.annotations.Struct;
+import org.renjin.gcc.format.FormatArrayInput;
+import org.renjin.gcc.format.FormatInput;
+import org.renjin.gcc.format.Formatter;
+import org.renjin.gcc.format.VarArgsInput;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -32,6 +36,7 @@ import java.util.Date;
 import java.util.Random;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 /**
  * C standard library functions
@@ -46,6 +51,11 @@ public class Stdlib {
   public static int timezone;
   public static int daylight;
 
+  public static final Ptr stdout = new RecordUnitPtr<>(new StdOutHandle(System.out));
+
+  public static final Ptr stderr = new RecordUnitPtr<>(new StdOutHandle(System.err));
+
+  public static final Ptr stdin = new RecordUnitPtr<>(new StdInHandle());
 
   @Deprecated
   public static int strncmp(BytePtr x, BytePtr y, int n) {
@@ -79,8 +89,203 @@ public class Stdlib {
     return strncmp(x, y, Integer.MAX_VALUE);
   }
 
+  /**
+   * The <code>strcasecmp()</code> function compares <code>x</code> and <code>y</code> without sensitivity to case.
+   * 
+   * All alphabetic characters in <code>x</code> and <code>y</code> are converted to lowercase before comparison.
+   * 
+   * @param x
+   * @param y
+   * @return a value indicating the relationship between the two strings, as follows:
+   *         <table>
+   *         <th>
+   *         <td>Value</td>
+   *         <td>Meaning</td></th>
+   *         <tr>
+   *         <td>Less than 0</td>
+   *         <td><code>x</code> less than <code>y</code></td>
+   *         </tr>
+   *         <tr>
+   *         <td>0</td>
+   *         <td><code>x</code> equivalent to <code>y</code></td>
+   *         </tr>
+   *         <tr>
+   *         <td>Greater than 0</td>
+   *         <td><code>x</code> greater than <code>y</code></td>
+   *         </tr>
+   *         </table>
+   */
+  public static int strcasecmp(Ptr x, Ptr y) {
+    for (int i = 0; i < Integer.MAX_VALUE; ++i) {
+      int bx = Character.toLowerCase(x.getByte(i));
+      int by = Character.toLowerCase(y.getByte(i));
+
+      if (bx < by) {
+        return -1;
+      } else if (bx > by) {
+        return 1;
+      }
+      if (bx == 0) {
+        break;
+      }
+    }
+    return 0;
+  }
+
+  /**
+   * Returns a pointer to the first occurrence of character in the C string str.
+   *
+   * The terminating null-character is considered part of the C string. Therefore,
+   * it can also be located in order to retrieve a pointer to the end of a string.
+   *
+   * @param string C string.
+   * @param ch Character to be located. It is passed as its int promotion, but it is internally
+   *          converted back to char for the comparison.
+   * @return A pointer to the first occurrence of character in str.
+   *    If the character is not found, the function returns a null pointer.
+   */
+  public static Ptr strchr(Ptr string, int ch) {
+    int pos = 0;
+    while(true) {
+      int pc = string.getByte(pos);
+      if(pc == ch) {
+        return string.pointerPlus(pos);
+      }
+      if(pc == 0) {
+        break;
+      }
+      pos++;
+    }
+    return BytePtr.NULL;
+  }
+
+  public static Ptr strrchr(Ptr string, int ch) {
+    int len = 0;
+    while(string.getByte(len) != 0) {
+      len++;
+    }
+    int pos = len - 1;
+    while(pos > 0) {
+      int pc = string.getByte(pos);
+      if(pc == ch) {
+        return string.pointerPlus(pos);
+      }
+      pos--;
+    }
+    return BytePtr.NULL;
+  }
+
+  public static Ptr strstr(Ptr string, Ptr searched) {
+    final int offset = nullTerminatedString(string).indexOf(nullTerminatedString(searched));
+    return new OffsetPtr(string, offset);
+  }
+
+  @Deprecated
+  public static long strtol(Ptr string) {
+    return strtol(string, BytePtr.NULL, 10);
+  }
+
+  public static long strtol(Ptr str, Ptr endptr, int radix) {
+    return strtol(str, endptr, radix, true);
+  }
+
+  /**
+   * Parses the C-string str, interpreting its content as an integral number of the specified base, which is
+   * returned as an value of type unsigned long int.
+   *
+   * @param str C-string containing the representation of an integral number.
+   * @param endptr Reference to an object of type char*, whose value is set by the function to the next character
+   *              in str after the numerical value. This parameter can also be a null pointer,
+   *               in which case it is not used.
+   * @param radix Numerical base (radix) that determines the valid characters and their interpretation.
+   *        If this is 0, the base used is determined by the format in the sequence (see strtol for details).
+   * @return On success, the function returns the converted integral number as an unsigned long int value.
+   * If no valid conversion could be performed, a zero value is returned.
+   * If the value read is out of the range of representable values by an unsigned long int, the function returns ULONG_MAX
+   * (defined in <climits>), and errno is set to ERANGE.
+   */
+  public static long strtoul(Ptr str, Ptr endptr, int radix) {
+    return strtol(str, endptr, radix, false);
+  }
+
+  public static double strtold(Ptr string) {
+    return strtod(string);
+  }
+
   public static double strtod(Ptr string) {
     return Double.parseDouble(nullTerminatedString(string));
+  }
+
+  static long strtol(Ptr str, Ptr endptr, int radix, boolean signed) {
+
+    String s = nullTerminatedString(str);
+
+    // Find the start of the number
+    int start = 0;
+
+    // Skip beginning whitespace
+    while (start < s.length() && Character.isWhitespace(s.charAt(start))) {
+      start++;
+    }
+
+    int pos = start;
+
+    // Check for +/- prefix
+    if(pos < s.length() && (s.charAt(pos) == '-' || s.charAt(pos) == '+')) {
+      pos++;
+    }
+
+    // Check for hex prefix 0x/0X if the radix is 16 or unspecified
+    else if( (radix == 0 || radix == 16) &&
+        pos + 1 < s.length() && s.charAt(pos) == '0' &&
+        (s.charAt(pos+1) == 'x' || s.charAt(pos+1) == 'X')) {
+      start+=2;
+      pos = start;
+      radix = 16;
+
+    }
+
+    // If radix is not specified, then check for octal prefix
+    else if(radix == 0 &&  pos < s.length() && s.charAt(pos) == '0') {
+      radix = 8;
+    }
+
+    // Otherwise if radix is not specified, and there is no prefix,
+    // assume decimal
+    if(radix == 0) {
+      radix = 10;
+    }
+
+    // Advance until we run out of digits
+    while(pos < s.length() && Character.digit(s.charAt(pos), radix) != -1) {
+      pos++;
+    }
+
+    // If requested, update the endptr
+    if(!endptr.isNull()) {
+      endptr.setPointer(str.pointerPlus(pos));
+    }
+
+    // If empty, return 0 and exit
+    if(start == pos) {
+      return 0;
+    }
+
+    s = s.substring(start, pos);
+
+    if(signed) {
+      try {
+        return Long.parseLong(s, radix);
+      } catch (NumberFormatException e) {
+        return Long.MAX_VALUE;
+      }
+    } else {
+      try {
+        return Long.parseUnsignedLong(s, radix);
+      } catch (NumberFormatException e) {
+        return -1;
+      }
+    }
   }
 
   public static Ptr strdup(Ptr s) {
@@ -161,6 +366,14 @@ public class Stdlib {
       return 0;
     }
   }
+
+  public static double asinh(double x) {
+    if(Double.isInfinite(x)) {
+      return x;
+    }
+    return Math.log(x + Math.sqrt(x * x + 1));
+  }
+
   public static double atanh(double x) {
     return 0.5 * Math.log((1d + x) / (1d - x));
   }
@@ -227,7 +440,7 @@ public class Stdlib {
     String outputString;
 
     try {
-      outputString = format(format, arguments);
+      outputString = format(format, f -> new FormatArrayInput(arguments));
     } catch (Exception e) {
       return -1;
     }
@@ -238,7 +451,7 @@ public class Stdlib {
   }
 
   public static int puts(BytePtr string) {
-    System.out.print(string.nullTerminatedString());
+    System.out.println(string.nullTerminatedString());
     return 0;
   }
 
@@ -252,7 +465,15 @@ public class Stdlib {
   }
 
   public static int snprintf(BytePtr string, int limit, BytePtr format, Object... arguments) {
+    return sprintf(string, limit, format, f -> new FormatArrayInput(arguments));
+  }
 
+
+  public static int vsnprintf(BytePtr string, int n, BytePtr format, Ptr argumentList) {
+    return sprintf(string, n, format, f -> new VarArgsInput(f, argumentList));
+  }
+
+  private static int sprintf(BytePtr string, int limit, BytePtr format, Function<Formatter, FormatInput> arguments) {
     String outputString;
 
     try {
@@ -269,8 +490,10 @@ public class Stdlib {
     if(bytesToCopy > 0) {
       // copy the formatted string to the output
       System.arraycopy(outputBytes, 0, string.array, string.offset, bytesToCopy);
+    }
 
-      // terminate string with null byte
+    // terminate string with null byte
+    if(limit > 0) {
       string.array[string.offset + bytesToCopy] = 0;
     }
 
@@ -281,6 +504,7 @@ public class Stdlib {
     throw new UnsupportedOperationException("TODO: implement " + Stdlib.class.getName() + ".sscanf");
   }
 
+
   public static int tolower(int c) {
     return Character.toLowerCase(c);
   }
@@ -289,28 +513,14 @@ public class Stdlib {
     return Character.toUpperCase(c);
   }
 
-  public static String format(Ptr format, Object[] arguments) {
-    Object[] convertedArgs = new Object[arguments.length];
-    for (int i = 0; i < arguments.length; i++) {
-      convertedArgs[i] = convertFormatArg(arguments[i]);
-    }
-
-    String formatString = nullTerminatedString(format);
-    if(formatString.equals("%2.2x")) {
-      return String.format("%02x", convertedArgs);
-    } else if(formatString.equals("%016llx")) {
-      return String.format("%016x", convertedArgs);
-    } else {
-      return String.format(formatString, convertedArgs);
-    }
+  public static String format(Ptr format, Object... arguments) {
+    return format(format, f -> new FormatArrayInput(arguments));
   }
 
-  private static Object convertFormatArg(Object argument) {
-    if(argument instanceof BytePtr || argument instanceof MixedPtr) {
-      return Stdlib.nullTerminatedString((Ptr) argument);
-    } else {
-      return argument;
-    }
+  public static String format(Ptr format, Function<Formatter, FormatInput> input) {
+    String formatString = nullTerminatedString(format);
+    Formatter formatter = new Formatter(formatString);
+    return formatter.format(input.apply(formatter));
   }
 
   public static void qsort(Ptr base, int nitems, int size, MethodHandle comparator) {
@@ -334,6 +544,10 @@ public class Stdlib {
     int rem = numer % denom;
 
     return new int[] { quot, rem };
+  }
+
+  public static double nearbyint(double arg) {
+    return Math.round(arg);
   }
 
   /**
@@ -405,6 +619,7 @@ public class Stdlib {
     daylight = currentTimezone.inDaylightTime(new Date()) ? 1 : 0;
   }
 
+  @Deprecated
   public static void fflush(Object file) {
     // TODO: implement properly
   }
@@ -490,9 +705,17 @@ public class Stdlib {
     String modeString = nullTerminatedString(mode);
 
     switch (modeString) {
+      case "r":
       case "rb":
         try {
           return new RecordUnitPtr<>(new FileHandleImpl(new RandomAccessFile(filenameString, "r")));
+        } catch (FileNotFoundException e) {
+          return BytePtr.NULL;
+        }
+      case "w":
+      case "wb":
+        try {
+          return new RecordUnitPtr<>(new FileHandleImpl(new RandomAccessFile(filenameString, "rw")));
         } catch (FileNotFoundException e) {
           return BytePtr.NULL;
         }
@@ -501,6 +724,71 @@ public class Stdlib {
     }
   }
 
+  public static int fflush(Ptr stream) throws IOException {
+    FileHandle handle = (FileHandle) stream.getArray();
+    handle.flush();
+    return 0;
+  }
+
+  public static int fprintf(Ptr stream, BytePtr format, Object... arguments) {
+    try {
+      String outputString = format(format, f -> new FormatArrayInput(arguments));
+      BytePtr outputBytes = BytePtr.nullTerminatedString(outputString, StandardCharsets.UTF_8);
+      int bytesWritten = fwrite(outputBytes, 1, outputBytes.getArray().length, stream);
+
+      return bytesWritten;
+    } catch (Exception e) {
+      return -1;
+    }
+  }
+
+
+  @Deprecated
+  public static int fwrite(BytePtr ptr, int size, int count, Ptr stream) throws IOException {
+    return fwrite((Ptr)ptr, size, count, stream);
+  }
+
+  public static int fwrite(Ptr ptr, int size, int count, Ptr stream) throws IOException {
+    FileHandle handle = (FileHandle) stream.getArray();
+    int bytesWritten = 0;
+
+    // Super naive implementation.
+    // Performance to be improved...
+    for (int i = 0; i < (count * size); ++i) {
+      try {
+        handle.write(ptr.getByte(i));
+        bytesWritten++;
+      } catch (ArrayIndexOutOfBoundsException aioobe) {
+        i = count * size;
+      }
+    }
+
+    return bytesWritten;
+  }
+
+  public static int ferror(Ptr stream) {
+    FileHandle handle = (FileHandle) stream.getArray();
+
+    return handle.getError();
+  }
+
+  public static void clearerr(Ptr stream) {
+    FileHandle handle = (FileHandle) stream.getArray();
+
+    handle.clearError();
+  }
+
+
+  /***
+   *
+   * @param ptr A pointer to memory that will receive the data. Must be at least (size * count) bytes.
+   * @param size The size of the elements to read
+   * @param count the number of elements to read
+   * @param stream a pointer to a file handle created with fopen()
+   * @return The total number of elements successfully read are returned as a size_t object, which is an integral
+   * data type. If this number differs from the nmemb parameter,
+   * then either an error had occurred or the End Of File was reached.
+   */
   public static int fread(Ptr ptr, int size, int count, Ptr stream) throws IOException {
 
     FileHandle handle = (FileHandle) stream.getArray();
@@ -518,7 +806,13 @@ public class Stdlib {
       bytesRead++;
     }
 
-    return bytesRead;
+    // Return the number of elements read, _not_ bytes read
+    return bytesRead / size;
+  }
+
+  public static void rewind(Ptr stream) throws IOException {
+    FileHandle handle = (FileHandle) stream.getArray();
+    handle.rewind();
   }
 
   public static int fseek(Ptr stream, long offset, int whence) {
@@ -550,6 +844,37 @@ public class Stdlib {
     }
   }
 
+  public static int fgetc(Ptr stream) {
+    try {
+      return ((FileHandle) stream.getArray()).read();
+    } catch (IOException e) {
+      return -1;
+    }
+  }
+
+  /**
+   *
+   * Writes a character (an unsigned char) specified by the argument char to the specified stream
+   * and advances the position indicator for the stream.
+   *
+
+   *
+   * @param character This is the character to be written. This is passed as its int promotion.
+   * @param stream This is the pointer to a FILE object that identifies the stream where the
+   *               character is to be written.
+   *
+   * @return If there are no errors, the same character that has been written is returned.
+   * If an error occurs, EOF is returned and the error indicator is set.   \
+   */
+  public static int fputc(int character, Ptr stream) {
+    FileHandle handle = (FileHandle) stream.getArray();
+    try {
+      handle.write(character);
+      return character;
+    } catch (IOException e) {
+      return -1;
+    }
+  }
 
   /**
    * test for infinity.
@@ -563,6 +888,10 @@ public class Stdlib {
    */
   public static int __isinf(double x) {
     return Double.isInfinite(x) ? 1 : 0;
+  }
+
+  public static int isinf(double x) {
+    return __isinf(x);
   }
 
   public static float logf(float x) {
@@ -611,6 +940,25 @@ public class Stdlib {
    */
   public static void __cxa_guard_abort(LongPtr p) {
 
+  }
+
+  /**
+   *  Frees memory allocated by __cxa_allocate_exception
+   */
+  public static void __cxa_free_exception(Ptr p) {
+    // NOOP : We have a garbage collector :-P
+  }
+
+  public static void __cxa_call_unexpected(Ptr p) {
+    // TODO
+  }
+
+  /**
+   * Register a function to be called by exit or when a shared library is unloaded
+   */
+  public static int __cxa_atexit(MethodHandle fn, Ptr arg, Ptr dso_handle) {
+    // TODO: This needs to be implemented properly
+    return 0;
   }
 
   public static int posix_memalign(Ptr memPtr, int aligment, int size) {
@@ -663,5 +1011,15 @@ public class Stdlib {
 
   public static int rand() {
     return RANDOM.get().nextInt(RAND_MAX);
+  }
+
+  public static int _setjmp(Ptr buf) {
+    // this is a placeholder. It will actually work perfectly
+    // if longjmp is never called...
+    return 0;
+  }
+
+  public static void longjmp(Ptr buf, int value) {
+    throw new LongJumpException(buf, value);
   }
 }

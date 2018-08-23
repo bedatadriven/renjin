@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
  */
 package org.renjin.packaging;
 
-import org.joda.time.DateTime;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.SessionBuilder;
@@ -27,8 +26,7 @@ import org.renjin.primitives.io.serialization.HeadlessWriteContext;
 import org.renjin.primitives.io.serialization.RDataWriter;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.packaging.NamespaceFile;
-import org.renjin.primitives.packaging.PackageLoader;
-import org.renjin.primitives.time.DateTimeFormat;
+import org.renjin.primitives.time.RDateTimeFormats;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Iterables;
@@ -37,6 +35,7 @@ import org.renjin.repackaged.guava.io.Files;
 import org.renjin.sexp.*;
 
 import java.io.*;
+import java.time.ZonedDateTime;
 
 /**
  * Evaluates a package's sources
@@ -67,6 +66,7 @@ public class NamespaceBuilder2 {
     importDependencies(context, namespace);
     loadPackageData(context, namespace);
     evaluateSources(context, namespace.getNamespaceEnvironment());
+    invokeOnLoad(context, namespace.getNamespaceEnvironment());
     serializeEnvironment(context, namespace.getNamespaceEnvironment(), environmentFile);
     writeRequires();
     writePackageRds();
@@ -97,6 +97,7 @@ public class NamespaceBuilder2 {
   private Context initContext()  {
     SessionBuilder builder = new SessionBuilder();
     builder.setPackageLoader(buildContext.getPackageLoader());
+    builder.setClassLoader(buildContext.getClassLoader());
     
     Context context = builder.build().getTopLevelContext();
     for(String name : buildContext.getDefaultPackages()) {
@@ -138,6 +139,24 @@ public class NamespaceBuilder2 {
     }
   }
 
+  private void invokeOnLoad(Context context, Environment namespaceEnvironment) {
+
+    Symbol onLoad = Symbol.get(".onLoad");
+    StringVector nameArgument = StringVector.valueOf(this.source.getPackageName());
+
+    if(namespaceEnvironment.exists(onLoad)) {
+      try {
+        context.evaluate(FunctionCall.newCall(onLoad, nameArgument, nameArgument), namespaceEnvironment);
+      } catch (Exception e) {
+        if(e instanceof EvalException) {
+          System.out.println("ERROR: " + e.getMessage());
+          ((EvalException) e).printRStackTrace(System.out);
+        }
+        throw new RuntimeException("Exception evaluating .onLoad() method", e);
+      }
+    }
+  }
+
   private void serializeEnvironment(Context context, Environment namespaceEnv, File environmentFile) {
 
     System.out.println("Writing namespace environment to " + environmentFile);
@@ -156,7 +175,7 @@ public class NamespaceBuilder2 {
     metadata.add("DESCRIPTION", descriptionVector());
     metadata.add("Built", new ListVector.NamedBuilder()
         .add("Platform", "")
-        .add("Date", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss ZZ").print(new DateTime()))
+        .add("Date", RDateTimeFormats.forPattern("yyyy-MM-dd HH:mm:ss ZZ").format(ZonedDateTime.now()))
         .add("OStype", "unix"));
 
     metadata.add("Rdepends", Null.INSTANCE);

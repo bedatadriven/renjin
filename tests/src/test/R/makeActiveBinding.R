@@ -1,6 +1,6 @@
 #
 # Renjin : JVM-based interpreter for the R language for the statistical analysis
-# Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+# Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -81,6 +81,22 @@ test.remove <- function() {
 
     rm("yy")
     assertFalse(exists("yy"))
+}
+
+test.assign <- function() {
+   m <- 1
+   f <- function(v) {
+      if(!missing(v)) m <<- v
+      m
+   }
+   makeActiveBinding("activef", f, environment())
+
+   g <- function() {
+    assign("activef", value=99, inherits=TRUE)
+   }
+   g()
+
+   assertThat(m, identicalTo(99))
 }
 
 test.for.loop.index <- function() {

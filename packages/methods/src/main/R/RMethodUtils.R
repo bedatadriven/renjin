@@ -1,7 +1,7 @@
 #  File src/library/methods/R/RMethodUtils.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ## The real version of makeGeneric, to be installed after there are some
 ## generic functions to boot the definition (in particular, coerce and coerce<-)
@@ -47,8 +47,11 @@
             stop(gettextf("must supply either a generic function or a function as default for %s",
                           sQuote(f)),
                  domain = NA)
-        else if(is.primitive(fdefault)) {
-            return(genericForPrimitive(f))
+        else if(isBaseFun(fdefault)) {
+            fun <- genericForBasic(f)
+            if (is.function(fun)) {
+                return(fun)
+            }
         }
         fdef <- fdefault
         body(fdef) <- substitute(standardGeneric(NAME), list(NAME = f))
@@ -104,10 +107,11 @@
         if(!identical(formalArgs(fdefault), formalArgs(fdef)) &&
            !is.primitive(fdefault))
             stop(sprintf(ngettext(length(fdef),
-                                  "the formal argument of the generic function for %s (%s) differs from that of the non-generic to be used as the default (%s)",
-                                  "the formal arguments of the generic function for %s (%s) differ from those of the non-generic to be used as the default (%s)"),
-                          paste(formalArgs(fdef), collapse = ", "),
-                          paste(formalArgs(fdefault), collapse = ", ")),
+	"the formal argument of the generic function for %s (%s) differs from that of the non-generic to be used as the default (%s)",
+	"the formal arguments of the generic function for %s (%s) differ from those of the non-generic to be used as the default (%s)"),
+			 f,
+			 paste(formalArgs(fdef), collapse = ", "),
+			 paste(formalArgs(fdefault), collapse = ", ")),
                  domain = NA)
         fdefault <- asMethodDefinition(fdefault, fdef = value)
         if(is(fdefault, "MethodDefinition"))
@@ -205,7 +209,7 @@ makeStandardGeneric <-
     if(typeof(fdef) != "closure") {
         ## Look in a list of pre-defined functions (and also of
         ## functions for which methods are prohibited)
-        fgen <- genericForPrimitive(f)
+        fgen <- genericForBasic(f)
         message(gettextf("making a generic for special function %s",
                          sQuote(f)),
                 domain = NA)
@@ -229,8 +233,10 @@ generic.skeleton <- function(name, fdef, fdefault)
     }
     if(is.null(fdefault)) {
         fdefault <- fdef
-        body(fdefault) <- substitute(stop(MESSAGE, domain = NA), list(MESSAGE=
-                                                   gettextf("invalid call in method dispatch to '%s' (no default method)", name)))
+	msg <- gettextf("invalid call in method dispatch to '%s' (no default method)",
+			name)
+	body(fdefault) <- substitute(stop(MESSAGE, domain = NA),
+				     list(MESSAGE = msg))
         environment(fdefault) <- baseenv()
     }
     skeleton[[1L]] <- fdefault
@@ -260,14 +266,14 @@ mergeMethods <-
     if(is.null(m1) || is(m1, "EmptyMethodsList"))
         return(m2)
     tmp <- listFromMlist(m2)
-    sigs <- el(tmp, 1)
-    methods <- el(tmp, 2)
+    sigs <- tmp[[1]]
+    methods <- tmp[[2]]
     for(i in seq_along(sigs)) {
-        sigi <- el(sigs, i)
+        sigi <- sigs[[i]]
         if(.noMlists() && !identical(unique(sigi), "ANY"))
           next
         args <- names(sigi)
-        m1 <- insertMethod(m1, as.character(sigi), args, el(methods, i), FALSE)
+        m1 <- insertMethod(m1, as.character(sigi), args, methods[[i]], FALSE)
     }
     m1
 }
@@ -350,8 +356,7 @@ conformMethod <- function(signature, mnames, fnames,
         n <- n - 1L
     length(signature) <- n
     length(fsig) <- n
-    names(signature) <- fsig
-    signature
+    setNames(signature, fsig)
 }
 
 rematchDefinition <- function(definition, generic, mnames, fnames, signature)
@@ -393,9 +398,11 @@ rematchDefinition <- function(definition, generic, mnames, fnames, signature)
 	trailingArgs <- fnames[seq.int(to = length(fnames), length.out = ntrail)]
 	if(!identical(	mnames[seq.int(to = length(mnames), length.out = ntrail)],
 		      trailingArgs))
-	    stop(gettextf("arguments (%s) after '...' in the generic must appear in the method, in the same place at the end of the argument list",
-			  paste(trailingArgs, collapse=", ")),
-                 call. = TRUE, domain = NA)
+	    stop(gettextf("%s arguments (%s) after %s in the generic must appear in the method, in the same place at the end of the argument list",
+                          .renderSignature(generic@generic, signature),
+			  paste(sQuote(trailingArgs), collapse = ", "),
+                          sQuote("...")),
+                 call. = FALSE, domain = NA)
 	newCallNames <- character(length(newCall))
 	newCallNames[seq.int(to = length(newCallNames), length.out = ntrail)] <-
 	    trailingArgs
@@ -409,19 +416,25 @@ rematchDefinition <- function(definition, generic, mnames, fnames, signature)
     generic
 }
 
-unRematchDefinition <- function(definition)
+
+isRematched <- function(definition)
 {
-    ## undo the effects of rematchDefiniition, if it was used.
+    ## detect the effects of rematchDefinition, if it was used.
     ## Has the obvious disadvantage of depending on the implementation.
     ## If we considered the rematching part of the API, a cleaner solution
     ## would be to include the "as given to setMethod" definition as a slot
+
     bdy <- body(definition)
     if(.identC(class(bdy),"{") && length(bdy) > 1L) {
         bdy <- bdy[[2L]]
-        if(.identC(class(bdy), "<-") &&
-           identical(bdy[[2L]], as.name(".local")))
-            definition <- bdy[[3L]]
-    }
+        .identC(class(bdy), "<-") && identical(bdy[[2L]], as.name(".local"))
+    } else FALSE
+}
+
+unRematchDefinition <- function(definition)
+{
+    if(isRematched(definition))
+        definition <-  body(definition)[[2]][[3]] # value in assignmt to .local
     definition
 }
 
@@ -436,7 +449,7 @@ getGeneric <-
         if(is(f, "genericFunction"))
             return(f)
         else if(is.primitive(f))
-            return(genericForPrimitive(.primname(f), mustFind=mustFind))
+            return(genericForBasic(.primname(f), mustFind=mustFind))
         else
             stop("argument 'f' must be a string, generic function, or primitive: got an ordinary function")
     }
@@ -444,12 +457,8 @@ getGeneric <-
 		  .getGeneric(f,      , package)
 	     else .getGeneric(f, where, package)
     if(is.null(value) && !is.null(baseDef <- baseenv()[[f]])) {
-        ## check for primitives
-        if(is.primitive(baseDef)) {
-            value <- genericForPrimitive(f)
-            if(!is.function(value) && mustFind)
-                stop(gettextf("methods cannot be defined for the primitive function %s",
-                              sQuote(f)), domain = NA)
+        if(is.function(baseDef)) {
+            value <- genericForBasic(f, mustFind=FALSE)
             if(is(value, "genericFunction"))
                 value <- .cacheGeneric(f, value)
         }
@@ -480,10 +489,8 @@ getGeneric <-
                         package = "")
 {
     ## do not search the cache if getGeneric() was called with explicit where=
-    if(missing(where))
-        value <- .getGenericFromCache(f, where,  package)
-    else
-        value <- NULL
+    value <- if(missing(where))
+        .getGenericFromCache(f, where,  package) ## else NULL
     if(is.null(value)) {
         if(is.character(f) && f %in% "as.double") f <- "as.numeric"
         if(is.character(f) && !nzchar(f)) {
@@ -493,7 +500,7 @@ getGeneric <-
         value <- .Call("R_getGeneric", f, FALSE, as.environment(where), package, PACKAGE = "methods")
         ## cache public generics (usually these will have been cached already
         ## and we get to this code for non-exported generics)
-        if(!is.null(value) && !is.null(vv <- get0(f, .GlobalEnv)) &&
+        if(!is.null(value) && !is.null(vv <- .GlobalEnv[[f]]) &&
            identical(vv, value))
             .cacheGeneric(f, value)
     }
@@ -530,7 +537,7 @@ getGeneric <-
             ##  fdef <- def <- .makeGenericForCache(def)
             pkg <- prev@package
             if(identical(pkg, newpkg)) { # redefinition
-                assign(name, def, envir = table)
+                table[[name]] <- def
                 return(fdef)
             }
             prev <- list(prev)          # start a per-package list
@@ -547,7 +554,7 @@ getGeneric <-
     }
 
     .getMethodsTable(fdef)              # force initialization
-    assign(name, def, envir = table)
+    table[[name]] <- def
     fdef
 }
 
@@ -563,25 +570,30 @@ getGeneric <-
         newpkg <- def@package
         prev <- get(name, envir = table)
         if(is.function(prev))  # we might worry if  prev not identical
-            return(remove(list = name, envir = table))
+            res <- remove(list = name, envir = table)
+            invalidateS4MethodCache(paste(".uncacheGenericTable(",name,").1",sep=""))
+            return(res)
         i <- match(newpkg, names(prev))
         if(!is.na(i))
             prev[[i]] <- NULL
         else           # we might warn about unchaching more than once
             return()
-        if(length(prev) == 0L)
-            return(remove(list = name, envir = table))
-        else if(length(prev) == 1L)
+        if(length(prev) == 0L) {
+            res <- remove(list = name, envir = table)
+            invalidateS4MethodCache(paste(".uncacheGenericTable(",name,").2",sep=""))
+            return(res)
+        } else if(length(prev) == 1L)
             prev <- prev[[1L]]
         assign(name, prev, envir  = table)
+        invalidateS4MethodCache(paste(".uncacheGenericTable(",name,").3",sep=""))
     }
 }
 
 .getGenericFromCache <- function(name, where,  pkg = "")
-   .getGenericFromCacheTable(name,where, pkg, .genericTable)
+   .getGenericFromCacheTable(name, where, pkg, .genericTable)
 
 .getImplicitGenericFromCache <- function(name, where,  pkg = "")
-   .getGenericFromCacheTable(name,where, pkg, .implicitTable)
+   .getGenericFromCacheTable(name, where, pkg, .implicitTable)
 
 .getGenericFromCacheTable <- function(name, where, pkg = "", table)
 {
@@ -634,7 +646,7 @@ getGeneric <-
         fdef <- getFunction(name, TRUE, FALSE, penv)
         if(!is(fdef, "genericFunction")) {
             if(is.primitive(fdef))
-                fdef <- genericForPrimitive(name, penv)
+                fdef <- genericForBasic(name, penv)
             else
                 fdef <- implicitGeneric(name, penv)
         }
@@ -719,7 +731,7 @@ assignMethodsMetaData <-
   ## assign value to be the methods metadata for generic f on database where.
   ## as of R 2.7.0 the mlist metadata is deprecated.
   ## If value is not a MethodsList,  only turns on primitives & groups
-  function(f, value, fdef, where, deflt)
+  function(f, value, fdef, where, deflt = NULL)
 {
     where <- as.environment(where)
     if(is(value, "MethodsList")) {
@@ -728,11 +740,15 @@ assignMethodsMetaData <-
         if(exists(mname, envir = where, inherits = FALSE) &&
            bindingIsLocked(mname, where))
           {}        # may be called from trace() with locked binding; ignore
-        else
+        else {
           assign(mname, value, where)
+          invalidateS4MethodCache(paste("assignMethodsMetaData(",f,").1",sep=""))
+          }
     }
-    if(is.primitive(deflt))
-        setPrimitiveMethods(f, deflt, "reset", fdef, NULL)
+    if(dispatchIsInternal(fdef)) {
+        setPrimitiveMethods(f, fdef@default, "reset", fdef, NULL)
+        invalidateS4MethodCache(paste("assignMethodsMetaData(",f,").2",sep=""))
+    }
     if(is(fdef, "groupGenericFunction")) # reset or turn on members of group
         cacheGenericsMetaData(f, fdef, where = where, package = fdef@package)
 }
@@ -763,6 +779,7 @@ getGenerics <- function(where, searchForm = FALSE)
     }
     else {
         if(is.environment(where)) where <- list(where)
+        ## The order matters ... and there might be no objects.
         these <- unlist(lapply(where, objects, all.names=TRUE), use.names=FALSE)
         metaNameUndo(unique(these), prefix = "T", searchForm = searchForm)
     }
@@ -782,23 +799,21 @@ getGenerics <- function(where, searchForm = FALSE)
     these <- these[substr(these, 1L, 6L) == ".__T__"]
     if(length(these) == 0L)
         return(character())
-    funNames <- gsub(".__T__(.*):([^:]+)", "\\1", these)
-    if(length(funNames) == 0L &&
-       length(these[substr(these, 1L, 6L) == ".__M__"]))
-        warning(sprintf("package %s seems to have out-of-date methods; need to reinstall from source",
-                         sQuote(getPackageName(where[[1L]]))))
+    funNames <- gsub("^.__T__(.*):([^:]+)", "\\1", these)
+    ## FIXME: length(funNames) == length(these) != 0   ==> this never triggers:
+    ## if(length(funNames) == 0L && any(startsWith(these, ".__M__")))
+    ##     warning(sprintf("package %s seems to have out-of-date methods; need to reinstall from source",
+    ##                      sQuote(getPackageName(where[[1L]]))))
     packageNames <- gsub(".__T__(.*):([^:]+(.*))", "\\2", these)
     attr(funNames, "package") <- packageNames
     ## Would prefer following, but may be trouble bootstrapping methods
     ## funNames <- new("ObjectsWithPackage", funNames, package = packageNames)
     if(identical(trim, TRUE))
         funNames
-    else {
-        if(identical(trim, FALSE))
-            these
-        else
-            gsub(".__T__", as.character(trim), these)
-    }
+    else if(identical(trim, FALSE))
+        these
+    else
+        gsub(".__T__", as.character(trim), these)
 }
 
 cacheMetaData <-
@@ -809,14 +824,19 @@ cacheMetaData <-
     ## to update class and method information.
     pkg <- getPackageName(where)
     classes <- getClasses(where)
-    for(cl in classes) {
-        cldef <- (if(attach) get(classMetaName(cl), where) # NOT getClassDef, it will use cache
-                  else  getClassDef(cl, searchWhere))
-        if(is(cldef, "classRepresentation")) {
-            if(attach) {
-                .cacheClass(cl, cldef, is(cldef, "ClassUnionRepresentation"), where)
-            }
-            else if(identical(cldef@package, pkg)) {
+    if (attach) {
+        for(cl in classes) {
+            ## NOT getClassDef, it will use cache
+            cldef <- get(classMetaName(cl), where)
+            if(is(cldef, "classRepresentation"))
+                .cacheClass(cl, cldef, is(cldef, "ClassUnionRepresentation"),
+                            where)
+        }
+    } else {
+        for(cl in classes) {
+            cldef <- getClassDef(cl, searchWhere)
+            if(is(cldef, "classRepresentation") &&
+               identical(cldef@package, pkg)) {
                 .uncacheClass(cl, cldef)
                 .removeSuperclassBackRefs(cl, cldef, searchWhere)
             }
@@ -892,11 +912,13 @@ cacheGenericsMetaData <- function(f, fdef, attach = TRUE,
 ### Assertion: methods argument unused except for primitives
 ### and then only for the old non-table case.
     deflt <- finalDefaultMethod(fdef@default) #only to detect primitives
-    if(is.primitive(deflt)) {
-	if(missing(methods)) ## "reset"
+    if(dispatchIsInternal(fdef)) {
+	if(missing(methods)) {## "reset"
 	    setPrimitiveMethods(f, deflt, "reset", fdef, NULL)
-	else ## "set"
+	    invalidateS4MethodCache("cacheGenericsMetaData()1")
+	} else ## "set"
 	    setPrimitiveMethods(f, deflt, "set", fdef, methods)
+	    invalidateS4MethodCache("cacheGenericsMetaData()2")
     }
     else if(isGroup(f, fdef = fdef)) {
 	members <- fdef@groupMembers
@@ -1081,7 +1103,7 @@ methodSignatureMatrix <- function(object, sigSlots = c("target", "defined"))
 #             ## this utility is called AFTER ensuring the existence of a generic for f
 #             ## Therefore, the case below can only happen for a primitive for which
 #             ## no methods currently are attached.  Make the primitive the default
-#             deflt <- getFunction(f, generic = FALSE, mustFind = FALSE)
+#             deflt <- getMethodDefinition(f, generic = FALSE, mustFind = FALSE)
 #         else
 #             ## inherit the default method, if any
 #             deflt <- finalDefaultMethod(other)
@@ -1367,13 +1389,18 @@ metaNameUndo <- function(strings, prefix, searchForm = FALSE)
 {
     ev <- environment(fdef)
     assign(".Methods", methods, ev)
+    invalidateS4MethodCache(paste(".genericAssign(",f,")",sep=""))
 }
 
 ## Mark the method as derived from a non-generic.
-.derivedDefaultMethod <- function(fdef)
+.derivedDefaultMethod <- function(fdef, internal = NULL)
 {
     if(is.function(fdef) && !is.primitive(fdef)) {
-        value <- new("derivedDefaultMethod")
+        if (!is.null(internal)) {
+            value <- new("internalDispatchMethod", internal = internal)
+        } else {
+            value <- new("derivedDefaultMethod")
+        }
         value@.Data <- fdef
         value@target <- value@defined <- .newSignature(.anyClassName, formalArgs(fdef))
         value
@@ -1547,15 +1574,17 @@ getGroupMembers <- function(group, recursive = FALSE, character = TRUE)
     if(!is(f, "genericFunction") || !identical(f@signature, "..."))
         stop("argument f must be a generic function with signature \"...\"")
     def <- .standardGenericDots
-    fenv <- environment(f)
-    environment(def) <- fenv
-    assign("standardGeneric", def, envir = fenv)
-    assign(".dotsCall", .makeDotsCall(formalArgs(f)), envir = fenv)
+    body(def) <- eval(call("substitute", body(def),
+                           list(.dotsMethod=as.name(f@generic))))
+    environment(def) <- environment(f)
+    assign("standardGeneric", def, envir = environment(f))
     f
 }
 
 utils::globalVariables(c(".MTable", ".AllMTable", ".dotsCall"))
 
+## NB this is used with a modified environment in .dotsGeneric,
+## so methods::: calls are necessary.
 .standardGenericDots <- function(name)
 {
     env <- sys.frame(sys.parent())
@@ -1565,25 +1594,14 @@ utils::globalVariables(c(".MTable", ".AllMTable", ".dotsCall"))
     if(is.null(method))
         stop(gettextf("no method or default matching the \"...\" arguments in %s",
                       deparse(sys.call(sys.parent()), nlines = 1)), domain = NA)
-    assign(".Method", method, envir = env)
-    eval(.dotsCall, env)
-}
-
-
-.quoteCall <- quote(.Method(...))
-.makeDotsCall <- function(formals)
-{
-    call <- methods:::.quoteCall
-    if(length(formals)  > 1L) {
-        idots <- match("...", formals)
-        for(what in formals[-idots]) {
-            ## the following nonsense is required to get the names in the call
-            ## expression to be empty for ... and there for other args
-            eval(substitute(call$NAME <- as.name(WHAT),
-                            list(NAME = as.name(what), WHAT = what)))
-        }
-    }
-    call
+    mc <- match.call(sys.function(sys.parent()), sys.call(sys.parent()),
+                     expand.dots=FALSE, envir=parent.frame(2))
+    args <- names(mc)[-1L]
+    mc[args] <- lapply(args, as.name)
+    names(mc)[names(mc) == "..."] <- ""
+    mc[[1L]] <- quote(.dotsMethod)
+    assign(name, method, env)
+    eval(mc, env)
 }
 
 .selectDotsMethod <- function(classes, mtable, allmtable)
@@ -1712,9 +1730,8 @@ if(FALSE) {
         ## else, an error
         classi <- classes[[i]]
         pkgi <- pkgs[[i]]
-        classDefi <- getClass(classi, where = where)
-        if(checkDups &&
-           classi %in% mulipleClasses()) { # hardly ever, we hope
+        classDefi <- getClassDef(classi, where=if (pkgi == "") where else pkgi)
+        if(checkDups && classi %in% multipleClasses()) { # hardly ever, we hope
             clDefsi <- get(classi, envir = .classTable)
             if(nzchar(pkgi) && pkgi %in% names(clDefsi))
                 ## use the chosen class, no message
@@ -1790,11 +1807,6 @@ if(FALSE) {
     if(!exists(actionListName, envir = where, inherits = FALSE))
         return(list())
     actions <- get(actionListName, envir = where)
-    ## check sanity:  methods must be loaded
-    if(! "package:methods" %in% search()) {
-        warning("trying to execute load actions without 'methods' package")
-        library(methods)
-    }
     for(what in actions) {
         aname <- .actionMetaName(what)
         if(!exists(aname, envir = where, inherits = FALSE)) {
@@ -1921,3 +1933,31 @@ evalqOnLoad <- function(expr, where = topenv(parent.frame()), aname = "")
         0L
 }
 
+## test whether this function could be an S3 generic, either
+## a primitive or a function calling UseMethod()
+isS3Generic <- function(fdef) {
+    if(is.primitive(fdef))
+        identical(typeof(fdef), "builtin")
+    else
+        "UseMethod" %in% .getGlobalFuns(fdef) # from refClass.R
+}
+
+
+
+## DELETED IN LATEST VERSION OF GNU R, SHOULD BE REMOVED ONCE WHOLE METHODS PACKAGE
+## IS UPGRADED TO THE LATEST VERSION
+.quoteCall <- quote(.Method(...))
+.makeDotsCall <- function(formals)
+{
+    call <- methods:::.quoteCall
+    if(length(formals)  > 1L) {
+        idots <- match("...", formals)
+        for(what in formals[-idots]) {
+            ## the following nonsense is required to get the names in the call
+            ## expression to be empty for ... and there for other args
+            eval(substitute(call$NAME <- as.name(WHAT),
+                            list(NAME = as.name(what), WHAT = what)))
+        }
+    }
+    call
+}

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,17 +61,18 @@ public class UnsignedSmallIntExpr extends AbstractIntExpr {
   }
 
   @Override
-  public NumericExpr plus(GExpr operand) {
-    return lift(truncate(Expressions.sum(jexpr(), jexpr(operand))));
-  }
-  @Override
-  public NumericExpr minus(GExpr operand) {
+  public UnsignedSmallIntExpr plus(GExpr operand) {
     return lift(truncate(Expressions.sum(jexpr(), jexpr(operand))));
   }
 
   @Override
-  public NumericExpr multiply(GExpr operand) {
-    return lift(truncate(Expressions.sum(jexpr(), jexpr(operand))));
+  public UnsignedSmallIntExpr minus(GExpr operand) {
+    return lift(truncate(Expressions.difference(jexpr(), jexpr(operand))));
+  }
+
+  @Override
+  public UnsignedSmallIntExpr multiply(GExpr operand) {
+    return lift(truncate(Expressions.product(jexpr(), jexpr(operand))));
   }
 
   @Override
@@ -88,13 +89,13 @@ public class UnsignedSmallIntExpr extends AbstractIntExpr {
   @Override
   public UnsignedSmallIntExpr min(GExpr operand) {
     // No need to truncate - result will be in range if both arguments are in range
-    return lift(Expressions.staticMethodCall(Math.class, "min", "(II)I"));
+    return lift(Expressions.staticMethodCall(Math.class, "min", "(II)I", jexpr(), jexpr(operand)));
   }
 
   @Override
   public UnsignedSmallIntExpr max(GExpr operand) {
     // No need to truncate - result will be in range if both arguments are in range
-    return lift(Expressions.staticMethodCall(Math.class, "max", "(II)I"));
+    return lift(Expressions.staticMethodCall(Math.class, "max", "(II)I", jexpr(), jexpr(operand)));
   }
 
   @Override

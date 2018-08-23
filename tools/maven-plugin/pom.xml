@@ -4,7 +4,7 @@
   <parent>
     <artifactId>parent</artifactId>
     <groupId>org.renjin</groupId>
-    <version>0.9.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -36,6 +36,7 @@
       <groupId>org.renjin</groupId>
       <artifactId>gcc-bridge-maven-plugin</artifactId>
       <version>${project.version}</version>
+      <type>maven-plugin</type>
     </dependency>
     <dependency>
       <groupId>org.renjin</groupId>
@@ -100,7 +101,6 @@
         </exclusion>
       </exclusions>
     </dependency>
-      
   </dependencies>
 
   <build>
@@ -109,7 +109,6 @@
       <groupId>org.apache.maven.plugins</groupId>
       <artifactId>maven-plugin-plugin</artifactId>
       <version>3.4</version>
-
       <configuration>
         <goalPrefix>renjin</goalPrefix>
       </configuration>

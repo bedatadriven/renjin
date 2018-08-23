@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ package org.renjin.eval;
 import org.renjin.sexp.*;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Matches arguments to a function call to the formal arguments declared by an R closure.
@@ -60,6 +61,30 @@ public class ArgumentMatcher {
       i++;
     }
   }
+
+  public ArgumentMatcher(String... formalNames) {
+    this.formalNames = Arrays.copyOf(formalNames, formalNames.length);
+    this.defaultValues = new SEXP[formalNames.length];
+    Arrays.fill(defaultValues, Symbol.MISSING_ARG);
+    this.formalEllipses = -1;
+    for (int i = 0; i < formalNames.length; i++) {
+      if(formalNames[i].equals("...")) {
+        formalEllipses = i;
+      }
+    }
+  }
+
+  /**
+   * @return the number of formal arguments, excluding the '...' if present.
+   */
+  public int getNamedFormalCount() {
+    if(formalEllipses == -1) {
+      return formalNames.length;
+    } else {
+      return formalNames.length - 1;
+    }
+  }
+
 
   /**
    * Argument matching is done by a three-pass process:
@@ -143,7 +168,7 @@ public class ArgumentMatcher {
       }
     }
 
-    return new MatchedArgumentPositions(formalNames, formalToActual, matchedActuals);
+    return new MatchedArgumentPositions(formalNames, formalToActual, matchedActuals, formalEllipses);
   }
 
   public MatchedArguments match(PairList actuals) {
@@ -186,7 +211,6 @@ public class ArgumentMatcher {
     }
     return -1;
   }
-
 
   /**
    * Find an argument name that *exactly* matches the given formal name.
@@ -239,5 +263,9 @@ public class ArgumentMatcher {
 
   public SEXP getDefaultValue(int formalIndex) {
     return defaultValues[formalIndex];
+  }
+
+  public List<String> getFormalNames() {
+    return Arrays.asList(formalNames);
   }
 }

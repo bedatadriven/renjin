@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ package org.renjin.gcc.codegen;
 
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.TreeLogger;
+import org.renjin.gcc.analysis.FunctionOracle;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.InvocationStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
@@ -34,6 +34,7 @@ import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.statement.*;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
+import org.renjin.gcc.logging.LogManager;
 import org.renjin.gcc.peephole.PeepholeOptimizer;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.gcc.runtime.Stdlib;
@@ -44,7 +45,6 @@ import org.renjin.repackaged.asm.tree.AnnotationNode;
 import org.renjin.repackaged.asm.tree.MethodNode;
 import org.renjin.repackaged.asm.util.Textifier;
 import org.renjin.repackaged.asm.util.TraceMethodVisitor;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.base.Throwables;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
@@ -71,9 +71,11 @@ public class FunctionGenerator implements InvocationStrategy {
   
   private Labels labels = new Labels();
   private TypeOracle typeOracle;
+  private FunctionOracle functionOracle;
   private ExprFactory exprFactory;
   private LocalStaticVarAllocator staticVarAllocator;
-  private LocalVariableTable symbolTable;
+  private LocalVariableTable localSymbolTable;
+  private LocalVariableTable localStaticSymbolTable;
   
   private Label beginLabel = new Label();
   private Label endLabel = new Label();
@@ -87,6 +89,7 @@ public class FunctionGenerator implements InvocationStrategy {
     this.className = className;
     this.function = function;
     this.typeOracle = typeOracle;
+    this.functionOracle = new FunctionOracle(typeOracle, function);
     this.params = this.typeOracle.forParameters(function.getParameters());
 
     if(function.isVariadic()) {
@@ -98,7 +101,8 @@ public class FunctionGenerator implements InvocationStrategy {
 
     this.returnStrategy = this.typeOracle.returnStrategyFor(function.getReturnType());
     this.staticVarAllocator = new LocalStaticVarAllocator("$" + function.getSafeMangledName() + "$", globalVarAllocator);
-    this.symbolTable = new LocalVariableTable(symbolTable);
+    this.localSymbolTable = new LocalVariableTable(symbolTable);
+    this.localStaticSymbolTable = new LocalVariableTable(symbolTable);
 
   }
 
@@ -125,17 +129,10 @@ public class FunctionGenerator implements InvocationStrategy {
     return function;
   }
 
-  public void emit(TreeLogger parentLogger, ClassVisitor cw) {
+  public void emit(LogManager logger, ClassVisitor cw) {
 
     try {
-      TreeLogger logger = parentLogger.branch("Generating bytecode for " +
-          function.getName() + " [" + function.getMangledName() + "]");
-      logger.debug("Sources:", findSourceFiles());
-      logger.debug("Aliases: " + aliases);
-      logger.debug("Gimple:", function);
-
-      logger.dump(function.getUnit().getSourceName(), function.getSafeMangledName(), "gimple", function);
-
+      logger.log(function, "gimple", function);
 
       if (GimpleCompiler.TRACE) {
         System.out.println(function);
@@ -152,12 +149,12 @@ public class FunctionGenerator implements InvocationStrategy {
         int varArgIndex = getVarArgIndex();
         varArgsPtr = Optional.of(new VPtrExpr(Expressions.localVariable(Type.getType(Ptr.class), varArgIndex)));
       } else {
-        varArgsPtr = Optional.absent();
+        varArgsPtr = Optional.empty();
       }
 
 
-      mv = new MethodGenerator(methodNode);
-      this.exprFactory = new ExprFactory(typeOracle, this.symbolTable, mv, varArgsPtr);
+      mv = new MethodGenerator(className, methodNode);
+      this.exprFactory = new ExprFactory(typeOracle, this.localSymbolTable, mv, varArgsPtr);
 
       mv.visitCode();
       mv.visitLabel(beginLabel);
@@ -190,7 +187,7 @@ public class FunctionGenerator implements InvocationStrategy {
       mv.visitMaxs(1, 1);
       mv.visitEnd();
 
-      logger.dump(function.getUnit().getSourceName(), function.getSafeMangledName(), "j", toString(methodNode));
+      logger.log(function, "j", toString(methodNode));
 
       // Reduce the size of the bytecode by applying simple optimizations
       PeepholeOptimizer.INSTANCE.optimize(methodNode);
@@ -201,8 +198,8 @@ public class FunctionGenerator implements InvocationStrategy {
             " may be exceeded. (Estimate: " + estimatedSize + ")");
       }
 
-      logger.dump(function.getUnit().getSourceName(), function.getSafeMangledName(), "opt.j", toString(methodNode));
-      logger.dumpHtml(symbolTable, function, methodNode);
+      logger.log(function, "opt.j", toString(methodNode));
+      logger.logTriView(function, localSymbolTable, methodNode);
 
       try {
         methodNode.accept(cw);
@@ -219,8 +216,7 @@ public class FunctionGenerator implements InvocationStrategy {
           getCompilationUnit().getSourceName());
       e.printStackTrace(System.err);
 
-      parentLogger.dump(function.getUnit().getSourceName(), function.getSafeMangledName(), "error",
-          Throwables.getStackTraceAsString(e));
+      logger.log(function, "error", Throwables.getStackTraceAsString(e));
 
       writeRuntimeStub(cw);
 
@@ -260,8 +256,8 @@ public class FunctionGenerator implements InvocationStrategy {
         function.getSafeMangledName(),
         getFunctionDescriptor(), null, null);
 
-    mv = new MethodGenerator(methodNode);
-    this.exprFactory = new ExprFactory(typeOracle, this.symbolTable, mv);
+    mv = new MethodGenerator(className, methodNode);
+    this.exprFactory = new ExprFactory(typeOracle, this.localSymbolTable, mv);
 
     mv.visitCode();
     mv.anew(Type.getType(RuntimeException.class));
@@ -274,18 +270,6 @@ public class FunctionGenerator implements InvocationStrategy {
     mv.visitEnd();
 
     methodNode.accept(cw);
-  }
-
-  private Object findSourceFiles() {
-    Set<String> files = new HashSet<>();
-    for (GimpleBasicBlock basicBlock : function.getBasicBlocks()) {
-      for (GimpleStatement statement : basicBlock.getStatements()) {
-        if(statement.getSourceFile() != null) {
-          files.add(statement.getSourceFile());
-        }
-      }
-    }
-    return files;
   }
 
   private String toString(MethodNode methodNode) {
@@ -332,7 +316,7 @@ public class FunctionGenerator implements InvocationStrategy {
       GimpleParameter param = function.getParameters().get(i);
       ParamStrategy generator = params.get(param);
       GExpr expr = generator.emitInitialization(mv, param, paramIndexes.get(i), mv.getLocalVarAllocator());
-      symbolTable.addVariable(param.getId(), expr);
+      localSymbolTable.addVariable(param.getId(), expr);
     }
   }
 
@@ -342,7 +326,7 @@ public class FunctionGenerator implements InvocationStrategy {
     
     for (GimpleVarDecl decl : function.getVariableDeclarations()) {
       if(!decl.isStatic()) {
-        GExpr lhs = symbolTable.getVariable(decl);
+        GExpr lhs = localSymbolTable.getVariable(decl);
         if (decl.getValue() != null) {
           lhs.store(mv, exprFactory.findGenerator(decl.getValue()));
         }
@@ -350,15 +334,17 @@ public class FunctionGenerator implements InvocationStrategy {
     }
   }
 
-  public void emitLocalStaticVarInitialization(MethodGenerator mv, ExprFactory exprFactory) {
+  public void emitLocalStaticVarInitialization(MethodGenerator mv) {
 
     if(compilationFailed) {
       return;
     }
 
+    ExprFactory exprFactory = new ExprFactory(typeOracle, localStaticSymbolTable, mv);
+
     for (GimpleVarDecl decl : function.getVariableDeclarations()) {
       if(decl.isStatic()) {
-        GExpr lhs = symbolTable.getVariable(decl);
+        GExpr lhs = localSymbolTable.getVariable(decl);
         if (decl.getValue() != null) {
           try {
             lhs.store(mv, exprFactory.findGenerator(decl.getValue()));
@@ -379,15 +365,27 @@ public class FunctionGenerator implements InvocationStrategy {
 
     // Dumb scheduling: give every local variable it's own slot
     for (GimpleVarDecl varDecl : function.getVariableDeclarations()) {
+
+      if(localSymbolTable.isRegistered(varDecl.getId())) {
+        System.err.printf("WARNING: In function %s, variable %s [%d] is duplicated.%n",
+            getFunction().getMangledName(),
+            varDecl.getName(),
+            varDecl.getId());
+        continue;
+      }
+
       try {
-        GExpr generator;
-        TypeStrategy factory = typeOracle.forType(varDecl.getType());
-        generator = factory.variable(varDecl,
+        GExpr generator = functionOracle.variable(varDecl,
             varDecl.isStatic() ?
                 staticVarAllocator :
                 mv.getLocalVarAllocator());
 
-        symbolTable.addVariable(varDecl.getId(), generator);
+        localSymbolTable.addVariable(varDecl.getId(), generator);
+
+        if(varDecl.isStatic()) {
+          localStaticSymbolTable.addVariable(varDecl.getId(), generator);
+        }
+
       } catch (Exception e) {
         throw new InternalCompilerException("Exception generating local variable " + varDecl, e);
       }

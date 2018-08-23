@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,12 +28,12 @@ import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Generates a call to a method.
@@ -128,7 +128,7 @@ public class FunctionCallGenerator implements CallGenerator, MethodHandleGenerat
         if(i < arguments.size()) {
           paramStrategy.loadParameter(mv, Optional.of(arguments.get(i)));
         } else {
-          paramStrategy.loadParameter(mv, Optional.<GExpr>absent());
+          paramStrategy.loadParameter(mv, Optional.empty());
         }
       }
       for (JExpr varArg : varArgs) {

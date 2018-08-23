@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -307,7 +307,7 @@ public class Context {
   }
 
   public <T> void setState(T instance) {
-    this.<T>setState((Class<T>) instance.getClass(), instance);
+    this.setState((Class<T>) instance.getClass(), instance);
   }
 
   public <T> void setState(Class<T> clazz, T instance) {
@@ -451,21 +451,12 @@ public class Context {
     return session.getFileSystemManager();
   }
 
+
   /**
-   * Translates a uri/path into a VFS {@code FileObject}.
-   *
-   * @param uri uniform resource indicator. This could be, for example:
-   * <ul>
-   * <li>jar:file:///path/to/my/libray.jar!/mylib/R/mylib.R</li>
-   * <li>/usr/lib</li>
-   * <li>c:&#92;users&#92;owner&#92;data.txt</li>
-   * </ul>
-   *
-   * @return
-   * @throws FileSystemException
+   * @see Session#resolveFile(String)
    */
   public FileObject resolveFile(String uri) throws FileSystemException {
-    return getFileSystemManager().resolveFile(session.getWorkingDirectory(), uri);
+    return session.resolveFile(uri);
   }
 
   /**

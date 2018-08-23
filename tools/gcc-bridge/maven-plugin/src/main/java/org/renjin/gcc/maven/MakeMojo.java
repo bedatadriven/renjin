@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.renjin.gcc.GimpleCompiler;
-import org.renjin.gcc.HtmlTreeLogger;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleParser;
 
@@ -122,7 +121,7 @@ public class MakeMojo extends AbstractMojo {
     GimpleCompiler compiler = new GimpleCompiler();
     compiler.setOutputDirectory(outputDirectory);
     compiler.setPackageName(packageName);
-    compiler.setLogger(new HtmlTreeLogger(loggingDir));
+    compiler.setLoggingDirectory(loggingDir);
     try {
       compiler.compile(units);
     } catch (Exception e) {

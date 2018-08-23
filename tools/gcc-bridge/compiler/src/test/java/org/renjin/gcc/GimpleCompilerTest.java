@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -172,6 +172,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
     Method testArray = clazz.getMethod("test_array");
     BytePtr element = (BytePtr) testArray.invoke(null);
     assertThat(element.nullTerminatedString(), equalTo("loglik"));
+  }
+
+  @Test
+  public void staticInitRef() throws Exception {
+    compile("static_init_ref.c");
   }
 
   @Test
@@ -359,11 +364,6 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
 
   @Test
-  public void pruneCpp() throws Exception {
-    compileAndTest("prune.cpp");
-  }
-
-  @Test
   public void arrayC() throws Exception {
     Class clazz = compile("array.c");
 
@@ -412,6 +412,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     assertThat(result, equalTo(42));
 
+  }
+
+  @Test
+  public void globalPointers() throws Exception {
+    compileAndTest("global_ptr.c");
   }
 
   @Test
@@ -744,6 +749,8 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     Integer magicNumber2 = (Integer) link2.getMethod("test_addressable_global_var").invoke(null);
     assertThat(magicNumber2, equalTo(24));
+
+    link2.getMethod("test_pointer_identity").invoke(null);
   }
 
   @Test
@@ -777,12 +784,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
   @Test
   public void memcpy() throws Exception {
-    Class clazz = compile("memcpy.c");
-
-    Method test = clazz.getMethod("test_memcpy");
-    Integer result = (Integer) test.invoke(null);
-
-    assertThat(result, equalTo(1));
+    compileAndTest("memcpy.c");
   }
 
   @Test
@@ -1233,6 +1235,32 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void threadsTest() throws Exception {
     compileAndTest("pthreads.c");
+  }
+
+  @Test
+  public void pointerMath() throws Exception {
+    compileAndTest("ptr_math.c");
+  }
+
+  @Test
+  @Ignore("Disabled for the moment -- see UnitClassGenerator")
+  public void staticInitPtr() throws Exception {
+    compileAndTest("static_init_ptr.cpp");
+  }
+
+  @Test
+  public void standardOut() throws Exception {
+    compileAndTest("stdout.c");
+  }
+
+  @Test
+  public void printf() throws Exception {
+    compileAndTest("printf.c");
+  }
+
+  @Test
+  public void vsnprintf() throws Exception {
+    compileAndTest("vsnprintf.c");
   }
 }
 

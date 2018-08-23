@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,8 @@ import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
+
+import java.util.Optional;
 
 
 public class ProvidedPtrStrategy implements PointerTypeStrategy<ProvidedPtrExpr> {
@@ -100,7 +101,7 @@ public class ProvidedPtrStrategy implements PointerTypeStrategy<ProvidedPtrExpr>
     if(decl.isAddressable()) {
 
       // Declare this as a Unit array so that we can get a FatPtrExpr if needed
-      JExpr unitArray = allocator.reserveUnitArray(decl.getName(), strategy.getJvmType(), Optional.<JExpr>absent());
+      JExpr unitArray = allocator.reserveUnitArray(decl.getName(), strategy.getJvmType(), Optional.empty());
 
       FatPtrPair address = new FatPtrPair(valueFunction, unitArray);
       ArrayElement instance = Expressions.elementAt(unitArray, 0);

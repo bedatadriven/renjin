@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -105,20 +105,22 @@ public abstract class AbstractGccTest {
   protected final Class<?> compileAndTest(String source) throws Exception {
     Class<?> clazz = compile(source);
 
-    boolean testsRun = false;
-    List<String> methods = new ArrayList<>();
+    List<Method> methods = new ArrayList<>();
     
     for (Method method : clazz.getMethods()) {
       if(Modifier.isPublic(method.getModifiers()) && Modifier.isStatic(method.getModifiers())) {
-        methods.add(method.getName());
         if(method.getName().startsWith("test")) {
-          method.invoke(null);
-          testsRun = true;
+          methods.add(method);
         }
       }
     }
+
+    methods.sort((o1, o2) -> o1.getName().compareTo(o2.getName()));
+    for (Method method : methods) {
+      method.invoke(null);
+    }
     
-    if(!testsRun) {
+    if(methods.isEmpty()) {
       throw new IllegalStateException("No test_ methods declared: " + methods);
     }
 
@@ -180,7 +182,7 @@ public abstract class AbstractGccTest {
 
     GimpleCompiler compiler = new GimpleCompiler();
     compiler.setOutputDirectory(outputDir);          
-    compiler.setLogger(new HtmlTreeLogger(new File("target/gcc-bridge-logs")));
+    compiler.setLoggingDirectory(new File("target/gcc-bridge-logs"));
     compiler.setRecordClassPrefix(units.get(0).getName());
     compiler.setPackageName(PACKAGE_NAME);
     compiler.setVerbose(true);

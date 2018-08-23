@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,8 @@ import org.renjin.sexp.SEXP;
 public final class Print {
 
   private Print() { }
+
+  public static Ptr R_print = MixedPtr.malloc(13 * 4);
 
   public static void Rprintf(BytePtr format, Object... formatArgs) {
     Stdlib.printf(format, formatArgs);

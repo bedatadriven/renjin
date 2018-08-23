@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +36,10 @@ public class LocalVariableTable implements SymbolTable {
 
   public LocalVariableTable(UnitSymbolTable parent) {
     this.parent = parent;
+  }
+
+  public boolean isRegistered(Long gimpleId) {
+    return variableMap.containsKey(gimpleId);
   }
 
   public void addVariable(Long gimpleId, GExpr variable) {

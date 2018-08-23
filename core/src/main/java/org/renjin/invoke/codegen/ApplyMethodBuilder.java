@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -120,7 +120,9 @@ public abstract class ApplyMethodBuilder implements ApplyMethodContext {
 
   private GenericDispatchStrategy genericDispatchStrategy(PrimitiveModel primitive) {
     JvmMethod overload =  primitive.getOverloads().get(0);
-    if (overload.isGroupGeneric()) {
+    if (primitive.getName().equals("%*%")) {
+      return new MatrixMultDispatchStrategy(codeModel);
+    } else if (overload.isGroupGeneric()) {
       if (overload.getGenericGroup().equals("Ops")) {
         return new OpsGroupGenericDispatchStrategy(codeModel, primitive.getName());
       } else if (overload.getGenericGroup().equals("Summary")) {

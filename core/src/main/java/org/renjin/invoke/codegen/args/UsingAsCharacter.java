@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,6 @@ import org.renjin.invoke.annotations.InvokeAsCharacter;
 import org.renjin.invoke.codegen.ApplyMethodContext;
 import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.invoke.model.JvmMethod.Argument;
-import org.renjin.sexp.Environment;
 
 
 public class UsingAsCharacter extends ArgConverterStrategy {

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ public class FunctionCall extends PairList.Node {
   }
 
   public <X extends SEXP> X getArgument(int index) {
-    return getArguments().<X>getElementAsSEXP(index);
+    return getArguments().getElementAsSEXP(index);
   }
 
   @Override
@@ -91,7 +91,12 @@ public class FunctionCall extends PairList.Node {
   }
   
   public static PairList newCallFromVector(ListVector vector) {
+
+    AttributeMap.Builder attributes = vector.getAttributes().copy();
+    attributes.remove(Symbols.NAMES);
+
     FunctionCall.Builder call = new FunctionCall.Builder();
+    call.setAttributes(attributes.build());
     call.addAll(vector);
     return call.build();
   }

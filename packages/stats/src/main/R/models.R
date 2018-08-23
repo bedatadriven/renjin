@@ -545,7 +545,6 @@ model.matrix <- function(object, ...) UseMethod("model.matrix")
 model.matrix.default <- function(object, data = environment(object),
 				 contrasts.arg = NULL, xlev = NULL, ...)
 {
-    print("model.matrix.default 1")
     t <- if(missing(data)) terms(object) else terms(object, data=data)
     if (is.null(attr(data, "terms")))
 	data <- model.frame(object, data, xlev=xlev)

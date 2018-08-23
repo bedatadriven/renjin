@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,10 +31,10 @@ import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.RecordUnitPtrPtr;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class ProvidedPtrValueFunction implements ValueFunction {
 
@@ -69,7 +69,7 @@ public class ProvidedPtrValueFunction implements ValueFunction {
 
   @Override
   public Optional<JExpr> getValueConstructor() {
-    return Optional.absent();
+    return Optional.empty();
   }
 
   @Override

@@ -22,7 +22,8 @@
 package org.renjin.primitives.text.regex;
 
 import org.renjin.eval.EvalException;
-import org.renjin.repackaged.guava.base.Predicate;
+
+import java.util.function.Predicate;
 
 /**
  * Compiles a regular expression based on the supplied options.
@@ -32,17 +33,17 @@ public class REFactory {
   /**
    * Compiles the pattern based on the supplied arguments.
    *
-   * @param pattern  the matching pattern
+   * @param pattern    the matching pattern
    * @param ignoreCase whether case should be ignored
-   * @param extended true to use "extended" regular expression
-   * @param perl true to use "perl-style" regular expressions (not yet implemented)
-   * @param fixed true to treat the pattern as
-   * @param useBytes true to match on bytes (not implemented)
+   * @param extended   true to use "extended" regular expression
+   * @param perl       true to use "perl-style" regular expressions (not yet implemented)
+   * @param fixed      true to treat the pattern as
+   * @param useBytes   true to match on bytes (not implemented)
    * @return the compiled regular expression
    */
   public static RE compile(String pattern, boolean ignoreCase, boolean perl, boolean fixed,
                            boolean useBytes) {
-    
+
     try {
       if (fixed) {
         if (pattern.length() == 0) {
@@ -53,7 +54,7 @@ public class REFactory {
       } else {
         // There are a few cases that are a bit illogical
         // but we need to handle like GNU R does...
-        if(!perl && pattern.equals("*")) {
+        if (!perl && pattern.equals("*")) {
           return new EmptyFixedRE();
         }
 
@@ -67,13 +68,8 @@ public class REFactory {
           fixed ? "TRUE" : "FALSE");
     }
   }
-  
+
   public static Predicate<String> asPredicate(final RE re) {
-    return new Predicate<String>() {
-      @Override
-      public boolean apply(String input) {
-        return re.match(input);
-      }
-    };
+    return input -> re.match(input);
   }
 }

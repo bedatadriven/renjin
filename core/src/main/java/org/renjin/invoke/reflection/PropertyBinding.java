@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -94,9 +94,12 @@ public class PropertyBinding implements MemberBinding {
       Object convertedValue = converter.convertToJava(value);
       try {
         method.invoke(instance, convertedValue);
+      } catch (InvocationTargetException e) {
+        throw new EvalException(e.getTargetException().getMessage(), e.getTargetException());
+
       } catch (Exception e) {
         throw new EvalException("Exception thrown while calling setter '%s' on instance of class '%s': %s",
-                method.getName(), method.getDeclaringClass().getName(), e.getMessage());
+                method.getName(), method.getDeclaringClass().getName(), e.getMessage(), e);
       }
     }
   }

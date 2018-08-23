@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,19 +21,13 @@ package org.renjin.primitives.packaging;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.reflection.ClassBindingImpl;
-import org.renjin.methods.S4;
-import org.renjin.primitives.S3;
 import org.renjin.primitives.text.regex.RE;
 import org.renjin.primitives.text.regex.REFactory;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Package namespace.
@@ -45,7 +39,6 @@ public class Namespace {
 
   private final Environment namespaceEnvironment;
   private final Environment importsEnvironment;
-  private final Environment baseNamespaceEnvironment;
 
   private final List<Symbol> exports = Lists.newArrayList();
 
@@ -60,7 +53,6 @@ public class Namespace {
     this.pkg = pkg;
     this.namespaceEnvironment = namespaceEnvironment;
     this.importsEnvironment = namespaceEnvironment.getParent();
-    this.baseNamespaceEnvironment = importsEnvironment.getParent();
   }
 
   public String getName() {
@@ -218,8 +210,20 @@ public class Namespace {
           }
         }
 
+        for (String methodName : entry.getMethods()) {
+          SEXP export = importedNamespace.getExportIfExists(Symbol.get(methodName));
+          if(export == Symbol.UNBOUND_VALUE) {
+            context.warn(String.format("Method '%s' not exported from namespace '%s'",
+                methodName,
+                importedNamespace.getName()));
+          } else {
+            importsEnvironment.setVariableUnsafe(methodName, export);
+          }
+        }
+
+
         for (String className : entry.getClasses()) {
-          Symbol symbol = S4.classNameMetadata(className);
+          Symbol symbol = org.renjin.s4.S4.classNameMetadata(className);
           SEXP export = importedNamespace.getExportIfExists(symbol);
           if(export == Symbol.UNBOUND_VALUE) {
             context.warn(String.format("Class '%s' is not exported from namespace '%s'", 
@@ -278,11 +282,14 @@ public class Namespace {
     try {
       library = loadDynamicLibrary(context, entry.getLibraryName());
     } catch (Exception e) {
-      e.printStackTrace();
+
+      if(!isClassSimplyNotFound(e)) {
+        e.printStackTrace();
+      }
       context.warn("Could not load compiled Fortran/C/C++ sources class for package " + pkg.getName() + ".\n" +
           "This is most likely because Renjin's compiler is not yet able to handle the sources for this\n" +
           "particular package. As a result, some functions may not work.\n");
-      e.printStackTrace();
+
       return;
     }
 
@@ -298,7 +305,7 @@ public class Namespace {
     // PACKAGE argument.
 
     for (NamespaceFile.DynLibSymbol declaredSymbol : entry.getSymbols()) {
-      Optional<DllSymbol> symbol = library.lookup(DllSymbol.Convention.C, declaredSymbol.getSymbolName());
+      Optional<DllSymbol> symbol = library.findMethod(DllSymbol.Convention.C, declaredSymbol.getSymbolName());
       if(symbol.isPresent()) {
         namespaceEnvironment.setVariableUnsafe(entry.getPrefix() + declaredSymbol.getAlias(), symbol.get().buildNativeSymbolInfoSexp());
       }
@@ -316,6 +323,17 @@ public class Namespace {
         namespaceEnvironment.setVariableUnsafe(entry.getPrefix() + symbol.getName(), symbol.buildNativeSymbolInfoSexp());
       }
     }
+  }
+
+  /**
+   * Returns true if an Exception indicates that the classfile simply could not be found.
+   * Retruns false if there is some other problem deserving of reporting, for example, an Exception thrown
+   * during &lt;clint&gt; or a byte code verification error.
+   * @param e
+   * @return
+   */
+  private boolean isClassSimplyNotFound(Exception e) {
+    return e instanceof ClassNotFoundException && e.getCause() == null;
   }
 
   /**
@@ -367,7 +385,7 @@ public class Namespace {
         return symbol;
       }
     }
-    return Optional.absent();
+    return Optional.empty();
   }
 
   public void initExports(NamespaceFile file) {
@@ -394,7 +412,7 @@ public class Namespace {
 
     // .. And finally the metadata of exported classes
     for (String className : file.getExportedClasses()) {
-      exports.add(S4.classNameMetadata(className));
+      exports.add(org.renjin.s4.S4.classNameMetadata(className));
     }
 
     // .. And the S4 methods and their classes
@@ -427,7 +445,7 @@ public class Namespace {
     Function method = resolveFunction(context, entry.getFunctionName());
 
     // Find the environment in which the original generic function was defined
-    Optional<Environment> definitionEnv = resolveGenericFunctionNamespace(context, entry.getGenericMethod());
+    Optional<Environment> definitionEnv = Namespaces.resolveGenericFunctionNamespace(context, entry.getGenericMethod(), namespaceEnvironment);
     if(!definitionEnv.isPresent()) {
       context.warn(String.format("Cannot resolve namespace environment from generic function '%s'", 
           entry.getGenericMethod()));
@@ -435,11 +453,7 @@ public class Namespace {
     } 
     
     // Add an entry in a special .__S3MethodsTable__. so that UseMethod() can find this specialization
-    if (!definitionEnv.get().hasVariable(S3.METHODS_TABLE)) {
-      definitionEnv.get().setVariableUnsafe(S3.METHODS_TABLE, Environment.createChildEnvironment(context.getBaseEnvironment()).build());
-    }
-    Environment methodsTable = (Environment) definitionEnv.get().getVariableUnsafe(S3.METHODS_TABLE);
-    methodsTable.setVariableUnsafe(entry.getGenericMethod() + "." + entry.getClassName(), method);
+    Namespaces.registerS3Method(context, entry.getGenericMethod(), entry.getClassName(), method, definitionEnv.get());
   }
 
   private Function resolveFunction(Context context, String functionName) {
@@ -453,38 +467,8 @@ public class Namespace {
     return (Function) methodExp;
   }
 
-  /**
-   * Resolves the namespace environment in which the original S3 generic function is defined.
-   *
-   * @param context the current evaluation context
-   * @param genericName the name of the generic function (for example, "print" or "summary")
-   * @return the namespace environment in which the function was defined, or {@code Optional.absent()} if
-   * the function could not be resolved.
-   */
-  private Optional<Environment> resolveGenericFunctionNamespace(Context context, String genericName) {
-
-    if (S3.GROUPS.contains(genericName)) {
-      return Optional.of(baseNamespaceEnvironment);
-
-    } else {
-      SEXP genericFunction = namespaceEnvironment.findFunction(context, Symbol.get(genericName));
-      if (genericFunction == null) {
-        return Optional.absent();
-      }
-      if (genericFunction instanceof Closure) {
-        return Optional.of(((Closure) genericFunction).getEnclosingEnvironment());
-
-      } else if (genericFunction instanceof PrimitiveFunction) {
-        return Optional.of(baseNamespaceEnvironment);
-
-      } else {
-        throw new EvalException("Cannot resolve namespace environment from generic function '%s' of type '%s'",
-            genericName, genericFunction.getTypeName());
-      }
-    }
-  }
-
   public boolean isLoaded() {
     return loaded;
   }
+
 }

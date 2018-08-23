@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -351,6 +351,7 @@ public abstract class AbstractPtr implements Ptr {
     setPointer(index * 4, value);
   }
 
+
   @Override
   public Ptr getPointer(int offset) {
     return BytePtr.NULL.pointerPlus(getInt(offset));
@@ -358,7 +359,12 @@ public abstract class AbstractPtr implements Ptr {
 
   @Override
   public void setPointer(int offset, Ptr value) {
-    throw new UnsupportedOperationException("TODO");
+    if(value.isNull()) {
+      setInt(offset, 0);
+    } else {
+      throw new UnsupportedOperationException("Unsupported pointer store to a memory region allocated for primitives.\n" +
+          "This means something went wrong during compilation and we allocated the wrong type of storage.");
+    }
   }
 
   @Override
@@ -427,6 +433,11 @@ public abstract class AbstractPtr implements Ptr {
     return compare(this, o);
   }
 
+  @Override
+  public Ptr withOffset(int offset) {
+    return pointerPlus(offset - getOffsetInBytes());
+  }
+
   public static int compare(Ptr x, Ptr y) {
     Object m1 = x.getArray();
     Object m2 = y.getArray();
@@ -443,7 +454,7 @@ public abstract class AbstractPtr implements Ptr {
   }
 
   @Override
-  public final boolean equals(Object obj) {
+  public boolean equals(Object obj) {
 
     if(!(obj instanceof Ptr)) {
       return false;
@@ -453,6 +464,158 @@ public abstract class AbstractPtr implements Ptr {
 
     return this.getArray() == that.getArray() &&
            this.getOffsetInBytes() == that.getOffsetInBytes();
+  }
+
+
+  protected final byte getByteViaShort(int bytes) {
+    int index = bytes / ShortPtr.BYTES;
+    int shift = (bytes % ShortPtr.BYTES) * 8;
+    return (byte)(getAlignedShort(index) >>> shift);
+  }
+
+  protected final void setByteViaShort(int bytes, int value) {
+    int index = bytes / ShortPtr.BYTES;
+    int shift = (bytes % ShortPtr.BYTES) * BITS_PER_BYTE;
+
+    int element = getAlignedShort(index);
+
+    int updateMask = 0xFF << shift;
+
+    // Zero out the bits in the byte we are going to update
+    element = element & ~updateMask;
+
+    // Shift our byte into position
+    int update = (value << shift) & updateMask;
+
+    // Merge the original long and updated bits together
+    setAlignedShort(index, (short)(element | update));
+  }
+
+  protected final byte getByteViaChar(int bytes) {
+    int index = bytes / CharPtr.BYTES;
+    int shift = (bytes % CharPtr.BYTES) * 8;
+    return (byte)(getAlignedChar(index) >>> shift);
+  }
+
+  protected final void setByteViaChar(int bytes, byte value) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+
+  /**
+   * Gets the value of the byte at {@code byteIndex} by delegating to {@link #getAlignedInt(int)}
+   */
+  protected final byte getByteViaInt(int bytes) {
+    int index = bytes / IntPtr.BYTES;
+    int shift = (bytes % IntPtr.BYTES) * 8;
+    return (byte)(getAlignedInt(index) >>> shift);
+  }
+
+
+  /**
+   * Sets the byte at {@code byteOffset} to the given value, by delegating to {@link #getAlignedInt(int)}
+   * and {@link #setAlignedInt(int, int)}
+   *
+   * @param bytes
+   * @param value
+   */
+  protected final void setByteViaInt(int bytes, byte value) {
+    int index = bytes / IntPtr.BYTES;
+    int shift = (bytes % IntPtr.BYTES) * BITS_PER_BYTE;
+
+    int element = getAlignedInt(index);
+
+    int updateMask = 0xFF << shift;
+
+    // Zero out the bits in the byte we are going to update
+    element = element & ~updateMask;
+
+    // Shift our byte into position
+    int update = (value << shift) & updateMask;
+
+    // Merge the original long and updated bits together
+    setAlignedInt(index, element | update);
+  }
+
+  protected final byte getByteViaLong(int bytes) {
+    int index = bytes / LongPtr.BYTES;
+    long elementBits = getAlignedLong(index);
+    int shift = (bytes % LongPtr.BYTES) * 8;
+
+    return (byte)(elementBits >>> shift);
+  }
+
+  protected final void setByteViaLong(int bytes, long value) {
+    int index = bytes / LongPtr.BYTES;
+    int shift = (bytes % LongPtr.BYTES) * BITS_PER_BYTE;
+
+    long element = getAlignedLong(index);
+
+    long updateMask = 0xFF << shift;
+
+    // Zero out the bits in the byte we are going to update
+    element = element & ~updateMask;
+
+    // Shift our byte into position
+    long update = (value << shift) & updateMask;
+
+    // Merge the original long and updated bits together
+    setAlignedLong(index, element | update);
+  }
+
+  protected final byte getByteViaFloat(int bytes) {
+    int index = bytes / FloatPtr.BYTES;
+    float element = getAlignedFloat(index);
+    long elementBits = Float.floatToRawIntBits(element);
+    int shift = (bytes % FloatPtr.BYTES) * BITS_PER_BYTE;
+
+    return (byte)(elementBits >>> shift);
+  }
+
+  protected final void setByteViaFloat(int bytes, int value) {
+    int index = bytes / FloatPtr.BYTES;
+    int shift = (bytes % FloatPtr.BYTES) * BITS_PER_BYTE;
+
+    int element = Float.floatToRawIntBits(getAlignedFloat(index));
+
+    int updateMask = 0xff << shift;
+
+    // Zero out the bits in the byte we are going to update
+    element = element & ~updateMask;
+
+    // Shift our byte into position
+    int update = (value << shift) & updateMask;
+
+    // Merge the original long and updated bits together
+    setAlignedFloat(index, Float.intBitsToFloat(element | update));
+  }
+
+
+  protected byte getByteViaDouble(int bytes) {
+    int index = bytes / DoublePtr.BYTES;
+    double element = getAlignedDouble(index);
+    long elementBits = Double.doubleToRawLongBits(element);
+    int shift = (bytes % DoublePtr.BYTES) * BITS_PER_BYTE;
+
+    return (byte)(elementBits >>> shift);
+  }
+
+  protected final void setByteViaDouble(int bytes, long value) {
+    int index = bytes / DoublePtr.BYTES;
+    int shift = (bytes % DoublePtr.BYTES) * BITS_PER_BYTE;
+
+    long element = Double.doubleToRawLongBits(getAlignedDouble(index));
+
+    long updateMask = 0xffL << shift;
+
+    // Zero out the bits in the byte we are going to update
+    element = element & ~updateMask;
+
+    // Shift our byte into position
+    long update = (value << shift) & updateMask;
+
+    // Merge the original long and updated bits together
+    setAlignedDouble(index, Double.longBitsToDouble(element | update));
   }
 }
 

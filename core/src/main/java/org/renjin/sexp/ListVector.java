@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -658,7 +658,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
         ListVector.Builder builder = new ListVector.Builder(0, x.length());
         builder.copyAttributesFrom(x);
         for (int i = 0; i < x.length(); i++) {
-          builder.add(x.getElementAsSEXP(i));
+          builder.add(x.<SEXP>getElementAsSEXP(i));
         }
         return builder.build();
       }

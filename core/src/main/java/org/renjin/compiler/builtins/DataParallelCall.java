@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,13 +21,15 @@ package org.renjin.compiler.builtins;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.compiler.ir.tac.expressions.Constant;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Primitives;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.sexp.*;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Symbols;
 
 import java.util.HashMap;
 import java.util.Iterator;

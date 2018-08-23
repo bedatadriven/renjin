@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -697,11 +697,18 @@ public strictfp class TypesTest extends EvalTestCase {
   public void setLengthWithNames() {
     eval("x <- c(a=1,b=2,c=3)");
     eval("attr(x, 'foo') <- 'baz'");
+    eval("y = c(a=1, b=2, c=3)");
+    eval("attr(y, 'foo') <- 'bar'");
 
     eval("length(x)<-2");
+    eval("length(y)<-3");
     assertThat(eval("length(x)"), elementsIdenticalTo(c_i(2)));
     assertThat(eval("length(names(x))"), elementsIdenticalTo(c_i(2)));
     assertThat(eval("attr(x,'foo')"), identicalTo(NULL));
+
+    assertThat(eval("length(y)"), elementsIdenticalTo(c_i(3)));
+    assertThat(eval("length(names(y))"), elementsIdenticalTo(c_i(3)));
+    assertThat(eval("attr(y,'foo')"), identicalTo(c("bar")));
 
   }
   

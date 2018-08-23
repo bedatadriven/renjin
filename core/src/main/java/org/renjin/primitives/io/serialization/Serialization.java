@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -135,7 +135,7 @@ public class Serialization {
     }
     PairList.Builder list = new PairList.Builder();
     for(String name : names) {
-      SEXP value = envir.getVariable(name);
+      SEXP value = envir.getVariable(context, name);
       if(value == Symbol.UNBOUND_VALUE) {
         throw new EvalException("object '%s' not found", name);
       }
@@ -215,7 +215,7 @@ public class Serialization {
     StringArrayVector.Builder names = new StringArrayVector.Builder();
 
     for (NamedValue pair : data.namedValues()) {
-      env.setVariable(Symbol.get(pair.getName()), pair.getValue());
+      env.setVariable(context, Symbol.get(pair.getName()), pair.getValue());
       names.add(pair.getName());
     }
 

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,8 +21,10 @@ package org.renjin.gcc.runtime;
 import java.util.Arrays;
 
 
-public class ShortPtr implements Ptr {
-  
+public class ShortPtr extends AbstractPtr {
+
+  public static final int BYTES = 2;
+
   public static final ShortPtr NULL = new ShortPtr();
   
   public final short[] array;
@@ -43,6 +45,10 @@ public class ShortPtr implements Ptr {
     this.offset = 0;
   }
 
+  public static ShortPtr malloc(int bytes) {
+    return new ShortPtr(new short[AbstractPtr.mallocSize(bytes, BYTES)]);
+  }
+
   @Override
   public short[] getArray() {
     return array;
@@ -54,6 +60,11 @@ public class ShortPtr implements Ptr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    return offset * BYTES;
+  }
+
+  @Override
   public Ptr realloc(int newSizeInBytes) {
     return new ShortPtr(Realloc.realloc(array, offset, newSizeInBytes / 2));
   }
@@ -61,6 +72,64 @@ public class ShortPtr implements Ptr {
   @Override
   public Ptr pointerPlus(int bytes) {
     return new ShortPtr(array, offset + (bytes / 2));
+  }
+
+  @Override
+  public short getShort() {
+    return array[this.offset];
+  }
+
+  @Override
+  public short getAlignedShort(int index) {
+    return array[this.offset + index];
+  }
+
+  @Override
+  public short getShort(int offset) {
+    if(offset % BYTES == 0) {
+      return getAlignedShort(offset / BYTES);
+    } else {
+      return super.getShort(offset);
+    }
+  }
+
+  @Override
+  public void setAlignedShort(int index, short shortValue) {
+    array[this.offset + index] = shortValue;
+  }
+
+  @Override
+  public void setShort(short value) {
+    array[this.offset] = value;
+  }
+
+  @Override
+  public void setShort(int offset, short value) {
+    if(offset % BYTES == 0) {
+      setAlignedShort(offset / BYTES, value);
+    } else {
+      super.setShort(offset, value);
+    }
+  }
+
+  @Override
+  public byte getByte(int offset) {
+    return getByteViaShort(offset);
+  }
+
+  @Override
+  public void setByte(int offset, byte value) {
+    setByteViaShort(offset, value);
+  }
+
+  @Override
+  public int toInt() {
+    return offset * BYTES;
+  }
+
+  @Override
+  public boolean isNull() {
+    return array == null && offset != 0;
   }
 
   public short unwrap() {

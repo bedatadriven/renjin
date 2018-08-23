@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ package org.renjin.gcc.gimple.statement;
 import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 
 import java.util.Collections;
 import java.util.List;
@@ -44,7 +44,6 @@ public class GimpleReturn extends GimpleStatement {
     return value;
   }
 
-  @Override
   public List<GimpleExpr> getOperands() {
     if(value == null) {
       return Collections.emptyList();
@@ -72,7 +71,7 @@ public class GimpleReturn extends GimpleStatement {
 
   @Override
   public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
-    if(predicate.apply(value)) {
+    if(predicate.test(value)) {
       value = newExpr;
     } else {
       value.replaceAll(predicate, newExpr);

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@ package org.renjin.primitives.summary;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 public class DeferredSummaryTest extends EvalTestCase {
@@ -35,7 +34,7 @@ public class DeferredSummaryTest extends EvalTestCase {
     eval(" print(x) ");
 
     // ensure that the result is cached and correct
-    assertThat(eval("x"), equalTo(c(5000050000d)));
+    assertThat(eval("x"), elementsIdenticalTo(c(5000050000d)));
   }
   
   @Test

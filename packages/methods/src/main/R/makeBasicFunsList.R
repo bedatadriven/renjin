@@ -1,11 +1,11 @@
 #  File src/library/methods/R/makeBasicFunsList.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2 of the License, or
+#  the Free Software Foundation; either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  This program is distributed in the hope that it will be useful,
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ## the executable code to complete the generics corresponding to primitives,
 ## and to define the group generics for these functions.
@@ -41,7 +41,7 @@ utils::globalVariables(".addBasicGeneric")
     prims <- names(.GenericArgsEnv)
     new_prims <- setdiff(prims, names(funs))
     for(nm in new_prims) {
-        f <- get(nm, envir = .GenericArgsEnv)
+        f <- .GenericArgsEnv[[nm]]
         body(f) <- substitute(standardGeneric(ff), list(ff=val))
         funs <- .addBasicGeneric(funs, nm, f, "")
     }
@@ -158,6 +158,18 @@ utils::globalVariables(".addBasicGeneric")
     setGroupGeneric(where=where,"Complex", function(z)NULL,
 		    knownMembers = members, package = "base")
 
+    ### RENJIN:
+    ### In latest GNU R version, the function definition argument is lacking and in BasicFunsList.R:.addBasicGeneric()
+    ### the first 2 lines ```signature <- attr(fdef, "signature");deflt <- get(f, "package:base")``` are replaced
+    ### with ```deflt <- .BaseNamespaceEnv[[f]]```. However, this is causing an error in Renjin. There fore, the
+    ### function defenitions for as.vector and unlist are returned
+    ###
+    funs <- .addBasicGeneric(funs, "unlist", function (x, recursive = TRUE, use.names = TRUE) standardGeneric("unlist"), internal=TRUE)
+### TODO: bring back if/when .Internal(is.unsorted()) is useful to override
+    ## funs <- .addBasicGeneric(funs, "is.unsorted", internal=TRUE,
+    ##                          internalArgs=c("x", "strictly"))
+    funs <- .addBasicGeneric(funs, "as.vector", function(x, mode="any") standardGeneric("as.vector"), internal=TRUE)
+
     assign(".BasicFunsList", funs, envir=where)
     rm(.addBasicGeneric, envir=where)
 }
@@ -245,6 +257,19 @@ utils::globalVariables(".addBasicGeneric")
 			base::sample(x, size, replace=replace, prob=prob, ...),
 	       signature = c("x", "size"), where = where)
     setGenericImplicit("sample", where, FALSE)
+
+    ## qr.R(): signature should only have "qr", args should have "..."
+    setGeneric("qr.R", function(qr, complete = FALSE, ...) standardGeneric("qr.R"),
+	       useAsDefault= function(qr, complete = FALSE, ...)
+                   base::qr.R(qr, complete=complete),
+	       signature = "qr", where = where)
+    setGenericImplicit("qr.R", where, FALSE)
+
+    ## our toeplitz() only has 'x'; want the generic "here" rather than "out there"
+    setGeneric("toeplitz", function(x, ...) standardGeneric("toeplitz"),
+	       useAsDefault= function(x, ...) stats::toeplitz(x),
+	       signature = "x", where = where)
+    setGenericImplicit("toeplitz", where, FALSE)
 
     ## not implicitGeneric() which is not yet available "here"
     registerImplicitGenerics(where = where)

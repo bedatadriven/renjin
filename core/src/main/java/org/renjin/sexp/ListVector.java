@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -115,7 +115,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   
 
   public int indexOfName(String name) {
-    SEXP names = attributes.getNamesOrNull();
+    SEXP names = getAttributes().getNamesOrNull();
     if(names instanceof StringVector) {
       for(int i=0;i!=names.length();++i) {
         if(((StringVector) names).getElementAsString(i).equals(name)) {
@@ -151,8 +151,12 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   @Override
   public double getElementAsDouble(int index) {
     SEXP value = values[index];
-    if(value.length() == 1 && value instanceof AtomicVector) {
-      return ((AtomicVector) value).getElementAsDouble(0);
+    if(value != Null.INSTANCE && value instanceof AtomicVector) {
+      if(value.length() == 1) {
+        return ((AtomicVector) value).getElementAsDouble(0);
+      } else if(value.length() == 0) {
+        return DoubleVector.NA;
+      }
     }
     throw new EvalException("(list) object cannot be coerced to type 'double'");
   }
@@ -180,8 +184,12 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   @Override
   public int getElementAsInt(int index) {
     SEXP value = values[index];
-    if(value.length() == 1 && value instanceof AtomicVector) {
-      return ((AtomicVector) value).getElementAsInt(0);
+    if(value != Null.INSTANCE && value instanceof AtomicVector) {
+      if(value.length() == 1) {
+        return ((AtomicVector) value).getElementAsInt(0);
+      } else if(value.length() == 0) {
+        return IntVector.NA;
+      }
     }
     throw new EvalException("(list) object cannot be coerced to type 'int'");
   }
@@ -202,7 +210,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   @Override
   public Object getElementAsObject(int index) {
     SEXP value = values[index];
-    if(value.length() == 1 && value instanceof AtomicVector) {
+    if(value != Null.INSTANCE && value instanceof AtomicVector) {
       return ((AtomicVector) value).getElementAsObject(0);
     }
     return Deparse.deparseExpWithAttributes(null, value);
@@ -211,8 +219,12 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   @Override
   public Logical getElementAsLogical(int index) {
     SEXP value = values[index];
-    if(value.length() == 1 && value instanceof AtomicVector) {
-      return ((AtomicVector) value).getElementAsLogical(0);
+    if(value != Null.INSTANCE && value instanceof AtomicVector) {
+      if(value.length() == 1) {
+        return ((AtomicVector) value).getElementAsLogical(0);
+      } else if(value.length() == 0) {
+        return Logical.NA;
+      }
     }
     throw new EvalException("(list) object cannot be coerced to type 'logical'");
   }
@@ -220,8 +232,12 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   @Override
   public int getElementAsRawLogical(int index) {
     SEXP value = values[index];
-    if(value.length() == 1 && value instanceof AtomicVector) {
-      return ((AtomicVector) value).getElementAsRawLogical(0);
+    if(value != Null.INSTANCE && value instanceof AtomicVector) {
+      if(value.length() == 1) {
+        return ((AtomicVector) value).getElementAsRawLogical(0);
+      } else if(value.length() == 0) {
+        return LogicalVector.NA;
+      }
     }
     throw new EvalException("(list) object cannot be coerced to type 'logical'");
   }
@@ -229,8 +245,12 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   @Override
   public Complex getElementAsComplex(int index) {
     SEXP value = values[index];
-    if(value.length() == 1 && value instanceof AtomicVector) {
-      return ((AtomicVector) value).getElementAsComplex(0);
+    if(value != Null.INSTANCE && value instanceof AtomicVector) {
+      if(value.length() == 1) {
+        return ((AtomicVector) value).getElementAsComplex(0);
+      } else if(value.length() == 0) {
+        return ComplexVector.NA;
+      }
     }
     throw new EvalException("(list) object cannot be coerced to type 'complex'");
   }
@@ -324,13 +344,17 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     if (this == o) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(o instanceof ListVector)) {
       return false;
     }
 
-    ListVector listExp = (ListVector) o;
+    ListVector that = (ListVector) o;
 
-    if (!Arrays.equals(values, listExp.values)) {
+    if (!this.getAttributes().equals(that.getAttributes())) {
+      return false;
+    }
+
+    if (!Arrays.equals(values, that.values)) {
       return false;
     }
 
@@ -340,7 +364,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   
   @Override
   public int hashCode() {
-    return values.hashCode();
+    return Arrays.hashCode(values);
   }
 
   @Override
@@ -478,8 +502,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
     @Override
     public Builder add(Number value) {
-      if(value instanceof Integer || value instanceof Byte || value instanceof Byte || 
-          value instanceof Short) {
+      if(value instanceof Integer || value instanceof Byte || value instanceof Short) {
         add(new IntArrayVector(value.intValue()));
       } else {
         add(new DoubleArrayVector(value.doubleValue()));
@@ -574,6 +597,11 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
       return this;
     }
 
+    public NamedBuilder setName(int index, String name) {
+      names.set(index, name);
+      return this;
+    }
+
     @Override
     public NamedBuilder remove(int index) {
       super.remove(index);
@@ -616,10 +644,10 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     }
   
     @Override
-    public boolean elementsEqual(Vector vector1, int index1, Vector vector2,
-        int index2) {
-      // TODO: should compareElements be a method on some AtomicVectorType class??
-      throw new UnsupportedOperationException();
+    public boolean elementsIdentical(Vector vector1, int index1, Vector vector2, int index2) {
+      SEXP element1 = vector1.getElementAsSEXP(index1);
+      SEXP element2 = vector2.getElementAsSEXP(index2);
+      return element1.equals(element2);
     }
 
     @Override
@@ -630,7 +658,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
         ListVector.Builder builder = new ListVector.Builder(0, x.length());
         builder.copyAttributesFrom(x);
         for (int i = 0; i < x.length(); i++) {
-          builder.add(x.getElementAsSEXP(i));
+          builder.add(x.<SEXP>getElementAsSEXP(i));
         }
         return builder.build();
       }

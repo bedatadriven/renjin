@@ -6,7 +6,9 @@
 
 SEXP Cmysum(SEXP vector);
 SEXP Cmydsum(SEXP vector);
+SEXP Cinvokeupper();
 
 void dpchimtest_();
+void dpchim2_();
 
 #endif

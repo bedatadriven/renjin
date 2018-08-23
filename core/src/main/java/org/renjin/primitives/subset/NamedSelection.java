@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -401,7 +401,12 @@ class NamedSelection implements SelectionStrategy {
     String selectedName = computeUniqueSelectedName();
     boolean found = false;
 
-    PairList.Builder newList = new PairList.Builder();
+    PairList.Builder newList;
+    if(source instanceof FunctionCall) {
+      newList = new FunctionCall.Builder();
+    } else {
+      newList = new PairList.Builder();
+    }
     for (PairList.Node node : source.nodes()) {
       if(!found && node.hasTag() && node.getTag().getPrintName().equals(selectedName)) {
         if(replacement != Null.INSTANCE) {
@@ -420,7 +425,7 @@ class NamedSelection implements SelectionStrategy {
   }
 
   @Override
-  public Vector replaceSingleElement(AtomicVector source, Vector replacements) {
+  public Vector replaceSingleElement(Context context, AtomicVector source, Vector replacements) {
     if(replacements.length() != 1) {
       throw new EvalException("number of items to replace is not a multiple of replacement length");
     }

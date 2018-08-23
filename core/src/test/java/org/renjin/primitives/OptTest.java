@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,6 @@ import org.renjin.sexp.LogicalVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 
@@ -36,15 +35,15 @@ public class OptTest extends EvalTestCase{
   @Test
   public void overloadingWorks() {
     // this will fail if they are fed thru the string overload
-    assertThat(eval("10>5"), equalTo(c(true)));
-    assertThat(eval("10L>5L"), equalTo(c(true)));
-    assertThat(eval("TRUE>FALSE"), equalTo(c(true)));
-    assertThat(eval("'one' > 'zed'"), equalTo(c(false)));
+    assertThat(eval("10>5"), elementsIdenticalTo(c(true)));
+    assertThat(eval("10L>5L"), elementsIdenticalTo(c(true)));
+    assertThat(eval("TRUE>FALSE"), elementsIdenticalTo(c(true)));
+    assertThat(eval("'one' > 'zed'"), elementsIdenticalTo(c(false)));
   }
 
   @Test
   public void typePreservedAndNotMangledByImplicitCasting() {
-    assertThat(eval("-1L"), equalTo(c_i(-1)));
+    assertThat(eval("-1L"), elementsIdenticalTo(c_i(-1)));
   }
   
   @Test(expected=EvalException.class)
@@ -54,9 +53,9 @@ public class OptTest extends EvalTestCase{
   
   @Test
   public void integerDivision() {
-    assertThat( eval("7 %/% 3"), equalTo(c(2)));
-    assertThat( eval("7 %/% 3.9"), equalTo(c(1)));
-    assertThat( eval("-7 %/% 3.9"), equalTo(c(-2)));
+    assertThat( eval("7 %/% 3"), elementsIdenticalTo(c(2)));
+    assertThat( eval("7 %/% 3.9"), elementsIdenticalTo(c(1)));
+    assertThat( eval("-7 %/% 3.9"), elementsIdenticalTo(c(-2)));
   }
   
   @Test
@@ -65,48 +64,48 @@ public class OptTest extends EvalTestCase{
     eval(" dj <- c(1,1) ");
     eval(" dim(dj) <- c(2,1)");
     
-    assertThat(eval(" dim( y / dj )"), equalTo(c_i(2,1)));
+    assertThat(eval(" dim( y / dj )"), elementsIdenticalTo(c_i(2,1)));
   }
   
   @Test
   public void symbolEquality() {
-    assertThat(eval("quote(x)==quote(y)"), equalTo(c(false)));
-    assertThat(eval("quote(x)==quote(x)"), equalTo(c(true)));
-    assertThat(eval("quote(a)<quote(b)"), equalTo(c(true)));
+    assertThat(eval("quote(x)==quote(y)"), elementsIdenticalTo(c(false)));
+    assertThat(eval("quote(x)==quote(x)"), elementsIdenticalTo(c(true)));
+    assertThat(eval("quote(a)<quote(b)"), elementsIdenticalTo(c(true)));
   }
   
   @Test
   public void stringComparison() {
-    assertThat(eval("'a' < 'b'"), equalTo(c(true)));
+    assertThat(eval("'a' < 'b'"), elementsIdenticalTo(c(true)));
   }
   
   @Test
   public void languageEquality() {
-    assertThat(eval("quote(c(1)) == 'c(1)'"), equalTo(c(true)));
+    assertThat(eval("quote(c(1)) == 'c(1)'"), elementsIdenticalTo(c(true)));
   }
   
   @Ignore("this makes no sense to me")
   @Test
   public void listComparison() {
-    assertThat(eval("list(1) == 1"), equalTo(c(true)));
+    assertThat(eval("list(1) == 1"), elementsIdenticalTo(c(true)));
   }
   
   
   @Test
   public void complexAdd() {
-    assertThat(eval("3+1i"), equalTo(c(complex(3,1))));
+    assertThat(eval("3+1i"), elementsIdenticalTo(c(complex(3,1))));
   }
   
   @Test
   public void negatedLogical() {
-    topLevelContext.getEnvironment().setVariable(Symbol.get("x"), LogicalVector.EMPTY);
-    assertThat(eval("!x"), equalTo((SEXP)LogicalVector.EMPTY));
+    topLevelContext.getEnvironment().setVariable(topLevelContext, Symbol.get("x"), LogicalVector.EMPTY);
+    assertThat(eval("!x"), identicalTo((SEXP)LogicalVector.EMPTY));
   }
   
   @Test
   public void testFunctionCallEqual() {
     eval("x <- ~0 + births");
-    assertThat(eval("x == x"), equalTo(c(true)));
+    assertThat(eval("x == x"), elementsIdenticalTo(c(true)));
     
   }
   

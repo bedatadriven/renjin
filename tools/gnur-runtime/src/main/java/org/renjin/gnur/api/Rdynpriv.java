@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 // Initial template generated from Rdynpriv.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.gcc.runtime.CharPtr;
+import org.renjin.gcc.runtime.BytePtr;
 
 @SuppressWarnings("unused")
 public final class Rdynpriv {
@@ -28,7 +28,7 @@ public final class Rdynpriv {
 
 
 
-  public static int R_moduleCdynload(CharPtr module, int local, int now) {
+  public static int R_moduleCdynload(BytePtr module, int local, int now) {
     throw new UnimplementedGnuApiMethod("R_moduleCdynload");
   }
 

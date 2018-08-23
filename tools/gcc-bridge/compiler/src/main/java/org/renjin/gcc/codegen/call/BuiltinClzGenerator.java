@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,11 +21,13 @@ package org.renjin.gcc.codegen.call;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveExpr;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveType;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.repackaged.guava.base.Preconditions;
+
+import static org.renjin.gcc.codegen.expr.Expressions.numberOfLeadingZeros;
 
 /**
  * Count leading zeros of an integer
@@ -46,12 +48,12 @@ public class BuiltinClzGenerator implements CallGenerator {
     
     
     GExpr value = exprFactory.findGenerator(call.getOperand(0));
-    if(!(value instanceof PrimitiveValue)) {
+    if(!(value instanceof PrimitiveExpr)) {
       throw new InternalCompilerException("Expected primitive operand: " + value);
     }
     
-    PrimitiveValue argument = (PrimitiveValue) value;
-    PrimitiveValue result = new PrimitiveValue(Expressions.numberOfLeadingZeros(argument.unwrap()));
+    PrimitiveExpr argument = (PrimitiveExpr) value;
+    PrimitiveExpr result = PrimitiveType.INT32.fromStackValue(numberOfLeadingZeros(argument.jexpr()));
     
     lhs.store(mv, result);
   }

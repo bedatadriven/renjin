@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,6 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.parser.NumericLiterals;
-import org.renjin.parser.StringLiterals;
 import org.renjin.primitives.summary.DeferredMean;
 import org.renjin.primitives.summary.DeferredSum;
 import org.renjin.sexp.*;
@@ -454,10 +453,38 @@ public class Summary {
   @GroupGeneric
   public static SEXP sum(@Current Context context, @ArgumentList ListVector arguments,
                          @NamedFlag("na.rm") boolean removeNA) throws IOException {
-    double realSum = 0;
+
+
+    // Check the return type first
     boolean haveDouble = false;
-    double imaginarySum = 0;
     boolean haveComplex = false;
+    for (SEXP argument : arguments) {
+      if(argument instanceof DoubleVector) {
+        haveDouble = true;
+      } else if(argument instanceof ComplexVector) {
+        haveComplex = true;
+      } else if(argument instanceof IntVector || argument instanceof LogicalVector || argument instanceof Null) {
+        // NOOP
+      } else {
+        // This is a difference between Renjin and GNU R that seems worth defending:
+        // we exit early if there is an invalid argument. Otherwise the exception can be silenced by
+        // an integer overflow or an NA value in an earlier argument which seem capricious.
+        throw new EvalException("invalid 'type' (" + argument.getTypeName() + ") of argument");
+      }
+    }
+
+    SEXP naValue;
+    if(haveComplex) {
+      naValue = ComplexArrayVector.NA_VECTOR;
+    } else if(haveDouble) {
+      naValue = DoubleArrayVector.NA_VECTOR;
+    } else {
+      naValue = IntArrayVector.NA_VECTOR;
+    }
+
+    double realSum = 0;
+    int intSum = 0;
+    double imaginarySum = 0;
 
     if(arguments.length() == 1 && arguments.get(0) instanceof DoubleVector && !removeNA) {
       DoubleVector argument = (DoubleVector) arguments.get(0);
@@ -466,34 +493,53 @@ public class Summary {
       }
     }
 
-    for(SEXP argument : arguments) {
-      if(argument instanceof IntVector || argument instanceof LogicalVector) {
-        AtomicVector vector = (AtomicVector)argument;
-        for(int i=0;i!=argument.length();++i) {
-          if(vector.isElementNA(i)) {
-            if(!removeNA) {
-              return haveDouble ? new DoubleArrayVector(DoubleVector.NA) : new IntArrayVector(IntVector.NA);
+    argumentLoop: for (SEXP argument : arguments) {
+      if (argument instanceof IntVector || argument instanceof LogicalVector) {
+        AtomicVector vector = (AtomicVector) argument;
+        for (int i = 0; i != argument.length(); ++i) {
+          int element = vector.getElementAsInt(i);
+          if (IntVector.isNA(element)) {
+            if (!removeNA) {
+              return naValue;
             }
           } else {
-            int element = vector.getElementAsInt(i);
-            realSum += element;
+            try {
+              intSum = Math.addExact(intSum, element);
+            } catch(ArithmeticException e) {
+              // Overflow
+              context.warn("Integer overflow - use sum(as.numeric(.))");
+              return naValue;
+            }
           }
         }
-      } else if(argument instanceof DoubleVector) {
-        DoubleVector vector = (DoubleVector)argument;
-        haveDouble = true;
-        for(int i=0;i!=vector.length();++i) {
-          if(vector.isElementNA(i)) {
-            if(!removeNA) {
-              return new DoubleArrayVector(DoubleVector.NA);
+      } else if (argument instanceof DoubleVector) {
+        DoubleVector vector = (DoubleVector) argument;
+        for (int i = 0; i != vector.length(); ++i) {
+          double doubleValue = vector.getElementAsDouble(i);
+          if (Double.isNaN(doubleValue)) {
+            if (DoubleVector.isNA(doubleValue)) {
+              // If this is a "missing" value NA, then we can abort
+              // all calculation now.
+              if (!removeNA) {
+                return naValue;
+              }
+            } else {
+              // Otherwise for normal NaNs, we can stop processing
+              // only if there are no complex arguments.
+              if (!removeNA) {
+                if (haveComplex) {
+                  break;
+                } else {
+                  return new DoubleArrayVector(Double.NaN);
+                }
+              }
             }
           } else {
-            realSum += vector.getElementAsDouble(i);
+            realSum += doubleValue;
           }
         }
-      } else if(argument instanceof ComplexVector) {
+      } else if (argument instanceof ComplexVector) {
         ComplexVector vector = (ComplexVector) argument;
-        haveComplex = true;
         for (int i = 0; i != vector.length(); ++i) {
           if (vector.isElementNA(i)) {
             if (!removeNA) {
@@ -505,26 +551,16 @@ public class Summary {
             imaginarySum += z.getImaginary();
           }
         }
-
-      } else if(argument == Null.INSTANCE) {
-        // NOOP
-        
-      } else {
-        throw new EvalException("invalid 'type' (" + argument.getTypeName() + ") of argument");
       }
     }
-    if(haveComplex) {
-      return new ComplexArrayVector(ComplexVector.complex(realSum, imaginarySum));
+    if (haveComplex) {
+      return new ComplexArrayVector(ComplexVector.complex(realSum + intSum, imaginarySum));
 
-    } else if(haveDouble) {
-      return new DoubleArrayVector(realSum);
+    } else if (haveDouble) {
+      return new DoubleArrayVector(realSum + intSum);
 
     } else {
-      if(realSum < Integer.MIN_VALUE || realSum > Integer.MAX_VALUE) {
-        context.warn("Integer overflow - use sum(as.numeric(.))");
-        return new IntArrayVector(IntVector.NA);
-      }
-      return new IntArrayVector((int)realSum);
+      return new IntArrayVector(intSum);
     }
   }
 

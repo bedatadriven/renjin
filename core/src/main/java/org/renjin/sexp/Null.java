@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -235,6 +235,10 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
   }
 
   @Override
+  public double getElementAsComplexIm(int index) {
+    throw new IllegalArgumentException(INDEX_OUT_OF_BOUNDS);
+  }
+  @Override
   public Logical getElementAsLogical(int index) {
     throw new IllegalArgumentException(INDEX_OUT_OF_BOUNDS);
   }
@@ -277,6 +281,10 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
   @Override
   public int getComputationDepth() {
     return 0;
+  }
+
+  @Override
+  public void copyTo(double[] array, int offset, int length) {
   }
 
   @Override
@@ -476,9 +484,8 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
     }
 
     @Override
-    public boolean elementsEqual(Vector vector1, int index1, Vector vector2,
-        int index2) {
-      throw new UnsupportedOperationException();
+    public boolean elementsIdentical(Vector vector1, int index1, Vector vector2, int index2) {
+      throw new IllegalArgumentException(INDEX_OUT_OF_BOUNDS);
     }
 
     @Override

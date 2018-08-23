@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,8 @@ import java.io.PrintWriter;
  *
  */
 public interface Connection {
-  
+
+
   enum Type {
     TEXT,
     BINARY
@@ -99,7 +100,10 @@ public interface Connection {
    * @return true if this Connection has been opened and not yet closed.
    */
   boolean isOpen();
-  
+
+  void flush() throws IOException;
+
+
   /**
    * 
    * @return the S3 "sub" class of this connection (e.g. "terminal", "file", etc)

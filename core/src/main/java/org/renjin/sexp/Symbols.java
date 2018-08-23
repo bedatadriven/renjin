@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@ public class Symbols {
   public static final Symbol LEFT_BRACE = Symbol.get("{");
 
   public static final Symbol TZONE = Symbol.get("tzone");
+  public static final Symbol TSP = Symbol.get("tsp");
   
   /**
    * Identifies the {@code row.names} attribute, which contains an {@code AtomicVector} with the
@@ -55,13 +56,15 @@ public class Symbols {
   public static final Symbol PACKAGE = Symbol.get("package");
   public static final Symbol CLASS_NAME = Symbol.get("className");
   public static final Symbol PROTOTYPE = Symbol.get("prototype");
-  public static final Symbol S4_BIT = Symbol.get("__S4_BIT");
   public static final Symbol S4_NULL = Symbol.get("\001NULL\001");
   
   public static final Symbol GENERIC = Symbol.get("generic");
   public static final Symbol SOURCE = Symbol.get("source");
 
   public static final Symbol DOT_DATA = Symbol.get(".Data");
+
+  public static final Symbol DOT_XDATA = Symbol.get(".xData");
+
 
 
 

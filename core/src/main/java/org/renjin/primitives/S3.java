@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,8 @@
  */
 package org.renjin.primitives;
 
+import org.renjin.compiler.ir.TypeSet;
+import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.eval.*;
 import org.renjin.invoke.annotations.ArgumentList;
 import org.renjin.invoke.annotations.Builtin;
@@ -26,6 +28,7 @@ import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
+import org.renjin.s4.S4;
 import org.renjin.sexp.*;
 
 import java.util.Collections;
@@ -37,10 +40,13 @@ import java.util.Set;
  * Primitives used in the implementation of the S3 object system
  */
 public class S3 {
+  public static final Set<String> GROUPS = Sets.newHashSet("Ops", "Math", "Summary");
+
+  private static final Set<String> SPECIAL = Sets.newHashSet("$", "$<-");
 
   public static final Symbol METHODS_TABLE = Symbol.get(".__S3MethodsTable__.");
 
-  public static final Set<String> GROUPS = Sets.newHashSet("Ops", "Math", "Summary");
+  private static final Symbol NA_RM = Symbol.get("na.rm");
 
   @Builtin
   public static SEXP UseMethod(@Current Context context, String genericMethodName) {
@@ -65,7 +71,7 @@ public class S3 {
 
     return Resolver
               .start(context, genericMethodName, object)
-              .withDefinitionEnvironment(context.getClosure().getEnclosingEnvironment())
+              .withDefinitionEnvironment(((Closure) context.getFunction()).getEnclosingEnvironment())
               .next()
               .apply(context, context.getEnvironment());
   }
@@ -82,6 +88,56 @@ public class S3 {
            .applyNext(context, context.getEnvironment(), extraArgs);
   }
 
+  /**
+   * Attempts to compute the classes used for S3 dispatch based on value bounds for an expression.
+   * 
+   * @param valueBounds
+   * @return a StringVector containing the known class list for this expression, or {@code null} if they could not
+   * be deduced.
+   */
+  public static StringVector computeDataClasses(ValueBounds valueBounds) {
+    // If we don't know what the value's class attribute is, we can't make
+    // any further assumptions
+    if(!valueBounds.isClassAttributeConstant()) {
+      return null;
+    }
+
+    AtomicVector classAttribute = valueBounds.getConstantClassAttribute();
+    if(classAttribute.length() > 0) {
+      // S3 class has been explicitly defined and is constant at compile time
+      return (StringVector) classAttribute;
+    }
+    
+    // Otherwise we compute based on the type and dimensions
+    // So in the absence of a constant class attribute, these two
+    // properties need to be constant.
+    if(!valueBounds.isDimCountConstant()) {
+      return null;
+    }
+
+    int typeSet = valueBounds.getTypeSet();
+    String implicitClass = TypeSet.implicitClass(typeSet);
+    if(implicitClass == null) {
+      return null;
+    }
+    
+    StringArrayVector.Builder dataClass = new StringArrayVector.Builder();
+
+    int dimCount = valueBounds.getConstantDimCount();
+    if(dimCount == 2) {
+      dataClass.add("matrix");
+    } else if(dimCount > 0) {
+      dataClass.add("array");
+    }
+    
+    dataClass.add(implicitClass);
+    
+    if((typeSet & TypeSet.NUMERIC) != 0) {
+      dataClass.add("numeric");
+    }
+    return dataClass.build();
+  }
+  
 
   /**
    * Computes the class list used for normal S3 Dispatch. Note that this
@@ -109,11 +165,14 @@ public class S3 {
       SEXP dim = exp.getAttribute(Symbols.DIM);
       if(dim.length() == 2) {
         dataClass.add("matrix");
-      } else if(dim.length() == 1) {
+      } else if(dim.length() > 0) {
         dataClass.add("array");
       }
-      if(exp instanceof IntVector || exp instanceof DoubleVector) {
-        dataClass.add(exp.getTypeName());
+      if(exp instanceof IntVector) {
+        dataClass.add("integer");
+        dataClass.add("numeric");
+      } else if(exp instanceof DoubleVector) {
+        dataClass.add("double");
         dataClass.add("numeric");
       } else {
         dataClass.add(exp.getImplicitClass());
@@ -128,22 +187,22 @@ public class S3 {
     /*
      * First we need to see if we've already been through this.
      * (It's complicated)
-     * 
-     * - This method is called by "generic" primitives that, before doing 
+     *
+     * - This method is called by "generic" primitives that, before doing
      *   their normal thing, check to see if there's a user-defined function
-     *   out there that provides specific behavior for the object. 
-     * 
-     * - It can happen that that user function in turn calls NextMethod() 
+     *   out there that provides specific behavior for the object.
+     *
+     * - It can happen that that user function in turn calls NextMethod()
      *   to defer to the default behavior of the primitive. In this case,
      *   we don't want to check again because we've already been through
      *   that; to do so would be to loop infinitely.
-     *   
+     *
      * - We can only tell whether this is the first or second time around,
      *   because if it's the second, NextMethod() will invoke the primitive
-     *   by the name "<primitive>.default", like "as.character.default". 
+     *   by the name "<primitive>.default", like "as.character.default".
      */
-    if(call.getFunction() instanceof Symbol && 
-        ((Symbol) call.getFunction()).getPrintName().endsWith(".default")) {
+    if(call.getFunction() instanceof Symbol &&
+            ((Symbol) call.getFunction()).getPrintName().endsWith(".default")) {
       return null;
     }
 
@@ -156,13 +215,24 @@ public class S3 {
       nargs = 1;
     }
 
-    GenericMethod left = Resolver.start(context, group, opName, args.getElementAsSEXP(0))
+    GenericMethod left;
+    for (int k = 0; k < nargs; k++) {
+      if(Types.isS4(args.getElementAsSEXP(k))) {
+        return S4.tryS4DispatchFromPrimitive(context, args.getElementAsSEXP(0), args, rho, group, opName);
+      }
+    }
+
+    if(opName.equals("%*%")) {
+      return null;
+    }
+    
+    left = Resolver.start(context, rho, group, opName, args.getElementAsSEXP(0))
         .withBaseDefinitionEnvironment()
         .findNext();
         
     GenericMethod right = null;
     if(nargs == 2) {
-      right = Resolver.start(context, group, opName, args.getElementAsSEXP(1))
+      right = Resolver.start(context, rho, group, opName, args.getElementAsSEXP(1))
           .withBaseDefinitionEnvironment()
           .findNext();
     }
@@ -201,17 +271,20 @@ public class S3 {
     /* out to a closure we need to wrap them in promises so that */
     /* they get duplicated and things like missing/substitute work. */
 
-    PairList promisedArgs = Calls.promiseArgs(call.getArguments(), context, rho);
+    PairList promisedArgs = Calls.promiseArgs(args, context, rho);
     if (promisedArgs.length() != args.length()) {
       throw new EvalException("dispatch error in group dispatch");
     }
     if(promisedArgs != Null.INSTANCE) {
       PairList.Node promised = (PairList.Node)promisedArgs;
-      PairList.Node evaluated = (PairList.Node)args;
 
       while(true) {
 
-        ((Promise)promised.getValue()).setResult(evaluated.getValue());
+        /* The first argument has been evaluated, but not the rest */
+        if(promised == promisedArgs) {
+          ((Promise)promised.getValue()).setResult(((PairList.Node) args).getValue());
+        }
+
         /* ensure positional matching for operators */
         if (isOps) {
           promised.setTag(Null.INSTANCE);
@@ -220,11 +293,9 @@ public class S3 {
           break;
         }
         promised = promised.getNextNode();
-        evaluated = evaluated.getNextNode();
       }
     }
-    return left.doApply(context, rho, promisedArgs);
-//    return Calls.applyClosure((Closure) left.sxp, context, newCall, promisedArgs, rho, newrho);
+    return left.doApply(context, rho, call, promisedArgs);
   }
 
   /**
@@ -243,8 +314,16 @@ public class S3 {
       return null;
     }
 
+    SEXP resultS4Dispatch = null;
+    if(Types.isS4(object) && isS4DispatchSupported(name)) {
+      resultS4Dispatch = S4.tryS4DispatchFromPrimitive(context, object, args, rho, null, name);
+    }
+    if (resultS4Dispatch != null) {
+      return resultS4Dispatch;
+    }
+
     GenericMethod method = Resolver
-        .start(context, name, object)
+        .start(context, rho, null, name, object)
         .withBaseDefinitionEnvironment()
         .withObjectArgument(object)
         .withGenericArgument(name)
@@ -255,15 +334,19 @@ public class S3 {
     }
 
     PairList newArgs = reassembleAndEvaluateArgs(object, args, context, rho);
-    
-    return method.doApply(context, rho, newArgs);
+    Context fakeContext = context.beginFunction(rho, call, new Closure(rho, Null.INSTANCE, Null.INSTANCE), args);
+    return method.doApply(fakeContext, rho, call, newArgs);
+  }
+
+  private static boolean isS4DispatchSupported(String name) {
+    return !("@<-".equals(name));
   }
 
   public static SEXP tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call,
-      String name, String[] argumentNames, SEXP[] arguments) {
+                                              String name, String[] argumentNames, SEXP[] arguments) {
 
     if(call.getFunction() instanceof Symbol &&
-        ((Symbol)call.getFunction()).getPrintName().endsWith(".default")) {
+            ((Symbol)call.getFunction()).getPrintName().endsWith(".default")) {
       return null;
     }
 
@@ -290,23 +373,26 @@ public class S3 {
   }
 
   /**
-   * Evaluate the remaining arguments to the primitive call. Despite the fact that we are passing these
-   * arguments to a user-defined closure, we _still_ evaluate arguments eagerly.
+   * Wrap the remaining arguments to the primitive call in promises.
    */
   static PairList reassembleAndEvaluateArgs(SEXP object, PairList args, Context context, Environment rho) {
     PairList.Builder newArgs = new PairList.Builder();
     PairList.Node firstArg = (PairList.Node)args;
-    newArgs.add(firstArg.getRawTag(), object);
+    newArgs.add(firstArg.getRawTag(), new Promise(firstArg.getValue(), object));
 
     ArgumentIterator argIt = new ArgumentIterator(context, rho, firstArg.getNext());
     while(argIt.hasNext()) {
       PairList.Node node = argIt.nextNode();
-      newArgs.add(node.getRawTag(), context.evaluate(node.getValue(), rho));
+      if(node.getValue() == Symbol.MISSING_ARG) {
+        newArgs.add(node.getRawTag(), Symbol.MISSING_ARG);
+      } else {
+        newArgs.add(node.getRawTag(), Promise.repromise(rho, node.getValue()));
+      }
     }
     return newArgs.build();
   }
 
-  public static SEXP tryDispatchOpsFromPrimitive(Context context, Environment rho, FunctionCall call, 
+  public static SEXP tryDispatchOpsFromPrimitive(Context context, Environment rho, FunctionCall call,
                                                  String name, SEXP s0) {
 
     PairList newArgs = new PairList.Node(s0, Null.INSTANCE);
@@ -314,7 +400,7 @@ public class S3 {
     return dispatchGroup("Ops", call, name, newArgs, context, rho);
   }
 
-  public static SEXP tryDispatchOpsFromPrimitive(Context context, Environment rho, FunctionCall call, 
+  public static SEXP tryDispatchOpsFromPrimitive(Context context, Environment rho, FunctionCall call,
                                                  String name, SEXP s0, SEXP s1) {
 
     PairList newArgs = new PairList.Node(s0, new PairList.Node(s1, Null.INSTANCE));
@@ -323,7 +409,7 @@ public class S3 {
   }
 
   public static SEXP tryDispatchGroupFromPrimitive(Context context, Environment rho, FunctionCall call,
-                                                 String group, String name, SEXP s0, PairList args) {
+                                                   String group, String name, SEXP s0, PairList args) {
 
     // Add our first, already evaluated argument
     PairList.Node firstNode = (PairList.Node) args;
@@ -333,23 +419,39 @@ public class S3 {
   }
 
 
-
   public static SEXP tryDispatchSummaryFromPrimitive(Context context, Environment rho, FunctionCall call,
-      String name, ListVector evaluatedArguments, boolean naRm) {
+                                                     String name, ListVector evaluatedArguments, boolean naRm) {
 
-    // REpackage the evaluated arguments.
-    // this is ghastly but i don't think it will
-    // get better until Calls is refactored
+    // This call's arguments have been previously evaluated and parsed
+    // by the function wrapper (for example, R$primitive$max) in preparation for
+    // dispatching to the builtin method.
+
+    // Now we need walk that work back in order to be able to dispatch
+    // to a user-supplied closure override.
 
     PairList.Builder newArgs = new PairList.Builder();
     int varArgIndex = 0;
-    Symbol naRmName = Symbol.get("na.rm");
+    boolean naRmArgumentSupplied = false;
     for(PairList.Node node : call.getArguments().nodes()) {
-      if(node.getRawTag() == naRmName) {
+      if(node.getRawTag() == NA_RM) {
         newArgs.add(node.getTag(), new LogicalArrayVector(naRm));
+        naRmArgumentSupplied = true;
+      } else if(node.getValue() == Symbols.ELLIPSES) {
+        // Add all remaining arguments
+        while(varArgIndex < evaluatedArguments.length()) {
+          newArgs.add(evaluatedArguments.getName(varArgIndex), evaluatedArguments.get(varArgIndex));
+          varArgIndex++;
+        }
       } else {
         newArgs.add(node.getRawTag(), evaluatedArguments.get(varArgIndex++));
       }
+    }
+
+    // When dispatching to S3 summary methods, we pretend that the summary
+    // builtin has an extra na.rm argument with default value false.
+
+    if(!naRmArgumentSupplied) {
+      newArgs.add(NA_RM, LogicalVector.valueOf(naRm));
     }
 
     return dispatchGroup("Summary", call, name, newArgs.build(), context, rho);
@@ -401,17 +503,31 @@ public class S3 {
 
     
     private static Resolver start(Context context, String genericMethodName, SEXP object) {
-      return start(context, null, genericMethodName, object);
+      return start(context, context.getEnvironment(), null, genericMethodName, object);
     }
 
-    private static Resolver start(Context context, String group, String genericMethodName, SEXP object) {
+    private static Resolver start(Context context, Environment rho, String group, String genericMethodName, SEXP object) {
       Resolver resolver = new Resolver();
-      resolver.callingEnvironment = context.getEnvironment();
+      resolver.callingEnvironment = rho;
       resolver.genericMethodName = genericMethodName;
       resolver.context = context;
       resolver.object = object;
       resolver.group = group;
-      resolver.classes = Lists.newArrayList(computeDataClasses(context, object));
+  
+      StringVector objectClasses = computeDataClasses(context, object);
+      if(Types.isS4(object)) {
+        SEXP objectClassesS4 = S4.computeDataClassesS4(context, objectClasses.getElementAsString(0));
+        if(objectClassesS4 != Null.INSTANCE) {
+          List<String> classes = Lists.newArrayList(objectClasses);
+          classes.addAll(Lists.newArrayList((StringVector)objectClassesS4));
+          resolver.classes = classes;
+        } else {
+          resolver.classes = Lists.newArrayList(objectClasses);
+        }
+      } else {
+        resolver.classes = Lists.newArrayList(objectClasses);
+      }
+      
       return resolver;
     }
 
@@ -444,9 +560,9 @@ public class S3 {
     }
 
     /**
-     * Sets the name of the generic method to resolve from 
-     * an argument provided to UseMethod(). 
-     * 
+     * Sets the name of the generic method to resolve from
+     * an argument provided to UseMethod().
+     *
      * @param generic the 'generic' argument, giving the name of the method, like
      * 'as.character', or 'print'.
      */
@@ -458,9 +574,9 @@ public class S3 {
     }
     
     /**
-     * Sets the name of the generic method to resolve from 
-     * an argument provided to UseMethod(). 
-     * 
+     * Sets the name of the generic method to resolve from
+     * an argument provided to UseMethod().
+     *
      * @param genericName the 'generic' argument, giving the name of the method, like
      * 'as.character', or 'print'.
      */
@@ -505,25 +621,27 @@ public class S3 {
 
       if(next != null) {
         return next;
-      } else {
-        Environment methodTable = getMethodTable();
-        GenericMethod function = findNext(methodTable, genericMethodName, "default");
-        if(function != null) {
-          return function;
-        }
-
-        // as a last step, we call BACK into the primitive
-        // to get the default implementation  - ~ YECK ~
-        PrimitiveFunction primitive = Primitives.getBuiltin(genericMethodName);
-        if(primitive != null) {
-          return new GenericMethod(this, Symbol.get(genericMethodName + ".default"), null, primitive);
-        }
-
-        return null;
       }
+
+      // Look up the .default method in the calling environment
+      // and the original *definition environment*, *NOT* the methods table.
+      GenericMethod function = findNext(definitionEnvironment, genericMethodName, "default");
+      if(function != null) {
+        return function;
+      }
+
+      // as a last step, we call BACK into the primitive
+      // to get the default implementation  - ~ YECK ~
+      PrimitiveFunction primitive = Primitives.getBuiltin(genericMethodName);
+      if(primitive != null) {
+        return new GenericMethod(this, Symbol.get(genericMethodName + ".default"), null, primitive);
+      }
+
+      return null;
     }
 
     public GenericMethod findNext() {
+      
       Environment methodTable = getMethodTable();
       GenericMethod method;
 
@@ -549,8 +667,8 @@ public class S3 {
       if(function != null) {
         return new GenericMethod(this, method, className, (Function) function);
         
-      } else if(methodTable != null && methodTable.hasVariable(method)) {
-        return new GenericMethod(this, method, className, (Function) methodTable.getVariable(method).force(context));
+      } else if(methodTable.hasVariable(method)) {
+        return new GenericMethod(this, method, className, (Function) methodTable.getVariableUnsafe(method).force(context));
       
       } else {
         return null;
@@ -558,14 +676,19 @@ public class S3 {
     }
 
     private Environment getMethodTable() {
-      SEXP table = definitionEnvironment.getVariable(METHODS_TABLE).force(context);
-      if(table instanceof Environment) {
-        return (Environment) table;
-      } else if(table == Symbol.UNBOUND_VALUE) {
-        return null;
-      } else {
-        throw new EvalException("Unexpected value for .__S3MethodsTable__. in " + definitionEnvironment.getName());
-      }
+      return findMethodTable(context, definitionEnvironment);
+    }
+
+  }
+
+  public static Environment findMethodTable(Context context, Environment definitionEnvironment) {
+    SEXP table = definitionEnvironment.getVariableUnsafe(METHODS_TABLE).force(context);
+    if(table instanceof Environment) {
+      return (Environment) table;
+    } else if(table == Symbol.UNBOUND_VALUE) {
+      return Environment.EMPTY;
+    } else {
+      throw new EvalException("Unexpected value for .__S3MethodsTable__. in " + definitionEnvironment.getName());
     }
   }
 
@@ -578,21 +701,21 @@ public class S3 {
     private Symbol method;
     private Function function;
     private String className;
-    
+
     /**
      * The vector stored in .Method
-     * 
-     * <p>Normally it is just a single string containing the 
+     *
+     * <p>Normally it is just a single string containing the
      * name of the selected method, but for Ops group members,
-     * it a two element string vector of the form 
-     * 
+     * it a two element string vector of the form
+     *
      * [ "Ops.factor", ""]
      * [ "", "Ops.factor"] or
-     * [ "Ops.factor", "Ops.factor"] 
-     * 
-     * depending on which (or both) of the operands belong to 
+     * [ "Ops.factor", "Ops.factor"]
+     *
+     * depending on which (or both) of the operands belong to
      * the selected class.
-     * 
+     *
      */
     private StringVector methodVector;
 
@@ -607,7 +730,7 @@ public class S3 {
 
     public SEXP apply(Context callContext, Environment callEnvironment) {
       PairList rePromisedArgs = Calls.promiseArgs(callContext.getArguments(), callContext, callEnvironment);
-      return doApply(callContext, callEnvironment, rePromisedArgs);
+      return doApply(callContext, callEnvironment, callContext.getCall(), rePromisedArgs);
     }
 
     public SEXP applyNext(Context context, Environment environment, ListVector extraArgs) {
@@ -617,7 +740,7 @@ public class S3 {
         withMethodVector(groupsMethodVector());
       }
 
-      return doApply(context, environment, arguments);
+      return doApply(context, environment, context.getCall(), arguments);
     }
 
     private String[] groupsMethodVector() {
@@ -634,8 +757,15 @@ public class S3 {
       return methodVector;
     }
 
-    public SEXP doApply(Context callContext, Environment callEnvironment, PairList args) {
-      FunctionCall newCall = new FunctionCall(method,args);
+    public SEXP doApply(Context callContext, Environment callEnvironment, FunctionCall call, PairList promisedArgs) {
+
+
+      // The new call that is visible to sys.call() and match.call()
+      // is identical to the call which invoked UseMethod(), but we do update the function name.
+
+      // For example, if you have a stack which looks like foo(x) -> UseMethod('foo') -> foo.default(x) then
+      // the foo.default function will have a call of foo.default(x) visible to sys.call() and match.call()
+      FunctionCall newCall = new FunctionCall(method, call.getArguments());
 
       callContext.setState(GenericMethod.class, this);
 
@@ -644,7 +774,7 @@ public class S3 {
       }
       try {
         if (function instanceof Closure) {
-          // Note that the callingEnvironment or "sys.parent" of the selected function will be the calling 
+          // Note that the callingEnvironment or "sys.parent" of the selected function will be the calling
           // environment of the wrapper function that calls UseMethod, NOT the environment in which UseMethod
           // is evaluated.
           Environment callingEnvironment = callContext.getCallingEnvironment();
@@ -652,21 +782,21 @@ public class S3 {
             callingEnvironment = callContext.getGlobalEnvironment();
           }
           return Calls.applyClosure((Closure) function, callContext, callingEnvironment, newCall,
-              args, persistChain());
+                  promisedArgs, persistChain());
         } else {
           // primitive
-          return function.apply(callContext, callEnvironment, newCall, args);
+          return function.apply(callContext, callEnvironment, newCall, promisedArgs);
         }
       } finally {
-        
+
         callContext.clearState(GenericMethod.class);
-        
+
         if(Profiler.ENABLED) {
           Profiler.functionEnd();
         }
       }
     }
-    
+
     public GenericMethod withMethodVector(String[] methodNames) {
       this.methodVector = new StringArrayVector(methodNames);
       return this;
@@ -677,16 +807,16 @@ public class S3 {
       /*
        * Get the arguments to the function that called NextMethod(),
        * no arguments are really passed to NextMethod() at all.
-       * 
-       * Note that we have to do a bit of climbing here-- it can be that previous 
+       *
+       * Note that we have to do a bit of climbing here-- it can be that previous
        * method looked like:
-       * 
+       *
        * `[.simple.list <- function(x, i, ...) structure(NextMethod('['], class=class(x))
-       * 
+       *
        * In this case, NextMethod is passed a promise to the closure 'structure',
        * and so our parent context is NOT the function context of `[.simple.list`
-       * but that of `structure`. 
-       * 
+       * but that of `structure`.
+       *
        */
       Context parentContext = callContext.getParent();
       while(parentContext.getParent() != resolver.previousContext) {
@@ -700,11 +830,11 @@ public class S3 {
        */
 
       PairList actuals = parentContext.getArguments();
-      Closure closure = parentContext.getClosure();
+      Closure closure = (Closure)parentContext.getFunction();
       PairList formals = closure.getFormals();
       Environment previousEnv = parentContext.getEnvironment();
 
-      return updateArguments(actuals, formals, previousEnv, extraArgs);
+      return updateArguments(parentContext, actuals, formals, previousEnv, extraArgs);
     }
 
 
@@ -736,7 +866,7 @@ public class S3 {
     }
   }
 
-  public static PairList updateArguments(PairList actuals, PairList formals, 
+  public static PairList updateArguments(Context context, PairList actuals, PairList formals,
                                          Environment previousEnv, ListVector extraArgs) {
     // match each actual to a formal name so we can update it's value. but we can't reorder!
 
@@ -795,14 +925,14 @@ public class S3 {
     for (int i = 0; i!=matchedNames.size();++i) {
       SEXP updatedValue;
       if(matchedNames.get(i) != null) {
-        updatedValue = previousEnv.getVariable(matchedNames.get(i));
+        updatedValue = previousEnv.getVariableUnsafe(matchedNames.get(i));
         assert updatedValue != Symbol.UNBOUND_VALUE;
       } else {
         updatedValue = actualValues.get(i);
       }
       updated.add(actualNames.get(i), updatedValue);
     }
-    
+
     // Add extra arguments passed to NextMethods
     for (NamedValue extraArg : extraArgs.namedValues()) {
       if(!extraArg.hasName()) {

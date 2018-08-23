@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ package org.renjin.primitives.combine;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.codegen.ArgumentIterator;
+import org.renjin.primitives.S3;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
@@ -105,11 +106,17 @@ public abstract class AbstractBindFunction extends SpecialFunction {
     Symbol foundMethod = null;
     org.renjin.sexp.Function foundFunction = null;
 
+    // Get the base method table
+    Environment methodsTable = S3.findMethodTable(context, context.getBaseEnvironment());
+
     for(BindArgument argument : arguments) {
       Vector classes = argument.getClasses();
       for(int i=0;i!=classes.length();++i) {
         Symbol methodName = Symbol.get(bindFunctionName + "." + classes.getElementAsString(i));
         org.renjin.sexp.Function function = rho.findFunction(context, methodName);
+        if(function == null) {
+          function = methodsTable.findFunction(context, methodName);
+        }
         if(function != null) {
           if(foundMethod != null && methodName != foundMethod) {
             // conflicting overloads,

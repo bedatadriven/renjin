@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,11 +25,15 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.Memset;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
+import org.renjin.gcc.codegen.vptr.PointerType;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Translates a pointer array and offset to a Record value represented by a primitive array.
@@ -39,15 +43,22 @@ public class RecordArrayValueFunction implements ValueFunction {
   
   private Type fieldType;
   private int arrayLength;
+  private GimpleRecordType gimpleRecordType;
 
-  public RecordArrayValueFunction(Type fieldType, int fieldCount) {
+  public RecordArrayValueFunction(Type fieldType, int fieldCount, GimpleRecordType gimpleRecordType) {
     this.fieldType = fieldType;
     this.arrayLength = fieldCount;
+    this.gimpleRecordType = gimpleRecordType;
   }
 
   @Override
   public Type getValueType() {
     return fieldType;
+  }
+
+  @Override
+  public GimpleType getGimpleValueType() {
+    return gimpleRecordType;
   }
 
   /**
@@ -76,8 +87,17 @@ public class RecordArrayValueFunction implements ValueFunction {
   public Optional<JExpr> getValueConstructor() {
     // No constructor is required for individual fields;
     // they will default to zero.
-    return Optional.absent();
+    return Optional.empty();
   }
+
+  @Override
+  public VPtrExpr toVPtr(JExpr array, JExpr offset) {
+    PointerType pointerType = PointerType.ofType(getValueType());
+    JExpr newWrapper = Expressions.newObject(pointerType.alignedImpl(), array, offset);
+
+    return new VPtrExpr(newWrapper);
+  }
+
 
   @Override
   public GExpr dereference(final JExpr array, final JExpr offset) {

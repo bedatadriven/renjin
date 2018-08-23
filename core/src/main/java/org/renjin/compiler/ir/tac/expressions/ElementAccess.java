@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,10 @@ import java.util.Map;
 
 
 /**
- * Extracts a single element from a vector. 
+ * Extracts a single element from a vector, dropping all attributes.
+ *
+ * <p>This is used to compile the extraction of the element from the for loops, so it is not meant to have
+ * the full semantics of R subset operator.
  */
 public class ElementAccess extends SpecializedCallExpression {
 
@@ -99,6 +102,9 @@ public class ElementAccess extends SpecializedCallExpression {
       if(resultType.equals(Type.INT_TYPE)) {
         mv.invokeinterface(Type.getInternalName(Vector.class), "getElementAsInt",
             Type.getMethodDescriptor(Type.INT_TYPE, Type.INT_TYPE));
+      } else if(resultType.equals(Type.DOUBLE_TYPE)) {
+        mv.invokeinterface(Type.getInternalName(Vector.class), "getElementAsDouble",
+            Type.getMethodDescriptor(Type.DOUBLE_TYPE, Type.INT_TYPE));
       } else {
         throw new UnsupportedOperationException("resultType: " + resultType);
       }

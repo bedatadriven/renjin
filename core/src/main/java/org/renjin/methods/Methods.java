@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,20 +18,25 @@
  */
 package org.renjin.methods;
 
+import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.Context.Type;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
-import org.renjin.invoke.annotations.DotCall;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.methods.PrimitiveMethodTable.prim_methods_t;
-import org.renjin.primitives.Contexts;
-import org.renjin.primitives.Environments;
+import org.renjin.primitives.Types;
+import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.special.SubstituteFunction;
 import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.s4.*;
 import org.renjin.sexp.*;
-
-import static org.renjin.util.CDefines.*;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import static org.renjin.s4.S4.generateCallMetaData;
 
 public class Methods {
 
@@ -86,13 +91,22 @@ public class Methods {
       // For this reason we have to be careful to avoid attribute
       // validation. 
       SEXP slotValue = value == Null.INSTANCE ? Symbols.S4_NULL : value;
-      return object.setAttributes(object.getAttributes().copy().set(name, slotValue));
+      return object.setAttributes(object.getAttributes().copyS4().set(name, slotValue));
     }
   }
 
 
   public static SEXP R_get_slot(@Current Context context, SEXP object, String what) {
     return R_do_slot(context, object, StringArrayVector.valueOf(what));
+  }
+
+  public static int R_has_slot(SEXP obj, SEXP name) {
+    Symbol slot = Symbol.get(name.asString());
+    Map<Symbol, SEXP> objSlots = obj.getAttributes().toMap();
+    if(objSlots.containsKey(slot)) {
+      return 1;
+    }
+    return 0;
   }
 
   public static String R_methodsPackageMetaName(String prefix, String name, String packageName) {
@@ -107,10 +121,10 @@ public class Methods {
     return metaName.toString();
   }
 
-  public static SEXP R_getClassFromCache(SEXP className, Environment table) {
+  public static SEXP R_getClassFromCache(@Current Context context, SEXP className, Environment table) {
     if(className instanceof StringVector) {
       String packageName = className.getAttributes().getPackage();
-      SEXP cachedValue = table.getVariable(Symbol.get(((StringVector) className).getElementAsString(0)));
+      SEXP cachedValue = table.getVariable(context, Symbol.get(((StringVector) className).getElementAsString(0)));
 
       if(cachedValue == Symbol.UNBOUND_VALUE) {
         return Null.INSTANCE;
@@ -253,7 +267,7 @@ public class Methods {
 
     Environment rho = env;
     while (rho != Environment.EMPTY) {
-      vl =  rho.getVariable(symbol);
+      vl =  rho.getVariable(context, symbol);
       if (vl != Symbol.UNBOUND_VALUE) {
         vl = vl.force(context);
 
@@ -277,7 +291,7 @@ public class Methods {
     }
     /* look in base if either generic is missing */
     if(generic == Symbol.UNBOUND_VALUE) {
-      vl = context.getBaseEnvironment().getVariable(symbol);
+      vl = context.getBaseEnvironment().getVariable(context, symbol);
       if(IS_GENERIC(vl)) {
         generic = vl;
         if(vl.getAttributes().getPackage() != null) {
@@ -373,39 +387,264 @@ public class Methods {
     return code;
   }
 
-  @Builtin
-  public static SEXP standardGeneric(@Current Context context, Symbol fname, SEXP fdef) {
-    throw new UnsupportedOperationException();
+  @Internal
+  public static SEXP getClass(@Current Context context, SEXP className, boolean dotForce, SEXP where) {
+
+    if(className instanceof S4Object) {
+      SEXP classes = className.getAttribute(Symbol.get("class"));
+      if(classes instanceof StringVector) {
+        if("classRepresentation".equals(((StringVector)classes).getElementAsString(0))) {
+          return className;
+        }
+      }
+    }
+
+    SEXP classDef = getClassDef(context, ((StringVector)className), Null.INSTANCE, Null.INSTANCE, true);
+
+    if(dotForce && (classDef == Null.INSTANCE || classDef == Symbol.UNBOUND_VALUE)) {
+      if(dotForce) {
+        System.out.println("getClass(" + ((StringVector)className).getElementAsString(0) + ", .Force = TRUE)");
+        SEXP env;
+        if(where == Null.INSTANCE) {
+          env = context.getCallingEnvironment();
+        } else {
+          env = where;
+        }
+        PairList.Builder args = new PairList.Builder();
+        args.add(className);
+        args.add(Symbol.get("package"), StringVector.valueOf("base"));
+        args.add(Symbol.get("virtual"), LogicalVector.TRUE);
+        args.add(Symbol.get("where"), env);
+        classDef = context.evaluate(FunctionCall.newCall(Symbol.get("makeClassRepresentation"), args.build()));
+      } else {
+        throw new EvalException("'" + ((StringVector)className).getElementAsString(0) + "' is not a defined class");
+      }
+    }
+    return classDef;
+  }
+
+  @Internal
+  public static SEXP getClassDef(@Current Context context, StringVector className, SEXP where, SEXP packageName, boolean inherits) {
+    SEXP classDef = Symbol.UNBOUND_VALUE;
+    String providedPackage = null;
+
+    if(inherits) {
+      S4Cache s4Cache = context.getSession().getS4Cache();
+      S4Class s4Class = s4Cache.getS4ClassCache().lookupClass(context, className.getElementAsString(0));
+      if(s4Class != null) {
+        classDef = s4Class.getDefinition();
+      }
+    }
+
+    if(classDef == Symbol.UNBOUND_VALUE) {
+      Symbol metadataName = Symbol.get(S4.CLASS_PREFIX + className);
+
+      if(packageName == Null.INSTANCE) {
+        SEXP packageSlot = className.getAttribute(Symbols.PACKAGE);
+        if(packageSlot != Null.INSTANCE) {
+          providedPackage = ((StringArrayVector) packageSlot).getElementAsString(0);
+        }
+      } else if(packageName instanceof StringArrayVector) {
+        providedPackage = ((StringArrayVector) packageName).getElementAsString(0);
+      }
+
+      if(!Strings.isNullOrEmpty(providedPackage)) {
+        Optional<Namespace> namespace = context.getNamespaceRegistry().getNamespaceIfPresent(Symbol.get(providedPackage));
+        if(!namespace.isPresent()) {
+          throw new EvalException("Package " + providedPackage + " is not loaded");
+        }
+        classDef = namespace.get().getNamespaceEnvironment().findVariable(context, metadataName, x -> true, inherits);
+      } else {
+        // the default value of where getClassDef where argument topenv(parent.frame()) was replaced with NULL
+        if(where == Null.INSTANCE) {
+          SEXP parentFrame = context.evaluate(FunctionCall.newCall(Symbol.get("parent.frame"), IntVector.valueOf(1)));
+          where = context.evaluate(FunctionCall.newCall(Symbol.get("topenv"), parentFrame));
+        }
+        classDef = ((Environment) where).findVariable(context, metadataName, x -> true, inherits);
+      }
+    }
+
+    if(classDef == Symbol.UNBOUND_VALUE) {
+      return Null.INSTANCE;
+    }
+
+    classDef = classDef.force(context);
+
+    if(!Types.isS4(classDef)) {
+      throw new EvalException("ClassDefinition " + className + " is corrupted. Please rebuild package: " + classDef.getAttribute(Symbol.get("package")));
+    }
+    return classDef;
+  }
+
+  @Internal
+  public static SEXP selectMethod(@Current Context context, SEXP functionName, StringArrayVector args,
+                                  LogicalArrayVector opt, LogicalArrayVector useInherited, SEXP mlist, SEXP fdef, SEXP verbose, SEXP doCache) {
+
+    boolean optional = opt.isElementTrue(0);
+    String fname;
+    if(functionName instanceof StringVector) {
+      fname = ((StringVector) functionName).getElementAsString(0);
+    } else if (functionName instanceof SpecialFunction) {
+      fname = ((SpecialFunction) functionName).getName();
+    } else if (functionName instanceof Closure) {
+      fname = ((StringArrayVector) functionName.getAttribute(Symbols.GENERIC)).getElementAsString(0);
+    } else {
+      throw new EvalException("type of f is invalid, should be string, generic function, or primitive");
+    }
+
+    String packageName = getPackageName(context, fdef);
+
+    Generic generic = Generic.standardGeneric(context, fname, packageName);
+
+    S4MethodCache methodCache = context.getSession().getS4Cache().getS4MethodCache();
+    S4MethodTable methodTable = methodCache.getMethod(context, generic, fname);
+
+    if(methodTable == null || methodTable.isEmpty()) {
+      if (optional) {
+        return Null.INSTANCE;
+      } else {
+        throw new EvalException("selectMethod(" + fname + "): No methods found!");
+      }
+    }
+
+    Signature signature = new Signature(args.toArray());
+
+    boolean[] inheritance = computeUseInheritance(args, useInherited, generic, methodTable);
+
+    RankedMethod selectedMethod = methodTable.selectMethod(context, generic, signature, inheritance);
+
+    if(selectedMethod == null) {
+      if(optional) {
+        return Null.INSTANCE;
+      } else {
+        throw new EvalException("selectMethod(" + fname + "): No matching methods found! 'optional' is set to FALSE.");
+      }
+    }
+
+    return selectedMethod.getMethodDefinition();
+  }
+
+  public static boolean[] computeUseInheritance(StringArrayVector args, LogicalArrayVector useInherited, Generic generic, S4MethodTable methodTable) {
+    // useInherited argument provided to selectMethod() is used to indicate
+    // if inherited methods can be used for each given argument. if the length
+    // of useInherited is shorter than the number of arguments, it is repeated.
+    // Inheritance is not used in case of "ANY".
+    boolean[] inheritance = new boolean[methodTable.getMaximumSignatureLength()];
+    int useInheritedLength = useInherited.length();
+
+    if(useInheritedLength == 1) {
+      Arrays.fill(inheritance, useInherited.isElementTrue(0));
+    } else {
+      int j = 0;
+      for(int i = 0; i < args.length(); i++, j++) {
+        if(j == useInheritedLength) {
+          j = 0;
+        }
+        inheritance[i] = useInherited.isElementTrue(j)
+            && !("ANY".equals(args.getElementAsString(i)));
+      }
+    }
+
+
+    // "coerce" is a special case. It always has two arguments and inheritance
+    // might be used only for the first argument.
+    if("coerce".equals(generic.getName())) {
+      inheritance = new boolean[]{inheritance[0], false};
+    }
+    return inheritance;
+  }
+
+  public static String getPackageName(@Current Context context, SEXP fdef) {
+    String packageName;
+    if(fdef instanceof Closure) {
+      packageName = fdef.getAttribute(S4.PACKAGE).asString();
+    } else {
+      packageName = context.getFunction().getAttribute(S4.PACKAGE).asString();
+    }
+    return packageName;
   }
 
   @Builtin
-  public static SEXP standardGeneric(@Current Context context, @Current Environment env, String fname) {
-    //      SEXP arg, value, fdef;
-    //
-    //      checkArity(op, args);
-    //      check1arg(args, call, "f");
+  public static SEXP standardGeneric(@Current Context context, Symbol fname, SEXP fdef) {
+    return standardGeneric(context, Environment.EMPTY, fname.getPrintName());
+  }
 
-    //      if(!ptr) {
-    //      warningcall(call,
-    //            _("'standardGeneric' called without 'methods' dispatch enabled (will be ignored)"));
-    //      R_set_standardGeneric_ptr(dispatchNonGeneric, NULL);
-    //      ptr = R_get_standardGeneric_ptr();
-    //      }
+  @Builtin
+  public static SEXP standardGeneric(@Current Context context, @Current Environment ev, String fname) {
 
   
     if(Strings.isNullOrEmpty(fname)) {
       throw new EvalException("argument to 'standardGeneric' must be a non-empty character string");
-    }  
-    SEXP fdef = get_this_generic(context, fname);
-    if(fdef == Null.INSTANCE) {
-      throw new EvalException("call to standardGeneric(\"%s\") apparently not from the body of that generic function", fname);
     }
 
-    return context.getSession().getSingleton(MethodDispatch.class)
-    .standardGeneric(context, Symbol.get(fname), env, fdef);
-    
+    String packageName = context.getFunction().getAttribute(S4.PACKAGE).asString();
+    Generic generic = Generic.standardGeneric(context, fname, packageName);
+
+    S4MethodCache methodCache = context.getSession().getS4Cache().getS4MethodCache();
+    S4MethodTable methodTable = methodCache.getMethod(context, generic, fname);
+
+    if(methodTable == null || methodTable.isEmpty()) {
+      throw new EvalException("standardGeneric(" + fname + "): No methods found!");
+    }
+
+    CallingArguments arguments = CallingArguments.standardGenericArguments(context, methodTable.getArgumentMatcher());
+
+    Signature signature = arguments.getSignature(methodTable.getMaximumSignatureLength(), generic.getSignatureArgumentNames());
+
+    boolean[] useInheritance = new boolean[methodTable.getMaximumSignatureLength()];
+    Arrays.fill(useInheritance, Boolean.TRUE);
+
+    RankedMethod selectedMethod = methodTable.selectMethod(context, generic, signature, useInheritance);
+
+    if(selectedMethod == null) {
+      throw new EvalException("unable to find an inherited method for function '" + fname +
+          "' for signature " + arguments.getFullSignatureString(methodTable.getMaximumSignatureLength()));
+    }
+
+    Closure function = selectedMethod.getMethodDefinition();
+
+    Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, signature, fname);
+
+    PairList coercedArgs = coerce(context, arguments, selectedMethod);
+
+    FunctionCall call = new FunctionCall(function, coercedArgs);
+
+    return ClosureDispatcher.apply(context, context.getCallingEnvironment(), call, function, coercedArgs, metadata);
   }
 
+  public static PairList coerce(Context context, CallingArguments arguments, RankedMethod method) {
+
+    int signatureLength = method.getMethodSignatureLength();
+
+    Set<String> argNames = method.getMethod().getGeneric().getSignatureArgumentNames();
+
+    S4ClassCache classCache = context.getSession().getS4Cache().getS4ClassCache();
+
+    PairList.Builder coercedArgs = new PairList.Builder();
+
+    int step = 0;
+
+    for(PairList.Node arg : arguments.getPromisedArgs().nodes()) {
+      SEXP value = arg.getValue();
+      SEXP tag = arg.getRawTag();
+      if(step < signatureLength && (tag != Null.INSTANCE && argNames.contains(arg.getTag().getPrintName()))) {
+        String from = arguments.getArgumentClass(step);
+        String to = method.getArgumentClass(step);
+        if(to.equals(from) || to.equals("ANY") || classCache.isSimple(from, to)) {
+          coercedArgs.add(tag, value);
+        } else {
+          SEXP coercedArg = classCache.coerceComplex(context, value, from, to);
+          coercedArgs.add(tag, coercedArg);
+        }
+        step += 1;
+      } else {
+        if(value != Symbol.MISSING_ARG) {
+          coercedArgs.add(tag, value);
+        }
+      }
+    }
+    return coercedArgs.build();
+  }
 
 
   /* get the generic function, defined to be the function definition for
@@ -413,6 +652,7 @@ public class Methods {
    * argument to standardGeneric.
    */
   public static SEXP get_this_generic(Context context, String fname) {
+
     SEXP value = Null.INSTANCE;
 
     //    /* a second argument to the call, if any, is taken as the function */
@@ -423,42 +663,19 @@ public class Methods {
      * to force a second argument if possible) */
 
     Context cptr = context;
-    int n = cptr.getFrameDepth();
-    for(int i=0;i<n;++i) {
-      SEXP rval = Contexts.R_sysfunction(i, context);
-      if(rval.isObject()) {
-        SEXP generic = rval.getAttribute(MethodDispatch.GENERIC);
+    while(!cptr.isTopLevel()) {
+      SEXP function = cptr.getFunction();
+      if(function.isObject()) {
+        SEXP generic = function.getAttribute(MethodDispatch.GENERIC);
         if(generic instanceof StringVector && generic.asString().equals(fname)) {
-          value = rval;
+          value = function;
           break;
         }
       }
+      cptr = cptr.getParent();
     }
     return value;
-
-    //    cptr = R_GlobalContext;
-    //    fname = translateChar(asChar(CAR(args)));
-    //    n = framedepth(cptr);
-    //    /* check for a matching "generic" slot */
-    //    for(i=0;  i<n; i++) {
-    //      SEXP rval = R_sysfunction(i, cptr);
-    //      if(isObject(rval)) {
-    //        SEXP generic = getAttrib(rval, gen_name);
-    //        if(TYPEOF(generic) == STRSXP &&
-    //            !strcmp(translateChar(asChar(generic)), fname)) {
-    //          value = rval;
-    //          break;
-    //        }
-    //      }
-    //    }
-    //    return(value);
   }
-  //
-  //
-  //  private static SEXP R_primitive_methods(PrimitiveFunction fdef) {
-  //    // TODO Auto-generated method stub
-  //    return null;
-  //  }
 
 
   private static Symbol checkSlotName(SEXP name) {
@@ -513,7 +730,8 @@ public class Methods {
     SEXP val = context.evaluate(FunctionCall.newCall(MethodDispatch.s_getDataPart, obj),
         context.getSession().getSingleton(MethodDispatch.class).getMethodsNamespace());
 
-    return val.setAttribute(Symbols.S4_BIT, Null.INSTANCE);
+    // Clear S4 object
+    return Types.setS4Object(val, false, false);
   }
 
 
@@ -562,9 +780,9 @@ public class Methods {
     Symbol symbol = Symbol.get(name);
     for(Environment rho = env.getParent(); rho != Environment.EMPTY;
         rho = rho.getParent()) {
-      fun = rho.getVariable(symbol);
+      fun = rho.getVariable(context, symbol);
       if(fun instanceof Closure) {
-        if(!isGenericFunction(fun)) {
+        if(!isGenericFunction(context, fun)) {
           break;
         }
       } 
@@ -595,8 +813,8 @@ public class Methods {
   }
 
 
-  private static boolean isGenericFunction(SEXP fun) {
-    SEXP value = ((Closure) fun).getEnclosingEnvironment().getVariable(MethodDispatch.DOT_GENERIC);
+  private static boolean isGenericFunction(@Current Context context, SEXP fun) {
+    SEXP value = ((Closure) fun).getEnclosingEnvironment().getVariable(context, MethodDispatch.DOT_GENERIC);
     return value != Symbol.UNBOUND_VALUE;
   }
 
@@ -613,7 +831,7 @@ public class Methods {
     /* for primitive .nextMethod's, suppress further dispatch to avoid
      * going into an infinite loop of method calls
     */
-    op =  ev.findVariable(MethodDispatch.R_dot_nextMethod);
+    op =  ev.findVariable(context, MethodDispatch.R_dot_nextMethod);
 
     if(op == Symbol.UNBOUND_VALUE) {
       throw new EvalException(

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,14 +46,14 @@ public final class SimpleReturnStrategy implements ReturnStrategy {
 
   @Override
   public JExpr marshall(GExpr expr) {
-    return ((GSimpleExpr) expr).unwrap();
+    return ((GSimpleExpr) expr).jexpr();
   }
 
   @Override
-  public GExpr unmarshall(MethodGenerator mv, JExpr returnValue, TypeStrategy lhsTypeStrategy) {
-    GExpr result = strategy.wrap(Expressions.cast(returnValue, type));
+  public GExpr unmarshall(MethodGenerator mv, JExpr callExpr, TypeStrategy lhsTypeStrategy) {
+    GExpr result = strategy.wrap(Expressions.cast(callExpr, type));
     try {
-      return lhsTypeStrategy.cast(mv, result, strategy);
+      return lhsTypeStrategy.cast(mv, result);
     } catch (UnsupportedCastException e) {
       throw new InternalCompilerException("Cannot cast from " + strategy + " to " + lhsTypeStrategy, e);
     }

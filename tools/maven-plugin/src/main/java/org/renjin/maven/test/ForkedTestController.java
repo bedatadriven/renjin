@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,10 +19,14 @@
 package org.renjin.maven.test;
 
 import org.apache.maven.plugin.MojoExecutionException;
-import org.renjin.repackaged.guava.base.Charsets;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.base.Stopwatch;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,15 +41,25 @@ import java.util.concurrent.TimeUnit;
 public class ForkedTestController {
 
   public static final boolean DEBUG_FORKING = false;
-  
+  private final Log log;
+
   private long timeoutMillis = TimeUnit.MINUTES.toMillis(3);
 
-  private Map<String, String> environmentVariables = new HashMap<String, String>();
+  private Map<String, String> environmentVariables = new HashMap<>();
 
-  private Process process;
-  private DataOutputStream processChannel;
   private File testReportsDirectory;
   private TestReporter reporter;
+  private String argLine;
+
+  private Fork fork;
+
+  public ForkedTestController() {
+    this(new SystemStreamLog());
+  }
+
+  public ForkedTestController(Log log) {
+    this.log = log;
+  }
 
   public void setNamespaceUnderTest(String namespace) {
     this.environmentVariables.put(TestExecutor.NAMESPACE_UNDER_TEST, namespace);
@@ -79,7 +93,7 @@ public class ForkedTestController {
 
   public void executeTests(File testSourceDirectory) throws MojoExecutionException {
 
-    System.out.println("Running tests in " + testSourceDirectory.getAbsolutePath());
+    log.info("Running tests in " + testSourceDirectory.getAbsolutePath());
 
     if(testSourceDirectory.isDirectory()) {
       File[] testFiles = testSourceDirectory.listFiles();
@@ -101,7 +115,7 @@ public class ForkedTestController {
       reporter.start();
     }
 
-    if(process == null) {
+    if(fork == null) {
       startFork();
     }
 
@@ -109,131 +123,116 @@ public class ForkedTestController {
 
     try {
       // Send the command to run the test
-      processChannel.writeUTF(testFile.getAbsolutePath());
-      processChannel.flush();
+      fork.sendCommand(testFile.getAbsolutePath());
+
     } catch (IOException e) {
-      e.printStackTrace();
+      log.error("Failed to send command to fork", e);
+      shutdown();
     }
 
-    // Listen for test results
-
-    ResultListener listener = new ResultListener(process.getInputStream());
-    Thread listeningThread = new Thread(listener);
-    listeningThread.start();
-    try {
-      listeningThread.join(timeoutMillis);
-    } catch (InterruptedException e) {
-      reporter.testCaseInterrupted();
-      reporter.fileComplete();
-      return;
-    }
-    if(listeningThread.isAlive()) {
-      // if we didn't succeed in joining, then it means we have timed out.
-      reporter.timeout(timeoutMillis);
+    if(!pollResults()) {
+      // If the test file timed out, or the forked JVM otherwise
+      // barfed, then clean up our fork so that the next test file starts
+      // with a fresh JVM.
       destroyFork();
     }
+
     reporter.fileComplete();
+  }
+
+  /**
+   *
+   * @return true if the test run completed in the allotted time with the JVM in the ready state.
+   */
+  private boolean pollResults() {
+
+    // Impose a total timeout on this test file
+    Stopwatch stopwatch = Stopwatch.createStarted();
+
+    // Listen for test results
+    try {
+      while (true) {
+        ForkMessage message = fork.readMessage(500, TimeUnit.MILLISECONDS);
+        if (message != null) {
+          switch (message.getType()) {
+            case TestExecutor.START_MESSAGE:
+              reporter.testCaseStarting(message.getArgument());
+              break;
+
+            case TestExecutor.FAIL_MESSAGE:
+              reporter.testCaseFailed();
+              break;
+
+            case TestExecutor.PASS_MESSAGE:
+              reporter.testCaseSucceeded();
+              break;
+
+            case TestExecutor.DONE_MESSAGE:
+              return true;
+
+            default:
+              log.error("Unknown message: " + message.getType());
+              break;
+          }
+        }
+        if(timeoutMillis > 0 && stopwatch.elapsed(TimeUnit.MILLISECONDS) > timeoutMillis) {
+          reporter.timeout(timeoutMillis);
+          return false;
+        }
+      }
+    } catch (InterruptedException e) {
+      log.debug("ForkedTestController interrupted.");
+      Thread.currentThread().interrupt();
+      reporter.testCaseInterrupted();
+      return false;
+
+    } catch (Exception e) {
+      log.debug("ForkedTestController received exception while waiting for results.", e);
+      reporter.testCaseFailed();
+      return false;
+    }
   }
 
   private void startFork() throws MojoExecutionException {
 
     try {
+
+      List<String> command = new ArrayList<>();
+      command.add("java");
+      if(argLine != null) {
+        command.add(argLine);
+      }
+      command.add(TestExecutor.class.getName());
+
       ProcessBuilder processBuilder = new ProcessBuilder();
-      processBuilder.command("java", TestExecutor.class.getName());
+      processBuilder.command(command);
       processBuilder.environment().putAll(environmentVariables);
       processBuilder.redirectErrorStream(true);
-      process = processBuilder.start();
-      processChannel = new DataOutputStream(process.getOutputStream());
+
+      this.fork = new Fork(log, processBuilder.start());
+
     } catch (Exception e) {
       throw new MojoExecutionException("Could not start forked JVM", e);
     }
   }
 
   public void shutdown() {
-    if(process != null) {
-      try {
-        processChannel.close();
-        process.destroy();
-      } catch (Exception e) {
-        e.printStackTrace();
-      } finally {
-        process = null;
-        processChannel = null;
-      }
+    if(fork != null) {
+      destroyFork();
     }
   }
 
   private void destroyFork() {
-    if(process != null) {
-      try {
-        process.destroy();
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      process = null;
-      processChannel = null;
-    }
+    fork.shutdown();
+    fork = null;
   }
 
   public boolean allTestsSucceeded() {
     return reporter == null || reporter.allTestsSucceeded();
   }
-  
-  public class ResultListener implements Runnable {
 
-    private final BufferedReader reader;
-
-    private boolean processRunning = true;
-
-    public ResultListener(InputStream in) {
-      this.reader = new BufferedReader(new InputStreamReader(in, Charsets.UTF_8));
-    }
-
-    @Override
-    public void run() {
-      while(true) {
-        String line;
-        try {
-          line = reader.readLine();
-        } catch (IOException e) {
-          // Not sure under what situation this could happen but consider it a test failure
-          System.err.println("Error reading from forked test executor: " + e.getMessage());
-          e.printStackTrace();
-          reporter.testCaseFailed();
-          destroyFork();
-          break;
-        }
-        if(line == null) {
-          // Process exited!!
-          reporter.testCaseFailed();
-          try {
-            if(process != null) {
-              System.err.println("Forked JVM exited with code " + process.waitFor());
-            }
-          } catch (InterruptedException e) {
-            System.err.println("Interrupted while waiting for process to exit.");
-          }
-          destroyFork();
-          break;
-
-        } else {
-          if(DEBUG_FORKING) {
-            System.out.println("[CHANNEL] " + line);
-          }
-          if (line.startsWith(TestExecutor.MESSAGE_PREFIX)) {
-            String message[] = line.substring(TestExecutor.MESSAGE_PREFIX.length()).split(TestExecutor.MESSAGE_PREFIX);
-            if (message[0].equals(TestExecutor.START_MESSAGE)) {
-              reporter.testCaseStarting(message[1]);
-            } else if (message[0].equals(TestExecutor.FAIL_MESSAGE)) {
-              reporter.testCaseFailed();
-            } else if (message[0].equals(TestExecutor.PASS_MESSAGE)) {
-              reporter.testCaseSucceeded();
-            } else if (message[0].equals(TestExecutor.DONE_MESSAGE)) {
-              break;
-            }
-          }
-        }
-      }
-    }
+  public void setArgLine(String argLine) {
+    this.argLine = argLine;
   }
+
 }

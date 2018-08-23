@@ -4,7 +4,7 @@
   <parent>
     <artifactId>renjin-packages</artifactId>
     <groupId>org.renjin</groupId>
-    <version>0.9.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>grid</artifactId>
@@ -20,7 +20,12 @@
   		<artifactId>grDevices</artifactId>
   		<version>${project.version}</version>
   	</dependency>
-  	<dependency>
+    <dependency>
+	   <groupId>org.renjin</groupId>
+	   <artifactId>utils</artifactId>
+	   <version>${project.version}</version>
+	</dependency>
+    <dependency>
   		<groupId>org.renjin</groupId>
   		<artifactId>hamcrest</artifactId>
   		<version>${project.version}</version>
@@ -35,18 +40,28 @@
   			<version>${project.version}</version>
   			<executions>
   				<execution>
-  					<id>build</id>	
+  					<id>build</id>
   					<goals>
-  						<goal>namespace-compile</goal>
+  						<goal>gnur-compile</goal>
   					</goals>
   					<phase>compile</phase>
+					<configuration>
+						<transformGlobalVariables>true</transformGlobalVariables>
+					</configuration>
   				</execution>
   				<execution>
-  					<id>test</id>	
+  					<id>test</id>
   					<goals>
   						<goal>test</goal>
   					</goals>
   					<phase>test</phase>
+					<configuration>
+						<testSourceDirectory>${basedir}/tests</testSourceDirectory>
+						<defaultPackages>
+							<defaultPackage>grDevices</defaultPackage>
+							<defaultPackage>utils</defaultPackage>
+						</defaultPackages>
+					</configuration>
   				</execution>
   			</executions>
   		</plugin>

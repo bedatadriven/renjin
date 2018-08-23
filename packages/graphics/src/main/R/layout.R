@@ -1,5 +1,7 @@
 #  File src/library/graphics/R/layout.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,13 +14,13 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 lcm <- function(x) paste(x, "cm")#-> 3 characters (used in layout!)
 
 layout <-
-    function(mat, widths = rep(1, ncol(mat)),
-	     heights = rep(1, nrow(mat)), respect = FALSE)
+    function(mat, widths = rep.int(1, ncol(mat)),
+	     heights = rep.int(1, nrow(mat)), respect = FALSE)
 {
     storage.mode(mat) <- "integer"
     mat <- as.matrix(mat) # or barf
@@ -31,8 +33,8 @@ layout <-
     ## check that each value in 1..n is mentioned
     for (i in 1L:num.figures)
 	if (match(i, mat, nomatch=0L) == 0L)
-	    stop("layout matrix must contain at least one reference\nto each of the values {1..n}; here  n = ",
-                 num.figures,"\n")
+            stop(gettextf("layout matrix must contain at least one reference\nto each of the values {1 ... %d}\n",
+                          num.figures), domain = NA)
 
     dm <- dim(mat)
     num.rows <- dm[1L]
@@ -61,15 +63,16 @@ layout <-
     } else {# respect: logical	|--> 0 or 1
 	respect.mat <- matrix(0L, num.rows, num.cols)
     }
-    .Internal(layout(num.rows, num.cols,
-		     mat,# integer
-		     as.integer(num.figures),
-		     col.widths = widths,
-		     row.heights = heights,
-		     cm.widths,
-		     cm.heights,
-		     respect = as.integer(respect),
-		     respect.mat))
+    .External.graphics(C_layout,
+                       num.rows, num.cols,
+                       mat,# integer
+                       as.integer(num.figures),
+                       col.widths = widths,
+                       row.heights = heights,
+                       cm.widths,
+                       cm.heights,
+                       respect = as.integer(respect),
+                       respect.mat)
     invisible(num.figures)
 }
 

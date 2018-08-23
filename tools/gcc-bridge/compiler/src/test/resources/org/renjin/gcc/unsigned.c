@@ -1,5 +1,6 @@
 
 #include <math.h>
+#include <inttypes.h>
 
 // from the bitops package
 double bitflip(double a) {
@@ -36,3 +37,10 @@ int uint32_to_uint8(unsigned int x) {
     return z;
 }
 
+double uint64_to_double(uint64_t x) {
+    return (double)x;
+}
+
+uint64_t int32_to_uint64(int32_t x) {
+    return (uint64_t)x;
+}

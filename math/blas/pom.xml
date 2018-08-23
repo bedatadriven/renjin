@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.renjin</groupId>
     <artifactId>parent</artifactId>
-    <version>0.9.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -48,6 +48,7 @@
         <configuration>
           <packageName>org.renjin.math</packageName>
           <mainClass>Blas</mainClass>
+          <loggingDirectory>target/gcc-bridge-logs</loggingDirectory>
         </configuration>
         <executions>
           <execution>

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.eval.Context;
 import org.renjin.packaging.SerializedPromise;
+import org.renjin.primitives.S3;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.*;
 
@@ -35,6 +36,8 @@ import java.util.Map;
 public class RuntimeState {
   private Context context;
   private Environment rho;
+  
+  private Environment methodTable;
 
 
   /**
@@ -44,17 +47,35 @@ public class RuntimeState {
    */
   private Map<Symbol, Function> resolvedFunctions = Maps.newHashMap();
 
+  /**
+   * Creates a new {@code RuntimeState} for an arbitrary execution environment.
+   * @param context
+   * @param rho
+   */
   public RuntimeState(Context context, Environment rho) {
     this.context = context;
     this.rho = rho;
   }
 
+  /**
+   * Creates a new {@code RuntimeState} for an inlined function.
+   * @param parentState
+   * @param enclosingEnvironment
+   */
   public RuntimeState(RuntimeState parentState, Environment enclosingEnvironment) {
     this(parentState.context, enclosingEnvironment);
+    
+    SEXP methodTableSexp = enclosingEnvironment.getVariable(S3.METHODS_TABLE);
+    if(methodTableSexp instanceof Promise) {
+      throw new NotCompilableException(S3.METHODS_TABLE, S3.METHODS_TABLE + " is not evaluated.");
+    }
+    if(methodTableSexp instanceof Environment) {
+      methodTable = (Environment) methodTableSexp;
+    }
   }
 
   public PairList getEllipsesVariable() {
-    SEXP ellipses = rho.getVariable(Symbols.ELLIPSES);
+    SEXP ellipses = rho.getEllipsesVariable();
     if(ellipses == Symbol.UNBOUND_VALUE) {
       throw new InvalidSyntaxException("'...' used in an incorrect context.");
     }
@@ -62,16 +83,28 @@ public class RuntimeState {
   }
 
   public SEXP findVariable(Symbol name) {
-    SEXP value = rho.findVariable(name);
-    if(value instanceof Promise) {
-      Promise promisedValue = (Promise) value;
-      if(promisedValue.isEvaluated()) {
-        value = promisedValue.force(context);
-      } else {
-        // Promises can have side effects, and evaluation order is important 
-        // so we can't just force all the promises in the beginning of the loop
-        throw new NotCompilableException(name, "Unevaluated promise encountered");
+
+    SEXP value = null;
+    Environment environment = rho;
+    while(environment != Environment.EMPTY) {
+      if (environment.isActiveBinding(name)) {
+        throw new NotCompilableException(name, "Active Binding encountered");
       }
+      value = rho.findVariable(context, name);
+      if(value instanceof Promise) {
+        Promise promisedValue = (Promise) value;
+        if(promisedValue.isEvaluated()) {
+          value = promisedValue.force(context);
+        } else {
+          // Promises can have side effects, and evaluation order is important
+          // so we can't just force all the promises in the beginning of the loop
+          throw new NotCompilableException(name, "Unevaluated promise encountered");
+        }
+      }
+      environment = environment.getParent();
+    }
+    if(value == null) {
+      throw new NotCompilableException(name, "Symbol not found. Should not reach here!");
     }
     return value;
   }
@@ -93,7 +126,7 @@ public class RuntimeState {
 
     Environment environment = rho;
     while(environment != Environment.EMPTY) {
-      Function f = isFunction(functionName, environment.getVariable(functionName));
+      Function f = isFunction(functionName, environment.getVariable(context, functionName));
       if(f != null) {
         resolvedFunctions.put(functionName, f);
         return f;
@@ -140,4 +173,67 @@ public class RuntimeState {
   public Map<Symbol, Function> getResolvedFunctions() {
     return resolvedFunctions;
   }
+
+  /**
+   * Tries to safely resolve an S3 method, without forcing any promises that might have side effects.
+   * @param generic
+   * @param group
+   * @param objectClasses
+   */
+  public Function findMethod(String generic, String group, StringVector objectClasses) {
+
+    Function method = null;
+    
+    for(String className : objectClasses) {
+      method = findMethod(generic, group, className);
+      if(method != null) {
+        return method;
+      }
+    }
+    
+    return findMethod(generic, group, "default");
+  }
+  
+  private Function findMethod(String generic, String group, String className) {
+    
+    Function method = findMethod(generic, className);
+    if(method != null) {
+      return method;
+    }
+    if(group != null) {
+      method = findMethod(group, className);
+      if(method != null) {
+        return method;
+      }
+    }
+    return null;
+  }
+
+  private Function findMethod(String generic, String className) {
+
+    // TODO: this requires some thought because we are making
+    // assumptions about not only the functions we find, but those we DON'T find,
+    // and method table entires can easily be changed if new packages are loaded, even if the
+    // environment is sealed.
+
+
+    Symbol method = Symbol.get(generic + "." + className);
+    Function function = findFunctionIfExists(method);
+    if(function != null) {
+      return function;
+    }
+  
+    if(methodTable != null) {
+      SEXP functionSexp = methodTable.getVariable(method);
+      if(functionSexp instanceof Promise) {
+        throw new NotCompilableException(method, "Unevaluated entry in " + S3.METHODS_TABLE);
+      }
+      if(functionSexp instanceof Function) {
+        return (Function) functionSexp;
+      }
+    }
+    
+    return null;
+  }
+
 }

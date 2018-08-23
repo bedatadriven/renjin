@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,22 +47,22 @@ public class ComplexReturnStrategy implements ReturnStrategy {
 
   @Override
   public JExpr marshall(GExpr expr) {
-    ComplexValue complexValue = (ComplexValue) expr;
+    ComplexExpr complexExpr = (ComplexExpr) expr;
     return Expressions.newArray(
-        complexValue.getRealJExpr(),
-        complexValue.getImaginaryJExpr());
+        complexExpr.getRealJExpr(),
+        complexExpr.getImaginaryJExpr());
   }
 
   @Override
-  public GExpr unmarshall(MethodGenerator mv, JExpr returnValue, TypeStrategy lhsTypeStrategy) {
+  public GExpr unmarshall(MethodGenerator mv, JExpr callExpr, TypeStrategy lhsTypeStrategy) {
     // Allocate a temporary variable for the array so that it's 
     // components can be accessed
-    JLValue array = mv.getLocalVarAllocator().reserve("retval", returnValue.getType());
-    array.store(mv, returnValue);
+    JLValue array = mv.getLocalVarAllocator().reserve("retval", callExpr.getType());
+    array.store(mv, callExpr);
     JExpr realValue = Expressions.elementAt(array, 0);
     JExpr imaginaryValue = Expressions.elementAt(array, 1);
     
-    return new ComplexValue(realValue, imaginaryValue);
+    return new ComplexExpr(realValue, imaginaryValue);
   }
 
   @Override

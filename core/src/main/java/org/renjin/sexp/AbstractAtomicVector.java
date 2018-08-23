@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,6 +82,22 @@ public abstract class AbstractAtomicVector extends AbstractVector implements Ato
     }
   }
 
+  public final double asReal() {
+    if (length() == 0) {
+      return DoubleVector.NA;
+    } else {
+      return getElementAsDouble(0);
+    }
+  }
+
+  public final int asInt() {
+    if(length() == 0) {
+      return IntVector.NA;
+    } else {
+      return getElementAsInt(0);
+    }
+  }
+
   @Override
   public double[] toDoubleArray() {
     if(Profiler.ENABLED) {
@@ -104,6 +120,33 @@ public abstract class AbstractAtomicVector extends AbstractVector implements Ato
       array[i] = getElementAsInt(i);
     }
     return array;
+  }
+
+  @Override
+  public final boolean equals(Object obj) {
+    if(this == obj) {
+      return true;
+    }
+    if(!(obj instanceof AtomicVector)) {
+      return false;
+    }
+    AtomicVector other = (AtomicVector) obj;
+    if(this.length() != other.length()) {
+      return false;
+    }
+    if(!this.getVectorType().equals(other.getVectorType())) {
+      return false;
+    }
+    if(!this.getAttributes().equals(other.getAttributes())) {
+      return false;
+    }
+    Vector.Type vectorType = getVectorType();
+    for (int i = 0; i < length(); i++) {
+      if(!vectorType.elementsIdentical(this, i, other, i)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,14 +31,13 @@ import org.renjin.repackaged.guava.collect.Lists;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class PhiFunction implements Expression {
 
   private List<Variable> arguments;
   private List<FlowEdge> incomingEdges;
 
-  public PhiFunction(Variable variable, Set<FlowEdge> incomingEdges) {
+  public PhiFunction(Variable variable, List<FlowEdge> incomingEdges) {
     if(incomingEdges.size() < 2) {
       throw new IllegalArgumentException("variable=" + variable + ", count=" + incomingEdges.size() + " (count must be >= 2)");
     }
@@ -59,8 +58,8 @@ public class PhiFunction implements Expression {
   }
 
   @Override
-  public boolean isDefinitelyPure() {
-    return false; // not sure... have to think about this
+  public boolean isPure() {
+    return true;
   }
 
   @Override

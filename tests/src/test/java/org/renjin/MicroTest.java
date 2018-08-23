@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -369,15 +369,15 @@ public class MicroTest extends AbstractMicroTest {
   }
   @Test
   public void micro88() {
-    assertIdentical("{ 0/0 - 4i }", "NA_complex_");
+    assertIdentical("{ 0/0 - 4i }", "complex(re=NaN, im=-4)");
   }
   @Test
   public void micro89() {
-    assertIdentical("{ 4i + 0/0 }", "NA_complex_");
+    assertIdentical("{ 4i + 0/0 }", "complex(re=NaN,im=4)");
   }
   @Test
   public void micro90() {
-    assertIdentical("{ a <- 1 + 2i; b <- 0/0 - 4i; a + b }", "NA_complex_");
+    assertIdentical("{ a <- 1 + 2i; b <- 0/0 - 4i; a + b }", "complex(re=NaN,im=-2)");
   }
   @Test
   public void micro91() {
@@ -2135,11 +2135,11 @@ public class MicroTest extends AbstractMicroTest {
   }
   @Test
   public void micro836() {
-    assertIdentical("{ as.complex(0/0) }", "NA_complex_");
+    assertIdentical("{ as.complex(0/0) }", " complex(real=NaN,im=0)");
   }
   @Test
   public void micro837() {
-    assertIdentical("{ as.complex(c(0/0, 0/0)) }", "c(NA_complex_, NA_complex_)");
+    assertIdentical("{ as.complex(c(0/0, 0/0)) }", "complex(real=c(NaN, NaN), im=c(0,0))");
   }
   @Test
   public void micro839() {
@@ -2979,7 +2979,7 @@ public class MicroTest extends AbstractMicroTest {
   }
   @Test
   public void micro1100() {
-    assertIdentical("{ cumsum(c(1,2,3,0/0,5)) }", "c(1, 3, 6, NA, NA)");
+    assertIdentical("{ cumsum(c(1,2,3,0/0,5)) }", "c(1, 3, 6, NaN, NaN)");
   }
   @Test
   public void micro1101() {

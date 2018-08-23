@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,11 +24,11 @@ import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Maps;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Identifies local variables that must be addressable
@@ -77,8 +77,6 @@ public class AddressableFinder {
         Optional<GimpleVarDecl> decl = scope.lookupVariable((GimpleVariableRef) expr);
         if (decl.isPresent()) {
           decl.get().setAddressable(true);
-        } else {
-          throw new IllegalStateException("Could not resolve " + expr);
         }
       } else if(expr instanceof GimpleParamRef) {
         GimpleParameter param = scope.lookupParameter((GimpleParamRef) expr);

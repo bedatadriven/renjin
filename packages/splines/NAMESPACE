@@ -1,3 +1,9 @@
+# Refer to all C/Fortran routines by their name prefixed by C_
+useDynLib(splines, .registration = FALSE, .fixes="C_",
+    spline_basis,
+    spline_value
+)
+
 export(as.polySpline, asVector, backSpline, bs, interpSpline, ns,
        periodicSpline, polySpline, spline.des, splineDesign,
        splineKnots, splineOrder, xyVector)

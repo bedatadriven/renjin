@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,11 +31,11 @@ import org.renjin.repackaged.asm.Type;
 public class ComplexCmpGenerator implements ConditionGenerator {
 
   private GimpleOp op;
-  private ComplexValue x;
-  private ComplexValue y;
+  private ComplexExpr x;
+  private ComplexExpr y;
   private Type type;
   
-  public ComplexCmpGenerator(GimpleOp op, ComplexValue x, ComplexValue y) {
+  public ComplexCmpGenerator(GimpleOp op, ComplexExpr x, ComplexExpr y) {
     this.op = op;
     this.x = x;
     this.y = y;

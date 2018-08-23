@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@ package org.renjin.primitives;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 
@@ -29,8 +28,8 @@ public class NamespaceTest extends EvalTestCase {
   
   @Test
   public void isNamespace() {
-    assertThat(eval("isNamespace(baseenv())"), equalTo(c(false)));
-    assertThat(eval("isNamespace(globalenv())"), equalTo(c(false)));
+    assertThat(eval("isNamespace(baseenv())"), elementsIdenticalTo(c(false)));
+    assertThat(eval("isNamespace(globalenv())"), elementsIdenticalTo(c(false)));
        
   }
 }

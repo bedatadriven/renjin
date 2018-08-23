@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ public class SequenceExpression extends SpecializedCallExpression {
   }
 
   @Override
-  public boolean isDefinitelyPure() {
+  public boolean isPure() {
     return true;
   }
 
@@ -51,7 +51,10 @@ public class SequenceExpression extends SpecializedCallExpression {
     ValueBounds fromType = childAt(0).updateTypeBounds(typeMap);
     ValueBounds toType = childAt(1).updateTypeBounds(typeMap);
 
-    valueBounds = ValueBounds.vector(fromType.getTypeSet() | toType.getTypeSet());
+    valueBounds = ValueBounds.builder()
+        .setTypeSet(fromType.getTypeSet() | toType.getTypeSet())
+        .setEmptyAttributes()
+        .build();
     
     return valueBounds;
   }
@@ -63,14 +66,17 @@ public class SequenceExpression extends SpecializedCallExpression {
 
   @Override
   public int load(EmitContext emitContext, InstructionAdapter mv) {
-    int stackSizeIncrease =
-        assertDouble(childAt(0)).load(emitContext, mv) + 
-        assertDouble(childAt(1)).load(emitContext, mv);
+
+    childAt(0).load(emitContext, mv);
+    emitContext.convert(mv, childAt(0).getType(), Type.DOUBLE_TYPE);
+
+    childAt(1).load(emitContext, mv);
+    emitContext.convert(mv, childAt(1).getType(), Type.DOUBLE_TYPE);
 
     mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(DoubleSequence.class), "fromTo",
         Type.getMethodDescriptor(Type.getType(AtomicVector.class), Type.DOUBLE_TYPE, Type.DOUBLE_TYPE), false);
 
-    return stackSizeIncrease;
+    return 0;
   }
 
   @Override
@@ -78,17 +84,7 @@ public class SequenceExpression extends SpecializedCallExpression {
     return valueBounds.storageType();
   }
 
-  private Expression assertDouble(Expression expression) {
-//    if(!expression.getType().equals(double.class)) {
-//      throw new AssertionError(expression + " has a type of " + expression.getType() + " expected double");
-//    }
-//    return expression;
-    throw new UnsupportedOperationException();
-  }
 
-  
-  
-  
   @Override
   public String toString() {
     return childAt(0) + ":" + childAt(1);

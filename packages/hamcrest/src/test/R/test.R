@@ -1,6 +1,6 @@
 #
 # Renjin : JVM-based interpreter for the R language for the statistical analysis
-# Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+# Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -38,3 +38,12 @@ test.identicalTol.NaN <- function() {
 test.equals <- function() {
     assertThat( c(15, -2.5, -2.5, -2.5, -2.5), equalTo(c(15, -2.5, -2.5, -2.5, -2.5)))
 }
+
+test.identical.infinite <- function() {
+
+    matcher <- identicalTo(NA_real_)
+    assertTrue(matcher(NA_real_))
+    assertFalse(matcher(Inf))
+    assertFalse(matcher(-Inf))
+}
+

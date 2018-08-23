@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -695,7 +695,7 @@ an ANSI digit or not */
   private void setParseFilename(SEXP newname) {
     if (isEnvironment(parseState.srcFile)) {
         Environment env = (Environment)parseState.srcFile;
-    	SEXP oldname = env.findVariable(Symbol.get("filename"));
+    	SEXP oldname = env.findVariableUnsafe(Symbol.get("filename"));
     	if (isString(oldname) && oldname.length() > 0 &&
             oldname.asString().equals(newname.asString())) {
         return;
@@ -705,8 +705,8 @@ an ANSI digit or not */
                                          build()
                                        ), 
                   parseState.srcFileProt);
-        env.setVariable(Symbol.get("filename"), newname);
-        env.setVariable(Symbol.get("original"), oldname);
+        env.setVariableUnsafe(Symbol.get("filename"), newname);
+        env.setVariableUnsafe(Symbol.get("original"), oldname);
     } else {
         REPROTECT(parseState.srcFile = /*duplicate(*/newname/*)*/, parseState.srcFileProt);
     }

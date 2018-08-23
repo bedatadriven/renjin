@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,16 +19,17 @@
 package org.renjin.gcc.codegen.var;
 
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Allocates local variable slots
@@ -68,21 +69,10 @@ public class LocalVarAllocator extends VarAllocator {
     @Override
     public void store(MethodGenerator mv, JExpr value) {
       value.load(mv);
-      if(!value.getType().equals(type)) {
-        if(type.getSort() == Type.ARRAY || type.getSort() == Type.OBJECT) {
-          mv.checkcast(type);
-        }
+      if(Expressions.requiresCast(value.getType(), type)) {
+        mv.checkcast(type);
       }
       store(mv);
-    }
-
-    private void checkAssignmentTypes(Type targetType, Type sourceType) {
-      if (targetType.equals(Type.getType(Object.class))) {
-        return;
-      }
-      if (!sourceType.equals(targetType)) {
-        throw new IllegalStateException("Trying to assign " + sourceType + " to " + type);
-      }
     }
 
     public void store(MethodGenerator mv) {
@@ -100,7 +90,7 @@ public class LocalVarAllocator extends VarAllocator {
 
   @Override
   public LocalVar reserve(String name, Type type) {
-    return reserve(name, type, Optional.<JExpr>absent());
+    return reserve(name, type, Optional.empty());
   }
 
   @Override

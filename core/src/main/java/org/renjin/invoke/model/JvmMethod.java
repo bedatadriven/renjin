@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@ import org.apache.commons.math.complex.Complex;
 import org.apache.commons.math.special.Gamma;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
-import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.collect.ImmutableList;
 import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -32,9 +31,12 @@ import org.renjin.sexp.Symbol;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
+import static java.util.stream.Collectors.*;
 
 /**
  * Wraps a {@code java.lang.reflect.Method} and provides
@@ -68,7 +70,7 @@ public class JvmMethod implements Comparable<JvmMethod> {
       argumentsBuilder.add(new Argument(method, i));
     }
     this.arguments = argumentsBuilder.build();
-    this.formals = ImmutableList.copyOf(Iterables.filter(arguments, new IsFormal()));
+    this.formals = arguments.stream().filter(arg -> !arg.isContextual()).collect(toList());
 
     DataParallel dpAnnotation = method.getAnnotation(DataParallel.class);
 
@@ -309,7 +311,6 @@ public class JvmMethod implements Comparable<JvmMethod> {
   public boolean isDeferrable() {
     return isAnnotatedWith(Deferrable.class) || method.getDeclaringClass().equals(Math.class);
   }
-
   public boolean isPassNA() {
     return passNA;
   }
@@ -437,13 +438,6 @@ public class JvmMethod implements Comparable<JvmMethod> {
       } else {
         return cast.value();
       }
-    }
-  }
-
-  private class IsFormal implements Predicate<Argument> {
-    @Override
-    public boolean apply(Argument input) {
-      return !input.isContextual();
     }
   }
 

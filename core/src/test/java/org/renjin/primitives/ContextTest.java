@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -34,7 +34,7 @@ public class ContextTest extends EvalTestCase {
 
   @Test
   public void nframesGlobal() {
-    assertThat( eval(".Internal(sys.nframe())"), equalTo( c_i(0)));
+    assertThat( eval(".Internal(sys.nframe())"), elementsIdenticalTo( c_i(0)));
   }
 
   @Test
@@ -44,7 +44,7 @@ public class ContextTest extends EvalTestCase {
     eval( "g <- function() f() ");
     eval( "h <- function() g() ");
 
-    assertThat( eval(" h() "), equalTo( c_i(3) ));
+    assertThat( eval(" h() "), elementsIdenticalTo( c_i(3) ));
   }
 
 
@@ -56,7 +56,7 @@ public class ContextTest extends EvalTestCase {
     eval( "g <- function(x) UseMethod('g')" );
     eval( "h <- function(x) g(x) ");
 
-    assertThat( eval(" h(0) "), equalTo( c_i(3) ));
+    assertThat( eval(" h(0) "), elementsIdenticalTo( c_i(3) ));
   }
 
 
@@ -69,7 +69,7 @@ public class ContextTest extends EvalTestCase {
 
     assertThat(eval("sys.frame(0)"), is((SEXP) global));
     assertThat(eval("f()"), is((SEXP) global));
-    assertThat( eval("h()"), equalTo(c(99)));
+    assertThat( eval("h()"), elementsIdenticalTo(c(99)));
   }
 
   @Test
@@ -93,7 +93,7 @@ public class ContextTest extends EvalTestCase {
     eval("g <- function() f() ");
     eval("h <- function() { xx <- 99; g() } ");
     
-    assertThat(eval("h()"), equalTo(c(99)));
+    assertThat(eval("h()"), elementsIdenticalTo(c(99)));
   }
   
   
@@ -108,7 +108,7 @@ public class ContextTest extends EvalTestCase {
     eval(" g <- function() { parent.frame()$zz + 1 } ");
     eval(" f <- function() { zz<-41; g() } ");
 
-    assertThat(eval("f()"), equalTo(c(42)));
+    assertThat(eval("f()"), elementsIdenticalTo(c(42)));
   }
 
   @Test
@@ -118,7 +118,7 @@ public class ContextTest extends EvalTestCase {
     eval(" g<- function(env = parent.frame()) env$zzz");
     eval(" f<- function() { zzz<-42; g() } ");
 
-    assertThat( eval("f()"), equalTo( c(42)));
+    assertThat( eval("f()"), elementsIdenticalTo( c(42)));
   }
 
 
@@ -130,7 +130,7 @@ public class ContextTest extends EvalTestCase {
     eval(" g <- function(x) sys.call(0) ");
 
     FunctionCall call = (FunctionCall)eval("g(1)");
-    assertThat(call.getFunction(), equalTo(symbol("g")));
+    assertThat(call.getFunction(), identicalTo(symbol("g")));
   }
 
   @Test
@@ -139,8 +139,8 @@ public class ContextTest extends EvalTestCase {
     eval(" f <- function() sys.parent() ");
     eval(" g <- function() f() ");
 
-    assertThat(eval("f()"), equalTo(c_i(0)));
-    assertThat( eval("g()"), equalTo( c_i(1) ));
+    assertThat(eval("f()"), elementsIdenticalTo(c_i(0)));
+    assertThat( eval("g()"), elementsIdenticalTo( c_i(1) ));
   }
 
   @Test
@@ -150,10 +150,10 @@ public class ContextTest extends EvalTestCase {
     eval(" f <- function() sys.frame(-1)$q ");
     eval(" g <- function() { q<-42; f(); }");
 
-    assertThat(eval("g()"), equalTo(c(42)));
+    assertThat(eval("g()"), elementsIdenticalTo(c(42)));
 
     eval(" h <- function(x) { q<- 41; x }");
-    assertThat(eval("h(f())"), equalTo(c(41)));
+    assertThat(eval("h(f())"), elementsIdenticalTo(c(41)));
   }
 
   @Test
@@ -165,7 +165,7 @@ public class ContextTest extends EvalTestCase {
     eval(" x <- 'bar' ");
     eval(" class(x) <- 'foo'");
 
-    assertThat( eval("as.character(x) "), equalTo(c("BAR")));
+    assertThat( eval("as.character(x) "), elementsIdenticalTo(c("BAR")));
   }
 
 
@@ -181,14 +181,14 @@ public class ContextTest extends EvalTestCase {
     
     // because 'list' is a primitive, it's arguments are evaluated in the same context
     // as 'f's body, and sys.frame works logically
-    assertThat(eval("x[1]"), equalTo(list("foo")));
+    assertThat(eval("x[1]"), elementsIdenticalTo(list("foo")));
 
     eval("myClosure <- function(x) x");
     eval("`[.foo` <- function(x, i) myClosure(MyNextMethod())");
 
     // now MyNextMethod() is evaluated in the new context for myClosure and
     // sys.frame(-1) refers to myClosure's environment.
-    assertThat(eval("x[1]"), equalTo(NULL));
+    assertThat(eval("x[1]"), identicalTo(NULL));
   }
 
   @Test

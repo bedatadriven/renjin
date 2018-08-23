@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ import org.renjin.gcc.runtime.BytePtr;
 
 import java.lang.invoke.MethodHandle;
 
+@Deprecated
 public class MethodDef {
   public byte[] name;
   public int name$offset;
@@ -34,7 +35,7 @@ public class MethodDef {
   public String getName() {
     return new BytePtr(name, name$offset).nullTerminatedString();
   }
-  
+
   public void set(MethodDef o) {
     this.name = o.name;
     this.name$offset = o.name$offset;

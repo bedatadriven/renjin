@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,12 +26,16 @@ import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.Memset;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.gimple.type.GimpleFunctionType;
+import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.runtime.FunctionPtr;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 
 import java.lang.invoke.MethodHandle;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 
 public class FunPtrValueFunction implements ValueFunction {
@@ -40,8 +44,7 @@ public class FunPtrValueFunction implements ValueFunction {
 
   /**
    *
-   * @param functionType
-   * @param pointerSize the size, in bytes, of the function pointer as understood by GCC. 
+   * @param pointerSize the size, in bytes, of the function pointer as understood by GCC.
    */
   public FunPtrValueFunction(int pointerSize) {
     this.pointerSize = pointerSize;
@@ -50,6 +53,11 @@ public class FunPtrValueFunction implements ValueFunction {
   @Override
   public Type getValueType() {
     return Type.getType(MethodHandle.class);
+  }
+
+  @Override
+  public GimpleType getGimpleValueType() {
+    return new GimpleFunctionType();
   }
 
   @Override
@@ -66,17 +74,17 @@ public class FunPtrValueFunction implements ValueFunction {
   public GExpr dereference(JExpr array, JExpr offset) {
     JExpr ptr = Expressions.cast(Expressions.elementAt(array, offset), Type.getType(MethodHandle.class));
     FatPtrPair address = new FatPtrPair(this, array, offset);
-    return new FunPtr(ptr, address);
+    return new FunPtrExpr(ptr, address);
   }
 
   @Override
   public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
-    return new FunPtr(wrapperInstance.valueExpr(), wrapperInstance);
+    return new FunPtrExpr(wrapperInstance.valueExpr(), wrapperInstance);
   }
 
   @Override
   public List<JExpr> toArrayValues(GExpr expr) {
-    return Collections.singletonList(((FunPtr) expr).unwrap());
+    return Collections.singletonList(((FunPtrExpr) expr).jexpr());
   }
 
   @Override
@@ -91,7 +99,12 @@ public class FunPtrValueFunction implements ValueFunction {
 
   @Override
   public Optional<JExpr> getValueConstructor() {
-    return Optional.absent();
+    return Optional.empty();
+  }
+
+  @Override
+  public VPtrExpr toVPtr(JExpr array, JExpr offset) {
+    return new VPtrExpr(Expressions.newObject(Type.getType(FunctionPtr.class), array, offset));
   }
 
   @Override

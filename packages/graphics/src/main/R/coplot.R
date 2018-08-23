@@ -1,5 +1,7 @@
 #  File src/library/graphics/R/coplot.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2013 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 co.intervals <- function (x, number = 6, overlap = 0.5)
 {
@@ -172,7 +174,7 @@ coplot <-
 	    }
 	}
     }
-    if(any(is.na(a.intervals)) || (have.b && any(is.na(b.intervals))))
+    if(anyNA(a.intervals) || (have.b && anyNA(b.intervals)))
 	bad.givens()
 
     ## compute the page layout
@@ -225,8 +227,8 @@ coplot <-
 	xlim <- range(as.numeric(x), finite = TRUE)
     if(missing(ylim))
 	ylim <- range(as.numeric(y), finite = TRUE)
-    pch <- rep(pch, length.out = nobs)
-    col <- rep(col, length.out = nobs)
+    pch <- rep_len(pch, nobs)
+    col <- rep_len(col, nobs)
     do.panel <- function(index, subscripts = FALSE, id) {
 	## Use `global' variables
 	##	rows, columns,	total.rows, total.columns, nplots, xlim, ylim
@@ -243,7 +245,7 @@ coplot <-
 	par(mfg = c(i, j, total.rows, total.columns))
 	plot.new()
 	plot.window(xlim, ylim)
-	if(any(is.na(id))) id[is.na(id)] <- FALSE
+	if(anyNA(id)) id[is.na(id)] <- FALSE
 	if(any(id)) {
 	    grid(lty="solid")
 	    if(subscripts)
@@ -311,8 +313,8 @@ coplot <-
               xpd=NA, font = par("font.lab"), cex = par("cex.lab"))
     }
     else { ## i. e. !show.given
-	mtext(xlab[2L], 3, line = 3.25, outer= TRUE, at= 0.5*f.col, xpd=NA,
-              font = par("font.lab"), cex = par("cex.lab"))
+	mtext(xlab[2L], 3, line = 3.25, outer = TRUE, at = 0.5*f.col,
+              xpd = NA, font = par("font.lab"), cex = par("cex.lab"))
     }
     if(have.b) {
 	if(length(ylab) == 1L)
@@ -346,8 +348,8 @@ coplot <-
 	}
     }
     if (length(missingrows)) {
-	cat("\n", gettext("Missing rows"), ": ",
-            paste(missingrows, collapse = ", "), "\n", sep ="")
+	cat("\n", gettextf("Missing rows: %s",
+                           paste0(missingrows, collapse = ", ")), "\n")
 	invisible(missingrows)
     } else invisible()
 }

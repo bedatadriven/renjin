@@ -138,6 +138,7 @@
     assign(".SealedClasses", clList, envir)
     ## restore the true definition of the hidden functions
     assign("reconcilePropertiesAndPrototype", real.reconcileP, envir)
+    invalidateS4Cache(".InitBasicClasses() assigned many classes directly or through setIs(), .setBaseClass() etc...")
 }
 
 .InitS3Classes <- function(envir) {

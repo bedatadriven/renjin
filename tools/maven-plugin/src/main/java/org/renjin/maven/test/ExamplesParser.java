@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,31 +31,43 @@ import java.io.IOException;
  */
 public class ExamplesParser extends SexpVisitor<String> {
 
+  private static final Symbol RD_TAG = Symbol.get("Rd_tag");
+
   private StringBuilder code = new StringBuilder();
   
   @Override
   public void visit(ListVector list) {
-    SEXP tag = list.getAttribute(Symbol.get("Rd_tag"));
-    if(tag != Null.INSTANCE) {
-      StringVector tagName = (StringVector)tag;
-      if(tagName.getElementAsString(0).equals("\\examples")) {
-        for(SEXP exp : list) {
-          exp.accept(this);
-        }
-      }   
+    if(getTag(list).equals("\\examples")) {
+      for(SEXP element : list) {
+        element.accept(this);
+      }
     }
-    for(SEXP sexp : list) {
-      if(sexp instanceof ListVector) {
-        sexp.accept(this);
+    // Descend into nested lists
+    for(SEXP element : list) {
+      if(element instanceof ListVector) {
+        element.accept(this);
       }
     }
   }
   
   @Override
   public void visit(StringVector vector) {
-    for(String line : vector) {
-      code.append(line);
+    if(getTag(vector).equals("RCODE")) {
+      for (String line : vector) {
+        code.append(line);
+      }
     }
+  }
+
+  private static String getTag(SEXP sexp) {
+    SEXP tagObject = sexp.getAttribute(RD_TAG);
+    if(tagObject instanceof StringVector && tagObject.length() == 1) {
+      String tagName = ((StringVector) tagObject).getElementAsString(0);
+      if(!StringVector.isNA(tagName)) {
+        return tagName;
+      }
+    }
+    return "";
   }
 
   @Override
@@ -71,8 +83,7 @@ public class ExamplesParser extends SexpVisitor<String> {
    * @throws IOException
    */
   public static String parseExamples(File file) throws IOException {
-    try {
-      FileReader reader = new FileReader(file);
+    try(FileReader reader = new FileReader(file)) {
       RdParser parser = new RdParser();
       SEXP rd = parser.R_ParseRd(reader, StringVector.valueOf(file.getName()), false);
 

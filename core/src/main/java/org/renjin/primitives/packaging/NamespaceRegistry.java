@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,16 +23,19 @@ import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.SessionScoped;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
-import org.renjin.repackaged.guava.base.Optional;
-import org.renjin.repackaged.guava.collect.*;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Maps;
+import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.repackaged.guava.io.CharSource;
-import org.renjin.sexp.*;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 
 /**
  * Session-level registry of namespaces
@@ -56,20 +59,14 @@ public class NamespaceRegistry {
   /**
    * Maps local names to namespaces
    */
-  private Multimap<Symbol, Namespace> localNameMap = HashMultimap.create();
+  private Map<Symbol, Namespace> localNameMap = new HashMap<>();
   private Map<FqPackageName, Namespace> namespaceMap = Maps.newHashMap();
 
   private Map<Environment, Namespace> envirMap = Maps.newIdentityHashMap();
 
-  /**
-   * Mapping of "native" methods to the namespace in which they are declared. used to resolve
-   * .Call invocations without a PACKAGE parameter.
-   */
-  private Map<String, Class> nativeSymbolMap = Maps.newHashMap();
-  
   private final Namespace baseNamespace;
 
-  public NamespaceRegistry(PackageLoader loader, Context context, Environment baseNamespaceEnv) {
+  public NamespaceRegistry(PackageLoader loader, Environment baseNamespaceEnv) {
     this.loader = loader;
 
     baseNamespace = new BaseNamespace(baseNamespaceEnv);
@@ -94,38 +91,32 @@ public class NamespaceRegistry {
   }
 
 
-  public Iterable<Symbol> getLoadedNamespaces() {
+  /**
+   *
+   * @return a sequence of the "local names" of the currently loaded namespaces. Local names do not include
+   * the group name of the namespace.
+   */
+  public Iterable<Symbol> getLoadedNamespaceNames() {
     return localNameMap.keySet();
+  }
+
+  public Iterable<Namespace> getLoadedNamespaces() {
+    return namespaceMap.values();
   }
   
   public Optional<Namespace> getNamespaceIfPresent(Symbol name) {
-    Collection<Namespace> matching = localNameMap.get(name);
-    if(matching.size() == 1) {
-      return Optional.of(matching.iterator().next());
-    } else {
-      return Optional.absent();
-    }
+    return Optional.ofNullable(localNameMap.get(name));
   }
-  
-  public Optional<Class> resolveNativeMethod(String methodName) {
-    return Optional.fromNullable(nativeSymbolMap.get(methodName));
-  }
-  
+
   public Namespace getNamespace(Context context, String name) {
     return getNamespace(context, Symbol.get(name));
   }
 
   public Namespace getNamespace(Context context, Symbol symbol) {
-    if(symbol.getPrintName().equals("base")) {
-      return baseNamespace;
-    }
 
-    // try to match name to currently loaded namespaces
-    for (FqPackageName fqPackageName : namespaceMap.keySet()) {
-      if(symbol.getPrintName().equals(fqPackageName.toString('.')) ||
-          symbol.getPrintName().equals(fqPackageName.getPackageName())) {
-        return namespaceMap.get(fqPackageName);
-      }
+    Namespace localMatch = localNameMap.get(symbol);
+    if(localMatch != null) {
+      return localMatch;
     }
 
     // There are a small number of "core" packages that are part of the 
@@ -147,7 +138,7 @@ public class NamespaceRegistry {
     candidates.add(new FqPackageName("org.renjin.bioconductor", symbol.getPrintName()));
     candidates.add(new FqPackageName("org.renjin.cran", symbol.getPrintName()));
 
-    Optional<Namespace> namespace = Optional.absent();
+    Optional<Namespace> namespace = empty();
 
     for (FqPackageName candidate : candidates) {
       namespace = tryGetNamespace(context, candidate);
@@ -186,7 +177,7 @@ public class NamespaceRegistry {
    */
   private Optional<Namespace> tryGetNamespace(Context context, FqPackageName fqName) {
     if(namespaceMap.containsKey(fqName)) {
-      return Optional.of(namespaceMap.get(fqName));
+      return of(namespaceMap.get(fqName));
     } else {
       return tryLoad(context, fqName);
     }
@@ -196,7 +187,7 @@ public class NamespaceRegistry {
 
     Optional<Package> loadResult = loader.load(fqName);
     if(!loadResult.isPresent()) {
-      return Optional.absent();
+      return empty();
     } else {
       Package pkg = loadResult.get();
       try {
@@ -204,13 +195,16 @@ public class NamespaceRegistry {
         // and add them to our private namespace environment
         Namespace namespace = createNamespace(pkg);
 
-        // set up the namespace
-        populateNamespace(context, pkg, namespace);
-
-        // set up the imported symbols
         CharSource namespaceSource = pkg.getResource("NAMESPACE").asCharSource(Charsets.UTF_8);
         NamespaceFile namespaceFile = NamespaceFile.parse(context, namespaceSource);
 
+        // set up the namespace
+        namespace.populateNamespace(context);
+        namespace.initExports(namespaceFile);
+
+        context.getSession().getS4Cache().invalidate();
+
+        // set up the imported symbols
         namespace.initImports(context, this, namespaceFile);
 
         // invoke the .onLoad hook
@@ -221,14 +215,10 @@ public class NamespaceRegistry {
               namespace.getNamespaceEnvironment());
         }
 
-        // finally export symbols from the namespace
-        namespace.initExports(namespaceFile);
         namespace.registerS3Methods(context, namespaceFile);
+        namespace.loaded = true;
 
-        // Update our method name lookup
-        nativeSymbolMap.putAll(namespace.getNativeSymbolMap());
-
-        return Optional.of(namespace);
+        return of(namespace);
 
       } catch(Exception e) {
         throw new EvalException("IOException while loading package " + fqName + ": " + e.getMessage(), e);
@@ -236,20 +226,10 @@ public class NamespaceRegistry {
     }
   }
 
+
   private boolean couldBeFullyQualified(Symbol name) {
     String string = name.getPrintName();
     return string.indexOf(':') != -1 || string.indexOf('.') != -1;
-  }
-
-  /**
-   * Populates the namespace from the R-language functions and expressions defined
-   * in this namespace.
-   *
-   */
-  private void populateNamespace(Context context, Package pkg, Namespace namespace) throws IOException {
-    for(NamedValue value : pkg.loadSymbols(context)) {
-      namespace.getNamespaceEnvironment().setVariable(Symbol.get(value.getName()), value.getValue());
-    }
   }
 
 
@@ -270,9 +250,9 @@ public class NamespaceRegistry {
     // BASE-NS -> IMPORTS -> ENVIRONMENT
 
     Environment imports = Environment.createNamedEnvironment(getBaseNamespaceEnv(),
-        "imports:" + pkg.getName().toString('.'));
+        "imports:" + pkg.getName().toString('.')).build();
 
-    Environment namespaceEnv = Environment.createNamespaceEnvironment(imports, pkg.getName().getPackageName());
+    Environment namespaceEnv = Environment.createNamespaceEnvironment(imports, pkg.getName().getPackageName()).build();
     Namespace namespace = new Namespace(pkg, namespaceEnv);
     localNameMap.put(pkg.getName().getPackageSymbol(), namespace);
     namespaceMap.put(pkg.getName(), namespace);
@@ -280,7 +260,7 @@ public class NamespaceRegistry {
     envirMap.put(namespaceEnv, namespace);
 
     // save the name to the environment
-    namespaceEnv.setVariable(".packageName", StringVector.valueOf(pkg.getName().getPackageName()));
+    namespaceEnv.setVariableUnsafe(".packageName", StringVector.valueOf(pkg.getName().getPackageName()));
     return namespace;
   }
 

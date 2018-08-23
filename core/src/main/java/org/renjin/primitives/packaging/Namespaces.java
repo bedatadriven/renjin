@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,9 +26,11 @@ import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Unevaluated;
+import org.renjin.primitives.S3;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public class Namespaces {
 
@@ -36,7 +38,16 @@ public class Namespaces {
   public static SEXP getRegisteredNamespace(@Current Context context, @Current NamespaceRegistry registry, SEXP nameSexp) {
     Symbol name;
     if(nameSexp instanceof Symbol) {
-      name = (Symbol) nameSexp; 
+      name = (Symbol) nameSexp;
+      
+      // Some GNU R functions use the name in package-attribute to load the necessary namespace. However, the
+      // package-attribute is also used to store information about where a class is created which can be in
+      // global environment (.GlobalEnv). In those cases no namespace need to be loaded. GNU R, therefor, returns
+      // NULL when getNamespace is called on ".GlobalEnv".
+      if (".GlobalEnv".equals(name.getPrintName())) {
+        return Null.INSTANCE;
+      }
+      
     } else if(nameSexp instanceof StringVector) {
       name = Symbol.get(nameSexp.asString());
     } else {
@@ -52,17 +63,21 @@ public class Namespaces {
   
   @Internal
   public static Environment getNamespaceRegistry(@Current NamespaceRegistry registry) {
-    return Environment.createChildEnvironment(Environment.EMPTY, new NamespaceFrame(registry));
+    return Environment.createChildEnvironment(Environment.EMPTY, new NamespaceFrame(registry)).build();
   }
 
   @Builtin
   public static SEXP getNamespace(@Current Context context, @Current NamespaceRegistry registry, Symbol name) {
-    return registry.getNamespace(context, name).getNamespaceEnvironment();
+    Namespace namespace = registry.getNamespace(context, name);
+    Environment namespaceEnv = namespace.getNamespaceEnvironment();
+    return namespaceEnv;
   }
 
   @Builtin
   public static SEXP getNamespace(@Current Context context, @Current NamespaceRegistry registry, String name) {
-    return registry.getNamespace(context, name).getNamespaceEnvironment();
+    Namespace namespace = registry.getNamespace(context, name);
+    SEXP namespaceEnv = namespace.getNamespaceEnvironment();
+    return namespaceEnv;
   }
   
 
@@ -78,7 +93,7 @@ public class Namespaces {
   @Builtin
   public static StringVector loadedNamespaces(@Current NamespaceRegistry registry) {
     StringVector.Builder result = new StringVector.Builder();
-    for(Symbol name : registry.getLoadedNamespaces()) {
+    for(Symbol name : registry.getLoadedNamespaceNames()) {
       result.add(name.getPrintName());
     }
     return result.build();
@@ -171,5 +186,103 @@ public class Namespaces {
       result.add(fileObject.getURL().toString());
     }
     return result.build();
+  }
+
+  @Internal("library.dynam")
+  public static SEXP libraryDynam(@Current Context context, String libraryName, String packageName) {
+    Namespace namespace = context.getNamespaceRegistry().getNamespace(context, packageName);
+    DllInfo dllInfo;
+    try {
+      dllInfo = namespace.loadDynamicLibrary(context, libraryName);
+    } catch (ClassNotFoundException e) {
+      // Allow the package to continue loading...
+      context.warn("Could not load the dynamic library: " + e.getMessage());
+      return Null.INSTANCE;
+    }
+
+    return dllInfo.buildDllInfoSexp();
+  }
+
+  @Internal("library.dynam.unload")
+  public static SEXP libraryDynamUnload(@Current Context context, String name) {
+    return Null.INSTANCE;
+  }
+
+  /**
+   *
+   * @param genericName 	character string giving the generic function name.
+   * @param className 	character string giving the generic function name.
+   * @param methodSexp 	character string giving the method name or a function to be registered. If this is NA or a function, the method name is constructed from genname and class
+   * @param envir the environment where the S3 method should be registered
+   */
+  @Internal
+  public static void registerS3method(@Current Context context, String genericName, String className, SEXP methodSexp, Environment environment) {
+    Optional<Environment> definitionEnv = resolveGenericFunctionNamespace(context, genericName, environment);
+    if(!definitionEnv.isPresent()) {
+      throw new EvalException("Cannot find generic function '" + genericName + "'");
+    }
+
+    Function method;
+    if(methodSexp instanceof Function) {
+      method = (Function) methodSexp;
+
+    } else if(methodSexp instanceof StringVector && methodSexp.length() == 1) {
+      StringVector methodVector = (StringVector) methodSexp;
+      Symbol methodName = Symbol.get(methodVector.getElementAsString(0));
+      method = environment.findFunction(context, methodName);
+
+    } else {
+      throw new EvalException("Invalid method argument of type " + methodSexp.getTypeName());
+    }
+
+    registerS3Method(context, genericName, className, method, definitionEnv.get());
+  }
+
+  /**
+   * Resolves the namespace environment in which the original S3 generic function is defined.
+   *
+   * @param context the current evaluation context
+   * @param genericName the name of the generic function (for example, "print" or "summary")
+   * @param environment the environment in which to start searching for the generic
+   * @return the namespace environment in which the function was defined, or {@code Optional.empty()} if
+   * the function could not be resolved.
+   */
+  public static Optional<Environment> resolveGenericFunctionNamespace(Context context, String genericName, Environment environment) {
+
+    if (S3.GROUPS.contains(genericName)) {
+      return Optional.of(context.getNamespaceRegistry().getBaseNamespaceEnv());
+
+    } else {
+      SEXP genericFunction = environment.findFunction(context, Symbol.get(genericName));
+      if (genericFunction == null) {
+        return Optional.empty();
+      }
+      if (genericFunction instanceof Closure) {
+        return Optional.of(((Closure) genericFunction).getEnclosingEnvironment());
+
+      } else if (genericFunction instanceof PrimitiveFunction) {
+        return Optional.of(context.getNamespaceRegistry().getBaseNamespaceEnv());
+
+      } else {
+        throw new EvalException("Cannot resolve namespace environment from generic function '%s' of type '%s'",
+            genericName, genericFunction.getTypeName());
+      }
+    }
+  }
+
+  /**
+   *
+   * @param context current evaluation context
+   * @param genericName the name of the generic ("print" or "summary")
+   * @param className the name of the S3 class
+   * @param method the method providing the implementation of this class
+   * @param definitionEnv the environment in which the original generic is defined.
+   */
+  public static void registerS3Method(Context context, String genericName, String className, Function method, Environment definitionEnv) {
+    if (!definitionEnv.hasVariable(S3.METHODS_TABLE)) {
+      definitionEnv.setVariableUnsafe(S3.METHODS_TABLE, Environment.createChildEnvironment(context.getBaseEnvironment()).build());
+    }
+    Environment methodsTable = (Environment) definitionEnv.getVariableUnsafe(S3.METHODS_TABLE);
+    methodsTable.setVariableUnsafe(genericName + "." + className, method);
   }
 }

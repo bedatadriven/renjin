@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@ import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.DoubleVector;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 public class LazyBuilderTest extends EvalTestCase {
@@ -32,6 +31,6 @@ public class LazyBuilderTest extends EvalTestCase {
     CombinedBuilder lazyBuilder = new LazyBuilder(DoubleVector.VECTOR_TYPE, 10).useNames(true);
     lazyBuilder.addElements(null, DoubleVector.valueOf(1));
     lazyBuilder.addElements(null, DoubleVector.valueOf(2));
-    assertThat(lazyBuilder.build(), equalTo(c(1, 2)));
+    assertThat(lazyBuilder.build(), elementsIdenticalTo(c(1, 2)));
   }
 }

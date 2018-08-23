@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,12 +34,12 @@ public class ReassignLeftFunction extends AssignLeftFunction {
 
     for(Environment env : rho.parents()) {
       if(env.hasVariable(lhs))  {
-        env.setVariable(lhs, rhs);
+        env.setVariable(context, lhs, rhs);
         return;
       }
     }
 
     // not defined anywhere we can see, define it anew in the global environment
-    context.getGlobalEnvironment().setVariable(lhs, rhs);
+    context.getGlobalEnvironment().setVariable(context, lhs, rhs);
   }
 }

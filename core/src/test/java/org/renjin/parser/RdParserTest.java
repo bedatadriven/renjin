@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,10 +43,10 @@ public class RdParserTest extends EvalTestCase {
     assertThat(result.length(), equalTo(1));
  
     ListVector header = (ListVector) result.getElementAsSEXP(0);
-    assertThat(header.getAttribute(Symbol.get("Rd_tag")), equalTo(c("\\name")));
+    assertThat(header.getAttribute(Symbol.get("Rd_tag")), elementsIdenticalTo(c("\\name")));
 
     StringVector name = (StringVector) header.getElementAsSEXP(0);
-    assertThat(name, equalTo(c("plotf")));
+    assertThat(name, elementsIdenticalTo(c("plotf")));
     //assertThat(name.getAttribute(Symbol.get("Rd_tag")), equalTo(c("VERB")));
     
   }
@@ -80,12 +80,12 @@ public class RdParserTest extends EvalTestCase {
     for(PairList.Node attribute : expected.getAttributes().nodes()) {
       // TODO: srcref at root node is missing
       if(!attribute.getName().equals("srcref")) {
-        assertThat(node + "/attribute[" + attribute.getTag() + "]", result.getAttribute(attribute.getTag()), equalTo(attribute.getValue()));
+        assertThat(node + "/attribute[" + attribute.getTag() + "]", result.getAttribute(attribute.getTag()), identicalTo(attribute.getValue()));
       }
     }
     if(expected instanceof ListVector) {
       if(!(result instanceof ListVector) || result.length() != expected.length()) {
-        assertThat(node, result, equalTo(expected));
+        assertThat(node, result, identicalTo(expected));
       } else {
         for(int i=0;i!=expected.length();++i) {
           compareNode(describeChildNode(node, (ListVector)expected, i), 
@@ -97,7 +97,7 @@ public class RdParserTest extends EvalTestCase {
       String s2 = ((StringVector) expected).getElementAsString(0);
       assertThat(node, s1.replace("\r\n", "\n"), equalTo(s2));
     } else {
-      assertThat(node, result, equalTo(expected));
+      assertThat(node, result, identicalTo(expected));
     }
   }
   

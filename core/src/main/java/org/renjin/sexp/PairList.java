@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
  */
 package org.renjin.sexp;
 
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Iterators;
 import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
@@ -26,6 +26,7 @@ import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Objects;
 
 /**
  * Pairlists (LISTSXP, the name going back to the origins of R as a Scheme-like language) are
@@ -236,6 +237,10 @@ public interface PairList extends SEXP {
       this.nextNode = nextNode;
     }
 
+    public void setNextNode(PairList nextNode) {
+      this.nextNode = nextNode;
+    }
+
     @Override
     protected SEXP cloneWithNewAttributes(AttributeMap newAttributes) {
       return new PairList.Node(tag, value, newAttributes, nextNode);
@@ -244,7 +249,7 @@ public interface PairList extends SEXP {
     @Override
     public ListVector toVector() {
       ListVector.NamedBuilder builder = new ListVector.NamedBuilder();
-      for(PairList.Node node : attributes.nodes()) {
+      for(PairList.Node node : getAttributes().nodes()) {
         builder.setAttribute(node.getTag(), node.getValue());
       }
       for(Node node : nodes()) {
@@ -304,19 +309,10 @@ public interface PairList extends SEXP {
         return false;
       }
 
-      Node node = (Node) o;
-
-      if (nextNode != null ? !nextNode.equals(node.nextNode) : node.nextNode != null) {
-        return false;
-      }
-      if (tag != null ? !tag.equals(node.tag) : node.tag != null) {
-        return false;
-      }
-      if (value != null ? !value.equals(node.value) : node.value != null) {
-        return false;
-      }
-
-      return true;
+      Node that = (Node) o;
+      return Objects.equals(this.nextNode, that.nextNode) &&
+             Objects.equals(this.tag, that.tag) &&
+             Objects.equals(this.value, that.value);
     }
 
     @Override
@@ -515,9 +511,17 @@ public interface PairList extends SEXP {
       this.tail = head;
     }
 
-    public Builder withAttributes(AttributeMap attributes) {
+    public Builder setAttributes(AttributeMap attributes) {
       this.attributesBuilder.addAllFrom(attributes);
       return this;
+    }
+
+    /**
+     * @deprecated use {@link #setAttributes(AttributeMap)}
+     */
+    @Deprecated
+    public Builder withAttributes(AttributeMap attributes) {
+      return setAttributes(attributes);
     }
 
     public Builder setAttribute(Symbol name, SEXP value) {
@@ -705,23 +709,15 @@ public interface PairList extends SEXP {
   abstract class Predicates {
 
     public static Predicate<Node> hasTag() {
-      return new Predicate<Node>() {
-        @Override
-        public boolean apply(Node listExp) {
-          return listExp.hasTag();
-        }
-      };
+      return listExp -> listExp.hasTag();
     }
 
     public static Predicate<Node> matches(final String name) {
-      return new Predicate<Node>() {
-        @Override
-        public boolean apply(Node input) {
-          if(input.getRawTag() instanceof Symbol) {
-            return ((Symbol) input.getRawTag()).getPrintName().equals(name);
-          } else {
-            return false;
-          }
+      return input -> {
+        if(input.getRawTag() instanceof Symbol) {
+          return ((Symbol) input.getRawTag()).getPrintName().equals(name);
+        } else {
+          return false;
         }
       };
     }
@@ -732,12 +728,7 @@ public interface PairList extends SEXP {
     }
 
     public static Predicate<Node> startsWith(final Symbol name) {
-      return new Predicate<Node>() {
-        @Override
-        public boolean apply(Node input) {
-          return input.hasTag() && input.getTag().getPrintName().startsWith(name.getPrintName());
-        }
-      };
+      return input -> input.hasTag() && input.getTag().getPrintName().startsWith(name.getPrintName());
     }
   }
 }

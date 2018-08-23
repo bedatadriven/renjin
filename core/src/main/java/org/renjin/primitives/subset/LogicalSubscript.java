@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,7 +63,39 @@ class LogicalSubscript implements Subscript {
   public IndexPredicate computeIndexPredicate() {
     return new LogicalPredicate(subscript);
   }
-  
+
+  @Override
+  public int computeCount() {
+    if(subscript.length() == 0) {
+      return 0;
+    }
+    if(subscript.length() < resultLength &&
+        resultLength % subscript.length() == 0) {
+
+      int count = countSelected();
+      int recycledCount = count * (resultLength / subscript.length());
+      return recycledCount;
+    }
+
+    int count = 0;
+    IndexIterator it = computeIndexes();
+    while(it.next() != IndexIterator.EOF) {
+      count++;
+    }
+    return count;
+  }
+
+  private int countSelected() {
+    int count = 0;
+    for (int i = 0; i < subscript.length(); i++) {
+      int value = subscript.getElementAsRawLogical(i);
+      if(value != 0) {
+        count++;
+      }
+    }
+    return count;
+  }
+
   private class Iterator implements IndexIterator {
 
     int nextIndex = 0;

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,15 +18,17 @@
  */
 package org.renjin.gcc.gimple;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleLValue;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
+import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.guava.base.Joiner;
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.*;
@@ -35,7 +37,7 @@ import java.util.*;
  * Gimple Function Model
  */
 public class GimpleFunction implements GimpleDecl {
-  private int id;
+  private long id;
   private String name;
   private String mangledName;
   private GimpleType returnType;
@@ -43,7 +45,10 @@ public class GimpleFunction implements GimpleDecl {
   private List<GimpleBasicBlock> basicBlocks = Lists.newArrayList();
   private List<GimpleParameter> parameters = Lists.newArrayList();
   private List<GimpleVarDecl> variableDeclarations = Lists.newArrayList();
-  private boolean extern;
+
+  @JsonProperty("public")
+  private boolean _public;
+
   private boolean weak;
   private boolean inline;
   
@@ -52,11 +57,11 @@ public class GimpleFunction implements GimpleDecl {
   }
 
 
-  public int getId() {
+  public long getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public void setId(long id) {
     this.id = id;
   }
 
@@ -113,8 +118,8 @@ public class GimpleFunction implements GimpleDecl {
 
   public GimpleVarDecl addVarDecl(GimpleType type) {
     // find unused id
-    Set<Integer> usedIds = usedIds();
-    int newId = 1000;
+    Set<Long> usedIds = usedIds();
+    long newId = 1000;
     while(usedIds.contains(newId)) {
       newId++;
     }
@@ -127,8 +132,8 @@ public class GimpleFunction implements GimpleDecl {
     return decl;
   }
   
-  private Set<Integer> usedIds() {
-    Set<Integer> set = new HashSet<>();
+  private Set<Long> usedIds() {
+    Set<Long> set = new HashSet<>();
     for (GimpleVarDecl variableDeclaration : variableDeclarations) {
       set.add(variableDeclaration.getId());
     }
@@ -141,15 +146,15 @@ public class GimpleFunction implements GimpleDecl {
 
   /**
    * 
-   * @return true if this function has external linkage, that is, it is visible 
+   * @return true if this function has external (public) linkage, that is, it is visible
    * from outside of the compilation unit.
    */
-  public boolean isExtern() {
-    return extern;
+  public boolean isPublic() {
+    return _public;
   }
 
-  public void setExtern(boolean extern) {
-    this.extern = extern;
+  public void setPublic(boolean _public) {
+    this._public = _public;
   }
 
   public List<GimpleParameter> getParameters() {
@@ -245,8 +250,27 @@ public class GimpleFunction implements GimpleDecl {
   public GimpleBasicBlock getLastBasicBlock() {
     return basicBlocks.get(basicBlocks.size()-1);
   }
-  
+
+  public boolean isVariadic() {
+    for (GimpleBasicBlock basicBlock : basicBlocks) {
+      for (GimpleStatement statement : basicBlock.getStatements()) {
+        if(statement instanceof GimpleCall) {
+          GimpleCall call = (GimpleCall) statement;
+          if(call.isFunctionNamed("__builtin_va_start")) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   public void accept(GimpleExprVisitor visitor) {
+    for (GimpleVarDecl decl : variableDeclarations) {
+      if(decl.getValue() != null) {
+        decl.getValue().accept(visitor);
+      }
+    }
     for (GimpleBasicBlock basicBlock : basicBlocks) {
       basicBlock.accept(visitor);
     }

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -110,14 +110,14 @@ public class Warning {
 
       Environment baseEnv = context.getBaseEnvironment();
       if(baseEnv.hasVariable(LAST_WARNING)) {
-        lastWarning.addAll((ListVector)baseEnv.getVariable(LAST_WARNING).force(context));
+        lastWarning.addAll((ListVector)baseEnv.getVariable(context, LAST_WARNING).force(context));
       }
       if(call != null) {
         lastWarning.add(message, call);
       } else {
         lastWarning.add(message, Null.INSTANCE);
       }
-      baseEnv.setVariable(LAST_WARNING, lastWarning.build());
+      baseEnv.setVariable(context, LAST_WARNING, lastWarning.build());
     }
   }
 

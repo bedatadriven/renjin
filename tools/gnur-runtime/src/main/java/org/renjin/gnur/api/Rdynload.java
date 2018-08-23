@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ package org.renjin.gnur.api;
 
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.ObjectPtr;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.primitives.packaging.DllSymbol;
 
@@ -36,6 +37,7 @@ public final class Rdynload {
   private Rdynload() { }
 
 
+  @Deprecated
   public static int R_registerRoutines (DllInfo info,
                                         ObjectPtr<MethodDef> croutines,
                                         ObjectPtr<MethodDef> callRoutines,
@@ -50,6 +52,24 @@ public final class Rdynload {
     return 0;
   }
 
+
+  public static int R_registerRoutines (DllInfo info,
+                                        Ptr croutines,
+                                        Ptr callRoutines,
+                                        Ptr fortranRoutines,
+                                        Ptr externalRoutines) {
+
+    addTo(info, DllSymbol.Convention.C, croutines);
+    addTo(info, DllSymbol.Convention.CALL, callRoutines);
+    addTo(info, DllSymbol.Convention.FORTRAN, fortranRoutines);
+    addTo(info, DllSymbol.Convention.EXTERNAL, externalRoutines);
+
+    return 0;
+  }
+
+
+
+  @Deprecated
   private static void addTo(DllInfo library, DllSymbol.Convention convention, ObjectPtr<MethodDef> methods) {
 
     if(methods != null && methods.array != null) {
@@ -58,22 +78,30 @@ public final class Rdynload {
         if (def.fun == null) {
           break;
         }
-        DllSymbol symbol = new DllSymbol(library);
-        symbol.setMethodHandle(def.fun);
-        symbol.setConvention(convention);
-        symbol.setName(def.getName());
-        library.addSymbol(symbol);
+        library.register(new DllSymbol(def.getName(), def.fun, convention, true));
+      }
+    }
+  }
+
+  private static void addTo(DllInfo library, DllSymbol.Convention convention, Ptr methods) {
+
+    if(!methods.isNull()) {
+      for(int i=0; ; i++) {
+        MethodDef2 def = new MethodDef2(methods.pointerPlus(i * MethodDef2.BYTES));
+        if (def.fun == null) {
+          break;
+        }
+        library.register(new DllSymbol(def.getName(), def.fun, convention, true));
       }
     }
   }
 
   public static boolean R_useDynamicSymbols(DllInfo info, boolean value) {
-    // unclear what this function does
-    return true;
+    return info.setUseDynamicSymbols(value);
   }
 
   public static boolean R_forceSymbols(DllInfo info, boolean value) {
-    return true;
+    return info.forceSymbols(value);
   }
 
 //

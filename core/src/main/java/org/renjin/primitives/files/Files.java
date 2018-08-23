@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,8 +26,7 @@ import org.renjin.primitives.Warning;
 import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.primitives.text.regex.REFactory;
 import org.renjin.primitives.text.regex.RESyntaxException;
-import org.renjin.repackaged.guava.base.Predicate;
-import org.renjin.repackaged.guava.base.Predicates;
+import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.io.ByteStreams;
 import org.renjin.sexp.*;
@@ -36,12 +35,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.function.Predicate;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -54,7 +52,7 @@ public class Files {
   public static final int CHECK_ACCESS_EXECUTE = 1;
   public static final int CHECK_ACCESS_WRITE = 2;
   public static final int CHECK_ACCESS_READ = 3;
-   
+
   private Files() {}
 
   /**
@@ -66,13 +64,21 @@ public class Files {
   @DataParallel
   @Internal("path.expand")
   public static String pathExpand(String path) {
-    if(path.startsWith("~/")) {
-      return java.lang.System.getProperty("user.home") + path.substring(2);
-    } else {
+    if (path.length() < 2 || path.charAt(0) != '~' || Character.isAlphabetic(path.charAt(1))) {
       return path;
+    } else {
+      String home = System.getenv("R_USER");
+      if (home == null) {
+        home = System.getProperty("user.home");
+      }
+      if (home == null) {
+        return path;
+      } else {
+        return home + path.substring(1);
+      }
     }
   }
-  
+
   @Internal("file.access")
   public static IntVector fileAccess(@Current Context context, StringVector names, int mode ) throws FileSystemException {
     IntArrayVector.Builder result = new IntArrayVector.Builder();
@@ -162,7 +168,7 @@ public class Files {
         .add("exe", exe)
         .build();
   }
-  
+
   /**
    * Convert file paths to canonical form for the platform, to display
    * them in a user-understandable form.
@@ -175,9 +181,24 @@ public class Files {
   @DataParallel
   public static String normalizePath(@Current Context context,
                                      @Recycle String path, String winSlash, SEXP mustWork) {
+
+    boolean errorIfInvalid = false;
+    boolean warningIfInvalid = false;
+
+    if(mustWork instanceof AtomicVector && mustWork.length() >= 1) {
+      errorIfInvalid = ((AtomicVector) mustWork).isElementTrue(0);
+      warningIfInvalid = ((AtomicVector) mustWork).isElementNA(0);
+    }
+
     try {
-      return context.resolveFile(path).getName().getURI();
+      return friendlyFileName(context.resolveFile(path));
     } catch(FileSystemException e) {
+      if(errorIfInvalid) {
+        throw new EvalException(e.getMessage());
+      }
+      if(warningIfInvalid) {
+        context.warn(e.getMessage());
+      }
       return path;
     }
   }
@@ -272,6 +293,62 @@ public class Files {
       }
     }
     return new StringArrayVector(matching);
+  }
+
+  private static boolean isWindows() {
+    String operatingSystem = Strings.nullToEmpty(System.getProperty("os.name")).toLowerCase();
+    return operatingSystem.contains("win");
+  }
+
+  @Internal("Sys.which")
+  public static StringVector sysWhich(@Current Context context, StringVector names) {
+
+    if(isWindows()) {
+      throw new EvalException("Sys.which() not implemented for Windows");
+    }
+
+    String[] path = Strings.nullToEmpty(System.getenv("PATH")).split(File.pathSeparator);
+
+    StringVector.Builder result = new StringArrayVector.Builder(0, names.length());
+    result.setAttribute(Symbols.NAMES, names.setAttributes(AttributeMap.EMPTY));
+
+    for (String name : names) {
+      result.add(findExecutable(context, path, name));
+    }
+
+    return result.build();
+  }
+
+  private static String findExecutable(Context context, String[] paths, String name) {
+    if(isAbsolutePath(name)) {
+      return executablePath(context, name);
+    } else {
+      for (String path : paths) {
+        String executablePath = executablePath(context, path + File.separator + name);
+        if(!executablePath.isEmpty()) {
+          return executablePath;
+        }
+      }
+    }
+    return "";
+  }
+
+  private static String executablePath(Context context, String name) {
+    try {
+      FileObject fileObject = context.resolveFile(name);
+      if(fileObject.exists()) {
+        return friendlyFileName(fileObject);
+      } else  {
+        return "";
+      }
+    } catch (FileSystemException e) {
+      return "";
+    }
+  }
+
+  private static boolean isAbsolutePath(String name) {
+    File file = new File(name);
+    return file.isAbsolute();
   }
 
   /**
@@ -374,12 +451,12 @@ public class Files {
 
       private final List<String> result = new ArrayList<String>();
       private Predicate<String> nameFilter;
-      
+
 
       public StringVector list() throws IOException {
 
         if(pattern == null) {
-          nameFilter = Predicates.alwaysTrue();
+          nameFilter = (x -> true);
         } else {
           try {
             nameFilter = REFactory.asPredicate(new ExtendedRE(pattern).ignoreCase(ignoreCase));
@@ -405,18 +482,18 @@ public class Files {
       }
 
       private void list(String path, FileObject folder) throws FileSystemException {
-        if(allFiles & !recursive) {
-          if(nameFilter.apply(".")) {
+        if(allFiles && !recursive) {
+          if(nameFilter.test(".")) {
             add(path, ".");
           }
-          if(nameFilter.apply("..")) {
+          if(nameFilter.test("..")) {
             add(path, "..");
           }
         }
         for(FileObject child : folder.getChildren()) {
           if(filter(child)) {
             add(path, child);
-          } 
+          }
           if(recursive && child.getType() == FileType.FOLDER) {
             list(qualify(path, child.getName().getBaseName()), child);
           }
@@ -430,7 +507,7 @@ public class Files {
       void add(String path, String name) throws FileSystemException {
         result.add(qualify(path, name));
       }
-      
+
       private String qualify(String path, String filename) {
         if(path.length() > 0) {
           return path + "/" + filename;
@@ -446,7 +523,7 @@ public class Files {
         if(recursive && !includeDirs && child.getType() == FileType.FOLDER) {
           return false;
         }
-        if(!nameFilter.apply(child.getName().getBaseName())) {
+        if(!nameFilter.test(child.getName().getBaseName())) {
           return false;
         }
         return true;
@@ -478,14 +555,14 @@ public class Files {
   /**
    *
    * Returns a path that can be used as names for temporary files
-   * 
+   *
    * <strong>According to the R docs:</strong>
    * The names are very likely to be unique among calls to 'tempfile'
    * in an R session and across simultaneous R sessions (unless
    * 'tmpdir' is specified).  The filenames are guaranteed not to be
-   * currently in use. 
-   * 
-   * First sentence: yes, second sentence: not really. 
+   * currently in use.
+   *
+   * First sentence: yes, second sentence: not really.
    *
    * @param pattern a non-empty character vector giving the initial part of the name
    * @param tempdir a non-empty character vector giving the directory name
@@ -497,7 +574,7 @@ public class Files {
   public static String tempfile(String pattern, String tempdir, String fileExt) {
     return tempdir + "/" + pattern + createRandomHexString(10) + fileExt;
   }
-  
+
   /* used to make hopefully-random file names in tempfile() */
   private static String createRandomHexString(int length) {
     Random randomService = new Random();
@@ -506,7 +583,7 @@ public class Files {
       sb += Integer.toHexString(randomService.nextInt());
     }
     return sb;
-  } 
+  }
 
   /**
    * Returns an absolute filename representing the current working directory of the R process;
@@ -521,9 +598,9 @@ public class Files {
    */
   @Internal
   public static String getwd(@Current Context context) {
-    return context.getSession().getWorkingDirectory().getName().getURI();
+    return friendlyFileName(context.getSession().getWorkingDirectory());
   }
-  
+
   @Invisible
   @Internal
   public static String setwd(@Current Context context, String workingDirectoryName) throws FileSystemException {
@@ -532,12 +609,12 @@ public class Files {
         newWorkingDirectory.getType() != FileType.FOLDER) {
       throw new EvalException("cannot change working directory");
     }
-   
-    String previous = context.getSession().getWorkingDirectory().getName().getURI();
-    
+
+    String previous = friendlyFileName(context.getSession().getWorkingDirectory());
+
     context.getSession().setWorkingDirectory(newWorkingDirectory);
     return previous;
-  } 
+  }
 
   /**
    * Unlink deletes the file(s) or directories specified by {@code paths}.
@@ -564,6 +641,22 @@ public class Files {
     return result.build();
   }
 
+  @Internal("local.file")
+  public static StringVector localFile(@Current Context context, StringVector uris) throws IOException {
+    StringArrayVector.Builder localFiles = new StringArrayVector.Builder(0, uris.length());
+
+    for (String uri : uris) {
+      FileObject fileObject = context.resolveFile(uri);
+      File localFile = fileObject.getFileSystem().replicateFile(fileObject, new AllFileSelector());
+
+      localFiles.add(localFile.getAbsolutePath());
+    }
+
+    return localFiles.build();
+
+  }
+
+
   private static void delete(FileObject file, boolean recursive) throws FileSystemException {
     if(file.exists()) {
       if(file.getType() == FileType.FILE) {
@@ -578,7 +671,7 @@ public class Files {
       }
     }
   }
-  
+
   @Internal("file.copy")
   public static LogicalVector fileCopy(@Current Context context, StringVector fromFiles, String to, boolean overwrite, final boolean recursive) throws FileSystemException {
     LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
@@ -586,12 +679,12 @@ public class Files {
     for(String from : fromFiles) {
       try {
         toFile.copyFrom(context.resolveFile(from), new FileSelector() {
-          
+
           @Override
           public boolean traverseDescendents(FileSelectInfo fileInfo) throws Exception {
             return true;
           }
-          
+
           @Override
           public boolean includeFile(FileSelectInfo fileInfo) throws Exception {
             return recursive;
@@ -607,15 +700,15 @@ public class Files {
 
 
   @Internal("file.rename")
-  public static LogicalVector fileRename(@Current Context context, StringVector fromFiles, StringVector toFiles) 
+  public static LogicalVector fileRename(@Current Context context, StringVector fromFiles, StringVector toFiles)
       throws FileSystemException {
-    
+
     if(toFiles.length() != fromFiles.length()) {
       throw new EvalException("'from' and 'to' are of different lengths");
     }
 
     LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
-    
+
     for (int i = 0; i < fromFiles.length(); i++) {
       boolean succeeded = renameFile(context, fromFiles.getElementAsString(i), toFiles.getElementAsString(i));
       result.add(succeeded);
@@ -633,9 +726,9 @@ public class Files {
       if(!from.exists()) {
         throw new FileSystemException("No such file or directory");
       }
-      
+
       to = context.resolveFile(toUri);
-   
+
       if(!from.canRenameTo(to)) {
         throw new FileSystemException("rename not supported");
       }
@@ -644,7 +737,7 @@ public class Files {
       from.moveTo(to);
 
       return true;
-      
+
     } catch(FileSystemException e) {
       context.warn(String.format("cannot rename file '%s' to '%s', reason: '%s'", fromUri, toUri, e.getMessage()));
       return false;
@@ -705,11 +798,11 @@ public class Files {
     ZipInputStream zin = new ZipInputStream(context.resolveFile(pathExpand(zipFile)).getContent().getInputStream());
     try {
       FileObject exdir = context.resolveFile(exdirUri);
-  
+
       if(list) {
         throw new EvalException("unzip(list=true) not yet implemented");
       }
-  
+
       ZipEntry entry;
       while ( (entry=zin.getNextEntry()) != null ) {
         if (unzipMatches(entry, files))  {
@@ -717,7 +810,7 @@ public class Files {
         }
       }
       context.setInvisibleFlag();
-  
+
       return new IntArrayVector(0);
     } finally {
       zin.close();
@@ -735,7 +828,7 @@ public class Files {
 
     FileObject exfile = exdir.resolveFile(entry.getName());
     if(exfile.exists() && !overwrite) {
-      throw new EvalException("file to be extracted '%s' already exists", exfile.getName().getURI());
+      throw new EvalException("file to be extracted '%s' already exists", friendlyFileName(exfile));
     }
     OutputStream out = exfile.getContent().getOutputStream();
     try {
@@ -750,6 +843,17 @@ public class Files {
     }
   }
 
+  /**
+   * Return the local file name of the virtual file object, or a URI if that is not possible.
+   */
+  private static String friendlyFileName(FileObject file) {
+    String uri = file.getName().getURI();
+    if(uri.startsWith("file://")) {
+      return uri.substring("file://".length());
+    }
+    return uri;
+  }
+
   private static boolean unzipMatches(ZipEntry entry, Vector files) {
     if(files == Null.INSTANCE) {
       return true;
@@ -762,20 +866,20 @@ public class Files {
       return false;
     }
   }
-  
+
   @Internal("file.create")
   @DataParallel
   public static boolean fileCreate(@Current Context context, @Recycle String fileName, @Recycle(false) boolean showWarnings) throws IOException {
     try {
       FileObject file = context.resolveFile(fileName);
-      // VFS will create the parent folder if it doesn't exist, 
+      // VFS will create the parent folder if it doesn't exist,
       // which the R method is not supposed to do
       if(!file.getParent().exists()) {
         throw new IOException("No such file or directory");
       }
       file.getContent().getOutputStream().close();
       return true;
-      
+
     } catch (Exception e) {
       if(showWarnings) {
         Warning.invokeWarning(context, "cannot create file '%s', reason '%s'", fileName, e.getMessage());
@@ -783,7 +887,7 @@ public class Files {
       return false;
     }
   }
-  
+
   /**
    *  ‘file.append’ attempts to append the files named by its second
    * argument to those named by its first.  The R subscript recycling

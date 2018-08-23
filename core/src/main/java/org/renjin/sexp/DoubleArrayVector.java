@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,9 +26,14 @@ import java.util.Collection;
 
 public final class DoubleArrayVector extends DoubleVector {
 
-  public static DoubleArrayVector ZERO = new DoubleArrayVector(0);
+  public static final DoubleArrayVector ZERO = new DoubleArrayVector(0);
 
-  public static DoubleArrayVector ONE = new DoubleArrayVector(1);
+  public static final DoubleArrayVector ONE = new DoubleArrayVector(1);
+
+  public static final DoubleArrayVector EMPTY = new DoubleArrayVector();
+
+  public static final DoubleArrayVector NA_VECTOR = new DoubleArrayVector(DoubleVector.NA);
+
 
   private double[] values;
 
@@ -48,6 +53,10 @@ public final class DoubleArrayVector extends DoubleVector {
 
   public DoubleArrayVector(double... values) {
     this(values, AttributeMap.EMPTY);
+  }
+
+  public DoubleArrayVector(double value, AttributeMap attributes) {
+    this(new double[] { value }, 1, attributes);
   }
 
   public DoubleArrayVector(double[] values, AttributeMap attributes) {
@@ -172,6 +181,10 @@ public final class DoubleArrayVector extends DoubleVector {
     return Arrays.copyOf(this.values, this.values.length);
   }
 
+  @Override
+  public void copyTo(double[] array, int offset, int length) {
+    System.arraycopy(array, 0, array, offset, length);
+  }
 
   public static class Builder extends AbstractAtomicBuilder {
     private static final int MIN_INITIAL_CAPACITY = 50;
@@ -239,11 +252,7 @@ public final class DoubleArrayVector extends DoubleVector {
 
     @Override
     public Builder setFrom(int destinationIndex, Vector source, int sourceIndex) {
-      if(source.isElementNA(sourceIndex)) {
-        return setNA(destinationIndex);
-      } else {
-        return set(destinationIndex, source.getElementAsDouble(sourceIndex));
-      }
+      return set(destinationIndex, source.getElementAsDouble(sourceIndex));
     }
 
     public Builder set(int index, Double value) {

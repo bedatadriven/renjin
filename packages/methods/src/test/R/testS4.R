@@ -4,7 +4,7 @@ library(hamcrest)
 library(methods)
 
 
-failing.test.S4.class1 = function() {
+test.S4.class1 = function() {
 
     # create S4 class "molecule"
     molecule <- setClass("Molecule",
@@ -58,6 +58,29 @@ failing.test.S4.class1 = function() {
 	assertFalse(
 		is(tryCatch(slot(a,"name") <- "", error = function(e)e), "error")
 		)
+}
+
+test.S4.class.methods.1 = function() {
+    # create S4 class "molecule"
+    molecule <- setClass("Molecule",
+	    slots = c(
+		    name = "character",
+		    content = "character",
+		    size = "numeric"
+		    ),
+	    prototype = list(
+		    name = "Molecule_Name",
+		    content = "Molecule_Formula",
+		    size = 0.0
+		    ),
+	    validity = function(object)
+	    {
+		    if((object@name == "") | (object@content == "") | (object@size == "")) {
+			    return("INVALID OBJECT: Name, content, or the size of your object is empty.")
+		    }
+		    return(TRUE)
+	    }
+    )
 
     setGeneric(name="setName",
         def=function(object,name){
@@ -143,6 +166,9 @@ failing.test.S4.class1 = function() {
             return(object@size)
         }
     )
+
+    a = new("Molecule", name = "Water", content = "H2O", size = 100)
+    b = molecule(name = "Salt", content = "NaCl", size = 10.1)
 
     #Test methods
     assertTrue(
@@ -286,6 +312,7 @@ failing.test.S4.class1 = function() {
 		is(tryCatch(Gene(name=10,content="mRNA",sequence="ATCGAGT3",size=7), error = function(e)e), "error")
 		)
 
+    assertTrue(inherits(e, "Molecule"))
 
 
     setGeneric(name="setSeq",
@@ -310,7 +337,7 @@ failing.test.S4.class1 = function() {
     )
 
     setMethod(f="getSeq",
-        signature="DNA",
+        signature="Gene",
         definition=function(object){
             return(object@sequence)
         }

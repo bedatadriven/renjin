@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,17 +20,17 @@ package org.renjin.gcc.gimple.expr;
 
 import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleParameter;
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 
 public class GimpleParamRef extends GimpleLValue implements GimpleSymbolRef {
 
-  private int id;
+  private long id;
   private String name;
 
   public GimpleParamRef() {
   }
 
-  public GimpleParamRef(int id, String name) {
+  public GimpleParamRef(long id, String name) {
     this.id = id;
     this.name = name;
   }
@@ -45,15 +45,20 @@ public class GimpleParamRef extends GimpleLValue implements GimpleSymbolRef {
     return name;
   }
 
+  @Override
+  public String getMangledName() {
+    return name;
+  }
+
   public void setName(String name) {
     this.name = name;
   }
 
-  public int getId() {
+  public long getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public void setId(long id) {
     this.id = id;
   }
   

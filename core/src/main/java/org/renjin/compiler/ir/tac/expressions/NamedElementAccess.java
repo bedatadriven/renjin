@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,30 +21,58 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.primitives.special.DollarFunction;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
+
+import java.util.Map;
 
 /**
  * Element access in the form x$name
  */
-public class NamedElementAccess extends SpecializedCallExpression {
+public class NamedElementAccess implements Expression {
 
+  private Expression expression;
   private String memberName;
-  private ValueBounds valueBounds = ValueBounds.UNBOUNDED;
+  private ValueBounds valueBounds;
 
   public NamedElementAccess(Expression expression, String memberName) {
-    super(expression);
+    this.expression = expression;
     this.memberName = memberName;
+    
+    valueBounds = ValueBounds.UNBOUNDED;
   }
 
   @Override
-  public boolean isDefinitelyPure() {
+  public boolean isPure() {
     return true;
   }
 
   @Override
   public int load(EmitContext emitContext, InstructionAdapter mv) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+    
+    ValueBounds argumentBounds = typeMap.get(expression);
+    if(argumentBounds.isConstant()) {
+      // Handle the cases where the $ function is pure
+      // if the object is a environment or an external pointer, then
+      // the operation may have side-effects.
+      SEXP object = argumentBounds.getConstantValue();
+      if(object instanceof ListVector) {
+        valueBounds = ValueBounds.of(DollarFunction.fromList((ListVector) object, memberName));
+      } else if(object instanceof PairList) {
+        valueBounds = ValueBounds.of(DollarFunction.fromPairList((PairList) object, memberName));
+      }
+    }
+    
+    return valueBounds;
   }
 
   @Override
@@ -57,13 +85,29 @@ public class NamedElementAccess extends SpecializedCallExpression {
     return valueBounds;
   }
 
+
   @Override
-  public boolean isFunctionDefinitelyPure() {
-    return true;
+  public void setChild(int childIndex, Expression child) {
+    if(childIndex != 0) {
+      throw new IllegalArgumentException("childIndex:" + childIndex);
+    }
+    expression = child;
   }
 
   @Override
-  public String toString() {
-    return arguments[0] + "$" + memberName;
+  public int getChildCount() {
+    return 1;
   }
+
+  @Override
+  public Expression childAt(int index) {
+    return expression;
+  }
+
+
+  @Override
+  public String toString() {
+    return expression + "$" + memberName;
+  }
+
 }

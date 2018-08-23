@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,9 +24,20 @@ import org.renjin.sexp.PairList;
 
 
 public class InlinedContext implements TranslationContext {
+
+  private PairList formals;
+
+  public InlinedContext(PairList formals) {
+    this.formals = formals;
+  }
+
   @Override
   public PairList getEllipsesArguments() {
     // We are only supporting the inlining of functions when no arguments are passed via ...
     return Null.INSTANCE;
+  }
+
+  public PairList getFormals() {
+    return formals;
   }
 }

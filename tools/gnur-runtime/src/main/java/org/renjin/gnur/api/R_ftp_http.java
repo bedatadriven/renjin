@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 // Initial template generated from R-ftp-http.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.gcc.runtime.CharPtr;
+import org.renjin.gcc.runtime.BytePtr;
 
 @SuppressWarnings("unused")
 public final class R_ftp_http {
@@ -28,11 +28,11 @@ public final class R_ftp_http {
 
 
 
-  public static Object R_HTTPOpen(CharPtr url) {
+  public static Object R_HTTPOpen(BytePtr url) {
     throw new UnimplementedGnuApiMethod("R_HTTPOpen");
   }
 
-  public static int R_HTTPRead(Object ctx, CharPtr dest, int len) {
+  public static int R_HTTPRead(Object ctx, BytePtr dest, int len) {
     throw new UnimplementedGnuApiMethod("R_HTTPRead");
   }
 
@@ -40,11 +40,11 @@ public final class R_ftp_http {
     throw new UnimplementedGnuApiMethod("R_HTTPClose");
   }
 
-  public static Object R_FTPOpen(CharPtr url) {
+  public static Object R_FTPOpen(BytePtr url) {
     throw new UnimplementedGnuApiMethod("R_FTPOpen");
   }
 
-  public static int R_FTPRead(Object ctx, CharPtr dest, int len) {
+  public static int R_FTPRead(Object ctx, BytePtr dest, int len) {
     throw new UnimplementedGnuApiMethod("R_FTPRead");
   }
 
@@ -66,13 +66,13 @@ public final class R_ftp_http {
     throw new UnimplementedGnuApiMethod("RxmlNanoHTTPReturnCode");
   }
 
-  public static CharPtr RxmlNanoHTTPStatusMsg(Object ctx) {
+  public static BytePtr RxmlNanoHTTPStatusMsg(Object ctx) {
     throw new UnimplementedGnuApiMethod("RxmlNanoHTTPStatusMsg");
   }
 
   // DLsize_t RxmlNanoHTTPContentLength (void *ctx)
 
-  public static CharPtr RxmlNanoHTTPContentType(Object ctx) {
+  public static BytePtr RxmlNanoHTTPContentType(Object ctx) {
     throw new UnimplementedGnuApiMethod("RxmlNanoHTTPContentType");
   }
 
@@ -80,7 +80,7 @@ public final class R_ftp_http {
     throw new UnimplementedGnuApiMethod("RxmlNanoHTTPTimeout");
   }
 
-  public static Object RxmlNanoFTPOpen(CharPtr URL) {
+  public static Object RxmlNanoFTPOpen(BytePtr URL) {
     throw new UnimplementedGnuApiMethod("RxmlNanoFTPOpen");
   }
 

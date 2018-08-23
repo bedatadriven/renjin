@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,11 +20,11 @@ package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.ir.exception.InternalCompilerException;
 import org.renjin.primitives.Primitives;
-import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.cache.CacheBuilder;
 import org.renjin.repackaged.guava.cache.CacheLoader;
 import org.renjin.repackaged.guava.cache.LoadingCache;
 import org.renjin.repackaged.guava.collect.Maps;
+import org.renjin.sexp.Symbol;
 
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -38,7 +38,7 @@ public class BuiltinSpecializers {
   /**
    * For a few builtins, we have extra-special specializers.
    */
-  private final Map<Primitives.Entry, Specializer> specializers = Maps.newHashMap();
+  private final Map<String, Specializer> specializers = Maps.newHashMap();
 
   
   /**
@@ -46,30 +46,50 @@ public class BuiltinSpecializers {
    * in the code base. To avoid rebuilding the metadata each time one is needed, 
    * cache instances of BuiltinSpecializer here.
    */
-  private final LoadingCache<Primitives.Entry, BuiltinSpecializer> cache;
+  private final LoadingCache<String, Specializer> cache;
   
   
   public BuiltinSpecializers() {
     
-    specializers.put(Primitives.getBuiltinEntry("length"), new GenericBuiltinGuard(new LengthSpecializer()));
-    specializers.put(Primitives.getBuiltinEntry("[<-"), new GenericBuiltinGuard(new ReplaceSpecializer()));
-    cache = CacheBuilder.newBuilder().build(new CacheLoader<Primitives.Entry, BuiltinSpecializer>() {
+    specializers.put("length", new GenericBuiltinGuard(new LengthSpecializer()));
+    specializers.put("[<-", new GenericBuiltinGuard(new ReplaceSpecializer()));
+    specializers.put("[", new GenericBuiltinGuard(new SubsetSpecializer()));
+    specializers.put("[[", new GenericBuiltinGuard(new SingleSubsetSpecializer()));
+    specializers.put("c", new GenericBuiltinGuard(new CombineSpecializer()));
+    specializers.put("is.array", new GenericBuiltinGuard(new IsArraySpecializer()));
+    specializers.put("dim", new GenericBuiltinGuard(new DimSpecializer()));
+    specializers.put("rep", new RepSpecializer());
+    specializers.put("invisible", new InvisibleSpecializer());
+
+    cache = CacheBuilder.newBuilder().build(new CacheLoader<String, Specializer>() {
       @Override
-      public BuiltinSpecializer load(Primitives.Entry entry) throws Exception {
-        return new BuiltinSpecializer(entry);
+      public Specializer load(String primitive) throws Exception {
+        Symbol primitiveName = Symbol.get(primitive);
+        Primitives.Entry entry = Primitives.getBuiltinEntry(primitiveName);
+        if(entry == null) {
+          entry = Primitives.getInternalEntry(primitiveName);
+        }
+        if(entry == null) {
+          throw new IllegalStateException("No builtin entry for " + primitiveName);
+        }
+        AnnotationBasedSpecializer specializer = new AnnotationBasedSpecializer(entry);
+        if(specializer.isGeneric()) {
+          return new GenericBuiltinGuard(specializer);
+        } else {
+          return specializer;
+        }
       }
     });
   }
   
-  public Specializer get(Primitives.Entry primitive) {
-    Preconditions.checkNotNull(primitive);
+  public Specializer get(String primitiveName) {
     
-    if(specializers.containsKey(primitive)) {
-      return specializers.get(primitive);
+    if(specializers.containsKey(primitiveName)) {
+      return specializers.get(primitiveName);
     }
     
     try {
-      return cache.get(primitive);
+      return cache.get(primitiveName);
     } catch (ExecutionException e) {
       throw new InternalCompilerException(e);
     }

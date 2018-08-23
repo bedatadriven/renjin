@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,10 +21,12 @@ package org.renjin.gcc.codegen.fatptr;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Functor which can "unwrap" a fat ptr
@@ -32,6 +34,8 @@ import java.util.List;
 public interface ValueFunction {
   
   Type getValueType();
+
+  GimpleType getGimpleValueType();
 
   /**
    * Returns the number of array elements required for each value.
@@ -49,6 +53,7 @@ public interface ValueFunction {
 
   Optional<JExpr> getValueConstructor();
 
+  VPtrExpr toVPtr(JExpr array, JExpr offset);
 
   GExpr dereference(JExpr array, JExpr offset);
   
@@ -60,6 +65,7 @@ public interface ValueFunction {
    * @return
    */
   List<JExpr> toArrayValues(GExpr expr);
+
 
   /**
    * Copies the <strong>values</strong> from one array of these values to another.

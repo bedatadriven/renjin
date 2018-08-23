@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,9 +20,16 @@
 package org.renjin.gnur.api;
 
 import org.renjin.eval.EvalException;
-import org.renjin.gcc.runtime.CharPtr;
+import org.renjin.gcc.annotations.Noop;
+import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.gcc.runtime.Ptr;
+import org.renjin.primitives.files.Files;
+
+import java.nio.charset.StandardCharsets;
+
+import static org.renjin.gnur.Sort.rcmp;
 
 @SuppressWarnings("unused")
 public final class Utils {
@@ -32,17 +39,42 @@ public final class Utils {
 
 
   public static void R_isort(IntPtr p0, int p1) {
-    throw new UnimplementedGnuApiMethod("R_isort");
+    org.renjin.gnur.Sort.R_isort(p0, p1);
   }
 
   public static void R_rsort(DoublePtr p0, int p1) {
-    throw new UnimplementedGnuApiMethod("R_rsort");
+    org.renjin.gnur.Sort.R_rsort(p0, p1);
   }
 
   // void R_csort (Rcomplex *, int)
 
-  public static void rsort_with_index(DoublePtr p0, IntPtr p1, int p2) {
-    throw new UnimplementedGnuApiMethod("rsort_with_index");
+  public static void rsort_with_index(DoublePtr x, IntPtr indx, int n) {
+    double v;
+    int i, j, h, iv;
+
+    h = 1;
+    boolean loop = true;
+    while(loop) {
+      if (h <= n / 9) {
+        loop = false;
+      }
+      h = 3 * h + 1;
+    }
+
+    for (; h > 0; h /= 3) {
+      for (i = h; i < n; i++) {
+        v = x.getDouble(i);
+        iv = indx.getInt(i);
+        j = i;
+        while (j >= h && rcmp(x.getDouble(j - h), v, true) > 0) {
+          x.set(j, x.getDouble(j - h));
+          indx.setInt(j, indx.getInt(j - h));
+          j -= h;
+        }
+        x.set(j, v);
+        indx.setInt(j, iv);
+      }
+    }
   }
 
   public static void Rf_revsort(DoublePtr p0, IntPtr p1, int p2) {
@@ -50,7 +82,7 @@ public final class Utils {
   }
 
   public static void Rf_iPsort(IntPtr p0, int p1, int p2) {
-    throw new UnimplementedGnuApiMethod("Rf_iPsort");
+    org.renjin.gnur.Sort.Rf_iPsort(p0, p1, p2);
   }
 
   public static void Rf_rPsort(DoublePtr p0, int p1, int p2) {
@@ -75,8 +107,8 @@ public final class Utils {
     org.renjin.gnur.qsort.R_qsort_int_I(iv, II, i, j);
   }
 
-  public static CharPtr R_ExpandFileName(CharPtr p0) {
-    throw new UnimplementedGnuApiMethod("R_ExpandFileName");
+  public static BytePtr R_ExpandFileName(BytePtr p0) {
+    return BytePtr.nullTerminatedString(Files.pathExpand(p0.nullTerminatedString()), StandardCharsets.UTF_8);
   }
 
   public static void Rf_setIVector(IntPtr p0, int p1, int p2) {
@@ -87,29 +119,35 @@ public final class Utils {
     throw new UnimplementedGnuApiMethod("Rf_setRVector");
   }
 
-  public static boolean Rf_StringFalse(CharPtr p0) {
+  public static boolean Rf_StringFalse(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_StringFalse");
   }
 
-  public static boolean Rf_StringTrue(CharPtr p0) {
+  public static boolean Rf_StringTrue(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_StringTrue");
   }
 
-  public static boolean Rf_isBlankString(CharPtr p0) {
+  public static boolean Rf_isBlankString(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_isBlankString");
   }
 
-  public static double R_atof(CharPtr str) {
-    throw new UnimplementedGnuApiMethod("R_atof");
+  @Deprecated
+  public static double R_atof(BytePtr str) {
+    return Defn.R_atof((Ptr)str);
+  }
+
+  @Deprecated
+  public static double R_atof(Ptr str) {
+    return Defn.R_atof(str);
   }
 
   // double R_strtod (const char *c, char **end)
 
-  public static CharPtr R_tmpnam(CharPtr prefix, CharPtr tempdir) {
+  public static BytePtr R_tmpnam(BytePtr prefix, BytePtr tempdir) {
     throw new UnimplementedGnuApiMethod("R_tmpnam");
   }
 
-  public static CharPtr R_tmpnam2(CharPtr prefix, CharPtr tempdir, CharPtr fileext) {
+  public static BytePtr R_tmpnam2(BytePtr prefix, BytePtr tempdir, BytePtr fileext) {
     throw new UnimplementedGnuApiMethod("R_tmpnam2");
   }
 
@@ -119,10 +157,12 @@ public final class Utils {
     }
   }
 
+  @Noop
   public static void R_CheckStack() {
     // Noop: JVM will throw a StackOverflowError for us if need be
   }
 
+  @Noop
   public static void R_CheckStack2(/*size_t*/ int p0) {
     // Noop: JVM will throw a StackOverflowError for us if need be
   }

@@ -30,7 +30,7 @@ R_PKGS_RECOMMENDED =  MASS lattice Matrix nlme survival boot cluster codetools f
 ##########################################################################################################
 # Renjin Specific
 
-RENJIN_FLAGS=-m32 -fplugin=${BRIDGE_PLUGIN} -DRENJIN
+RENJIN_FLAGS=-m32 -fplugin=${BRIDGE_PLUGIN} -DRENJIN  -fno-inline-functions  -fdisable-tree-einline
 
 # Right now our gimple compiler is not good at hanlding optimized Gimple,
 # so turn it off for now.
@@ -43,17 +43,29 @@ AWK = /usr/bin/awk
 BLAS_LIBS = -lblas
 C_VISIBILITY = -fvisibility=hidden
 CC = gcc-4.7 -std=gnu99
-CFLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g $(LTO)
+CFLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security  -D_FORTIFY_SOURCE=2 -g $(LTO)
 CPICFLAGS = -fpic
 CPPFLAGS = 
 CXX = g++-4.7
 CXXCPP = $(CXX) -E
 CXXFLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g $(LTO)
 CXXPICFLAGS = -fpic
-CXX1X = g++-4.7
-CXX1XFLAGS = -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g
-CXX1XPICFLAGS = -fpic
-CXX1XSTD =  -std=c++11
+CXX98 = g++-4.7
+CXX98FLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g
+CXX98PICFLAGS = -fpic
+CXX98STD =
+CXX11 = g++-4.7
+CXX11FLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS}  -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g
+CXX11PICFLAGS = -fpic
+CXX11STD = -std=gnu++11
+CXX14 = g++-4.7
+CXX14FLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g
+CXX14PICFLAGS = -fpic
+CXX14STD = -std=gnu++14
+CXX17 =
+CXX17FLAGS =
+CXX17PICFLAGS =
+CXX17STD =
 DYLIB_EXT = .so
 DYLIB_LD = $(CC)
 DYLIB_LDFLAGS = -shared -fopenmp# $(CFLAGS) $(CPICFLAGS)
@@ -116,8 +128,14 @@ SHLIB_CFLAGS =
 SHLIB_CXXFLAGS = 
 SHLIB_CXXLD = $(CXX)
 SHLIB_CXXLDFLAGS = -shared
-SHLIB_CXX1XLD = $(CXX1X) $(CXX1XSTD)
-SHLIB_CXX1XLDFLAGS = -shared
+SHLIB_CXX98LD = $(CXX98) $(CXX98STD)
+SHLIB_CXX98LDFLAGS = -shared
+SHLIB_CXX11LD = $(CXX11) $(CXX11STD)
+SHLIB_CXX11LDFLAGS = -shared
+SHLIB_CXX14LD = $(CXX14) $(CXX14STD)
+SHLIB_CXX14LDFLAGS = -shared
+SHLIB_CXX17LD = $(CXX17) $(CXX17STD)
+SHLIB_CXX17LDFLAGS = -shared
 SHLIB_EXT = .so
 SHLIB_FCLD = $(FC)
 SHLIB_FCLDFLAGS = -shared
@@ -143,6 +161,14 @@ TCLTK_CPPFLAGS = -I/usr/include/tcl8.6 -I/usr/include/tcl8.6
 TCLTK_LIBS = -L/usr/lib/x86_64-linux-gnu -ltcl8.6 -L/usr/lib/x86_64-linux-gnu -ltk8.6 -lX11 -lXss -lXext
 YACC = bison -y
 
+## legacy
+CXX1X = g++-4.7
+CXX1XFLAGS = ${RENJIN_FLAGS} -g -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g
+CXX1XPICFLAGS = -fpic
+CXX1XSTD = -std=gnu++11
+SHLIB_CXX1XLD = $(CXX11) $(CXX11STD)
+SHLIB_CXX1XLDFLAGS = -shared
+
 ## for linking to libR.a
 STATIC_LIBR = # -Wl,--whole-archive "$(R_HOME)/lib$(R_ARCH)/libR.a" -Wl,--no-whole-archive $(BLAS_LIBS) $(FLIBS)  $(LIBINTL) -lreadline  $(LIBS)
 
@@ -152,7 +178,7 @@ R_XTRA_CXXFLAGS =
 R_XTRA_FFLAGS = 
 
 ALL_CFLAGS = $(R_XTRA_CFLAGS) $(PKG_CFLAGS) $(CPICFLAGS) $(SHLIB_CFLAGS) $(CFLAGS)
-ALL_CPPFLAGS = $(R_XTRA_CPPFLAGS) $(PKG_CPPFLAGS) $(CPPFLAGS) $(CLINK_CPPFLAGS)
+ALL_CPPFLAGS = $(R_XTRA_CPPFLAGS) $(PKG_CPPFLAGS) $(CLINK_CPPFLAGS) $(CPPFLAGS)
 ALL_CXXFLAGS = $(R_XTRA_CXXFLAGS) $(PKG_CXXFLAGS) $(CXXPICFLAGS) $(SHLIB_CXXFLAGS) $(CXXFLAGS)
 ALL_OBJCFLAGS = $(PKG_OBJCFLAGS) $(CPICFLAGS) $(SHLIB_CFLAGS) $(OBJCFLAGS)
 ALL_OBJCXXFLAGS = $(PKG_OBJCXXFLAGS) $(CXXPICFLAGS) $(SHLIB_CXXFLAGS) $(OBJCXXFLAGS)

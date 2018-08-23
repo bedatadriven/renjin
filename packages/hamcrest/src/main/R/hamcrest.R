@@ -1,6 +1,6 @@
 #
 # Renjin : JVM-based interpreter for the R language for the statistical analysis
-# Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+# Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,7 +28,14 @@ assertThat <- function(actual, matcher) {
 	
 	call <- match.call()
 
-	if(!matcher(actual)) {
+    matches <- tryCatch( matcher(actual), error = function(e) {
+
+        stop(sprintf("\nassertThat(%s, %s) failed\nError: %s",
+    				deparse0(call$actual), deparse0(call$matcher), deparse0(e$message)))
+
+    })
+
+	if(!matches) {
 		stop(sprintf("\nassertThat(%s, %s) failed\nGot: %s", 
 				deparse0(call$actual), deparse0(call$matcher), deparse0(actual)))
 	}

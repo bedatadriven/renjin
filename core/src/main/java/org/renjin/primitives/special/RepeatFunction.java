@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,9 +31,21 @@ public class RepeatFunction extends SpecialFunction {
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     SEXP statement = args.getElementAsSEXP(0);
 
+//    int iterationCount = 0;
+//    boolean compilationFailed = false;
+    
     while(true) {
       try {
+        
+//        if(iterationCount > 50) {
+//          if (LoopCompiler.tryCompileAndRun(context, rho, call)) {
+//            break;
+//          } else {
+//            compilationFailed = true;
+//          }
+//        }
         context.evaluate( statement, rho);
+//        iterationCount++;
       } catch(BreakException e) {
         break;
       } catch(NextException e) {
@@ -43,4 +55,5 @@ public class RepeatFunction extends SpecialFunction {
     context.setInvisibleFlag();
     return Null.INSTANCE;
   }
+
 }

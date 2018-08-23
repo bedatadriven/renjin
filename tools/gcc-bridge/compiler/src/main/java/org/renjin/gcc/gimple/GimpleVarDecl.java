@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,21 +23,19 @@ import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
 import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.repackaged.guava.base.Predicate;
-
-import java.util.Collections;
-import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Gimple Variable Declaration
  */
 public class GimpleVarDecl implements GimpleDecl {
-  private int id;
+  private long id;
   private GimpleType type;
   private String name;
   private String mangledName;
   private GimpleExpr value;
   private GimpleCompilationUnit unit;
+  private boolean global;
   
   @JsonProperty("const")
   private boolean constant;
@@ -49,6 +47,9 @@ public class GimpleVarDecl implements GimpleDecl {
   @JsonProperty("static")
   private boolean _static;
 
+  @JsonProperty("public")
+  private boolean _public;
+
   /**
    * True if this local variable is addressable
    */
@@ -57,11 +58,11 @@ public class GimpleVarDecl implements GimpleDecl {
   public GimpleVarDecl() {
   }
 
-  public int getId() {
+  public long getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public void setId(long id) {
     this.id = id;
   }
 
@@ -82,10 +83,27 @@ public class GimpleVarDecl implements GimpleDecl {
   }
   
   public String getNameIfPresent() {
-    return name;
+    if(mangledName != null) {
+      return mangledName;
+    } else {
+      return name;
+    }
+  }
+
+  public String getNameIfPresent(String suffix) {
+    if(mangledName != null) {
+      return mangledName + "$" + suffix;
+    } else if(name != null) {
+      return name + "$" + suffix;
+    } else {
+      return null;
+    }
   }
 
   public String getMangledName() {
+    if(mangledName == null) {
+      return name;
+    }
     return mangledName;
   }
 
@@ -133,6 +151,18 @@ public class GimpleVarDecl implements GimpleDecl {
     this.unit = unit;
   }
 
+  /**
+   *
+   * @return true if the declaration is visible outside of the translation unit.
+   */
+  public boolean isPublic() {
+    return _public;
+  }
+
+  public void setPublic(boolean _public) {
+    this._public = _public;
+  }
+
   @Override
   public String toString() {
     StringBuilder s = new StringBuilder().append(type).append(" ").append(getName());
@@ -144,8 +174,7 @@ public class GimpleVarDecl implements GimpleDecl {
 
   /**
    * 
-   * @return true f this variable declaration has external linkage, that is, it is visible outside
-   * of the compilation unit.
+   * @return true if this variable declaration is defined in another translation unit.
    */
   public boolean isExtern() {
     return extern;
@@ -171,16 +200,6 @@ public class GimpleVarDecl implements GimpleDecl {
     this._static = _static;
   }
 
-  public Predicate<GimpleExpr> isReference() {
-    return new Predicate<GimpleExpr>() {
-      @Override
-      public boolean apply(GimpleExpr input) {
-        return input instanceof GimpleSymbolRef && 
-            ((GimpleSymbolRef) input).getId() == id;
-      }
-    };
-  }
-
   public GimpleVariableRef newRef() {
     return new GimpleVariableRef(id, type);
   }
@@ -191,6 +210,14 @@ public class GimpleVarDecl implements GimpleDecl {
       value.accept(visitor);
     }
   }
-  
-  
+
+  public boolean isGlobal(){
+    return global;
+  }
+
+  public void setGlobal(boolean global) {
+    this.global = global;
+  }
+
+
 }

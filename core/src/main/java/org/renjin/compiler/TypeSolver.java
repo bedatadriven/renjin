@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ package org.renjin.compiler;
 import org.renjin.compiler.cfg.*;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.ssa.PhiFunction;
 import org.renjin.compiler.ir.ssa.SsaVariable;
 import org.renjin.compiler.ir.tac.RuntimeState;
@@ -31,6 +32,7 @@ import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.Function;
+import org.renjin.sexp.Logical;
 import org.renjin.sexp.Symbol;
 
 import java.util.*;
@@ -96,9 +98,13 @@ public class TypeSolver {
     return map;
   }
 
+
   public void execute() {
 
     executable.clear();
+    for (BasicBlock basicBlock : cfg.getBasicBlocks()) {
+      basicBlock.setLive(false);
+    }
     conditionalBounds.clear();
     flowWorkList.clear();
     ssaWorkList.clear();
@@ -126,7 +132,8 @@ public class TypeSolver {
         FlowEdge edge = flowWorkList.pop();
         if(!executable.contains(edge)) {
           BasicBlock node = edge.getSuccessor();
-          
+          node.setLive(true);
+
           // (a) mark the executable node as true
           executable.add(edge);
 
@@ -207,10 +214,7 @@ public class TypeSolver {
     }
     
     if(!boundSet.isEmpty()) {
-
-      ValueBounds newBounds = ValueBounds.union(boundSet);
-      ValueBounds oldBounds = variableBounds.put(assignment.getLHS(), newBounds);
-      assignment.getLHS().update(newBounds);
+      maybeUpdateLhs(assignment, ValueBounds.union(boundSet));
     }
   }
   
@@ -220,6 +224,19 @@ public class TypeSolver {
         System.out.println(expression + " => " + variableBounds.get(expression));
       }
     }
+  }
+
+  public boolean isPure() {
+    Set<BasicBlock> checked = Sets.newHashSet();
+    for (FlowEdge flowEdge : executable) {
+      BasicBlock basicBlock = flowEdge.getSuccessor();
+      if(checked.add(basicBlock)) {
+        if (!basicBlock.isPure()) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
   
   private void visitExpression(BasicBlock block, Statement statement) {
@@ -238,17 +255,7 @@ public class TypeSolver {
     //     SSA edges starting at the definition for that node.
 
     if(statement instanceof Assignment) {
-      Assignment assignment = (Assignment) statement;
-      ValueBounds oldBounds = variableBounds.get(assignment.getLHS());
-      
-      if(!Objects.equals(oldBounds, newBounds)) {
-        assignment.getLHS().update(newBounds);
-        variableBounds.put(assignment.getLHS(), newBounds);
-        
-        Collection<SsaEdge> outgoingEdges = useDefMap.getSsaEdges(assignment.getLHS());
-
-        ssaWorkList.addAll(outgoingEdges);
-      }
+      maybeUpdateLhs((Assignment)statement, newBounds);
     }
 
     // (2) If the expression controls a conditional branch, some outgoing flow graph
@@ -265,10 +272,44 @@ public class TypeSolver {
 
         conditionalBounds.put(conditional, newBounds);
 
-        flowWorkList.addAll(block.getOutgoing());
+        if(newBounds.isConstant()) {
+          // only add add the branch that will be executed
+          Logical conditionValue = newBounds.getConstantValue().asLogical();
+          if(conditionValue == Logical.NA) {
+            throw new InvalidSyntaxException("missing value where TRUE/FALSE needed");
+          }
+
+          conditional.setConstantValue(conditionValue);
+          if(conditionValue == Logical.TRUE) {
+            flowWorkList.add(block.getOutgoing(conditional.getTrueTarget()));
+          } else {
+            flowWorkList.add(block.getOutgoing(conditional.getFalseTarget()));
+          }
+
+        } else {
+          // have to assume that both branches are executable
+          conditional.setConstantValue(null);
+          flowWorkList.add(block.getOutgoing(conditional.getTrueTarget()));
+          flowWorkList.add(block.getOutgoing(conditional.getFalseTarget()));
+        }
       }
     }
   }
+
+  private void maybeUpdateLhs(Assignment assignment, ValueBounds newBounds) {
+
+    ValueBounds oldBounds = variableBounds.put(assignment.getLHS(), newBounds);
+
+    if(!Objects.equals(oldBounds, newBounds)) {
+      assignment.getLHS().update(newBounds);
+      variableBounds.put(assignment.getLHS(), newBounds);
+
+      Collection<SsaEdge> outgoingEdges = useDefMap.getSsaEdges(assignment.getLHS());
+
+      ssaWorkList.addAll(outgoingEdges);
+    }
+  }
+
 
   public int countIncomingExecutableEdges(BasicBlock block) {
     int count = 0;

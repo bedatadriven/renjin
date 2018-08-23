@@ -1,4 +1,6 @@
 
+#include <inttypes.h>
+
 int bitwise_rshift(int x, int y) {
     return x >> y;
 }
@@ -20,6 +22,10 @@ int bitwise_or(int x, int y) {
 }
 
 int bitwise_not(int x) {
+    return ~x;
+}
+
+int64_t bitwise_not_long(int64_t x) {
     return ~x;
 }
 

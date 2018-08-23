@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ package org.renjin.gcc.runtime;
  * Marker interface for function pointers
  * 
  * @deprecated GCC-Bridge now uses MethodHandles to represent function pointers
- * @see {@link java.lang.invoke.MethodHandle}
+ * @see java.lang.invoke.MethodHandle
  */
 @Deprecated
 public interface FunPtr {

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -78,6 +78,8 @@ class MaskedDoubleReplacement extends DoubleVector implements MemoizedComputatio
     int resultLength = Math.max(mask.length(), source.length());
 
     DoubleArrayVector.Builder result = new DoubleArrayVector.Builder(resultLength, resultLength);
+    result.copyAttributesFrom(this);
+
     int maskLength = mask.length();
     int replacementLength = replacement.length();
     int replacementIndex = 0;

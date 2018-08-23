@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,18 +19,25 @@
 package org.renjin.repl;
 
 import jline.Terminal;
+import jline.console.ConsoleReader;
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.eval.SessionController;
 import org.renjin.sexp.StringVector;
 
+import java.io.IOException;
+
 public class JlineSessionController extends SessionController {
 
-  private Terminal terminal;
+  private final Terminal terminal;
+  private final ConsoleReader reader;
   private boolean interactive = true;
-  
-  public JlineSessionController(Terminal terminal) {
+
+
+  public JlineSessionController(ConsoleReader reader) {
     super();
-    this.terminal = terminal;
+    this.terminal = reader.getTerminal();
+    this.reader = reader;
   }
 
   @Override
@@ -54,6 +61,20 @@ public class JlineSessionController extends SessionController {
       System.out.println(i + ": " + choices.getElementAsString(i));
     }
     return 0;
+  }
+
+  @Override
+  public String readLine(String prompt) {
+
+    if(!interactive) {
+      return "";
+    }
+
+    try {
+      return reader.readLine(prompt);
+    } catch (IOException e) {
+      throw new EvalException("IOException reading input: " + e.getMessage(), e);
+    }
   }
 
   @Override

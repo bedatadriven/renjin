@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,8 +21,10 @@ package org.renjin.gcc.runtime;
 
 import java.util.Arrays;
 
-public class LongPtr implements Ptr {
-  
+public class LongPtr extends AbstractPtr {
+
+  public static final int BYTES = 8;
+
   public static final LongPtr NULL = new LongPtr();
   
   public final long[] array;
@@ -43,6 +45,10 @@ public class LongPtr implements Ptr {
     this.offset = 0;
   }
 
+  public static LongPtr malloc(int bytes) {
+    return new LongPtr(new long[mallocSize(bytes, BYTES)]);
+  }
+
   @Override
   public long[] getArray() {
     return array;
@@ -54,13 +60,87 @@ public class LongPtr implements Ptr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public LongPtr realloc(int newSizeInBytes) {
     return new LongPtr(Realloc.realloc(array, offset, newSizeInBytes / 8));
   }
 
   @Override
   public Ptr pointerPlus(int bytes) {
-    return new LongPtr(array, offset + (bytes / 8));
+    if(bytes == 0) {
+      return this;
+    } else if(bytes % BYTES == 0) {
+      return new LongPtr(array, offset + (bytes / BYTES));
+    } else {
+      return new OffsetPtr(this, this.offset * BYTES + bytes);
+    }
+  }
+
+  @Override
+  public long getLong() {
+    return array[offset];
+  }
+
+  @Override
+  public long getAlignedLong(int index) {
+    return array[offset + index];
+  }
+
+  @Override
+  public long getLong(int offset) {
+    if(offset % BYTES == 0) {
+      return array[this.offset + (offset / BYTES)];
+    } else {
+      return super.getLong(offset);
+    }
+  }
+
+  @Override
+  public void setAlignedLong(int index, long value) {
+    array[offset + index] = value;
+  }
+
+  @Override
+  public void setLong(int offset, long longValue) {
+    if(offset % BYTES == 0) {
+      array[this.offset + (offset / BYTES)] = longValue;
+    } else {
+      super.setLong(offset, longValue);
+    }
+  }
+
+  @Override
+  public double getDouble() {
+    return Double.longBitsToDouble(this.array[offset]);
+  }
+
+  @Override
+  public double getAlignedDouble(int index) {
+    return Double.longBitsToDouble(this.array[offset + index]);
+  }
+
+  @Override
+  public byte getByte(int offset) {
+    return getByteViaLong(offset);
+  }
+
+  @Override
+  public void setByte(int offset, byte value) {
+    setByteViaLong(offset, value);
+  }
+
+  @Override
+  public int toInt() {
+    return offset * BYTES;
+  }
+
+  @Override
+  public boolean isNull() {
+    return array == null && offset == 0;
   }
 
   public long unwrap() {
@@ -159,4 +239,80 @@ public class LongPtr implements Ptr {
     return (LongPtr) voidPointer;
   }
   
+  public static void memcpy(LongPtr x, LongPtr y, int numBytes) {
+    long[] arrayS = y.getArray();
+    int offsetS = y.getOffset();
+    int restY = arrayS.length - offsetS;
+    if(restY > 0) {
+      long[] carray = new long[numBytes];
+      for(int i = 0, j = offsetS; j < arrayS.length && i < numBytes; j++, i++) {
+        carray[i] = arrayS[j];
+      }
+      x = new LongPtr(carray);
+    }
+  }
+
+  public static double unsignedInt64ToReal64(long i) {
+    if(i >= 0) {
+      return (double)i;
+    }
+    int upper = (int) (i >>> 32);
+    int lower = (int) i;
+
+    long lowerLong = ((long) lower) & 0xffffffffL;
+    long upperLong = ((long) upper) & 0xffffffffL;
+
+    return ((double)lowerLong) + ((double)upperLong) * 4294967296d;
+  }
+
+  /**
+   * Returns dividend / divisor, where the dividend and divisor are treated as unsigned 64-bit
+   * quantities.
+   *
+   * @deprecated Compiler will now use Java 1.8 API
+   */
+  @Deprecated
+  public static long unsignedDivide(long dividend, long divisor) {
+    return Long.divideUnsigned(dividend, divisor);
+  }
+
+  /**
+   * Returns the unsigned remainder from dividing the first argument
+   * by the second where each argument and the result is interpreted
+   * as an unsigned value.
+   *
+   * @deprecated Compiler will now use Java 1.8 API
+   */
+  @Deprecated
+  public static long unsignedRemainder(long dividend, long divisor) {
+    return Long.remainderUnsigned(dividend, divisor);
+  }
+
+
+  /**
+   * Compares the two specified {@code long} values, treating them as unsigned values between
+   * {@code 0} and {@code 2^64 - 1} inclusive.
+   *
+   * @deprecated Compiler will now use Java 1.8 API
+   */
+  @Deprecated
+  public static int compareUnsigned(long a, long b) {
+    return Long.compareUnsigned(a, b);
+  }
+
+  public static long unsignedMax(long a, long b) {
+    if(Long.compareUnsigned(a, b) > 0) {
+      return a;
+    } else {
+      return b;
+    }
+  }
+
+  public static long unsignedMin(long a, long b) {
+    if(Long.compareUnsigned(a, b) < 0) {
+      return a;
+    } else {
+      return b;
+    }
+  }
 }

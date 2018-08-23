@@ -142,6 +142,15 @@ maintainer <- function(pkg)
 
 packageVersion <- function(pkg, lib.loc = NULL)
 {
+    if(pkg %in% c("base", "stats", "graphics", "grDevices", "datasets", "grid", "hamcrest",
+                    "methods", "parallel", "splines", "stats4", "tools","utils")) {
+
+
+        rv <- R.Version()
+        pv <- package_version(sprintf("%d.%s", rv$major, rv$minor))
+        return(pv)
+    }
+
     res <- suppressWarnings(packageDescription(pkg, lib.loc=lib.loc,
                                                fields = "Version"))
     if (!is.na(res)) package_version(res) else

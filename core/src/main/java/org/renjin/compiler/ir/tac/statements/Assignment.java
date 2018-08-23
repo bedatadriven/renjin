@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -96,10 +96,13 @@ public class Assignment implements Statement {
   @Override
   public int emit(EmitContext emitContext, InstructionAdapter mv) {
 
+
     VariableStorage storage = emitContext.getVariableStorage(lhs);
     if(storage == null) {
-      throw new IllegalStateException("Variable " + lhs + " not allocated.");
+      // LHS never used.
+      return 0;
     }
+
     Type rhsType;
     if(rhs instanceof LValue) {
       rhsType = emitContext.getVariableStorage((LValue) rhs).getType();
@@ -111,6 +114,11 @@ public class Assignment implements Statement {
     emitContext.convert(mv, rhsType, storage.getType());
     mv.visitVarInsn(storage.getType().getOpcode(Opcodes.ISTORE), storage.getSlotIndex());
     return stackIncrease;
+  }
+
+  @Override
+  public boolean isPure() {
+    return rhs.isPure();
   }
 
 

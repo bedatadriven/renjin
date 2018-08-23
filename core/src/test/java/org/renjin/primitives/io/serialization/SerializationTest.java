@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,6 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Objects;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 public class SerializationTest extends EvalTestCase {
@@ -54,18 +53,18 @@ public class SerializationTest extends EvalTestCase {
   
   @Test
   public void serialize() throws IOException {
-    assertThat(eval("unserialize(serialize(c(seq(1,5),NA), NULL))"), equalTo(eval("c(seq(1,5),NA)")));
-    assertThat(eval("unserialize(serialize(c(1.2,3.4,NA), NULL))"), equalTo(eval("c(1.2,3.4,NA)")));
-    assertThat(eval("unserialize(serialize(c('1.2','3.4',NA), NULL))"), equalTo(eval("c('1.2','3.4',NA)")));
-    assertThat(eval("unserialize(serialize(list('1.2',3.4), NULL))"), equalTo(eval("list('1.2',3.4)")));
-    assertThat(eval("unserialize(serialize(.GlobalEnv, NULL))"), equalTo(eval(".GlobalEnv")));
+    assertThat(eval("unserialize(serialize(c(seq(1,5),NA), NULL))"), identicalTo(eval("c(seq(1,5),NA)")));
+    assertThat(eval("unserialize(serialize(c(1.2,3.4,NA), NULL))"), identicalTo(eval("c(1.2,3.4,NA)")));
+    assertThat(eval("unserialize(serialize(c('1.2','3.4',NA), NULL))"), identicalTo(eval("c('1.2','3.4',NA)")));
+    assertThat(eval("unserialize(serialize(list('1.2',3.4), NULL))"), identicalTo(eval("list('1.2',3.4)")));
+    assertThat(eval("unserialize(serialize(.GlobalEnv, NULL))"), identicalTo(eval(".GlobalEnv")));
     
     eval("env <- new.env()");
     eval("assign('x', list(1,'2'), env)");
-    assertThat(eval("get('x',unserialize(serialize(env, NULL)))"), equalTo(eval("list(1,'2')")));
+    assertThat(eval("get('x',unserialize(serialize(env, NULL)))"), identicalTo(eval("list(1,'2')")));
     
     eval("f <- function(x) {x+1}");
-    assertThat(eval("unserialize(serialize(f, NULL))(2)"), equalTo( c(3) ));
+    assertThat(eval("unserialize(serialize(f, NULL))(2)"), elementsIdenticalTo( c(3) ));
     
     // check for interoperability with C-R externally...
     BufferedReader reader = new BufferedReader(new InputStreamReader(
@@ -80,10 +79,10 @@ public class SerializationTest extends EvalTestCase {
     assertRead(reader, ".GlobalEnv");
     
     evalRead(reader);
-    assertThat(eval("get('x', test)"), equalTo(eval("list(1,'2')")));
+    assertThat(eval("get('x', test)"), identicalTo(eval("list(1,'2')")));
     
     evalRead(reader);
-    assertThat(eval("test(2)"), equalTo(c(3)));
+    assertThat(eval("test(2)"), elementsIdenticalTo(c(3)));
     
     reader.close();
   }
@@ -97,15 +96,15 @@ public class SerializationTest extends EvalTestCase {
   
   private void assertRead(BufferedReader reader, String sexp) throws IOException {
     evalRead(reader);
-    assertThat(eval("test"), equalTo(eval(sexp)));
+    assertThat(eval("test"), identicalTo(eval(sexp)));
   }
   
   @Test
   public void testSaveRdsBitwiseMatch() throws IOException {
-    assumingBasePackagesLoad();
+
     
     File tempFile = File.createTempFile("renjin", "rds");
-    global.setVariable("tempFile", new StringArrayVector(tempFile.getAbsolutePath()));
+    global.setVariable(topLevelContext, "tempFile", new StringArrayVector(tempFile.getAbsolutePath()));
     
     eval("saveRDS('A', file=tempFile, compress=FALSE)");
 
@@ -114,28 +113,28 @@ public class SerializationTest extends EvalTestCase {
 
   @Test
   public void readRds() {
-    assumingBasePackagesLoad();
+
 
     String rdsFile = Resources.getResource("expectedSimple.rds").getFile();
-    global.setVariable("file" , new StringArrayVector(rdsFile));
+    global.setVariable(topLevelContext, "file" , new StringArrayVector(rdsFile));
     
     eval("x <- readRDS(file)");
     
-    assertThat(eval("x"), equalTo(c("A")));
+    assertThat(eval("x"), elementsIdenticalTo(c("A")));
   }
   
   
   @Test
   @Ignore("todo: version seems to be different")
   public void testSaveBitwiseMatch() throws IOException {
-    assumingBasePackagesLoad();
+
 
     eval("x <- 'اختيارات'");
     eval("y <- 1:5");
     eval("z <- .GlobalEnv");
 
     File tempFile = File.createTempFile("renjin", "RData");
-    global.setVariable("tempFile", new StringArrayVector(tempFile.getAbsolutePath()));
+    global.setVariable(topLevelContext, "tempFile", new StringArrayVector(tempFile.getAbsolutePath()));
 
     eval("save(x,y,z ,file=tempFile, compress=FALSE)");
 

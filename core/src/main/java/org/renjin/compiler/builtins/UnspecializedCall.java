@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,9 +30,14 @@ import java.util.List;
 
 public class UnspecializedCall implements Specialization {
 
-  public static final UnspecializedCall INSTANCE = new UnspecializedCall();
-  
-  private UnspecializedCall() {
+  public static final UnspecializedCall INSTANCE = new UnspecializedCall(false);
+
+  public static final UnspecializedCall PURE = new UnspecializedCall(true);
+
+  private final boolean pure;
+
+  private UnspecializedCall(boolean pure) {
+    this.pure = pure;
   }
 
   @Override
@@ -40,13 +45,17 @@ public class UnspecializedCall implements Specialization {
     return Type.getType(SEXP.class);
   }
 
-  @Override
-  public ValueBounds getValueBounds() {
+  public ValueBounds getResultBounds() {
     return ValueBounds.UNBOUNDED;
   }
 
   @Override
   public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
     throw new FailedToSpecializeException("failed to specialize");
+  }
+
+  @Override
+  public boolean isPure() {
+    return false;
   }
 }

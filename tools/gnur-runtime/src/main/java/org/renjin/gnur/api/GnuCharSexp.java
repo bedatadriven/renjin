@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,23 +19,46 @@
 package org.renjin.gnur.api;
 
 import org.renjin.gcc.runtime.BytePtr;
+import org.renjin.gcc.runtime.Ptr;
+import org.renjin.gcc.runtime.Stdlib;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.sexp.AbstractSEXP;
 import org.renjin.sexp.SexpVisitor;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
 
 /**
  * Internal character SEXP
  */
 public class GnuCharSexp extends AbstractSEXP {
-  
+
+  public static final GnuCharSexp NA_STRING = new GnuCharSexp(new byte[] { 'N', 'A', 0 });
+  public static final GnuCharSexp BLANK_STRING = new GnuCharSexp(new byte[] { (byte)0 });
+
   private byte[] value;
 
   public GnuCharSexp(byte[] value) {
     this.value = value;
   }
 
-  public GnuCharSexp(String value) {
-    this(BytePtr.nullTerminatedString(value, Charsets.UTF_8).array);
+  public GnuCharSexp(Symbol symbol) {
+    this(symbol.getPrintName().getBytes(Charsets.UTF_8));
+  }
+
+
+  public static GnuCharSexp valueOf(String value) {
+    if(StringVector.isNA(value)) {
+      return NA_STRING;
+    } else if(value.isEmpty()) {
+      return BLANK_STRING;
+    } else {
+      return new GnuCharSexp(BytePtr.nullTerminatedString(value, Charsets.UTF_8).array);
+    }
+  }
+
+  @Override
+  public int length() {
+    return Stdlib.strlen((Ptr)new BytePtr(value));
   }
 
   @Override

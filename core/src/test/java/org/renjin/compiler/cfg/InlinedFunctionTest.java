@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,11 +23,9 @@ import org.renjin.EvalTestCase;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.sexp.Closure;
-import org.renjin.sexp.Symbol;
 
 import java.util.Collections;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -41,7 +39,7 @@ public class InlinedFunctionTest extends EvalTestCase {
     ValueBounds returnBounds = fn.computeBounds();
     
     assertTrue(returnBounds.isConstant());
-    assertThat(returnBounds.getConstantValue(), equalTo(c(42)));
+    assertThat(returnBounds.getConstantValue(), elementsIdenticalTo(c(42)));
   }
 
   @Test
@@ -53,13 +51,13 @@ public class InlinedFunctionTest extends EvalTestCase {
     ValueBounds returnBounds = fn.computeBounds();
 
     assertTrue(returnBounds.isConstant());
-    assertThat(returnBounds.getConstantValue(), equalTo(c_i(1)));
+    assertThat(returnBounds.getConstantValue(), elementsIdenticalTo(c_i(1)));
   }
   
   private InlinedFunction compileFunction(String functionDecl) {
     Closure closure = (Closure) eval(functionDecl);
     return new InlinedFunction(new RuntimeState(topLevelContext, topLevelContext.getGlobalEnvironment()),
-        closure, Collections.<Symbol>emptySet());
+        closure, Collections.emptySet());
   }
 
 

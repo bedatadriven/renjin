@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -152,14 +152,6 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
     return getElementAsLogical(0);
   }
 
-  @Override
-  public double asReal() {
-    if(length() == 0) {
-      return DoubleVector.NA;
-    } else {
-      return getElementAsDouble(0);
-    }
-  }
 
   @Override
   public void accept(SexpVisitor visitor) {
@@ -183,34 +175,14 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
     };
   }
 
-  @Override
-  public final boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || !(o instanceof LogicalVector)) {
-      return false;
-    }
-
-    LogicalVector that = (LogicalVector) o;
-    if(this.length() != that.length()) {
-      return false;
-    }
-    for(int i=0;i!=length();++i) {
-      if(this.getElementAsRawLogical(i) != that.getElementAsRawLogical(i)) {
-        return false;
-      }
-    }
-    return true;
-  }
 
   @Override
   public final int hashCode() {
-    int hash = 37;
-    for(int i=0;i!=length();++i) {
-      hash += getElementAsRawLogical(i);
+    int result = 1;
+    for (int i = 0; i < length(); i++) {
+      result = 31 * result + getElementAsRawLogical(i);
     }
-    return hash;
+    return result;
   }
 
   @Override
@@ -302,11 +274,10 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
     }
 
     @Override
-    public boolean elementsEqual(Vector vector1, int index1, Vector vector2, int index2) {
-      if(vector1.isElementNA(index1) || vector2.isElementNA(index2)) {
-        return false;
-      }
-      return vector1.getElementAsRawLogical(index1) == vector2.getElementAsRawLogical(index2);
+    public boolean elementsIdentical(Vector vector1, int index1, Vector vector2, int index2) {
+      int element1 = vector1.getElementAsRawLogical(index1);
+      int element2 = vector2.getElementAsRawLogical(index2);
+      return element1 == element2;
     }
 
     @Override

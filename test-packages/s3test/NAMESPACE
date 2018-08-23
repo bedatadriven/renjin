@@ -2,6 +2,10 @@
 # export constructors
 export(new.circle)
 export(new.square)
+exportMethods(setCountryName, setCountryTemp, "[", "[[", "[[<-", Arith, "/")
+exportClasses(Country, City)
+
+importFrom(grid, makeContext)
 
 # export extensions of methods in other packages
 S3method(as.character, circle)
@@ -12,3 +16,5 @@ S3method(area, circle)
 S3method(area, square)
 
 S3method(`%/%`, circle)
+
+S3method(makeContext, foo)

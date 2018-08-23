@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,17 +18,13 @@
  */
 package org.renjin.primitives;
 
-import org.apache.commons.math.linear.RealMatrix;
 import org.junit.Before;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Vector;
-import org.renjin.util.CommonsMath;
 
 import java.io.IOException;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 
@@ -39,7 +35,7 @@ public class MatrixTest extends EvalTestCase {
   @Before
   public void setup() throws IOException{
     super.setUp();
-    assumingBasePackagesLoad();
+
   }
 
   @Before
@@ -56,38 +52,38 @@ public class MatrixTest extends EvalTestCase {
     eval("dim(x) <- 2:4 ");
     eval("xt <- .Internal(aperm(x, c(2,1,3), TRUE)) ");
 
-    assertThat(eval("xt"), equalTo(c_i(1, 3, 5, 2, 4, 6, 7, 9, 11, 8, 10, 12, 13, 15, 17, 14, 16, 18, 19, 21, 23, 20, 22, 24)));
+    assertThat(eval("xt"), elementsIdenticalTo(c_i(1, 3, 5, 2, 4, 6, 7, 9, 11, 8, 10, 12, 13, 15, 17, 14, 16, 18, 19, 21, 23, 20, 22, 24)));
   }
 
   @Test
   public void matrix() {
-    assertThat(eval("matrix(c(1,2,3,4),2,2)"), equalTo(c(1, 2, 3, 4)));
-    assertThat(eval("matrix(c(1,2,3,4),2,4)"), equalTo(c(1, 2, 3, 4, 1, 2, 3, 4)));
-    assertThat(eval("as.double(matrix(1:10,5,2))"), equalTo(c(1,2,3,4,5,6,7,8,9,10)));
+    assertThat(eval("matrix(c(1,2,3,4),2,2)"), elementsIdenticalTo(c(1, 2, 3, 4)));
+    assertThat(eval("matrix(c(1,2,3,4),2,4)"), elementsIdenticalTo(c(1, 2, 3, 4, 1, 2, 3, 4)));
+    assertThat(eval("as.double(matrix(1:10,5,2))"), elementsIdenticalTo(c(1,2,3,4,5,6,7,8,9,10)));
   }
 
   @Test
   public void matrixByRow() {
-    assertThat(eval("matrix(c(1,2,3,4),2,2,TRUE)"), equalTo(c(1, 3, 2, 4)));
-    assertThat(eval("matrix(c(1,2,3,4),2,4,TRUE)"), equalTo(c(1, 1, 2, 2, 3, 3, 4, 4)));
-    assertThat(eval("as.double(matrix(1:10,5,2,TRUE))"), equalTo(c(1,3,5,7,9,2,4,6,8,10)));
+    assertThat(eval("matrix(c(1,2,3,4),2,2,TRUE)"), elementsIdenticalTo(c(1, 3, 2, 4)));
+    assertThat(eval("matrix(c(1,2,3,4),2,4,TRUE)"), elementsIdenticalTo(c(1, 1, 2, 2, 3, 3, 4, 4)));
+    assertThat(eval("as.double(matrix(1:10,5,2,TRUE))"), elementsIdenticalTo(c(1,3,5,7,9,2,4,6,8,10)));
   }
   
   @Test
   public void matrixWithZeroLengthArg() {
     eval("x <- matrix(nrow=0,ncol=0)");
-    assertThat(eval("dim(x)"), equalTo(c_i(0, 0)));
-    assertThat(eval("length(x)"), equalTo(c_i(0)));
+    assertThat(eval("dim(x)"), elementsIdenticalTo(c_i(0, 0)));
+    assertThat(eval("length(x)"), elementsIdenticalTo(c_i(0)));
   }
 
   @Test
   public void rowTest() {
-    assertThat(eval(".Internal(row(dim(matrix(1:12,3,4))))"), equalTo(c_i(1,2,3,1,2,3,1,2,3,1,2,3)));
+    assertThat(eval(".Internal(row(dim(matrix(1:12,3,4))))"), elementsIdenticalTo(c_i(1,2,3,1,2,3,1,2,3,1,2,3)));
   }
 
   @Test
   public void colTest() {
-    assertThat(eval(".Internal(col(dim(matrix(1:12,3,4))))"), equalTo(c_i(1,1,1,2,2,2,3,3,3,4,4,4)));
+    assertThat(eval(".Internal(col(dim(matrix(1:12,3,4))))"), elementsIdenticalTo(c_i(1,1,1,2,2,2,3,3,3,4,4,4)));
   }
 
   @Test
@@ -129,7 +125,7 @@ public class MatrixTest extends EvalTestCase {
   public void eigenWithLa_rs() throws IOException {
 
     eval("res <- eigen(cbind(c(1,-1),c(-1,1)))");
-    assertThat( eval("res$values"), equalTo(c(2,0)));
+    assertThat( eval("res$values"), elementsIdenticalTo(c(2,0)));
     assertThat( eval("res$vectors"), closeTo(matrix(
             row(-0.7071068, -0.7071068),
             row( 0.7071068, -0.7071068)), 0.00001));
@@ -178,7 +174,7 @@ public class MatrixTest extends EvalTestCase {
   public void eigenWithLa_rg() throws IOException {
 
     eval("res <- eigen(cbind(c(1,-1),c(-1,1)), symmetric=FALSE)");
-    assertThat( eval("res$values"), equalTo(c(2,0)));
+    assertThat( eval("res$values"), elementsIdenticalTo(c(2,0)));
     assertThat( eval("res$vectors"), closeTo(matrix(
             row( 0.7071068,  0.7071068),
             row(-0.7071068,  0.7071068)), 0.00001));
@@ -193,7 +189,7 @@ public class MatrixTest extends EvalTestCase {
         row(-0.4, 0.46666667),
         row(0.2, -0.06666667)), 0.0000001));
 
-    assertThat(eval("dim(x)"), equalTo(c_i(2, 2)));
+    assertThat(eval("dim(x)"), elementsIdenticalTo(c_i(2, 2)));
   }
   
   @Test
@@ -219,116 +215,107 @@ public class MatrixTest extends EvalTestCase {
 
 
   @Test
-  public void matrixMultiplication() {
-
-    eval("y <- c(1,0,0,0,0,2,0,0,0,0,3,0,0,0,0,4)");
-    eval("dim(y) <- c(4,4) ");
-
-    eval("z <- 1:12 ");
-    eval("dim(z) <- c(4,3)");
-
-    RealMatrix m = CommonsMath.asRealMatrix((Vector)eval("z"));
-    assertThat(m.getEntry(0, 0), equalTo(1d));
-    assertThat(m.getEntry(1, 0), equalTo(2d));
-    assertThat(m.getEntry(0, 2), equalTo(9d));
-    assertThat(m.getEntry(3-1, 2-1), equalTo(7d));
-    assertThat(m.getEntry(2-1, 3-1), equalTo(10d));
-
-    eval("q <- y %*% z");
-
-    assertThat( eval("q"), equalTo(c(1,4,9,16,5,12,21,32,9,20,33,48)));
-    assertThat( eval("dim(q)"), equalTo(c_i(4,3)));
-
-  }
-
-  @Test
   public void matrixProduct() throws IOException{
-    assertThat(eval("1:3 %*% c(3,2,1)"), equalTo(c(10)));
+    assertThat(eval("1:3 %*% c(3,2,1)"), elementsIdenticalTo(c(10)));
   }
 
   @Test
   public void rowSums() throws IOException {
     eval("q <- matrix(c(NA, 4, 3, 5, 9, 20), 3)");
 
-    assertThat(eval("rowSums(q)"), equalTo(c(DoubleVector.NA, 13, 23)));
-    assertThat(eval("rowSums(q, na.rm=TRUE)"), equalTo(c(5, 13, 23)));
+    assertThat(eval("rowSums(q)"), elementsIdenticalTo(c(DoubleVector.NA, 13, 23)));
+    assertThat(eval("rowSums(q, na.rm=TRUE)"), elementsIdenticalTo(c(5, 13, 23)));
   }
 
   @Test
   public void rowMeans() throws IOException {
     eval("q <- matrix(1:32, 4)");
-    assertThat(eval("rowMeans(q)"), equalTo(c(15,16,17,18)));
+    assertThat(eval("rowMeans(q)"), elementsIdenticalTo(c(15,16,17,18)));
   }
 
   @Test
   public void colSums() throws IOException {
     eval("q <- matrix(1:32, 4)");
     eval("print(q)");
-    assertThat(eval("colSums(q)"), equalTo(c(10,26,42,58,74,90,106,122)));
+    assertThat(eval("colSums(q)"), elementsIdenticalTo(c(10,26,42,58,74,90,106,122)));
   }
 
+  
+  @Test
+  public void rowReplace() throws IOException {
+    eval("q <- matrix(as.numeric(1:32), 8)");
+    eval("print(q)");
+    assertThat(eval("colSums(q)"), elementsIdenticalTo(c(36,100,164,228)));
+    eval("q[4L,] <- as.numeric(-5:-2)");
+    eval("print(q)");
+
+    eval("print(colSums(q))");
+    //eval("q[4,] <- c( 4, 12, 20, 28)");
+    
+  }
+  
   @Test
   public void transpose() throws IOException {
-    assertThat(eval("t(c(1,2,3,4))"), equalTo(c(1,2,3,4)));
+    assertThat(eval("t(c(1,2,3,4))"), elementsIdenticalTo(c(1,2,3,4)));
 
     eval("m <- 1:12");
     eval("dim(m) <- c(3,4)");
     eval("mt <- t(m) ");
-    assertThat(eval("dim(mt)"), equalTo(c_i(4,3)));
+    assertThat(eval("dim(mt)"), elementsIdenticalTo(c_i(4,3)));
 
     // try with big matrix
     eval("m <- 1:(3000*5000)");
     eval("dim(m) <- c(3000,5000)");
     eval("mt <- t(m) ");
-    assertThat(eval("dim(mt)"), equalTo(c_i(5000,3000)));
+    assertThat(eval("dim(mt)"), elementsIdenticalTo(c_i(5000,3000)));
 
     // try with a big vector
     eval("m <- 1:1e6");
     eval("mt <- t(m)");
-    assertThat(eval("dim(mt)"), equalTo(c_i(1, 1000000)));
+    assertThat(eval("dim(mt)"), elementsIdenticalTo(c_i(1, 1000000)));
   }
 
   @Test
   public void colMeans() throws IOException {
     eval("q <- matrix(1:32, 4)");
-    assertThat(eval("colMeans(q)"), equalTo(c(2.5, 6.5, 10.5, 14.5, 18.5, 22.5, 26.5, 30.5)));
+    assertThat(eval("colMeans(q)"), elementsIdenticalTo(c(2.5, 6.5, 10.5, 14.5, 18.5, 22.5, 26.5, 30.5)));
   }
 
   @Test
   public void matrixDimNames() {
     eval(" m <- matrix(nrow=2,ncol=2,dimnames=list(c('a','b'), c('x', 'y'))) ");
-    assertThat(eval(" dimnames(m)[[1]]"), equalTo(c("a", "b")));
-    assertThat( eval(" dimnames(m)[[2]]"), equalTo(c("x", "y")));
+    assertThat(eval(" dimnames(m)[[1]]"), elementsIdenticalTo(c("a", "b")));
+    assertThat( eval(" dimnames(m)[[2]]"), elementsIdenticalTo(c("x", "y")));
   }
 
   @Test
   public void matrixEmptyData() throws IOException {
     eval("m <- matrix(double(), 2, 3)");
-    assertThat(eval("m"), equalTo(c(DoubleVector.NA, DoubleVector.NA, DoubleVector.NA,
+    assertThat(eval("m"), elementsIdenticalTo(c(DoubleVector.NA, DoubleVector.NA, DoubleVector.NA,
             DoubleVector.NA, DoubleVector.NA, DoubleVector.NA)));
   }
 
   @Test
   public void crossprod() {
-    assertThat(eval(".Internal(crossprod(1:4, NULL))"), equalTo(c(30)));
+    assertThat(eval(".Internal(crossprod(1:4, NULL))"), elementsIdenticalTo(c(30)));
   }
 
   @Test
   public void tcrossprod() throws IOException {
-    assertThat(eval("tcrossprod(matrix(1:4,2,2))"), equalTo(c(10,14,14,20)));
+    assertThat(eval("tcrossprod(matrix(1:4,2,2))"), elementsIdenticalTo(c(10,14,14,20)));
   }
 
   @Test
   public void missingValuesHandledCorrectly() {
     eval("f <- function(nr=4, nc=3) matrix(0, nrow=nr, ncol=nc)");
     
-    assertThat(eval("dim(f())"), equalTo(c_i(4, 3)));
+    assertThat(eval("dim(f())"), elementsIdenticalTo(c_i(4, 3)));
   }
 
   @Test
   public void missingValuesHandledCorrectlyWhenArgIsOne() {
     eval("f <- function(nr=4, nc=1) matrix(0, nrow=nr, ncol=nc)");
 
-    assertThat(eval("dim(f())"), equalTo(c_i(4,1)));
+    assertThat(eval("dim(f())"), elementsIdenticalTo(c_i(4,1)));
   }
 }

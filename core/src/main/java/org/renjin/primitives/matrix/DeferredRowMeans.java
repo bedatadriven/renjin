@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
  */
 package org.renjin.primitives.matrix;
 
-import org.renjin.primitives.vector.AttributeDecoratingVector;
 import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.sexp.*;
 
@@ -48,7 +47,7 @@ public class DeferredRowMeans extends DoubleVector implements MemoizedComputatio
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
-    return new AttributeDecoratingVector(this, attributes);
+    return new DeferredRowMeans(vector, numRows, attributes);
   }
 
   @Override
@@ -102,7 +101,7 @@ public class DeferredRowMeans extends DoubleVector implements MemoizedComputatio
     if(this.means == null) {
       computeMeans();
     }
-    return DoubleArrayVector.unsafe(this.means);
+    return DoubleArrayVector.unsafe(this.means, getAttributes());
   }
 
   @Override

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,12 +22,15 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
+import org.renjin.gcc.codegen.vptr.VPtrStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.repackaged.asm.Type;
 
 /**
@@ -56,6 +59,11 @@ public class VoidTypeStrategy implements TypeStrategy<GExpr> {
   }
 
   @Override
+  public GExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
+    throw new UnsupportedOperationException("variables cannot have 'void' type");
+  }
+
+  @Override
   public GExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
     throw new UnsupportedOperationException("constructors cannot have 'void' type");
   }
@@ -72,7 +80,7 @@ public class VoidTypeStrategy implements TypeStrategy<GExpr> {
 
   @Override
   public PointerTypeStrategy pointerTo() {
-    return new VoidPtrStrategy();
+    return new VPtrStrategy(new GimpleVoidType());
   }
 
   @Override
@@ -81,7 +89,7 @@ public class VoidTypeStrategy implements TypeStrategy<GExpr> {
   }
 
   @Override
-  public GExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public GExpr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
     throw new UnsupportedCastException();
   }
 

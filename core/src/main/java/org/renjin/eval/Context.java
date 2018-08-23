@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.base.BaseFrame;
-import org.renjin.compiler.pipeline.VectorPipeliner;
-import org.renjin.parser.RParser;
+import org.renjin.pipeliner.VectorPipeliner;
 import org.renjin.primitives.Primitives;
 import org.renjin.primitives.Warning;
 import org.renjin.primitives.packaging.NamespaceRegistry;
@@ -35,9 +34,6 @@ import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -97,7 +93,7 @@ public class Context {
   private Environment environment;
   private Session session; 
   private FunctionCall call;
-  private Closure closure;
+  private SEXP function;
 
   /**
    * The environment from which the closure was called
@@ -135,6 +131,7 @@ public class Context {
     this.session = session;
     this.type = Type.TOP_LEVEL;
     this.environment = session.getGlobalEnvironment();
+    this.function = Null.INSTANCE;
   }
 
   public Context beginFunction(Environment rho, FunctionCall call, Closure closure, PairList arguments) {
@@ -143,8 +140,8 @@ public class Context {
     context.type = Type.FUNCTION;
     context.parent = this;
     context.evaluationDepth = evaluationDepth+1;
-    context.closure = closure;
-    context.environment = Environment.createChildEnvironment(closure.getEnclosingEnvironment());
+    context.function = closure;
+    context.environment = Environment.createChildEnvironment(closure.getEnclosingEnvironment()).build();
     context.session = session;
     context.arguments = arguments;
     context.call = call;
@@ -159,6 +156,11 @@ public class Context {
     context.evaluationDepth = evaluationDepth+1;
     context.environment = environment;
     context.session = session;
+    context.function = Primitives.getInternal(Symbol.get("eval"));
+
+    // Use the call from the call to the eval wrapper
+    context.call = this.call;
+
     return context;
   }
 
@@ -192,7 +194,6 @@ public class Context {
       this.session.conditionStack = null;
     }
   }
-  
   public SEXP evaluate(SEXP expression) {
     SEXP result = evaluate(expression, environment);
     if(result == null) {
@@ -208,27 +209,39 @@ public class Context {
    * @return
    */
   public SEXP materialize(SEXP sexp) {
+    if(sexp instanceof Vector) {
+      Vector vector = (Vector) sexp;
+      if(vector.isDeferred() && !vector.isConstantAccessTime()) {
+        return session.getVectorEngine().materialize(vector);
+      }
+    }
+    return sexp;
+  }
 
-    if(sexp instanceof MemoizedComputation && ((MemoizedComputation) sexp).isCalculated()) {
-      return sexp;
+  public ListVector materialize(ListVector listVector) {
+    if(!anyDeferred(listVector)) {
+      return listVector;
     }
-    
-    if(sexp instanceof DeferredComputation && !((DeferredComputation) sexp).isConstantAccessTime()) {
-      return session.getVectorEngine().materialize((DeferredComputation)sexp);
-    } else {
-      return sexp;
+
+    return session.getVectorEngine().materialize(listVector);
+  }
+
+  private boolean anyDeferred(ListVector listVector) {
+    for (int i = 0; i < listVector.length(); i++) {
+      SEXP element = listVector.getElementAsSEXP(i);
+      if(element instanceof Vector) {
+        Vector vector = (Vector) element;
+        if(vector.isDeferred() && !vector.isConstantAccessTime()) {
+          return true;
+        }
+      }
     }
+    return false;
   }
   
   public Vector materialize(Vector sexp) {
-    if(sexp instanceof DeferredComputation && !sexp.isConstantAccessTime()) {
-      if(sexp instanceof MemoizedComputation) {
-        MemoizedComputation memo = (MemoizedComputation) sexp;
-        if(memo.isCalculated()) {
-          return memo.forceResult();
-        }
-      }
-      return session.getVectorEngine().materialize((DeferredComputation)sexp);
+    if(sexp.isDeferred() && !sexp.isConstantAccessTime()) {
+      return session.getVectorEngine().materialize(sexp);
     } else {
       return sexp;
     }
@@ -246,10 +259,23 @@ public class Context {
       return sexp;
     }
   }
-  
+
   public SEXP evaluate(SEXP expression, Environment rho) {
+    return evaluate(expression, rho, false);
+  }
+
+  /**
+   * Evaluates the given {@code expression} in the given {@code environment}.
+   *
+   * @param expression the expression to evaluate
+   * @param rho the environment in which to evaluate the expression
+   * @param allowMissing if {@code true}, missing arguments without defaults should evaluate to {@code Symbol.MISSING_ARG},
+   *                     otherwise they will result in an EvalException.
+   * @return the result of the evaluation.
+   */
+  public SEXP evaluate(SEXP expression, Environment rho, boolean allowMissing) {
     if(expression instanceof Symbol) {
-      return evaluateSymbol((Symbol) expression, rho);
+      return evaluateSymbol((Symbol) expression, rho, allowMissing);
     } else if(expression instanceof ExpressionVector) {
       return evaluateExpressionVector((ExpressionVector) expression, rho);
     } else if(expression instanceof FunctionCall) {
@@ -281,7 +307,7 @@ public class Context {
   }
 
   public <T> void setState(T instance) {
-    this.<T>setState((Class<T>) instance.getClass(), instance);
+    this.setState((Class<T>) instance.getClass(), instance);
   }
 
   public <T> void setState(Class<T> clazz, T instance) {
@@ -291,22 +317,35 @@ public class Context {
     stateMap.put(clazz, instance);
   }
 
-  private SEXP evaluateSymbol(Symbol symbol, Environment rho) {
+  private SEXP evaluateSymbol(Symbol symbol, Environment rho, boolean allowMissing) {
     clearInvisibleFlag();
 
     if(symbol == Symbol.MISSING_ARG) {
       return symbol;
     }
-    SEXP value = rho.findVariable(symbol);
+
+    if(allowMissing && symbol.isVarArgReference()) {
+      if(rho.findVariable(this, Symbols.ELLIPSES) == Null.INSTANCE) {
+        return Symbol.MISSING_ARG;
+      }
+    }
+
+    SEXP value = rho.findVariable(this, symbol);
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException(String.format("object '%s' not found", symbol.getPrintName()));
-    } 
-    
-    if(value instanceof Promise) {
-      return evaluate(value, rho);
-    } else {
-      return value;
     }
+
+    if(!allowMissing) {
+      if (value == Symbol.MISSING_ARG) {
+        throw new EvalException("argument '%s' is missing, with no default", symbol.getPrintName());
+      }
+    }
+
+    if(value instanceof Promise) {
+      value = value.force(this, allowMissing);
+    }
+
+    return value;
   }
 
   /**
@@ -412,21 +451,12 @@ public class Context {
     return session.getFileSystemManager();
   }
 
+
   /**
-   * Translates a uri/path into a VFS {@code FileObject}.
-   *
-   * @param uri uniform resource indicator. This could be, for example:
-   * <ul>
-   * <li>jar:file:///path/to/my/libray.jar!/mylib/R/mylib.R</li>
-   * <li>/usr/lib</li>
-   * <li>c:&#92;users&#92;owner&#92;data.txt</li>
-   * </ul>
-   *
-   * @return
-   * @throws FileSystemException
+   * @see Session#resolveFile(String)
    */
   public FileObject resolveFile(String uri) throws FileSystemException {
-    return getFileSystemManager().resolveFile(session.getWorkingDirectory(), uri);
+    return session.resolveFile(uri);
   }
 
   /**
@@ -441,8 +471,8 @@ public class Context {
     return session.getGlobalEnvironment();
   }
 
-  public Closure getClosure() {
-    return closure;
+  public SEXP getFunction() {
+    return function;
   }
 
   public PairList getArguments() {
@@ -596,5 +626,13 @@ public class Context {
 
   public NamespaceRegistry getNamespaceRegistry() {
     return session.getNamespaceRegistry();
+  }
+
+  public void setGlobalVariable(Context context, Symbol symbol, Object value) {
+    context.getGlobalEnvironment().setVariable(context, symbol, (SEXP) value);
+  }
+
+  public void setGlobalVariable(Context context, String name, Object value) {
+    setGlobalVariable(context, Symbol.get(name), value);
   }
 }

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,6 +59,8 @@ public class Wrappers {
       return Type.DOUBLE_TYPE;
     } else if(wrapperType.equals(Type.getType(ObjectPtr.class))) {
       return Type.getType(Object.class);
+    } else if(wrapperType.equals(Type.getType(PointerPtr.class))) {
+      return Type.getType(Ptr.class);
     }
     throw new IllegalArgumentException("not a wrapper type: " + wrapperType);
   }
@@ -118,7 +120,7 @@ public class Wrappers {
       case Type.DOUBLE:
         return Type.getType(DoublePtr.class);
       case Type.OBJECT:
-        return Type.getType(ObjectPtr.class);
+        return Type.getType(PointerPtr.class);
     }
     throw new UnsupportedOperationException("No wrapper for type: " + valueType);
   }
@@ -140,7 +142,15 @@ public class Wrappers {
       @Override
       public void load(@Nonnull MethodGenerator mv) {
         pointer.load(mv);
-        mv.invokestatic(wrapperType, "cast", Type.getMethodDescriptor(wrapperType, Type.getType(Object.class)));
+        if(wrapperType.equals(Type.getType(ObjectPtr.class))) {
+          // If casting a void* to an ObjectPtr, we need additional type information
+          mv.visitLdcInsn(valueType);
+          mv.invokestatic(wrapperType, "cast", Type.getMethodDescriptor(wrapperType,
+              Type.getType(Object.class), Type.getType(Class.class)));
+        } else {
+          // For primitives like DoublePtr, IntPtr, etc, nothing additional is required
+          mv.invokestatic(wrapperType, "cast", Type.getMethodDescriptor(wrapperType, Type.getType(Object.class)));
+        }
       }
     };
   }

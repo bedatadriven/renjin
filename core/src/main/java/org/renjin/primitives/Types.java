@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,13 +68,27 @@ public class Types {
 
   @Builtin("is.symbol")
   public static boolean isSymbol(SEXP exp) {
-    return exp instanceof Symbol;
+    return unwrapS4Object(exp) instanceof Symbol;
   } 
-
 
   @Builtin("is.environment")
   public static boolean isEnvironment(SEXP exp) {
-    return exp instanceof Environment;
+    return unwrapS4Object(exp) instanceof Environment;
+  }
+
+  /**
+   * Tries to unwrap an SEXP of type S4 by looking for an .xData attribute.
+   * @return the parent object, or {@code sexp} if this is not an S4 object extending a "simple" object.
+   *
+   */
+  public static SEXP unwrapS4Object(SEXP sexp) {
+    if(sexp instanceof S4Object) {
+      SEXP xData = sexp.getAttribute(Symbols.DOT_XDATA);
+      if(xData != Null.INSTANCE) {
+        return xData;
+      }
+    }
+    return sexp;
   }
 
   @Builtin("is.expression")
@@ -286,20 +300,16 @@ public class Types {
     if(object instanceof S4Object) {
       return true;
     }
-    SEXP bit = object.getAttribute(Symbols.S4_BIT);
-    if(bit instanceof LogicalVector && bit.length() == 1 && ((LogicalVector) bit).getElementAsLogical(0) == Logical.TRUE) {
-      return true;
-    } else {
-      return false;
-    }
+    return object.getAttributes().isS4();
   }
 
   @Internal
-  public static SEXP setS4Object(SEXP object, boolean bool, boolean complete) {
+  public static SEXP setS4Object(SEXP object, boolean flag, boolean complete) {
     if(object instanceof S4Object) {
       return object;
     } else {
-      return object.setAttribute(Symbols.S4_BIT, LogicalVector.TRUE);
+      return object.setAttributes(
+          object.getAttributes().copy().setS4(flag).build());
     }
   }
 

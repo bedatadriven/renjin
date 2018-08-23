@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,16 +19,14 @@
 // Initial template generated from Riconv.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.gcc.runtime.CharPtr;
+import org.renjin.gcc.runtime.BytePtr;
 
 @SuppressWarnings("unused")
 public final class Riconv {
 
   private Riconv() { }
 
-
-
-  public static Object Riconv_open(CharPtr tocode, CharPtr fromcode) {
+  public static Object Riconv_open(BytePtr tocode, BytePtr fromcode) {
     throw new UnimplementedGnuApiMethod("Riconv_open");
   }
 

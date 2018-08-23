@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,9 +28,12 @@ import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.eval.Context;
 import org.renjin.repackaged.asm.*;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.repackaged.asm.tree.MethodNode;
+import org.renjin.repackaged.asm.util.Textifier;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 
+import java.io.PrintWriter;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.renjin.repackaged.asm.Type.getMethodDescriptor;
@@ -99,11 +102,19 @@ public class ByteCodeEmitter implements Opcodes {
     EmitContext emitContext = new EmitContext(cfg, argumentSize, variableSlots);
     
     MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "evaluate", 
-        getMethodDescriptor(Type.VOID_TYPE, getType(Context.class), getType(Environment.class)), 
+        getMethodDescriptor(Type.getType(SEXP.class), getType(Context.class), getType(Environment.class)), 
         null, null);
+
+    Textifier p = new Textifier();
+    //mv = new TraceMethodVisitor(mv, p);
+    
     mv.visitCode();
-    writeBody(emitContext, mv);
+    writeBody(emitContext, mv, cfg);
     mv.visitEnd();
+    
+    try (PrintWriter pw = new PrintWriter(System.out)) {
+      p.print(pw);
+    }
   }
 
   private void writeLoopImplementation() {
@@ -112,23 +123,39 @@ public class ByteCodeEmitter implements Opcodes {
     EmitContext emitContext = new EmitContext(cfg, argumentSize, variableSlots);
     emitContext.setLoopVectorIndex(3);
     emitContext.setLoopIterationIndex(4);
-    
-    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "run",
-        getMethodDescriptor(Type.VOID_TYPE, getType(Context.class), getType(Environment.class),
+
+    MethodNode methodNode = new MethodNode(ACC_PUBLIC, "run",
+        getMethodDescriptor(Type.getType(SEXP.class), getType(Context.class), getType(Environment.class),
         getType(SEXP.class), Type.INT_TYPE),
         null, null);
-    
+
+    MethodVisitor mv = methodNode;
+
+//    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "run",
+//        getMethodDescriptor(Type.getType(SEXP.class), getType(Context.class), getType(Environment.class),
+//        getType(SEXP.class), Type.INT_TYPE),
+//        null, null);
+
+
+    Textifier p = new Textifier();
+  //  mv = new TraceMethodVisitor(mv, p);
+
     mv.visitCode();
-    
-    writeBody(emitContext, mv);
+    writeBody(emitContext, mv, cfg);
     mv.visitEnd();
+
+    PrintWriter pw = new PrintWriter(System.out);
+    p.print(pw);
+    pw.flush();
+
+    methodNode.accept(cv);
   }
 
-  private void writeBody(EmitContext emitContext, MethodVisitor mv) {
+  public static void writeBody(EmitContext emitContext, MethodVisitor mv, ControlFlowGraph cfg) {
     InstructionAdapter instructionAdapter = new InstructionAdapter(mv);
 
     for(BasicBlock basicBlock : cfg.getBasicBlocks()) {
-      if(basicBlock != cfg.getEntry() && basicBlock != cfg.getExit()) {
+      if(basicBlock.isLive() && basicBlock != cfg.getEntry() && basicBlock != cfg.getExit()) {
         for(IRLabel label : basicBlock.getLabels()) {
           mv.visitLabel(emitContext.getAsmLabel(label));
         }
@@ -144,6 +171,7 @@ public class ByteCodeEmitter implements Opcodes {
         }
       }
     }
+    emitContext.writeDone(instructionAdapter);
 
     mv.visitMaxs(0, emitContext.getLocalVariableCount());
   }
@@ -152,14 +180,4 @@ public class ByteCodeEmitter implements Opcodes {
     cv.visitEnd();
   }
 
-  private class MyClassLoader extends ClassLoader {
-
-    public MyClassLoader(ClassLoader parent) {
-      super(parent);
-    }
-
-    Class defineClass(String name, byte[] b) {
-      return defineClass(name, b, 0, b.length);
-    }
-  }
 }

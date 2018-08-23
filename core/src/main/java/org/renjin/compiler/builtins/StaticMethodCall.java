@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,6 +45,20 @@ public class StaticMethodCall implements Specialization {
     
   }
 
+
+  public static boolean isEligible(JvmMethod method) {
+
+    // Verify that this method doesn't require @Current Context or @Current Environment,
+    // Such methods have side effects that the compiler can't take into account.
+    for (JvmMethod.Argument argument : method.getAllArguments()) {
+      if(argument.isContextual()) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   public Specialization furtherSpecialize(List<ValueBounds> argumentBounds) {
     if (pure && ValueBounds.allConstant(argumentBounds)) {
       return ConstantCall.evaluate(method, argumentBounds);
@@ -57,8 +71,7 @@ public class StaticMethodCall implements Specialization {
     return Type.getType(method.getReturnType());
   }
 
-  @Override
-  public ValueBounds getValueBounds() {
+  public ValueBounds getResultBounds() {
     return valueBounds;
   }
 
@@ -66,17 +79,19 @@ public class StaticMethodCall implements Specialization {
   public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
 
     for (JvmMethod.Argument argument : method.getAllArguments()) {
-      if(argument.isContextual()) {
-        throw new UnsupportedOperationException("TODO");
-      } else {
-        Expression argumentExpr = arguments.get(argument.getIndex()).getExpression();
-        argumentExpr.load(emitContext, mv);
-        emitContext.convert(mv, argumentExpr.getType(), Type.getType(argument.getClazz()));
-      }
+      assert !argument.isContextual();
+      Expression argumentExpr = arguments.get(argument.getIndex()).getExpression();
+      argumentExpr.load(emitContext, mv);
+      emitContext.convert(mv, argumentExpr.getType(), Type.getType(argument.getClazz()));
     }
 
     mv.invokestatic(Type.getInternalName(method.getDeclaringClass()), method.getName(),
         Type.getMethodDescriptor(method.getMethod()), false);
 
+  }
+
+  @Override
+  public boolean isPure() {
+    return method.isPure();
   }
 }

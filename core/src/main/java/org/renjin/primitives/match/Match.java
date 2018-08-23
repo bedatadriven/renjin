@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,10 +16,9 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-
 package org.renjin.primitives.match;
 
-import org.renjin.eval.Calls;
+import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Current;
@@ -326,9 +325,9 @@ public class Match {
 
       /* Get the env that the function containing */
       /* matchcall was called from. */
-      Context parentContext = Contexts.findStartingContext(context);
-      if(parentContext.getType() == Context.Type.FUNCTION) {
-        closure = parentContext.getClosure();
+      Context parentContext = Contexts.findCallingContext(context);
+      if(parentContext.getFunction() instanceof Closure) {
+        closure = (Closure) parentContext.getFunction();
       }
       if(closure == null) {
         throw new EvalException("match.call() was called from outside a function");
@@ -337,7 +336,7 @@ public class Match {
       throw new EvalException("match.call cannot use definition of type '%s'", definition.getTypeName());
     }
     
-    PairList matched = Calls.matchArguments(closure.getFormals(), call.getArguments(), true);
+    PairList matched = ClosureDispatcher.matchArguments(closure.getFormals(), call.getArguments(), true);
     
     PairList.Builder expandedArgs = new PairList.Builder();
     for(PairList.Node node : matched.nodes()) {

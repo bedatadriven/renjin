@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1999-2007 The R Core Team.
+ *  Copyright (C) 1999-2016 The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +14,7 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with this program; if not, a copy is available at
- *  http://www.r-project.org/Licenses/
+ *  https://www.R-project.org/Licenses/
  */
 
 /* Included by R.h: API */
@@ -22,8 +22,14 @@
 #ifndef R_RS_H
 #define R_RS_H
 
-#ifndef NO_C_HEADERS
+#if defined(__cplusplus) && !defined(DO_NOT_USE_CXX_HEADERS)
+# include <cstring>
+# include <cstddef>
+# define R_SIZE_T std::size_t
+#else
 # include <string.h>		/* for memcpy, memset */
+# include <stddef.h> /* for size_t */
+# define R_SIZE_T size_t
 #endif
 
 #include <Rconfig.h>		/* for F77_APPEND_UNDERSCORE */
@@ -54,7 +60,10 @@ extern "C" {
 /* S Like Memory Management */
 
 // RENJIN: Dummy mappings
+#if( !defined(__cplusplus))
 extern void *malloc (size_t __size);
+#endif
+
 #define	R_chk_calloc calloc
 #define R_chk_realloc realloc
 #define R_chk_free free

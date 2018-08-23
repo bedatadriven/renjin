@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,10 +19,21 @@
 // Initial template generated from Defn.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.gcc.runtime.CharPtr;
-import org.renjin.gcc.runtime.DoublePtr;
-import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.sexp.SEXP;
+import org.renjin.eval.EvalException;
+import org.renjin.gcc.runtime.*;
+import org.renjin.gnur.api.annotations.Allocator;
+import org.renjin.parser.NumericLiterals;
+import org.renjin.primitives.Deparse;
+import org.renjin.primitives.Native;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.sexp.*;
+import org.renjin.util.CDefines;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
+
+import static org.renjin.gnur.api.Rinternals.*;
+import static org.renjin.util.CDefines.allocVector;
 
 /**
  * GNU R API methods defined in the "Defn.h" header file
@@ -30,9 +41,85 @@ import org.renjin.sexp.SEXP;
 @SuppressWarnings("unused")
 public final class Defn {
 
+  public static final  SEXP	R_CommentSymbol = Symbol.get("comment");
+  public static final  SEXP	R_DotEnvSymbol = Symbol.get(".Environment");
+  public static final  SEXP	R_ExactSymbol = Symbol.get("exact");
+  public static final  SEXP	R_RecursiveSymbol = Symbol.get("recursive");
+  public static final  SEXP	R_WholeSrcrefSymbol = Symbol.get("wholeSrcref");
+  public static final  SEXP	R_TmpvalSymbol = Symbol.get("*tmp*");
+  public static final  SEXP	R_UseNamesSymbol = Symbol.get("use.names");
+  public static final  SEXP	R_ColonSymbol = Symbol.get(":");
+  //public static final  SEXP	R_DoubleColonSymbol;   /* "::" */
+//public static final  SEXP	R_TripleColonSymbol;   /* ":::" */
+  public static final  SEXP R_ConnIdSymbol = Symbol.get("conn_id");
+  public static final  SEXP R_DevicesSymbol = Symbol.get(".Devices");
+  public static final  SEXP R_dot_Generic = Symbol.get(".Generic");
+  public static final  SEXP R_dot_Methods = Symbol.get(".Methods");
+  public static final  SEXP R_dot_Group = Symbol.get(".Group");
+  public static final  SEXP R_dot_Class = Symbol.get(".Class");
+  public static final  SEXP R_dot_GenericCallEnv = Symbol.get(".GenericCallEnv");
+  public static final  SEXP R_dot_GenericDefEnv = Symbol.get(".GenericDefEnv");
+
+  public static int R_interrupts_suspended = 0;
+
+  public static int R_interrupts_pending = 0;
+
+  public static int R_Interactive = 1;
+
+  public static int known_to_be_latin1 = 0;
+
+  public static int utf8locale = 0;
+
+  public static int mbcslocale = 0;
+
+  public static int max_contour_segments = 25000;
+
+  public static int R_Visible = 1;
+
+  public static int R_dec_min_exponent = -308;
+
+  /**
+   * Decimal point used for output
+   */
+  public static Ptr OutDec = new BytePtr((byte)'.', (byte)0);
+
   private Defn() { }
 
+  public static int IS_BYTES(SEXP x) {
+    // All renjin strings are Unicode
+    return 0;
+  }
 
+  public static void SET_BYTES(SEXP x) {
+    throw new UnimplementedGnuApiMethod("SET_BYTES");
+  }
+
+  public static int IS_LATIN1(SEXP x) {
+    // All renjin strings are Unicode
+    return 0;
+  }
+  public static void SET_LATIN1(SEXP x) {
+    throw new UnimplementedGnuApiMethod("SET_LATIN1");
+  }
+
+  public static int IS_ASCII(SEXP x) {
+    // All renjin strings are Unicode
+    return 0;
+  }
+
+  public static void SET_ASCII(SEXP x) {
+    // All renjin strings are Unicode
+    throw new UnimplementedGnuApiMethod("SET_ASCII");
+  }
+
+  public static int IS_UTF8(SEXP x) {
+    // All renjin strings are Unicode
+    return 1;
+  }
+
+  public static void SET_UTF8(SEXP x) {
+    // NOOP: All renjin strings are Unicode
+  }
 
   public static void Rf_CoercionWarning(int p0) {
     throw new UnimplementedGnuApiMethod("Rf_CoercionWarning");
@@ -114,7 +201,7 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("R_set_prim_method");
   }
 
-  public static SEXP do_set_prim_method(SEXP op, CharPtr code_string, SEXP fundef, SEXP mlist) {
+  public static SEXP do_set_prim_method(SEXP op, BytePtr code_string, SEXP fundef, SEXP mlist) {
     throw new UnimplementedGnuApiMethod("do_set_prim_method");
   }
 
@@ -128,13 +215,23 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("R_primitive_generic");
   }
 
-  // int R_ReadConsole (const char *, unsigned char *, int, int)
+  public static int R_ReadConsole (Ptr promptPtr, Ptr buffer, int bufferLength, int addToHistory) {
+    String promptString = Stdlib.nullTerminatedString(promptPtr);
+    String result = Native.currentContext().getSession().getSessionController().readLine(promptString);
+    byte[] resultBytes = result.getBytes(Charsets.UTF_8);
+    int i;
+    for (i = 0; i < bufferLength - 1 && i < resultBytes.length; i++) {
+      buffer.setByte(i, resultBytes[i]);
+    }
+    buffer.setByte(i, (byte)0);
+    return i;
+  }
 
-  public static void R_WriteConsole(CharPtr p0, int p1) {
+  public static void R_WriteConsole(BytePtr p0, int p1) {
     throw new UnimplementedGnuApiMethod("R_WriteConsole");
   }
 
-  public static void R_WriteConsoleEx(CharPtr p0, int p1, int p2) {
+  public static void R_WriteConsoleEx(BytePtr p0, int p1, int p2) {
     throw new UnimplementedGnuApiMethod("R_WriteConsoleEx");
   }
 
@@ -158,23 +255,23 @@ public final class Defn {
 
   // int R_EditFiles (int, const char **, const char **, const char *)
 
-  public static int R_ChooseFile(int p0, CharPtr p1, int p2) {
+  public static int R_ChooseFile(int p0, BytePtr p1, int p2) {
     throw new UnimplementedGnuApiMethod("R_ChooseFile");
   }
 
-  public static CharPtr R_HomeDir() {
+  public static BytePtr R_HomeDir() {
     throw new UnimplementedGnuApiMethod("R_HomeDir");
   }
 
-  public static boolean R_FileExists(CharPtr p0) {
+  public static boolean R_FileExists(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("R_FileExists");
   }
 
-  public static boolean R_HiddenFile(CharPtr p0) {
+  public static boolean R_HiddenFile(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("R_HiddenFile");
   }
 
-  public static double R_FileMtime(CharPtr p0) {
+  public static double R_FileMtime(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("R_FileMtime");
   }
 
@@ -230,7 +327,7 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("Rf_asVecSize");
   }
 
-  public static void Rf_check1arg(SEXP p0, SEXP p1, CharPtr p2) {
+  public static void Rf_check1arg(SEXP p0, SEXP p1, BytePtr p2) {
     throw new UnimplementedGnuApiMethod("Rf_check1arg");
   }
 
@@ -254,8 +351,50 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("Rf_CleanEd");
   }
 
-  public static void Rf_copyMostAttribNoTs(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_copyMostAttribNoTs");
+  public static void Rf_copyMostAttribNoTs(SEXP inp, SEXP ans) {
+    if(ans == Null.INSTANCE) {
+      throw new EvalException("attempt to set an attribute on NULL");
+    }
+
+    AttributeMap.Builder attributeBuilder = new AttributeMap.Builder();
+    Iterator<PairList.Node> itr = inp.getAttributes().nodes().iterator();
+    while(itr.hasNext()) {
+      PairList.Node s = itr.next();
+      Symbol tag = s.getTag();
+      if(tag != Symbols.NAMES || tag != Symbols.CLASS || tag != Symbols.DIM || tag != Symbols.DIMNAMES || tag != Symbols.TSP) {
+        attributeBuilder.set(tag, ans.getAttributes().get(tag));
+      } else if(tag == Symbols.CLASS) {
+        SEXP cl = s.getValue();
+        int i;
+        boolean ists = false;
+        for(i = 0; i < cl.length(); i++) {
+          if("ts".equals(cl.getElementAsSEXP(i).asString())) {
+            ists = true;
+            break;
+          }
+        }
+        if(!ists) {
+          attributeBuilder.set(tag, cl);
+        } else if(cl.length() <= 1) {
+
+        } else {
+          int l = cl.length();
+          Vector.Builder new_cl = allocVector(CDefines.STRSXP, l-1);
+          for(int e = 0, j = 0; e < l; i++) {
+            if(!("ts".equals(cl.getElementAsSEXP(i).asString()))){
+              SET_STRING_ELT(new_cl.build(), j++, STRING_ELT(cl, i));
+            }
+          }
+          attributeBuilder.set(tag, new_cl.build());
+        }
+      }
+    }
+    ((AbstractSEXP)ans).unsafeSetAttributes(attributeBuilder);
+    if (IS_S4_OBJECT(inp) != 0) {
+      SET_S4_OBJECT(ans);
+    } else {
+      UNSET_S4_OBJECT(ans);
+    }
   }
 
   public static SEXP Rf_createS3Vars(SEXP p0, SEXP p1, SEXP p2, SEXP p3, SEXP p4, SEXP p5) {
@@ -286,8 +425,15 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("Rf_deparse1w");
   }
 
-  public static SEXP Rf_deparse1line(SEXP p0, boolean p1) {
-    throw new UnimplementedGnuApiMethod("Rf_deparse1line");
+  public static SEXP Rf_deparse1line(SEXP call, boolean abbrev) {
+    // if abbrev is set to true, return a single character string of length 13 which
+    // is oftern used in plots, otherwise, deparse to a single line string.
+    String line = Deparse.deparseExp(Native.currentContext(), call);
+    if(abbrev && line.length() > 12) {
+      return StringVector.valueOf(line.substring(12));
+    } else {
+      return StringVector.valueOf(line);
+    }
   }
 
   public static SEXP Rf_deparse1s(SEXP call) {
@@ -452,7 +598,7 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("isMethodsDispatchOn");
   }
 
-  public static int Rf_isValidName(CharPtr p0) {
+  public static int Rf_isValidName(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_isValidName");
   }
 
@@ -460,8 +606,12 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("Rf_jump_to_toplevel");
   }
 
+  /**
+   * @deprecated implemented by C language code in grDevices package
+   */
+  @Deprecated
   public static void Rf_KillAllDevices() {
-    throw new UnimplementedGnuApiMethod("Rf_KillAllDevices");
+    throw new RuntimeException("Please recompile with the latest version of Renjin");
   }
 
   public static SEXP Rf_levelsgets(SEXP p0, SEXP p1) {
@@ -474,7 +624,7 @@ public final class Defn {
 
   // SEXP Rf_makeSubscript (SEXP, SEXP, R_xlen_t *, SEXP)
 
-  public static SEXP Rf_markKnown(CharPtr p0, SEXP p1) {
+  public static SEXP Rf_markKnown(BytePtr p0, SEXP p1) {
     throw new UnimplementedGnuApiMethod("Rf_markKnown");
   }
 
@@ -501,7 +651,7 @@ public final class Defn {
   }
 
   public static SEXP Rf_mkFalse() {
-    throw new UnimplementedGnuApiMethod("Rf_mkFalse");
+    return LogicalVector.FALSE;
   }
 
   public static SEXP mkPRIMSXP(int p0, int p1) {
@@ -529,11 +679,44 @@ public final class Defn {
   }
 
   public static SEXP Rf_mkTrue() {
-    throw new UnimplementedGnuApiMethod("Rf_mkTrue");
+    return LogicalVector.TRUE;
   }
 
-  public static SEXP Rf_NewEnvironment(SEXP p0, SEXP p1, SEXP p2) {
-    throw new UnimplementedGnuApiMethod("Rf_NewEnvironment");
+  /**
+   * Create an environment by extending "rho" with a frame obtained by
+   * pairing the variable names given by the tags on "namelist" with
+   * the values given by the elements of "valuelist".
+   *
+   * NewEnvironment is defined directly to avoid the need to protect its
+   * arguments unless a GC will actually occur.  This definition allows
+   * the namelist argument to be shorter than the valuelist; in this
+   * case the remaining values must be named already.  (This is useful
+   * in cases where the entire valuelist is already named--namelist can
+   * then be R_NilValue.)
+   *
+   * The valuelist is destructively modified and used as the
+   * environment's frame.
+   */
+  @Allocator
+  public static SEXP Rf_NewEnvironment(SEXP namelist, SEXP valuelist, SEXP parentEnv) {
+
+    Environment.Builder newEnv = new Environment.Builder(((Environment) parentEnv), new HashFrame());
+
+    Iterator<PairList.Node> valueIt = ((PairList) valuelist).nodes().iterator();
+    Iterator<PairList.Node> nameIt = ((PairList) namelist).nodes().iterator();
+
+    while(nameIt.hasNext() && valueIt.hasNext()) {
+      newEnv.setVariable((Symbol)nameIt.next().getValue(), valueIt.next());
+    }
+
+    while(valueIt.hasNext()) {
+      PairList.Node node = valueIt.next();
+      if(node.hasTag()) {
+        newEnv.setVariable(node.getTag(), node.getValue());
+      }
+    }
+
+    return newEnv.build();
   }
 
   public static void Rf_onintr() {
@@ -553,7 +736,22 @@ public final class Defn {
   }
 
   public static void Rf_PrintDefaults() {
-    throw new UnimplementedGnuApiMethod("Rf_PrintDefaults");
+//    R_print.na_string = NA_STRING;
+//    R_print.na_string_noquote = mkChar("<NA>");
+//    R_print.na_width = (int) strlen(CHAR(R_print.na_string));
+//    R_print.na_width_noquote = (int) strlen(CHAR(R_print.na_string_noquote));
+//    R_print.quote = 1;
+//    R_print.right = Rprt_adj_left;
+//    R_print.digits = GetOptionDigits();
+//    R_print.scipen = asInteger(GetOption1(install("scipen")));
+//    if (R_print.scipen == NA_INTEGER) R_print.scipen = 0;
+//    R_print.max = asInteger(GetOption1(install("max.print")));
+//    if (R_print.max == NA_INTEGER || R_print.max < 0) R_print.max = 99999;
+//    else if(R_print.max == INT_MAX) R_print.max--; // so we can add
+//    R_print.gap = 1;
+//    R_print.width = GetOptionWidth();
+//    R_print.useSource = USESOURCE;
+//    R_print.cutoff = GetOptionCutoff();
   }
 
   public static void Rf_PrintGreeting() {
@@ -568,15 +766,15 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("Rf_PrintValueRec");
   }
 
-  public static void Rf_PrintVersion(CharPtr p0, /*size_t*/ int len) {
+  public static void Rf_PrintVersion(BytePtr p0, /*size_t*/ int len) {
     throw new UnimplementedGnuApiMethod("Rf_PrintVersion");
   }
 
-  public static void Rf_PrintVersion_part_1(CharPtr p0, /*size_t*/ int len) {
+  public static void Rf_PrintVersion_part_1(BytePtr p0, /*size_t*/ int len) {
     throw new UnimplementedGnuApiMethod("Rf_PrintVersion_part_1");
   }
 
-  public static void Rf_PrintVersionString(CharPtr p0, /*size_t*/ int len) {
+  public static void Rf_PrintVersionString(BytePtr p0, /*size_t*/ int len) {
     throw new UnimplementedGnuApiMethod("Rf_PrintVersionString");
   }
 
@@ -610,7 +808,7 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("R_data_class2");
   }
 
-  public static CharPtr R_LibraryFileName(CharPtr p0, CharPtr p1, /*size_t*/ int p2) {
+  public static BytePtr R_LibraryFileName(BytePtr p0, BytePtr p1, /*size_t*/ int p2) {
     throw new UnimplementedGnuApiMethod("R_LibraryFileName");
   }
 
@@ -620,13 +818,13 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("R_NewHashedEnv");
   }
 
-  public static int R_Newhashpjw(CharPtr p0) {
+  public static int R_Newhashpjw(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("R_Newhashpjw");
   }
 
   // FILE* R_OpenLibraryFile (const char *)
 
-  public static SEXP R_Primitive(CharPtr p0) {
+  public static SEXP R_Primitive(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("R_Primitive");
   }
 
@@ -634,7 +832,7 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("R_RestoreGlobalEnv");
   }
 
-  public static void R_RestoreGlobalEnvFromFile(CharPtr p0, boolean p1) {
+  public static void R_RestoreGlobalEnvFromFile(BytePtr p0, boolean p1) {
     throw new UnimplementedGnuApiMethod("R_RestoreGlobalEnvFromFile");
   }
 
@@ -642,7 +840,7 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("R_SaveGlobalEnv");
   }
 
-  public static void R_SaveGlobalEnvToFile(CharPtr p0) {
+  public static void R_SaveGlobalEnvToFile(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("R_SaveGlobalEnvToFile");
   }
 
@@ -662,7 +860,7 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("R_SetOptionWidth");
   }
 
-  public static void R_Suicide(CharPtr p0) {
+  public static void R_Suicide(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("R_Suicide");
   }
 
@@ -674,7 +872,7 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("R_isMissing");
   }
 
-  public static CharPtr Rf_sexptype2char(/*SEXPTYPE*/ int type) {
+  public static BytePtr Rf_sexptype2char(/*SEXPTYPE*/ int type) {
     throw new UnimplementedGnuApiMethod("Rf_sexptype2char");
   }
 
@@ -682,13 +880,13 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("Rf_sortVector");
   }
 
-  public static void Rf_SrcrefPrompt(CharPtr p0, SEXP p1) {
+  public static void Rf_SrcrefPrompt(BytePtr p0, SEXP p1) {
     throw new UnimplementedGnuApiMethod("Rf_SrcrefPrompt");
   }
 
   // void Rf_ssort (SEXP *, int)
 
-  public static int Rf_StrToInternal(CharPtr p0) {
+  public static int Rf_StrToInternal(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_StrToInternal");
   }
 
@@ -756,7 +954,7 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("R_SetMaxNSize");
   }
 
-  public static /*R_size_t*/ int R_Decode2Long(CharPtr p, IntPtr ierr) {
+  public static /*R_size_t*/ int R_Decode2Long(BytePtr p, IntPtr ierr) {
     throw new UnimplementedGnuApiMethod("R_Decode2Long");
   }
 
@@ -772,11 +970,11 @@ public final class Defn {
 
   // const char* Rf_EncodeString (SEXP, int, int, Rprt_adj)
 
-  public static CharPtr Rf_EncodeReal2(double p0, int p1, int p2, int p3) {
+  public static BytePtr Rf_EncodeReal2(double p0, int p1, int p2, int p3) {
     throw new UnimplementedGnuApiMethod("Rf_EncodeReal2");
   }
 
-  public static CharPtr Rf_EncodeChar(SEXP p0) {
+  public static BytePtr Rf_EncodeChar(SEXP p0) {
     throw new UnimplementedGnuApiMethod("Rf_EncodeChar");
   }
 
@@ -792,16 +990,26 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("R_subassign3_dflt");
   }
 
-  public static void /*NORET*/ UNIMPLEMENTED_TYPE(CharPtr s, SEXP x) {
+  public static void /*NORET*/ UNIMPLEMENTED_TYPE(BytePtr s, SEXP x) {
     throw new UnimplementedGnuApiMethod("UNIMPLEMENTED_TYPE");
   }
 
-  public static void /*NORET*/ UNIMPLEMENTED_TYPEt(CharPtr s, /*SEXPTYPE*/ int t) {
+  public static void /*NORET*/ UNIMPLEMENTED_TYPEt(BytePtr s, /*SEXPTYPE*/ int t) {
     throw new UnimplementedGnuApiMethod("UNIMPLEMENTED_TYPEt");
   }
 
-  public static boolean Rf_strIsASCII(CharPtr str) {
-    throw new UnimplementedGnuApiMethod("Rf_strIsASCII");
+  public static boolean Rf_strIsASCII(BytePtr str) {
+    for (int i = 0; ; i++) {
+      byte c = str.getByte(i);
+      if(c == 0) {
+        break;
+      }
+      // c is signed, so c < 0 is equivalent to c > 0x7F
+      if(c < 0) {
+        return false;
+      }
+    }
+    return true;
   }
 
   // int utf8clen (char c)
@@ -826,27 +1034,37 @@ public final class Defn {
 
   // size_t Rf_wcstoutf8 (char *s, const wchar_t *wc, size_t n)
 
-  public static SEXP Rf_installTrChar(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_installTrChar");
+  public static SEXP Rf_installTrChar(SEXP x) {
+    if(!(x instanceof GnuCharSexp)) {
+      throw new EvalException("'installTrChar' must be called on 'CHARSXP'");
+    }
+    BytePtr ptr = ((GnuCharSexp) x).getValue();
+    byte[] allBytes = ptr.getArray();
+    byte[] minusLast = new byte[allBytes.length-1];
+    for(int i = 0; i < minusLast.length; i++) {
+      minusLast[i] = allBytes[i];
+    }
+    String name = new String(minusLast, StandardCharsets.UTF_8);
+    return Symbol.get(name);
   }
 
   // const wchar_t* Rf_wtransChar (SEXP x)
 
   // size_t Rf_mbrtowc (wchar_t *wc, const char *s, size_t n, mbstate_t *ps)
 
-  public static boolean mbcsValid(CharPtr str) {
+  public static boolean mbcsValid(BytePtr str) {
     throw new UnimplementedGnuApiMethod("mbcsValid");
   }
 
-  public static boolean utf8Valid(CharPtr str) {
+  public static boolean utf8Valid(BytePtr str) {
     throw new UnimplementedGnuApiMethod("utf8Valid");
   }
 
-  public static CharPtr Rf_strchr(CharPtr s, int c) {
+  public static BytePtr Rf_strchr(BytePtr s, int c) {
     throw new UnimplementedGnuApiMethod("Rf_strchr");
   }
 
-  public static CharPtr Rf_strrchr(CharPtr s, int c) {
+  public static BytePtr Rf_strrchr(BytePtr s, int c) {
     throw new UnimplementedGnuApiMethod("Rf_strrchr");
   }
 
@@ -874,7 +1092,7 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("reset_duplicate_counter");
   }
 
-  public static void Rf_BindDomain(CharPtr p0) {
+  public static void Rf_BindDomain(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_BindDomain");
   }
 
@@ -904,16 +1122,21 @@ public final class Defn {
 
   // double R_strtod (const char *str, char **endptr)
 
-  public static double R_atof(CharPtr str) {
-    throw new UnimplementedGnuApiMethod("R_atof");
+  @Deprecated
+  public static double R_atof(BytePtr str) {
+    return R_atof((Ptr)str);
   }
 
-  public static void set_rl_word_breaks(CharPtr str) {
+  public static double R_atof(Ptr str) {
+    return NumericLiterals.parseDouble(Stdlib.nullTerminatedString(str));
+  }
+
+  public static void set_rl_word_breaks(BytePtr str) {
     throw new UnimplementedGnuApiMethod("set_rl_word_breaks");
   }
 
-  public static CharPtr locale2charset(CharPtr p0) {
+  public static BytePtr locale2charset(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("locale2charset");
   }
-  
+
 }

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,9 @@ import org.renjin.gcc.annotations.GccSize;
 
 import java.util.Arrays;
 
-public class ObjectPtr<T> implements Ptr {
-  
+@Deprecated
+public class ObjectPtr<T> extends AbstractPtr {
+
   public static final ObjectPtr NULL = new ObjectPtr();
   
   public final Object[] array;
@@ -65,15 +66,44 @@ public class ObjectPtr<T> implements Ptr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public ObjectPtr<T> realloc(int newSizeInBytes) {
     return new ObjectPtr(Realloc.realloc(array, offset, newSizeInBytes / 4));
   }
 
   @Override
   public Ptr pointerPlus(int bytes) {
+    if(bytes % 4 == 0) {
+      return new ObjectPtr<>(this.array, this.offset + (bytes / 4));
+    } else {
+      return new OffsetPtr(this, bytes);
+    }
+  }
+
+  @Override
+  public byte getByte(int offset) {
     throw new UnsupportedOperationException("TODO");
   }
-  
+
+  @Override
+  public void setByte(int offset, byte value) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public int toInt() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public boolean isNull() {
+    return array == null && offset == 0;
+  }
+
   public T get() {
     return get(0);
   }
@@ -108,6 +138,9 @@ public class ObjectPtr<T> implements Ptr {
       } else if(array instanceof ObjectPtr[]) {
         this.array[offset] = thunk.objectPtr(baseType);
         
+      } else if(baseType.equals(Object.class)) {
+        // Don't force allocation yet...
+        this.array[offset] = thunk;
       } else {
         this.array[offset] = thunk.recordUnitPtr(this.array.getClass().getComponentType());
       }
@@ -192,5 +225,20 @@ public class ObjectPtr<T> implements Ptr {
       return ((MallocThunk) voidPointer).recordUnitPtr(recordType);
     }
     return (T)recordType;
+  }
+
+  @Override
+  public Ptr getPointer() {
+    return (Ptr) array[this.offset];
+  }
+
+  @Override
+  public Ptr getPointer(int offset) {
+    int byteOffset = (this.offset * 4) + offset;
+    if(byteOffset % 4 == 0) {
+      return (Ptr)array[byteOffset / 4];
+    } else {
+      throw new UnsupportedOperationException("Unaligned access");
+    }
   }
 }

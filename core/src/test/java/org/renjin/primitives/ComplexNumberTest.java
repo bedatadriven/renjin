@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,6 @@ import org.renjin.EvalTestCase;
 
 import java.io.IOException;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 
@@ -31,48 +30,48 @@ public class ComplexNumberTest extends EvalTestCase {
   
   @Test
   public void imaginaryPartOfConvertedDoubleShouldBeZero() throws IOException {
-    assertThat( eval("Im(as.complex(1))"), equalTo(c(0)) );
+    assertThat( eval("Im(as.complex(1))"), elementsIdenticalTo(c(0)) );
   }
   
   @Test
   public void realPartOfConvertedDoubleShouldMatch() throws IOException{
-    assertThat(eval("Re(as.complex(1))"),equalTo(c(1)));
-    assertThat(eval("Re(as.complex(2))"),equalTo(c(2)));
+    assertThat(eval("Re(as.complex(1))"), elementsIdenticalTo(c(1)));
+    assertThat(eval("Re(as.complex(2))"), elementsIdenticalTo(c(2)));
   }
   
   @Test
   public void vectorizedReal() throws IOException{
     eval("sqrt(c(1,4,9))");
-    assertThat(eval("Re(c(as.complex(1),as.complex(2)))[1]"),equalTo(c(1)));
-    assertThat(eval("Re(c(as.complex(1),as.complex(2)))[2]"),equalTo(c(2)));
+    assertThat(eval("Re(c(as.complex(1),as.complex(2)))[1]"), elementsIdenticalTo(c(1)));
+    assertThat(eval("Re(c(as.complex(1),as.complex(2)))[2]"), elementsIdenticalTo(c(2)));
   }
   
   @Test
   public void sizeAt0_1() throws IOException{
-    assumingBasePackagesLoad();
+
     //    assertThat(eval("Mod(complex(real=0,imaginary=1))"),equalTo(c(1)));
-    assertThat(eval("Mod(complex(0,1))"),equalTo(c(1)));
-    assertThat(eval("Mod(complex(0,9))"),equalTo(c(9)));
+    assertThat(eval("Mod(complex(0,1))"), elementsIdenticalTo(c(1)));
+    assertThat(eval("Mod(complex(0,9))"), elementsIdenticalTo(c(9)));
   }
   
   @Test
   public void argumentAt0_1() throws IOException{
-    assumingBasePackagesLoad();
+
 //    assertThat(eval("Mod(complex(real=0,imaginary=1))"),equalTo(c(1)));
-    assertThat(eval("Arg(complex(real=0, i=1))/pi"),equalTo(c(0.5)));
+    assertThat(eval("Arg(complex(real=0, i=1))/pi"), elementsIdenticalTo(c(0.5)));
   }
   
   @Test
   public void polarCoordinatesAt1_0() throws IOException{
-    assumingBasePackagesLoad();
+
     //    assertThat(eval("Mod(complex(real=0,imaginary=1))"),equalTo(c(1)));
-    assertThat(eval("Mod(complex(real=1,i=0))"),equalTo(c(1)));
-    assertThat(eval("Mod(complex(real=9,i=0))"),equalTo(c(9)));
+    assertThat(eval("Mod(complex(real=1,i=0))"), elementsIdenticalTo(c(1)));
+    assertThat(eval("Mod(complex(real=9,i=0))"), elementsIdenticalTo(c(9)));
   }
   
   @Test
   public void complexConjugate() throws IOException{
-    assumingBasePackagesLoad();
-    assertThat(eval("Im(Conj(complex(real=0,i=1)))"),equalTo(c(-1)));
+
+    assertThat(eval("Im(Conj(complex(real=0,i=1)))"), elementsIdenticalTo(c(-1)));
   }
 }

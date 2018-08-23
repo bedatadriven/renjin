@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
  */
 package org.renjin.gcc.gimple;
 
+import org.renjin.gcc.gimple.expr.GimpleAddressOf;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.repackaged.guava.base.Joiner;
 
@@ -56,7 +57,8 @@ public enum GimpleOp {
   ADDR_EXPR {
     @Override
     public String format(List<GimpleExpr> operands) {
-      return "&" + operands.get(0);
+      assert operands.get(0) instanceof GimpleAddressOf;
+      return operands.get(0).toString();
     }
   },
 

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,6 +59,12 @@ public interface SEXP {
    * Coerces this {@code SEXP} to a single double value.
    */
   double asReal();
+
+  /**
+   *
+   * Coerces this {@code SEXP} to a single integer value
+   */
+  int asInt();
 
 
   String asString();
@@ -173,7 +179,53 @@ public interface SEXP {
    */
   <S extends SEXP> S getElementAsSEXP(int index);
 
-  
+  /**
+   * If this SEXP is a {@link Promise}, return its result, evaluating in the given context if the {@code Promise}
+   * is not yet evaluated.
+   *
+   * @param context the evaluation {@link Context} in which the unevaluated {@link Promise} should be evaluated
+   *                if is not evaluated.
+   * @return the result of the Promise's evaluation, or this S-Expression if this is not a promise.
+   */
   SEXP force(Context context);
+
+  /**
+   * If this SEXP is a {@link Promise}, return its result, evaluating in the given context if the {@code Promise}
+   * is not yet evaluated.
+   *
+   * @param context the evaluation {@link Context} in which the unevaluated {@link Promise} should be evaluated
+   *                if is not evaluated.
+   * @param allowMissing true if missing arguments without a default value should evaluate to {@code Symbol.MISSING_ARG}.
+   *                     If false, missing arguments without default values will throw an error.
+   *
+   * @return the result of the Promise's evaluation, or this S-Expression if this is not a promise.
+   */
+  SEXP force(Context context, boolean allowMissing);
+
+
+  /**
+   * Returns true if this SEXP is equal to the {@code other} SEXP given, using the same rules as the
+   * builtin {@link org.renjin.primitives.Identical#identical(SEXP, SEXP)} function, namely:
+   *
+   * <ul>
+   *   <li>This SEXP must have the same R type as the {@code other} SEXP</li>
+   *   <li>This SEXP must have identical attributes as the {@code other} SEXP</li>
+   *   <li>For {@link Vector}s, this SEXP must have the same length and identical elements as the
+   *   {@code other} SEXP, where two NA elements are considered identical.
+   * </ul>
+   */
+  @Override
+  boolean equals(Object other);
+
+  /**
+   * Returns a String representation of this SEXP intended <strong>only</strong> for use in debugging.
+   *
+   * <p>Callers should not expect this method to return valid R code or even a complete representation of this
+   * SEXP.</p>
+   *
+   * <p></p>
+   */
+  @Override
+  String toString();
 
 }

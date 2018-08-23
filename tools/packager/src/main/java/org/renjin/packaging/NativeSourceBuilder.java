@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,19 +19,19 @@
 package org.renjin.packaging;
 
 import org.renjin.gcc.GimpleCompiler;
-import org.renjin.gcc.HtmlTreeLogger;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParser;
+import org.renjin.gnur.GlobalVarPlugin;
 import org.renjin.gnur.GnurSourcesCompiler;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
-import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.io.Files;
 import org.renjin.repackaged.guava.io.LineProcessor;
+import soot.G;
+import soot.Main;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,17 +48,22 @@ public class NativeSourceBuilder {
   private static final List<String> SOURCE_EXTENSIONS = Lists.newArrayList(
       "c",
       "f", "f77", "f90", "f95", "f03", "for",
-      "cpp", "cxx");
+      "cpp", "cxx", "cc");
 
   private PackageSource source;
   private BuildContext buildContext;
-
-  private List<String> entryPoints;
-
+  private boolean transformGlobalVariables;
 
   public NativeSourceBuilder(PackageSource source, BuildContext buildContext) {
     this.source = source;
     this.buildContext = buildContext;
+  }
+
+  /**
+   * Determines whether we attempt to transform global variables to Renjin-context scoped global variables.
+   */
+  public void setTransformGlobalVariables(boolean transformGlobalVariables) {
+    this.transformGlobalVariables = transformGlobalVariables;
   }
 
   public void build() throws IOException, InterruptedException {
@@ -66,9 +71,25 @@ public class NativeSourceBuilder {
     make();
     compileGimple();
     buildContext.getLogger().info("Compilation of GNU R sources succeeded.");
+
+    try {
+      optimizeClasses();
+    } catch (Exception e) {
+      buildContext.getLogger().error("Soot optimization run failed", e);
+    }
+
+    // When soot hits an error, it can set the interrupt flag for this
+    // thread.
+    Thread.interrupted();
+
   }
 
   private void configure() throws IOException, InterruptedException {
+
+    File renjinMakeVars = new File(source.getNativeSourceDir(), "Makevars.renjin");
+    if (renjinMakeVars.exists()) {
+      buildContext.getLogger().debug("Makevars.renjin exists, skipping ./configure...");
+    }
 
     File configure = new File(source.getPackageDir(), "configure");
     if(!configure.exists()) {
@@ -118,12 +139,32 @@ public class NativeSourceBuilder {
     commandLine.add("-f");
     commandLine.add(shlibMk.getAbsolutePath());
 
-    commandLine.add("SHLIB='dummy.so'");
+    commandLine.add("SHLIB='" + source.getPackageName() + ".so'");
 
-    if(!objectsDefinedByMakeVars(makevars)) {
+    if(!definedByMakeVars(makevars, "^OBJECTS\\s*=")) {
       commandLine.add("OBJECTS=" + findObjectFiles());
     }
     commandLine.add("BRIDGE_PLUGIN=" + buildContext.getGccBridgePlugin().getAbsolutePath());
+
+    // Packages using native code can defined the C++ standard in DESCRIPTION file
+    // SystemRequirements fields or in Makevars file as CXX_STD variable. Using this
+    // information, GNU R (src/library/tools/R/install.R), overwrites the flags as
+    // defined in Makeconf. In Renjin, we check whether if the CXX11 flag is set in
+    // DESCRIPTION or Makevars and overwrite the flags that install.R would otherwise
+    // overwrite. We should add other cases from install.R ones we move to new version
+    // of gcc that supports C++14 and C++17.
+    if(definedByMakeVars(makevars, "(CXX_STD)\\W+(CXX11)") || source.isCXX11()) {
+      if(!source.isCXX11()) {
+        System.out.println("Checking wether in Makevars CXX_STD is set to CXX11... yes");
+      }
+      commandLine.add("CXX=$(CXX11) $(CXX11STD)");
+      commandLine.add("CXXFLAGS=$(CXX11FLAGS)");
+      commandLine.add("CXXPICFLAGS=$(CXX11PICFLAGS)");
+      commandLine.add("SHLIB_LDFLAGS=$(SHLIB_CXX11LDFLAGS)");
+      commandLine.add("SHLIB_LD=$(SHLIB_CXX11LD)");
+    } else {
+      System.out.println("Checking wether in Makevars CXX_STD is set to CXX11... no");
+    }
 
     buildContext.getLogger().debug("Executing " + Joiner.on(" ").join(commandLine));
 
@@ -173,26 +214,17 @@ public class NativeSourceBuilder {
     compiler.setOutputDirectory(buildContext.getOutputDir());
     compiler.setPackageName(source.getGroupId() + "." +
         Namespace.sanitizePackageNameForClassFiles(source.getPackageName()));
-    compiler.setClassName(
-        Namespace.sanitizePackageNameForClassFiles(source.getPackageName()));
-
-    if (buildContext.getCompileLogDir() != null) {
-      compiler.setLogger(new HtmlTreeLogger(buildContext.getCompileLogDir()));
-    }
-
-    if(entryPoints != null && !entryPoints.isEmpty()) {
-      compiler.setEntryPointPredicate(new Predicate<GimpleFunction>() {
-        @Override
-        public boolean apply(GimpleFunction input) {
-          return entryPoints.contains(input.getMangledName());
-        }
-      });
-    }
+    compiler.setClassName(findLibraryName());
+    compiler.setLoggingDirectory(buildContext.getCompileLogDir());
 
     try {
       GnurSourcesCompiler.setupCompiler(compiler);
     } catch (ClassNotFoundException e) {
       throw new BuildException("Failed to setup Gimple Compiler", e);
+    }
+
+    if(transformGlobalVariables) {
+      compiler.addPlugin(new GlobalVarPlugin(compiler.getPackageName()));
     }
 
     try {
@@ -202,19 +234,78 @@ public class NativeSourceBuilder {
     }
   }
 
-  private boolean objectsDefinedByMakeVars(File makevars) throws IOException {
+  private void optimizeClasses() {
+
+    List<String> classes = new ArrayList<>();
+    findClassfiles(buildContext.getOutputDir(), "", classes);
+
+    List<String> args = new ArrayList<>();
+    // Preprend maven's classpath
+    args.add("-pp");
+
+    // Classpath for soot analysis
+    args.add("-cp");
+    args.add(buildContext.getCompileClasspath());
+
+    args.add("-asm-backend");
+    args.add("-java-version");
+    args.add("1.8");
+
+    // Add classes to optimize
+    args.add("-O");
+    args.addAll(classes);
+
+    // Write out to build directory and overwrite existing classfiles
+    args.add("-d");
+    args.add(buildContext.getOutputDir().getAbsolutePath());
+
+    G.reset();
+
+    Main.v().run(args.toArray(new String[args.size()]));
+  }
+
+
+  private void findClassfiles(File file, String packageName, List<String> classes) {
+    for (File child : file.listFiles()) {
+      if(child.isFile() && child.getName().endsWith(".class")) {
+        classes.add(packageName + Files.getNameWithoutExtension(child.getName()));
+      } else if(child.isDirectory()) {
+        findClassfiles(child, packageName + child.getName() + ".", classes);
+      }
+    }
+  }
+
+
+  private String findLibraryName() {
+    // Packages can rename the shared library after it's build.
+    // (Yes, looking at you data.table!!)
+
+    for (File file : source.getNativeSourceDir().listFiles()) {
+      String filename = file.getName();
+      if(filename.endsWith(".so")) {
+        return Namespace.sanitizePackageNameForClassFiles(filename.substring(0, filename.length() - ".so".length()));
+      }
+    }
+
+    // Otherwise assume it's the same as the package name
+    return Namespace.sanitizePackageNameForClassFiles(source.getPackageName());
+
+  }
+
+
+  private boolean definedByMakeVars(File makevars, String pattern) throws IOException {
     if(!makevars.exists()) {
       return false;
     }
 
-    final Pattern definitionRegexp = Pattern.compile("^OBJECTS\\s*=");
+    final Pattern definitionRegexp = Pattern.compile(pattern);
 
     return Files.readLines(makevars, Charsets.UTF_8, new LineProcessor<Boolean>() {
 
       private boolean defined = false;
 
       @Override
-      public boolean processLine(String line) throws IOException {
+      public boolean processLine(String line) {
         if(definitionRegexp.matcher(line).find()) {
           defined = true;
           return false;

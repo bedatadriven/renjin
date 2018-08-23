@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,12 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 public class ComplexArrayVector extends ComplexVector {
+
+  public static final ComplexVector NA_VECTOR = new ComplexArrayVector(ComplexVector.NA);
+  public static final ComplexVector EMPTY = new ComplexArrayVector();
+
+  public static final ComplexVector NAMED_EMPTY = new ComplexArrayVector(new Complex[0],
+      AttributeMap.builder().setNames(StringVector.EMPTY).build());
 
   private final double[] values;
 
@@ -61,6 +67,10 @@ public class ComplexArrayVector extends ComplexVector {
   public double[] toComplexArrayVectorUnsafe() {
     return values;
   }
+
+  public static ComplexArrayVector unsafe(double[] values) {
+    return new ComplexArrayVector(values, AttributeMap.EMPTY);
+  }
   
   public ComplexArrayVector(Complex[] values, AttributeMap attributes) {
     this(values, values.length, attributes);
@@ -95,16 +105,6 @@ public class ComplexArrayVector extends ComplexVector {
     return new Complex(real, imag);
   }
 
-  @Override
-  public boolean equals(Object x){
-    if(x instanceof ComplexArrayVector){
-      ComplexArrayVector that = (ComplexArrayVector)x;
-      return Arrays.equals(this.values, that.values);
-    } else {
-      return false;
-    }
-  }
-  
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     return new ComplexArrayVector(this.values, attributes);
@@ -222,11 +222,6 @@ public class ComplexArrayVector extends ComplexVector {
       return set(destinationIndex, source.getElementAsComplex(sourceIndex));
     }
 
-   
-//    public Builder set(int index, Double value) {
-//      return set(index, (double)value);
-//    }
-
     @Override
     public int length() {
       return size;
@@ -255,6 +250,5 @@ public class ComplexArrayVector extends ComplexVector {
         return new ComplexArrayVector(this.builderValues, buildAttributes());
       }
     }
-
   }
 }

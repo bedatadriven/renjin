@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ public class S4Object extends AbstractSEXP {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("S4[");
-    for(PairList.Node node : attributes.asPairList().nodes()) {
+    for(PairList.Node node : getAttributes().asPairList().nodes()) {
       SEXP value = node.getValue();
       if(!(value instanceof Function) && value.length() > 0) {
         sb.append(" ").append(node.getTag()).append("=").append(value);
@@ -67,12 +67,12 @@ public class S4Object extends AbstractSEXP {
       return false;
     }
     S4Object other = (S4Object)obj;
-    return attributes.equals(other.attributes);
+    return getAttributes().equals(other.getAttributes());
   }
 
   @Override
   public int hashCode() {
-    return attributes.hashCode();
+    return getAttributes().hashCode();
   }
 
   

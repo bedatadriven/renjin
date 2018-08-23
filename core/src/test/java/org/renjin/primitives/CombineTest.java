@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,6 @@ import org.renjin.EvalTestCase;
 import org.renjin.sexp.Logical;
 import org.renjin.sexp.SEXP;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 
@@ -32,38 +31,38 @@ public class CombineTest extends EvalTestCase {
 
   @Test
   public void realList() {
-    assertThat(eval("c(1,2,3)"), equalTo(c(1, 2, 3)));
+    assertThat(eval("c(1,2,3)"), elementsIdenticalTo(c(1, 2, 3)));
   }
 
   @Test
   public void logicals() {
-    assertThat(eval("c(TRUE, FALSE, NA)"), equalTo(c(Logical.TRUE, Logical.FALSE, Logical.NA)));
+    assertThat(eval("c(TRUE, FALSE, NA)"), elementsIdenticalTo(c(Logical.TRUE, Logical.FALSE, Logical.NA)));
   }
 
   @Test
   public void ints() {
-    assertThat(eval("c(1L,2L, 3L) "), equalTo(c_i(1, 2, 3)));
+    assertThat(eval("c(1L,2L, 3L) "), elementsIdenticalTo(c_i(1, 2, 3)));
   }
 
   @Test
   public void nullValues() {
-    assertThat(eval("c(NULL, NULL)"), equalTo((SEXP) NULL));
+    assertThat(eval("c(NULL, NULL)"), identicalTo((SEXP) NULL));
   }
 
   @Test
   public void realAndLogicalsMixed() {
-    assertThat(eval("c(1,2,NULL,FALSE)"), equalTo(c(1, 2, 0)));
+    assertThat(eval("c(1,2,NULL,FALSE)"), elementsIdenticalTo(c(1, 2, 0)));
   }
 
   @Test
   public void twoLists() {
-    assertThat(eval("c( list(1,2), list(3,4) ) "), equalTo(list(1d, 2d, 3d, 4d)));
+    assertThat(eval("c( list(1,2), list(3,4) ) "), elementsIdenticalTo(list(1d, 2d, 3d, 4d)));
   }
 
   @Test
   public void nullsInList() {
     assertThat(eval("c( list(NULL), NULL, list(NULL,1) ) "),
-            equalTo(list(NULL, NULL, 1d)));
+            elementsIdenticalTo(list(NULL, NULL, 1d)));
   }
 
   @Test
@@ -75,7 +74,7 @@ public class CombineTest extends EvalTestCase {
   public void combineWithExplicitNames() {
     eval("p <- c(x=41,y=42)");
     eval("print(p)");
-    assertThat(eval("p['x']"), equalTo(c(41)));
+    assertThat(eval("p['x']"), elementsIdenticalTo(c(41)));
   }
 
   @Test
@@ -83,7 +82,7 @@ public class CombineTest extends EvalTestCase {
     eval("x <- c(a=1, b=2, 3)");
     eval("y <- c(x, zz=x, 4)");
 
-    assertThat(eval("names(y)"), equalTo(c("a", "b", "", "zz.a", "zz.b", "zz3", "")));
+    assertThat(eval("names(y)"), elementsIdenticalTo(c("a", "b", "", "zz.a", "zz.b", "zz3", "")));
   }
   
   @Test
@@ -92,7 +91,7 @@ public class CombineTest extends EvalTestCase {
     eval("x <- 1");
     eval("class(x) <- 'foo'");
 
-    assertThat(eval("c(x)"), equalTo(c(42)));
+    assertThat(eval("c(x)"), elementsIdenticalTo(c(42)));
 
   
   }
@@ -110,22 +109,22 @@ public class CombineTest extends EvalTestCase {
   
   @Test
   public void unlistAtomic() {
-    assertThat(eval(".Internal(unlist( list(1,4,5), TRUE, TRUE )) "), equalTo(c(1, 4, 5)));
-    assertThat(eval(".Internal(unlist( list(1,'a',TRUE), TRUE, TRUE )) "), equalTo(c("1", "a", "TRUE")));
+    assertThat(eval(".Internal(unlist( list(1,4,5), TRUE, TRUE )) "), elementsIdenticalTo(c(1, 4, 5)));
+    assertThat(eval(".Internal(unlist( list(1,'a',TRUE), TRUE, TRUE )) "), elementsIdenticalTo(c("1", "a", "TRUE")));
     assertThat(eval(".Internal(unlist( list(1,globalenv()), TRUE, TRUE )) "),
-            equalTo(list(1d, global)));
+            elementsIdenticalTo(list(1d, global)));
   }
 
   @Test
   public void unlistRaw() {
-    assertThat(eval("unlist(list(as.raw(0x1), as.raw(0x33)))"), equalTo(c_raw(0x1, 0x33)));
+    assertThat(eval("unlist(list(as.raw(0x1), as.raw(0x33)))"), elementsIdenticalTo(c_raw(0x1, 0x33)));
 
   }
 
   @Test
   public void combineRecursively() {
     assertThat(eval("c( list(91,92,c(93,94,95)), 96, c(97,98), recursive=TRUE)"),
-            equalTo(c(91, 92, 93, 94, 95, 96, 97, 98)));
+            elementsIdenticalTo(c(91, 92, 93, 94, 95, 96, 97, 98)));
   }
 
   @Test
@@ -133,7 +132,7 @@ public class CombineTest extends EvalTestCase {
     eval(" x <- c(a=91,92,c=93)");
     eval(" y <- c(recursive=TRUE, A=list(p=x,q=x,list(r=3,s=c(1,2,3,4))),B=4,C=x)");
 
-    assertThat(eval(" names(y) "), equalTo(c("A.p.a", "A.p2", "A.p.c", "A.q.a", "A.q2", "A.q.c", "A.r",
+    assertThat(eval(" names(y) "), elementsIdenticalTo(c("A.p.a", "A.p2", "A.p.c", "A.q.a", "A.q2", "A.q.c", "A.r",
             "A.s1", "A.s2", "A.s3", "A.s4", "B", "C.a", "C2", "C.c")));
   }
 
@@ -142,45 +141,45 @@ public class CombineTest extends EvalTestCase {
     eval(" pairlist <- function(...) .Internal(as.vector(list(...), 'pairlist')) ");
     eval(" x <- c(pairlist(x=91,y=92)) ");
 
-    assertThat(eval("names(x)"), equalTo(c("x", "y")));
-    assertThat(eval("length(x)"), equalTo(c_i(2)));
-    assertThat(eval(".Internal(typeof(x))"), equalTo(c("list")));
-    assertThat(eval("x[[1]]"), equalTo(c(91)));
-    assertThat(eval("x[[2]]"), equalTo(c(92)));
+    assertThat(eval("names(x)"), elementsIdenticalTo(c("x", "y")));
+    assertThat(eval("length(x)"), elementsIdenticalTo(c_i(2)));
+    assertThat(eval(".Internal(typeof(x))"), elementsIdenticalTo(c("list")));
+    assertThat(eval("x[[1]]"), elementsIdenticalTo(c(91)));
+    assertThat(eval("x[[2]]"), elementsIdenticalTo(c(92)));
   }
 
   @Test
   public void rbind_cbind_Simple() {
 
     eval(" x<-.Internal(rbind(1, c(Package='survey', Version='3.22-3'))) ");
-    assertThat(eval("dim(x)"), equalTo(c_i(1, 2)));
-    assertThat(eval("dimnames(x)"), equalTo(list(NULL, c("Package", "Version"))));
-    assertThat(eval("x"), equalTo(c("survey", "3.22-3")));
+    assertThat(eval("dim(x)"), elementsIdenticalTo(c_i(1, 2)));
+    assertThat(eval("dimnames(x)"), elementsIdenticalTo(list(NULL, c("Package", "Version"))));
+    assertThat(eval("x"), elementsIdenticalTo(c("survey", "3.22-3")));
 
     eval(" x<-.Internal(cbind(1, c(Package='survey', Version='3.22-3'))) ");
-    assertThat(eval("dim(x)"), equalTo(c_i(2, 1)));
-    assertThat(eval("dimnames(x)"), equalTo(list(c("Package", "Version"), NULL)));
-    assertThat(eval("x"), equalTo(c("survey", "3.22-3")));
+    assertThat(eval("dim(x)"), elementsIdenticalTo(c_i(2, 1)));
+    assertThat(eval("dimnames(x)"), elementsIdenticalTo(list(c("Package", "Version"), NULL)));
+    assertThat(eval("x"), elementsIdenticalTo(c("survey", "3.22-3")));
   }
 
   @Test
   public void cbind_rbind() {
 
-    assertThat(eval(".Internal(cbind(1))"), equalTo(NULL));
-    assertThat(eval(".Internal(cbind(1, 5, 6, 7))"), equalTo(c(5, 6, 7)));
-    assertThat(eval("dim(.Internal(cbind(1, 5, 6, 7)))"), equalTo(c_i(1, 3)));
-    assertThat(eval(".Internal(cbind(1, c(5,6), c(9)))"), equalTo(c(5, 6, 9, 9)));
-    assertThat(eval(".Internal(cbind(1, a=c(c=5,d=6), b=c(9)))"), equalTo(c(5, 6, 9, 9)));
-    assertThat(eval("dimnames(.Internal(cbind(1, a=1:2, b=3:4)))[[1]]"), equalTo(NULL));
-    assertThat(eval("dimnames(.Internal(cbind(1, a=1:2, b=3:4)))[[2]]"), equalTo(c("a", "b")));
+    assertThat(eval(".Internal(cbind(1))"), identicalTo(NULL));
+    assertThat(eval(".Internal(cbind(1, 5, 6, 7))"), elementsIdenticalTo(c(5, 6, 7)));
+    assertThat(eval("dim(.Internal(cbind(1, 5, 6, 7)))"), elementsIdenticalTo(c_i(1, 3)));
+    assertThat(eval(".Internal(cbind(1, c(5,6), c(9)))"), elementsIdenticalTo(c(5, 6, 9, 9)));
+    assertThat(eval(".Internal(cbind(1, a=c(c=5,d=6), b=c(9)))"), elementsIdenticalTo(c(5, 6, 9, 9)));
+    assertThat(eval("dimnames(.Internal(cbind(1, a=1:2, b=3:4)))[[1]]"), identicalTo(NULL));
+    assertThat(eval("dimnames(.Internal(cbind(1, a=1:2, b=3:4)))[[2]]"), elementsIdenticalTo(c("a", "b")));
 
-    assertThat(eval(".Internal(rbind(1))"), equalTo(NULL));
-    assertThat(eval(".Internal(rbind(1, 5, 6, 7))"), equalTo(c(5, 6, 7)));
-    assertThat(eval("dim(.Internal(rbind(1, 5, 6, 7)))"), equalTo(c_i(3, 1)));
-    assertThat(eval(".Internal(rbind(1, c(5,6), c(9)))"), equalTo(c(5, 9, 6, 9)));
-    assertThat(eval(".Internal(rbind(1, a=c(c=5,d=6), b=c(9)))"), equalTo(c(5, 9, 6, 9)));
-    assertThat(eval("dimnames(.Internal(rbind(1, a=1:2, b=3:4)))[[1]]"), equalTo(c("a", "b")));
-    assertThat(eval("dimnames(.Internal(rbind(1, a=1:2, b=3:4)))[[2]]"), equalTo(NULL));
+    assertThat(eval(".Internal(rbind(1))"), identicalTo(NULL));
+    assertThat(eval(".Internal(rbind(1, 5, 6, 7))"), elementsIdenticalTo(c(5, 6, 7)));
+    assertThat(eval("dim(.Internal(rbind(1, 5, 6, 7)))"), elementsIdenticalTo(c_i(3, 1)));
+    assertThat(eval(".Internal(rbind(1, c(5,6), c(9)))"), elementsIdenticalTo(c(5, 9, 6, 9)));
+    assertThat(eval(".Internal(rbind(1, a=c(c=5,d=6), b=c(9)))"), elementsIdenticalTo(c(5, 9, 6, 9)));
+    assertThat(eval("dimnames(.Internal(rbind(1, a=1:2, b=3:4)))[[1]]"), elementsIdenticalTo(c("a", "b")));
+    assertThat(eval("dimnames(.Internal(rbind(1, a=1:2, b=3:4)))[[2]]"), identicalTo(NULL));
 
   }
 
@@ -201,13 +200,13 @@ public class CombineTest extends EvalTestCase {
     eval("x <- .Internal(cbind(1, a, b))");
     eval("y <- .Internal(rbind(1, c, d))");
 
-    assertThat(eval("length(dimnames(x)[[1]])"), equalTo(c_i(4)));
-    assertThat(eval("length(dimnames(x)[[2]])"), equalTo(c_i(2)));
-    assertThat(eval("row.names(x)"), equalTo(c("r1","r2","r3","r4")));
+    assertThat(eval("length(dimnames(x)[[1]])"), elementsIdenticalTo(c_i(4)));
+    assertThat(eval("length(dimnames(x)[[2]])"), elementsIdenticalTo(c_i(2)));
+    assertThat(eval("row.names(x)"), elementsIdenticalTo(c("r1","r2","r3","r4")));
 
-    assertThat(eval("length(dimnames(y)[[1]])"), equalTo(c_i(2)));
-    assertThat(eval("length(dimnames(y)[[2]])"), equalTo(c_i(4)));
-    assertThat(eval("colnames(y)"), equalTo(c("r1","r2","r3","r4")));
+    assertThat(eval("length(dimnames(y)[[1]])"), elementsIdenticalTo(c_i(2)));
+    assertThat(eval("length(dimnames(y)[[2]])"), elementsIdenticalTo(c_i(4)));
+    assertThat(eval("colnames(y)"), elementsIdenticalTo(c("r1","r2","r3","r4")));
   }
 
   @Test
@@ -221,24 +220,24 @@ public class CombineTest extends EvalTestCase {
     eval("b <- as.name('x')");
     eval("c <- rbind(x)");
 
-    assertThat(eval("a"), equalTo(eval("b")));
-    assertThat(eval("c"), equalTo(eval("b")));
+    assertThat(eval("a"), identicalTo(eval("b")));
+    assertThat(eval("c"), identicalTo(eval("b")));
   }
 
   @Test
   public void deferredNames() {
     eval("x <- as.double(1:10000)");
     eval("y <- c(a=x)");
-    assertThat(eval("names(y)[1]"), equalTo(c("a1")));
-    assertThat(eval("names(y)[2]"), equalTo(c("a2")));
+    assertThat(eval("names(y)[1]"), elementsIdenticalTo(c("a1")));
+    assertThat(eval("names(y)[2]"), elementsIdenticalTo(c("a2")));
 
     eval("x <- as.double(1:10000)");
     eval("names(x) <- rep(c('x','y','z'), length=length(x))");
     eval("y <- c(a=x)");
-    assertThat(eval("names(y)[1]"), equalTo(c("a.x")));
-    assertThat(eval("names(y)[2]"), equalTo(c("a.y")));
-    assertThat(eval("names(y)[3]"), equalTo(c("a.z")));
-    assertThat(eval("names(y)[4]"), equalTo(c("a.x")));
+    assertThat(eval("names(y)[1]"), elementsIdenticalTo(c("a.x")));
+    assertThat(eval("names(y)[2]"), elementsIdenticalTo(c("a.y")));
+    assertThat(eval("names(y)[3]"), elementsIdenticalTo(c("a.z")));
+    assertThat(eval("names(y)[4]"), elementsIdenticalTo(c("a.x")));
   }
 
   @Test
@@ -246,11 +245,11 @@ public class CombineTest extends EvalTestCase {
     eval("x<-1:12");
     eval("dim(x)<-c(3,4)");
 
-    assertThat(eval("dim(.Internal(cbind(1, x, c())))"), equalTo(c_i(3, 4)));
-    assertThat(eval("dim(.Internal(rbind(1, x, c())))"), equalTo(c_i(3, 4)));
+    assertThat(eval("dim(.Internal(cbind(1, x, c())))"), elementsIdenticalTo(c_i(3, 4)));
+    assertThat(eval("dim(.Internal(rbind(1, x, c())))"), elementsIdenticalTo(c_i(3, 4)));
 
-    assertThat(eval("dim(.Internal(cbind(1, c())))"), equalTo(NULL));
-    assertThat(eval("dim(.Internal(rbind(1, c())))"), equalTo(NULL));
+    assertThat(eval("dim(.Internal(cbind(1, c())))"), identicalTo(NULL));
+    assertThat(eval("dim(.Internal(rbind(1, c())))"), identicalTo(NULL));
 
   }
 
@@ -266,12 +265,12 @@ public class CombineTest extends EvalTestCase {
     eval("o <- rbind(c,d)");
     eval("p <- cbind(c,d)");
 
-    assertThat( eval("dimnames(m)[[1]]"), equalTo(NULL));
-    assertThat( eval("dimnames(m)[[2]]"), equalTo(c("a", "b")));
-    assertThat( eval("dimnames(n)[[1]]"), equalTo(c("a", "b")));
-    assertThat( eval("dimnames(n)[[2]]"), equalTo(NULL));
-    assertThat( eval("dimnames(o)[[1]]"), equalTo(c("c", "d")));
-    assertThat( eval("dimnames(p)[[2]]"), equalTo(c("c", "d")));
+    assertThat( eval("dimnames(m)[[1]]"), identicalTo(NULL));
+    assertThat( eval("dimnames(m)[[2]]"), elementsIdenticalTo(c("a", "b")));
+    assertThat( eval("dimnames(n)[[1]]"), elementsIdenticalTo(c("a", "b")));
+    assertThat( eval("dimnames(n)[[2]]"), identicalTo(NULL));
+    assertThat( eval("dimnames(o)[[1]]"), elementsIdenticalTo(c("c", "d")));
+    assertThat( eval("dimnames(p)[[2]]"), elementsIdenticalTo(c("c", "d")));
   }
 
   @Test
@@ -281,10 +280,10 @@ public class CombineTest extends EvalTestCase {
     eval("m <- cbind(a,b)");
     eval("n <- rbind(a,b)");
 
-    assertThat( eval("dimnames(m)[[1]]"), equalTo(c("C", "D")));
-    assertThat( eval("dimnames(m)[[2]]"), equalTo(c("a", "b")));
-    assertThat( eval("dimnames(n)[[1]]"), equalTo(c("a", "b")));
-    assertThat( eval("dimnames(n)[[2]]"), equalTo(c("C", "D")));
+    assertThat( eval("dimnames(m)[[1]]"), elementsIdenticalTo(c("C", "D")));
+    assertThat( eval("dimnames(m)[[2]]"), elementsIdenticalTo(c("a", "b")));
+    assertThat( eval("dimnames(n)[[1]]"), elementsIdenticalTo(c("a", "b")));
+    assertThat( eval("dimnames(n)[[2]]"), elementsIdenticalTo(c("C", "D")));
 
   }
 
@@ -293,36 +292,36 @@ public class CombineTest extends EvalTestCase {
     eval("a <- c(C=1,D=2)");
     eval("b <- c(C=3,D=4)");
 
-    assertThat( eval("dimnames( cbind(a,b,deparse.level=0) )[[1]]"), equalTo(c("C", "D")));
-    assertThat( eval("dimnames( cbind(a,b,deparse.level=0) )[[2]]"), equalTo(NULL));
-    assertThat( eval("dimnames( rbind(a,b,deparse.level=0) )[[1]]"), equalTo(NULL));
-    assertThat( eval("dimnames( rbind(a,b,deparse.level=0) )[[2]]"), equalTo(c("C", "D")));
+    assertThat( eval("dimnames( cbind(a,b,deparse.level=0) )[[1]]"), elementsIdenticalTo(c("C", "D")));
+    assertThat( eval("dimnames( cbind(a,b,deparse.level=0) )[[2]]"), identicalTo(NULL));
+    assertThat( eval("dimnames( rbind(a,b,deparse.level=0) )[[1]]"), identicalTo(NULL));
+    assertThat( eval("dimnames( rbind(a,b,deparse.level=0) )[[2]]"), elementsIdenticalTo(c("C", "D")));
 
-    assertThat( eval("dimnames( cbind(c(C=1,D=2),c(C=3,D=4),deparse.level=0) )[[1]]"), equalTo(c("C", "D")));
-    assertThat( eval("dimnames( cbind(c(C=1,D=2),c(C=3,D=4),deparse.level=0) )[[2]]"), equalTo(NULL));
-    assertThat( eval("dimnames( rbind(c(C=1,D=2),c(C=3,D=4),deparse.level=0) )[[1]]"), equalTo(NULL));
-    assertThat( eval("dimnames( rbind(c(C=1,D=2),c(C=3,D=4),deparse.level=0) )[[2]]"), equalTo(c("C", "D")));
+    assertThat( eval("dimnames( cbind(c(C=1,D=2),c(C=3,D=4),deparse.level=0) )[[1]]"), elementsIdenticalTo(c("C", "D")));
+    assertThat( eval("dimnames( cbind(c(C=1,D=2),c(C=3,D=4),deparse.level=0) )[[2]]"), identicalTo(NULL));
+    assertThat( eval("dimnames( rbind(c(C=1,D=2),c(C=3,D=4),deparse.level=0) )[[1]]"), identicalTo(NULL));
+    assertThat( eval("dimnames( rbind(c(C=1,D=2),c(C=3,D=4),deparse.level=0) )[[2]]"), elementsIdenticalTo(c("C", "D")));
 
 
-    assertThat( eval("dimnames( cbind(a,b,deparse.level=1) )[[1]]"), equalTo(c("C", "D")));
-    assertThat( eval("dimnames( cbind(a,b,deparse.level=1) )[[2]]"), equalTo(c("a", "b")));
-    assertThat( eval("dimnames( rbind(a,b,deparse.level=1) )[[1]]"), equalTo(c("a", "b")));
-    assertThat( eval("dimnames( rbind(a,b,deparse.level=1) )[[2]]"), equalTo(c("C", "D")));
+    assertThat( eval("dimnames( cbind(a,b,deparse.level=1) )[[1]]"), elementsIdenticalTo(c("C", "D")));
+    assertThat( eval("dimnames( cbind(a,b,deparse.level=1) )[[2]]"), elementsIdenticalTo(c("a", "b")));
+    assertThat( eval("dimnames( rbind(a,b,deparse.level=1) )[[1]]"), elementsIdenticalTo(c("a", "b")));
+    assertThat( eval("dimnames( rbind(a,b,deparse.level=1) )[[2]]"), elementsIdenticalTo(c("C", "D")));
 
-    assertThat( eval("dimnames( cbind(c(C=1,D=2),c(C=3,D=4),deparse.level=1) )[[1]]"), equalTo(c("C", "D")));
-    assertThat( eval("dimnames( cbind(c(C=1,D=2),c(C=3,D=4),deparse.level=1) )[[2]]"), equalTo(NULL));
-    assertThat( eval("dimnames( rbind(c(C=1,D=2),c(C=3,D=4),deparse.level=1) )[[1]]"), equalTo(NULL));
-    assertThat( eval("dimnames( rbind(c(C=1,D=2),c(C=3,D=4),deparse.level=1) )[[2]]"), equalTo(c("C", "D")));
+    assertThat( eval("dimnames( cbind(c(C=1,D=2),c(C=3,D=4),deparse.level=1) )[[1]]"), elementsIdenticalTo(c("C", "D")));
+    assertThat( eval("dimnames( cbind(c(C=1,D=2),c(C=3,D=4),deparse.level=1) )[[2]]"), identicalTo(NULL));
+    assertThat( eval("dimnames( rbind(c(C=1,D=2),c(C=3,D=4),deparse.level=1) )[[1]]"), identicalTo(NULL));
+    assertThat( eval("dimnames( rbind(c(C=1,D=2),c(C=3,D=4),deparse.level=1) )[[2]]"), elementsIdenticalTo(c("C", "D")));
 
-    assertThat( eval("dimnames( cbind(1:2,3:4,deparse.level=2) )[[1]]"), equalTo(NULL));
-    assertThat( eval("dimnames( cbind(1:2,3:4,deparse.level=2) )[[2]]"), equalTo( c("1:2", "3:4") ));
-    assertThat( eval("dimnames( rbind(1:2,3:4,deparse.level=2) )[[1]]"), equalTo( c("1:2", "3:4") ));
-    assertThat( eval("dimnames( rbind(1:2,3:4,deparse.level=2) )[[2]]"), equalTo(NULL));
+    assertThat( eval("dimnames( cbind(1:2,3:4,deparse.level=2) )[[1]]"), identicalTo(NULL));
+    assertThat( eval("dimnames( cbind(1:2,3:4,deparse.level=2) )[[2]]"), elementsIdenticalTo( c("1:2", "3:4") ));
+    assertThat( eval("dimnames( rbind(1:2,3:4,deparse.level=2) )[[1]]"), elementsIdenticalTo( c("1:2", "3:4") ));
+    assertThat( eval("dimnames( rbind(1:2,3:4,deparse.level=2) )[[2]]"), identicalTo(NULL));
 
-    assertThat( eval("dimnames( cbind(c(C=1,D=2),c(C=3,D=4),deparse.level=2) )[[1]]"), equalTo(c("C", "D")));
-    assertThat( eval("dimnames( cbind(c(C=1,D=2),c(C=3,D=4),deparse.level=2) )[[2]]"), equalTo(c("c(C = 1, D...", "c(C = 3, D...")));
-    assertThat( eval("dimnames( rbind(c(C=1,D=2),c(C=3,D=4),deparse.level=2) )[[1]]"), equalTo(c("c(C = 1, D...", "c(C = 3, D...")));
-    assertThat( eval("dimnames( rbind(c(C=1,D=2),c(C=3,D=4),deparse.level=2) )[[2]]"), equalTo(c("C", "D")));
+    assertThat( eval("dimnames( cbind(c(C=1,D=2),c(C=3,D=4),deparse.level=2) )[[1]]"), elementsIdenticalTo(c("C", "D")));
+    assertThat( eval("dimnames( cbind(c(C=1,D=2),c(C=3,D=4),deparse.level=2) )[[2]]"), elementsIdenticalTo(c("c(C = 1, D...", "c(C = 3, D...")));
+    assertThat( eval("dimnames( rbind(c(C=1,D=2),c(C=3,D=4),deparse.level=2) )[[1]]"), elementsIdenticalTo(c("c(C = 1, D...", "c(C = 3, D...")));
+    assertThat( eval("dimnames( rbind(c(C=1,D=2),c(C=3,D=4),deparse.level=2) )[[2]]"), elementsIdenticalTo(c("C", "D")));
 
   }
 
@@ -339,15 +338,15 @@ public class CombineTest extends EvalTestCase {
     eval("z <- 3");
     eval("class(z) <- 'bar'");
 
-    assertThat(eval(".Internal(rbind(1, x, y))"), equalTo(c_i(42))); //WORKS
-    assertThat(eval(".Internal(rbind(1, y, x))"), equalTo(c_i(42))); //WORKS
-    assertThat(eval(".Internal(rbind(1, x, y, z))"), equalTo(c(1,2,3))); // default method
-    assertThat(eval(".Internal(rbind(1, y, z))"), equalTo(c(4, 6))); // default method
+    assertThat(eval(".Internal(rbind(1, x, y))"), elementsIdenticalTo(c_i(42))); //WORKS
+    assertThat(eval(".Internal(rbind(1, y, x))"), elementsIdenticalTo(c_i(42))); //WORKS
+    assertThat(eval(".Internal(rbind(1, x, y, z))"), elementsIdenticalTo(c(1,2,3))); // default method
+    assertThat(eval(".Internal(rbind(1, y, z))"), elementsIdenticalTo(c(4, 6))); // default method
 //
-    assertThat(eval(".Internal(cbind(1, x, y))"), equalTo(c_i(42)));
-    assertThat(eval(".Internal(cbind(1, y, x))"), equalTo(c_i(42)));
-    assertThat(eval(".Internal(cbind(1, x, y, z))"), equalTo(c(1,2,3))); // default method
-    assertThat(eval(".Internal(cbind(1, y, z))"), equalTo(c(4, 6))); // default method
+    assertThat(eval(".Internal(cbind(1, x, y))"), elementsIdenticalTo(c_i(42)));
+    assertThat(eval(".Internal(cbind(1, y, x))"), elementsIdenticalTo(c_i(42)));
+    assertThat(eval(".Internal(cbind(1, x, y, z))"), elementsIdenticalTo(c(1,2,3))); // default method
+    assertThat(eval(".Internal(cbind(1, y, z))"), elementsIdenticalTo(c(4, 6))); // default method
   }
 
   @Test
@@ -355,16 +354,16 @@ public class CombineTest extends EvalTestCase {
     eval("x <- list(const=NULL,power=NULL)");
     eval("y <- unlist(x)");
 
-    assertThat(eval("y"), equalTo(NULL));
+    assertThat(eval("y"), identicalTo(NULL));
 
   }
 
   @Test
   public void handleMultipleNulls() {
-    assertThat(eval("cbind(1, NULL, NULL, NULL, c(), c(), NULL, 1)"), equalTo(c(1, 1)));
-    assertThat(eval("dim(cbind(1, NULL, NULL, NULL, c(), c(), NULL, 1))"), equalTo(c_i(1, 2)));
-    assertThat(eval("rbind(1, NULL, NULL, NULL, c(), c(), NULL, 1)"), equalTo(c(1, 1)));
-    assertThat(eval("dim(rbind(1, NULL, NULL, NULL, c(), c(), NULL, 1))"), equalTo(c_i(2, 1)));
+    assertThat(eval("cbind(1, NULL, NULL, NULL, c(), c(), NULL, 1)"), elementsIdenticalTo(c(1, 1)));
+    assertThat(eval("dim(cbind(1, NULL, NULL, NULL, c(), c(), NULL, 1))"), elementsIdenticalTo(c_i(1, 2)));
+    assertThat(eval("rbind(1, NULL, NULL, NULL, c(), c(), NULL, 1)"), elementsIdenticalTo(c(1, 1)));
+    assertThat(eval("dim(rbind(1, NULL, NULL, NULL, c(), c(), NULL, 1))"), elementsIdenticalTo(c_i(2, 1)));
   }
 
 }

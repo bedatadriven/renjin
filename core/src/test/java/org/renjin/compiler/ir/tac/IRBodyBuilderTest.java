@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,7 +38,6 @@ import org.renjin.sexp.*;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 
@@ -135,87 +134,93 @@ public class IRBodyBuilderTest extends EvalTestCase {
     		   "t <- function(x) .Internal(t.default(x)); " +
     		   "burt[jj, ii] <- t(   burt[ii, jj] <- m   );");
     
-    assertThat(evalIR("burt[jj,ii]"), equalTo(c(134,2,33,46)));
-    assertThat(evalIR("burt[ii,jj]"), equalTo(c(134,33,2,46)));
+    assertThat(evalIR("burt[jj,ii]"), elementsIdenticalTo(c(134,2,33,46)));
+    assertThat(evalIR("burt[ii,jj]"), elementsIdenticalTo(c(134,33,2,46)));
   }
   
   @Test
   public void interpretSimple() {
-    assertThat(evalIR("x<-16; sqrt(x^2)"), equalTo(c(16)));
+    assertThat(evalIR("x<-16; sqrt(x^2)"), elementsIdenticalTo(c(16)));
   }
   
   @Test
   public void complexAssignment() {
-    assertThat(evalIR("x<-c(1:3); x[1] <- 99 "), equalTo(c(99)));
-    assertThat(evalIR("x"), equalTo(c(99,2,3)));
-    assertThat(evalIR("x<-list(1:3, 99, 1:4); x[[3]][5] <- 400; x[[3]] "), equalTo(c(1,2,3,4,400)));
+    assertThat(evalIR("x<-c(1:3); x[1] <- 99 "), elementsIdenticalTo(c(99)));
+    assertThat(evalIR("x"), elementsIdenticalTo(c(99,2,3)));
+    assertThat(evalIR("x<-list(1:3, 99, 1:4); x[[3]][5] <- 400; x[[3]] "), elementsIdenticalTo(c(1,2,3,4,400)));
   }
   
   @Test
   public void primitiveUsingSymbol() {
-    assertThat(evalIR("x<-list(a=1,b=2); x$a"), equalTo(c(1)));
+    assertThat(evalIR("x<-list(a=1,b=2); x$a"), elementsIdenticalTo(c(1)));
   }
 
   @Test
   public void interpretIf() {
-    assertThat(evalIR("sqrt(4)"), equalTo(c(2)));
-    assertThat(evalIR("if(sqrt(4) > 1) 'yes' else 'no'"), equalTo(c("yes")));
+    assertThat(evalIR("sqrt(4)"), elementsIdenticalTo(c(2)));
+    assertThat(evalIR("if(sqrt(4) > 1) 'yes' else 'no'"), elementsIdenticalTo(c("yes")));
   }
   
   @Test
   public void interpretFor() {
-    assertThat(evalIR("y<-1; for(i in 2:4) {y <- y * i }; y"), equalTo(c(24)));
+    assertThat(evalIR("y<-1; for(i in 2:4) {y <- y * i }; y"), elementsIdenticalTo(c(24)));
   }
 
   @Test
   public void interpretForNext() {
     assertThat(evalIR("y<-0; for(i in 1:10) { if(i %% 2 == 0) { next };  y <- y + i }; y"),
-        equalTo(c(25)));
+        elementsIdenticalTo(c(25)));
   }
   
   @Test(expected = NotCompilableException.class)
   public void lazyArgument() {
-    assertThat(evalIR("x <- quote(y)"), equalTo((SEXP)Symbol.get("y")));
+    assertThat(evalIR("x <- quote(y)"), identicalTo((SEXP)Symbol.get("y")));
   }
   
   @Test
   public void missingArgs() {
     evalIR("x <- 1:3");
-    assertThat(evalIR("x[]"), equalTo(c_i(1,2,3)));
+    assertThat(evalIR("x[]"), elementsIdenticalTo(c_i(1,2,3)));
   }
   
   @Test
   public void returnFunction() {
-    assertThat(evalIR("sqrt(4); return(2); 3; "), equalTo(c(2)));
+    assertThat(evalIR("sqrt(4); return(2); 3; "), elementsIdenticalTo(c(2)));
   }
   
   @Test
   public void interpretRepeat() {
-    assertThat(evalIR("y<-1; repeat {y <- y+1; if(y > 10) break }; y"), equalTo(c(11)));
+    assertThat(evalIR("y<-1; repeat {y <- y+1; if(y > 10) break }; y"), elementsIdenticalTo(c(11)));
+  }
+
+  @Test
+  public void complexAssignmentClosureSetter() {
+    IRBody block = build("storage.mode(x) <- 'integer'");
+    System.out.println(block);
   }
   
   @Test
   public void shortCircuitAnd() {
-    assertThat(evalIR("FALSE && stop()"), equalTo(c(false)));
-    assertThat(evalIR("1 && 2"), equalTo(c(true)));
-    assertThat(evalIR("NA && 1"), equalTo(c(Logical.NA)));
-    assertThat(evalIR("NA && FALSE"), equalTo(c(false)));
-    assertThat(evalIR("42 && 1"), equalTo(c(true)));
-    assertThat(evalIR("FALSE && stop(); NULL "), equalTo(NULL));
+    assertThat(evalIR("FALSE && stop()"), elementsIdenticalTo(c(false)));
+    assertThat(evalIR("1 && 2"), elementsIdenticalTo(c(true)));
+    assertThat(evalIR("NA && 1"), elementsIdenticalTo(c(Logical.NA)));
+    assertThat(evalIR("NA && FALSE"), elementsIdenticalTo(c(false)));
+    assertThat(evalIR("42 && 1"), elementsIdenticalTo(c(true)));
+    assertThat(evalIR("FALSE && stop(); NULL "), identicalTo(NULL));
   
   }
   
   @Test
   public void shortCircuitOr() {
-    assertThat(evalIR("TRUE || stop()"), equalTo(c(true)));
-    assertThat(evalIR("0 || 2"), equalTo(c(true)));
-    assertThat(evalIR("1 || 2"), equalTo(c(true)));
-    assertThat(evalIR("1 || NA"), equalTo(c(true)));
-    assertThat(evalIR("NA || 0"), equalTo(c(Logical.NA)));
-    assertThat(evalIR("NA || 1"), equalTo(c(true)));
-    assertThat(evalIR("0 || NA"), equalTo(c(Logical.NA)));
-    assertThat(evalIR("1 || NA"), equalTo(c(true)));
-    assertThat(evalIR("1 || stop(); NULL "), equalTo(NULL));
+    assertThat(evalIR("TRUE || stop()"), elementsIdenticalTo(c(true)));
+    assertThat(evalIR("0 || 2"), elementsIdenticalTo(c(true)));
+    assertThat(evalIR("1 || 2"), elementsIdenticalTo(c(true)));
+    assertThat(evalIR("1 || NA"), elementsIdenticalTo(c(true)));
+    assertThat(evalIR("NA || 0"), elementsIdenticalTo(c(Logical.NA)));
+    assertThat(evalIR("NA || 1"), elementsIdenticalTo(c(true)));
+    assertThat(evalIR("0 || NA"), elementsIdenticalTo(c(Logical.NA)));
+    assertThat(evalIR("1 || NA"), elementsIdenticalTo(c(true)));
+    assertThat(evalIR("1 || stop(); NULL "), identicalTo(NULL));
   }
   
   
@@ -223,7 +228,7 @@ public class IRBodyBuilderTest extends EvalTestCase {
   
   @Test
   public void assignmentInThunk() {
-    assertThat(evalIR("length(x <- 42); x;"), equalTo(c(42)));    
+    assertThat(evalIR("length(x <- 42); x;"), elementsIdenticalTo(c(42)));
   }
   
   private SEXP evalIR(String text) {
@@ -237,11 +242,11 @@ public class IRBodyBuilderTest extends EvalTestCase {
   
   @Test
   public void closureBody() throws IOException {
-    assumingBasePackagesLoad();
+
     topLevelContext.evaluate(
         RParser.parseSource(new InputStreamReader(getClass().getResourceAsStream("/meanOnline.R"))));
     
-    Closure closure = (Closure) topLevelContext.getGlobalEnvironment().getVariable("mean.online");
+    Closure closure = (Closure) topLevelContext.getGlobalEnvironment().getVariable(topLevelContext, "mean.online");
     IRBodyBuilder factory = newBodyBuilder();
     factory.dump(closure.getBody());
   }

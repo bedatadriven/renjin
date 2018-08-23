@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,10 @@
  */
 package org.renjin.gcc.analysis;
 
-import org.renjin.gcc.gimple.*;
+import org.renjin.gcc.gimple.GimpleBasicBlock;
+import org.renjin.gcc.gimple.GimpleCompilationUnit;
+import org.renjin.gcc.gimple.GimpleFunction;
+import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.statement.GimpleAssignment;
 import org.renjin.gcc.gimple.statement.GimpleStatement;

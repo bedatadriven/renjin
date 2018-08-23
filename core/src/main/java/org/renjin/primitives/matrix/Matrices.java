@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Generic;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.Indexes;
 import org.renjin.primitives.Warning;
@@ -163,23 +164,20 @@ public class Matrices {
   }
 
   @Builtin("%*%")
+  @Generic(S3 = false, S4 = true)
   public static SEXP matrixproduct(AtomicVector x, AtomicVector y) {
-    return new MatrixProduct(MatrixProduct.PROD, x, y)
-            .matprod();
+    return new MatrixProduct(MatrixProduct.PROD, x, y).compute();
   }
 
   @Internal("crossprod")
   public static SEXP crossprod(AtomicVector x, AtomicVector y) {
-    return new MatrixProduct(MatrixProduct.CROSSPROD, x, y)
-            .crossprod();
+    return new MatrixProduct(MatrixProduct.CROSSPROD, x, y).compute();
   }
 
   @Internal("tcrossprod")
   public static SEXP tcrossprod(AtomicVector x, AtomicVector y) {
-    return new MatrixProduct(MatrixProduct.TCROSSPROD, x, y)
-            .tcrossprod();
+    return new MatrixProduct(MatrixProduct.TCROSSPROD, x, y).compute();
   }
-
 
   @Internal
   public static DoubleVector rowSums(AtomicVector x, int numRows, int rowLength, boolean naRm) {
@@ -231,27 +229,11 @@ public class Matrices {
 
   @Internal
   public static DoubleVector colSums(AtomicVector x, int columnLength, int numColumns, boolean naRm) {
-
-    double sums[] = new double[numColumns];
-    for(int column=0;column < numColumns; column++) {
-      int sourceIndex = columnLength*column;
-
-      double sum = 0;
-      for(int row=0;row < columnLength; ++row) {
-        double cellValue = x.getElementAsDouble(sourceIndex++);
-        if(Double.isNaN(cellValue)) {
-          if(!naRm) {
-            sum = DoubleVector.NA;
-            break;
-          }
-        } else {
-          sum += cellValue;
-        }
-      }
-      sums[column] = sum;
+    DeferredColSums dcs =  new DeferredColSums(x, numColumns, naRm, AttributeMap.EMPTY);
+    if (System.getProperty("renjin.disable.colsums") != null) {
+      return (DoubleVector) dcs.forceResult();
     }
-
-    return new DoubleArrayVector(sums);
+    return dcs;
   }
 
   @Internal
@@ -310,7 +292,7 @@ public class Matrices {
     int permutation[] = toPermutationArray(permutationVector);
 
     if(isIdentityPermutation(permutation)) {
-      /**
+      /*
        * No actual change to the vector
        */
       return source;

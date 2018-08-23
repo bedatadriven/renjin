@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,12 +41,12 @@ public class VariableSlots {
     for (Map.Entry<LValue, ValueBounds> entry : types.getVariables().entrySet()) {
       LValue variable = entry.getKey();
       ValueBounds bounds = entry.getValue();
-      if(bounds == null) {
-        throw new NullPointerException("bounds(" + entry.getKey() + ")");
+
+      // If this variable is used, allocate storage for it.
+      if(bounds != null) {
+        storage.put(variable, new VariableStorage(firstSlot + nextSlot, bounds.storageType()));
+        nextSlot += variable.getType().getSize();
       }
-      storage.put(variable, new VariableStorage(firstSlot + nextSlot, bounds.storageType()));
-      
-      nextSlot += variable.getType().getSize();
     }
   }
 

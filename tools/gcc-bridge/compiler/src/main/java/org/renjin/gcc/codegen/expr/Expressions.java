@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,21 +20,19 @@ package org.renjin.gcc.codegen.expr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
-import org.renjin.gcc.codegen.type.primitive.ConstantValue;
-import org.renjin.gcc.codegen.type.primitive.op.PrimitiveBinOpGenerator;
-import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Lists;
 
 import javax.annotation.Nonnull;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.renjin.repackaged.asm.Type.getMethodDescriptor;
+import static org.renjin.repackaged.asm.Type.*;
 
 /**
  * Static utility methods pertaining to create and compose {@link GExpr}s
@@ -85,7 +83,7 @@ public class Expressions {
   }
 
 
-  public static JExpr newArray(Type valueType, int elementLength, Optional<JExpr> firstValue) {
+  public static JExpr newArray(Type valueType, int elementLength, java.util.Optional<JExpr> firstValue) {
     List<JExpr> initialValues = Lists.newArrayList();
     if(firstValue.isPresent()) {
       initialValues.add(firstValue.get());
@@ -107,7 +105,7 @@ public class Expressions {
     // check the types now
     for (int i = 0; i < values.size(); i++) {
       Type elementType = values.get(i).getType();
-      if(elementType.getSort() != componentType.getSort()) {
+      if(promoteSmallInts(elementType).getSort() != promoteSmallInts(componentType).getSort()) {
         throw new IllegalArgumentException(String.format("Invalid type at element %d: %s, expected %s",
             i, elementType, componentType));
       }
@@ -165,8 +163,23 @@ public class Expressions {
     return new ConstantValue(Type.INT_TYPE, value);
   }
 
-  private static JExpr constantLong(long value) {
-    return new ConstantValue(Type.LONG_TYPE, value);
+  public static JExpr constantBoolean(final boolean value) {
+    return new ConstantValue(Type.BOOLEAN_TYPE, value ? 1 : 0);
+  }
+
+  public static JExpr constantLong(final long value) {
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return Type.LONG_TYPE;
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        mv.visitLdcInsn(value);
+      }
+    };
   }
 
   public static JExpr zero() {
@@ -174,13 +187,27 @@ public class Expressions {
   }
 
   public static JExpr zero(final Type type) {
-    return new ConstantValue(type, 0);
+    return new ConstantValue(promoteSmallInts(type), 0);
   }
 
-  public static JExpr sum(final JExpr x, final JExpr y) {
-    return new PrimitiveBinOpGenerator(GimpleOp.PLUS_EXPR, x, y);
+  private static JExpr binary(final int opcode, final JExpr x, final JExpr y, final Type resultType) {
+    return new BinaryOpExpr(opcode, resultType, x, y);
   }
-  
+
+  private static Type promoteSmallInts(Type type) {
+    switch (type.getSort()) {
+      case BYTE:
+      case BOOLEAN:
+      case SHORT:
+      case CHAR:
+      case INT:
+        return Type.INT_TYPE;
+      default:
+        return type;
+    }
+  }
+
+
   public static JExpr sum(JExpr x, int y) {
     if(y == 0) {
       return x;
@@ -189,8 +216,28 @@ public class Expressions {
     }
   }
 
+  public static JExpr sum(final JExpr x, final JExpr y) {
+    if(ConstantValue.isZero(x)) {
+      return y;
+    }
+    if(ConstantValue.isZero(y)) {
+      return x;
+    }
+    if(x instanceof ConstantValue && y instanceof ConstantValue) {
+      ConstantValue cx = (ConstantValue) x;
+      ConstantValue cy = (ConstantValue) y;
+      if(x.getType().getSort() == INT) {
+        return new ConstantValue(Type.INT_TYPE, cx.getIntValue() + cy.getIntValue());
+      } else if(x.getType().getSort() == LONG) {
+        return new ConstantValue(Type.LONG_TYPE, cx.getValue().longValue() + cy.getValue().longValue());
+      }
+    }
+    return binary(Opcodes.IADD, x, y, promoteSmallInts(x.getType()));
+  }
+
+
   public static JExpr difference(JExpr x, JExpr y) {
-    return new PrimitiveBinOpGenerator(GimpleOp.MINUS_EXPR, x, y);
+    return binary(Opcodes.ISUB, x, y, promoteSmallInts(x.getType()));
   }
 
   public static JExpr difference(JExpr x, int y) {
@@ -202,23 +249,27 @@ public class Expressions {
   }
 
   public static JExpr product(JExpr x, JExpr y) {
-    return new PrimitiveBinOpGenerator(GimpleOp.MULT_EXPR, x, y);
+    if(x instanceof ConstantValue && y instanceof ConstantValue) {
+      return constantInt(
+            ((ConstantValue) x).getIntValue() *
+            ((ConstantValue) y).getIntValue());
+    } else {
+      return binary(Opcodes.IMUL, x, y, promoteSmallInts(x.getType()));
+    }
   }
   
   public static JExpr product(JExpr x, int y) {
-    Preconditions.checkArgument(x.getType().equals(Type.INT_TYPE));
-    
     if(y == 0) {
       return zero(x.getType());
     } else if(y == 1) {
       return x;
     } else {
-      return product(x, constantInt(y));
+      return product(x, new ConstantValue(x.getType(), y));
     }
   }
 
   public static JExpr divide(JExpr x, JExpr y) {
-    return new PrimitiveBinOpGenerator(GimpleOp.EXACT_DIV_EXPR, x, y);
+    return binary(Opcodes.IDIV, x, y, promoteSmallInts(x.getType()));
   }
 
   public static JExpr divide(JExpr size, int divisor) {
@@ -336,7 +387,7 @@ public class Expressions {
     
     if (toType.getSort() != Type.OBJECT && 
         toType.getSort() != Type.ARRAY) {
-      throw new IllegalArgumentException("Target type for cast must be an array or object: " + toType);
+      throw new IllegalArgumentException("Cannot cast from " + fromType + " to " + toType);
     }
     int fromSort = fromType.getSort();
     int toSort = toType.getSort();
@@ -498,8 +549,17 @@ public class Expressions {
       }
     };
   }
+  public static JExpr newObject(final Class<?> classType, final JExpr... constructorArguments) {
+    return newObject(Type.getType(classType), constructorArguments);
+  }
 
-  public static JExpr newObject(final Type classType) {
+  public static JExpr newObject(final Type classType, final JExpr... constructorArguments) {
+
+    final Type argumentTypes[] = new Type[constructorArguments.length];
+    for (int i = 0; i < constructorArguments.length; i++) {
+      argumentTypes[i] = constructorArguments[i].getType();
+    }
+
     return new JExpr() {
       @Nonnull
       @Override
@@ -511,11 +571,41 @@ public class Expressions {
       public void load(@Nonnull MethodGenerator mv) {
         mv.anew(classType);
         mv.dup();
-        mv.invokeconstructor(classType);
+
+        for (JExpr constructorArgument : constructorArguments) {
+          constructorArgument.load(mv);
+        }
+
+        mv.invokeconstructor(classType, argumentTypes);
       }
     };
   }
-  
+  public static JExpr newObject(final Class classType, final String constructorDescriptor, final JExpr... constructorArguments) {
+    return newObject(Type.getType(classType), constructorDescriptor, constructorArguments);
+  }
+
+  public static JExpr newObject(final Type classType, final String constructorDescriptor, final JExpr... constructorArguments) {
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return classType;
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        mv.anew(classType);
+        mv.dup();
+
+        for (JExpr constructorArgument : constructorArguments) {
+          constructorArgument.load(mv);
+        }
+
+        mv.invokespecial(classType.getInternalName(), "<init>", constructorDescriptor, false);
+      }
+    };
+  }
+
   public static JExpr shiftRight(final JExpr x, int bits) {
     if(bits == 0) {
       return x;
@@ -524,22 +614,16 @@ public class Expressions {
   }
   
   public static JExpr shiftRight(final JExpr x, final JExpr bits) {
-    return new JExpr() {
-      @Nonnull
-      @Override
-      public Type getType() {
-        return x.getType();
-      }
-
-      @Override
-      public void load(@Nonnull MethodGenerator mv) {
-        x.load(mv);
-        bits.load(mv);
-        mv.shr(x.getType());
-      }
-    };
+    return binary(Opcodes.ISHR, x, bits, promoteSmallInts(x.getType()));
   }
 
+  public static JExpr shiftLeft(final JExpr x, final JExpr bits) {
+    return binary(Opcodes.ISHL, x, bits, promoteSmallInts(x.getType()));
+  }
+
+  public static JExpr unsignedShiftRight(JExpr jexpr, JExpr bits) {
+    return binary(Opcodes.IUSHR, jexpr, bits, promoteSmallInts(jexpr.getType()));
+  }
 
   public static JLValue localVariable(final Type type, final int index) {
     return new JLValue() {
@@ -580,6 +664,34 @@ public class Expressions {
         getMethodDescriptor(Type.INT_TYPE, Type.INT_TYPE), value);
   }
 
+  public static JExpr methodCall(final JExpr instance,
+                                 final Class declaringType,
+                                 final String methodName,
+                                 final String descriptor,
+                                 final JExpr... arguments) {
+
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return Type.getReturnType(descriptor);
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        instance.load(mv);
+        for (JExpr argument : arguments) {
+          argument.load(mv);
+        }
+        if(declaringType.isInterface()) {
+          mv.invokeinterface(Type.getInternalName(declaringType), methodName, descriptor);
+        } else {
+          mv.invokevirtual(Type.getType(declaringType), methodName, descriptor, false);
+        }
+      }
+    };
+  }
+
   public static JExpr staticMethodCall(final Class declaringType, final String methodName,
                                        final String descriptor, final JExpr... arguments) {
     return staticMethodCall(Type.getType(declaringType), methodName, descriptor, arguments);
@@ -589,6 +701,15 @@ public class Expressions {
   
   public static JExpr staticMethodCall(final Type declaringType, final String methodName, 
                                        final String descriptor, final JExpr... arguments) {
+
+    if(Type.getArgumentTypes(descriptor).length != arguments.length) {
+      throw new IllegalArgumentException(String.format("Call to %s.%s(%s) with incorrect number of arguments [%d]",
+          declaringType.getInternalName(),
+          methodName,
+          Arrays.toString(Type.getArgumentTypes(descriptor)),
+          arguments.length));
+    }
+
     return new JExpr() {
       @Nonnull
       @Override
@@ -604,6 +725,17 @@ public class Expressions {
         mv.invokestatic(declaringType, methodName, descriptor);
       }
     };
+  }
+
+  public static JLValue staticField(Field field) {
+    if(!Modifier.isStatic(field.getModifiers())) {
+      throw new IllegalArgumentException(field + " must be static");
+    }
+    Type declaringType = Type.getType(field.getDeclaringClass());
+    Type fieldType = Type.getType(field.getType());
+    String fieldName = field.getName();
+
+    return staticField(declaringType, fieldName, fieldType);
   }
   
   public static JLValue staticField(final Type declaringType, final String fieldName, final Type fieldType) {
@@ -632,28 +764,34 @@ public class Expressions {
       }
     };
   }
+
+  public static JExpr bitwiseXor(JExpr x, int y) {
+    return bitwiseXor(x, constantInt(y));
+  }
   
-  
-  public static JExpr xor(JExpr x, JExpr y) {
-    return new BinaryOp(Opcodes.IXOR, x, y);
+  public static JExpr bitwiseXor(JExpr x, JExpr y) {
+    return new BinaryOpExpr(Opcodes.IXOR, x, y);
   }
   
   public static JExpr flip(JExpr value) {
     switch (value.getType().getSort()) {
       case Type.BYTE:
-        return xor(value, constantInt(Byte.MIN_VALUE));
+        return bitwiseXor(value, constantInt(Byte.MIN_VALUE));
       case Type.SHORT:
-        return xor(value, constantInt(Short.MIN_VALUE));
+        return bitwiseXor(value, constantInt(Short.MIN_VALUE));
       case Type.INT:
-        return xor(value, constantInt(Integer.MIN_VALUE));
+        return bitwiseXor(value, constantInt(Integer.MIN_VALUE));
       case Type.LONG:
-        return xor(value, constantLong(Long.MIN_VALUE));
+        return bitwiseXor(value, constantLong(Long.MIN_VALUE));
       default:
         throw new UnsupportedOperationException("type: " + value.getType());
     }
   }
 
   public static JExpr constantClass(final Type valueType) {
+    Preconditions.checkArgument(valueType.getSort() == OBJECT || valueType.getSort() == ARRAY,
+        "Expected valueType to be an OBJECT or ARRAY sort");
+
     return new JExpr() {
       @Nonnull
       @Override
@@ -695,40 +833,311 @@ public class Expressions {
     };
   }
 
-
-  private static class BinaryOp implements JExpr {
-
-    private int opcode;
-    private Type resultType;
-    private JExpr x;
-    private JExpr y;
-
-
-    public BinaryOp(int opcode, JExpr x, JExpr y) {
-      this.opcode = opcode;
-      this.resultType = x.getType();
-      this.x = x;
-      this.y = y;
-    }
-    
-    public BinaryOp(int opcode, Type resultType, JExpr x, JExpr y) {
-      this.opcode = opcode;
-      this.resultType = resultType;
-      this.x = x;
-      this.y = y;
+  public static boolean requiresCast(Type fromType, Type toType) {
+    if (fromType.equals(toType)) {
+      return false;
     }
 
-    @Nonnull
-    @Override
-    public Type getType() {
-      return resultType;
+    if (promoteSmallInts(fromType).equals(promoteSmallInts(toType))) {
+      return false;
     }
 
-    @Override
-    public void load(@Nonnull MethodGenerator mv) {
-      x.load(mv);
-      y.load(mv);
-      mv.visitInsn(x.getType().getOpcode(opcode));
+    if(toType.equals(Type.getType(Object.class))) {
+      if(fromType.getSort() == ARRAY || fromType.getSort() == OBJECT) {
+        return false;
+      }
     }
+
+    if(fromType.getSort() == Type.OBJECT && toType.getSort() == Type.OBJECT) {
+      return !isDefinitelySubclass(fromType, toType);
+    }
+
+    if(fromType.getSort() == Type.ARRAY && toType.getSort() == Type.ARRAY) {
+      return true;
+    }
+
+    throw new IllegalStateException(fromType + " will never be assignable to " + toType);
+  }
+
+  private static boolean isDefinitelySubclass(Type fromType, Type toType) {
+    Class fromClass;
+    try {
+      fromClass = Class.forName(fromType.getClassName());
+    } catch (ClassNotFoundException e) {
+      return false;
+    }
+
+    Class toClass;
+    try {
+      toClass = Class.forName(toType.getClassName());
+    } catch (ClassNotFoundException e) {
+      return false;
+    }
+
+    return toClass.isAssignableFrom(fromClass);
+  }
+
+  /**
+   * Truncates and sign-extends a signed 32-bit integer.
+   */
+  public static JExpr i2b(final JExpr expr) {
+    return unaryOp(expr, Type.INT_TYPE, Opcodes.I2B, Type.BYTE_TYPE);
+  }
+
+  public static JExpr i2c(JExpr jexpr) {
+    return unaryOp(jexpr, Type.INT_TYPE, Opcodes.I2C, Type.CHAR_TYPE);
+  }
+
+
+  /**
+   * Truncates and sign-extends a signed 32-bit integer.
+   */
+  public static JExpr i2s(final JExpr expr) {
+    return unaryOp(expr, Type.INT_TYPE, Opcodes.I2S, Type.SHORT_TYPE);
+  }
+
+  public static JExpr f2d(final JExpr expr) {
+    return unaryOp(expr, Type.FLOAT_TYPE, Opcodes.F2D, Type.DOUBLE_TYPE);
+  }
+
+  public static JExpr d2f(final JExpr expr) {
+    return unaryOp(expr, Type.DOUBLE_TYPE, Opcodes.D2F, Type.FLOAT_TYPE);
+  }
+
+  public static JExpr d2i(final JExpr expr) {
+    return unaryOp(expr, Type.DOUBLE_TYPE, Opcodes.D2I, Type.INT_TYPE);
+  }
+
+  public static JExpr d2l(final JExpr expr) {
+    return unaryOp(expr, Type.DOUBLE_TYPE, Opcodes.D2L, Type.LONG_TYPE);
+  }
+
+  public static JExpr f2i(final JExpr expr) {
+    return unaryOp(expr, Type.FLOAT_TYPE, Opcodes.F2I, Type.INT_TYPE);
+  }
+  public static JExpr f2l(final JExpr expr) {
+    return unaryOp(expr, Type.FLOAT_TYPE, Opcodes.F2L, Type.LONG_TYPE);
+  }
+
+
+  public static JExpr l2d(JExpr jexpr) {
+    return unaryOp(jexpr, Type.LONG_TYPE, Opcodes.L2D, Type.DOUBLE_TYPE);
+  }
+  public static JExpr l2f(JExpr jexpr) {
+    return unaryOp(jexpr, Type.LONG_TYPE, Opcodes.L2F, Type.FLOAT_TYPE);
+  }
+
+  public static JExpr l2i(JExpr jexpr) {
+    return unaryOp(jexpr, Type.LONG_TYPE, Opcodes.L2I, Type.INT_TYPE);
+  }
+
+
+
+  private static JExpr unaryOp(final JExpr expr, Type expectedArgumentType, final int opcode, final Type resultType) {
+    assert promoteSmallInts(expr.getType()).equals(expectedArgumentType) :
+        "Expected " + expectedArgumentType + ", found: " + expr.getType();
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return resultType;
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        expr.load(mv);
+        mv.visitInsn(opcode);
+      }
+    };
+  }
+
+  public static JExpr remainder(JExpr x, JExpr y) {
+    return binary(Opcodes.IREM, x, y, promoteSmallInts(x.getType()));
+  }
+
+
+  public static JExpr negative(final JExpr jexpr) {
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return promoteSmallInts(jexpr.getType());
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        jexpr.load(mv);
+        mv.visitInsn(jexpr.getType().getOpcode(Opcodes.INEG));
+      }
+    };
+  }
+
+  public static JExpr i2f(JExpr jexpr) {
+    return unaryOp(jexpr, Type.INT_TYPE, Opcodes.I2F, Type.FLOAT_TYPE);
+  }
+
+  public static JExpr i2l(JExpr jexpr) {
+    return unaryOp(jexpr, Type.INT_TYPE, Opcodes.I2L, Type.LONG_TYPE);
+  }
+
+  public static JExpr i2d(JExpr jexpr) {
+    return unaryOp(jexpr, Type.INT_TYPE, Opcodes.I2D, Type.DOUBLE_TYPE);
+  }
+
+
+  public static JExpr bitwiseAnd(JExpr expr, int mask) {
+    return bitwiseAnd(expr, constantInt(mask));
+  }
+
+  public static JExpr bitwiseOr(JExpr x, JExpr y) {
+    return bitwiseOp(Opcodes.IOR, x, y);
+  }
+
+  public static JExpr bitwiseAnd(JExpr x, JExpr y) {
+    if(x instanceof ConstantValue && y instanceof ConstantValue) {
+      ConstantValue cx = (ConstantValue) x;
+      ConstantValue cy = (ConstantValue) y;
+      if(x.getType().equals(Type.INT_TYPE)) {
+        return Expressions.constantInt(cx.getIntValue() & cy.getIntValue());
+      }
+    }
+    return bitwiseOp(Opcodes.IAND, x, y);
+  }
+
+  private static JExpr bitwiseOp(final int opcode, final JExpr x, final JExpr y) {
+
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return promoteSmallInts(x.getType());
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        x.load(mv);
+        y.load(mv);
+        mv.visitInsn(promoteSmallInts(x.getType()).getOpcode(opcode));
+      }
+    };
+  }
+
+  public static JExpr lcmp(final JExpr x, final JExpr y) {
+    assert x.getType().equals(Type.LONG_TYPE);
+    assert y.getType().equals(Type.LONG_TYPE);
+
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return Type.INT_TYPE;
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        x.load(mv);
+        y.load(mv);
+        mv.visitInsn(Opcodes.LCMP);
+      }
+    };
+  }
+
+  public static JExpr cmpg(JExpr x, JExpr y) {
+    assert x.getType().equals(y.getType());
+    switch (x.getType().getSort()) {
+      case FLOAT:
+        return floatingPointComparison(Opcodes.FCMPG, x, y);
+      case DOUBLE:
+        return floatingPointComparison(Opcodes.DCMPG, x, y);
+    }
+    throw new UnsupportedOperationException("type: " + x.getType());
+  }
+
+
+  public static JExpr cmpl(JExpr x, JExpr y) {
+    assert x.getType().equals(y.getType());
+    switch (x.getType().getSort()) {
+      case FLOAT:
+        return floatingPointComparison(Opcodes.FCMPL, x, y);
+      case DOUBLE:
+        return floatingPointComparison(Opcodes.DCMPL, x, y);
+    }
+    throw new UnsupportedOperationException("type: " + x.getType());
+  }
+
+
+
+
+
+  public static JExpr floatingPointComparison(final int opcode, final JExpr x, final JExpr y) {
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return Type.INT_TYPE;
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        x.load(mv);
+        y.load(mv);
+        mv.visitInsn(opcode);
+      }
+    };
+  }
+
+  public static JExpr compareTo(JExpr x, JExpr y) {
+    return methodCall(x, Comparable.class, "compareTo",
+        Type.getMethodDescriptor(Type.INT_TYPE, Type.getType(Object.class)), y);
+  }
+
+  public static JExpr objectEquals(JExpr x, JExpr y) {
+    return methodCall(x, Object.class, "equals",
+        Type.getMethodDescriptor(Type.BOOLEAN_TYPE, Type.getType(Object.class)), y);
+  }
+
+  public static JExpr constantFloat(final float v) {
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return Type.FLOAT_TYPE;
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        mv.fconst(v);
+      }
+    };
+  }
+
+  public static JExpr constantDouble(final double v) {
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return Type.DOUBLE_TYPE;
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        mv.dconst(v);
+      }
+    };
+  }
+
+  public static JExpr constantString(String string) {
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return Type.getType(String.class);
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        mv.aconst(string);
+      }
+    };
   }
 }

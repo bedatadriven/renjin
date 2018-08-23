@@ -1,6 +1,6 @@
 #
 # Renjin : JVM-based interpreter for the R language for the statistical analysis
-# Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+# Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -47,4 +47,8 @@ test.typeConvert.6 <- function() {
 
 test.typeConvert.7 <- function() {
     assertThat(type.convert(c('3.5','3.6','FOO'), 'FOO', FALSE), identicalTo(c(3.5,3.6,NA)))
+}
+
+test.typeConvert.8 <- function() {
+    assertThat(type.convert(c('C','A','B'), 'FOO', FALSE), identicalTo(   structure(c(3L, 1L, 2L), .Label = c("A", "B", "C"), class = "factor")   ))
 }

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,12 +26,10 @@ import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.vector.ConvertingDoubleVector;
 import org.renjin.primitives.vector.ConvertingStringVector;
 import org.renjin.repackaged.guava.base.Charsets;
-import org.renjin.repackaged.guava.base.Predicate;
-import org.renjin.repackaged.guava.base.Predicates;
 import org.renjin.sexp.*;
-import org.renjin.util.NamesBuilder;
 
 import java.util.Arrays;
+import java.util.function.Predicate;
 
 /**
  * Functions which operate on Vectors
@@ -44,7 +42,9 @@ public class Vectors {
     if(length < 0) {
       throw new EvalException("%d : invalid value", length);
     }
-    
+    if(source.length() == length) {
+      return source;
+    }
     // Strange but true... 
     // if source is null, then length(source) <- x is null for all x >= 0
     if(source == Null.INSTANCE) {
@@ -73,6 +73,9 @@ public class Vectors {
   @Generic
   @Builtin
   public static int length(SEXP exp) {
+    if(exp instanceof S4Object && exp.getAttribute(Symbols.DOT_XDATA) instanceof Environment) {
+      return exp.getAttribute(Symbols.DOT_XDATA).length();
+    }
     return exp.length();
   }
 
@@ -93,10 +96,10 @@ public class Vectors {
   public static StringVector asCharacter(@Current Context context, Vector source) {
     if(source instanceof StringVector) {
       return (StringVector) source.setAttributes(AttributeMap.EMPTY);
-    } else if(source.length() < 100) {
-      return convertToStringVector(context, new StringVector.Builder(), source);
-    } else {
+    } else if (source.length() > 100 || source.isDeferred()) {
       return new ConvertingStringVector(source);
+    } else {
+      return convertToStringVector(context, new StringVector.Builder(), source);
     }
   }
 
@@ -221,8 +224,8 @@ public class Vectors {
     if (DoubleConverter.accept(clazz)) {
       return (DoubleVector) DoubleConverter.INSTANCE.convertToR(instance);
       
-    } else if (DoubleArrayConverter.accept(clazz)) {
-      return (DoubleVector)new DoubleArrayConverter(clazz).convertToR(instance);
+    } else if (DoubleArrayConverter.DOUBLE_ARRAY.accept(clazz)) {
+      return DoubleArrayConverter.DOUBLE_ARRAY.convertToR(instance);
    
     } else {
       return new DoubleArrayVector(DoubleVector.NA);
@@ -461,12 +464,18 @@ public class Vectors {
   }
 
   public static Predicate<SEXP> modePredicate(String mode) {
-    if(mode.equals("any")) {
-      return Predicates.alwaysTrue();
-    } else if(mode.equals("function")){
-      return CollectionUtils.IS_FUNCTION;
-    } else {
-      throw new EvalException(" mode '%s' as a predicate is not implemented.", mode);
+    switch (mode) {
+      case "any":
+        return (x -> true);
+      case "function":
+        return (x -> x instanceof Function);
+      case "numeric":
+        return (x -> x instanceof IntVector || x instanceof DoubleVector);
+      case "symbol":
+      case "name":
+        return (x -> x instanceof Symbol);
+      default:
+        return (x -> x.getTypeName().equals(mode));
     }
   }
 
@@ -502,6 +511,12 @@ public class Vectors {
     } else if ("raw".equals(mode)) {
       byte values[] = new byte[length];
       return new RawVector(values);
+
+    } else if("expression".equals(mode)) {
+      SEXP values[] = new SEXP[length];
+      Arrays.fill(values, Null.INSTANCE);
+      return new ExpressionVector(values);
+
     } else {
       throw new EvalException(String.format(
           "vector: cannot make a vector of mode '%s'.", mode));

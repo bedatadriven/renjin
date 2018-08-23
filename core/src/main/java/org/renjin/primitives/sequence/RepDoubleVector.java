@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,8 @@ package org.renjin.primitives.sequence;
 
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
+
+import java.util.Arrays;
 
 public class RepDoubleVector extends DoubleVector implements DeferredComputation {
 
@@ -47,12 +49,18 @@ public class RepDoubleVector extends DoubleVector implements DeferredComputation
     this.each = 1;
   }
 
-  public static DoubleVector createConstantVector(double constant,
-      int length) {
+  public static DoubleVector createConstantVector(double constant, int length) {
     if (length <= 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
-    return new RepDoubleVector(constant, length);
+    if (length < LENGTH_THRESHOLD) {
+      double array[] = new double[length];
+      Arrays.fill(array, constant);
+      return new DoubleArrayVector(array);
+    
+    } else {
+      return new RepDoubleVector(constant, length);
+    }
   }
 
   @Override

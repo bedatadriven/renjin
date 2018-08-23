@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.match.DuplicateSearchAlgorithm.Action;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
 
 import java.util.HashMap;
@@ -45,7 +46,7 @@ public class Duplicates {
   @Internal
   public static Vector unique(Vector x, Vector incomparables, boolean fromLast) {
     
-    return search(x, incomparables, fromLast, 
+    return search(x, incomparables, fromLast,
         new UniqueAlgorithm());
  
   }
@@ -81,15 +82,16 @@ public class Duplicates {
       Vector incomparables,
       boolean fromLast,
       DuplicateSearchAlgorithm<ResultType> algorithm) {
-   
+
+
     algorithm.init(x);
     
     /* Maps elements -> first encountered index */
-    HashMap<Object, Integer> seen = Maps.newHashMap();
+    HashMap<SEXP, Integer> seen = Maps.newHashMap();
    
     for(Integer index : new IndexSequence(x, fromLast)) {
       
-      Object element = x.getElementAsObject(index);
+      SEXP element = x.getElementAsSEXP(index);
       
       Integer originalIndex = seen.get(element);
       
@@ -104,5 +106,5 @@ public class Duplicates {
       }
     }
     return algorithm.getResult();
-  }  
+  }
 }

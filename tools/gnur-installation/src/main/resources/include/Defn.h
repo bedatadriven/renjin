@@ -114,7 +114,7 @@ extern0 SEXP	R_StringHash;       /* Global hash of CHARSXPs */
 #define HASHASH_MASK 1
 /**** HASHASH uses the first bit -- see HASHASH_MASK defined below */
 
-#ifdef USE_RINTERNALS
+#ifdef USE_RINTERNALS_NOO_NEVER_NOT_ON_MY_WATCH
 # define IS_BYTES(x) ((x)->sxpinfo.gp & BYTES_MASK)
 # define SET_BYTES(x) (((x)->sxpinfo.gp) |= BYTES_MASK)
 # define IS_LATIN1(x) ((x)->sxpinfo.gp & LATIN1_MASK)
@@ -1360,7 +1360,7 @@ extern const char *locale2charset(const char *);
 */
 // With a Renjin as a target, we can use alloca and malloc interchangeably
 // because the result of both are subject to garbage collection
-#define alloca malloc
+//#define alloca malloc
 
 /* Required by C99, but might be slow */
 #ifdef HAVE_LONG_DOUBLE

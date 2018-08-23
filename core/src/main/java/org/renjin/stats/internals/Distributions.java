@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,6 @@ import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Recycle;
 import org.renjin.nmath.*;
 import org.renjin.sexp.*;
-import org.renjin.stats.internals.distributions.RNG;
 
 import java.lang.invoke.MethodHandle;
 
@@ -336,7 +335,7 @@ public class Distributions {
   public static DoubleVector runif(@Current Context context, Vector nVector, AtomicVector min, AtomicVector max) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int minLength = min.length();
     int maxLength = min.length();
@@ -364,7 +363,7 @@ public class Distributions {
   public static DoubleVector rnorm(@Current Context context, Vector nVector, AtomicVector mean, AtomicVector sd) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int meanLength  = mean.length();
     int sdLength = sd.length();
@@ -392,7 +391,7 @@ public class Distributions {
   public static DoubleVector rgamma(@Current Context context, Vector nVector, AtomicVector shape, AtomicVector scale) {
     int n  = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int shapeLength = shape.length();
     int scaleLength = scale.length();
@@ -420,7 +419,7 @@ public class Distributions {
   public static DoubleVector rchisq(@Current Context context, Vector nVector, AtomicVector df) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int dfLength = df.length();
     boolean hasNA = df.containsNA();
@@ -460,7 +459,7 @@ public class Distributions {
   public static DoubleVector rnchisq(@Current Context context, Vector nVector, AtomicVector df, double ncp) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int dfLength = df.length();
     if (dfLength == 0) {
@@ -484,7 +483,7 @@ public class Distributions {
     int n = defineSize(nVector);
     if (n == 0) {
       // replace this with error!
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int invrateLength = invrate.length();
     if (invrateLength == 0) {
@@ -530,7 +529,7 @@ public class Distributions {
   public static DoubleVector rsignrank(@Current Context context, Vector nnVector, AtomicVector n) {
     int nn = defineSize(nnVector);
     if (nn == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int nLength = n.length();
     if (nLength == 0) {
@@ -553,7 +552,7 @@ public class Distributions {
   public static DoubleVector rwilcox(@Current Context context, Vector nnVector, AtomicVector m, AtomicVector n) {
     int nn = defineSize(nnVector);
     if (nn == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int mLength = m.length();
     int nLength = n.length();
@@ -604,7 +603,7 @@ public class Distributions {
   public static DoubleVector rt(@Current Context context, Vector nVector, AtomicVector df) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int dfLength = df.length();
     if (dfLength == 0) {
@@ -627,7 +626,7 @@ public class Distributions {
   public static DoubleVector rcauchy(@Current Context context, Vector nVector, AtomicVector location, AtomicVector scale) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int locationLength = location.length();
     int scaleLength = scale.length();
@@ -655,7 +654,7 @@ public class Distributions {
   public static DoubleVector rlnorm(@Current Context context, Vector nVector, AtomicVector meanlog, AtomicVector sdlog) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int meanlogLenght = meanlog.length();
     int sdlogLength = sdlog.length();
@@ -683,7 +682,7 @@ public class Distributions {
   public static DoubleVector rlogis(@Current Context context, Vector nVector, AtomicVector location, AtomicVector scale) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int locationLength = location.length();
     int scaleLength = scale.length();
@@ -711,7 +710,7 @@ public class Distributions {
   public static DoubleVector rweibull(@Current Context context, Vector nVector, AtomicVector shape, AtomicVector scale) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int shapeLength = shape.length();
     int scaleLength = scale.length();
@@ -767,7 +766,7 @@ public class Distributions {
   public static DoubleVector rnbinom_mu(@Current Context context, Vector nVector, AtomicVector size, AtomicVector mu) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int sizeLength = size.length();
     int muLenght = mu.length();
@@ -824,7 +823,7 @@ public class Distributions {
   public static DoubleVector rf(@Current Context context, Vector nVector, AtomicVector df1, AtomicVector df2) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int df1Length = df1.length();
     int df2Length = df2.length();
@@ -852,7 +851,7 @@ public class Distributions {
   public static DoubleVector rbeta(@Current Context context, Vector nVector, AtomicVector shape1, AtomicVector shape2) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int shape1Length = shape1.length();
     int shape2Length = shape2.length();
@@ -880,7 +879,7 @@ public class Distributions {
   public static DoubleVector rhyper(@Current Context context, Vector nnVector, AtomicVector m, AtomicVector n, AtomicVector k) {
     int nn = defineSize(nnVector);
     if (nn == 0) {
-      return DoubleVector.EMPTY;
+      return DoubleArrayVector.EMPTY;
     }
     int mLength = m.length();
     int nLength = n.length();
@@ -911,37 +910,58 @@ public class Distributions {
   }
 
   @Internal
-  public static IntVector rmultinom(@Current Context context, Vector nVector, AtomicVector size, AtomicVector prob){
-    int n = nVector.getElementAsInt(0);
-    if (n == 0) {
-      throw new EvalException("invalid first argument 'n'");
-    }
-    if (size.containsNA()) {
+  public static IntVector rmultinom(@Current Context context, int n, int size, AtomicVector probVector) {
+
+    if (IntVector.isNA(size) || size < 0) {
       throw new EvalException("invalid second argument 'size'");
     }
-    int sizeLength = size.length();
-    int probLength = prob.length();
-    if (sizeLength == 0 || probLength == 0) {
-      return (IntArrayVector.Builder.withInitialSize(n).build());
-    }
-    IntArrayVector.Builder vb = IntArrayVector.Builder.withInitialCapacity(n);
+
+    double[] prob = normalizeProbabilities(probVector);
+    DoublePtr probPtr = new DoublePtr(prob);
+
+    int k = prob.length;  // number of components or classes, = X-vector length
+
     MethodHandle runif = context.getSession().getRngMethod();
-    int k = 0;
-    int[] RN = new int[probLength];
-    for (int i = 0; i < n; i++){
-      rmultinom.rmultinom(runif, size.getElementAsInt(0), new DoublePtr(prob.toDoubleArray()), probLength, new IntPtr(RN));
-      k++;
-      if (k == sizeLength) {
-        k = 0;
+
+    int[] ans = new int[n * k];
+
+    int i;
+    int ik;
+    for(i = ik = 0; i < n; i++, ik += k) {
+      rmultinom.rmultinom(runif, size, probPtr, k, new IntPtr(ans, ik));
+    }
+
+    return IntArrayVector.unsafe(ans, AttributeMap.builder().setDim(prob.length, n).build());
+  }
+
+  private static double[] normalizeProbabilities(AtomicVector vector) {
+    double p[] = vector.toDoubleArray();
+    int n = p.length;
+    double sum = 0.0;
+    int npos = 0;
+
+    for (int i = 0; i < n; i++) {
+      if (!DoubleVector.isFinite(p[i])) {
+        throw new EvalException("NA in probability vector");
       }
-      for (int j = 0; j < probLength; j++) {
-        vb.add(RN[j]);
+      if (p[i] < 0.0) {
+        throw new EvalException("negative probability");
+      }
+      if (p[i] > 0.0) {
+        npos++;
+        sum += p[i];
       }
     }
-    vb.setAttribute(Symbols.DIM, new IntArrayVector(prob.length(), n));
-    IntVector result = vb.build();
-    return result;
+    if (npos == 0) {
+      throw new EvalException("no positive probabilities");
+    }
+    for (int i = 0; i < n; i++) {
+      p[i] /= sum;
+    }
+
+    return p;
   }
+
 
   public static int defineSize(Vector input) {
     int inputLength = (input.length() == 1) ? input.getElementAsInt(0) : input.length();

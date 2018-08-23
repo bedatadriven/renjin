@@ -1,6 +1,6 @@
 #
 # Renjin : JVM-based interpreter for the R language for the statistical analysis
-# Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+# Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -81,7 +81,9 @@ callWithQuotedArgs <- function(fn, args) {
   if(length(call) > 1) {
     for(i in seq.int(from = 2, to = length(call))) {
       arg <- call[[i]]
-      if(typeof(arg) == "symbol" || typeof(arg) == "language") {
+      if(inherits(arg, "literal")) {
+        call[[i]] <- parse(text=arg)[[1]]
+      } else if(typeof(arg) == "symbol" || typeof(arg) == "language") {
         call[[i]] <- call("quote", arg)
       } 
     }
@@ -114,8 +116,12 @@ writeln <- function(test, format, ...) {
 }
 
 writeFixture <- function(test, format, ...) {
-  expr <- sprintf(format, ...)
-  writeln(test, expr)
+  if(missing(...)) {
+    expr <- as.character(format)
+  } else{
+    expr <- sprintf(format, ...)
+  }
+  writeLines(test$fd, text = expr)
   eval(parse(text = expr), envir = .GlobalEnv)
 }
 

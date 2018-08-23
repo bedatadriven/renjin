@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -273,7 +273,7 @@ public class MathGroup {
     if(digits <= 0) {
       digits = 1;
     }
-    return new BigDecimal(x).round(new MathContext(digits, RoundingMode.HALF_UP)).doubleValue();
+    return BigDecimal.valueOf(x).round(new MathContext(digits, RoundingMode.HALF_UP)).doubleValue();
   }
 
   @Deferrable
@@ -364,7 +364,7 @@ public class MathGroup {
       return sign * Math.rint(x);
     } else if (dig > 0) {
       // round to a specific number of decimal places
-      return sign * new BigDecimal(x).setScale(digits, RoundingMode.HALF_EVEN).doubleValue();
+      return sign * BigDecimal.valueOf(x).setScale(digits, RoundingMode.HALF_EVEN).doubleValue();
     } else {
       // round to the nearest power of 10
       double pow10 = Math.pow(10., -dig);
@@ -379,6 +379,12 @@ public class MathGroup {
     return ComplexVector.complex(round(x.getReal(), digits), round(x.getImaginary(), digits));
   }
 
+  @Builtin
+  @Deferrable
+  @DataParallel(PreserveAttributeStyle.ALL)
+  public static Complex round(Complex x) {
+    return ComplexVector.complex(round(x.getReal()), round(x.getImaginary()));
+  }
 
   @Deferrable
   @Builtin
@@ -434,7 +440,7 @@ public class MathGroup {
 
   @Builtin
   public static DoubleVector cumsum(Null x) {
-    return DoubleVector.EMPTY;
+    return DoubleArrayVector.EMPTY;
   }
 
   private static DoubleVector cumulativeRealSum(Vector source) {
@@ -443,7 +449,8 @@ public class MathGroup {
     double sum = 0;
     for (int i = 0; i < source.length(); i++) {
       sum += source.getElementAsDouble(i);
-      if (Double.isNaN(sum)) {
+      if (DoubleVector.isNA(sum)) {
+        // The rest of the vector is already initialized to NA
         break;
       }
       result.set(i, sum);
@@ -508,11 +515,7 @@ public class MathGroup {
       result.add(prod);
       for (int i = 1; i < source.length(); i++) {
         prod *= source.getElementAsDouble(i);
-        if (Double.isNaN(prod)) {
-          result.addNA();
-        } else {
-          result.add(prod);
-        }
+        result.add(prod);
       }
     }
     return result.build();
@@ -591,12 +594,12 @@ public class MathGroup {
   
   @Builtin
   public static DoubleVector cummin(Null x) {
-    return DoubleVector.EMPTY;
+    return DoubleArrayVector.EMPTY;
   }
   
   @Builtin
   public static DoubleVector cummax(Null x) {
-    return DoubleVector.EMPTY;
+    return DoubleArrayVector.EMPTY;
   }
   
   private static ComplexVector cumulativeExtrema(String functionName, ComplexVector source) {
@@ -604,9 +607,9 @@ public class MathGroup {
     // returns complex(0), so we'll mimic it here
     if(source.length() == 0) {
       if(source.getNames() == Null.INSTANCE) {
-        return ComplexVector.EMPTY;
+        return ComplexArrayVector.EMPTY;
       } else {
-        return ComplexVector.NAMED_EMPTY;
+        return ComplexArrayVector.NAMED_EMPTY;
       }
     } else {
       throw new EvalException(String.format("'%s' not defined for complex numbers", functionName));

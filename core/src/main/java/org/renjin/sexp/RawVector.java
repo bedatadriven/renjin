@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +36,9 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
 
   private byte[] values;
 
+  private RawVector() {
+  }
+
   public RawVector(byte... values) {
     this.values = new byte[values.length];
     this.values = Arrays.copyOf(values, values.length);
@@ -51,6 +54,14 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
     byte[] bytes = new byte[this.values.length];
     System.arraycopy(this.values, 0, bytes, 0, this.values.length);
     return(bytes);
+  }
+
+
+  /**
+   * @return a pointer to the underlying array. DO NOT MODIFY!!
+   */
+  public byte[] toByteArrayUnsafe() {
+    return values;
   }
 
   @Override
@@ -122,15 +133,6 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (!(o instanceof RawVector)) {
-      return (false);
-    }
-    RawVector rv = (RawVector)o;
-    return (rv.hashCode() == this.hashCode());
-  }
-
-  @Override
   public int hashCode() {
     return Arrays.hashCode(this.toByteArray());
   }
@@ -139,7 +141,6 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
   public Builder newBuilderWithInitialSize(int initialSize) {
     return (new RawVector.Builder(initialSize));
   }
-  
   
 
   @Override
@@ -187,6 +188,12 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
   @Override
   public Iterator<Byte> iterator() {
     return new ValueIterator();
+  }
+
+  public static RawVector unsafe(byte[] buffer) {
+    RawVector vector = new RawVector();
+    vector.values = buffer;
+    return vector;
   }
 
   /*
@@ -285,8 +292,7 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
     }
 
     @Override
-    public boolean elementsEqual(Vector vector1, int index1, Vector vector2,
-        int index2) {
+    public boolean elementsIdentical(Vector vector1, int index1, Vector vector2, int index2) {
       // raws cannot be NA
       return vector1.getElementAsByte(index1) == vector2.getElementAsByte(index2);
     }

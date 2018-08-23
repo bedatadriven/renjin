@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
@@ -67,6 +68,11 @@ public class FunTypeStrategy implements TypeStrategy<FunExpr> {
   }
 
   @Override
+  public FunExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
+    throw newInvalidOperation();
+  }
+
+  @Override
   public FunExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
     throw newInvalidOperation();
   }
@@ -92,7 +98,7 @@ public class FunTypeStrategy implements TypeStrategy<FunExpr> {
   }
 
   @Override
-  public FunExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public FunExpr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
     throw new UnsupportedCastException();
   }
 

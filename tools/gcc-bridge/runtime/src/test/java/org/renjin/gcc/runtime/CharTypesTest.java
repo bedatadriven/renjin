@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ public class CharTypesTest {
   public void isWhitespace() {
     
     BytePtr str = BytePtr.nullTerminatedString(" ", StandardCharsets.UTF_8);
-    char mask = CharTypes.TABLE_PTR.get().array[128 + str.array[0]];
+    char mask = CharTypes.TABLE_OBJECT_PTR.get().array[128 + str.array[0]];
     int whitespaceBit = (1 << 5) << 8;
     
     assertTrue((mask & whitespaceBit) != 0);

@@ -30,14 +30,14 @@ function(x, centers, iter.max = 10, nstart = 1,
                                 double(m), integer(k), integer(k),
                                 as.integer(iter.max), wss = double(k),
                                 ifault = 0L)
-                       switch(Z$ifault,
-                              stop("empty cluster: try a better set of initial centers",
-                                   call.=FALSE),
-                              warning(gettextf("did not converge in %d iterations",
-                                               iter.max), call.=FALSE, domain =NA),
-                              stop("number of cluster centres must lie between 1 and nrow(x)",
-                                   call.=FALSE)
-                              )
+#                       switch(Z$ifault,
+#                              stop("empty cluster: try a better set of initial centers",
+#                                   call.=FALSE),
+#                              warning(gettextf("did not converge in %d iterations",
+#                                               iter.max), call.=FALSE, domain =NA),
+#                              stop("number of cluster centres must lie between 1 and nrow(x)",
+#                                   call.=FALSE)
+#                              )
                        Z
                    },
                    { # 2

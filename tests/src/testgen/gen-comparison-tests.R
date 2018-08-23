@@ -1,6 +1,6 @@
 #
 # Renjin : JVM-based interpreter for the R language for the statistical analysis
-# Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+# Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -76,6 +76,8 @@ inputs <- list(
   list(1L, 2L, 3L),
   list(1L, 2L, NULL),
   list(1, 2, list(3, 4)),
+  list(1, 2, numeric(0)),
+  list("a", "b", character(0)),
   list(3, "a", list("b", z = list(TRUE, "c"))),
   
   # matrices

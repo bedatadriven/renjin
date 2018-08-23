@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
@@ -105,23 +106,25 @@ public class Tables {
   }
 
   private static Vector buildFactor(StringVector vector, Set<String> naStrings) {
+    String[] strings = vector.toArray();
+    String[] unique = Arrays.stream(strings).distinct().toArray(String[]::new);
+    Arrays.sort(unique);
+
     Map<String, Integer> codes = Maps.newHashMap();
+    StringVector.Builder levels = StringVector.newBuilder();
+    for(int i = 0; i < unique.length; i++) {
+      codes.put(unique[i], i+1);
+      levels.set(i, unique[i]);
+    }
+
     IntArrayVector.Builder factor = new IntArrayVector.Builder(vector.length());
     for(int i=0;i!=vector.length();++i) {
       String element = vector.getElementAsString(i);
       if(!isNa(element, naStrings)) {
-        Integer code = codes.get(element);
-        if(code == null) {
-          code = codes.size()+1;
-          codes.put(element, code);
-        }
-        factor.set(i, code);
+        factor.set(i, codes.get(element));
       }
     }
-    StringVector.Builder levels = StringVector.newBuilder();
-    for(Map.Entry<String, Integer> level : codes.entrySet()) {
-      levels.set(level.getValue()-1, level.getKey());
-    }
+
     factor.setAttribute(Symbols.CLASS, StringVector.valueOf("factor"));
     factor.setAttribute(Symbols.LEVELS, levels.build());
     return factor.build();

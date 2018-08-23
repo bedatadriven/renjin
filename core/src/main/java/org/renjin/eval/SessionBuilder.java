@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,16 +19,18 @@
 package org.renjin.eval;
 
 import org.apache.commons.vfs2.FileSystemManager;
-import org.renjin.compiler.pipeline.SimpleVectorPipeliner;
-import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.primitives.packaging.ClasspathPackageLoader;
 import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.util.concurrent.MoreExecutors;
+import org.renjin.sexp.Frame;
 import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.HashFrame;
 import org.renjin.sexp.Symbol;
 import org.renjin.util.FileSystemUtils;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 public class SessionBuilder {
 
@@ -37,9 +39,11 @@ public class SessionBuilder {
 
   private FileSystemManager fileSystemManager;
   private PackageLoader packageLoader;
-  private VectorPipeliner vectorPipeliner;
   private ClassLoader classLoader;
- 
+  private ExecutorService executorService = null;
+
+  private Frame globalFrame = new HashFrame();
+
   public SessionBuilder() {
 
   }
@@ -103,21 +107,34 @@ public class SessionBuilder {
   }
 
   /**
-   * Sets the {@link VectorPipeliner} implementation to use.
+   * Sets the {@link ExecutorService} to use for parallelizing work for this {@code Session}.
    *
-   * <p>Note that this method will change in the near future!</p>
+   * <p>By default, {@link MoreExecutors#sameThreadExecutor()} is called to obtain an {@code ExecutorService}
+   * instance for the new {@code Session}, but callers can provider their own {@code ExecutorService} to enable
+   * multi-threading.</p>
    *
+   * @see java.util.concurrent.Executors
+   * @see MoreExecutors
    */
-  public SessionBuilder setVectorPipeliner(VectorPipeliner vectorPipeliner) {
-    this.vectorPipeliner = vectorPipeliner;
+  public SessionBuilder setExecutorService(ExecutorService executorService) {
+    this.executorService = executorService;
     return this;
   }
+
 
   /**
    * Sets the {@link ClassLoader} to use to resolve JVM classes by the {@code import()} builtin.
    */
   public SessionBuilder setClassLoader(ClassLoader classLoader) {
     this.classLoader = classLoader;
+    return this;
+  }
+
+  /**
+   * Sets the {@link Frame} that backs the Global Environment.
+   */
+  public SessionBuilder setGlobalFrame(Frame globalFrame) {
+    this.globalFrame = globalFrame;
     return this;
   }
 
@@ -131,8 +148,6 @@ public class SessionBuilder {
       setFileSystemManager((FileSystemManager) instance);
     } else if(clazz.equals(PackageLoader.class)) {
       setPackageLoader((PackageLoader) instance);
-    } else if(clazz.equals(VectorPipeliner.class)) {
-      setVectorPipeliner((VectorPipeliner) instance);
     } else if(clazz.equals(ClassLoader.class)) {
       setClassLoader((ClassLoader) instance);
     } else {
@@ -153,21 +168,23 @@ public class SessionBuilder {
         classLoader = getClass().getClassLoader();
       }
 
-      if(vectorPipeliner == null) {
-        vectorPipeliner = new SimpleVectorPipeliner();
-      }
-
       if(packageLoader == null) {
         packageLoader = new ClasspathPackageLoader(classLoader);
       }
 
-      Session session = new Session(fileSystemManager, classLoader, packageLoader, vectorPipeliner);
+      if(executorService == null) {
+        executorService = MoreExecutors.sameThreadExecutor();
+      }
+
+      Session session = new Session(fileSystemManager, classLoader, packageLoader, executorService,
+          globalFrame);
       if(loadBasePackage) {
         session.getTopLevelContext().init();
       }
-      for(String packageToLoad : packagesToLoad) {
+
+      for (int i = packagesToLoad.size()-1; i >= 0; i--) {
         session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("library"),
-            Symbol.get(packageToLoad)));
+            Symbol.get(packagesToLoad.get(i))));
       }
       return session;
     } catch(Exception e) {

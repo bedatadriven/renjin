@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,8 +21,10 @@ package org.renjin.gnur.api;
 
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.nmath.rnorm;
+import org.renjin.primitives.Native;
 
-import java.util.concurrent.ThreadLocalRandom;
+import java.lang.invoke.MethodHandle;
 
 @SuppressWarnings("unused")
 public final class Random {
@@ -40,11 +42,12 @@ public final class Random {
   }
 
   public static double unif_rand() {
-    return ThreadLocalRandom.current().nextDouble();
+    return Native.currentContext().getSession().getRNG().unif_rand();
   }
 
   public static double norm_rand() {
-    throw new UnimplementedGnuApiMethod("norm_rand");
+    MethodHandle runif = Native.currentContext().getSession().getRngMethod();
+    return rnorm.rnorm(runif, 0, 1);
   }
 
   public static double exp_rand() {

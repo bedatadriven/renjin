@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @Type(value = GimpleIntegerType.class, name = "integer_type"),
     @Type(value = GimpleRealType.class, name = "real_type"),
     @Type(value = GimplePointerType.class, name = "pointer_type"),
+    @Type(value = GimpleNullPointerType.class, name = "nullptr_type"),
     @Type(value = GimpleReferenceType.class, name = "reference_type"),
     @Type(value = GimpleArrayType.class, name = "array_type"),
     @Type(value = GimpleBooleanType.class, name = "boolean_type"),

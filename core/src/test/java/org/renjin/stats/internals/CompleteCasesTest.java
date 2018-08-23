@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,23 +21,22 @@ package org.renjin.stats.internals;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 public class CompleteCasesTest extends EvalTestCase {
 
   @Test
   public void test() {
-    assertThat(eval(".Internal(complete.cases(1:3, 1:3))"), equalTo(c(true, true, true)));
-    assertThat(eval(".Internal(complete.cases(1:3, c(1,NA,2)))"), equalTo(c(true, false, true)));
+    assertThat(eval(".Internal(complete.cases(1:3, 1:3))"), elementsIdenticalTo(c(true, true, true)));
+    assertThat(eval(".Internal(complete.cases(1:3, c(1,NA,2)))"), elementsIdenticalTo(c(true, false, true)));
     assertThat(eval(".Internal(complete.cases(list(1:3,1:3), 1:3, 1:3))"), 
-        equalTo(c(true, true, true)));
+        elementsIdenticalTo(c(true, true, true)));
   }
   
   @Test
   public void matrices() {
     eval("x <- matrix(1:8, nrow=4)");
-    assertThat(eval(".Internal(complete.cases(x))"), equalTo(c(true, true, true, true)));
+    assertThat(eval(".Internal(complete.cases(x))"), elementsIdenticalTo(c(true, true, true, true)));
 
   }
 }

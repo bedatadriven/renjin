@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +42,8 @@ class Inspector extends SexpVisitor<Vector.Type> {
   private int elementCount = 0;
   private Vector.Type resultType = Null.VECTOR_TYPE;
 
+  private boolean deferredElements = false;
+
   /**
    * Visits each element of {@code ListExp}
    */
@@ -53,6 +55,7 @@ class Inspector extends SexpVisitor<Vector.Type> {
   public void visit(DoubleVector vector) {
     resultType = Vector.Type.widest(resultType, vector);
     elementCount += vector.length();
+    deferredElements = deferredElements || vector.isDeferred();
     vectorCount++;
   }
 
@@ -60,6 +63,7 @@ class Inspector extends SexpVisitor<Vector.Type> {
   public void visit(IntVector vector) {
     resultType = Vector.Type.widest(resultType, vector);
     elementCount += vector.length();
+    deferredElements = deferredElements || vector.isDeferred();
     vectorCount++;
   }
 
@@ -67,6 +71,7 @@ class Inspector extends SexpVisitor<Vector.Type> {
   public void visit(LogicalVector vector) {
     resultType = Vector.Type.widest(resultType, vector);
     elementCount += vector.length();
+    deferredElements = deferredElements || vector.isDeferred();
     vectorCount++;
   }
 
@@ -79,6 +84,7 @@ class Inspector extends SexpVisitor<Vector.Type> {
   public void visit(StringVector vector) {
     resultType = Vector.Type.widest(resultType, vector);
     elementCount += vector.length();
+    deferredElements = deferredElements || vector.isDeferred();
     vectorCount++;
   }
 
@@ -86,6 +92,7 @@ class Inspector extends SexpVisitor<Vector.Type> {
   public void visit(ComplexVector vector) {
     resultType = Vector.Type.widest(resultType, vector);
     elementCount += vector.length();
+    deferredElements = deferredElements || vector.isDeferred();
     vectorCount++;
   }
 
@@ -93,6 +100,7 @@ class Inspector extends SexpVisitor<Vector.Type> {
   public void visit(RawVector vector) {
     resultType = Vector.Type.widest(resultType, vector);
     elementCount += vector.length();
+    deferredElements = deferredElements || vector.isDeferred();
     vectorCount++;
   }
 
@@ -115,17 +123,16 @@ class Inspector extends SexpVisitor<Vector.Type> {
   }
 
   public CombinedBuilder newBuilder() {
-    if((resultType == DoubleVector.VECTOR_TYPE ||
-        resultType == IntVector.VECTOR_TYPE ||
-        resultType == StringVector.VECTOR_TYPE) &&
-        (elementCount > DEFERRED_THRESHOLD &&
-         vectorCount <= DEFERRED_ARGUMENT_LIMIT)) {
+    if (LazyBuilder.resultTypeSupported(resultType)) {
+      if( deferredElements ||
+              (elementCount > DEFERRED_THRESHOLD &&
+               vectorCount <= DEFERRED_ARGUMENT_LIMIT)) {
 
-      return new LazyBuilder(resultType, vectorCount);
-
-    } else {
-      return new MaterializedBuilder(resultType);
+        return new LazyBuilder(resultType, vectorCount);
+      }
     }
+
+    return new MaterializedBuilder(resultType);
   }
 
   @Override

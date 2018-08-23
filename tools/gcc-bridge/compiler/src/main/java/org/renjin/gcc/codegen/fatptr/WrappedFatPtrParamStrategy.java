@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,18 +19,19 @@
 package org.renjin.gcc.codegen.fatptr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.type.ParamStrategy;
-import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
-import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Strategy for using FatPtrs as a single wrapped fat pointer
@@ -62,10 +63,11 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
       
       // Allocate a unit array for this parameter
       JLValue unitArray = localVars.reserveUnitArray(parameter.getName() + "$address",
-          wrapper.getType(), Optional.<JExpr>of(wrapper));
+          wrapper.getType(), Optional.of(wrapper));
 
       return new DereferencedFatPtr(unitArray, Expressions.constantInt(0), 
-          new FatPtrValueFunction(valueFunction));
+          new FatPtrValueFunction(valueFunction))
+          .valueOf(valueFunction.getGimpleValueType());
 
     } else if(valueFunction.getValueType().getSort() == Type.OBJECT) {
       return new WrappedFatPtrExpr(valueFunction, wrapper);
@@ -89,41 +91,12 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
 
   @Override
   public void loadParameter(MethodGenerator mv, Optional<GExpr> argument) {
-    
-    if(!argument.isPresent()) {
+
+    if (!argument.isPresent()) {
       mv.aconst(null);
       return;
     }
-    
-    GExpr argumentValue = argument.get();
-    Type wrappedType = Wrappers.wrapperType(valueFunction.getValueType());
 
-    // Check for a void*
-    if(argumentValue instanceof VoidPtr) {
-      VoidPtr voidPtr = (VoidPtr) argumentValue;
-      voidPtr.unwrap().load(mv);
-      if(wrappedType.equals(Type.getType(ObjectPtr.class))) {
-        // Need to provide type
-        mv.visitLdcInsn(valueFunction.getValueType());
-        mv.invokestatic(wrappedType, "cast", Type.getMethodDescriptor(wrappedType,
-            Type.getType(Object.class), Type.getType(Class.class)));
-
-      } else {
-        mv.invokestatic(wrappedType, "cast", Type.getMethodDescriptor(wrappedType, Type.getType(Object.class)));
-      }
-    } else if(argumentValue instanceof RefPtrExpr) {
-      RefPtrExpr refPtr = (RefPtrExpr) argumentValue;
-      JExpr wrappedPtr = Expressions.cast(refPtr.unwrap(), wrappedType);
-      wrappedPtr.load(mv);
-    
-    } else if(argumentValue instanceof FatPtr) {
-      FatPtr fatPtrExpr = (FatPtr) argumentValue;
-      JExpr wrappedExpr = Expressions.cast(fatPtrExpr.wrap(), wrappedType);
-      wrappedExpr.load(mv);
-
-
-    } else {
-      throw new IllegalArgumentException("argument: " + argumentValue);
-    }
+    argument.get().toFatPtrExpr(valueFunction).wrap().load(mv);
   }
 }

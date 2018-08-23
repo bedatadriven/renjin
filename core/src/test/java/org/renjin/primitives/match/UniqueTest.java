@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,11 +18,9 @@
  */
 package org.renjin.primitives.match;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 
-import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 
@@ -30,32 +28,32 @@ public class UniqueTest extends EvalTestCase {
 
   @Test
   public void atomicVectors() {
-    assertThat( eval(".Internal(unique(c(1,3,1,4,4), FALSE, FALSE))"), equalTo( c(1,3,4)) );
+    assertThat( eval(".Internal(unique(c(1,3,1,4,4), FALSE, FALSE))"), elementsIdenticalTo( c(1,3,4)) );
   }
   
   @Test
   public void fromLast() {
-    assertThat( eval(".Internal(unique(c(1,3,1,4,4), FALSE, TRUE))"), equalTo( c(3,1,4)) );    
+    assertThat( eval(".Internal(unique(c(1,3,1,4,4), FALSE, TRUE))"), elementsIdenticalTo( c(3,1,4)) );
   }
 
   @Test
   public void uniqueInt() {
-    assertThat( eval(" .Internal(unique(1L, FALSE, FALSE)) "), CoreMatchers.equalTo(c_i(1)));
+    assertThat( eval(" .Internal(unique(1L, FALSE, FALSE)) "), elementsIdenticalTo(c_i(1)));
   }
   
   @Test
   public void falseIncomparablesIsTreatedAsNull() {
-    assertThat( eval(" .Internal(unique(c(0, 1, 0, 0, 0, 0, 0, 0), FALSE, FALSE))"), equalTo(c(0,1)));
+    assertThat( eval(" .Internal(unique(c(0, 1, 0, 0, 0, 0, 0, 0), FALSE, FALSE))"), elementsIdenticalTo(c(0,1)));
   }
   
   @Test
   public void uniqueList() {
-    assertThat( eval(" .Internal(unique(list('a','b','a','a'), FALSE,FALSE))"), equalTo(list("a","b")));
-    assertThat( eval(" .Internal(unique(list('a','a', c(1,2), c(1,2)), FALSE,FALSE))"), 
-        equalTo(list("a",c(1,2))));
+    assertThat( eval(" .Internal(unique(list('a','b','a','a'), FALSE,FALSE))"), elementsIdenticalTo(list("a","b")));
+    assertThat( eval(" .Internal(unique(list('a','a', c(1,2), c(1,2)), FALSE,FALSE))"),
+        elementsIdenticalTo(list("a",c(1,2))));
     assertThat( eval(" length(unique(list('a','a', c(1,2), c(a=1,b=2))))"),
-        equalTo(c_i(3)));
-    
+        elementsIdenticalTo(c_i(3)));
+
 
   }
 

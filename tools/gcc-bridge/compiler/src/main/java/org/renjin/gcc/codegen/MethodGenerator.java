@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,9 +32,19 @@ import java.util.Arrays;
 public class MethodGenerator extends InstructionAdapter {
 
   private final LocalVarAllocator localVarAllocator = new LocalVarAllocator();
+  private final Type ownerClass;
 
-  public MethodGenerator(MethodVisitor mv) {
+  public MethodGenerator(Type ownerClass, MethodVisitor mv) {
     super(Opcodes.ASM5, mv);
+    this.ownerClass = ownerClass;
+  }
+
+  public MethodGenerator(String className, MethodVisitor mv) {
+    this(Type.getType("L" + className + ";"), mv);
+  }
+
+  public Type getOwnerClass() {
+    return ownerClass;
   }
 
   public LocalVarAllocator getLocalVarAllocator() {

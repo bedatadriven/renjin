@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,11 @@
  */
 package org.renjin.gcc.runtime;
 
+import org.renjin.gcc.format.FormatArrayInput;
+
 public class Builtins {
+
+  private static final ThreadLocal<IntPtr> ERRNO = new ThreadLocal<>();
 
   public static double __builtin_powi__(double base, int exponent) {
     return powi(base, exponent);
@@ -32,6 +36,18 @@ public class Builtins {
     } else {
       return Math.pow(base, (double)exponent);
     }
+  }
+
+  /**
+   * The __errno_location() function shall return the address of the errno variable for the current thread.
+   */
+  public static Ptr __errno_location() {
+    IntPtr intPtr = ERRNO.get();
+    if(intPtr == null) {
+      intPtr = new IntPtr(0);
+      ERRNO.set(intPtr);
+    }
+    return intPtr;
   }
 
   public static float  __builtin_logf__(float x) {
@@ -49,7 +65,7 @@ public class Builtins {
   public static double __builtin_exp__(double x) {
     return Math.exp(x);
   }
-  
+
   public static float  __builtin_sqrtf__(float f) {
     return (float) Math.sqrt(f);
   }
@@ -108,6 +124,60 @@ public class Builtins {
       result *= base;
     }
     return result;
+  }
+
+  /**
+   * Compares two fortran strings.
+   *
+   * <p>Ported from {@code compare_strings} in libfortran/intrinsics/string_intrinsics_inc.c</p>
+   *
+   * @param len1 length of the first string
+   * @param s1 the first string
+   * @param len2 length of the second string
+   * @param s2 the second string
+   * @return 0 if the strings are equal, -1 if the first is less than the second, or +1 if the
+   * first is greater than the second.
+   */
+  public static int _gfortran_compare_string(int len1, BytePtr s1, int len2, BytePtr s2) {
+
+    int res = BytePtr.memcmp(s1, s2, ((len1 < len2) ? len1 : len2));
+    if (res != 0) {
+      return res;
+    }
+
+    if (len1 == len2) {
+      return 0;
+    }
+
+    int len;
+    byte[] s;
+    int si;
+
+    if (len1 < len2) {
+      len = len2 - len1;
+      s = s2.array;
+      si = s2.offset + len1;
+      res = -1;
+
+    }  else  {
+      len = len1 - len2;
+      s = s1.array;
+      si = s1.offset + len2;
+      res = 1;
+    }
+
+    while (len-- != 0) {
+      if (s[si] != ' ') {
+        if (s[si] > ' ') {
+          return res;
+        } else {
+          return -res;
+        }
+      }
+      si++;
+    }
+
+    return 0;
   }
 
   public static float __builtin_powif__(float base, int exponent) {
@@ -205,8 +275,50 @@ public class Builtins {
   public static void __cxa_pure_virtual() {
     throw new RuntimeException("Pure virtual function invoked");
   }
+
+  /**
+   * A handle for __cxa_finalize to manage c++ local destructors.
+   */
+  public static Ptr[] __dso_handle = new Ptr[] { BytePtr.NULL };
+
   
   public static void undefined_std() {
     throw new RuntimeException("Invocation of std:: method");
   }
+
+  public static void _gfortran_runtime_error_at(Ptr position, Ptr format, Object... arguments) {
+    throw new RuntimeException(Stdlib.format(format, new FormatArrayInput(arguments)));
+  }
+
+  public static int _gfortran_pow_i4_i4(int base, int power) {
+    int result = 1;
+    for (int i = 1; i <= power; i++) {
+      result *= base;
+    }
+    return result;
+  }
+  private static volatile int __sync_synchronize_value = 0;
+
+  public static void __sync_synchronize() {
+    // The following volatile field access should convince the JVM to emit a memory fence instruction.
+    // https://www.infoq.com/articles/memory_barriers_jvm_concurrency
+    __sync_synchronize_value++;
+  }
+
+  public static void _gfortran_concat_string(int resultLength, Ptr result, int arg1Length, Ptr arg1, int arg2Length, Ptr arg2) {
+    int resultPos = 0;
+    for(int i=0;i<arg1Length;++i) {
+      result.setByte(resultPos++, arg1.getByte(i));
+    }
+    for (int i=0;i<arg2Length;++i) {
+      result.setByte(resultPos++, arg2.getByte(i));
+    }
+  }
+
+  public static int __atomic_fetch_add_4(Ptr result, int value) {
+    int previous = result.getInt();
+    result.setInt(previous + value);
+    return previous;
+  }
+
 }

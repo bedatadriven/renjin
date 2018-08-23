@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,12 +18,10 @@
  */
 package org.renjin.primitives.text.regex;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class RECompilerTest {
@@ -168,10 +166,30 @@ public class RECompilerTest {
     assertTrue(re.match("ABBC"));
     assertTrue(re.match("ABBBC"));
     assertFalse(re.match("ABBBBC"));
-
-
   }
 
+  @Test
+  public void backslashInCharacterClass() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("[/\\]");
+
+    assertTrue(re.match("\\"));
+    assertTrue(re.match("/foo/foo"));
+    assertFalse(re.match("foo"));
+    assertFalse(re.match(""));
+  }
+
+  @Test(expected = RESyntaxException.class)
+  public void trailingBackslashError() throws RESyntaxException {
+    new ExtendedRE("[A-Z]\\");
+  }
+
+  @Test
+  public void punctSubClass() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("[[:punct:]]");
+    assertTrue(re.match("."));
+    assertFalse(re.match("A"));
+    assertTrue(re.match("+"));
+  }
 
   @Ignore("not implemented")
   @Test
@@ -180,4 +198,21 @@ public class RECompilerTest {
     ExtendedRE re = new ExtendedRE("~(?![^\\(].*\\))");
   //  x = c("~", "y", "1"), split = "~(?![^\\(].*\\))", out = list("", "y", "1")
   }
+
+  @Ignore("wip")
+  @Test
+  public void lookahead() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("(\\n|^)(?!$)");
+    re.subst("a\nb\nc", "\n     ");
+  }
+
+  @Ignore("wip")
+  @Test
+  public void lookahead2() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("Hello World([a-z]B)?$");
+    REPrettyPrinter prettyPrinter = new REPrettyPrinter();
+    re.match("Hello World");
+    System.out.println(prettyPrinter.prettyPrint(re.program));
+  }
+
 }

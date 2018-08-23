@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ public final class Symbol extends AbstractSEXP {
 
   public static final Symbol UNBOUND_VALUE = new Symbol();
   
-  public static final Symbol MISSING_ARG = new Symbol();
+  public static final Symbol MISSING_ARG = new Symbol("",0);
  
   /**
    * The symbol's name 
@@ -66,7 +66,8 @@ public final class Symbol extends AbstractSEXP {
         "continue",
         "repeat",
         "next",
-        "{", "(", 
+        "switch",
+        "{", "(",
         "!",
         ":",
         "=", "!=", "==",
@@ -102,7 +103,6 @@ public final class Symbol extends AbstractSEXP {
         "is.complex",
         "is.double",
         "is.list",
-        "switch",
         "typeof",
         "seq_along",
         "lapply",
@@ -237,13 +237,12 @@ public final class Symbol extends AbstractSEXP {
     return IMPLICIT_CLASS;
   }
   
-  
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     // it seems very strange that you can change attributes on a 
     // globally shared object, but that seems to be the case in R
-    this.attributes = attributes;
+    this.unsafeSetAttributes(attributes);
     return this;
   }
 

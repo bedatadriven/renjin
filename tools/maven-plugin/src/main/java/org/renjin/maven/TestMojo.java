@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -88,6 +88,12 @@ public class TestMojo extends AbstractMojo {
   @Parameter(property = "maven.test.failure.ignore", defaultValue = "false")
   private boolean testFailureIgnore;
 
+  /**
+   * Arbitrary JVM options to set on the command line.
+   */
+  @Parameter( property = "argLine" )
+  private String argLine;
+
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -101,7 +107,8 @@ public class TestMojo extends AbstractMojo {
       defaultPackages = Lists.newArrayList();
     }
 
-    ForkedTestController controller = new ForkedTestController();
+    ForkedTestController controller = new ForkedTestController(getLog());
+    controller.setArgLine(argLine);
     controller.setTimeout(timeoutInSeconds, TimeUnit.SECONDS);
     controller.setDefaultPackages(defaultPackages);
     controller.setClassPath(buildClassPath());
@@ -115,7 +122,7 @@ public class TestMojo extends AbstractMojo {
     
     if(!controller.allTestsSucceeded()) {
       if(testFailureIgnore) {
-        System.err.println("There were R test failures.");
+        getLog().error("There were R test failures.");
       } else {
         throw new MojoFailureException("There were R test failures");
       }
@@ -145,8 +152,14 @@ public class TestMojo extends AbstractMojo {
 
   private List<Artifact> getDependencies() {
     List<Artifact> artifacts = Lists.newArrayList();
-    artifacts.addAll(project.getTestArtifacts());
+
+    // First add this plugin's dependencies, which include matching, and probably latest versions
+    // of renjin-core, renjin-repl. We want to use these versions rather than whatever mismatch of versions
+    // that can potentially get pulled in by dependencies
     artifacts.addAll(pluginDependencies);
+
+    // Now add this project's dependencies.
+    artifacts.addAll(project.getTestArtifacts());
     return artifacts;
   }
 

@@ -1,6 +1,6 @@
 #
 # Renjin : JVM-based interpreter for the R language for the statistical analysis
-# Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+# Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -82,4 +82,74 @@ test.ZeroBothArgumentsInTextSubstr <- function() {
 test.EmptyInputStringInTextSubstr <- function() {
   out <- substr(c(), 1, 1);
   assertThat( out, identicalTo(character(0)));
+}
+
+test.PromisesAreForcedByDollar <- function() {
+
+    .data <- 1:12
+
+    capture.promise <- function(data) {
+        environment()
+    }
+
+    x <- list(env = capture.promise(.data))
+
+    f <- function(z) {
+        z[1]
+    }
+
+    f(x$env$data)
+}
+
+test.PromisesAreForcedBySubset <- function() {
+
+    .data <- 1:12
+
+    capture.promise <- function(data) {
+        environment()
+    }
+
+    x <- list(env = capture.promise(.data))
+
+    f <- function(z) {
+        z[1]
+    }
+
+    f(x$env[['data']])
+}
+
+test.PromisesAreForcedByGet <- function() {
+
+    .data <- 1:12
+
+    capture.promise <- function(data) {
+        environment()
+    }
+
+    x <- list(env = capture.promise(.data))
+
+    f <- function(z) {
+        z[1]
+    }
+
+    f(get(envir = x$env, 'data'))
+}
+
+test.RecallInPromise <- function() {
+
+    g <- function(x, y) {
+        x + y
+    }
+
+    f <- function(n) {
+        cat(sprintf("n = %d\n", n))
+        if(n < 0) {
+            99
+        } else {
+            Recall(n - 1)
+        }
+    }
+
+    print(f(3))
+
 }

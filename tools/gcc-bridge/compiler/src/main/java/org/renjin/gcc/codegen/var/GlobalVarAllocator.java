@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,12 +25,12 @@ import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -38,7 +38,7 @@ import java.util.Set;
  */
 public class GlobalVarAllocator extends VarAllocator {
 
-  private class StaticField implements JLValue {
+  public class StaticField implements JLValue {
 
     private String name;
     private Type type;
@@ -54,6 +54,14 @@ public class GlobalVarAllocator extends VarAllocator {
     @Override
     public Type getType() {
       return type;
+    }
+
+    public Type getDeclaringClass() {
+      return declaringClass;
+    }
+
+    public String getName() {
+      return name;
     }
 
     @Override
@@ -73,15 +81,16 @@ public class GlobalVarAllocator extends VarAllocator {
   private final Set<String> fieldNames = Sets.newHashSet();
 
   public GlobalVarAllocator(String declaringClass) {
-    this.declaringClass = Type.getType(declaringClass);
+    this.declaringClass = Type.getType("L" + declaringClass + ";");
+    assert this.declaringClass.getSort() == Type.OBJECT;
   }
 
   @Override
-  public JLValue reserve(String name, Type type) {
-    return reserve(name, type, Optional.<JExpr>absent());
+  public StaticField reserve(String name, Type type) {
+    return reserve(name, type, Optional.empty());
   }
 
-  public JLValue reserve(String name, Type type, Optional<JExpr> initialValue) {
+  public StaticField reserve(String name, Type type, Optional<JExpr> initialValue) {
     String fieldName = toJavaSafeName(name);
     if(fieldNames.contains(fieldName)) {
       throw new InternalCompilerException("Duplicate field name generated '" + name + "' [" + fieldName + "]");
@@ -93,7 +102,7 @@ public class GlobalVarAllocator extends VarAllocator {
   }
 
   @Override
-  public JLValue reserve(String name, Type type, JExpr initialValue) {
+  public StaticField reserve(String name, Type type, JExpr initialValue) {
     return reserve(name, type, Optional.of(initialValue));
   }
 

@@ -182,7 +182,7 @@ public class NonlinearLeastSquares {
     int totalParameterValueCount = 0;
     for (int i = 0; i < theta.length(); i++) {
       String parameterName = theta.getElementAsString(i);
-      SEXP parameterValue = rho.findVariable(Symbol.get(parameterName));
+      SEXP parameterValue = rho.findVariable(context, Symbol.get(parameterName));
 
       if (!(parameterValue instanceof AtomicVector)) {
         throw new EvalException("variable '%s' is not numeric", parameterName);
@@ -213,7 +213,7 @@ public class NonlinearLeastSquares {
                 direction * delta;
 
         // update this parameter in the model's environment
-        rho.setVariable(theta.getElementAsString(parameterIndex), new DoubleArrayVector(parameterValues[parameterIndex]));
+        rho.setVariable(context, theta.getElementAsString(parameterIndex), new DoubleArrayVector(parameterValues[parameterIndex]));
 
         // compute the new response given this updated parameter
         DoubleVector responseDelta = (DoubleVector) context.evaluate(modelExpr, rho);
@@ -235,7 +235,7 @@ public class NonlinearLeastSquares {
 
       // Now that we're done manipulating this variable, restore it to its starting
       // value in the model's environment
-      rho.setVariable(theta.getElementAsString(parameterIndex),
+      rho.setVariable(context, theta.getElementAsString(parameterIndex),
               new DoubleArrayVector(parameterValues[parameterIndex]));
     }
 

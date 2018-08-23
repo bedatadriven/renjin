@@ -4,7 +4,7 @@
   <parent>
     <artifactId>renjin-packages</artifactId>
     <groupId>org.renjin</groupId>
-    <version>0.9.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>grDevices</artifactId>
@@ -21,6 +21,21 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>renjin-gnur-runtime</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>pdfbox</artifactId>
+      <version>2.0.9</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jfree</groupId>
+      <artifactId>jfreesvg</artifactId>
+      <version>3.3</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -30,10 +45,19 @@
         <version>${project.version}</version>
         <executions>
           <execution>
+            <id>compile-c-sources</id>
+            <goals>
+              <goal>gnur-sources-compile</goal>
+            </goals>
+            <phase>compile</phase>
+            <configuration>
+             <transformGlobalVariables>true</transformGlobalVariables>
+            </configuration>
+          </execution>
+          <execution>
             <id>build</id>
             <goals>
               <goal>namespace-compile</goal>
-              <goal>gnur-sources-compile</goal>
             </goals>
             <phase>compile</phase>
           </execution>
@@ -47,6 +71,21 @@
               <defaultPackages>
                 <package>grDevices</package>
               </defaultPackages>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.17</version>
+        <executions>
+          <execution>
+            <id>validate</id>
+            <phase>validate</phase>
+            <configuration>
+              <!-- Exclude imported sources from checkstyle for the moment -->
+              <excludes>org/renjin/grDevices/*.java</excludes>
             </configuration>
           </execution>
         </executions>

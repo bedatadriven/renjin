@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,13 +21,13 @@ package org.renjin.sexp;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.parser.NumericLiterals;
 import org.renjin.primitives.vector.ConvertingStringVector;
-import org.renjin.repackaged.guava.base.Objects;
 import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Objects;
 
 public abstract class StringVector extends AbstractAtomicVector implements Iterable<String> {
 
@@ -208,27 +208,6 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
     return TYPE_NAME;
   }
 
-  @Override
-  public final boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || !(o instanceof StringVector)) {
-      return false;
-    }
-
-    StringVector that = (StringVector) o;
-    if(that.length() != this.length()) {
-      return false;
-    }
-
-    for(int i=0;i!=length();++i) {
-      if(!Objects.equal(this.getElementAsString(i), that.getElementAsString(i))) {
-        return false;
-      }
-    }
-    return true;
-  }
 
   @Override
   public final int hashCode() {
@@ -326,14 +305,11 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
     }
 
     @Override
-    public boolean elementsEqual(Vector vector1, int index1, Vector vector2,
-        int index2) {
+    public boolean elementsIdentical(Vector vector1, int index1, Vector vector2,
+                                     int index2) {
       String s1 = vector1.getElementAsString(index1);
       String s2 = vector2.getElementAsString(index2);
-      if(s1 == null || s2 == null) {
-        return false;
-      }
-      return s1.equals(s2);
+      return Objects.equals(s1, s2);
     }
 
     @Override
@@ -397,11 +373,12 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
       add(NumericLiterals.toString(value.doubleValue()));
       return this;
     }
-
-    public void addAll(Iterable<String> values) {
+  
+    public StringVector.Builder addAll(Iterable<String> values) {
       for(String value : values) {
         add(value);
       }
+      return this;
     }
 
     @Override

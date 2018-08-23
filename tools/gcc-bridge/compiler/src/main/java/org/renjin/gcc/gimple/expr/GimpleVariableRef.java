@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,27 +20,27 @@ package org.renjin.gcc.gimple.expr;
 
 import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 
 public class GimpleVariableRef extends GimpleLValue implements GimpleSymbolRef {
 
-  private int id;
+  private long id;
   private String name;
   private String mangledName;
   
   public GimpleVariableRef() {
   }
 
-  public GimpleVariableRef(int id, GimpleType type) {
+  public GimpleVariableRef(long id, GimpleType type) {
     this.id = id;
     this.setType(type);
   }
 
-  public int getId() {
+  public long getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public void setId(long id) {
     this.id = id;
   }
 
@@ -53,7 +53,10 @@ public class GimpleVariableRef extends GimpleLValue implements GimpleSymbolRef {
   }
 
   public String getMangledName() {
-    return mangledName;
+    if(mangledName != null) {
+      return mangledName;
+    }
+    return name;
   }
 
   public void setMangledName(String mangledName) {
@@ -77,10 +80,11 @@ public class GimpleVariableRef extends GimpleLValue implements GimpleSymbolRef {
     return !(name != null ? !name.equals(that.name) : that.name != null);
   }
 
+
   @Override
   public int hashCode() {
-    int result = name != null ? name.hashCode() : 0;
-    result = 31 * result + id;
+    int result = (int) (id ^ (id >>> 32));
+    result = 31 * result + (name != null ? name.hashCode() : 0);
     return result;
   }
 

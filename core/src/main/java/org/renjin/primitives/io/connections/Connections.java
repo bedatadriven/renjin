@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,20 +24,18 @@ import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Recycle;
+import org.renjin.invoke.reflection.converters.StringArrayConverter;
 import org.renjin.primitives.Identical;
 import org.renjin.primitives.io.connections.Connection.Type;
 import org.renjin.primitives.text.RCharsets;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.io.ByteStreams;
 import org.renjin.sexp.*;
 
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Reader;
+import java.io.*;
 import java.net.URL;
-import java.net.UnknownHostException;
 
 /**
  * 
@@ -150,9 +148,14 @@ public class Connections {
   
   @Internal
   public static IntVector textConnection(@Current final Context context,
-      String objectName, StringVector text, String open, Environment env, String type) throws IOException {
-    
-    return newConnection(context, open, new TextConnection(objectName, Joiner.on('\n').join(text)));
+      String objectName, StringVector object, String open, Environment env, String type) throws IOException {
+
+    OpenSpec openSpec = new OpenSpec(open);
+    if(openSpec.forWriting()) {
+      return newConnection(context, open, new WriteTextConnection(Symbol.get(object.asString()), env));
+    } else {
+      return newConnection(context, open, new ReadTextConnection(objectName, Joiner.on('\n').join(object)));
+    }
   }
   
   
@@ -260,7 +263,48 @@ public class Connections {
     
     return lines.build();
   }
-  
+
+  @Internal
+  public static Vector readBin(@Current Context context, SEXP connIndex, SEXP what, int n, int size, boolean signed, boolean swap) throws IOException {
+    BinaryReader reader;
+    if(connIndex instanceof RawVector) {
+      reader = new BinaryReader((RawVector)connIndex);
+    } else {
+      Connection connection = getConnection(context, connIndex);
+      InputStream inputStream = connection.getInputStream();
+      reader = new BinaryReader(inputStream);
+    }
+
+    String typeName = what.asString();
+    switch (typeName) {
+      case "integer":
+        return reader.readIntVector(n, size, signed, swap);
+      case "double":
+        return reader.readDoubleVector(n, size, swap);
+      case "complex":
+        return reader.readComplexVector(n, size, swap);
+      case "character":
+        return reader.readCharacterVector(n, size, swap);
+      default:
+        throw new EvalException("Unsupported/unimplemented type: " + typeName);
+    }
+  }
+
+  @Internal
+  public static void writeBin(@Current Context context, SEXP object, SEXP con, int size, boolean swap, boolean useBytes) throws IOException {
+    if(con instanceof IntVector) {
+      Connection connection = getConnection(context, con);
+      if(object instanceof RawVector) {
+        connection.getOutputStream().write(((RawVector) object).toByteArrayUnsafe());
+      } else {
+        throw new UnsupportedOperationException("TODO: typeof(object) = %s" + object.getTypeName());
+      }
+    } else {
+      throw new EvalException("TODO: typeof(con) = %s" + con.getTypeName());
+    }
+  }
+
+
   @Internal("writeLines")
   public static void writeLines(@Current Context context, StringVector x, SEXP connIndex, String seperator, boolean useBytes) throws IOException {
     PrintWriter writer = getConnection(context, connIndex).getPrintWriter();
@@ -293,7 +337,10 @@ public class Connections {
     }
 
     if(Identical.identical(connection, new IntArrayVector(-1))) {
-      source.clearSink();
+      Sink sink = source.clearSink();
+      if(sink != null && sink.isCloseOnExit()) {
+        context.getSession().getConnectionTable().close(sink.getConnection());
+      }
     } else {
       Connection sinkConnection = getConnection(context , connection);
       source.sink(new Sink(sinkConnection, split, closeOnExit));
@@ -333,6 +380,11 @@ public class Connections {
         reader.pushBack(data.getElementAsString(i) + suffix);
       }
     }
+  }
+
+  @Internal
+  public static void flush(@Current Context context, SEXP connection) throws IOException {
+    getConnection(context, connection).flush();
   }
   
   @Internal

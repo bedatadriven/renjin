@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,11 @@ public class Cat extends SexpVisitor<String> {
   @Invisible
   public static void cat(@Current Context context, ListVector list, SEXP connection, String sep,
       int fill, SEXP labels, boolean append) throws IOException {
-    
+
+
+    // Materialize all the elements in parallel if neccessary
+    list = context.materialize(list);
+
     PrintWriter printWriter = Connections.getConnection(context, connection).getPrintWriter();
     Cat visitor = new Cat(printWriter, sep, 0);
     for (SEXP element : list) {

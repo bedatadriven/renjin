@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleLValue;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
-import org.renjin.repackaged.guava.base.Predicate;
+import java.util.function.Predicate;
 import org.renjin.repackaged.guava.base.Predicates;
 
 import java.util.ArrayList;
@@ -50,21 +50,22 @@ import java.util.Set;
     @Type(value = GimpleReturn.class, name = "return"),
     @Type(value = GimpleGoto.class, name = "goto"),
     @Type(value = GimpleSwitch.class, name = "switch"),
-    @Type(value = GimpleBlock.class, name = "block")})
+    @Type(value = GimpleBlock.class, name = "block"),
+    @Type(value = GimpleAsm.class, name = "gimple_asm")})
 public abstract class GimpleStatement {
 
   @JsonProperty("line")
   private Integer lineNumber;
-  
+
+  @JsonProperty("file")
+  private String sourceFile;
+
   public abstract void visit(GimpleVisitor visitor);
     
   public boolean lhsMatches(Predicate<? super GimpleLValue> predicate) {
     return false;
   }
-  
-  public List<GimpleExpr> getOperands() {
-    return Collections.emptyList();
-  }
+
   
   /**
    * @return the set of {@code SymbolRef}s that are read by this statement
@@ -81,7 +82,7 @@ public abstract class GimpleStatement {
   
   @SuppressWarnings("unchecked")
   public final <T extends GimpleExpr> List<T> findUses(Class<T> exprClass) {
-    return (List<T>)findUses(Predicates.instanceOf(exprClass));
+    return (List<T>)findUses(use -> exprClass.isInstance(use));
   }
   
   public final List<GimpleVariableRef> findVariableUses() {
@@ -106,9 +107,13 @@ public abstract class GimpleStatement {
     this.lineNumber = lineNumber;
   }
 
+  public void setSourceFile(String sourceFile) {
+    this.sourceFile = sourceFile;
+  }
+
   protected final void replaceAll(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> operands, GimpleExpr newExpr) {
     for (int i = 0; i < operands.size(); i++) {
-      if(predicate.apply(operands.get(i))) {
+      if(predicate.test(operands.get(i))) {
         operands.set(i, newExpr);
       } else {
         operands.get(i).replaceAll(predicate, newExpr);
@@ -128,5 +133,9 @@ public abstract class GimpleStatement {
    */
   public Set<Integer> getJumpTargets() {
     return Collections.emptySet();
+  }
+
+  public String getSourceFile() {
+    return sourceFile;
   }
 }

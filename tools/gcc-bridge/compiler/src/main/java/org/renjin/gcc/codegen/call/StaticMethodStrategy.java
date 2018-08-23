@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,9 +19,8 @@
 package org.renjin.gcc.codegen.call;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.type.ParamStrategy;
-import org.renjin.gcc.codegen.type.ReturnStrategy;
-import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.vptr.VPtrVariadicStrategy;
 import org.renjin.repackaged.asm.Handle;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
@@ -67,9 +66,16 @@ public class StaticMethodStrategy implements InvocationStrategy {
   }
 
   @Override
-  public boolean isVarArgs() {
-    return method.isVarArgs();
+  public VariadicStrategy getVariadicStrategy() {
+    if(method.isVarArgs()) {
+      return new JvmVarArgsStrategy();
+    } else if(VPtrVariadicStrategy.hasVarArgsPtr(method)) {
+      return new VPtrVariadicStrategy();
+    } else {
+      return new NullVariadicStrategy();
+    }
   }
+
 
   @Override
   public ReturnStrategy getReturnStrategy() {

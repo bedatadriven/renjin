@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@ import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Invisible;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -36,7 +35,6 @@ public class Packages {
       @Current Context context,
       @Current NamespaceRegistry namespaceRegistry, 
       String packageName) throws IOException {
-
 
     Namespace namespace = namespaceRegistry.getNamespace(context, packageName);
     
@@ -60,17 +58,6 @@ public class Packages {
     // Copy in the namespace's exports
     namespace.copyExportsTo(context, packageEnv);
     
-    // Load dataset objects as promises
-    for(Dataset dataset : namespace.getPackage().getDatasets()) {
-      for(String objectName : dataset.getObjectNames()) {
-        packageEnv.setVariable(objectName, new DatasetObjectPromise(dataset, objectName));
-      }
-    }
-    
-    if(!namespace.getFullyQualifiedName().equals(METHODS_NAMESPACE)) {
-      maybeUpdateS4MetadataCache(context, namespace);
-    }
-    
     context.setInvisibleFlag();
   }
 
@@ -92,20 +79,6 @@ public class Packages {
     return false;
   }
 
-  private static void maybeUpdateS4MetadataCache(Context context, Namespace namespace) {
-    //methods:::cacheMetaData(ns, TRUE, ns)
-    Optional<Namespace> methods = context.getNamespaceRegistry()
-        .getNamespaceIfPresent(Symbol.get("methods"));
-    if(methods.isPresent()) {
-      SEXP cacheFunction = methods.get().getEntry(Symbol.get("cacheMetaData"));
-      FunctionCall cacheCall = FunctionCall.newCall(cacheFunction, 
-          namespace.getNamespaceEnvironment(),
-          LogicalVector.TRUE,
-          namespace.getNamespaceEnvironment());
-      
-      context.evaluate(cacheCall);
-    }
-  }
 
   @Internal
   @Invisible

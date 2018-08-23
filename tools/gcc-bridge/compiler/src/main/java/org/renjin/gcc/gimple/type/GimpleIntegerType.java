@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
  */
 package org.renjin.gcc.gimple.type;
 
+import org.renjin.gcc.gimple.expr.GimpleIntegerConstant;
 import org.renjin.repackaged.asm.Type;
 
 public class GimpleIntegerType extends GimplePrimitiveType {
@@ -122,12 +123,24 @@ public class GimpleIntegerType extends GimplePrimitiveType {
   public int sizeOf() {
     return Math.max(1, getSize() / 8);
   }
-  
+
+  @Override
+  public GimpleIntegerConstant zero() {
+    return new GimpleIntegerConstant(this, 0L);
+  }
+
   public static GimpleIntegerType unsigned(int bits) {
     GimpleIntegerType type = new GimpleIntegerType(bits);
     type.unsigned = true;
     return type;
   }
-  
-  
+
+
+  public static GimpleIntegerType signed(int bits) {
+    return new GimpleIntegerType(bits);
+  }
+
+  public boolean isSigned() {
+    return !isUnsigned();
+  }
 }

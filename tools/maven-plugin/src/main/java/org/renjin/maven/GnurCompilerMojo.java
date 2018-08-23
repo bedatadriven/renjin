@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,6 +63,12 @@ public class GnurCompilerMojo extends AbstractMojo {
   private File gimpleDirectory;
 
   /**
+   * Directory to which the intermediate gimple files are written
+   */
+  @Parameter(defaultValue = "${project.build.directory}/gcc-bridge-logs", required = true)
+  private File loggingDirectory;
+
+  /**
    * Directories in which to look for C/Fortran sources
    */
   @Parameter
@@ -89,6 +95,9 @@ public class GnurCompilerMojo extends AbstractMojo {
   @Parameter(defaultValue = "${project.build.directory}/include")
   private File unpackedIncludeDir;
 
+  @Parameter
+  private boolean transformGlobalVariables;
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
 
@@ -112,6 +121,9 @@ public class GnurCompilerMojo extends AbstractMojo {
     compiler.setOutputDirectory(outputDirectory);
     compiler.setGimpleDirectory(gimpleDirectory);
     compiler.setLinkClassLoader(GccBridgeHelper.getLinkClassLoader(project, getLog()));
+    compiler.setLoggingDir(loggingDirectory);
+    compiler.setTransformGlobalVariables(transformGlobalVariables);
+
     
     // Unpack any headers from dependencies
     GccBridgeHelper.unpackHeaders(getLog(), unpackedIncludeDir, project.getCompileArtifacts());

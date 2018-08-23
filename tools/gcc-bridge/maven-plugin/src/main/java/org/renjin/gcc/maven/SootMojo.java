@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,8 +27,9 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.renjin.repackaged.guava.io.Files;
+import soot.G;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +37,6 @@ import java.util.List;
 /**
  * Runs the Soot optimizer on one or more classfiles
  */
-@ThreadSafe
 @Mojo(name = "soot",  requiresDependencyCollection = ResolutionScope.COMPILE)
 public class SootMojo extends AbstractMojo {
 
@@ -54,9 +54,12 @@ public class SootMojo extends AbstractMojo {
   
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-    
+
+    List<String> classes = new ArrayList<>();
     if(optimize == null || optimize.isEmpty()) {
-      throw new MojoFailureException("No classes to optimize.");
+      findClassfiles(new File(project.getBuild().getOutputDirectory()), "", classes);
+    } else {
+      classes.addAll(optimize);
     }
     
     List<String> args = new ArrayList<>();
@@ -66,7 +69,11 @@ public class SootMojo extends AbstractMojo {
     // Classpath for soot analysis
     args.add("-cp");
     args.add(compileClassPath());
-    
+
+    args.add("-asm-backend");
+    args.add("-java-version");
+    args.add("1.7");
+
     if(verbose) {
       args.add("-v");
     }
@@ -77,13 +84,25 @@ public class SootMojo extends AbstractMojo {
     
     // Add classes to optimize
     args.add("-O");
-    args.addAll(optimize);
+    args.addAll(classes);
     
     // Write out to build directory and overwrite existing classfiles
     args.add("-d");
     args.add(project.getBuild().getOutputDirectory());
-    
+
+    G.reset();
+
     soot.Main.main(args.toArray(new String[args.size()]));
+  }
+
+  private void findClassfiles(File file, String packageName, List<String> classes) {
+    for (File child : file.listFiles()) {
+      if(child.isFile() && child.getName().endsWith(".class")) {
+        classes.add(packageName + Files.getNameWithoutExtension(child.getName()));
+      } else if(child.isDirectory()) {
+        findClassfiles(child, packageName + child.getName() + ".", classes);
+      }
+    }
   }
 
   private String compileClassPath() throws MojoExecutionException {

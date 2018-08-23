@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,8 @@
 package org.renjin.compiler;
 
 
+import org.renjin.eval.Context;
+import org.renjin.primitives.Deparse;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
 
@@ -45,5 +47,24 @@ public class NotCompilableException extends RuntimeException {
   
   public NotCompilableException getCause() {
     return (NotCompilableException) super.getCause();
+  }
+
+
+  public String toString(Context context) {
+    NotCompilableException e = this;
+    StringBuilder s = new StringBuilder();
+    while(e != null) {
+      if(s.length() > 0) {
+        s.append(" > ");
+      }
+      if(e.getSexp() != null) {
+        s.append(Deparse.deparseExp(context, e.getSexp()));
+      }
+      if(e.getMessage() != null) {
+        s.append(": ").append(e.getMessage());
+      }
+      e = e.getCause();
+    }
+    return s.toString();
   }
 }

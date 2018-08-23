@@ -1,5 +1,7 @@
 #  File src/library/graphics/R/arrows.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2014 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 arrows <-
     function(x0, y0, x1 = x0, y1 = y0, length = 0.25, angle = 30, code = 2,
@@ -20,5 +22,8 @@ arrows <-
 {
     if (missing(x1) && missing(y1))
         stop("one of 'x1' and 'y1' must be given")
-    warning("graphics are not yet implemented.")
+    .External.graphics(C_arrows, x0, y0, x1, y1, length = length,
+                       angle = angle, code = code, col = col,
+                       lty = lty, lwd = lwd, ...)
+    invisible()
 }

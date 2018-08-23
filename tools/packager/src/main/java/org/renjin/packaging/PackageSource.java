@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -100,6 +100,17 @@ public class PackageSource {
 
   public boolean needsCompilation() {
     return "yes".equals(description.getFirstProperty("NeedsCompilation"));
+  }
+
+  public boolean isCXX11() {
+    String systemRequirements = Strings.nullToEmpty(description.getFirstProperty("SystemRequirements")).trim();
+    boolean isCXX11 = "C++11".equals(systemRequirements);
+    if(isCXX11) {
+      System.out.println("Checking whether in DESCRIPTION 'SystemRequirements' is set to 'C++11'... yes");
+    } else {
+      System.out.println("Checking whether in DESCRIPTION 'SystemRequirements' is set to 'C++11'... no");
+    }
+    return isCXX11;
   }
 
   public PackageDescription getDescription() {
@@ -245,9 +256,7 @@ public class PackageSource {
       List<File> list = Lists.newArrayList();
       for (String sourceFilename : sourceFileNames) {
         File sourceFile = new File(source.sourceDir, sourceFilename);
-        if(!sourceFile.exists()) {
-          throw new RuntimeException("Source file '" + sourceFile.getAbsolutePath() + "' does not exist.");
-        }
+        
         list.add(sourceFile);
       }
       return list;

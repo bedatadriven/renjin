@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@ package org.renjin.sexp;
 
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Profiler;
-import org.renjin.parser.NumericLiterals;
 import org.renjin.repackaged.guava.collect.Iterables;
 
 import java.util.Arrays;
@@ -89,17 +88,6 @@ public class StringArrayVector extends StringVector implements Iterable<String> 
     return true;
   }
 
-  @Override
-  public double asReal() {
-    if(values.length > 0 &&
-        values[0] != null &&
-        values[0].length() > 0)
-    {
-      return NumericLiterals.parseDouble(values[0]);
-    } else {
-      return DoubleVector.NA;
-    }
-  }
 
 
   @Override

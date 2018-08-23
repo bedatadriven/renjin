@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ import org.renjin.repackaged.asm.Type;
  * we have to be sometimes creative in returning things like fat pointers, which
  * we represent using an array <i>and</i> and integer offset.</p>
  * 
- * @see org.renjin.gcc.codegen.fatptr.FatPtrReturnStrategy
+ * @see org.renjin.gcc.codegen.vptr.VPtrReturnStrategy
  * @see org.renjin.gcc.codegen.type.complex.ComplexReturnStrategy
  */
 public interface ReturnStrategy {
@@ -51,7 +51,7 @@ public interface ReturnStrategy {
   /**
    * Converts a function call return value to an expression if necessary.
    */
-  GExpr unmarshall(MethodGenerator mv, JExpr returnValue, TypeStrategy lhsTypeStrategy);
+  GExpr unmarshall(MethodGenerator mv, JExpr callExpr, TypeStrategy lhsTypeStrategy);
 
   /**
    * Sometimes C code doesn't return a value despite having a non-void return type. In this case, 

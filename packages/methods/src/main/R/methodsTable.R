@@ -1,7 +1,7 @@
 #  File src/library/methods/R/methodsTable.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ### merge version called from namespace imports code.  Hope to avoid using generic
 .mergeMethodsTable2 <- function(table, newtable, envir, metaname) {
@@ -62,7 +62,7 @@
 ##  anyLabel <- .sigLabel(anySig)
   newMethods <- names(newtable)
   for(what in newMethods) {
-    obj <- get(what, envir = newtable)
+    obj <- newtable[[what]]
     if(is.primitive(obj))
       sig <- anySig
     else if(is(obj, "MethodDefinition"))
@@ -73,7 +73,7 @@
            next # empty environment, ignore
        isDef <- vapply(objsWhat, is, logical(1L), "MethodDefinition")
        if (any(isDef)) {
-           sig <- tail(objsWhat[isDef], 1L)@defined
+           sig <- objsWhat[[utils::tail(which(isDef), 1L)]]@defined
        } else {
            sig <- anySig
        }
@@ -103,7 +103,7 @@
         signames <- generic@signature
         length(signames) <- ns
         .resetTable(table, ns, signames)
-        assign(".SigLength", ns, envir = fenv)
+        fenv[[".SigLength"]] <- ns
         n <- ns
       }
     }
@@ -113,9 +113,9 @@
             ## must replace in .AllMTable also
             if(is.null(allTable))
                 allTable <- get(".AllMTable", envir = fenv)
-            assign(what, obj, envir = allTable)
+            allTable[[what]] <- obj
         }
-        assign(what, obj, envir = table)
+        table[[what]] <- obj
     }
     else if(exists(what, envir = table, inherits = FALSE) &&
             !all(obj@defined == "ANY") ) {
@@ -148,7 +148,7 @@
                 objw@defined <- objw@target <- sigw
                 remove(list = what, envir = obj)
                 var <- .pkgMethodLabel(objw)
-                if(nzchar(var)) assign(var, objw, envir = obj)
+                if(nzchar(var)) obj[[var]] <- objw
             }
         }
     }
@@ -278,8 +278,9 @@
   label <- .sigLabel(sig)
   isCurrent <- exists(label, envir = table, inherits = FALSE)
   if(is.null(def)) { # remove the method (convention for setMethod)
-      if(isCurrent)
+      if(isCurrent) {
           remove(list = label, envir = table)
+      }
   }
   else {
       dupl <- .duplicateClassesExist()
@@ -710,7 +711,10 @@
       ## have package attribute--see .sigLabel
       defined <-  new("signature", fdef, c(defined@.Data, rep("ANY", n-m)))
     excluded <- c(prev, .sigLabel(defined))
-    methods <- .findInheritedMethods(defined, fdef, mtable = NULL, excluded = excluded)
+    allTable <- .getMethodsTable(fdef, inherited = TRUE)
+    methods <- .findInheritedMethods(defined, fdef, mtable = NULL,
+                                     table = allTable,
+                                     excluded = excluded)
     if(length(methods) == 0L) # use default method, maybe recursively.
         methods <- list(finalDefaultMethod(fdef@default)) #todo: put a label on it?
     if(length(methods) > 1L)
@@ -743,9 +747,19 @@
     stop("Internal error in finding inherited methods; didn't return a unique method", domain = NA)
 }
 
-.findMethodInTable <- function(signature, table, fdef = NULL)
+.findMethodForFdef <- function(signature, table, fdef = NULL) {
+    value <- .findMethodInTable(signature, table, fdef)
+    if(is.null(value) && is(fdef, "genericFunction")) { # try without expanding signature
+        fullSig <- .matchSigLength(signature, fdef, environment(fdef), FALSE)
+        if(!identical(fullSig, signature))
+            value <- .findMethodInTable(signature, table, fdef, FALSE)
+    }
+    value
+}
+
+.findMethodInTable <- function(signature, table, fdef = NULL , expdSig = TRUE)
 {
-    if(is(fdef, "genericFunction"))
+    if(is(fdef, "genericFunction") && expdSig)
         signature <- .matchSigLength(signature, fdef, environment(fdef), FALSE)
     label <- .sigLabel(signature)
 ##     allMethods <- objects(table, all.names=TRUE)
@@ -999,15 +1013,23 @@
         ## a new method to mtable is responsible for copying it to allTable as well.
         allObjects <- names(allTable)
         remove(list = setdiff(allObjects, direct), envir = allTable)
+        invalidateS4MethodCache(paste(".resetInheritedMethods().1",sep=""))
     }
     else {
         allTable <- new.env(TRUE, fenv)
         assign(".AllMTable", allTable, envir = fenv)
+        invalidateS4MethodCache(paste(".resetInheritedMethods().2",sep=""))
     }
     ## check for missing direct objects; usually a non-existent AllMTable?
     if(any(is.na(match(direct, allObjects)))) {
         list2env(as.list(mtable, all.names=TRUE), allTable)
     }
+    for (d in direct) {
+        m <- allTable[[d]]
+        if (is(m, "MethodWithNext"))
+            allTable[[d]] <- as(m, "MethodDefinition")
+    }
+        invalidateS4MethodCache(paste(".resetInheritedMethods().3",sep=""))
     NULL
 }
 
@@ -1429,6 +1451,7 @@ listFromMethods <- function(generic, where, table) {
     if(missing(table))
 	table <- .copyEnv(.getMethodsTable(generic))
     assign(what, table, envir = as.environment(where))
+    invalidateS4MethodCache(paste(".assignMethodsTableMetaData(", name, ")", sep=""))
 }
 
 .getMethodsTableMetaData <-  function(generic, where, optional = FALSE) {

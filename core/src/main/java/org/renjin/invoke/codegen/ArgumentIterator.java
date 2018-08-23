@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,43 +50,46 @@ public class ArgumentIterator {
     this.rho = rho;
     this.args = args;
   }
-  
-  public SEXP evalNext() {  
-    PairList.Node node;
-    if(ellipses != Null.INSTANCE) {
-      node = ((PairList.Node) ellipses);
-      ellipses = node.getNext();
-      
-    } else if(args != Null.INSTANCE){
-      node = ((PairList.Node)args);
-      args = node.getNext();
-      
-    } else {
-      // we've run out of arguments!
-      throw new ArgumentException("too few arguments");
-    }
-  
+
+  /**
+   * Returns the next argument and evaluates it, descending into forwarded arguments (...)
+   * if present.
+   */
+  public SEXP evalNext() {
+    PairList.Node node = nextNode();
     SEXP value = node.getValue();
 
+    // Check to see if this argument was omitted.
+    // The following conditional will ONLY be true
+    // for a call to a builtin like c(1,,3) where the
+    // second argument is completely omitted.
+    if(value == Symbol.MISSING_ARG) {
+      throw new ArgumentException("empty argument");
+    }
 
-    if(Symbols.ELLIPSES.equals(value)) {
-      PromisePairList dotdot = (PromisePairList) context.evaluate( value, rho);
-      ellipses = dotdot;
-      return evalNext();
-
-    } else {
-      this.currentName = node.getName();
-      SEXP evaluated = context.evaluate(value, rho);
-      if(evaluated == null) {
-        SEXP retry = context.evaluate(value, rho);
-      }
-//      if(evaluated == Symbol.MISSING_ARG) {
-//        throw new EvalException("Missing argument with no default: " + value);
-//      }
-      return evaluated;
-    } 
+    return context.evaluate(value, rho);
   }
-  
+
+  /**
+   * Returns the next argument and evaluates it, descending into forwarded arguments (...)
+   * if present. If the given argument is missing, {@code Symbol.MISSING_ARG} is returned rather
+   * than throwing an error.
+   */
+  public SEXP evalNextOrMissing() {
+
+    SEXP value = nextNode().getValue();
+
+    return context.evaluate(value, rho, true);
+  }
+
+  public String getCurrentName() {
+    return currentName;
+  }
+
+  /**
+   * Returns the next argument, unevaluated. If the next argument is the ... symbol, it is
+   * returned unexpanded.
+   */
   public SEXP next() {  
     PairList.Node node;
     if(ellipses != Null.INSTANCE) {
@@ -105,7 +108,12 @@ public class ArgumentIterator {
     this.currentName = node.getName();
     return node.getValue(); 
   }
-  
+
+  /**
+   *
+   * @return the next argument, unevaluated. If the next argument is the ... symbol, it is evaluated
+   * and the first argument in the expanded list is returned.
+   */
   public PairList.Node nextNode() {  
     PairList.Node node;
     if(ellipses != Null.INSTANCE) {
@@ -129,12 +137,11 @@ public class ArgumentIterator {
       return nextNode();
 
     } else {
-     
+      currentName = node.getName();
       return node;
     } 
   }
 
-  
   public boolean hasNext() {
     if(ellipses != Null.INSTANCE) {
       return true;
@@ -153,7 +160,6 @@ public class ArgumentIterator {
         return true;
       }
     }
-    
     return false;
   }
 }

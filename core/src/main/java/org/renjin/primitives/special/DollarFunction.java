@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,9 @@ package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.primitives.S3;
+import org.renjin.primitives.Types;
 import org.renjin.sexp.*;
 
 /**
@@ -54,14 +56,22 @@ public class DollarFunction extends SpecialFunction {
     if (genericResult!= null) {
       return genericResult;
     }
+
+    // Unwrap any environments hidden inside an S4 object
+    object = Types.unwrapS4Object(object);
     
     // If no generic function, extract the element
     String name = nameArgument.getElementAsString(0);
+
+    return apply(context, object, name);
+  }
+
+  public static SEXP apply(Context context, SEXP object, String name) {
     if(object instanceof PairList) {
       return fromPairList((PairList) object, name);
     
     } else if(object instanceof Environment) {
-      return fromEnvironment((Environment)object, name);
+      return fromEnvironment(context, (Environment)object, name);
       
     } else if(object instanceof ListVector) {
       return fromList((ListVector) object, name);
@@ -102,12 +112,12 @@ public class DollarFunction extends SpecialFunction {
     return matchCount == 1 ? match : Null.INSTANCE;
   }
   
-  public static SEXP fromEnvironment(Environment env, String name) {
-    SEXP value = env.getVariable(name);
+  public static SEXP fromEnvironment(@Current Context context, Environment env, String name) {
+    SEXP value = env.getVariable(context, name);
     if (value == Symbol.UNBOUND_VALUE) {
       return Null.INSTANCE;
     }
-    return value;
+    return value.force(context);
   }
 
   public static SEXP fromExternalPtr(ExternalPtr<?> externalPtr, String name) {

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@ package org.renjin;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 
@@ -33,10 +32,10 @@ public class SurveyPackageTest extends PackageTest {
 
     eval(" library(survey, lib.loc='src/test/resources') ");
 
-    assertThat( eval(" data(hospital, verbose=TRUE) "), equalTo(c("hospital")) );
+    assertThat( eval(" data(hospital, verbose=TRUE) "), elementsIdenticalTo(c("hospital")) );
 
-    assertThat(eval("typeof(hospital)"), equalTo(c("list")));
-    assertThat(eval("sum(hospital$births)"), equalTo(c(25667)));
+    assertThat(eval("typeof(hospital)"), elementsIdenticalTo(c("list")));
+    assertThat(eval("sum(hospital$births)"), elementsIdenticalTo(c(25667)));
 
     eval("dstr <- svydesign(id = ~1, strata = ~oblevel, fpc = ~tothosp, weight = ~weighta, data = hospital)");
     eval("r <- svymean(~births, dstr)");

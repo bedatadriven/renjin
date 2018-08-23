@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,11 +22,10 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.methods.Methods;
-import org.renjin.primitives.Evaluation;
+import org.renjin.primitives.Types;
 import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.matrix.Matrix;
 import org.renjin.primitives.matrix.MatrixBuilder;
-import org.renjin.primitives.vector.BinCodeVector;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -185,7 +184,7 @@ public class Base {
 
     ListVector.NamedBuilder val = new ListVector.NamedBuilder();
     for(String var : vars) {
-      SEXP boundValue = env.getVariable(var);
+      SEXP boundValue = env.getVariable(context, var);
       if(boundValue == Symbol.UNBOUND_VALUE) {
         throw new EvalException("object %s not found", boundValue);
       }
@@ -219,38 +218,14 @@ public class Base {
   public static String crc64ToString(String value) {
     return Crc64.getCrc64(value);
   }
+
   public static SEXP R_isS4Object(SEXP exp) {
-    if(exp instanceof S4Object) {
-      return LogicalVector.TRUE;
-    } else if(exp.getAttribute(Symbols.S4_BIT) != Null.INSTANCE) {
-      return LogicalVector.TRUE;
-    } else {
-      return LogicalVector.FALSE;
-    }
+    return LogicalArrayVector.valueOf(Types.isS4(exp));
   }
   
   public static SEXP R_do_new_object(S4Object classRepresentation) {
     return Methods.R_do_new_object(classRepresentation);
   }
 
-
-  /* bincode  cuts up the data using half open intervals defined as [a,b)
-     (if right = FALSE) or (a, b] (if right = TRUE)
-  */
-  public static ListVector bincode(DoubleVector x, int n, DoubleVector breaks, int nb, IntVector code_,
-                             boolean right, boolean include_border, boolean naok) {
-
-    // if we NAs are not ok, we have to check and throw an error now, not later
-    if(!naok) {
-      if(x.indexOfNA() != -1) {
-        throw new EvalException("NA's in bincode(NAOK=FALSE)");
-      }
-    }
-    IntVector codedVector = new BinCodeVector(x, breaks.toDoubleArray(), !right, include_border, AttributeMap.EMPTY);
-
-    ListVector.NamedBuilder result = new ListVector.NamedBuilder();
-    result.add("code", codedVector);
-    return result.build();
-  }
 
 }

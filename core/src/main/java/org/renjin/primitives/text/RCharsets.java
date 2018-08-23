@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ public final class RCharsets {
    * @throws EvalException if the encoding is unsupported.
    */
   public static Charset getByName(String name) {
-    if("UTF8".equals(name) || "unknown".equals(name)) {
+    if("UTF8".equals(name) || "unknown".equals(name) || name.isEmpty()) {
       return Charsets.UTF_8;
     } else if("native.enc".equals(name)) {
       return Charsets.UTF_8;

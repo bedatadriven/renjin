@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -137,8 +137,7 @@ public class ControlFlowGraph {
     // Clean up nodes and edges
     basicBlocks.retainAll(live);
     for (BasicBlock basicBlock : basicBlocks) {
-      basicBlock.flowPredecessors.retainAll(live);
-      basicBlock.flowSuccessors.retainAll(live);
+      basicBlock.removeDeadEdges(live);
     }
     
     int i=1;

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,23 +18,22 @@
  */
 package org.renjin.primitives.time;
 
-import org.joda.time.DateTime;
-import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
 
+import java.time.ZonedDateTime;
 import java.util.Iterator;
 
-public abstract class TimeVector implements Iterable<DateTime> {
+public abstract class TimeVector implements Iterable<ZonedDateTime> {
 
   public abstract int length();
 
-  public abstract DateTime getElementAsDateTime(int index);
+  public abstract ZonedDateTime getElementAsDateTime(int index);
 
   @Override
-  public Iterator<DateTime> iterator() {
+  public Iterator<ZonedDateTime> iterator() {
     return new ElementIterator();
   }
 
-  private class ElementIterator extends UnmodifiableIterator<DateTime> {
+  private class ElementIterator implements Iterator<ZonedDateTime> {
     private int i = 0;
 
     @Override
@@ -43,7 +42,7 @@ public abstract class TimeVector implements Iterable<DateTime> {
     }
 
     @Override
-    public DateTime next() {
+    public ZonedDateTime next() {
       return getElementAsDateTime(i++);
     }  
   }

@@ -1,5 +1,7 @@
 #  File src/library/graphics/R/identify.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 identify <- function(x, ...) UseMethod("identify")
 
@@ -25,7 +27,7 @@ identify.default <-
         opar <- par(extras)
         on.exit(par(opar))
     }
-    xy <- xy.coords(x, y)
+    xy <- xy.coords(x, y, setLab = FALSE)
     x <- xy$x
     y <- xy$y
     if (length(x)==0) {
@@ -34,8 +36,8 @@ identify.default <-
         else
             return(numeric())
     }
-    z <- .Internal(identify(x, y, as.character(labels), n, plot, offset,
-                            tolerance, atpen))
+    z <- .External2(C_identify, x, y, as.character(labels), n, plot,
+                    offset, tolerance, atpen)
     i <- seq.int(z[[1L]])[z[[1L]]]
     if(pos) list(ind = i, pos = z[[2L]][z[[1L]]]) else i
 }

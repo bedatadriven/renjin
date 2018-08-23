@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
  */
 package org.renjin.primitives.sequence;
 
-import org.renjin.eval.Calls;
+import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.codegen.ArgumentIterator;
@@ -32,7 +32,7 @@ public class RepFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList arguments) {
 
     // rep is one of the very few primitives that uses argument matching
     // *ALMOST* like that employed for closures.
@@ -41,7 +41,6 @@ public class RepFunction extends SpecialFunction {
     // even if 'x' is provided as named argument elsewhere
 
     // check for zero args -- the result should be null
-    PairList arguments = call.getArguments();
     if(arguments == Null.INSTANCE) {
       context.setInvisibleFlag();
       return Null.INSTANCE;
@@ -74,7 +73,7 @@ public class RepFunction extends SpecialFunction {
     formals.add("each", Symbol.MISSING_ARG);
     formals.add(Symbols.ELLIPSES, Symbol.MISSING_ARG);
 
-    PairList matched = Calls.matchArguments(formals.build(), evaled.build(), true);
+    PairList matched = ClosureDispatcher.matchArguments(formals.build(), evaled.build(), true);
 
     SEXP x = matched.findByTag(Symbol.get("x"));
     SEXP times = matched.findByTag(Symbol.get("times"));
@@ -109,7 +108,7 @@ public class RepFunction extends SpecialFunction {
       }
     }
     if(!IntVector.isNA(each)) {
-      resultLength = x.length() * each;
+      resultLength = resultLength * each;
     } else {
       each = 1;
     }
@@ -145,7 +144,7 @@ public class RepFunction extends SpecialFunction {
       return new RepIntVector(x, resultLength, each, repeatAttributes(x, resultLength, each));
     }
 
-    /**
+    /*
      * Go ahead and allocate and fill the memory
      */
     Vector.Builder result = x.newBuilderWithInitialCapacity(resultLength);

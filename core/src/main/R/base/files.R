@@ -236,3 +236,7 @@ Sys.setFileTime <- function(path, time)
     if (is.na(time))  stop("invalid 'time' argument")
     invisible(.Call("R_setFileTime", path, time, PACKAGE = "base"))
 }
+
+local.file <- function(paths) {
+    .Internal(local.file(as.character(paths)))
+}

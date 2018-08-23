@@ -1,5 +1,5 @@
 #  File src/library/methods/R/zzz.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,23 +14,21 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
-## utils::globalVariables("...onLoad")
-
-## This method is invoked only when the namespace is constructed.
-## it is 
-setupNamespace  <-		
+## Initial version of .onLoad
+...onLoad  <-
   ## Initialize the methods package.
-  function(where)
+  function(libname, pkgname)
 {
+    where <- environment(sys.function())  # the namespace
     initMethodDispatch(where)
-
     ## temporary empty reference to the package's own namespace
     assign(".methodsNamespace", new.env(), envir = where)
+    .Call("R_set_method_dispatch", TRUE, PACKAGE = "methods")
     cat("initializing class and method definitions ...")
     ## set up default prototype (uses .Call so has be at load time)
-    assign(".defaultPrototype", .Call("Rf_allocS4Object",PACKAGE="methods"), envir = where)
+    assign(".defaultPrototype", .Call("Rf_allocS4Object", PACKAGE = "methods"), envir = where)
     assign(".SealedClasses", character(), envir = where)
     .InitClassDefinition(where)
     assign("possibleExtends", .possibleExtends, envir = where)
@@ -46,6 +44,7 @@ setupNamespace  <-
     assign(".mergeClassDefSlots", ..mergeClassDefSlots, envir = where)
     assign(".addToMetaTable", ..addToMetaTable, envir = where)
     assign(".extendsForS3", ..extendsForS3, envir = where)
+    invalidateS4Cache("...load() -> added .classEnv etc...")
     .makeBasicFuns(where)
     rm(.makeGeneric, .newClassRepresentation, .possibleExtends,
        ..mergeClassDefSlots, .classGeneratorFunction, ..classEnv,
@@ -53,9 +52,11 @@ setupNamespace  <-
        .InitClassDefinition, .InitBasicClasses, .initClassSupport,
        .InitMethodsListClass, .setCoerceGeneric, .makeBasicFuns,
        envir = where)
+    invalidateS4Cache("...load() -> removed functions 1")
     .InitMethodDefinitions(where)
     .InitShowMethods(where)
     assign(".isPrototype", ..isPrototype, envir = where)
+    invalidateS4Cache("...load() -> added .isPrototype")
     .InitClassUnion(where)
     .InitS3Classes(where)
     .InitSpecialTypesAndClasses(where)
@@ -66,14 +67,17 @@ setupNamespace  <-
         sealClass(cl, where)
     assign("isSealedMethod", .isSealedMethod, envir = where)
     assign(".requirePackage", ..requirePackage, envir = where)
+    invalidateS4Cache("...load() -> added isSealedMethod etc...")
     ## initialize implicit generics for base package
     ## Note that this is done before making a non-vacuous implicitGeneric()
     ## so that non-default signatures are allowed in setGeneric()
     .initImplicitGenerics(where)
     assign("implicitGeneric", .implicitGeneric, envir = where)
+    invalidateS4Cache("...load() -> assigned implicitGeneric...")
     cacheMetaData(where, TRUE, searchWhere = .GlobalEnv, FALSE)
     assign(".checkRequiredGenerics", ..checkRequiredGenerics, envir = where)
     assign(".methodPackageSlots", ..methodPackageSlots, envir = where)
+    invalidateS4Cache("...load() -> assigned .checkRequiredGenerics etc...")
     rm(..isPrototype, .isSealedMethod, ..requirePackage, .implicitGeneric,
        ..checkRequiredGenerics, ..methodPackageSlots, .envRefMethods,
        .InitBasicClassMethods, .InitExtensions, .InitStructureMethods,
@@ -81,19 +85,30 @@ setupNamespace  <-
        .InitS3Classes, .InitSpecialTypesAndClasses, .InitTraceFunctions,
        .InitRefClasses, .initImplicitGenerics,
        envir = where)
+    invalidateS4Cache("...load() -> removed functions 2")
     ## unlock some bindings that must be modifiable
     unlockBinding(".BasicFunsList", where)
     assign(".saveImage", TRUE, envir = where)
+    invalidateS4Cache("...load() -> assign .saveImage")
     cat(" done\n")
 
     assign("envRefMethodNames",
 	   names(getClassDef("envRefClass")@refMethods), envir = where)
- #   assign(".onLoad", ..onLoad, envir = where)
-  
-  #  rm(...onLoad, ..onLoad, envir = where)
+    assign(".onLoad", ..onLoad, envir = where)
+    rm(...onLoad, ..onLoad, envir = where)
+    invalidateS4Cache("...load() -> assign onLoad etc...")
+    dbbase <- file.path(libname, pkgname, "R", pkgname)
+    ns <- asNamespace(pkgname)
+    ## we need to exclude the registration vars
+    vars <- grep("^C_", names(ns), invert = TRUE, value = TRUE)
+    tools:::makeLazyLoadDB(ns, dbbase, variables = vars)
 }
 
-.onLoad <- function(libname, pkgname)
+## avoid warnings from static analysis code by extra call
+.onLoad <- function(libname, pkgname) ...onLoad(libname, pkgname)
+
+##  .onLoad for routine use, installed by ...onLoad
+..onLoad <- function(libname, pkgname)
 {
     where <- environment(sys.function())  # the namespace
     initMethodDispatch(where)
@@ -109,6 +124,10 @@ setupNamespace  <-
 
 .onUnload <- function(libpath)
 {
+    message("unloading 'methods' package ...") # see when this is called
+    .isMethodsDispatchOn(FALSE)
+    methods:::bind_activation(FALSE)
+    library.dynam.unload("methods", libpath)
 }
 
 
@@ -126,17 +145,12 @@ setupNamespace  <-
     }
 }
 
-.onDetach <- function(libpath) methods:::.onUnload(libpath)
-
-## redefining it here, invalidates the one above:
-## Why don't we unload "methods" on detach() ?
-.onDetach <- function(libpath) .isMethodsDispatchOn(FALSE)
+## Q: Why don't we unload "methods" on detach() ?
+## A: Because the user chooses detach(*, unload= .), so detach() will unload if ..
+## .onDetach <- function(libpath) { <nothing> }
 
 ## used for .methodsIsLoaded
 .saveImage <- FALSE
 
 ## want ASCII quotes, not fancy nor translated ones
-.dQ <- function (x) paste0('"', x, '"')
-
-
-setupNamespace(environment())
+.dQ <- function (x) paste('"', x, '"', sep = "")

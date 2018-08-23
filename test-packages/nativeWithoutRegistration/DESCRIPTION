@@ -1,3 +1,7 @@
 Package: nativeWithoutRegistration
 Title: Native Package Test, not using Registration
 Version: 0.1
+License: GPL 2
+Description: This is a test of using native libraries without registration
+Author: Alex Bertram <alex@bedatadriven.com>
+Maintainer: Alex Bertram <alex@bedatadriven.com>

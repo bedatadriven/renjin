@@ -16,10 +16,11 @@
 #  A copy of the GNU General Public License is available at
 #  https://www.R-project.org/Licenses/
 
-optim <- function(par, fn, gr = NULL, ...,
-		  method = c("Nelder-Mead", "BFGS", "CG", "L-BFGS-B", "SANN", "Brent"),
-		  lower = -Inf, upper = Inf,
-		  control = list(), hessian = FALSE)
+optim <-
+    function(par, fn, gr = NULL, ...,
+             method = c("Nelder-Mead", "BFGS", "CG", "L-BFGS-B", "SANN", "Brent"),
+             lower = -Inf, upper = Inf,
+             control = list(), hessian = FALSE)
 {
     fn1 <- function(par) fn(par,...)
     gr1 <- if (!is.null(gr)) function(par) gr(par,...)

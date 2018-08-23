@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,6 +54,10 @@ class LogicalSelection implements SelectionStrategy {
     // For example, if x = c(1,2)
     // Then x[TRUE] <- 99 will assign c(99, 99) to x
     // But x[TRUE,FALSE,TRUE,FALSE] will extend the vector to x(99, 2, 99, NA)
+
+    // Materialize as we require random access
+    source = (AtomicVector)context.materialize(source);
+    replacements = context.materialize(replacements);
 
     if(mask.length() <= source.length()) {
       return buildMaskedReplacement(source, replacements);
@@ -147,6 +151,8 @@ class LogicalSelection implements SelectionStrategy {
 
   private Vector buildMaskedReplacement(Vector source, Vector replacements) {
 
+
+
     Vector.Builder builder = source.newCopyBuilder(replacements.getVectorType());
     int maskIndex = 0;
     int resultIndex = 0;
@@ -179,7 +185,7 @@ class LogicalSelection implements SelectionStrategy {
 
   @Override
   public SEXP getSingleListElement(ListVector source, boolean exact) {
-    throw new UnsupportedOperationException("[[ operator never uses logical subscrpts");
+    throw new UnsupportedOperationException("[[ operator never uses logical subscripts");
   }
 
   @Override
@@ -188,7 +194,7 @@ class LogicalSelection implements SelectionStrategy {
   }
 
   @Override
-  public Vector replaceSingleElement(AtomicVector source, Vector replacement) {
+  public Vector replaceSingleElement(Context context, AtomicVector source, Vector replacement) {
     throw new UnsupportedOperationException("[[ operator never uses logical subscrpts");
   }
 

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,8 +30,14 @@ public abstract class AbstractGimpleType implements GimpleType {
     return size;
   }
 
-  public void setSize(int size) {
-    this.size = size;
+  public void setSize(long size) {
+    if(size > Integer.MAX_VALUE) {
+      // The only time the size will be this large is for variable-length arrays
+      // which get pruned anyway
+      this.size = Integer.MAX_VALUE;
+    } else {
+      this.size = (int) size;
+    }
   }
 
   @Override

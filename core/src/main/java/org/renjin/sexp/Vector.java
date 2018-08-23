@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -109,6 +109,13 @@ public interface Vector extends SEXP {
   Complex getElementAsComplex(int index);
 
   /**
+   *
+   * @param index zero-based index
+   * @return  the imaginary component at {@code index}
+   */
+  double getElementAsComplexIm(int index);
+
+  /**
    * Returns a builder for this type of vector, with an initial number
    * of elements with the value {@code NA}.
    * 
@@ -208,6 +215,15 @@ public interface Vector extends SEXP {
   Object getElementAsObject(int index);
 
   int getComputationDepth();
+
+  /**
+   * Copies this vectors's values into a double-valued array at the given offset.
+   *
+   * @param array the target array
+   * @param offset the offset within the target array to start copying
+   * @param length the number of elements from this vector to copy.
+   */
+  void copyTo(double[] array, int offset, int length);
 
 
   /**
@@ -425,15 +441,13 @@ public interface Vector extends SEXP {
 
     
     /**
-     * Checks equality between the two elements, coercing types to this {@code Type}. If either
-     * of the two elements is NA, it will return false.
-     * @param vector1
-     * @param index1
-     * @param vector2
-     * @param index2
-     * @return
+     * Tests whether the element in {@code vector1} at {@code index1} is identical to the element in
+     * {@code vector2} at {@code index2}.
+     *
+     * <p>If both elements are {@code NA}, this method will return {@code true.}</p>
+     *
      */    
-    public abstract boolean elementsEqual(Vector vector1, int index1, Vector vector2, int index2);
+    public abstract boolean elementsIdentical(Vector vector1, int index1, Vector vector2, int index2);
 
     public static Type widest(Type a, Type b) {
       if(b.isWiderThan(a)) {

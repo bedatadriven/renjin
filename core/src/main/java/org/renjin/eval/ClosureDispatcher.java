@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,19 +18,12 @@
  */
 package org.renjin.eval;
 
-import org.renjin.primitives.CollectionUtils;
 import org.renjin.primitives.special.ReturnException;
-import org.renjin.repackaged.guava.base.Joiner;
-import org.renjin.repackaged.guava.collect.Collections2;
-import org.renjin.repackaged.guava.collect.Iterators;
-import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.repackaged.guava.collect.PeekingIterator;
 import org.renjin.sexp.*;
 
-import java.util.*;
-
-import static org.renjin.repackaged.guava.collect.Collections2.filter;
-import static org.renjin.repackaged.guava.collect.Collections2.transform;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 
 
 public class ClosureDispatcher {
@@ -50,35 +43,47 @@ public class ClosureDispatcher {
 
   public SEXP apply(DispatchChain chain, PairList arguments) {
     this.dispatchChain = chain;
-    return apply(chain.getClosure(), arguments);
+    return apply(callingContext, callingEnvironment, call, chain.getClosure(), arguments, dispatchChain.createMetadata());
   }
 
   public SEXP applyClosure(Closure closure, PairList args) {
     PairList promisedArgs = Calls.promiseArgs(args, callingContext, callingEnvironment);
-    return apply(closure, promisedArgs);
+    return apply(callingContext, callingEnvironment, call, closure, promisedArgs, Collections.emptyMap());
   }
 
-  private SEXP apply(Closure closure, PairList promisedArgs) {
+  /**
+   * Evaluates a function call to an R-language closure.
+   *
+   * @param callingContext the evaluation context in which this closure is to be applied
+   * @param callingEnvironment the environment in which this takes place
+   * @param call the FunctionCall to evaluate
+   * @param closure the resolved closure
+   * @param promisedArgs a pairlist of the arguments provided to the call, each promised in the calling environment
+   * @param metadata additional bindings to be added to the new environment created for the function call.
+   * @return the result of the function call to the {@code closure}
+   */
+  public static SEXP apply(Context callingContext, Environment callingEnvironment,
+                     FunctionCall call, Closure closure, PairList promisedArgs, Map<Symbol, SEXP> metadata) {
 
     Context functionContext = callingContext.beginFunction(callingEnvironment, call, closure, promisedArgs);
     Environment functionEnvironment = functionContext.getEnvironment();
 
     try {
-      matchArgumentsInto(closure.getFormals(), promisedArgs, functionContext, functionEnvironment);
+      matchArgumentsInto(closure.getFormals(), promisedArgs, functionEnvironment);
 
-      if(dispatchChain != null) {
-        dispatchChain.populateEnvironment(functionEnvironment);
+      if(!metadata.isEmpty()) {
+        for (Map.Entry<Symbol, SEXP> entry : metadata.entrySet()) {
+          functionEnvironment.setVariableUnsafe(entry.getKey(), entry.getValue());
+        }
       }
 
       return closure.doApply(functionContext);
 
     } catch(ReturnException e) {
-
       if (e.getEnvironment() != functionEnvironment) {
         throw e;
       }
       return e.getValue();
-
 
     } catch(ConditionException e) {
       if (e.getHandlerContext() == functionContext) {
@@ -123,166 +128,112 @@ public class ClosureDispatcher {
     }
     return null;
   }
-  
-  public static void matchArgumentsInto(PairList formals, PairList actuals, 
-      Context innerContext, Environment innerEnv) {
 
-    PairList matched = matchArguments(formals, actuals);
-    for(PairList.Node node : matched.nodes()) {
-      SEXP value = node.getValue();
-      if(value == Symbol.MISSING_ARG) {
-        SEXP defaultValue = formals.findByTag(node.getTag());
-        if(defaultValue != Symbol.MISSING_ARG) {
-          value =  Promise.promiseMissing(innerEnv, defaultValue);
+
+  /**
+   * Matches the {@code actual} arguments provided to the function call to the Closure's formal argument list and
+   * populates the {@code functionEnv} with the matched symbols.
+   *
+   *
+   * @param formals the formal arguments of the closure. This should be a pairlist in the form
+ *            {@code (a = <missing>, b = <default value>, ...)}
+   * @param actuals the actual arguments provided to the function call, promised in the {@code callingEnvironment}
+   * @param functionEnv the environment of the function call.
+   */
+  public static void matchArgumentsInto(PairList formals, PairList actuals, Environment functionEnv) {
+
+    ArgumentMatcher matcher = new ArgumentMatcher(formals);
+    MatchedArguments matching = matcher.match(actuals);
+
+    for (int formalIndex = 0; formalIndex < matching.getFormalCount(); formalIndex++) {
+      if(matching.isFormalEllipses(formalIndex)) {
+        functionEnv.setVariableUnsafe(Symbols.ELLIPSES, matching.buildExtraArgumentList());
+
+      } else {
+        Symbol formalName = matching.getFormalName(formalIndex);
+        int actualIndex = matching.getActualIndex(formalIndex);
+
+        if(actualIndex == -1) {
+
+          // IF: No argument has been matched to this formal.
+          // Use the default value for the formal.
+          // For example, for the closure function(a, b = a * 2)
+          // the default value of 'b' is 'a*2'.
+
+          SEXP defaultValue = matcher.getDefaultValue(formalIndex);
+
+          functionEnv.setMissingArgument(formalName,
+              promiseDefaultValue(functionEnv, defaultValue));
+
+        } else {
+
+          // ELSE: an argument has been provided.
+
+          SEXP actualValue = matching.getActualValue(actualIndex);
+          if(actualValue == Symbol.MISSING_ARG) {
+
+            // BUT, the provided argument may STILL be missing if the argument was
+            // explicitly omitted. For example, in the function calls
+            // f( , 3, 4) and x[, 2] the first argument has been ommitted and will
+            // have the value of Symbol.MISSING_ARG
+
+            SEXP defaultValue = matcher.getDefaultValue(formalIndex);
+
+            functionEnv.setMissingArgument(formalName,
+                promiseDefaultValue(functionEnv, defaultValue));
+          } else {
+
+            functionEnv.setArgument(formalName, actualValue);
+          }
         }
       }
-      innerEnv.setVariable(node.getTag(), value);
     }
+  }
+
+  private static SEXP promiseDefaultValue(Environment functionEnv, SEXP defaultValue) {
+    if(defaultValue != Symbol.MISSING_ARG) {
+      // If a default value is provided, wrap it a promise within the *function's* environment so
+      // that will be properly evaluated if used.
+      defaultValue = Promise.repromise(functionEnv, defaultValue);
+    }
+    return defaultValue;
   }
 
   public static PairList matchArguments(PairList formals, PairList actuals) {
     return matchArguments(formals, actuals, true);
   }
 
-    /**
-     * Argument matching is done by a three-pass process:
-     * <ol>
-     * <li><strong>Exact matching on tags.</strong> For each named supplied argument the list of formal arguments
-     *  is searched for an item whose name matches exactly. It is an error to have the same formal
-     * argument match several actuals or vice versa.</li>
-     *
-     * <li><strong>Partial matching on tags.</strong> Each remaining named supplied argument is compared to the
-     * remaining formal arguments using partial matching. If the name of the supplied argument
-     * matches exactly with the first part of a formal argument then the two arguments are considered
-     * to be matched. It is an error to have multiple partial matches.
-     *  Notice that if f <- function(fumble, fooey) fbody, then f(f = 1, fo = 2) is illegal,
-     * even though the 2nd actual argument only matches fooey. f(f = 1, fooey = 2) is legal
-     * though since the second argument matches exactly and is removed from consideration for
-     * partial matching. If the formal arguments contain ‘...’ then partial matching is only applied to
-     * arguments that precede it.
-     *
-     * <li><strong>Positional matching.</strong> Any unmatched formal arguments are bound to unnamed supplied arguments,
-     * in order. If there is a ‘...’ argument, it will take up the remaining arguments, tagged or not.
-     * If any arguments remain unmatched an error is declared.
-     *
-     * @param actuals the actual arguments supplied to the list
-     */
+  /**
+   * Matches arguments to actuals
+   * @param formals
+   * @param actuals
+   * @param populateMissing
+   * @return
+   */
   public static PairList matchArguments(PairList formals, PairList actuals, boolean populateMissing) {
 
+    ArgumentMatcher matcher = new ArgumentMatcher(formals);
+    MatchedArguments matching = matcher.match(actuals);
+
     PairList.Builder result = new PairList.Builder();
+    for(int formalIndex = 0; formalIndex < matching.getFormalCount(); ++formalIndex) {
 
-    List<PairList.Node> unmatchedActuals = Lists.newArrayList();
-    for(PairList.Node argNode : actuals.nodes()) {
-      unmatchedActuals.add(argNode);
-    }
+      if(matching.isFormalEllipses(formalIndex)) {
+        result.add(Symbols.ELLIPSES, matching.buildExtraArgumentList());
 
-    List<PairList.Node> unmatchedFormals = Lists.newArrayList(formals.nodes());
-
-
-    // do exact matching
-    for(ListIterator<PairList.Node> formalIt = unmatchedFormals.listIterator(); formalIt.hasNext(); ) {
-      PairList.Node formal = formalIt.next();
-      if(formal.hasTag()) {
-        Symbol name = formal.getTag();
-        if(name != Symbols.ELLIPSES) {
-          Collection<PairList.Node> matches = Collections2.filter(unmatchedActuals, PairList.Predicates.matches(name));
-
-          if (matches.size() == 1) {
-            PairList.Node match = first(matches);
-            SEXP value = match.getValue();
-         
-            result.add(name, value);
-            formalIt.remove();
-            unmatchedActuals.remove(match);
-
-          } else if (matches.size() > 1) {
-            throw new EvalException(String.format("Multiple named values provided for argument '%s'", name.getPrintName()));
+      } else {
+        int actualIndex = matching.getActualIndex(formalIndex);
+        if(actualIndex == -1) {
+          if(populateMissing) {
+            result.add(matching.getFormalName(formalIndex), Symbol.MISSING_ARG);
           }
+        } else {
+          result.add(matching.getFormalName(formalIndex), matching.getActualValue(actualIndex));
         }
       }
-    }
-
-    // Partial matching
-    Collection<PairList.Node> remainingNamedFormals = filter(unmatchedFormals, PairList.Predicates.hasTag());
-    for (Iterator<PairList.Node> actualIt = unmatchedActuals.iterator(); actualIt.hasNext(); ) {
-      PairList.Node actual = actualIt.next();
-      if (actual.hasTag() && actual.getTag() != Symbols.ELLIPSES) {
-        PairList.Node partialMatch = matchPartial(actual.getTag().getPrintName(), remainingNamedFormals);
-        if (partialMatch != null) {
-          result.add(partialMatch.getTag(), actual.getValue());
-          actualIt.remove();
-          unmatchedFormals.remove(partialMatch);
-        }
-      }
-    }
-  
-
-    // match any unnamed args positionally
-
-    Iterator<PairList.Node> formalIt = unmatchedFormals.iterator();
-    PeekingIterator<PairList.Node> actualIt = Iterators.peekingIterator(unmatchedActuals.iterator());
-    while( formalIt.hasNext()) {
-      PairList.Node formal = formalIt.next();
-      if(Symbols.ELLIPSES.equals(formal.getTag())) {
-        PromisePairList.Builder promises = new PromisePairList.Builder();
-        while(actualIt.hasNext()) {
-          PairList.Node actual = actualIt.next();
-          promises.add( actual.getRawTag(),  actual.getValue() );
-        }
-        result.add(formal.getTag(), promises.build() );
-
-      } else if( hasNextUnTagged(actualIt) ) {
-        result.add(formal.getTag(), nextUnTagged(actualIt).getValue() );
-
-      } else if(populateMissing) {
-        result.add(formal.getTag(), Symbol.MISSING_ARG);
-      }
-    }
-    if(actualIt.hasNext()) {
-      throw new EvalException("Unmatched positional arguments");
     }
 
     return result.build();
   }
 
-  private static PairList.Node matchPartial(String argumentName, Collection<PairList.Node> formals) {
-    PairList.Node partialMatch = null;
-            
-    for (PairList.Node formal : formals) {
-      // only partially match on formal arguments preceding ELIPSES
-      if(formal.getTag() == Symbols.ELLIPSES) {
-        break;
-      }
-      if(formal.getTag().getPrintName().startsWith(argumentName)) {
-        if(partialMatch == null) {
-          partialMatch = formal;
-        } else {
-          throw new EvalException(String.format("Provided argument '%s' matches multiple named formal arguments",
-                  argumentName));
-        }
-      }
-    }
-    return partialMatch;
-  }
-
-
-  private static boolean hasNextUnTagged(PeekingIterator<PairList.Node> it) {
-    return it.hasNext() && !it.peek().hasTag();
-  }
-
-  private static PairList.Node nextUnTagged(Iterator<PairList.Node> it) {
-    PairList.Node arg = it.next() ;
-    while( arg.hasTag() ) {
-      arg = it.next();
-    }
-    return arg;
-  }
-
-  private static String argumentTagList(Collection<PairList.Node> matches) {
-    return Joiner.on(", ").join(transform(matches, new CollectionUtils.TagName()));
-  }
-
-  private static <X> X first(Iterable<X> values) {
-    return values.iterator().next();
-  }
 }

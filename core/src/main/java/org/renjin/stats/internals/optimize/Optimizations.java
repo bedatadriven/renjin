@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,9 +21,6 @@ package org.renjin.stats.internals.optimize;
 import org.apache.commons.math.FunctionEvaluationException;
 import org.apache.commons.math.MaxIterationsExceededException;
 import org.apache.commons.math.optimization.GoalType;
-import org.apache.commons.math.optimization.OptimizationException;
-import org.apache.commons.math.optimization.RealPointValuePair;
-import org.apache.commons.math.optimization.direct.NelderMead;
 import org.apache.commons.math.optimization.univariate.BrentOptimizer;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -267,56 +264,6 @@ public class Optimizations {
       throw new EvalException("maximum iterations reached", e);
     } catch (FunctionEvaluationException e) {
       throw new EvalException(e);
-    }
-  }
-
-  /**
-   * General-purpose optimization based on Nelder–Mead, quasi-Newton and conjugate-gradient algorithms.
-   * It includes an option for box-constrained
-   * optimization and simulated annealing.
-   *
-   * @param par initial parameters
-   * @param fn
-   * @param gradientFunction
-   * @param method
-   * @param controlParameters
-   * @param lower
-   * @param upper
-   * @return
-   */
-  @Internal
-  public static ListVector optim(@Current Context context,
-                             @Current Environment rho,
-                             DoubleVector par,
-                             Function fn,
-                             SEXP gradientFunction,
-                             String method,
-                             ListVector controlParameters,
-                             DoubleVector lower,
-                             DoubleVector upper) {
-
-    MultivariateRealClosure g = new MultivariateRealClosure(context, rho, fn) ;
-
-    if(method.equals("Nelder-Mead")) {
-
-      NelderMead optimizer = new NelderMead();
-      try {
-        RealPointValuePair res = optimizer.optimize(g, GoalType.MINIMIZE, par.toDoubleArray());
-        ListVector.Builder result = new ListVector.Builder();
-        result.add(new DoubleArrayVector(res.getPoint()));
-        result.add(new DoubleArrayVector(res.getValue()));
-        result.add(new IntArrayVector(IntVector.NA, IntVector.NA));
-        result.add(new IntArrayVector(0));
-        result.add(Null.INSTANCE);
-        return result.build();
-
-      } catch (FunctionEvaluationException e) {
-        throw new EvalException(e);
-      } catch (OptimizationException e) {
-        throw new EvalException(e);
-      }
-    } else {
-      throw new EvalException("method '" + method + "' not implemented.");
     }
   }
 

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -101,6 +101,11 @@ public class GccBridgeMojo extends AbstractMojo {
   @Parameter
   private List<String> cFlags;
 
+  @Parameter
+  private List<String> cxxFlags;
+
+  @Parameter(defaultValue = "${gcc.bridge.trace}")
+  private boolean tracePlugin = false;
 
   public void execute() throws MojoExecutionException {
 
@@ -122,7 +127,7 @@ public class GccBridgeMojo extends AbstractMojo {
         }
       }
 
-      scanner = getSourceInclusionScanner( ".c", ".cpp" );
+      scanner = getSourceInclusionScanner( ".c", ".cpp", ".C", ".c++", ".cc", ".cxx" );
 
       if (cSourceDirectory.exists()) {
         try {
@@ -146,6 +151,8 @@ public class GccBridgeMojo extends AbstractMojo {
     workingDir.mkdirs();
 
     Gcc gcc = new Gcc(workingDir);
+    gcc.setTrace(tracePlugin);
+
     if(Strings.isNullOrEmpty(System.getProperty("gcc.bridge.plugin"))) {
       try {
         gcc.extractPlugin();
@@ -161,7 +168,10 @@ public class GccBridgeMojo extends AbstractMojo {
     if(cFlags != null) {
       gcc.addCFlags(cFlags);
     }
-    
+
+    if(cxxFlags != null) {
+      gcc.addCxxFlags(cxxFlags);
+    }
     
     if(includeDirectories != null) {
       for (File includeDirectory : includeDirectories) {
@@ -194,7 +204,7 @@ public class GccBridgeMojo extends AbstractMojo {
       String defaultIncludePattern = "**/*" + ( inputFileEnding.startsWith( "." ) ? "" : "." ) + inputFileEnding;
       includes.add(defaultIncludePattern);
     }
-    SourceInclusionScanner scanner = new SimpleSourceInclusionScanner( includes, Collections.<String>emptySet() );
+    SourceInclusionScanner scanner = new SimpleSourceInclusionScanner( includes, Collections.emptySet() );
     for(String inputFileEnding : inputFileEndings) {
       scanner.addSourceMapping(getSourceMapping(inputFileEnding));
     }
@@ -206,6 +216,9 @@ public class GccBridgeMojo extends AbstractMojo {
   }
 
   private void compile(List<GimpleCompilationUnit> units) throws MojoExecutionException {
+    File logDir = new File("target/gcc-bridge-logs");
+    logDir.mkdirs();
+
     GimpleCompiler compiler = new GimpleCompiler();
     compiler.addMathLibrary();
     compiler.setPackageName(packageName);
@@ -214,6 +227,7 @@ public class GccBridgeMojo extends AbstractMojo {
     compiler.addMathLibrary();
     compiler.setOutputDirectory(outputDirectory);
     compiler.setLinkClassLoader(getLinkClassLoader());
+    compiler.setLoggingDirectory(logDir);
     
     ClassLoader classLoader = createClassLoader();
     

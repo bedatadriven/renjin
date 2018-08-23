@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,10 @@ public class Converters  {
       return IntegerConverter.INSTANCE;
       
     } else if(LongConverter.accept(clazz)) {
-      return LongConverter.INSTANCE; 
+      return LongConverter.INSTANCE;
+
+    } else if(FloatConverter.accept(clazz)) {
+      return FloatConverter.INSTANCE;
       
     } else if(DoubleConverter.accept(clazz)) {
       return DoubleConverter.INSTANCE;
@@ -62,11 +65,23 @@ public class Converters  {
       
     } else if(IntegerArrayConverter.accept(clazz)) {
       return IntegerArrayConverter.INSTANCE;
+
+    } else if(LongArrayConverter.LONG_ARRAY.accept(clazz)) {
+      return LongArrayConverter.LONG_ARRAY;
+
+    } else if(FloatArrayConverter.FLOAT_ARRAY.accept(clazz)) {
+      return FloatArrayConverter.FLOAT_ARRAY;
+
+    } else if(DoubleArrayConverter.DOUBLE_ARRAY.accept(clazz)) {
+      return DoubleArrayConverter.DOUBLE_ARRAY;
+
+    } else if(BoxedDoubleArrayConverter.BOXED_DOUBLE_ARRAY.accept(clazz)) {
+      return BoxedDoubleArrayConverter.BOXED_DOUBLE_ARRAY;
+
+    } else if(BoxedFloatArrayConverter.BOXED_FLOAT_ARRAY.accept(clazz)) {
+      return BoxedFloatArrayConverter.BOXED_FLOAT_ARRAY;
       
-    }else if(DoubleArrayConverter.accept(clazz)) {
-      return new DoubleArrayConverter(clazz);
-      
-    }else if(ObjectConverter.accept(clazz)) {
+    } else if(ObjectConverter.accept(clazz)) {
       return ObjectConverter.INSTANCE;
       
     } else {

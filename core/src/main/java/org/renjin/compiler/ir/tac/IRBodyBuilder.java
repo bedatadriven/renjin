@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -128,21 +128,23 @@ public class IRBodyBuilder {
     // These are not necessarily constants and are evaluated lazily, so some care is 
     // required. 
     for (PairList.Node formal : closure.getFormals().nodes()) {
-      if (!suppliedArguments.contains(formal.getTag())) {
-        SEXP defaultValue = formal.getValue();
-        if (defaultValue == Symbol.MISSING_ARG) {
-          throw new InvalidSyntaxException("argument '" + formal.getTag() + "' is missing, with no default");
-        } else {
-          if (!isConstant(defaultValue)) {
-            throw new NotCompilableException(defaultValue, "argument '" + formal.getName() + "' has not been provided" +
-                " and has a default value with (potential) side effects.");
+      if(formal.getRawTag() != Symbols.ELLIPSES) {
+        if (!suppliedArguments.contains(formal.getTag())) {
+          SEXP defaultValue = formal.getValue();
+          if (defaultValue == Symbol.MISSING_ARG) {
+            throw new InvalidSyntaxException("argument '" + formal.getTag() + "' is missing, with no default");
+          } else {
+            if (!isConstant(defaultValue)) {
+              throw new NotCompilableException(defaultValue, "argument '" + formal.getName() + "' has not been provided" +
+                  " and has a default value with (potential) side effects.");
+            }
+            statements.add(new Assignment(new EnvironmentVariable(formal.getTag()), new Constant(formal.getValue())));
           }
-          statements.add(new Assignment(new EnvironmentVariable(formal.getTag()), new Constant(formal.getValue())));
         }
       }
     }
     
-    TranslationContext context = new InlinedContext();
+    TranslationContext context = new InlinedContext(closure.getFormals());
     Expression returnValue = translateExpression(context, closure.getBody());
     addStatement(new ReturnStatement(returnValue));
 

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,9 +20,12 @@ package org.renjin.primitives.text;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.gcc.format.Formatter;
 import org.renjin.invoke.annotations.*;
 import org.renjin.primitives.Deparse;
+import org.renjin.primitives.matrix.IntMatrixBuilder;
 import org.renjin.primitives.print.StringPrinter;
+import org.renjin.primitives.sequence.RepStringVector;
 import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.primitives.text.regex.FuzzyMatcher;
 import org.renjin.primitives.text.regex.RE;
@@ -43,6 +46,9 @@ import static org.renjin.repackaged.guava.collect.Iterables.transform;
 
 public class Text {
 
+  public static final IntVector NO_MATCH = new IntArrayVector(new int[] { -1 },
+          AttributeMap.newBuilder().set("match.length", new IntArrayVector(-1)).build());
+
   private Text() {}
 
   @Internal
@@ -55,7 +61,7 @@ public class Text {
       if(argument instanceof StringVector) {
         argumentVectors.add((StringVector) argument);
       } else {
-        SEXP result = context.evaluate(FunctionCall.newCall(Symbol.get("as.character"), argument));
+        SEXP result = context.evaluate(FunctionCall.newCall(Symbol.get("as.character"), Promise.repromise(argument)));
         if(!(result instanceof StringVector)) {
           throw new EvalException("as.character() returned non-character");
         }
@@ -135,14 +141,25 @@ public class Text {
     AtomicVector[] formatArgs = new AtomicVector[arguments.length()];
     for(int i=0;i!=formatArgs.length;++i) {
       SEXP argument = arguments.getElementAsSEXP(i);
-      if(formatters[0].isFormattedString(i) && !(argument instanceof StringVector)) {
-        argument = context.evaluate( FunctionCall.newCall(Symbol.get("as.character"), argument), 
-            rho); 
+      if(formatters[0].getArgumentType(i) == Formatter.ArgumentType.STRING && !(argument instanceof StringVector)) {
+        argument = context.evaluate( FunctionCall.newCall(Symbol.get("as.character"), argument), rho);
       }
       if(!(argument instanceof AtomicVector)) {
         throw new EvalException("Format argument %d is not an atomic vector", i);
       }
       formatArgs[i] = (AtomicVector)argument;
+    }
+
+    // Find the maximum number of arguments expected
+    int argumentCount = 0;
+    for (Formatter formatter : formatters) {
+      if(formatter.getArgumentTypes().size() > argumentCount) {
+        argumentCount = formatter.getArgumentTypes().size();
+      }
+    }
+
+    if(argumentCount > arguments.length()) {
+      throw new EvalException("Too few arguments provided for format string");
     }
     
     // count cycles
@@ -155,13 +172,13 @@ public class Text {
         cycles = formatArg.length();
       }
     }
-    
+
+    VectorFormatInput input = new VectorFormatInput(formatArgs);
 
     for(int resultIndex=0; resultIndex != cycles; ++resultIndex) {
-
       Formatter formatter = formatters[resultIndex % formatters.length];
-      
-      result.add( formatter.sprintf(formatArgs, resultIndex) );
+      result.add(formatter.format(input));
+      input.next();
     }
 
     return result.build();
@@ -181,12 +198,12 @@ public class Text {
         return "";
       } else if(input instanceof AtomicVector) {
         AtomicVector vector = (AtomicVector) input;
-        if(vector.isElementNA(index % input.length())) {
+        String elementValue = vector.getElementAsString(index % input.length());
+        if(StringVector.isNA(elementValue)) {
           return "NA";
         } else {
-          return vector.getElementAsString(index % input.length());
+          return elementValue;
         }
-
       } else if(input instanceof ListVector) {
         SEXP element = ((ListVector) input).getElementAsSEXP(index % input.length());
         return listElementToString(element);
@@ -497,15 +514,45 @@ public class Text {
                                   boolean fixed, boolean useBytes) {
 
     RE re = REFactory.compile(pattern, ignoreCase,  perl, fixed, useBytes);
+
     IntArrayVector.Builder position = IntArrayVector.Builder.withInitialCapacity(vector.length());
     IntArrayVector.Builder matchLength = IntArrayVector.Builder.withInitialCapacity(vector.length());
 
-    for(String text : vector) {
-      if(re.match(text)) {
+    int groups = re.getGroupCount();
+    IntMatrixBuilder captureStart = null;
+    IntMatrixBuilder captureLength = null;
+    StringVector captureNames = null;
+
+    if(groups > 0) {
+      captureNames = RepStringVector.createConstantVector("", groups);
+      captureStart = new IntMatrixBuilder(vector.length(), groups);
+      captureLength = new IntMatrixBuilder(vector.length(), groups);
+
+      captureStart.fill(-1);
+      captureLength.fill(-1);
+
+      captureStart.setColNames(captureNames);
+      captureLength.setColNames(captureNames);
+    }
+
+    for(int i = 0; i < vector.length(); ++i) {
+      if(re.match(vector.getElementAsString(i))) {
         int start = re.getGroupStart(0);
         int end = re.getGroupEnd(0);
         position.add(start+1);
         matchLength.add(end-start);
+
+        for(int group=1;group<=re.getGroupCount();++group) {
+          int groupStart = re.getGroupStart(group);
+          if(groupStart == -1) {
+            captureStart.set(i, group - 1, 0);
+            captureLength.set(i, group - 1, 0);
+          } else {
+            captureStart.set(i, group - 1, groupStart + 1);
+            captureLength.set(i, group - 1, re.getGroupEnd(group) - groupStart);
+          }
+        }
+
       } else {
         position.add(-1);
         matchLength.add(-1);
@@ -514,7 +561,49 @@ public class Text {
 
     position.setAttribute("match.length", matchLength.build());
     position.setAttribute("useBytes", new LogicalArrayVector(useBytes));
+
+    if(groups > 0) {
+      position.setAttribute("capture.start", captureStart.build());
+      position.setAttribute("capture.length", captureLength.build());
+      position.setAttribute("capture.names", captureNames);
+    }
+
     return position.build();
+  }
+
+  @Internal
+  public static ListVector regexec(String pattern, StringVector vector, boolean ignoreCase, boolean fixed, boolean useBytes) {
+    RE re = REFactory.compile(pattern, ignoreCase, false, fixed, useBytes);
+    int groupCount = re.getGroupCount();
+
+
+    ListVector.Builder results = new ListVector.Builder(0, vector.length());
+    int[] starts = new int[groupCount + 1];
+    int[] lengths = new int[groupCount + 1];
+
+    for (String text : vector) {
+
+      if(re.match(text)) {
+
+        for (int i = 0; i <= groupCount; i++) {
+          int start = re.getGroupStart(i);
+          starts[i] = start + 1;
+          lengths[i] = re.getGroupEnd(i) - start;
+        }
+
+        IntArrayVector lengthVector = new IntArrayVector(lengths);
+        AttributeMap matchAttributes = AttributeMap.builder().set("match.length", lengthVector).build();
+        IntArrayVector match = new IntArrayVector(starts, matchAttributes);
+
+        results.add(match);
+
+      } else {
+        results.add(NO_MATCH);
+      }
+    }
+
+    return results.build();
+
   }
 
 
@@ -770,6 +859,7 @@ public class Text {
    * @return
    */
   @Internal
+  @Materialize
   public static StringVector format(DoubleVector x, boolean trim, SEXP digits, int nsmall,
       SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
        
@@ -784,6 +874,7 @@ public class Text {
   }
 
   @Internal
+  @Materialize
   public static StringVector format(IntVector x, boolean trim, SEXP digits, int nsmall,
       SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
        
@@ -998,6 +1089,16 @@ public class Text {
   @Internal
   public static Vector iconv(@InvokeAsCharacter Vector x, String from, String to, String sub,
                              boolean mark, boolean toRaw) {
+
+    if(x == Null.INSTANCE) {
+      // list supported encodings
+      StringVector.Builder encodings = new StringVector.Builder();
+      for (Charset charset : Charset.availableCharsets().values()) {
+        encodings.add(charset.name().toUpperCase());
+      }
+      return encodings.build();
+    }
+
     if(toRaw) {
       Charset destCharSet = RCharsets.getByName(to);
       ListVector.Builder result = new ListVector.Builder();
@@ -1015,6 +1116,9 @@ public class Text {
   @Internal
   @DataParallel(PreserveAttributeStyle.NONE)
   public static int strtoi(@Recycle String x, @Recycle(false) int base) {
+    if(x.isEmpty()) {
+      return 0;
+    }
     if(base == 0) {
       // For the default ‘base = 0L’, the base chosen from the string
       // representation of that element of ‘x’. The standard C

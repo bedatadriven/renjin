@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,14 +18,12 @@
  */
 package org.renjin.primitives.time;
 
-import org.joda.time.Chronology;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.chrono.ISOChronology;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
-import java.util.concurrent.TimeUnit;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 import static org.renjin.sexp.IntVector.isNA;
 
@@ -56,7 +54,7 @@ public class PosixLtVector extends TimeVector {
   private final AtomicVector monthsOfYear;
   private final AtomicVector years;
 
-  private final DateTimeZone timeZone;
+  private final ZoneId timeZone;
 
   private int length;
 
@@ -73,13 +71,13 @@ public class PosixLtVector extends TimeVector {
     if(tzoneAttribute.length() >= 1) {
       timeZone = Time.timeZoneFromRSpecification(tzoneAttribute.getElementAsString(0));
     } else {
-      timeZone = DateTimeZone.getDefault();
+      timeZone = ZoneId.systemDefault();
     }
 
     length = maxLength(seconds, minutes, hours, monthsOfYear, daysOfMonth, years);
   }
 
-  public DateTimeZone getTimeZone() {
+  public ZoneId getTimeZone() {
     return timeZone;
   }
 
@@ -108,7 +106,7 @@ public class PosixLtVector extends TimeVector {
   }
 
   @Override
-  public DateTime getElementAsDateTime(int index) {
+  public ZonedDateTime getElementAsDateTime(int index) {
 
 
     // Start with the years field, which is stored relative 
@@ -118,29 +116,20 @@ public class PosixLtVector extends TimeVector {
       return null;
     }
     
-    // Since all fields following the year field can actually be provided as offsets
-    // (for example, mday = -15, etc)
-    // we'll use the year field to establish the base date (2011-01-01 for example)
-    // to which all other fields
-    // are add/subtracted.
-    // 
-    // _time_ is the number of milliseconds since 1970-01-01 UTC, so to respect
-    // the time zone parameter if provided, we will use a ZonedChronology
-    Chronology chronology = ISOChronology.getInstance().withZone(timeZone);
-    
-    // Computes the milliseconds since UTC epoch _at the start of the day in the given
-    // timezone_
-    long time = chronology.getDateTimeMillis(1900 + year, 1, 1, 0);
-    
+    // The month and day are not guaranteed to be in valid ranges, so we need to add them
+    // in sequence
+
+    LocalDate localDate = LocalDate.of(1900 + year, 1, 1);
+
     // add months, which is normally in the range [0-11],
     // but can also be NA, less than 0 or greater than 11
     int month = elementAt(monthsOfYear, index);
     if(isNA(month)) {
       return null;
     }
-    
-    time = chronology.monthOfYear().add(time, month);
 
+    localDate = localDate.plusMonths(month);
+    
     // normalize day of month
     
     // This value is actually treated as an offset: POSIXlt vectors
@@ -157,9 +146,9 @@ public class PosixLtVector extends TimeVector {
     // 1 -> 0 (already first day of the month, nothing to do)
     // 0 -> -1 (refers to one day before the first day, or last day of the previous month)
     int daysToAdd = dayOfMonth - 1;
-    
-    time = chronology.dayOfMonth().add(time, daysToAdd);
-    
+
+    localDate = localDate.plusDays(daysToAdd);
+
     // Add time fields
     // These are all zero-based, so we can treat as an offset of the result so far
     int hourOfDay = elementAt(hours, index);
@@ -169,13 +158,8 @@ public class PosixLtVector extends TimeVector {
     if(isNA(hourOfDay) || isNA(minuteOfHour) || isNA(secondOfMinute)) {
       return null;
     }
-    
-    time = chronology.hourOfDay().add(time, hourOfDay);
-    time = chronology.minuteOfHour().add(time, minuteOfHour);
-    time = chronology.secondOfMinute().add(time, secondOfMinute);
-    
-    return new DateTime(time, chronology);
 
+    return localDate.atTime(hourOfDay, minuteOfHour, secondOfMinute).atZone(timeZone);
   }
 
   private int elementAt(AtomicVector component, int index) {
@@ -194,27 +178,51 @@ public class PosixLtVector extends TimeVector {
     private IntArrayVector.Builder dayOfYear = new IntArrayVector.Builder();
     private IntArrayVector.Builder dst = new IntArrayVector.Builder();
     private IntArrayVector.Builder gmtOffset = new IntArrayVector.Builder();
-    private DateTimeZone zone;
+    private ZoneId zone;
     private StringVector zoneName;
 
-    public Builder add(DateTime time) {
-      second.add(time.getSecondOfMinute());
-      minute.add(time.getMinuteOfHour());
-      hour.add(time.getHourOfDay());
+    public Builder add(ZonedDateTime parsedTime) {
+
+      // Regardless of what time zone was parsed, update to match
+      // the timezone of this vector, or the system default if this vector does not have one
+      ZonedDateTime time;
+      if(zone == null) {
+        time = parsedTime.withZoneSameInstant(ZoneId.systemDefault());
+      } else {
+        time = parsedTime.withZoneSameInstant(zone);
+      }
+
+      second.add(time.getSecond());
+      minute.add(time.getMinute());
+      hour.add(time.getHour());
       dayOfMonth.add(time.getDayOfMonth());
-      month.add(time.getMonthOfYear()-1);
+      month.add(time.getMonthValue()-1);
       year.add(time.getYear()-1900);
-      weekday.add(getRDayOfWeek(time));
+      weekday.add(time.get(ZeroBasedWeekday.INSTANCE));
       dayOfYear.add(time.getDayOfYear()-1);
       dst.add(computeDaylightSavingsFlag(time));
-      gmtOffset.add(computeGmtOffset(time));
+
+      // Exceptionally, we retain the offset of the parsed time.
+      gmtOffset.add(parsedTime.getOffset().getTotalSeconds());
+
       return this;
     }
 
+    public void add(LocalDate localDate) {
+      second.add(0);
+      minute.add(0);
+      hour.add(0);
+      dayOfMonth.add(localDate.getDayOfMonth());
+      month.add(localDate.getMonthValue()-1);
+      year.add(localDate.getYear()-1900);
+      weekday.add(localDate.get(ZeroBasedWeekday.INSTANCE));
+      dayOfYear.add(localDate.getDayOfYear()-1);
+      dst.add(0);
+      gmtOffset.add(0);
+    }
 
-
-    public Builder addAll(Iterable<DateTime> dateTimes) {
-      for(DateTime dateTime : dateTimes) {
+    public Builder addAll(Iterable<ZonedDateTime> dateTimes) {
+      for(ZonedDateTime dateTime : dateTimes) {
         add(dateTime);
       }
       return this;
@@ -234,7 +242,7 @@ public class PosixLtVector extends TimeVector {
       return this;
     }
 
-    public void withTimeZone(DateTimeZone zone, String zoneName) {
+    public void withTimeZone(ZoneId zone, String zoneName) {
       this.zone = zone;
       this.zoneName = StringVector.valueOf(zoneName);
     }
@@ -245,31 +253,16 @@ public class PosixLtVector extends TimeVector {
       if(timeZoneAttribute instanceof StringVector) {
         zoneName = (StringVector) timeZoneAttribute;
       } else {
-        zoneName = StringVector.valueOf(zone.getID());
+        zoneName = StringVector.valueOf(zone.getId());
       }
       return this;
     }
 
-    private static int computeDaylightSavingsFlag(DateTime time) {
+    private static int computeDaylightSavingsFlag(ZonedDateTime time) {
       if( time == null ) {
         return -1;
       } else {
-        return time.getZone().isStandardOffset(time.getMillis()) ? 0 : 1;
-      }
-    }
-
-    /**
-     * Computes the offset of this timezone from GMT in seconds, or NA if not known
-     */
-    private int computeGmtOffset(DateTime time) {
-      return (int)TimeUnit.MILLISECONDS.toSeconds(time.getZone().getOffset(time));
-    }
-
-    private static int getRDayOfWeek(DateTime time) {
-      if(time.getDayOfWeek()==7) {
-        return 0;
-      } else {
-        return time.getDayOfWeek();
+        return time.getZone().getRules().isDaylightSavings(time.toInstant()) ? 1 : 0;
       }
     }
 

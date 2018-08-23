@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.type.PointerTypeStrategy;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.repackaged.asm.Type;
@@ -38,12 +37,12 @@ public class VoidPtrReturnStrategy implements ReturnStrategy {
 
   @Override
   public JExpr marshall(GExpr expr) {
-    return ((VoidPtr) expr).unwrap();
+    return expr.toVoidPtrExpr().jexpr();
   }
 
   @Override
-  public GExpr unmarshall(MethodGenerator mv, JExpr returnValue, TypeStrategy lhsTypeStrategy) {
-    return ((PointerTypeStrategy) lhsTypeStrategy).unmarshallVoidPtrReturnValue(mv, returnValue);
+  public GExpr unmarshall(MethodGenerator mv, JExpr callExpr, TypeStrategy lhsTypeStrategy) {
+    return new VoidPtrExpr(callExpr);
   }
 
   @Override

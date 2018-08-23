@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 import org.renjin.repackaged.guava.base.Strings;
 
 public class GimpleField {
-  private int id;
+  private long id;
   private int offset;
   private int size;
   private String name;
@@ -76,11 +76,11 @@ public class GimpleField {
   }
 
 
-  public int getId() {
+  public long getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public void setId(long id) {
     this.id = id;
   }
 

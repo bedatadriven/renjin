@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,10 @@ public class CharTypes {
 
   public static final int OFFSET = 128;
 
-  public static final ObjectPtr<CharPtr> TABLE_PTR = new ObjectPtr<>(new CharPtr(TABLE, OFFSET));
+  @Deprecated
+  public static final ObjectPtr<CharPtr> TABLE_OBJECT_PTR = new ObjectPtr<>(new CharPtr(TABLE, OFFSET));
+
+  public static final PointerPtr TABLE_PTR = new PointerPtr(new Ptr[] { new CharPtr(TABLE, OFFSET) });
 
   private static char X(int x) {
     return (char) ( ((x)/256 | (x)*256) % 65536 );

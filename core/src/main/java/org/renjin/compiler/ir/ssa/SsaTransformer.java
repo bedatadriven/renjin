@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -231,15 +231,20 @@ public class SsaTransformer {
   public void removePhiFunctions(TypeSolver types) {
     for(BasicBlock bb : cfg.getBasicBlocks()) {
       if (bb != cfg.getExit()) {
+        // Remove and collect phi statements
+        List<Assignment> phiAssignments = new ArrayList<>();
         ListIterator<Statement> it = bb.getStatements().listIterator();
         while (it.hasNext()) {
           Statement statement = it.next();
           if (statement instanceof Assignment && statement.getRHS() instanceof PhiFunction) {
-            Assignment assignment = (Assignment) statement;
-            if(types.isUsed(assignment)) {
-              insertAssignments(assignment.getLHS(), (PhiFunction) statement.getRHS());
-            }
+            phiAssignments.add((Assignment) statement);
             it.remove();
+          }
+        }
+        // Insert assignments
+        for (Assignment assignment : phiAssignments) {
+          if(types.isUsed(assignment)) {
+            insertAssignments(assignment.getLHS(), (PhiFunction) assignment.getRHS());
           }
         }
       }

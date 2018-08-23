@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,16 +22,11 @@ import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 import org.renjin.aether.AetherPackageLoader;
 import org.renjin.cli.build.Builder;
-import org.renjin.compiler.pipeline.MultiThreadedVectorPipeliner;
-import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.eval.Profiler;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
-import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.primitives.special.ForFunction;
 import org.renjin.repl.JlineRepl;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.Symbol;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -165,24 +160,17 @@ public class Main {
     }
   }
 
-  public void initSession() throws Exception {
+  public void initSession() {
     threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     packageLoader = new AetherPackageLoader();
+
     this.session = new SessionBuilder()
         .setPackageLoader(packageLoader)
-        .setVectorPipeliner(new MultiThreadedVectorPipeliner(threadPool))
+        .setClassLoader(packageLoader.getClassLoader())
+        .setExecutorService(threadPool)
+        .withDefaultPackages()
         .build();
-    
-    loadDefaultPackages();
   }
 
-
-  private void loadDefaultPackages() {
-    String defaultPackages[] = new String[] {
-        "stats", "graphics", "grDevices", "utils", "datasets", "methods" };
-    for(String packageName : defaultPackages) {
-      session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("library"), Symbol.get(packageName)));
-    }
-  }
 }

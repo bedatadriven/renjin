@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,8 +28,9 @@ import org.renjin.gcc.codegen.fatptr.FatPtrMalloc;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.SingleFieldStrategy;
-import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
 
 import static org.renjin.gcc.codegen.expr.Expressions.constantInt;
@@ -39,12 +40,14 @@ import static org.renjin.gcc.codegen.expr.Expressions.constantInt;
  */
 public class ArrayField extends SingleFieldStrategy {
 
+  private GimpleArrayType arrayType;
   private int arrayLength;
   private final ValueFunction valueFunction;
   
-  public ArrayField(Type declaringClass, String name, int arrayLength, ValueFunction valueFunction) {
+  public ArrayField(Type declaringClass, String name, int arrayLength, GimpleArrayType arrayType, ValueFunction valueFunction) {
     super(declaringClass, name, Wrappers.valueArrayType(valueFunction.getValueType()));
     this.arrayLength = arrayLength;
+    this.arrayType = arrayType;
     this.valueFunction = valueFunction;
   }
 
@@ -58,7 +61,7 @@ public class ArrayField extends SingleFieldStrategy {
   }
 
   @Override
-  public GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, TypeStrategy expectedType) {
+  public GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, GimpleType expectedType) {
     JExpr arrayExpr = Expressions.field(instance, fieldType, fieldName);
     JExpr offsetExpr = constantInt(offset / 8 / valueFunction.getArrayElementBytes());
     
@@ -72,7 +75,7 @@ public class ArrayField extends SingleFieldStrategy {
       return primitiveTypeStrategy.getValueFunction().dereference(arrayExpr, offsetExpr);
     
     } else if(expectedType instanceof ArrayTypeStrategy) {
-      return new ArrayExpr(valueFunction, arrayLength, arrayExpr, offsetExpr);
+      return new FatArrayExpr(arrayType, valueFunction, arrayLength, arrayExpr, offsetExpr);
     
     } else {
       throw new UnsupportedOperationException("expectedType: " + expectedType);

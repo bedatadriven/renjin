@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,9 @@ package org.renjin.gcc.runtime;
 
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.closeTo;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class MathlibTest {
@@ -28,5 +31,20 @@ public class MathlibTest {
   public void testFloatingPointModulus() {
     // This should be EXACT EXACT
     assertTrue(Mathlib.fmod(1.5, 1.) == 0.5);
+  }
+
+  @Test
+  public void modf() {
+    checkModf(3.145, 3, 0.145);
+    checkModf(-3.145, -3, -0.145);
+    checkModf(1.9666662000000001, 1, 0.9666662000000001);
+  }
+
+  private void checkModf(double x, double expectedInteger, double expectedFraction) {
+    DoublePtr intValue = new DoublePtr(0);
+    double fracValue = Mathlib.modf(x, intValue);
+
+    assertThat(intValue.get(), equalTo(expectedInteger));
+    assertThat(fracValue, closeTo(expectedFraction, 0.00001));
   }
 }

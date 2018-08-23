@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,11 +21,13 @@ package org.renjin.primitives;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Internal;
-import org.renjin.repackaged.guava.base.Objects;
+import org.renjin.invoke.annotations.Materialize;
+import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.*;
 
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -35,6 +37,7 @@ public class Identical {
 
 
   @Internal
+  @Materialize
   public static boolean identical(SEXP x, SEXP y, boolean numericallyEqual,
       boolean singleNA, boolean attributesAsSet, boolean ignoreByteCode) {
     if (!attributesAsSet) {
@@ -53,10 +56,14 @@ public class Identical {
     if(x == y) {
       return true;
     }
-    if(x.length() != y.length()) {
+    if(x instanceof Environment || y instanceof Environment) {
+      // Environments are only identical if they have the same reference
       return false;
     }
     if(!x.getTypeName().equals(y.getTypeName())) {
+      return false;
+    }
+    if(x.length() != y.length()) {
       return false;
     }
     if(x instanceof AtomicVector) {
@@ -94,7 +101,7 @@ public class Identical {
   }
 
   private static boolean identicalPointers(ExternalPtr x, ExternalPtr y) {
-    return Objects.equal(x, y);
+    return Objects.equals(x, y);
   }
 
   /**
@@ -135,10 +142,7 @@ public class Identical {
     }
 
     for(int i=0;i!=x.length();++i) {
-      if(x.isElementNA(i) && y.isElementNA(i)) {
-        continue;
-      }
-      if(!vectorType.elementsEqual(x, i, y, i)) {
+      if(!vectorType.elementsIdentical(x, i, y, i)) {
         return false;
       }
     }
@@ -241,10 +245,11 @@ public class Identical {
    * @param bitwiseComparisonNumbers  if true, then (x != y) is used when both are not NA or NaN.
    *  If true, will differentiate between '+0.' and '-0.'.
    *
-   * @param bitwiseComparisonNaN if true, then
+   * @param bitwiseComparisonNaN if true, then NA values are compared bit
    * @return
    */
-  private static boolean equals(double x, double y, boolean bitwiseComparisonNumbers, boolean bitwiseComparisonNaN) {
+  @VisibleForTesting
+  static boolean equals(double x, double y, boolean bitwiseComparisonNumbers, boolean bitwiseComparisonNaN) {
 
     if(Double.isNaN(x) || Double.isNaN(y)) {
 
@@ -255,8 +260,11 @@ public class Identical {
         // only consider the NaN payload in the case of our special NA value
         if(DoubleVector.isNA(x)) {
           return DoubleVector.isNA(y);
+
         } else if(DoubleVector.isNA(y)) {
-          return DoubleVector.isNA(y);
+          // is.na(y) and !is.na(x)
+          return false;
+
         } else {
           return Double.isNaN(x) && Double.isNaN(y);
         }

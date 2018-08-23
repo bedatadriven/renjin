@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,6 @@ import org.renjin.RenjinVersion;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.parser.*;
-import org.renjin.primitives.Warning;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
@@ -84,7 +83,7 @@ public class Repl implements Runnable {
         }
         
         // clean up last warnings from any previous run
-        clearWarnings();
+        session.getSession().clearWarnings();
         
         SEXP result = topLevelContext.evaluate(exp, global);
 
@@ -92,7 +91,7 @@ public class Repl implements Runnable {
           topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), result));  
         }
         
-        printWarnings();
+        session.getSession().printWarnings();
 
       } catch (ParseException e) {
         console.getErr().println(String.format("Error: %s", e.getMessage()));
@@ -107,26 +106,13 @@ public class Repl implements Runnable {
     }
   }
 
-  private void printWarnings() {
-    SEXP warnings = topLevelContext.getBaseEnvironment().getVariable(Warning.LAST_WARNING);
-    if(warnings != Symbol.UNBOUND_VALUE) {
-      topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
-          topLevelContext.getBaseEnvironment());
-      
-      console.getOut().println();
-    }
-  }
-
-  private void clearWarnings() {
-    topLevelContext.getBaseEnvironment().remove(Warning.LAST_WARNING);
-  }
 
   private void printGreeting() {
     PrintStream out = console.getOut();
     out.print("Renjin " + RenjinVersion.getVersionName() + "\n");
 
-    out.print("Copyright (C) 2017 The R Foundation for Statistical Computing\n");
-    out.print("Copyright (C) 2017 BeDataDriven\n");
+    out.print("Copyright (C) 2018 The R Foundation for Statistical Computing\n");
+    out.print("Copyright (C) 2018 BeDataDriven\n");
 
   }
 

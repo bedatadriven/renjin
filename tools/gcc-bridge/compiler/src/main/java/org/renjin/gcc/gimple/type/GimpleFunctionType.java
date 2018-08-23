@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,11 @@ public class GimpleFunctionType extends AbstractGimpleType {
   private GimpleType returnType;
   private List<GimpleType> argumentTypes = Lists.newArrayList();
   private boolean variableArguments;
-  
+
+  public GimpleFunctionType() {
+    returnType = new GimpleVoidType();
+  }
+
   public GimpleType getReturnType() {
     return returnType;
   }
@@ -48,7 +52,6 @@ public class GimpleFunctionType extends AbstractGimpleType {
   public void setVariableArguments(boolean variableArguments) {
     this.variableArguments = variableArguments;
   }
-
 
   @Override
   public int sizeOf() {

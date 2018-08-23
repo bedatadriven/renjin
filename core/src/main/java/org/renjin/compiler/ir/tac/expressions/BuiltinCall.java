@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,6 @@ import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
-import org.renjin.primitives.Primitives;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.base.Joiner;
@@ -41,19 +40,19 @@ public class BuiltinCall implements CallExpression {
 
   private final RuntimeState runtimeState;
   private FunctionCall call;
-  private final Primitives.Entry primitive;
+  private String primitiveName;
   private final List<IRArgument> arguments;
 
   private final Specializer specializer;
   
   private Specialization specialization = UnspecializedCall.INSTANCE;
 
-  public BuiltinCall(RuntimeState runtimeState, FunctionCall call, Primitives.Entry primitive, List<IRArgument> arguments) {
+  public BuiltinCall(RuntimeState runtimeState, FunctionCall call, String primitiveName, List<IRArgument> arguments) {
     this.runtimeState = runtimeState;
     this.call = call;
-    this.primitive = primitive;
+    this.primitiveName = primitiveName;
     this.arguments = arguments;
-    this.specializer = BuiltinSpecializers.INSTANCE.get(primitive);
+    this.specializer = BuiltinSpecializers.INSTANCE.get(primitiveName);
   }
 
   @Override
@@ -72,10 +71,9 @@ public class BuiltinCall implements CallExpression {
   }
   
   @Override
-  public boolean isDefinitelyPure() {
-    return false;
+  public boolean isPure() {
+    return specialization.isPure();
   }
-
 
   @Override
   public int load(EmitContext emitContext, InstructionAdapter mv) {
@@ -83,20 +81,20 @@ public class BuiltinCall implements CallExpression {
       specialization.load(emitContext, mv, arguments);
 
     } catch (FailedToSpecializeException e) {
-      throw new NotCompilableException(call, "Failed to specialize .Primitive(" + primitive.name + ")");
+      throw new NotCompilableException(call, "Failed to specialize .Primitive(" + primitiveName + ")");
     }
     return 1;
   }
 
   @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
-    List<ValueBounds> argumentTypes = new ArrayList<>();
+    List<ArgumentBounds> argumentTypes = new ArrayList<>();
     for (IRArgument argument : arguments) {
-      argumentTypes.add(argument.getExpression().updateTypeBounds(typeMap));
+      argumentTypes.add(new ArgumentBounds(argument.getName(), argument.getExpression().updateTypeBounds(typeMap)));
     }
     specialization = specializer.trySpecialize(runtimeState, argumentTypes);
     
-    return specialization.getValueBounds();
+    return specialization.getResultBounds();
   }
 
   @Override
@@ -106,11 +104,11 @@ public class BuiltinCall implements CallExpression {
 
   @Override
   public ValueBounds getValueBounds() {
-    return specialization.getValueBounds();
+    return specialization.getResultBounds();
   }
   
   @Override
   public String toString() {
-    return "(" + primitive.name + " " + Joiner.on(" ").join(arguments) + ")";
+    return "(" + primitiveName + " " + Joiner.on(" ").join(arguments) + ")";
   }
 }

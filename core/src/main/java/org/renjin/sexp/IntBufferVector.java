@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,9 +50,29 @@ public class IntBufferVector extends IntVector {
   public boolean isConstantAccessTime() {
     return true;
   }
-
+  
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     return new IntBufferVector(buffer, length, attributes);
+  }
+
+  /**
+   * Returns the underlying {@code IntBuffer} backing this vector. The 
+   * returned buffer <strong>absolutely should not be modified!</strong>
+   */
+  public IntBuffer toIntBufferUnsafe() {
+    return buffer;
+  }
+
+  @Override
+  public void copyTo(double[] array, int offset, int length) {
+    for (int i = 0; i < length; i++) {
+      int intValue = buffer.get(i);
+      if(intValue == IntVector.NA) {
+        array[offset + i] = DoubleVector.NA;
+      } else {
+        array[offset + i] = intValue;
+      }
+    }
   }
 }

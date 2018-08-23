@@ -15,7 +15,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, a copy is available at
- *  http://www.r-project.org/Licenses/
+ *  https://www.R-project.org/Licenses/
  */
 
 /* NaNs propagated correctly */
@@ -47,4 +47,13 @@ attribute_hidden double Rf_d1mach(int i)
 
     default: return 0.0;
     }
+}
+
+#ifdef __cplusplus
+extern "C"
+#endif
+
+double d1mach_(int *i)
+{
+    return Rf_d1mach(*i);
 }

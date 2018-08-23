@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,9 +31,13 @@ public interface Specialization {
   
   Type getType();
 
-  ValueBounds getValueBounds();
+  ValueBounds getResultBounds();
 
   void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments);
-  
 
+  /**
+   *
+   * @return true if the specialized operation is known to be free of side effects.
+   */
+  boolean isPure();
 }

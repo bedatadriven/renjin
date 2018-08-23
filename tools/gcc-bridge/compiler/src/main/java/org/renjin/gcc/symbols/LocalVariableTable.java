@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,13 +32,17 @@ import java.util.Map;
 public class LocalVariableTable implements SymbolTable {
 
   private final UnitSymbolTable parent;
-  private Map<Integer, GExpr> variableMap = Maps.newHashMap();
+  private Map<Long, GExpr> variableMap = Maps.newHashMap();
 
   public LocalVariableTable(UnitSymbolTable parent) {
     this.parent = parent;
   }
 
-  public void addVariable(Integer gimpleId, GExpr variable) {
+  public boolean isRegistered(Long gimpleId) {
+    return variableMap.containsKey(gimpleId);
+  }
+
+  public void addVariable(Long gimpleId, GExpr variable) {
     Preconditions.checkNotNull(variable);
     Preconditions.checkState(!variableMap.containsKey(gimpleId), "variable already registered with id " + gimpleId);
 

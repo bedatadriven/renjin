@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -130,7 +130,7 @@ public class Sampling {
     boolean probabilitiesGiven = (probabilityWeights != org.renjin.sexp.Null.INSTANCE);
     
     if(!probabilitiesGiven) {
-      if (withReplacement) {
+      if (withReplacement || sampleSize == 1) {
         return uniformSampleWithReplacement(context, populationSize, sampleSize);
       } else {
         return uniformSampleWithoutReplacement(context, populationSize, sampleSize);

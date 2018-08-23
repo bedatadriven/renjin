@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -402,15 +402,7 @@ public class CDefines {
   public static String _(String s) {
     return s;
   }
-  
-  public static SEXP findVar(SEXP devName, SEXP env) {
-    return ((Environment)env).findVariable((Symbol)devName);
-  }
-  
-  public static SEXP findVarInFrame(Frame frame, SEXP name) {
-    return frame.getVariable((Symbol)name);
-  }
-  
+
   public static SEXP eval(SEXP exp, Context context, SEXP rho) {
     return context.evaluate(exp, (Environment)rho);
   }

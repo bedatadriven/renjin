@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,9 @@
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
 package org.renjin.gcc.gimple.type;
+
+import org.renjin.gcc.gimple.expr.GimpleConstant;
+import org.renjin.gcc.gimple.expr.GimpleIntegerConstant;
 
 public class GimplePointerType extends AbstractGimpleType implements GimpleIndirectType {
   
@@ -41,6 +44,11 @@ public class GimplePointerType extends AbstractGimpleType implements GimpleIndir
   public int sizeOf() {
     // We require the generated gimple to be compiled for 32-bit platforms so we get 32 bit pointers.
     return 4;
+  }
+
+  @Override
+  public GimpleConstant nullValue() {
+    return GimpleIntegerConstant.nullValue(this);
   }
 
   public void setBaseType(GimpleType baseType) {
@@ -76,4 +84,6 @@ public class GimplePointerType extends AbstractGimpleType implements GimpleIndir
   public int hashCode() {
     return baseType.hashCode();
   }
+
+
 }

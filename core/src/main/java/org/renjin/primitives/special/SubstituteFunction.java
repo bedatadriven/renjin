@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ public class SubstituteFunction extends SpecialFunction {
     SEXP expr;
     if(exprArgument == Symbols.ELLIPSES) {
       
-      SEXP ellipses = rho.getVariable(Symbols.ELLIPSES);
+      SEXP ellipses = rho.getEllipsesVariable();
       if(ellipses == Null.INSTANCE) {
         expr = Null.INSTANCE;
       } else {
@@ -86,7 +86,7 @@ public class SubstituteFunction extends SpecialFunction {
       if(context.getGlobalEnvironment() == evaluatedEnv) {
         return new GlobalEnvironmentContext();
       } else {
-        return new EnvironmentContext((Environment) evaluatedEnv);
+        return new EnvironmentContext(context, (Environment) evaluatedEnv);
       }
     } else if(evaluatedEnv instanceof ListVector) {
       return new ListContext((ListVector) evaluatedEnv);
@@ -222,15 +222,17 @@ public class SubstituteFunction extends SpecialFunction {
   
   private static class EnvironmentContext implements SubstituteContext {
     private final Environment rho;
+    private Context context;
 
-    public EnvironmentContext(Environment rho) {
+    public EnvironmentContext(Context context, Environment rho) {
       super();
       this.rho = rho;
+      this.context = context;
     }
 
     @Override
     public SEXP getVariable(Symbol name) {
-      return rho.getVariable(name);
+      return rho.getVariable(context, name);
     }
 
     @Override

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,8 +48,7 @@ public class DoubleBinaryOp implements Specialization {
     return Type.DOUBLE_TYPE;
   }
 
-  @Override
-  public ValueBounds getValueBounds() {
+  public ValueBounds getResultBounds() {
     return valueBounds;
   }
 
@@ -68,11 +67,16 @@ public class DoubleBinaryOp implements Specialization {
     mv.visitInsn(opcode);
   }
 
+  @Override
+  public boolean isPure() {
+    return true;
+  }
+
   public static DoubleBinaryOp trySpecialize(String name, JvmMethod overload, ValueBounds resultBounds) {
     List<JvmMethod.Argument> formals = overload.getPositionalFormals();
     if(formals.size() == 2 &&
         formals.get(0).getClazz().equals(double.class) &&
-        formals.get(0).getClazz().equals(double.class)) {
+        formals.get(1).getClazz().equals(double.class)) {
 
       switch (name) {
         case "+":

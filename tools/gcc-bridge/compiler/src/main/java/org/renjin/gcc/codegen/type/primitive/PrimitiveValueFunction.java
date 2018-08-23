@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,37 +26,40 @@ import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.Memset;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
+import org.renjin.gcc.codegen.vptr.PointerType;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.runtime.Double96Ptr;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 
 public class PrimitiveValueFunction implements ValueFunction {
 
-  private GimplePrimitiveType gimpleType;
-  private Type type;
+  private PrimitiveType type;
   private int byteSize;
 
-  public PrimitiveValueFunction(GimplePrimitiveType type) {
-    this.gimpleType = type;
-    this.type = type.jvmType();
-    this.byteSize = type.sizeOf();
-  }
-  
-  public PrimitiveValueFunction(Type type) {
-    this(GimplePrimitiveType.fromJvmType(type));
+  public PrimitiveValueFunction(PrimitiveType type) {
+    this.type = type;
+    this.byteSize = type.gimpleType().sizeOf();
   }
 
-  public GimplePrimitiveType getGimpleType() {
-    return gimpleType;
+  public PrimitiveValueFunction(GimplePrimitiveType primitiveType) {
+    this(PrimitiveType.of(primitiveType));
   }
 
   @Override
   public Type getValueType() {
-    return type;
+    return type.jvmType();
+  }
+
+  @Override
+  public GimpleType getGimpleValueType() {
+    return type.gimpleType();
   }
 
   @Override
@@ -74,18 +77,18 @@ public class PrimitiveValueFunction implements ValueFunction {
     FatPtrPair address = new FatPtrPair(this, array, offset);
     JExpr value = Expressions.elementAt(array, offset);
 
-    return new PrimitiveValue(value, address);
+    return type.fromNonStackValue(value, address);
   }
 
   @Override
   public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
-    return new PrimitiveValue(wrapperInstance.valueExpr(), wrapperInstance);
+    return type.fromNonStackValue(wrapperInstance.valueExpr(), wrapperInstance);
   }
 
   @Override
   public List<JExpr> toArrayValues(GExpr expr) {
-    PrimitiveValue primitiveValue = (PrimitiveValue) expr;
-    return Collections.singletonList(primitiveValue.getExpr());
+    PrimitiveExpr primitiveExpr = (PrimitiveExpr) expr;
+    return Collections.singletonList(primitiveExpr.jexpr());
   }
 
   @Override
@@ -98,12 +101,27 @@ public class PrimitiveValueFunction implements ValueFunction {
 
   @Override
   public void memorySet(MethodGenerator mv, JExpr array, JExpr offset, JExpr byteValue, JExpr length) {
-    Memset.primitiveMemset(mv, type, array, offset, byteValue, length);
+    Memset.primitiveMemset(mv, type.jvmType(), array, offset, byteValue, length);
   }
 
   @Override
   public Optional<JExpr> getValueConstructor() {
-    return Optional.absent();
+    return Optional.empty();
+  }
+
+  @Override
+  public VPtrExpr toVPtr(JExpr array, JExpr offset) {
+
+    PointerType pointerType = PointerType.ofPrimitiveType(type.gimpleType());
+
+    // Special handling for double[] -> Real96
+    if(pointerType == PointerType.REAL96 && array.getType().getElementType().equals(Type.DOUBLE_TYPE)) {
+      JExpr newWrapper = Expressions.newObject(Type.getType(Double96Ptr.class), array, offset);
+      return new VPtrExpr(newWrapper);
+    }
+
+    JExpr newWrapper = Expressions.newObject(pointerType.alignedImpl(), array, offset);
+    return new VPtrExpr(newWrapper);
   }
 
   @Override

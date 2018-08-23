@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,24 +23,30 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.*;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.gimple.type.GimpleComplexType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Optional;
-import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.List;
+import java.util.Optional;
 
 public class ComplexValueFunction implements ValueFunction {
   
-  private final Type valueType;
+  private final GimpleComplexType valueType;
 
-  public ComplexValueFunction(Type valueType) {
-    Preconditions.checkArgument(valueType.equals(Type.DOUBLE_TYPE) || valueType.equals(Type.FLOAT_TYPE));
+  public ComplexValueFunction(GimpleComplexType valueType) {
     this.valueType = valueType;
   }
 
   @Override
   public Type getValueType() {
+    return valueType.getJvmPartType();
+  }
+
+  @Override
+  public GimpleType getGimpleValueType() {
     return valueType;
   }
 
@@ -51,11 +57,7 @@ public class ComplexValueFunction implements ValueFunction {
 
   @Override
   public int getArrayElementBytes() {
-    if(valueType.equals(Type.DOUBLE_TYPE)) {
-      return 16; 
-    } else {
-      return 8;
-    }
+    return valueType.sizeOf() / 2;
   }
 
   @Override
@@ -79,13 +81,13 @@ public class ComplexValueFunction implements ValueFunction {
     JExpr real = Expressions.elementAt(array, realOffset);
     JExpr imaginary = Expressions.elementAt(array, imaginaryOffset);
 
-    return new ComplexValue(address, real, imaginary);
+    return new ComplexExpr(address, real, imaginary);
   }
 
 
   @Override
   public List<JExpr> toArrayValues(GExpr expr) {
-    ComplexValue value = (ComplexValue) expr;
+    ComplexExpr value = (ComplexExpr) expr;
     return Lists.newArrayList(value.getRealJExpr(), value.getImaginaryJExpr());
   }
 
@@ -101,13 +103,19 @@ public class ComplexValueFunction implements ValueFunction {
 
   @Override
   public void memorySet(MethodGenerator mv, JExpr array, JExpr offset, JExpr byteValue, JExpr length) {
-    Memset.primitiveMemset(mv, valueType, array, offset, byteValue, length);
+    Memset.primitiveMemset(mv, valueType.getJvmPartType(), array, offset, byteValue, length);
   }
 
   @Override
   public Optional<JExpr> getValueConstructor() {
-    return Optional.absent();
+    return Optional.empty();
   }
+
+  @Override
+  public VPtrExpr toVPtr(JExpr array, JExpr offset) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
 
   @Override
   public String toString() {

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,12 @@ public class BaseNamespace extends Namespace {
 
   public BaseNamespace(Environment baseNamespaceEnvironment) {
     super(new BasePackage(), baseNamespaceEnvironment);
+    try {
+      libraries.add(new DllInfo("appl", Class.forName("org.renjin.appl.Appl")));
+      libraries.add(new DllInfo("base", Class.forName("org.renjin.base.Base")));
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException("Could not load base package", e);
+    }
   }
 
   @Override

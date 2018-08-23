@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,16 +18,13 @@
  */
 package org.renjin.primitives;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -39,53 +36,52 @@ public strictfp class TypesTest extends EvalTestCase {
 
   @Test
   public void asCharacter() {
-    assertThat( eval("as.character(1)"), equalTo( c("1") ));
-    assertThat( eval("as.character(\"foobar\")"), equalTo( c("foobar") ));
-    assertThat( eval("as.character(1L)"), equalTo( c("1") ));
+    assertThat( eval("as.character(1)"), elementsIdenticalTo( c("1") ));
+    assertThat( eval("as.character(\"foobar\")"), elementsIdenticalTo( c("foobar") ));
+    assertThat( eval("as.character(1L)"), elementsIdenticalTo( c("1") ));
     assertThat( eval("as.character(1.3333333333333333333333333333333333)"),
-        equalTo(c("1.33333333333333")));
-    assertThat( eval("as.character(TRUE)"), equalTo( c("TRUE") ));
-    assertThat( eval("as.character(1000)"), equalTo(c("1000")));
+        elementsIdenticalTo(c("1.33333333333333")));
+    assertThat( eval("as.character(TRUE)"), elementsIdenticalTo( c("TRUE") ));
+    assertThat( eval("as.character(1000)"), elementsIdenticalTo(c("1000")));
   }
   
   @Test
   public void coerceWithoutArgument() {
-    assertThat( eval("as.character()"), CoreMatchers.equalTo(c(new String[0])));
-    assertThat( eval("as.double()"), CoreMatchers.equalTo((SEXP) DoubleArrayVector.EMPTY));
-    assertThat( eval("as.logical()"), CoreMatchers.equalTo((SEXP) LogicalArrayVector.EMPTY));
-    assertThat( eval("as.integer()"), CoreMatchers.equalTo((SEXP) IntArrayVector.EMPTY));
-    assertThat( eval("as.complex()"), CoreMatchers.equalTo((SEXP) ComplexArrayVector.EMPTY));
-    // as.raw() requires at one argument!
+    assertThat( eval("as.character()"), elementsIdenticalTo(c(new String[0])));
+    assertThat( eval("as.double()"), identicalTo(DoubleArrayVector.EMPTY));
+    assertThat( eval("as.logical()"), identicalTo(LogicalArrayVector.EMPTY));
+    assertThat( eval("as.integer()"), identicalTo(IntArrayVector.EMPTY));
+    assertThat( eval("as.complex()"), identicalTo(ComplexArrayVector.EMPTY));
   }
 
   @Test
   public void doubleNaNToComplex() {
-    assertThat(eval("is.na(as.complex(NaN))"), equalTo(c(true)));
-    assertThat(eval("is.na(as.complex(0/0))"), equalTo(c(true)));
-    assertThat(eval("is.na(as.complex(NA))"), equalTo(c(true)));
+    assertThat(eval("is.na(as.complex(NaN))"), elementsIdenticalTo(c(true)));
+    assertThat(eval("is.na(as.complex(0/0))"), elementsIdenticalTo(c(true)));
+    assertThat(eval("is.na(as.complex(NA))"), elementsIdenticalTo(c(true)));
   }
 
   @Test
   public void asCharacterWithNA() {
-    assertThat( eval("as.character(NA)"), equalTo( c( StringVector.NA )) );
+    assertThat( eval("as.character(NA)"), elementsIdenticalTo( c( StringVector.NA )) );
   }
 
   @Test
   public void asCharacterFromStringObject(){ 
     eval("import(java.lang.String)");
     eval("x<-String$new(\"foo\")");
-    assertThat(eval("as.character(x)"),equalTo(c("foo")));
+    assertThat(eval("as.character(x)"), elementsIdenticalTo(c("foo")));
   }
   
   @Test
   public void asCharacterFromList() {
-    assertThat( eval("as.character(list(3, 'a', TRUE)) "), equalTo( c("3", "a", "TRUE" )));
-    assertThat( eval("as.character(list(c(1,3), 'a', TRUE)) "), equalTo( c("c(1, 3)", "a", "TRUE" )));
+    assertThat( eval("as.character(list(3, 'a', TRUE)) "), elementsIdenticalTo( c("3", "a", "TRUE" )));
+    assertThat( eval("as.character(list(c(1,3), 'a', TRUE)) "), elementsIdenticalTo( c("c(1, 3)", "a", "TRUE" )));
   }
 
   @Test
   public void asCharacterFromSymbol() {
-    assertThat( eval(" as.character(quote(x)) "), equalTo( c("x") ));
+    assertThat( eval(" as.character(quote(x)) "), elementsIdenticalTo( c("x") ));
   }
 
   @Test
@@ -93,7 +89,7 @@ public strictfp class TypesTest extends EvalTestCase {
     eval( " x<- NULL");
     eval( " g<-function(b) b");
     eval( " f<-function(a) g(as.character(a)) ");
-    assertThat( eval("f(x)"), equalTo((SEXP)new StringArrayVector()));
+    assertThat( eval("f(x)"), identicalTo((SEXP)new StringArrayVector()));
   }
 
   
@@ -101,83 +97,83 @@ public strictfp class TypesTest extends EvalTestCase {
   public void asDoubleFromDoubleObject(){ 
     eval("import(java.lang.Double)");
     eval("x<-Double$new(1.5)");
-    assertThat(eval("as.double(x)"),equalTo(c(1.5)));
+    assertThat(eval("as.double(x)"), elementsIdenticalTo(c(1.5)));
   }
   
   @Test
   public void asDoubleFromDouble() {
-    assertThat( eval("as.double(3.14)"), equalTo( c(3.14) ) );
-    assertThat( eval("as.double(NA_real_)"), equalTo( c(DoubleVector.NA) ) );
+    assertThat( eval("as.double(3.14)"), elementsIdenticalTo( c(3.14) ) );
+    assertThat( eval("as.double(NA_real_)"), elementsIdenticalTo( c(DoubleVector.NA) ) );
   }
 
   @Test
   public void asDoubleFromInt() {
-    assertThat( eval("as.double(3L)"), equalTo( c(3l) ));
+    assertThat( eval("as.double(3L)"), elementsIdenticalTo( c(3l) ));
   }
 
   @Test
   public void asLogicalFromBooleanObject(){ 
     eval("import(java.lang.Boolean)");
     eval("x<-Boolean$new(TRUE)");
-    assertThat(eval("as.logical(x)"),equalTo(c(TRUE)));
+    assertThat(eval("as.logical(x)"), elementsIdenticalTo(c(TRUE)));
   }
   
   @Test
   public void asLogicalFromList() {
     assertThat( eval("as.logical(list(1, 99.4, 0, 0L, FALSE, 'TRUE', 'FOO', 'T', 'F', 'FALSE')) "),
-        equalTo( c(TRUE, TRUE, FALSE, FALSE, FALSE, TRUE, Logical.NA, TRUE, FALSE, FALSE) ));
+        elementsIdenticalTo( c(TRUE, TRUE, FALSE, FALSE, FALSE, TRUE, Logical.NA, TRUE, FALSE, FALSE) ));
   }
 
   @Test
   public void asLogical() {
     assertThat( eval("as.logical(c(1, 99.4, 0, NA_real_)) "),
-        equalTo( c(TRUE, TRUE, FALSE, Logical.NA) ));
+        elementsIdenticalTo( c(TRUE, TRUE, FALSE, Logical.NA) ));
   }
 
   @Test
   public void asLogicalFromString() {
-    assertThat( eval("as.logical('TRUE')"), equalTo(c(true)));
-    assertThat( eval("as.logical('FALSE')"), equalTo(c(false)));
+    assertThat( eval("as.logical('TRUE')"), elementsIdenticalTo(c(true)));
+    assertThat( eval("as.logical('FALSE')"), elementsIdenticalTo(c(false)));
 
-    assertThat( eval("as.logical('true')"), equalTo(c(true)));
-    assertThat( eval("as.logical('false')"), equalTo(c(false)));
+    assertThat( eval("as.logical('true')"), elementsIdenticalTo(c(true)));
+    assertThat( eval("as.logical('false')"), elementsIdenticalTo(c(false)));
 
-    assertThat( eval("as.logical('T')"), equalTo(c(true)));
-    assertThat( eval("as.logical('F')"), equalTo(c(false)));
+    assertThat( eval("as.logical('T')"), elementsIdenticalTo(c(true)));
+    assertThat( eval("as.logical('F')"), elementsIdenticalTo(c(false)));
 
-    assertThat( eval("as.logical('TR')"), equalTo(c(Logical.NA)));
-    assertThat( eval("as.logical('FA')"), equalTo(c(Logical.NA)));
+    assertThat( eval("as.logical('TR')"), elementsIdenticalTo(c(Logical.NA)));
+    assertThat( eval("as.logical('FA')"), elementsIdenticalTo(c(Logical.NA)));
   }
   
   @Test
   public void asDoubleFromLogical() {
-    assertThat( eval("as.double(TRUE)"), equalTo( c(1d) ));
-    assertThat( eval("as.double(FALSE)"), equalTo( c(0d) ));
+    assertThat( eval("as.double(TRUE)"), elementsIdenticalTo( c(1d) ));
+    assertThat( eval("as.double(FALSE)"), elementsIdenticalTo( c(0d) ));
   }
 
   @Test
   public void asDoubleFromString() {
-    assertThat( eval("as.double(\"42\")"), equalTo( c(42d) ));
-    assertThat( eval("as.double(\"not an integer\")"), equalTo( c(DoubleVector.NA) ));
+    assertThat( eval("as.double(\"42\")"), elementsIdenticalTo( c(42d) ));
+    assertThat( eval("as.double(\"not an integer\")"), elementsIdenticalTo( c(DoubleVector.NA) ));
   }
 
   @Test
   public void asIntFromIntegerObject(){ 
     eval("import(java.lang.Integer)");
     eval("x<-Integer$new(2)");
-    assertThat(eval("as.integer(x)"),equalTo(c_i(2)));
+    assertThat(eval("as.integer(x)"), elementsIdenticalTo(c_i(2)));
   }
   
   @Test
   public void asIntFromDouble() {
-    assertThat( eval("as.integer(3.1)"), equalTo( c_i( 3 )));
-    assertThat( eval("as.integer(3.9)"), equalTo( c_i( 3 )));
-    assertThat( eval("as.integer(NA_real_)"), equalTo( c_i( IntVector.NA )));
+    assertThat( eval("as.integer(3.1)"), elementsIdenticalTo( c_i( 3 )));
+    assertThat( eval("as.integer(3.9)"), elementsIdenticalTo( c_i( 3 )));
+    assertThat( eval("as.integer(NA_real_)"), elementsIdenticalTo( c_i( IntVector.NA )));
   }
 
   @Test
   public void asIntFromRecycledDouble() {
-    assertThat( eval("as.integer(c(1, 9.32, 9.9, 5.0))"), equalTo( c_i(1, 9, 9, 5 )));
+    assertThat( eval("as.integer(c(1, 9.32, 9.9, 5.0))"), elementsIdenticalTo( c_i(1, 9, 9, 5 )));
   }
 
   @Test
@@ -185,7 +181,7 @@ public strictfp class TypesTest extends EvalTestCase {
     eval( " v <- .Internal(Version())");
     eval( " attributes(v) <- c( class='simpleList', attributes(v)) ");
 
-    assertThat( eval("v$minor"), not(CoreMatchers.equalTo(NULL)));
+    assertThat( eval("v$minor"), not(equalTo(NULL)));
   }
   
   @Test
@@ -194,10 +190,10 @@ public strictfp class TypesTest extends EvalTestCase {
     eval( "dim(x) <- c(3,4)");
     eval( "dim(x) <- c(3,4,1)");
     
-    assertThat( eval("dim(x)"), equalTo(c_i(3,4,1)));
+    assertThat( eval("dim(x)"), elementsIdenticalTo(c_i(3,4,1)));
   
     eval( "dim(x) <- NULL ");
-    assertThat( eval("dim(x)"), equalTo(NULL));
+    assertThat( eval("dim(x)"), identicalTo(NULL));
   }
 
   @Test(expected=EvalException.class)
@@ -209,75 +205,75 @@ public strictfp class TypesTest extends EvalTestCase {
 
   @Test
   public void na() {
-    assertThat( eval(" is.na(TRUE) "), equalTo( c(FALSE)));
-    assertThat( eval(" is.na(NA) "), equalTo( c(TRUE)));
-    assertThat( eval(" is.na(c(1L, NA_integer_)) "), equalTo( c(FALSE, TRUE)));
-    assertThat( eval(" is.na(c(NA_character_, '', 'foo')) "), equalTo( c(TRUE, FALSE, FALSE)));
-    assertThat( eval(" is.na(c()) "), equalTo((SEXP)LogicalVector.EMPTY));
+    assertThat( eval(" is.na(TRUE) "), elementsIdenticalTo( c(FALSE)));
+    assertThat( eval(" is.na(NA) "), elementsIdenticalTo( c(TRUE)));
+    assertThat( eval(" is.na(c(1L, NA_integer_)) "), elementsIdenticalTo( c(FALSE, TRUE)));
+    assertThat( eval(" is.na(c(NA_character_, '', 'foo')) "), elementsIdenticalTo( c(TRUE, FALSE, FALSE)));
+    assertThat( eval(" is.na(c()) "), identicalTo((SEXP)LogicalVector.EMPTY));
   }
 
 
   @Test
   public void finite() {
-    assertThat( eval("is.finite(42)"), equalTo(c(true)));
-    assertThat( eval("is.finite(1/0)"), equalTo(c(false)));
-    assertThat( eval("is.finite(1/0)"), equalTo(c(false)));
-    assertThat( eval("is.finite(NA)"), equalTo(c(false)));
-    assertThat( eval("is.finite(NaN)"), equalTo(c(false)));
+    assertThat( eval("is.finite(42)"), elementsIdenticalTo(c(true)));
+    assertThat( eval("is.finite(1/0)"), elementsIdenticalTo(c(false)));
+    assertThat( eval("is.finite(1/0)"), elementsIdenticalTo(c(false)));
+    assertThat( eval("is.finite(NA)"), elementsIdenticalTo(c(false)));
+    assertThat( eval("is.finite(NaN)"), elementsIdenticalTo(c(false)));
   }
 
   @Test
   public void infinite() {
-    assertThat( eval("is.infinite(1)"), equalTo(c(false)));
-    assertThat( eval("is.infinite(1/0)"), equalTo(c(true)));
-    assertThat( eval("is.infinite(NA)"), equalTo(c(false)));
-    assertThat( eval("is.infinite(NaN)"), equalTo(c(false)));
+    assertThat( eval("is.infinite(1)"), elementsIdenticalTo(c(false)));
+    assertThat( eval("is.infinite(1/0)"), elementsIdenticalTo(c(true)));
+    assertThat( eval("is.infinite(NA)"), elementsIdenticalTo(c(false)));
+    assertThat( eval("is.infinite(NaN)"), elementsIdenticalTo(c(false)));
   }
 
   @Test
   public void finiteAtomicVectors() {
-    assertThat( eval("is.infinite('Inf')"), equalTo(c(false)));
-    assertThat( eval("is.finite('Inf')"), equalTo(c(false)));
-    assertThat( eval("is.finite(1L)"), equalTo(c(true)));
-    assertThat( eval("is.finite(TRUE)"), equalTo(c(true)));
-    assertThat( eval("is.finite(FALSE)"), equalTo(c(true)));
-    assertThat( eval("is.infinite(TRUE)"), equalTo(c(false)));
-    assertThat( eval("is.infinite(FALSE)"), equalTo(c(false)));
-    assertThat( eval("is.infinite(1L)"), equalTo(c(false)));
+    assertThat( eval("is.infinite('Inf')"), elementsIdenticalTo(c(false)));
+    assertThat( eval("is.finite('Inf')"), elementsIdenticalTo(c(false)));
+    assertThat( eval("is.finite(1L)"), elementsIdenticalTo(c(true)));
+    assertThat( eval("is.finite(TRUE)"), elementsIdenticalTo(c(true)));
+    assertThat( eval("is.finite(FALSE)"), elementsIdenticalTo(c(true)));
+    assertThat( eval("is.infinite(TRUE)"), elementsIdenticalTo(c(false)));
+    assertThat( eval("is.infinite(FALSE)"), elementsIdenticalTo(c(false)));
+    assertThat( eval("is.infinite(1L)"), elementsIdenticalTo(c(false)));
   }
 
   @Test
   public void isnan() {
-    assertThat( eval("is.nan(1)"), equalTo(c(false)));
-    assertThat( eval("is.nan(1/0)"), equalTo(c(false)));
-    assertThat( eval("is.nan(NA)"), equalTo(c(false)));
-    assertThat( eval("is.nan(sqrt(-2))"), equalTo(c(true)));
+    assertThat( eval("is.nan(1)"), elementsIdenticalTo(c(false)));
+    assertThat( eval("is.nan(1/0)"), elementsIdenticalTo(c(false)));
+    assertThat( eval("is.nan(NA)"), elementsIdenticalTo(c(false)));
+    assertThat( eval("is.nan(sqrt(-2))"), elementsIdenticalTo(c(true)));
   }
 
   @Test
   public void isNa() {
-    assertThat( eval("is.na(1)"), equalTo(c(false)));
-    assertThat( eval("is.na(NA)"), equalTo(c(true)));
-    assertThat( eval("is.na(NA_integer_)"), equalTo(c(true)));
-    assertThat( eval("is.na(NA_character_)"), equalTo(c(true)));
-    assertThat( eval("is.na(NA_real_)"), equalTo(c(true)));
-    assertThat( eval("is.na(NA_complex_)"), equalTo(c(true)));
+    assertThat( eval("is.na(1)"), elementsIdenticalTo(c(false)));
+    assertThat( eval("is.na(NA)"), elementsIdenticalTo(c(true)));
+    assertThat( eval("is.na(NA_integer_)"), elementsIdenticalTo(c(true)));
+    assertThat( eval("is.na(NA_character_)"), elementsIdenticalTo(c(true)));
+    assertThat( eval("is.na(NA_real_)"), elementsIdenticalTo(c(true)));
+    assertThat( eval("is.na(NA_complex_)"), elementsIdenticalTo(c(true)));
 
-    assertThat( eval("is.na(NaN)"), equalTo(c(true)));
+    assertThat( eval("is.na(NaN)"), elementsIdenticalTo(c(true)));
     
-    assertThat( eval("is.na(1/0)"), equalTo(c(false)));
-    assertThat( eval("is.na(0/0)"), equalTo(c(true)));
+    assertThat( eval("is.na(1/0)"), elementsIdenticalTo(c(false)));
+    assertThat( eval("is.na(0/0)"), elementsIdenticalTo(c(true)));
   }
   
   @Test
   public void naList() {
     assertThat( eval(" is.na(list(NULL,  1,     FALSE, c(NA,4), NA_integer_, NA_real_)) "),
-                       equalTo( c(FALSE, FALSE, FALSE, FALSE,   TRUE,        TRUE)) );
+                       elementsIdenticalTo( c(FALSE, FALSE, FALSE, FALSE,   TRUE,        TRUE)) );
   }
 
   @Test
   public void naPreservesNames() {
-    assertThat( eval(" names(is.na(c(x=1,y=2))) "), equalTo( c("x", "y")));
+    assertThat( eval(" names(is.na(c(x=1,y=2))) "), elementsIdenticalTo( c("x", "y")));
   }
   
 //  @Test
@@ -292,10 +288,10 @@ public strictfp class TypesTest extends EvalTestCase {
   public void naPreservesDimNames() {
     eval( " x <- .Internal(rbind(1, c(a=1,b=2))) ");
     eval( " x <- is.na(x) ");
-    assertThat( eval(" dimnames(x)[[2]] "), equalTo( c("a", "b")));
+    assertThat( eval(" dimnames(x)[[2]] "), elementsIdenticalTo( c("a", "b")));
 
     eval(" x <- !x ");
-    assertThat( eval(" dimnames(x)[[2]] "), equalTo( c("a", "b")));
+    assertThat( eval(" dimnames(x)[[2]] "), elementsIdenticalTo( c("a", "b")));
   }
   
   @Test
@@ -304,28 +300,28 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" dim(x) <- c(3,4) ");
     eval(" dimnames(x) <- list(NULL, c('a','b','c','d'))");
     
-    assertThat(eval("dimnames(x)[[1]]"), equalTo(NULL));
+    assertThat(eval("dimnames(x)[[1]]"), identicalTo(NULL));
   }
 
 
   @Test
   public void unaryPreservesNames() {
-    assertThat( eval(" names(!is.na(c(x=1,y=2)))"), equalTo( c("x", "y")));
+    assertThat( eval(" names(!is.na(c(x=1,y=2)))"), elementsIdenticalTo( c("x", "y")));
   }
 
   @Test
   public void vector() {
-    assertThat( eval(" .Internal(vector('list', 3)) "), equalTo( list(NULL, NULL, NULL)));
-    assertThat( eval(" .Internal(vector('numeric', 2)) "), equalTo( c(0, 0)));
-    assertThat( eval(" .Internal(vector('character', 3)) "), equalTo( c("","","")) );
-    assertThat( eval(" .Internal(vector('logical', 2)) "), equalTo( c(FALSE, FALSE)) );
+    assertThat( eval(" .Internal(vector('list', 3)) "), elementsIdenticalTo( list(NULL, NULL, NULL)));
+    assertThat( eval(" .Internal(vector('numeric', 2)) "), elementsIdenticalTo( c(0, 0)));
+    assertThat( eval(" .Internal(vector('character', 3)) "), elementsIdenticalTo( c("","","")) );
+    assertThat( eval(" .Internal(vector('logical', 2)) "), elementsIdenticalTo( c(FALSE, FALSE)) );
   }
 
   @Test
   public void environment() {
     eval(" environment <- function(fun=NULL) .Internal(environment(fun)) ");
     eval(" f <- function() { qqq<-42; environment()$qqq }");
-    assertThat( eval("f()"), equalTo(c(42)));
+    assertThat( eval("f()"), elementsIdenticalTo(c(42)));
 
   }
   
@@ -334,7 +330,7 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" environment <- function(fun=NULL) .Internal(environment(fun)) ");
     eval(" g <- function(env) env$zz ");
     eval(" h <- function() { zz<-33; g(environment()); }");
-    assertThat( eval("h()"), equalTo(c(33)));
+    assertThat( eval("h()"), elementsIdenticalTo(c(33)));
   }
   
   @Test
@@ -345,8 +341,8 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" x <- .Internal(env2list(env,FALSE))");
     eval(" y <- .Internal(env2list(env,TRUE))");
 
-    assertThat(eval("names(x)"), CoreMatchers.equalTo(c("a")));
-    assertThat( eval("names(y)"), CoreMatchers.equalTo(c("a", ".a")));
+    assertThat(eval("names(x)"), elementsIdenticalTo(c("a")));
+    assertThat( eval("names(y)"), elementsIdenticalTo(c("a", ".a")));
   }
   
   @Test
@@ -357,8 +353,8 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" x <- .Internal(env2list(env,FALSE))");
     eval(" y <- .Internal(env2list(env,TRUE))");
 
-    assertThat( eval("names(x)"), CoreMatchers.equalTo(c("a")));
-    assertThat( eval("names(y)"), CoreMatchers.equalTo(c("a",".a")));
+    assertThat( eval("names(x)"), elementsIdenticalTo(c("a")));
+    assertThat( eval("names(y)"), elementsIdenticalTo(c("a",".a")));
   }
   
   @Test
@@ -369,14 +365,14 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" x <- .Internal(env2list(env,FALSE))");
     eval(" y <- .Internal(env2list(env,TRUE))");
 
-    assertThat( eval("names(x)"), CoreMatchers.equalTo(c("a","b")));
-    assertThat( eval("names(y)"), CoreMatchers.equalTo(c("a","b")));
+    assertThat( eval("names(x)"), elementsIdenticalTo(c("a","b")));
+    assertThat( eval("names(y)"), elementsIdenticalTo(c("a","b")));
   }
   
   @Test
   public void environmentName() {
-    assertThat( eval(".Internal(environmentName(baseenv()))"), CoreMatchers.equalTo(c("base")));
-    assertThat( eval(".Internal(environmentName(globalenv()))"), CoreMatchers.equalTo(c("R_GlobalEnv")));
+    assertThat( eval(".Internal(environmentName(baseenv()))"), elementsIdenticalTo(c("base")));
+    assertThat( eval(".Internal(environmentName(globalenv()))"), elementsIdenticalTo(c("R_GlobalEnv")));
   }
 
   @Test
@@ -392,24 +388,24 @@ public strictfp class TypesTest extends EvalTestCase {
 
   @Test
   public void list() {
-    assertThat( eval("list(\"a\")"), equalTo(list("a")));
+    assertThat( eval("list(\"a\")"), elementsIdenticalTo(list("a")));
   }
 
   @Test
   public void listOfNulls() {
-    assertThat( eval("list(NULL, NULL)"), equalTo( list(NULL, NULL) ));
+    assertThat( eval("list(NULL, NULL)"), elementsIdenticalTo( list(NULL, NULL) ));
   }
 
   @Test
   public void listOfNull() {
-    assertThat( eval("list(NULL)"), equalTo( list(NULL) ));
+    assertThat( eval("list(NULL)"), elementsIdenticalTo( list(NULL) ));
   }
   
   @Test
   public void closureBody() {
     eval(" f <- function(x) sqrt(x) ");
     
-    assertThat( eval(" .Internal(body(f))[[1]] "), CoreMatchers.equalTo(symbol("sqrt")));
+    assertThat( eval(" .Internal(body(f))[[1]] "), equalTo(symbol("sqrt")));
   }
 
   @Test
@@ -417,7 +413,7 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" x<-c(1,2,3) ");
     eval(" attr(x, 'class') <- 'foo' ");
 
-    assertThat( eval(" class(x) "), equalTo(c("foo")));
+    assertThat( eval(" class(x) "), elementsIdenticalTo(c("foo")));
   }
   
   @Test
@@ -426,11 +422,11 @@ public strictfp class TypesTest extends EvalTestCase {
     list.add("a", Symbol.MISSING_ARG);
     list.add("b", new DoubleArrayVector(2));
     list.add(FunctionCall.newCall(Symbol.get("+"), Symbol.get("a"), Symbol.get("b")));
-    global.setVariable(Symbol.get("x"), list.build());
+    global.setVariable(topLevelContext, Symbol.get("x"), list.build());
     
     eval("f <- .Internal(as.function.default(x, globalenv()))");
-    assertThat(eval("f(1)"), equalTo(c(3)));
-    assertThat(eval("f(1,3)"), equalTo(c(4)));
+    assertThat(eval("f(1)"), elementsIdenticalTo(c(3)));
+    assertThat(eval("f(1,3)"), elementsIdenticalTo(c(4)));
   }
 
   @Test
@@ -441,23 +437,23 @@ public strictfp class TypesTest extends EvalTestCase {
 
   @Test
   public void atomicVectorsHaveImplicitClasses() {
-    assertThat( eval("class(9)"), equalTo(c("numeric")));
-    assertThat( eval("class(9L)"), equalTo(c("integer")));
-    assertThat( eval("class('foo')"), equalTo(c("character")));
-    assertThat(eval("class(TRUE)"), equalTo(c("logical")));
-    assertThat(eval("class(NULL)"), equalTo(c("NULL")));
+    assertThat( eval("class(9)"), elementsIdenticalTo(c("numeric")));
+    assertThat( eval("class(9L)"), elementsIdenticalTo(c("integer")));
+    assertThat( eval("class('foo')"), elementsIdenticalTo(c("character")));
+    assertThat(eval("class(TRUE)"), elementsIdenticalTo(c("logical")));
+    assertThat(eval("class(NULL)"), elementsIdenticalTo(c("NULL")));
   }
   
   @Test
   @Ignore("to implement")
   public void someSpecialFunctionsHaveTheirOwnImplicitClass() {
-    assertThat( eval("class(quote({1}))"), equalTo(c("{")));
-    assertThat( eval("class(quote(if(TRUE) 1 else 0))"), equalTo(c("if")));
-    assertThat( eval("class(quote(while(TRUE) 1))"), equalTo(c("while")));
-    assertThat( eval("class(quote(for(x in 1:9) x))"), equalTo(c("for")));
+    assertThat( eval("class(quote({1}))"), elementsIdenticalTo(c("{")));
+    assertThat( eval("class(quote(if(TRUE) 1 else 0))"), elementsIdenticalTo(c("if")));
+    assertThat( eval("class(quote(while(TRUE) 1))"), elementsIdenticalTo(c("while")));
+    assertThat( eval("class(quote(for(x in 1:9) x))"), elementsIdenticalTo(c("for")));
  //   assertThat( eval("class(quote(x=1)"), equalTo(c("=")));
-    assertThat( eval("class(quote(x<-1)"), equalTo(c("<-")));
-    assertThat( eval("class(quote((1+1))"), equalTo(c("(")));
+    assertThat( eval("class(quote(x<-1)"), elementsIdenticalTo(c("<-")));
+    assertThat( eval("class(quote((1+1))"), elementsIdenticalTo(c("(")));
   }
   
   @Test
@@ -465,28 +461,28 @@ public strictfp class TypesTest extends EvalTestCase {
     eval("m <- 1:12");
     eval("dim(m) <- c(3,4)");
     eval("class(m) <- c('foo','bar')");
-    assertThat( eval("class(m)"), equalTo(c("foo", "bar")));        
+    assertThat( eval("class(m)"), elementsIdenticalTo(c("foo", "bar")));
   }
 
   @Test
   public void matricesHaveImplicitClass() {
     eval("m <- 1:12");
     eval("dim(m) <- c(3,4)");
-    assertThat( eval("class(m)"), equalTo(c("matrix")));    
+    assertThat( eval("class(m)"), elementsIdenticalTo(c("matrix")));
   }
   
   @Test
   public void matricesAreNotObjects() {
     eval("m <- 1:12");
     eval("dim(m) <- c(3,4)");
-    assertThat( eval("is.object(m)"), equalTo(c(false)));
+    assertThat( eval("is.object(m)"), elementsIdenticalTo(c(false)));
   }
   
   @Test
   public void arraysHaveImplicitClass() {
     eval("a <- 1:12");
     eval("dim(a) <- 12");
-    assertThat( eval("class(a)"), equalTo(c("array")));
+    assertThat( eval("class(a)"), elementsIdenticalTo(c("array")));
   }
   
   
@@ -496,7 +492,7 @@ public strictfp class TypesTest extends EvalTestCase {
     eval("x<-1");
     eval("class(x) <- 'foo'");
     eval("x <- unclass(x)");
-    assertThat(eval("class(x)"), equalTo(c("numeric")));
+    assertThat(eval("class(x)"), elementsIdenticalTo(c("numeric")));
   }
   
   @Test
@@ -505,8 +501,8 @@ public strictfp class TypesTest extends EvalTestCase {
     eval("attr(x,'zing')<-'bat'");
     eval("class(x) <- 'foo'");
     eval("x <- unclass(x)");
-    assertThat(eval("class(x)"), equalTo(c("numeric")));
-    assertThat(eval("attr(x,'zing')"), equalTo(c("bat")));
+    assertThat(eval("class(x)"), elementsIdenticalTo(c("numeric")));
+    assertThat(eval("attr(x,'zing')"), elementsIdenticalTo(c("bat")));
 
   }
 
@@ -515,7 +511,7 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" x<-c(1,2,3) ");
     eval(" names(x) <- c(4,5,6) ");
 
-    assertThat( eval("names(x)"), equalTo( c("4", "5","6")));
+    assertThat( eval("names(x)"), elementsIdenticalTo( c("4", "5","6")));
   }
 
   @Test
@@ -523,7 +519,7 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" x<-c(1,2,3) ");
     eval(" names(x) <- quote(quote(z)) ");
 
-    assertThat( eval("names(x)"), equalTo( c("z", StringVector.NA, StringVector.NA)));
+    assertThat( eval("names(x)"), elementsIdenticalTo( c("z", StringVector.NA, StringVector.NA)));
   }
 
   @Test
@@ -531,8 +527,8 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" x <- 1:5");
     eval(" attributes(x) <- list(names=c('a','b', 'c'), foo='bar') ");
 
-    assertThat(eval(" names(x) "), equalTo(c("a", "b", "c", StringVector.NA, StringVector.NA)));
-    assertThat( eval(" attr(x, 'foo') "), equalTo( c("bar")));
+    assertThat(eval(" names(x) "), elementsIdenticalTo(c("a", "b", "c", StringVector.NA, StringVector.NA)));
+    assertThat( eval(" attr(x, 'foo') "), elementsIdenticalTo( c("bar")));
 
   }
 
@@ -546,9 +542,9 @@ public strictfp class TypesTest extends EvalTestCase {
   public void asVector() {
     eval(" as.vector <- function (x, mode = 'any') .Internal(as.vector(x, mode)) ");
 
-    assertThat( eval("as.vector(1, 'character')"), equalTo( c("1" )));
-    assertThat( eval("as.vector(c(4,5,0), mode='logical')"), equalTo(c(true, true, false)));
-    assertThat( eval("as.vector(c(TRUE,FALSE,NA), mode='double')"), equalTo(c(1.0, 0, DoubleVector.NA)));
+    assertThat( eval("as.vector(1, 'character')"), elementsIdenticalTo( c("1" )));
+    assertThat( eval("as.vector(c(4,5,0), mode='logical')"), elementsIdenticalTo(c(true, true, false)));
+    assertThat( eval("as.vector(c(TRUE,FALSE,NA), mode='double')"), elementsIdenticalTo(c(1.0, 0, DoubleVector.NA)));
   }
   
   @Test
@@ -557,7 +553,7 @@ public strictfp class TypesTest extends EvalTestCase {
     eval("attr(x, 'foo') <- 'bar'");
     eval("y <- as.vector(x)");
     
-    assertThat( eval("attributes(y)"), equalTo((SEXP)Null.INSTANCE));
+    assertThat( eval("attributes(y)"), identicalTo((SEXP)Null.INSTANCE));
   }
 
   @Test
@@ -568,10 +564,10 @@ public strictfp class TypesTest extends EvalTestCase {
     eval("y <- as.vector(x, 'list') ");
 
     // Names are preserved
-    assertThat(eval("names(y)"), equalTo(c("a", "b", "c")));
+    assertThat(eval("names(y)"), elementsIdenticalTo(c("a", "b", "c")));
     
     // all other attributes are saved
-    assertThat(eval("attr(y, 'foo')"), equalTo((SEXP)Null.INSTANCE));
+    assertThat(eval("attr(y, 'foo')"), identicalTo((SEXP)Null.INSTANCE));
   }
 
   @Test
@@ -582,10 +578,10 @@ public strictfp class TypesTest extends EvalTestCase {
     eval("y <- as.vector(x, 'pairlist') ");
 
     // Names are preserved
-    assertThat(eval("names(y)"), equalTo(c("a", "b", "c")));
+    assertThat(eval("names(y)"), elementsIdenticalTo(c("a", "b", "c")));
 
     // all other attributes are saved
-    assertThat(eval("attr(y, 'foo')"), equalTo((SEXP)Null.INSTANCE));
+    assertThat(eval("attr(y, 'foo')"), identicalTo((SEXP)Null.INSTANCE));
   }
 
   @Test
@@ -595,13 +591,13 @@ public strictfp class TypesTest extends EvalTestCase {
     eval("attr(x, 'foo') <- 'bar'");
 
     eval("y <- as.vector(x, 'pairlist')");
-    assertThat(eval("dim(y)"), equalTo(c_i(2, 2)));
-    assertThat(eval("attr(y, 'foo')"), equalTo(c("bar")));
+    assertThat(eval("dim(y)"), elementsIdenticalTo(c_i(2, 2)));
+    assertThat(eval("attr(y, 'foo')"), elementsIdenticalTo(c("bar")));
     
     
     eval("y <- as.pairlist(x) ");
-    assertThat(eval("dim(y)"), equalTo(c_i(2, 2)));
-    assertThat(eval("attr(y, 'foo')"), equalTo(c("bar")));
+    assertThat(eval("dim(y)"), elementsIdenticalTo(c_i(2, 2)));
+    assertThat(eval("attr(y, 'foo')"), elementsIdenticalTo(c("bar")));
   }
 
 
@@ -614,14 +610,14 @@ public strictfp class TypesTest extends EvalTestCase {
     eval("y <- as.vector(x, 'list') ");
 
     // Dims and dimnames are NOT preserved
-    assertThat(eval("dim(y)"), equalTo((SEXP)Null.INSTANCE));
-    assertThat(eval("dimnames(y)"), equalTo((SEXP)Null.INSTANCE));
+    assertThat(eval("dim(y)"), identicalTo((SEXP)Null.INSTANCE));
+    assertThat(eval("dimnames(y)"), identicalTo((SEXP)Null.INSTANCE));
   }
   
   @Test
   public void naSymbol() {
     eval(" s <- .Internal(as.vector('NA', 'symbol'))");
-    assertTrue(global.getVariable("s").equals(Symbol.get("NA")));
+    assertTrue(global.getVariable(topLevelContext, "s").equals(Symbol.get("NA")));
   }
 
 
@@ -636,12 +632,12 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" as.vector <- function (x, mode = 'any') .Internal(as.vector(x, mode)) ");
     eval(" x <- as.vector( c(a=1,b=2), mode = 'pairlist') ");
 
-    PairList.Node head = (PairList.Node) global.getVariable("x");
+    PairList.Node head = (PairList.Node) global.getVariable(topLevelContext, "x");
     assertThat( head.length(), equalTo(2));
-    assertThat( head.getNode(0).getTag(), equalTo( symbol("a")));
-    assertThat( head.getElementAsSEXP(0), equalTo( c(1) ));
-    assertThat(head.getNode(1).getTag(), equalTo( symbol("b") ));
-    assertThat( head.getElementAsSEXP(1), equalTo( c(2) ));
+    assertThat( head.getNode(0).getTag(), identicalTo( symbol("a")));
+    assertThat( head.getElementAsSEXP(0), elementsIdenticalTo( c(1) ));
+    assertThat(head.getNode(1).getTag(), identicalTo( symbol("b") ));
+    assertThat( head.getElementAsSEXP(1), elementsIdenticalTo( c(2) ));
   }
 
   @Test
@@ -655,10 +651,10 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" x <- .Internal(as.vector(list(a=41, b=42), 'pairlist')) ");
     eval(" y <- .Internal(as.vector(x, 'list')) ");
 
-    assertThat( eval("y"), equalTo( list(41d,42d)));
-    assertThat( eval("names(x)"), equalTo( c("a", "b")));
-    assertThat( eval(".Internal(typeof(x))"), equalTo( c("pairlist")));
-    assertThat( eval("names(y)"), equalTo( c("a", "b")));
+    assertThat( eval("y"), elementsIdenticalTo( list(41d,42d)));
+    assertThat( eval("names(x)"), elementsIdenticalTo( c("a", "b")));
+    assertThat( eval(".Internal(typeof(x))"), elementsIdenticalTo( c("pairlist")));
+    assertThat( eval("names(y)"), elementsIdenticalTo( c("a", "b")));
   }
 
   @Test
@@ -667,21 +663,21 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" x <- quote(~(0+births)) ");
     eval(" y <- .Internal(as.vector(x, 'list')) ");
 
-    assertThat( eval("length(y)"), equalTo( c_i(2)));
-    assertThat( eval("names(y)"), equalTo(  NULL ));
-    assertThat( eval(".Internal(typeof(y[[2]]))"), equalTo( c("language")));
+    assertThat( eval("length(y)"), elementsIdenticalTo( c_i(2)));
+    assertThat( eval("names(y)"), identicalTo(  NULL ));
+    assertThat( eval(".Internal(typeof(y[[2]]))"), elementsIdenticalTo( c("language")));
   }
   
   @Test
   public void setLength(){
     eval("x <- c(1,2,3)");
-    assertThat(eval("length(x)"), equalTo(c_i(3)));
+    assertThat(eval("length(x)"), elementsIdenticalTo(c_i(3)));
     eval("length(x)<-4");
-    assertThat(eval("length(x)"), equalTo(c_i(4)));
-    assertThat(eval("is.na(x[4])"),equalTo(c(true)));
+    assertThat(eval("length(x)"), elementsIdenticalTo(c_i(4)));
+    assertThat(eval("is.na(x[4])"), elementsIdenticalTo(c(true)));
     
     eval("length(x) <- 2");
-    assertThat(eval("x"), equalTo(c(1,2)));
+    assertThat(eval("x"), elementsIdenticalTo(c(1,2)));
   }
   
   @Test
@@ -692,8 +688,8 @@ public strictfp class TypesTest extends EvalTestCase {
     
     eval("length(a) <- 4");
     
-    assertThat(eval("dim(a)"), equalTo(NULL));
-    assertThat(eval("names(a)"), equalTo(c("a", "b", "c", "")));
+    assertThat(eval("dim(a)"), identicalTo(NULL));
+    assertThat(eval("names(a)"), elementsIdenticalTo(c("a", "b", "c", "")));
 
   }
 
@@ -701,45 +697,52 @@ public strictfp class TypesTest extends EvalTestCase {
   public void setLengthWithNames() {
     eval("x <- c(a=1,b=2,c=3)");
     eval("attr(x, 'foo') <- 'baz'");
+    eval("y = c(a=1, b=2, c=3)");
+    eval("attr(y, 'foo') <- 'bar'");
 
     eval("length(x)<-2");
-    assertThat(eval("length(x)"), equalTo(c_i(2)));
-    assertThat(eval("length(names(x))"),equalTo(c_i(2)));
-    assertThat(eval("attr(x,'foo')"),equalTo(NULL));
+    eval("length(y)<-3");
+    assertThat(eval("length(x)"), elementsIdenticalTo(c_i(2)));
+    assertThat(eval("length(names(x))"), elementsIdenticalTo(c_i(2)));
+    assertThat(eval("attr(x,'foo')"), identicalTo(NULL));
+
+    assertThat(eval("length(y)"), elementsIdenticalTo(c_i(3)));
+    assertThat(eval("length(names(y))"), elementsIdenticalTo(c_i(3)));
+    assertThat(eval("attr(y,'foo')"), identicalTo(c("bar")));
 
   }
   
   @Test
   public void isRawAndAsRaw(){
-    assertThat( eval("is.raw(as.raw(c(123,124)))"), equalTo(c(Logical.TRUE)));
-    assertThat( eval("as.raw(c(1,20,30))"), equalTo(c_raw(0x1, 0x14, 0x1e)));
+    assertThat( eval("is.raw(as.raw(c(123,124)))"), elementsIdenticalTo(c(Logical.TRUE)));
+    assertThat( eval("as.raw(c(1,20,30))"), elementsIdenticalTo(c_raw(0x1, 0x14, 0x1e)));
   }
   
   @Test
   public void rawToBits(){
-    assertThat( eval(".Internal(rawToBits(as.raw(c(1,2))))"), equalTo(bits("1000000001000000")));
+    assertThat( eval(".Internal(rawToBits(as.raw(c(1,2))))"), identicalTo(bits("1000000001000000")));
   }
   
   @Test
   public void charToRaw(){
-    assertThat( eval(".Internal(charToRaw(\"ABC\"))"), equalTo(c_raw(0x41, 0x42, 0x43)));
+    assertThat( eval(".Internal(charToRaw(\"ABC\"))"), elementsIdenticalTo(c_raw(0x41, 0x42, 0x43)));
   }
   
   @Test
   public void multiByteCharToRaw(){
-    assertThat( eval(".Internal(charToRaw('\u00a0'))"), equalTo(c_raw(0xc2, 0xa0)));
+    assertThat( eval(".Internal(charToRaw('\u00a0'))"), elementsIdenticalTo(c_raw(0xc2, 0xa0)));
   }
   
   @Test
   public void rawShift() {
-    assertThat(eval(".Internal(rawShift(as.raw(c(29:31)),1))"), equalTo(c_raw(0x3a, 0x3c, 0x3e)));
+    assertThat(eval(".Internal(rawShift(as.raw(c(29:31)),1))"), elementsIdenticalTo(c_raw(0x3a, 0x3c, 0x3e)));
   }
   
   @Test
   public void intToBits() {
-    assertThat(eval(".Internal(intToBits(1))"), equalTo(bits("10000000000000000000000000000000")));
-    assertThat(eval(".Internal(intToBits(234234))"), equalTo(bits("01011111010010011100000000000000")));
-    assertThat(eval(".Internal(intToBits(NA))"), equalTo(bits("00000000000000000000000000000001")));
+    assertThat(eval(".Internal(intToBits(1))"), identicalTo(bits("10000000000000000000000000000000")));
+    assertThat(eval(".Internal(intToBits(234234))"), identicalTo(bits("01011111010010011100000000000000")));
+    assertThat(eval(".Internal(intToBits(NA))"), identicalTo(bits("00000000000000000000000000000001")));
 
   }
 
@@ -758,7 +761,7 @@ public strictfp class TypesTest extends EvalTestCase {
     eval("class(x) <- 'foo'");
     
     eval("is.na.foo <- function(x) 'FOO!!'");
-    assertThat(eval("is.na(x)"), equalTo(c("FOO!!")));
+    assertThat(eval("is.na(x)"), elementsIdenticalTo(c("FOO!!")));
   }
   
   @Test
@@ -767,7 +770,7 @@ public strictfp class TypesTest extends EvalTestCase {
     byte[] bytes = "!\"#$%&'()".getBytes();
     String s = new String(bytes);
     
-    assertThat(eval(".Internal(rawToChar(as.raw(32:126), FALSE))"), equalTo(
+    assertThat(eval(".Internal(rawToChar(as.raw(32:126), FALSE))"), elementsIdenticalTo(
         c(" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~")));
     
   }
@@ -780,9 +783,9 @@ public strictfp class TypesTest extends EvalTestCase {
     eval("dimnames(x) <- dimnames(x) <- list(c('r1','r2','r3'), 'd2', c('c1', 'c2', 'c3', 'c4'), 'd4')");
     eval("y <- .Internal(drop(x))");
     
-    assertThat(eval("dim(y)"), equalTo(c_i(3,4)));
-    assertThat(eval("dimnames(y)[[1]]"), equalTo(c("r1", "r2", "r3")));
-    assertThat(eval("dimnames(y)[[2]]"), equalTo(c("c1", "c2", "c3", "c4")));
+    assertThat(eval("dim(y)"), elementsIdenticalTo(c_i(3,4)));
+    assertThat(eval("dimnames(y)[[1]]"), elementsIdenticalTo(c("r1", "r2", "r3")));
+    assertThat(eval("dimnames(y)[[2]]"), elementsIdenticalTo(c("c1", "c2", "c3", "c4")));
   }
 
 
@@ -792,7 +795,7 @@ public strictfp class TypesTest extends EvalTestCase {
   public void expression() {
     eval(" ex <- expression({ x * 2})");
     eval(" x<-4 ");
-    assertThat( eval(".Internal(eval(ex,globalenv(),NULL))"), equalTo(c(8)));
+    assertThat( eval(".Internal(eval(ex,globalenv(),NULL))"), elementsIdenticalTo(c(8)));
   }
 
   @Test(expected=EvalException.class) 
@@ -802,15 +805,15 @@ public strictfp class TypesTest extends EvalTestCase {
   
   @Test
   public void existsNoInherit() {
-    assumingBasePackagesLoad();
+
     eval("x <- 42");
     eval("f <- function() { exists('x', inherits=FALSE) } ");
-    assertThat( eval("f()"), equalTo(c(false)));
+    assertThat( eval("f()"), elementsIdenticalTo(c(false)));
   }
   
   @Test
   public void getNoInheritThrows() {
-    assumingBasePackagesLoad();
+
     eval("x <- 42");
     eval("f <- function() { exists('x', inherits=FALSE) } ");
     eval("f()");
@@ -819,8 +822,8 @@ public strictfp class TypesTest extends EvalTestCase {
   @Test
   public void listToEnvironment() {
     eval("x <- as.environment(list(a=42,b=64))");
-    assertThat(eval("x$a"), equalTo(c(42)));
-    assertThat(eval("x$b"), equalTo(c(64)));
+    assertThat(eval("x$a"), elementsIdenticalTo(c(42)));
+    assertThat(eval("x$b"), elementsIdenticalTo(c(64)));
 
   }
   
@@ -850,7 +853,7 @@ public strictfp class TypesTest extends EvalTestCase {
     
     eval("y <- .Internal(as.vector(x, 'list'))");
     
-    assertThat(eval("dim(y)"), equalTo((SEXP)Null.INSTANCE));
+    assertThat(eval("dim(y)"), identicalTo((SEXP)Null.INSTANCE));
   }
   
 }

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,13 +19,11 @@
 package org.renjin.compiler.ir.tac.functions;
 
 
-import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.expressions.BuiltinCall;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.statements.ExprStatement;
-import org.renjin.primitives.Primitives;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.PrimitiveFunction;
@@ -38,13 +36,11 @@ class BuiltinTranslator extends FunctionCallTranslator {
 
   @Override
   public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
-    Primitives.Entry entry = Primitives.getBuiltinEntry(((PrimitiveFunction) resolvedFunction).getName());
-    if(entry == null) {
-      throw new NotCompilableException(call);
-    }
+    String functionName = ((PrimitiveFunction) resolvedFunction).getName();
+
     List<IRArgument> arguments = builder.translateArgumentList(context, call.getArguments());
     
-    return new BuiltinCall(builder.getRuntimeState(), call, entry, arguments);
+    return new BuiltinCall(builder.getRuntimeState(), call, functionName, arguments);
   }
 
   @Override
@@ -52,15 +48,12 @@ class BuiltinTranslator extends FunctionCallTranslator {
                                                 Function resolvedFunction, FunctionCall getterCall,
                                                 Expression rhs) {
 
-    Primitives.Entry entry = Primitives.getBuiltinEntry(((PrimitiveFunction) resolvedFunction).getName());
-    if(entry == null) {
-      throw new NotCompilableException(getterCall);
-    }
-    
+    String functionName = ((PrimitiveFunction) resolvedFunction).getName();
+
     List<IRArgument> arguments = builder.translateArgumentList(context, getterCall.getArguments());
     arguments.add(new IRArgument("value", rhs));
 
-    return new BuiltinCall(builder.getRuntimeState(), getterCall, entry, arguments);
+    return new BuiltinCall(builder.getRuntimeState(), getterCall, functionName, arguments);
   }
 
   @Override

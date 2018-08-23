@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -84,8 +84,8 @@ public class VectorPipelinerTest extends EvalTestCase {
   
   @Test
   public void logicalArgument() {
-    topLevelContext.getGlobalEnvironment().setVariable("x", new LogicalArrayVector(new int[1000]));
-    topLevelContext.getGlobalEnvironment().setVariable("y", new DoubleArrayVector(new double[1000]));
+    topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "x", new LogicalArrayVector(new int[1000]));
+    topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "y", new DoubleArrayVector(new double[1000]));
 
     eval("a <- !x");
     eval("b <- y * a");

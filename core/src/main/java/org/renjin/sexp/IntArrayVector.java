@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,8 @@ import java.util.Arrays;
 
 public class IntArrayVector extends IntVector {
 
+  public static final IntArrayVector NA_VECTOR = new IntArrayVector(IntVector.NA);
+
   private int[] values;
 
   private IntArrayVector(AttributeMap attributes) {
@@ -35,7 +37,7 @@ public class IntArrayVector extends IntVector {
   }
 
   public IntArrayVector(IntVector vector) {
-    super(vector.attributes);
+    super(vector.getAttributes());
     this.values = vector.toIntArray();
   }
 
@@ -56,7 +58,7 @@ public class IntArrayVector extends IntVector {
   public IntArrayVector(int[] values, AttributeMap attributes) {
     this(values, values.length, attributes);
   }
-
+  
   @Override
   public int length() {
     return values.length;
@@ -66,7 +68,7 @@ public class IntArrayVector extends IntVector {
   public int getElementAsInt(int i) {
     return values[i];
   }
-
+  
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     IntArrayVector clone = new IntArrayVector(attributes);
@@ -118,7 +120,7 @@ public class IntArrayVector extends IntVector {
       }
       values = new int[initialCapacity];
       size = initialSize;
-      Arrays.fill(values, NA);
+      Arrays.fill(values, IntVector.NA);
     }
 
     public Builder(int initialSize) {
@@ -160,6 +162,12 @@ public class IntArrayVector extends IntVector {
 
     public Builder add(double value) {
       return set(size, value);
+    }
+
+
+    public Builder fill(int value) {
+      Arrays.fill(values, value);
+      return this;
     }
 
     @Override

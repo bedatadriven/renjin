@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,13 +44,13 @@ public class UnwrapExternalObject extends ArgConverterStrategy {
   public JExpression getTestExpr(JCodeModel codeModel, JVar sexp) {
     JClass externalClass = codeModel.ref(ExternalPtr.class);
     return sexp._instanceof(externalClass)
-            .cand(invoke(cast(externalClass, sexp), "getValue")._instanceof(codeModel.ref(formal.getClazz())));
+            .cand(invoke(cast(externalClass, sexp), "getInstance")._instanceof(codeModel.ref(formal.getClazz())));
   }
 
   @Override
   public JExpression convertArgument(ApplyMethodContext method, JExpression sexp) {
     JClass externalClass = method.classRef(ExternalPtr.class);
     JClass formalClass = method.classRef(formal.getClazz());
-    return cast(formalClass, invoke(cast(externalClass, sexp), "getValue"));
+    return cast(formalClass, invoke(cast(externalClass, sexp), "getInstance"));
   }
 }

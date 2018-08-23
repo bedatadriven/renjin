@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
  */
 package org.renjin.gcc.codegen.type.record;
 
-import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.gimple.type.GimpleField;
@@ -45,8 +44,6 @@ public abstract class RecordTypeStrategy<ExprT extends GExpr> implements TypeStr
     return recordTypeDef;
   }
 
-  public abstract GExpr memberOf(MethodGenerator mv, ExprT instance, int offset, int size, TypeStrategy fieldTypeStrategy);
-
   public static boolean isCircularField(GimpleRecordTypeDef typeDef, GimpleField gimpleField) {
     // GCC emits this weird member at the end of class 
     // need to figure out why this is there 
@@ -59,4 +56,7 @@ public abstract class RecordTypeStrategy<ExprT extends GExpr> implements TypeStr
     return false;
   }
 
+  public final GimpleRecordType getGimpleType() {
+    return recordType;
+  }
 }

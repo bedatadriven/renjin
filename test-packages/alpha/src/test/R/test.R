@@ -1,6 +1,6 @@
 #
 # Renjin : JVM-based interpreter for the R language for the statistical analysis
-# Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+# Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,14 +21,9 @@
 library(org.renjin.test.alpha)
 library(hamcrest)
 
-test.invokeMethodsInJvmDependency <- function() {
-    node <- parseAlpha('{ "foo": 42 }')
-    assertThat(node$nodeType, identicalTo('OBJECT'))
-    assertThat(node$get('foo')$asInt(), equalTo(42))
-}
 
-test.jacksonVersion <- function() {
-    assertThat(alphaVersion(), identicalTo("2.5.1"))
+test.jtsVersion <- function() {
+    assertThat(alphaVersion(), identicalTo("1.13.0"))
 }
 
 test.invokeMethodsInJavaClasses <- function() {
@@ -47,13 +42,12 @@ test.dependenciesLoadedOnClasspath <- function() {
     # will be on or added to the JVM's classpath, and so available to any R 
     # code that happens to run. 
     
-    import(com.fasterxml.jackson.databind.ObjectMapper)
-    om <- ObjectMapper$new()
-    assertThat(om$version()$toString(), identicalTo("2.5.1"))
+    jv <- import(com.vividsolutions.jts.JTSVersion)
+    assertThat(jv$CURRENT_VERSION$toString(), identicalTo("1.13.0"))
 }
 
 test.definedDuringLoad <- function() {
-    assertThat(defined.during.load, identicalTo(84))
+    assertThat(alpha:::defined.during.load, identicalTo(84))
 }
 
 

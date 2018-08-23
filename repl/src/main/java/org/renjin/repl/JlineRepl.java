@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,6 @@ import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.*;
 import org.renjin.parser.RParser.StatusResult;
-import org.renjin.primitives.Warning;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
 
@@ -66,7 +65,7 @@ public class JlineRepl {
     this.session = session;
     this.topLevelContext = session.getTopLevelContext();
     this.reader = reader;
-    this.sessionController = new JlineSessionController(reader.getTerminal());
+    this.sessionController = new JlineSessionController(reader);
     this.session.setSessionController(sessionController);
     this.errorStream = new PrintStream(System.err);
   }
@@ -146,8 +145,8 @@ public class JlineRepl {
       reader.println("Renjin");
     }
 
-    reader.println("Copyright (C) 2017 The R Foundation for Statistical Computing");
-    reader.println("Copyright (C) 2017 BeDataDriven");
+    reader.println("Copyright (C) 2018 The R Foundation for Statistical Computing");
+    reader.println("Copyright (C) 2018 BeDataDriven");
 
     printBlasLibrary();
 
@@ -220,6 +219,7 @@ public class JlineRepl {
 
           case ERROR:
             throw new ParseException(parser.getResultStatus().toString());
+
           case EOF:
             break parseLoop;
         }
@@ -238,7 +238,7 @@ public class JlineRepl {
     }
 
     // clean up last warnings from any previous run
-    clearWarnings();
+    session.clearWarnings();
 
     try {
       SEXP result = topLevelContext.evaluate(new ExpressionVector(exprList), topLevelContext.getGlobalEnvironment());
@@ -247,7 +247,7 @@ public class JlineRepl {
         topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), Promise.repromise(result)));
       }
 
-      printWarnings();
+      session.printWarnings();
     } catch(EvalException e) {
       printEvalException(e);
       if(stopOnError) {
@@ -264,13 +264,11 @@ public class JlineRepl {
     return true;
   }
 
-
   private void printException(Exception e) throws IOException {
     reader.getOutput().flush();
     errorStream.println("ERROR: " + e.getMessage());
     e.printStackTrace(errorStream);
     errorStream.flush();
-  //  reader.killLine();
   }
 
   private void printEvalException(EvalException e) throws IOException {
@@ -281,27 +279,31 @@ public class JlineRepl {
     }
     e.printRStackTrace(errorStream);
     errorStream.flush();
-  //  reader.killLine();
   }
 
-  private void printWarnings() {
-    SEXP warnings = topLevelContext.getBaseEnvironment().getVariable(Warning.LAST_WARNING);
-    if(warnings != Symbol.UNBOUND_VALUE) {
-      topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
-          topLevelContext.getBaseEnvironment());
-    }
-  }
-
-  private void clearWarnings() {
-    topLevelContext.getBaseEnvironment().remove(Warning.LAST_WARNING);
-  }
 
   public ConsoleReader getReader() {
     return reader;
+  }
+
+
+  public void close() {
+    maybeShutdownGraphicsDevices();
+  }
+
+  /**
+   * If the grDevices namespace is loaded, then close up any open graphics devices.
+   */
+  private void maybeShutdownGraphicsDevices() {
+    session.getNamespaceRegistry().getNamespaceIfPresent(Symbol.get("grDevices")).ifPresent(namespace -> {
+      SEXP shutdownFunction = namespace.getEntry(Symbol.get("shutdown"));
+      session.getTopLevelContext().evaluate(FunctionCall.newCall(shutdownFunction));
+    });
   }
 
   public static void main(String[] args) throws Exception {
     JlineRepl repl = new JlineRepl(SessionBuilder.buildDefault());
     repl.run();
   }
+
 }

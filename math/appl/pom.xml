@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.renjin</groupId>
     <artifactId>parent</artifactId>
-    <version>0.9.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -39,6 +39,13 @@
               <packageName>org.renjin.appl</packageName>
               <mainClass>Appl</mainClass>
             </configuration>
+          </execution>
+          <execution>
+            <id>soot-classes</id>
+            <goals>
+              <goal>soot</goal>
+            </goals>
+            <phase>process-classes</phase>
           </execution>
         </executions>
       </plugin>

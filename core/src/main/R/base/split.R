@@ -1,5 +1,7 @@
 #  File src/library/base/R/split.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,25 +14,26 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 split <- function(x, f, drop = FALSE, ...) UseMethod("split")
 
-split.default <- function(x, f, drop = FALSE, ...)
+split.default <- function(x, f, drop = FALSE, sep = ".", lex.order = FALSE, ...)
 {
-    if(length(list(...))) .NotYetUsed(deparse(...), error = FALSE)
+    if(!missing(...)) .NotYetUsed(deparse(list(...)), error = FALSE)
 
-    if (is.list(f)) f <- interaction(f, drop = drop)
-    else if (drop || !is.factor(f)) # drop extraneous levels
-	f <- factor(f)
-    storage.mode(f) <- "integer"  # some factors have double
+    if (is.list(f))
+	f <- interaction(f, drop = drop, sep = sep, lex.order = lex.order)
+    else if (!is.factor(f)) f <- as.factor(f) # docs say as.factor
+    else if (drop) f <- factor(f) # drop extraneous levels
+    storage.mode(f) <- "integer"  # some factors have had double in the past
     if (is.null(attr(x, "class")))
 	return(.Internal(split(x, f)))
     ## else
     lf <- levels(f)
     y <- vector("list", length(lf))
     names(y) <- lf
-    ind <- .Internal(split(seq_along(f), f))
+    ind <- .Internal(split(seq_along(x), f))
     for(k in lf) y[[k]] <- x[ind[[k]]]
     y
 }
@@ -39,24 +42,6 @@ split.default <- function(x, f, drop = FALSE, ...)
 split.data.frame <- function(x, f, drop = FALSE, ...)
     lapply(split(x = seq_len(nrow(x)), f = f, drop = drop, ...),
            function(ind) x[ind, , drop = FALSE])
-
-## split.data.frame <- function(x, f, drop = FALSE, ...)
-## {
-##     inds <- split(seq_len(nrow(x)), f, drop = drop, ...)
-##     rn <- row.names(x)
-##     cl <- class(x)
-##     class(x) <- NULL
-##     a <- attributes(x)
-##     a <- a[names(a) != "row.names"]
-##     lapply(inds, function(i) {
-##         z <- lapply(x, "[", i)
-##         if(length(a)) attributes(z) <- a
-##         class(z) <- cl
-##         attr(z, "row.names") <- rn[i]
-##         z
-##     })
-## }
-
 
 `split<-` <- function(x, f, drop = FALSE, ..., value) UseMethod("split<-")
 
@@ -85,7 +70,7 @@ split.data.frame <- function(x, f, drop = FALSE, ...)
     x
 }
 
-unsplit <-function (value, f, drop = FALSE)
+unsplit <- function (value, f, drop = FALSE)
 {
     len <- length(if (is.list(f)) f[[1L]] else f)
     if (is.data.frame(value[[1L]])) {

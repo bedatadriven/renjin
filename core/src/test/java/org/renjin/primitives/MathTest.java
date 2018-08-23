@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,23 +30,23 @@ public class MathTest extends EvalTestCase {
 
   @Test
   public void negativeNumbers() {
-    assertThat( eval( "-1" ), equalTo( c( -1 )));
+    assertThat( eval( "-1" ), elementsIdenticalTo( c( -1 )));
   }
 
 
   @Test
   public void positiveNumbers() {
-    assertThat( eval( "+1" ), equalTo( c( 1 )));
+    assertThat( eval( "+1" ), elementsIdenticalTo( c( 1 )));
   }
 
   @Test
   public void simpleOp() {
-    assertThat( eval(" 1050 - 50"), equalTo( c(1000) ) );
+    assertThat( eval(" 1050 - 50"), elementsIdenticalTo( c(1000) ) );
   }
 
   @Test
   public void unaryCall() {
-    assertThat( eval("atan(1)"), equalTo( c(Math.atan(1)) ) );
+    assertThat( eval("atan(1)"), elementsIdenticalTo( c(Math.atan(1)) ) );
   }
 
   @Test
@@ -64,10 +64,10 @@ public class MathTest extends EvalTestCase {
 
   @Test
   public void log() {
-    assertThat( eval("log(2,16)"), equalTo( c(0.25) ) );
-    assertThat( eval("log(16, 2)"), equalTo( c(4) ) );
-    assertThat( eval("log(2,-1)"), equalTo( c(Double.NaN) ) );
-    assertThat( eval("log(2,0.5)"), equalTo( c(-1) ) );
+    assertThat( eval("log(2,16)"), elementsIdenticalTo( c(0.25) ) );
+    assertThat( eval("log(16, 2)"), elementsIdenticalTo( c(4) ) );
+    assertThat( eval("log(2,-1)"), elementsIdenticalTo( c(Double.NaN) ) );
+    assertThat( eval("log(2,0.5)"), elementsIdenticalTo( c(-1) ) );
 
     assertThat( eval("log(2)").asReal(),  closeTo(0.6931472, 0.0000001) );//R rounds to 7th decimal place
   }
@@ -75,22 +75,22 @@ public class MathTest extends EvalTestCase {
   @Test
   public void log10() {
     assertThat( eval("log10(4)").asReal(),  closeTo(0.60206, 0.00000001) );
-    assertThat( eval("log10(100)"), equalTo( c(2) ) );
-    assertThat( eval("log10(-4)"), equalTo( c(Double.NaN) ) );
+    assertThat( eval("log10(100)"), elementsIdenticalTo( c(2) ) );
+    assertThat( eval("log10(-4)"), elementsIdenticalTo( c(Double.NaN) ) );
   }
 
   @Test
   public void log2() {
     assertThat( eval("log2(9)").asReal(),  closeTo(3.169925, 0.00000001) );
-    assertThat( eval("log2(8)"), equalTo( c(3) ) );
-    assertThat( eval("log2(-4)"), equalTo( c(Double.NaN) ) );
+    assertThat( eval("log2(8)"), elementsIdenticalTo( c(3) ) );
+    assertThat( eval("log2(-4)"), elementsIdenticalTo( c(Double.NaN) ) );
   }
 
   @Test
   public void transpose() {
-    assumingBasePackagesLoad();
 
-    assertThat(eval("t(matrix(c(1,2,3,4,5,6),3,2))"), equalTo(c(1, 4, 2, 5, 3, 6)));
+
+    assertThat(eval("t(matrix(c(1,2,3,4,5,6),3,2))"), elementsIdenticalTo(c(1, 4, 2, 5, 3, 6)));
   }
 
   @Test
@@ -108,11 +108,6 @@ public class MathTest extends EvalTestCase {
 
   @Test
   public void signif(){
-    try{
-      topLevelContext.init();
-    }catch(Exception e){
-
-    }
     assertThat(eval("signif(123.006, 1)").asReal(), closeTo(100.0,0.0000001));
     assertThat(eval("signif(123.006, 2)").asReal(), closeTo(120.0,0.0000001));
     assertThat(eval("signif(123.006, 3)").asReal(), closeTo(123.0,0.0000001));
@@ -160,13 +155,13 @@ public class MathTest extends EvalTestCase {
 
   @Test
   public void sign() {
-    assertThat(eval("sign(c(-33,55,0))"), equalTo(c(-1,1,0)));
+    assertThat(eval("sign(c(-33,55,0))"), elementsIdenticalTo(c(-1,1,0)));
   }
 
 
   @Test
   public void roundRecycles() {
-    assertThat(eval("round(c(0.6,1.2,0.3))"), equalTo(c(1,1,0)));
+    assertThat(eval("round(c(0.6,1.2,0.3))"), elementsIdenticalTo(c(1,1,0)));
   }
 
   @Test
@@ -181,7 +176,7 @@ public class MathTest extends EvalTestCase {
 
   @Test
   public void roundWithDigits() {
-    assertThat(eval("round(1/3,2)"), equalTo(c(0.33)));
+    assertThat(eval("round(1/3,2)"), elementsIdenticalTo(c(0.33)));
   }
   
   @Test

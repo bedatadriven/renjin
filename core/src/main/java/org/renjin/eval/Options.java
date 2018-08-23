@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,8 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Session-level options for 
- * @author Alex
+ * Session-level options for an R session.
  *
  */
 public class Options {
@@ -46,6 +45,7 @@ public class Options {
     map.put("keep.source.pkgs", new LogicalArrayVector(false));
     map.put("warnings.length", new IntArrayVector(1000));
     map.put("OutDec", new StringArrayVector("."));
+    map.put("encoding", new StringArrayVector("UTF8"));
   }
 
   public SEXP get(String name) {

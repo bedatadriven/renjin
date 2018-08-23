@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -93,7 +93,17 @@ class IndexSubscript implements Subscript {
       return new PositiveHashPredicate();
     }
   }
-  
+
+  @Override
+  public int computeCount() {
+    int count = 0;
+    IndexIterator it = computeIndexes();
+    while(it.next() != IndexIterator.EOF) {
+      count++;
+    }
+    return count;
+  }
+
   private int computeIndexSign() {
     for (int i = 0; i < subscript.length(); i++) {
       int index = subscript.getElementAsInt(i);

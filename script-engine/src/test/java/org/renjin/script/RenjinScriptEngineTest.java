@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,12 +21,14 @@ package org.renjin.script;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
+import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
 import javax.script.*;
 import java.util.HashMap;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
 
 
@@ -39,11 +41,7 @@ public class RenjinScriptEngineTest {
   public void setUp() {
     // create a script engine manager
     ScriptEngineManager factory = new ScriptEngineManager();
-  
-//    engine = factory.getEngineByName("Renjin");   
-//    if(engine == null) {
-//      throw new AssertionError("Failed to create Renjin Script Engine");
-//    }
+
     engine = new RenjinScriptEngineFactory().getScriptEngine();
     invocableEngine = (Invocable)engine;
   }
@@ -134,10 +132,10 @@ public class RenjinScriptEngineTest {
   public void putNullRef() throws ScriptException {
     
     engine.put("x", 42);
-    assertThat(engine.eval("x == 42"), CoreMatchers.<Object>equalTo(LogicalVector.TRUE));
+    assertThat(engine.eval("x == 42"), CoreMatchers.equalTo(LogicalVector.TRUE));
 
     engine.put("x", null);
-    assertThat(engine.eval("is.null(x)"), CoreMatchers.<Object>equalTo(LogicalVector.TRUE));
+    assertThat(engine.eval("is.null(x)"), CoreMatchers.equalTo(LogicalVector.TRUE));
   }
   
   @Test
@@ -145,7 +143,7 @@ public class RenjinScriptEngineTest {
     Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
     
     bindings.put("x", null);
-    assertThat(engine.eval("is.null(x)"), CoreMatchers.<Object>equalTo(LogicalVector.TRUE));
+    assertThat(engine.eval("is.null(x)"), CoreMatchers.equalTo(LogicalVector.TRUE));
   }
   
   @Test
@@ -154,5 +152,36 @@ public class RenjinScriptEngineTest {
     assertThat(vector.length(), equalTo(1));
     assertThat(vector.getElementAsString(0), equalTo("hello world"));
   }
-  
+
+  @Test
+  public void usefulSetterExceptions() {
+    try {
+      engine.eval("import(org.renjin.script.DummyObject)");
+      engine.eval("foo <- DummyObject$new(bar='Hi')");
+
+    } catch (ScriptException e) {
+      throw new AssertionError("ScriptException was thrown");
+
+    } catch(EvalException e) {
+      assertThat(e.getMessage(), equalTo("baz"));
+      assertThat(e.getCause(), instanceOf(IllegalArgumentException.class));
+    }
+  }
+
+  @Test
+  public void usefulMethodExceptions() {
+    try {
+      engine.eval("import(org.renjin.script.DummyObject)");
+      engine.eval("foo <- DummyObject$new()");
+      engine.eval("foo$launchMissile()");
+
+    } catch (ScriptException e) {
+      throw new AssertionError("ScriptException was thrown");
+
+    } catch(EvalException e) {
+      assertThat(e.getMessage(), equalTo("Missile not ready."));
+      assertThat(e.getCause(), instanceOf(IllegalStateException.class));
+    }
+  }
+
 }

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ public class ReadEnvironment implements Expression {
   }
 
   @Override
-  public boolean isDefinitelyPure() {
+  public boolean isPure() {
     return false;
   }
 
@@ -54,7 +54,7 @@ public class ReadEnvironment implements Expression {
     mv.visitLdcInsn(name.getPrintName());
     mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Symbol.class), "get", 
         Type.getMethodDescriptor(Type.getType(Symbol.class), Type.getType(String.class)), false);
-    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(Environment.class), "findVariable", 
+    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(Environment.class), "findVariableUnsafe",
         Type.getMethodDescriptor(Type.getType(SEXP.class), Type.getType(Symbol.class)), false);
     mv.visitVarInsn(Opcodes.ALOAD, emitContext.getContextVarIndex());
     mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getInternalName(SEXP.class), "force", 

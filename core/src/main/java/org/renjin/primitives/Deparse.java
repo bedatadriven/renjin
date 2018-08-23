@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,8 @@ import org.renjin.parser.NumericLiterals;
 import org.renjin.parser.StringLiterals;
 import org.renjin.primitives.text.ReservedWords;
 import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.repackaged.guava.escape.Escaper;
+import org.renjin.repackaged.guava.escape.Escapers;
 import org.renjin.sexp.*;
 
 public class Deparse {
@@ -64,6 +66,18 @@ public class Deparse {
   };
   
   public static String[] CONTROL_STATEMENTS = new String[] { "break", "next" };
+
+  public static final Escaper ESCAPER = Escapers.builder()
+      .addEscape('\"', "\\\"")
+      .addEscape('\n', "\\n")
+      .addEscape('\r', "\\r")
+      .addEscape('\t', "\\t")
+      .addEscape('\b', "\\b")
+      .addEscape('\f', "\\f")
+      .addEscape('\\', "\\\\")
+      .addEscape('`', "\\`")
+      .build();
+
 
   @Internal
   public static String deparse(@Current Context context, SEXP exp, int widthCutoff, boolean backTick, int options, int nlines) {
@@ -134,8 +148,8 @@ public class Deparse {
 
     private boolean requiresStructure(SEXP exp) {
       // for perhaps arbitrary reasons, attributes of 
-      // function calls are not included in the deparse
-      if(exp instanceof FunctionCall) {
+      // function calls and S4 objects are not included in the deparse
+      if(exp instanceof FunctionCall || exp instanceof S4Object) {
         return false;
       }
 
@@ -146,7 +160,7 @@ public class Deparse {
             hasNamesRequiringSpecialHandling(exp);
       }
 
-      return !exp.getAttributes().empty();
+      return !exp.getAttributes().isEmpty();
     }
 
     private boolean hasNamesRequiringSpecialHandling(SEXP exp) {
@@ -320,6 +334,12 @@ public class Deparse {
     }
 
     @Override
+    public void visit(Closure closure) {
+      deparseFunction(closure.getFormals(), closure.getBody());
+    }
+
+
+    @Override
     public void visit(FunctionCall call) {
       if(call.getFunction() instanceof Symbol) {
         String name = ((Symbol)call.getFunction()).getPrintName();
@@ -331,6 +351,8 @@ public class Deparse {
           deparseWhile(call);
         } else if(name.equals("repeat")) {
           deparseRepeat(call);
+        } else if(name.equals("function")) {
+          deparseFunction(call.getArgument(0), call.getArgument(1));
         } else if(name.equals("{")) {
           deparseBracket(call);
         } else if(name.equals("(")) {
@@ -367,6 +389,31 @@ public class Deparse {
         deparsed.append("(");
         deparseArgumentList(call.getArguments().nodes());
         deparsed.append(")");
+      }
+    }
+
+
+    private void deparseFunction(PairList formals, SEXP body) {
+      deparsed.append("function (");
+      deparseFormals(formals);
+      deparsed.append(") ");
+      body.accept(this);
+    }
+
+    public void deparseFormals(PairList formals) {
+      boolean needsComma = false;
+      for (PairList.Node node : formals.nodes()) {
+        if(needsComma) {
+          deparsed.append(", ");
+        }
+        node.getTag().accept(this);
+
+        if(node.getValue() != Symbol.MISSING_ARG) {
+          deparsed.append(" = ");
+          node.getValue().accept(this);
+        }
+
+        needsComma = true;
       }
     }
 
@@ -525,9 +572,20 @@ public class Deparse {
         } else {
           deparsed.append(BACK_TICK).append(name).append(BACK_TICK);
         }
+      } else {
+        deparsed.append("");
       }
     }
-    
+
+    @Override
+    public void visit(S4Object s4Object) {
+      // Expected form: <S4 object of class structure("hash", package = "hash")>>
+
+      deparsed.append("<S4 object of class ");
+      deparse(s4Object.getAttribute(Symbols.CLASS));
+      deparsed.append(">");
+    }
+
     protected void unhandled(SEXP exp) {
       // TODO: this is just a fallback for missing impl
       deparsed.append(exp.toString());
@@ -684,7 +742,7 @@ public class Deparse {
     STRING {
       @Override
       String deparse(Vector vector, int index) {
-        return "\"" + vector.getElementAsString(index) + "\"";
+        return "\"" + ESCAPER.escape(vector.getElementAsString(index)) + "\"";
       }
 
       @Override

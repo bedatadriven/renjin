@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,6 +66,12 @@ public class LazyBuilder implements CombinedBuilder {
         hasNames = true;
       }
     }
+  }
+
+  public static boolean resultTypeSupported(Vector.Type vectorType) {
+    return vectorType == IntVector.VECTOR_TYPE ||
+           vectorType == DoubleVector.VECTOR_TYPE ||
+           vectorType == StringVector.VECTOR_TYPE;
   }
 
   @Override

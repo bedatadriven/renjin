@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ import org.renjin.parser.RParser;
 import org.renjin.primitives.io.connections.GzFileConnection;
 import org.renjin.primitives.io.serialization.RDataReader;
 import org.renjin.primitives.io.serialization.RDataWriter;
-import org.renjin.primitives.packaging.PackageLoader;
+import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.HashMultimap;
@@ -283,15 +283,23 @@ public class DatasetsBuilder2 {
 
     debug(scriptFile, "evaluating as script.");
 
-    Session session = new SessionBuilder()
-        .setPackageLoader(buildContext.getPackageLoader())
-        .build();
+    SessionBuilder builder = new SessionBuilder()
+        .setPackageLoader(buildContext.getPackageLoader());
+
+    // Do not load default packages when building the "datasets" package,
+    // this will create circular references
+    if(!this.source.getFqName().equals(new FqPackageName("org.renjin", "datasets"))) {
+      builder = builder.withDefaultPackages();
+    }
+
+    Session session = builder.build();
+
     FileReader reader = new FileReader(scriptFile);
     ExpressionVector source = RParser.parseAllSource(reader);
     reader.close();
 
     // The utils package needs to be on the search path
-    // For read.table, etc
+    // For read.table, etcr
     session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("library"), Symbol.get("utils")));
 
     // The working directory needs to be the data dir
@@ -302,7 +310,7 @@ public class DatasetsBuilder2 {
     PairList.Builder pairList = new PairList.Builder();
     for(Symbol symbol : session.getGlobalEnvironment().getSymbolNames()) {
       if(!symbol.getPrintName().startsWith(".")) {
-        pairList.add(symbol, session.getGlobalEnvironment().getVariable(symbol));
+        pairList.add(symbol, session.getGlobalEnvironment().getVariable(session.getTopLevelContext(), symbol));
       }
     }   
     writePairList(logicalDatasetName, session, pairList.build());
@@ -330,9 +338,9 @@ public class DatasetsBuilder2 {
       
       File targetFile = new File(datasetDir, node.getName());
       FileOutputStream out = new FileOutputStream(targetFile);
-      RDataWriter writer = new RDataWriter(session.getTopLevelContext(), out);
-      writer.save(node.getValue());
-      out.close();    
+      try(RDataWriter writer = new RDataWriter(session.getTopLevelContext(), out)) {
+        writer.save(node.getValue());
+      }
     }
   }
 
@@ -343,11 +351,15 @@ public class DatasetsBuilder2 {
    */
   public static InputStream decompress(File file) throws IOException {
 
-    FileInputStream in = new FileInputStream(file);
-    int b1 = in.read();
-    int b2 = in.read();
-    int b3 = in.read();
-    in.close();
+    int b1;
+    int b2;
+    int b3;
+
+    try(FileInputStream in = new FileInputStream(file)) {
+      b1 = in.read();
+      b2 = in.read();
+      b3 = in.read();
+    }
     
     if(b1 == GzFileConnection.GZIP_MAGIC_BYTE1 && b2 == GzFileConnection.GZIP_MAGIC_BYTE2) {
       return new GZIPInputStream(new FileInputStream(file));

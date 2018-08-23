@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,10 +33,23 @@ public class CombinedIntVector extends IntVector implements DeferredComputation 
   public static IntVector combine(Vector[] vectors, AttributeMap attributeMap) {
     if (vectors.length == 1) {
       return (IntVector) vectors[0].setAttributes(attributeMap);
+    } else if(equalLength(vectors)) {
+      return new CompositeIntColumnMatrix(vectors, attributeMap);
     } else {
       return new CombinedIntVector(vectors, attributeMap);
     }
   }
+
+  private static boolean equalLength(Vector[] vectors) {
+    int length = vectors[0].length();
+    for (int i = 1; i < vectors.length; i++) {
+      if(vectors[i].length() != length) {
+        return false;
+      }
+    }
+    return true;
+  }
+
 
   private CombinedIntVector(Vector[] vectors, AttributeMap attributeMap) {
     super(attributeMap);

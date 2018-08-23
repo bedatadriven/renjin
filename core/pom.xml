@@ -19,20 +19,29 @@
   <parent>
     <groupId>org.renjin</groupId>
     <artifactId>parent</artifactId>
-    <version>0.9.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <artifactId>renjin-core</artifactId>
   <name>Renjin Core</name>
-  <description>Java-based implementation of the R language for
-    statistical computing</description>
+  <description>Java-based implementation of the R language for statistical computing</description>
 
   <dependencies>
-
+    <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>renjin-appl</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.renjin</groupId>
       <artifactId>renjin-nmath</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>renjin-lapack</artifactId>
       <version>${project.version}</version>
     </dependency>
     
@@ -68,12 +77,6 @@
     </dependency>
 
     <dependency>
-      <groupId>joda-time</groupId>
-      <artifactId>joda-time</artifactId>
-      <version>2.0</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.renjin</groupId>
       <artifactId>renjin-asm</artifactId>
     </dependency>
@@ -81,14 +84,6 @@
     <dependency>
       <groupId>org.renjin</groupId>
       <artifactId>renjin-guava</artifactId>
-    </dependency>
-
-    <!-- unit test framework -->
-    <dependency>
-      <groupId>org.concordion</groupId>
-      <artifactId>concordion</artifactId>
-      <version>1.4.2</version>
-      <scope>test</scope>
     </dependency>
 
     <!-- This library is used during compile-time code generation but is
@@ -101,15 +96,6 @@
   </dependencies>
 
   <build>
-    <testResources>
-      <testResource>
-        <directory>src/test/resources</directory>
-      </testResource>
-      <testResource>
-        <directory>src/spec/resources</directory>
-      </testResource>
-    </testResources>
-
     <resources>
       <resource>
         <directory>src/main/resources</directory>
@@ -201,25 +187,6 @@
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.1</version>
-        <executions>
-          <execution>
-            <id>add-test-source</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>add-test-source</goal>
-            </goals>
-            <configuration>
-              <sources>
-                <source>src/spec/java</source>
-              </sources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
         <version>2.17</version>
@@ -256,6 +223,8 @@
             
             <exclude>src/main/java/org/renjin/stats/internals/optimize/Blas_f77.java</exclude>
             <exclude>src/main/java/org/renjin/stats/internals/optimize/Uncmin.java</exclude>
+
+            <exclude>src/main/java/org/renjin/parser/FDBigInteger.java</exclude>
 
             <exclude>src/test/resources/**.*</exclude>
           </excludes>

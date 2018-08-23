@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,29 +18,41 @@
  */
 package org.renjin.gnur.api;
 
-import org.renjin.gcc.runtime.BytePtr;
-import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.StringVector;
+
+import java.util.Arrays;
 
 /**
  * StringVector implementation backed by BytePtrs
  */
 public class GnuStringVector extends StringVector {
   
-  private BytePtr[] values;
+  private GnuCharSexp[] values;
 
   public GnuStringVector(String string) {
-    this(BytePtr.nullTerminatedString(string, Charsets.UTF_8));
+    this(GnuCharSexp.valueOf(string));
   }
   
-  public GnuStringVector(BytePtr... values) {
+  public GnuStringVector(GnuCharSexp... values) {
     this(values, AttributeMap.EMPTY);
   }
   
-  public GnuStringVector(BytePtr[] values, AttributeMap attributes) {
+  public GnuStringVector(GnuCharSexp[] values, AttributeMap attributes) {
     super(attributes);
     this.values = values;
+  }
+
+  public static GnuStringVector copyOf(StringVector vector) {
+    if(vector instanceof GnuStringVector) {
+      return new GnuStringVector(Arrays.copyOf(((GnuStringVector) vector).values, vector.length()));
+    } else {
+      GnuCharSexp values[] = new GnuCharSexp[vector.length()];
+      for (int i = 0; i < values.length; i++) {
+        values[i] = GnuCharSexp.valueOf(vector.getElementAsString(i));
+      }
+      return new GnuStringVector(values);
+    }
   }
 
   @Override
@@ -55,11 +67,11 @@ public class GnuStringVector extends StringVector {
 
   @Override
   public String getElementAsString(int index) {
-    BytePtr value = values[index];
-    if(value == null) {
+    GnuCharSexp value = values[index];
+    if(value == GnuCharSexp.NA_STRING) {
       return null;
     } else {
-      return value.nullTerminatedString();
+      return value.getValue().nullTerminatedString();
     }
   }
 
@@ -74,6 +86,10 @@ public class GnuStringVector extends StringVector {
   }
 
   public void set(int index, GnuCharSexp charValue) {
-    values[index] = charValue.getValue();
+    values[index] = charValue;
+  }
+
+  public GnuCharSexp getElementAsCharSexp(int index) {
+    return values[index];
   }
 }

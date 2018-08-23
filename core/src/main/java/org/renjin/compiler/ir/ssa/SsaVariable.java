@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ public class SsaVariable extends Variable {
   }
 
   @Override
-  public boolean isDefinitelyPure() {
+  public boolean isPure() {
     if(version == 0) {
       // version zero is fetched from the environment, which may force
       // a promise with side effects, so we can't trust it.

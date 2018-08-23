@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -161,6 +161,32 @@ public class System {
   public static String setLocale(int categoryIndex, String locale) {
     java.lang .System.out.println("locale = " + locale);
     return "";
+  }
+  
+
+  /**
+   * A character vector with 18 named components.
+   * 
+   * The results in the C locale are
+   * 
+   * <pre>
+   * ##    decimal_point     thousands_sep          grouping   int_curr_symbol
+   * ##              "."                ""                ""                ""
+   * ##  currency_symbol mon_decimal_point mon_thousands_sep      mon_grouping
+   * ##               ""                ""                ""                ""
+   * ##    positive_sign     negative_sign   int_frac_digits       frac_digits
+   * ##               ""                ""             "127"             "127"
+   * ##    p_cs_precedes    p_sep_by_space     n_cs_precedes    n_sep_by_space
+   * ##            "127"             "127"             "127"             "127"
+   * ##      p_sign_posn       n_sign_posn
+   * ##            "127"             "127"
+   * </pre>
+   * 
+   * @return It is possible to compile R without support for locales, in which case the value will be <code>NULL</code>.
+   */
+  @Internal("Sys.localeconv")
+  public static Vector getLocaleConventions() {
+    return Null.INSTANCE;
   }
 
   @Internal

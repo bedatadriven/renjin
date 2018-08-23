@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -127,7 +127,7 @@ public class WrapperRuntime {
     }
     return (Vector)exp;
   }
-  
+
   public static <T> T unwrapExternal(SEXP exp) {
     try {
       ExternalPtr<T> external = (ExternalPtr<T>)exp;
@@ -189,4 +189,23 @@ public class WrapperRuntime {
     return false;
   }
 
+  public static boolean isEnvironmentOrEnvironmentSubclass(SEXP object) {
+    if(object instanceof Environment) {
+      return true;
+    }
+    if(object instanceof S4Object) {
+      return object.getAttribute(Symbols.DOT_XDATA) instanceof Environment;
+    }
+    return false;
+  }
+
+  public static Environment unwrapEnvironmentSuperClass(SEXP object) {
+    if(object instanceof Environment) {
+      return (Environment) object;
+    }
+    if(object instanceof S4Object) {
+      return (Environment) object.getAttribute(Symbols.DOT_XDATA);
+    }
+    throw new IllegalArgumentException();
+  }
 }

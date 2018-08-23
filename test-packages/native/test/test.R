@@ -1,6 +1,6 @@
 #
 # Renjin : JVM-based interpreter for the R language for the statistical analysis
-# Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+# Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,3 +25,6 @@ assertThat(mydsum(1:10), identicalTo(56))
 
 x <- try( mydpchim() )
 assertThat(inherits(x, "try-error"), identicalTo(TRUE) )
+
+
+assertThat(secret(1:3), identicalTo(3*42))

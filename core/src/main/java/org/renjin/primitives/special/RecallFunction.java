@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,18 +29,17 @@ public class RecallFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call,
-      PairList args) {
-    
+  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+
     // this is an .Internal function, so we need to go up one context.
     Context originalContext = context.getParent();
-    
-    Closure closure = originalContext.getClosure();
-    if(closure == null) {
+    if (!(originalContext.getFunction() instanceof Closure)) {
       throw new EvalException("Recall() must be called from within a closure");
     }
-    
-    PairList newArguments = (PairList)rho.getVariable(Symbols.ELLIPSES);
+
+    Closure closure = (Closure)originalContext.getFunction();
+
+    PairList newArguments = (PairList)rho.getVariable(context, Symbols.ELLIPSES);
     FunctionCall newCall = new FunctionCall(originalContext.getCall().getFunction(), newArguments);
     
     return closure.apply(originalContext, 

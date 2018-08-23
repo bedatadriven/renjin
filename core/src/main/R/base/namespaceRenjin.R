@@ -49,14 +49,18 @@ getNamespaceInfo <- function(ns, which) {
 
 isBaseNamespace <- function(ns) identical(ns, .BaseNamespaceEnv)
 
-.getNamespace <- function(what) getNamespace(what)
+.getNamespace <- function(what) .Internal(getRegisteredNamespace(what))
 
 
 find.package <- function(package = NULL, lib.loc = NULL, quiet = FALSE, verbose = getOption("verbose")) {
 	if(is.null(package)) {
 		stop("package = NULL not supported by Renjin.")
 	}
-	.Internal(find.package(package))
+	if(quiet) {
+	    tryCatch(.Internal(find.package(package)), error = function(e) character(0))
+	} else {
+	    .Internal(find.package(package))
+	}
 }
 
 loadNamespaceMethods <- function(package, ns, expClasses, expClassPatterns) {
@@ -183,4 +187,94 @@ requireNamespace <- function (package, ..., quietly = FALSE) {
         }
     }
     invisible(res)
+}
+
+namespaceExport <- function(ns, vars) {
+    namespaceIsSealed <- function(ns)
+       environmentIsLocked(ns)
+    if (namespaceIsSealed(ns))
+        stop("cannot add to exports of a sealed namespace")
+    ns <- asNamespace(ns, base.OK = FALSE)
+    if (length(vars)) {
+        addExports <- function(ns, new) {
+            exports <- .getNamespaceInfo(ns, "exports")
+            expnames <- names(new)
+            objs <- names(exports)
+            ex <- expnames %in% objs
+            if(any(ex))
+                warning(sprintf(ngettext(sum(ex),
+                                         "previous export '%s' is being replaced",
+                                         "previous exports '%s' are being replaced"),
+                                paste(sQuote(expnames[ex]), collapse = ", ")),
+                        call. = FALSE, domain = NA)
+            list2env(as.list(new), exports)
+        }
+        makeImportExportNames <- function(spec) {
+            old <- as.character(spec)
+            new <- names(spec)
+            if (is.null(new)) new <- old
+            else {
+                change <- !nzchar(new)
+                new[change] <- old[change]
+            }
+            names(old) <- new
+            old
+        }
+        new <- makeImportExportNames(unique(vars))
+        ## calling exists each time is too slow, so do two phases
+        undef <- new[! new %in% names(ns)]
+        undef <- undef[! vapply(undef, exists, NA, envir = ns)]
+        if (length(undef)) {
+            undef <- do.call("paste", as.list(c(undef, sep = ", ")))
+            stop(gettextf("undefined exports: %s", undef), domain = NA)
+        }
+        if(.isMethodsDispatchOn()) .mergeExportMethods(new, ns)
+        addExports(ns, new)
+    }
+}
+
+.getNamespaceInfo <- function(ns, which) {
+    ns[[".__NAMESPACE__."]][[which]]
+}
+
+.mergeExportMethods <- function(new, ns)
+{
+    ## avoid bootstrapping issues when using methods:::methodsPackageMetaName("M","")
+    ## instead of  ".__M__" :
+    newMethods <- new[startsWith(new, ".__M__")]
+    nsimports <- parent.env(ns)
+    for(what in newMethods) {
+	if(!is.null(m1 <- nsimports[[what]])) {
+            m2 <- get(what, envir = ns)
+            ns[[what]] <- methods::mergeMethods(m1, m2)
+        }
+    }
+}
+
+
+getExportedValue <- function(ns, name) {
+    ns <- asNamespace(ns)
+    if (isBaseNamespace(ns))
+	get(name, envir = ns, inherits = FALSE) # incl. error
+    else {
+	if (!is.null(oNam <- .getNamespaceInfo(ns, "exports")[[name]])) {
+	    get0(oNam, envir = ns)
+	} else { ##  <pkg> :: <dataset>  for lazydata :
+	    ld <- .getNamespaceInfo(ns, "lazydata")
+	    if (!is.null(obj <- ld[[name]]))
+		obj
+	    else { ## if there's a lazydata object with value NULL:
+		if(exists(name, envir = ld, inherits = FALSE))
+		    NULL
+		else
+		    stop(gettextf("'%s' is not an exported object from 'namespace:%s'",
+				  name, getNamespaceName(ns)),
+			 call. = FALSE, domain = NA)
+	    }
+	}
+    }
+}
+
+registerS3method <- function(genname, class, method, envir = parent.frame()) {
+    .Internal(registerS3method(genname, class, method, envir))
 }

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,11 +20,13 @@ package org.renjin.primitives.io.serialization;
 
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.parser.NumericLiterals;
 import org.renjin.primitives.Primitives;
 import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.primitives.vector.ConvertingStringVector;
 import org.renjin.primitives.vector.RowNamesVector;
+import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.io.ByteSource;
 import org.renjin.sexp.*;
@@ -35,6 +37,7 @@ import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.Charset;
 import java.util.List;
 
 import static org.renjin.primitives.io.serialization.SerializationFormat.*;
@@ -224,7 +227,6 @@ public class RDataReader implements AutoCloseable {
   }
 
 
-
   private SEXP rawRawVector(int flags) throws IOException {
     int length = in.readInt();
     byte[] bytes = in.readString(length);
@@ -339,7 +341,7 @@ public class RDataReader implements AutoCloseable {
         switch (type) {
           case ATTRLANGSXP:
           case ATTRLISTSXP:
-            attributes = readAttributes();
+            attributes = readAttributeValues(0);
             break;
           
           default:
@@ -420,15 +422,30 @@ public class RDataReader implements AutoCloseable {
 
   private AttributeMap readAttributes(int flags) throws IOException {
     if(Flags.hasAttributes(flags)) {
-      return readAttributes();
+      return readAttributeValues(flags);
+    } else if(Flags.isS4(flags)) {
+      return AttributeMap.builder().setS4(true).build();
     } else {
       return AttributeMap.EMPTY;
     }
   }
 
-  private AttributeMap readAttributes() throws IOException {
-    SEXP pairList = readExp();
-    AttributeMap attributes = AttributeMap.fromPairList((PairList) pairList);
+  private AttributeMap readAttributeValues(int flags) throws IOException {
+    PairList pairList = (PairList) readExp();
+    AttributeMap.Builder attributes = AttributeMap.builder();
+
+    for(PairList.Node node : pairList.nodes()) {
+      if(node.getTag() == Flags.OLD_S4_BIT) {
+        attributes.setS4(true);
+      } else {
+        attributes.set(node.getTag(), node.getValue());
+      }
+    }
+
+    if(Flags.isS4(flags)) {
+      attributes.setS4(true);
+    }
+
     SEXP rns = attributes.get(Symbols.ROW_NAMES);
       /* 
        * There is a special case when GNU R serializes a empty 
@@ -440,12 +457,10 @@ public class RDataReader implements AutoCloseable {
       if (rniv.length() == 2 && rniv.isElementNA(0)) {
         ConvertingStringVector csv = new ConvertingStringVector(
             IntSequence.fromTo(1, rniv.getElementAsInt(1)), AttributeMap.EMPTY);
-        AttributeMap.Builder amb = attributes.copy();
-        amb.set(Symbols.ROW_NAMES, csv);
-        attributes = amb.build();
+        attributes.set(Symbols.ROW_NAMES, csv);
       }
     }
-    return attributes;
+    return attributes.build();
   }
 
   private SEXP readPackage() throws IOException {
@@ -499,27 +514,19 @@ public class RDataReader implements AutoCloseable {
 
   private SEXP readEnv(int flags) throws IOException {
 
-    Environment env = Environment.createChildEnvironment(Environment.EMPTY);
+    Environment env = Environment.createChildEnvironment(Environment.EMPTY).build();
     addReadRef(env);
 
     boolean locked = (in.readInt() == 1);
     SEXP parent = readExp();
-    SEXP frame = readExp();
-    SEXP hashtab = readExp();
+    readEnvFrame(env);
+    readEnvHashTab(env);
 
-    for (int i = 0; i < hashtab.length(); ++i) {
-      PairList node = hashtab.getElementAsSEXP(i);
-      while (node != Null.INSTANCE) {
-        env.setVariable(node.getTag(), ((PairList.Node)node).getValue());
-        node = ((PairList.Node) node).getNext();
-      }
-    }
     // NB: environment's attributes is ALWAYS written,
     // regardless of flag
     SEXP attributes = readExp();
 
     env.setParent( parent == Null.INSTANCE ? Environment.EMPTY : (Environment)parent );
-    env.setVariables( (PairList) frame );
     env.setAttributes(AttributeMap.fromPairList((PairList) attributes));
 
     if(locked) {
@@ -528,6 +535,65 @@ public class RDataReader implements AutoCloseable {
 
     return env;
   }
+
+  /**
+   * Reads an environment's hash table.
+   *
+   * <p>GNU R serializes environments with a hashtable using the same format as the in-memory layout of the
+   * hash table, which is a ListVector of the size of the hash table, with each hash entry stored as
+   * a PairList of values matching the hash.</p>
+   */
+  private void readEnvHashTab(Environment env) throws IOException {
+    int tableFlags = in.readInt();
+    if(Flags.getType(tableFlags) == NILVALUE_SXP) {
+      return;
+    }
+    if(Flags.getType(tableFlags) != SexpType.VECSXP) {
+      throw new IOException("Expected type VECSEXP for environment hashtable.");
+    }
+    int length = in.readInt();
+    for (int i = 0; i < length; i++) {
+      readEnvFrame(env);
+    }
+  }
+
+  /**
+   * Reads an environment's frame.
+   *
+   * <p>An environment's frame, or list of symbol-value bindings is stored in the same way
+   * as a pairlist, but we provided a special implementation here to handle active bindings.</p>
+   *
+   * <p>Active bindings are indicated by setting the {@link Flags#ACTIVE_BINDING_MASK} on
+   * the 32-bit head for the pairlist node that is an active binding.</p>
+   */
+  private void readEnvFrame(Environment env) throws IOException {
+
+    int flags = in.readInt();
+
+    while(Flags.getType(flags) != NILVALUE_SXP) {
+
+      if(Flags.getType(flags) != SexpType.LISTSXP) {
+        throw new IOException("Expected type LISTSXP for environment frame");
+      }
+
+      AttributeMap attributes = readAttributes(flags);
+      Symbol tag = (Symbol)readTag(flags);
+      SEXP value = readExp();
+
+      if (tag == Symbols.ROW_NAMES && RowNamesVector.isOldCompactForm(value)) {
+        value = RowNamesVector.fromOldCompactForm(value);
+      }
+      if(Flags.isActiveBinding(flags)) {
+        env.makeActiveBinding(tag, (Closure) value);
+      } else {
+        env.setVariableUnsafe(tag, value);
+      }
+
+      // read the next element in the list
+      flags = in.readInt();
+    }
+  }
+
 
   private SEXP readS4XP(int flags) throws IOException {
     return new S4Object(readAttributes(flags));
@@ -556,11 +622,54 @@ public class RDataReader implements AutoCloseable {
 
   private SEXP readStringVector(int flags) throws IOException {
     int length = in.readInt();
-    String[] values = new String[length];
-    for(int i=0;i!=length;++i) {
-      values[i] = ((CHARSEXP)readExp()).getValue();
+    if(length > 100) {
+      return readStringVectorAsByteArray(length, flags);
+    } else {
+      return readStringsAsArray(length, flags);
     }
-    return new StringArrayVector(values, readAttributes(flags));
+  }
+
+  private SEXP readStringsAsArray(int length, int flags) throws IOException {
+    StringArrayVector.Builder array = new StringArrayVector.Builder(0, length);
+    for (int i = 0; i < length; i++) {
+      // each element is encoded as a CHARSXP
+      int elementFlags = in.readInt();
+      assert Flags.getType(elementFlags) == SexpType.CHARSXP;
+
+      // inlined version of readCharSexp
+      int elementLength = in.readInt();
+      if(elementLength < 0) {
+        array.addNA();
+      } else {
+        array.add(readString(flags, elementLength));
+      }
+    }
+    return array.build().setAttributes(readAttributes(flags));
+  }
+
+  private SEXP readStringVectorAsByteArray(int length, int flags) throws IOException {
+    StringByteArrayVector.Builder builder = new StringByteArrayVector.Builder(length);
+
+    int elementFlags = 0;
+    for(int i=0;i!=length;++i) {
+      // each element is encoded as a CHARSXP
+      elementFlags = in.readInt();
+      assert Flags.getType(elementFlags) == SexpType.CHARSXP;
+      
+      // inlined version of readCharSexp
+      int elementLength = in.readInt();
+      builder.readFrom(in, elementLength);
+    }
+
+    // Assume encoding is the same for all elements
+    if(Flags.isUTF8Encoded(elementFlags)) {
+      builder.setCharset(Charsets.UTF_8);
+    } else if(Flags.isLatin1Encoded(flags)) {
+      builder.setCharset(Charset.forName("Latin1"));
+    }
+
+
+    return builder.build(readAttributes(flags));
   }
 
   private SEXP readComplexExp(int flags) throws IOException {
@@ -599,25 +708,39 @@ public class RDataReader implements AutoCloseable {
 
   private SEXP readCharExp(int flags) throws IOException {
     int length = in.readInt();
-
     if (length == -1) {
       return new CHARSEXP(StringVector.NA );
     } else  {
-      byte buf[] = in.readString(length);
-      if(Flags.isUTF8Encoded(flags)) {
-        return new CHARSEXP(new String(buf, "UTF8"));
-      } else if(Flags.isLatin1Encoded(flags)) {
-        return new CHARSEXP(new String(buf, "Latin1"));
-      } else {
-        return new CHARSEXP(new String(buf));
-      }
+      String string = readString(flags, length);
+      return new CHARSEXP(string);
     }
+  }
+
+  private String readString(int flags, int length) throws IOException {
+    byte buf[] = in.readString(length);
+    String string;
+    if(Flags.isUTF8Encoded(flags)) {
+      string = new String(buf, "UTF8");
+    } else if(Flags.isLatin1Encoded(flags)) {
+      string = new String(buf, "Latin1");
+    } else {
+      string = new String(buf);
+    }
+    return string;
   }
 
   private SEXP readPrimitive(int flags) throws IOException {
     int nameLength = in.readInt();
     String name = new String(in.readString(nameLength));
-    return Primitives.getBuiltin(name);
+    PrimitiveFunction builtin = Primitives.getBuiltin(name);
+    if(builtin != null) {
+      return builtin;
+    }
+    builtin = Primitives.getInternal(Symbol.get(name));
+    if(builtin != null) {
+      return builtin;
+    }
+    throw new EvalException("Cannot read primitive '" + name + "': does not exist.");
   }
 
   private SEXP readWeakReference(int flags) throws IOException {
@@ -658,10 +781,11 @@ public class RDataReader implements AutoCloseable {
     conn.close();
   }
 
-  private interface StreamReader {
+  interface StreamReader {
     int readInt() throws IOException;
     IntBuffer readIntBuffer(int size) throws IOException;
     byte[] readString(int length) throws IOException;
+    void readFully(byte[] buffer, int offset, int length) throws IOException;
     double readDouble() throws IOException;
   }
 
@@ -739,7 +863,7 @@ public class RDataReader implements AutoCloseable {
             throw new EOFException();
           }
         } while(Character.isWhitespace(codePoint));
-
+        
         for(int i = 0; i < length; i++) {
           if(codePoint == '\\') {
             codePoint = reader.read();
@@ -765,7 +889,9 @@ public class RDataReader implements AutoCloseable {
                 }
                 buf[i] = (byte)d;
                 continue;
-              default  : buf[i] = (byte)codePoint;
+                
+              default:
+                buf[i] = (byte)codePoint;
             }
           } else {
             buf[i] = (byte)codePoint;
@@ -776,8 +902,13 @@ public class RDataReader implements AutoCloseable {
           }
         }
       }
-
+      
       return buf;
+    }
+
+    @Override
+    public void readFully(byte[] buffer, int offset, int length) throws IOException {
+      System.arraycopy(readString(length), 0, buffer, offset, length);
     }
   }
 
@@ -816,6 +947,11 @@ public class RDataReader implements AutoCloseable {
       byte buf[] = new byte[length];
       in.readFully(buf);
       return buf;
+    }
+
+    @Override
+    public void readFully(byte[] buffer, int offset, int length) throws IOException {
+      in.readFully(buffer, offset, length);
     }
 
     @Override

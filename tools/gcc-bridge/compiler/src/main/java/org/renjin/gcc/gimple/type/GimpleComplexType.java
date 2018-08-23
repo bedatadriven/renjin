@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,8 +18,8 @@
  */
 package org.renjin.gcc.gimple.type;
 
+import org.renjin.gcc.gimple.expr.GimpleComplexConstant;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.guava.base.Preconditions;
 
 /**
  * Type representing complex numbers
@@ -30,7 +30,7 @@ public class GimpleComplexType extends AbstractGimpleType {
   }
   
   public GimpleComplexType(GimpleRealType partType) {
-    setSize(partType.getSize() * 2);
+    setSize(Math.multiplyExact(partType.getSize(), 2));
   }
 
   @Override
@@ -38,15 +38,13 @@ public class GimpleComplexType extends AbstractGimpleType {
     return getSize() / 8;
   }
 
-  @Override
-  public String toString() {
-    return "complex";
+  public GimpleComplexConstant zero() {
+    return new GimpleComplexConstant(getPartType().zero(), getPartType().zero());
   }
 
   @Override
-  public void setSize(int size) {
-    Preconditions.checkArgument(size == 64 || size == 128, "Invalid size: " + size);
-    super.setSize(size);
+  public String toString() {
+    return "complex";
   }
 
   /**

@@ -1,6 +1,6 @@
-/**
+/*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-
 package org.renjin.primitives;
 
 import org.renjin.eval.Context;
@@ -242,7 +241,7 @@ public class Scan {
     private char separator;
 
     public CharSplitter(String quote, String separator) {
-      this.quote = quote.charAt(0);
+      this.quote = quote.isEmpty() ? 0 : quote.charAt(0);
       this.separator = separator.charAt(0);
     }
 
@@ -252,7 +251,7 @@ public class Scan {
       boolean quoted = false;
       for (int i = 0; i != line.length(); ++i) {
         char c = line.charAt(i);
-        if (c == quote) {
+        if (quote != 0 && c == quote) {
           quoted = !quoted;
         } else if (!quoted && c == separator) {
           fields.add(sb.toString());
@@ -270,7 +269,7 @@ public class Scan {
     private final char quote;
 
     public WhitespaceSplitter(String quote) {
-      this.quote = quote.charAt(0);
+      this.quote = quote.isEmpty() ? 0 : quote.charAt(0);
     }
 
     @Override
@@ -280,7 +279,7 @@ public class Scan {
       boolean quoted = false;
       for (int i = 0; i != line.length(); ++i) {
         char c = line.charAt(i);
-        if (c == quote) {
+        if (quote != 0 && c == quote) {
           quoted = !quoted;
         } else if (!quoted && Character.isWhitespace(c)) {
           if(sb.length() > 0) {

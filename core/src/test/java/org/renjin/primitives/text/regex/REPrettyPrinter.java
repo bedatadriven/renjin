@@ -41,21 +41,24 @@ public class REPrettyPrinter {
   }
 
   public String prettyPrint(REProgram program) {
-    return prettyPrint(program.instruction, program.lenInstruction);
-  }
-
-  private String prettyPrint(char[] instruction, int lastNode) {
     StringBuilder s = new StringBuilder();
     s.append("RE{\n");
-    int node = 0;
+    prettyPrint(s, 0, program.instruction, 0, program.lenInstruction);
+    s.append("}\n");
+    return s.toString();
+  }
+
+  private void prettyPrint(StringBuilder s, int indent, char[] instruction, int node, int lastNode) {
     while (node < lastNode) {
       char opcode = instruction[node /* + offsetOpcode */];
       int next = node + (short) instruction[node + ExtendedRE.OFFSET_NEXT];
       int opdata = instruction[node + ExtendedRE.OFFSET_OPDATA];
 
       s.append(Strings.padStart(node + ": ", 5, ' '));
+      s.append(Strings.repeat("  ", indent));
       s.append(opNames.get(opcode));
 
+      // Print opdata
       switch (opcode) {
 
         case ExtendedRE.OP_ATOM:
@@ -69,14 +72,18 @@ public class REPrettyPrinter {
       }
       s.append("\n");
 
+      // Print closures
+      switch (opcode) {
+        case ExtendedRE.OP_MAYBE:
+          prettyPrint(s, indent+1, instruction, node + ExtendedRE.NODE_SIZE, next);
+      }
+
+      // Maybe terminate
       if(opcode == ExtendedRE.OP_END) {
         break;
       }
-
       node = next;
     }
-    s.append("}\n");
-    return s.toString();
   }
 
   private void printStringOpdata(StringBuilder s, char[] instruction, int start, int length) {

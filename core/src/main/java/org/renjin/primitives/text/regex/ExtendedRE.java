@@ -359,6 +359,8 @@ public class ExtendedRE implements Serializable, RE {
   static final char OP_RELUCTANTMAYBE = '/';  // none/expr       reluctant '?' (mnemonic for char is unshifted '?')
   static final char OP_POSIXCLASS = 'P';  // classid         one of the posix character classes
 
+  static final char OP_NEGATIVE_LOOKAHEAD = 'L';    // node     lookahead closure
+
   // Escape codes
   static final char E_ALNUM = 'w';  // Alphanumeric
   static final char E_NALNUM = 'W';  // Non-alphanumeric
@@ -368,6 +370,7 @@ public class ExtendedRE implements Serializable, RE {
   static final char E_NSPACE = 'S';  // Non-whitespace
   static final char E_DIGIT = 'd';  // Digit
   static final char E_NDIGIT = 'D';  // Non-digit
+
 
   // Posix character classes
   static final char POSIX_CLASS_ALNUM = 'w';  // Alphanumerics

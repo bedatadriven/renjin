@@ -1154,34 +1154,40 @@ public class RECompiler {
   int expr(int[] flags) throws RESyntaxException {
     // Create open paren node unless we were called from the top level (which has no parens)
     int paren = -1;
-    int ret = -1;
+    int openNode = -1;
+    int lookaheadNode = -1;
     int closeParens = parens;
+
     if ((flags[0] & NODE_TOPLEVEL) == 0 && pattern.charAt(idx) == '(') {
+
       // if its a cluster ( rather than a proper subexpression ie with backrefs )
-      if (idx + 2 < len && pattern.charAt(idx + 1) == '?' && pattern.charAt(idx + 2) == ':') {
+      if (idx + 2 < len && pattern.charAt(idx + 1) == '?') {
         paren = 2;
+        char qualifier = pattern.charAt(idx + 2);
         idx += 3;
-        ret = node(ExtendedRE.OP_OPEN_CLUSTER, 0);
-      } else {
 
-        // This implementation doesn't support look ahead/behind assertions.
-        // But at least we can give a decent error message
+        if(qualifier == ':') {
+          // Nothing special
+          openNode = node(ExtendedRE.OP_OPEN_CLUSTER, 0);
 
-        if (idx + 2 < len && pattern.charAt(idx + 1) == '?') {
-          // Check for assertions, which we do not support
-          char qualifier = pattern.charAt(idx + 2);
-          if (qualifier == '=' || qualifier == '!') {
-            throw new RESyntaxException("Look-ahead assertions are not implemented");
-          } else if (qualifier == '<' && idx + 3 < len) {
-            char next = pattern.charAt(idx + 3);
-            if (next == '=' || next == '!') {
-              throw new RESyntaxException("Look-behind assertions are not implemented");
-            }
-          }
+        } else if(qualifier == '!') {
+          // Negative look ahead
+          lookaheadNode = node(ExtendedRE.OP_NEGATIVE_LOOKAHEAD, 0);
+          openNode = node(ExtendedRE.OP_OPEN_CLUSTER, 0);
+          setNextOfEnd(lookaheadNode, openNode);
+
+        } else if(qualifier == '=') {
+          throw new RESyntaxException("Positive look-ahead assertions are not yet implemented");
+
+        } else if(qualifier == '<') {
+          throw new RESyntaxException("Look-behind assertions are not yet implemented");
         }
+
+
+      } else {
         paren = 1;
         idx++;
-        ret = node(ExtendedRE.OP_OPEN, parens++);
+        openNode = node(ExtendedRE.OP_OPEN, parens++);
       }
     }
     flags[0] &= ~NODE_TOPLEVEL;
@@ -1189,10 +1195,10 @@ public class RECompiler {
     // Process contents of first branch node
     boolean open = false;
     int branch = branch(flags);
-    if (ret == -1) {
-      ret = branch;
+    if (openNode == -1) {
+      openNode = branch;
     } else {
-      setNextOfEnd(ret, branch);
+      setNextOfEnd(openNode, branch);
     }
 
     // Loop through branches
@@ -1226,10 +1232,10 @@ public class RECompiler {
     }
 
     // Append the ending node to the ret nodelist
-    setNextOfEnd(ret, end);
+    setNextOfEnd(openNode, end);
 
     // Hook the ends of each branch to the end node
-    int currentNode = ret;
+    int currentNode = openNode;
     int nextNodeOffset = instruction[currentNode + ExtendedRE.OFFSET_NEXT];
     // while the next node o
     while (nextNodeOffset != 0 && currentNode < lenInstruction) {
@@ -1242,7 +1248,7 @@ public class RECompiler {
     }
 
     // Return the node list
-    return ret;
+    return openNode;
   }
 
   /**

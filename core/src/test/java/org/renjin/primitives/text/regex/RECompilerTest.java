@@ -199,11 +199,24 @@ public class RECompilerTest {
   //  x = c("~", "y", "1"), split = "~(?![^\\(].*\\))", out = list("", "y", "1")
   }
 
-  @Ignore("wip")
+  @Test
+  public void prettyPrint() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("foo(?:bar)?");
+
+    REPrettyPrinter printer = new REPrettyPrinter();
+    System.out.println(printer.prettyPrint(re.getProgram()));
+
+  }
+
   @Test
   public void lookahead() throws RESyntaxException {
-    ExtendedRE re = new ExtendedRE("(\\n|^)(?!$)");
-    re.subst("a\nb\nc", "\n     ");
+    ExtendedRE re = new ExtendedRE("foo(?!bar)");
+
+    REPrettyPrinter printer = new REPrettyPrinter();
+    System.out.println(printer.prettyPrint(re.getProgram()));
+
+    assertTrue(re.match("foobaz"));
+    assertFalse(re.match("foobar"));
   }
 
   @Ignore("wip")

@@ -634,13 +634,28 @@ public class Stdlib {
     return secondsSinceProgramStart * CLOCKS_PER_SEC;
   }
 
+  /**
+   *  Identifier for system-wide realtime clock.
+   */
   private static final int CLOCK_REALTIME = 0;
+
+  /**
+   * High-resolution timer from the CPU.
+   */
   private static final int CLOCK_MONOTONIC = 1;
+
+  /**
+   * Monotonic system-wide clock, not adjusted for frequency scaling.
+   */
+  private static final int CLOCK_MONOTONIC_RAW = 4;
+
+  /**
+   * Identifier for system-wide realtime clock, updated only on ticks.
+   */
   private static final int CLOCK_REALTIME_COARSE = 5;
 
   @Deprecated
   public static int clock_gettime(int clockId, timespec tp) {
-
     switch (clockId) {
       case CLOCK_REALTIME:
       case CLOCK_REALTIME_COARSE:
@@ -648,6 +663,7 @@ public class Stdlib {
         tp.set(System.currentTimeMillis(), TimeUnit.MILLISECONDS);
         return 0;
 
+      case CLOCK_MONOTONIC_RAW:
       case CLOCK_MONOTONIC:
         // Return a high precision time from some arbitrary offset
         tp.set(System.nanoTime(), TimeUnit.NANOSECONDS);
@@ -673,6 +689,7 @@ public class Stdlib {
         break;
 
       case CLOCK_MONOTONIC:
+      case CLOCK_MONOTONIC_RAW:
         // Return a high precision time from some arbitrary offset
         duration = System.nanoTime();
         timeUnit = TimeUnit.NANOSECONDS;

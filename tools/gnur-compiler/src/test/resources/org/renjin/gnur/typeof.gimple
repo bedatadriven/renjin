@@ -1,0 +1,1765 @@
+{
+  "mainInputFilename": "lang.c",
+  "functions": [
+    {
+      "id": 4294963124,
+      "name": "Cinvokeupper",
+      "mangledName": "Cinvokeupper",
+      "weak": false,
+      "inline": false,
+      "extern": true,
+      "parameters": [
+        {
+          "name": "string",
+          "id": 4294963121,
+          "type": {
+            "type": "pointer_type",
+            "size": 32,
+            "baseType": {
+              "type": "record_type",
+              "id": "0x7f0045dd69d8"
+            }
+          }
+        }
+      ],
+      "variableDeclarations": [
+        {
+          "name": "result",
+          "id": 4294963114,
+          "static": false,
+          "type": {
+            "type": "pointer_type",
+            "size": 32,
+            "baseType": {
+              "type": "record_type",
+              "id": "0x7f0045dd69d8"
+            }
+          }
+        },
+        {
+          "name": "nmspc",
+          "id": 4294963115,
+          "static": false,
+          "type": {
+            "type": "pointer_type",
+            "size": 32,
+            "baseType": {
+              "type": "record_type",
+              "id": "0x7f0045dd69d8"
+            }
+          }
+        },
+        {
+          "name": "t",
+          "id": 4294963116,
+          "static": false,
+          "type": {
+            "type": "pointer_type",
+            "size": 32,
+            "baseType": {
+              "type": "record_type",
+              "id": "0x7f0045dd69d8"
+            }
+          }
+        },
+        {
+          "name": "s",
+          "id": 4294963117,
+          "static": false,
+          "type": {
+            "type": "pointer_type",
+            "size": 32,
+            "baseType": {
+              "type": "record_type",
+              "id": "0x7f0045dd69d8"
+            }
+          }
+        },
+        {
+          "name": "xstringset",
+          "id": 4294963118,
+          "static": false,
+          "type": {
+            "type": "pointer_type",
+            "size": 32,
+            "baseType": {
+              "type": "record_type",
+              "id": "0x7f0045dd69d8"
+            }
+          }
+        },
+        {
+          "id": 4294963109,
+          "static": false,
+          "type": {
+            "type": "pointer_type",
+            "size": 32,
+            "baseType": {
+              "type": "record_type",
+              "id": "0x7f0045dd69d8"
+            }
+          }
+        },
+        {
+          "id": 4294963110,
+          "static": false,
+          "type": {
+            "type": "pointer_type",
+            "size": 32,
+            "baseType": {
+              "type": "record_type",
+              "id": "0x7f0045dd69d8"
+            }
+          }
+        },
+        {
+          "id": 4294963111,
+          "static": false,
+          "type": {
+            "type": "pointer_type",
+            "size": 32,
+            "baseType": {
+              "type": "record_type",
+              "id": "0x7f0045dd69d8"
+            }
+          }
+        },
+        {
+          "id": 4294963112,
+          "static": false,
+          "type": {
+            "type": "pointer_type",
+            "size": 32,
+            "baseType": {
+              "type": "record_type",
+              "id": "0x7f0045dd69d8"
+            }
+          }
+        }
+      ],
+      "basicBlocks": [
+        {
+          "index": 2,
+          "statements": [
+            {
+              "type": "assign",
+              "line": 25,
+              "file": "lang.c",
+              "operator": "var_decl",
+              "lhs": {
+                "code": "var_decl",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "record_type",
+                    "id": "0x7f0045dd69d8"
+                  }
+                },
+                "id": 4294963115,
+                "name": "nmspc"
+              },
+              "operands": [
+                {
+                  "code": "var_decl",
+                  "type": {
+                    "type": "pointer_type",
+                    "size": 32,
+                    "baseType": {
+                      "type": "record_type",
+                      "id": "0x7f0045dd69d8"
+                    }
+                  },
+                  "id": 4294964026,
+                  "name": "R_BaseEnv"
+                }
+              ]
+            },
+            {
+              "type": "call",
+              "line": 25,
+              "file": "lang.c",
+              "lhs": null,
+              "function": {
+                "code": "addr_expr",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "pointer_type",
+                      "size": 32,
+                      "baseType": {
+                        "type": "record_type",
+                        "id": "0x7f0045dd69d8"
+                      }
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      }
+                    ],
+                    "variableArguments": false
+                  }
+                },
+                "value": {
+                  "code": "function_decl",
+                  "type": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "pointer_type",
+                      "size": 32,
+                      "baseType": {
+                        "type": "record_type",
+                        "id": "0x7f0045dd69d8"
+                      }
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      }
+                    ],
+                    "variableArguments": false
+                  },
+                  "id": 4294963197,
+                  "name": "Rf_protect"
+                }
+              },
+              "arguments": [
+                {
+                  "code": "var_decl",
+                  "type": {
+                    "type": "pointer_type",
+                    "size": 32,
+                    "baseType": {
+                      "type": "record_type",
+                      "id": "0x7f0045dd69d8"
+                    }
+                  },
+                  "id": 4294963115,
+                  "name": "nmspc"
+                }
+              ]
+            },
+            {
+              "type": "call",
+              "line": 26,
+              "file": "lang.c",
+              "lhs": {
+                "code": "var_decl",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "record_type",
+                    "id": "0x7f0045dd69d8"
+                  }
+                },
+                "id": 4294963116,
+                "name": "t"
+              },
+              "function": {
+                "code": "addr_expr",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "pointer_type",
+                      "size": 32,
+                      "baseType": {
+                        "type": "record_type",
+                        "id": "0x7f0045dd69d8"
+                      }
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "integer_type",
+                        "size": 32,
+                        "unsigned": false
+                      }
+                    ],
+                    "variableArguments": false
+                  }
+                },
+                "value": {
+                  "code": "function_decl",
+                  "type": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "pointer_type",
+                      "size": 32,
+                      "baseType": {
+                        "type": "record_type",
+                        "id": "0x7f0045dd69d8"
+                      }
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "integer_type",
+                        "size": 32,
+                        "unsigned": false
+                      }
+                    ],
+                    "variableArguments": false
+                  },
+                  "id": 4294963913,
+                  "name": "Rf_allocList"
+                }
+              },
+              "arguments": [
+                {
+                  "code": "integer_cst",
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "unsigned": false
+                  },
+                  "value": 2,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "unsigned": false
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "line": 26,
+              "file": "lang.c",
+              "operator": "var_decl",
+              "lhs": {
+                "code": "var_decl",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "record_type",
+                    "id": "0x7f0045dd69d8"
+                  }
+                },
+                "id": 4294963117,
+                "name": "s"
+              },
+              "operands": [
+                {
+                  "code": "var_decl",
+                  "type": {
+                    "type": "pointer_type",
+                    "size": 32,
+                    "baseType": {
+                      "type": "record_type",
+                      "id": "0x7f0045dd69d8"
+                    }
+                  },
+                  "id": 4294963116,
+                  "name": "t"
+                }
+              ]
+            },
+            {
+              "type": "call",
+              "line": 26,
+              "file": "lang.c",
+              "lhs": null,
+              "function": {
+                "code": "addr_expr",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "pointer_type",
+                      "size": 32,
+                      "baseType": {
+                        "type": "record_type",
+                        "id": "0x7f0045dd69d8"
+                      }
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      }
+                    ],
+                    "variableArguments": false
+                  }
+                },
+                "value": {
+                  "code": "function_decl",
+                  "type": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "pointer_type",
+                      "size": 32,
+                      "baseType": {
+                        "type": "record_type",
+                        "id": "0x7f0045dd69d8"
+                      }
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      }
+                    ],
+                    "variableArguments": false
+                  },
+                  "id": 4294963197,
+                  "name": "Rf_protect"
+                }
+              },
+              "arguments": [
+                {
+                  "code": "var_decl",
+                  "type": {
+                    "type": "pointer_type",
+                    "size": 32,
+                    "baseType": {
+                      "type": "record_type",
+                      "id": "0x7f0045dd69d8"
+                    }
+                  },
+                  "id": 4294963117,
+                  "name": "s"
+                }
+              ]
+            },
+            {
+              "type": "call",
+              "line": 26,
+              "file": "lang.c",
+              "lhs": null,
+              "function": {
+                "code": "addr_expr",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "void_type"
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      },
+                      {
+                        "type": "integer_type",
+                        "size": 32,
+                        "unsigned": false
+                      }
+                    ],
+                    "variableArguments": false
+                  }
+                },
+                "value": {
+                  "code": "function_decl",
+                  "type": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "void_type"
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      },
+                      {
+                        "type": "integer_type",
+                        "size": 32,
+                        "unsigned": false
+                      }
+                    ],
+                    "variableArguments": false
+                  },
+                  "id": 4294964250,
+                  "name": "SET_TYPEOF"
+                }
+              },
+              "arguments": [
+                {
+                  "code": "var_decl",
+                  "type": {
+                    "type": "pointer_type",
+                    "size": 32,
+                    "baseType": {
+                      "type": "record_type",
+                      "id": "0x7f0045dd69d8"
+                    }
+                  },
+                  "id": 4294963116,
+                  "name": "t"
+                },
+                {
+                  "code": "integer_cst",
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "unsigned": false
+                  },
+                  "value": 6,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "unsigned": false
+                  }
+                }
+              ]
+            },
+            {
+              "type": "call",
+              "line": 26,
+              "file": "lang.c",
+              "lhs": {
+                "code": "var_decl",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "record_type",
+                    "id": "0x7f0045dd69d8"
+                  }
+                },
+                "id": 4294963112
+              },
+              "function": {
+                "code": "addr_expr",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "pointer_type",
+                      "size": 32,
+                      "baseType": {
+                        "type": "record_type",
+                        "id": "0x7f0045dd69d8"
+                      }
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "integer_type",
+                          "size": 8,
+                          "unsigned": false
+                        }
+                      }
+                    ],
+                    "variableArguments": false
+                  }
+                },
+                "value": {
+                  "code": "function_decl",
+                  "type": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "pointer_type",
+                      "size": 32,
+                      "baseType": {
+                        "type": "record_type",
+                        "id": "0x7f0045dd69d8"
+                      }
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "integer_type",
+                          "size": 8,
+                          "unsigned": false
+                        }
+                      }
+                    ],
+                    "variableArguments": false
+                  },
+                  "id": 4294963787,
+                  "name": "Rf_install"
+                }
+              },
+              "arguments": [
+                {
+                  "code": "addr_expr",
+                  "type": {
+                    "type": "pointer_type",
+                    "size": 32,
+                    "baseType": {
+                      "type": "array_type",
+                      "size": 64,
+                      "componentType": {
+                        "type": "integer_type",
+                        "size": 8,
+                        "unsigned": false
+                      },
+                      "lbound": 0,
+                      "ubound": 7
+                    }
+                  },
+                  "value": {
+                    "code": "string_cst",
+                    "type": {
+                      "type": "array_type",
+                      "size": 64,
+                      "componentType": {
+                        "type": "integer_type",
+                        "size": 8,
+                        "unsigned": false
+                      },
+                      "lbound": 0,
+                      "ubound": 7
+                    },
+                    "value": "toupper\u0000",
+                    "type": {
+                      "type": "array_type",
+                      "size": 64,
+                      "componentType": {
+                        "type": "integer_type",
+                        "size": 8,
+                        "unsigned": false
+                      },
+                      "lbound": 0,
+                      "ubound": 7
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "call",
+              "line": 26,
+              "file": "lang.c",
+              "lhs": {
+                "code": "var_decl",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "record_type",
+                    "id": "0x7f0045dd69d8"
+                  }
+                },
+                "id": 4294963111
+              },
+              "function": {
+                "code": "addr_expr",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "pointer_type",
+                      "size": 32,
+                      "baseType": {
+                        "type": "record_type",
+                        "id": "0x7f0045dd69d8"
+                      }
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      },
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      }
+                    ],
+                    "variableArguments": false
+                  }
+                },
+                "value": {
+                  "code": "function_decl",
+                  "type": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "pointer_type",
+                      "size": 32,
+                      "baseType": {
+                        "type": "record_type",
+                        "id": "0x7f0045dd69d8"
+                      }
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      },
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      }
+                    ],
+                    "variableArguments": false
+                  },
+                  "id": 4294963827,
+                  "name": "Rf_findFun"
+                }
+              },
+              "arguments": [
+                {
+                  "code": "var_decl",
+                  "type": {
+                    "type": "pointer_type",
+                    "size": 32,
+                    "baseType": {
+                      "type": "record_type",
+                      "id": "0x7f0045dd69d8"
+                    }
+                  },
+                  "id": 4294963112
+                },
+                {
+                  "code": "var_decl",
+                  "type": {
+                    "type": "pointer_type",
+                    "size": 32,
+                    "baseType": {
+                      "type": "record_type",
+                      "id": "0x7f0045dd69d8"
+                    }
+                  },
+                  "id": 4294963115,
+                  "name": "nmspc"
+                }
+              ]
+            },
+            {
+              "type": "call",
+              "line": 26,
+              "file": "lang.c",
+              "lhs": null,
+              "function": {
+                "code": "addr_expr",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "pointer_type",
+                      "size": 32,
+                      "baseType": {
+                        "type": "record_type",
+                        "id": "0x7f0045dd69d8"
+                      }
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      },
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      }
+                    ],
+                    "variableArguments": false
+                  }
+                },
+                "value": {
+                  "code": "function_decl",
+                  "type": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "pointer_type",
+                      "size": 32,
+                      "baseType": {
+                        "type": "record_type",
+                        "id": "0x7f0045dd69d8"
+                      }
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      },
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      }
+                    ],
+                    "variableArguments": false
+                  },
+                  "id": 4294964151,
+                  "name": "SETCAR"
+                }
+              },
+              "arguments": [
+                {
+                  "code": "var_decl",
+                  "type": {
+                    "type": "pointer_type",
+                    "size": 32,
+                    "baseType": {
+                      "type": "record_type",
+                      "id": "0x7f0045dd69d8"
+                    }
+                  },
+                  "id": 4294963116,
+                  "name": "t"
+                },
+                {
+                  "code": "var_decl",
+                  "type": {
+                    "type": "pointer_type",
+                    "size": 32,
+                    "baseType": {
+                      "type": "record_type",
+                      "id": "0x7f0045dd69d8"
+                    }
+                  },
+                  "id": 4294963111
+                }
+              ]
+            },
+            {
+              "type": "call",
+              "line": 26,
+              "file": "lang.c",
+              "lhs": {
+                "code": "var_decl",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "record_type",
+                    "id": "0x7f0045dd69d8"
+                  }
+                },
+                "id": 4294963116,
+                "name": "t"
+              },
+              "function": {
+                "code": "addr_expr",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "pointer_type",
+                      "size": 32,
+                      "baseType": {
+                        "type": "record_type",
+                        "id": "0x7f0045dd69d8"
+                      }
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      }
+                    ],
+                    "variableArguments": false
+                  }
+                },
+                "value": {
+                  "code": "function_decl",
+                  "type": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "pointer_type",
+                      "size": 32,
+                      "baseType": {
+                        "type": "record_type",
+                        "id": "0x7f0045dd69d8"
+                      }
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      }
+                    ],
+                    "variableArguments": false
+                  },
+                  "id": 4294964178,
+                  "name": "CDR"
+                }
+              },
+              "arguments": [
+                {
+                  "code": "var_decl",
+                  "type": {
+                    "type": "pointer_type",
+                    "size": 32,
+                    "baseType": {
+                      "type": "record_type",
+                      "id": "0x7f0045dd69d8"
+                    }
+                  },
+                  "id": 4294963116,
+                  "name": "t"
+                }
+              ]
+            },
+            {
+              "type": "call",
+              "line": 27,
+              "file": "lang.c",
+              "lhs": null,
+              "function": {
+                "code": "addr_expr",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "pointer_type",
+                      "size": 32,
+                      "baseType": {
+                        "type": "record_type",
+                        "id": "0x7f0045dd69d8"
+                      }
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      },
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      }
+                    ],
+                    "variableArguments": false
+                  }
+                },
+                "value": {
+                  "code": "function_decl",
+                  "type": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "pointer_type",
+                      "size": 32,
+                      "baseType": {
+                        "type": "record_type",
+                        "id": "0x7f0045dd69d8"
+                      }
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      },
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      }
+                    ],
+                    "variableArguments": false
+                  },
+                  "id": 4294964151,
+                  "name": "SETCAR"
+                }
+              },
+              "arguments": [
+                {
+                  "code": "var_decl",
+                  "type": {
+                    "type": "pointer_type",
+                    "size": 32,
+                    "baseType": {
+                      "type": "record_type",
+                      "id": "0x7f0045dd69d8"
+                    }
+                  },
+                  "id": 4294963116,
+                  "name": "t"
+                },
+                {
+                  "code": "parm_decl",
+                  "type": {
+                    "type": "pointer_type",
+                    "size": 32,
+                    "baseType": {
+                      "type": "record_type",
+                      "id": "0x7f0045dd69d8"
+                    }
+                  },
+                  "id": 4294963121,
+                  "name": "string"
+                }
+              ]
+            },
+            {
+              "type": "call",
+              "line": 27,
+              "file": "lang.c",
+              "lhs": {
+                "code": "var_decl",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "record_type",
+                    "id": "0x7f0045dd69d8"
+                  }
+                },
+                "id": 4294963110
+              },
+              "function": {
+                "code": "addr_expr",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "pointer_type",
+                      "size": 32,
+                      "baseType": {
+                        "type": "record_type",
+                        "id": "0x7f0045dd69d8"
+                      }
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "integer_type",
+                          "size": 8,
+                          "unsigned": false
+                        }
+                      }
+                    ],
+                    "variableArguments": false
+                  }
+                },
+                "value": {
+                  "code": "function_decl",
+                  "type": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "pointer_type",
+                      "size": 32,
+                      "baseType": {
+                        "type": "record_type",
+                        "id": "0x7f0045dd69d8"
+                      }
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "integer_type",
+                          "size": 8,
+                          "unsigned": false
+                        }
+                      }
+                    ],
+                    "variableArguments": false
+                  },
+                  "id": 4294963787,
+                  "name": "Rf_install"
+                }
+              },
+              "arguments": [
+                {
+                  "code": "addr_expr",
+                  "type": {
+                    "type": "pointer_type",
+                    "size": 32,
+                    "baseType": {
+                      "type": "array_type",
+                      "size": 16,
+                      "componentType": {
+                        "type": "integer_type",
+                        "size": 8,
+                        "unsigned": false
+                      },
+                      "lbound": 0,
+                      "ubound": 1
+                    }
+                  },
+                  "value": {
+                    "code": "string_cst",
+                    "type": {
+                      "type": "array_type",
+                      "size": 16,
+                      "componentType": {
+                        "type": "integer_type",
+                        "size": 8,
+                        "unsigned": false
+                      },
+                      "lbound": 0,
+                      "ubound": 1
+                    },
+                    "value": "x\u0000",
+                    "type": {
+                      "type": "array_type",
+                      "size": 16,
+                      "componentType": {
+                        "type": "integer_type",
+                        "size": 8,
+                        "unsigned": false
+                      },
+                      "lbound": 0,
+                      "ubound": 1
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "call",
+              "line": 27,
+              "file": "lang.c",
+              "lhs": null,
+              "function": {
+                "code": "addr_expr",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "void_type"
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      },
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      }
+                    ],
+                    "variableArguments": false
+                  }
+                },
+                "value": {
+                  "code": "function_decl",
+                  "type": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "void_type"
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      },
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      }
+                    ],
+                    "variableArguments": false
+                  },
+                  "id": 4294964154,
+                  "name": "SET_TAG"
+                }
+              },
+              "arguments": [
+                {
+                  "code": "var_decl",
+                  "type": {
+                    "type": "pointer_type",
+                    "size": 32,
+                    "baseType": {
+                      "type": "record_type",
+                      "id": "0x7f0045dd69d8"
+                    }
+                  },
+                  "id": 4294963116,
+                  "name": "t"
+                },
+                {
+                  "code": "var_decl",
+                  "type": {
+                    "type": "pointer_type",
+                    "size": 32,
+                    "baseType": {
+                      "type": "record_type",
+                      "id": "0x7f0045dd69d8"
+                    }
+                  },
+                  "id": 4294963110
+                }
+              ]
+            },
+            {
+              "type": "call",
+              "line": 27,
+              "file": "lang.c",
+              "lhs": {
+                "code": "var_decl",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "record_type",
+                    "id": "0x7f0045dd69d8"
+                  }
+                },
+                "id": 4294963116,
+                "name": "t"
+              },
+              "function": {
+                "code": "addr_expr",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "pointer_type",
+                      "size": 32,
+                      "baseType": {
+                        "type": "record_type",
+                        "id": "0x7f0045dd69d8"
+                      }
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      }
+                    ],
+                    "variableArguments": false
+                  }
+                },
+                "value": {
+                  "code": "function_decl",
+                  "type": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "pointer_type",
+                      "size": 32,
+                      "baseType": {
+                        "type": "record_type",
+                        "id": "0x7f0045dd69d8"
+                      }
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      }
+                    ],
+                    "variableArguments": false
+                  },
+                  "id": 4294964178,
+                  "name": "CDR"
+                }
+              },
+              "arguments": [
+                {
+                  "code": "var_decl",
+                  "type": {
+                    "type": "pointer_type",
+                    "size": 32,
+                    "baseType": {
+                      "type": "record_type",
+                      "id": "0x7f0045dd69d8"
+                    }
+                  },
+                  "id": 4294963116,
+                  "name": "t"
+                }
+              ]
+            },
+            {
+              "type": "call",
+              "line": 28,
+              "file": "lang.c",
+              "lhs": {
+                "code": "var_decl",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "record_type",
+                    "id": "0x7f0045dd69d8"
+                  }
+                },
+                "id": 4294963114,
+                "name": "result"
+              },
+              "function": {
+                "code": "addr_expr",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "pointer_type",
+                      "size": 32,
+                      "baseType": {
+                        "type": "record_type",
+                        "id": "0x7f0045dd69d8"
+                      }
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      },
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      }
+                    ],
+                    "variableArguments": false
+                  }
+                },
+                "value": {
+                  "code": "function_decl",
+                  "type": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "pointer_type",
+                      "size": 32,
+                      "baseType": {
+                        "type": "record_type",
+                        "id": "0x7f0045dd69d8"
+                      }
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      },
+                      {
+                        "type": "pointer_type",
+                        "size": 32,
+                        "baseType": {
+                          "type": "record_type",
+                          "id": "0x7f0045dd69d8"
+                        }
+                      }
+                    ],
+                    "variableArguments": false
+                  },
+                  "id": 4294963830,
+                  "name": "Rf_eval"
+                }
+              },
+              "arguments": [
+                {
+                  "code": "var_decl",
+                  "type": {
+                    "type": "pointer_type",
+                    "size": 32,
+                    "baseType": {
+                      "type": "record_type",
+                      "id": "0x7f0045dd69d8"
+                    }
+                  },
+                  "id": 4294963117,
+                  "name": "s"
+                },
+                {
+                  "code": "var_decl",
+                  "type": {
+                    "type": "pointer_type",
+                    "size": 32,
+                    "baseType": {
+                      "type": "record_type",
+                      "id": "0x7f0045dd69d8"
+                    }
+                  },
+                  "id": 4294963115,
+                  "name": "nmspc"
+                }
+              ]
+            },
+            {
+              "type": "call",
+              "line": 28,
+              "file": "lang.c",
+              "lhs": null,
+              "function": {
+                "code": "addr_expr",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "void_type"
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "integer_type",
+                        "size": 32,
+                        "unsigned": false
+                      }
+                    ],
+                    "variableArguments": false
+                  }
+                },
+                "value": {
+                  "code": "function_decl",
+                  "type": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "void_type"
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "integer_type",
+                        "size": 32,
+                        "unsigned": false
+                      }
+                    ],
+                    "variableArguments": false
+                  },
+                  "id": 4294963195,
+                  "name": "Rf_unprotect"
+                }
+              },
+              "arguments": [
+                {
+                  "code": "integer_cst",
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "unsigned": false
+                  },
+                  "value": 1,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "unsigned": false
+                  }
+                }
+              ]
+            },
+            {
+              "type": "call",
+              "line": 29,
+              "file": "lang.c",
+              "lhs": null,
+              "function": {
+                "code": "addr_expr",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "void_type"
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "integer_type",
+                        "size": 32,
+                        "unsigned": false
+                      }
+                    ],
+                    "variableArguments": false
+                  }
+                },
+                "value": {
+                  "code": "function_decl",
+                  "type": {
+                    "type": "function_type",
+                    "size": 8,
+                    "returnType": {
+                      "type": "void_type"
+                    },
+                    "argumentTypes": [
+                      {
+                        "type": "integer_type",
+                        "size": 32,
+                        "unsigned": false
+                      }
+                    ],
+                    "variableArguments": false
+                  },
+                  "id": 4294963195,
+                  "name": "Rf_unprotect"
+                }
+              },
+              "arguments": [
+                {
+                  "code": "integer_cst",
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "unsigned": false
+                  },
+                  "value": 2,
+                  "type": {
+                    "type": "integer_type",
+                    "size": 32,
+                    "unsigned": false
+                  }
+                }
+              ]
+            },
+            {
+              "type": "assign",
+              "line": 30,
+              "file": "lang.c",
+              "operator": "var_decl",
+              "lhs": {
+                "code": "var_decl",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "record_type",
+                    "id": "0x7f0045dd69d8"
+                  }
+                },
+                "id": 4294963109
+              },
+              "operands": [
+                {
+                  "code": "var_decl",
+                  "type": {
+                    "type": "pointer_type",
+                    "size": 32,
+                    "baseType": {
+                      "type": "record_type",
+                      "id": "0x7f0045dd69d8"
+                    }
+                  },
+                  "id": 4294963114,
+                  "name": "result"
+                }
+              ]
+            }
+          ],
+          "edges": [
+            {
+              "flags": 1,
+              "source": 2,
+              "target": 3
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "statements": [
+            {
+              "type": "return",
+              "line": 30,
+              "file": "lang.c",
+              "value": {
+                "code": "var_decl",
+                "type": {
+                  "type": "pointer_type",
+                  "size": 32,
+                  "baseType": {
+                    "type": "record_type",
+                    "id": "0x7f0045dd69d8"
+                  }
+                },
+                "id": 4294963109
+              }
+            }
+          ],
+          "edges": [
+            {
+              "flags": 0,
+              "source": 3,
+              "target": 1
+            }
+          ]
+        }
+      ],
+      "returnType": {
+        "type": "pointer_type",
+        "size": 32,
+        "baseType": {
+          "type": "record_type",
+          "id": "0x7f0045dd69d8"
+        }
+      }
+    }
+  ],
+  "aliases": [
+  ],
+  "globalVariables": [
+    {
+      "id": 4294964026,
+      "name": "R_BaseEnv",
+      "mangledName": "R_BaseEnv",
+      "extern": true,
+      "type": {
+        "type": "pointer_type",
+        "size": 32,
+        "baseType": {
+          "type": "record_type",
+          "id": "0x7f0045dd69d8"
+        }
+      },
+      "const": false
+    }
+  ],
+  "recordTypes": [
+    {
+      "id": "0x7f0045dd69d8",
+      "union": false,
+      "name": "SEXPREC",
+      "fields": [
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+type=METHOD
+class=org/renjin/grDevices/GraphicsDevices
+descriptor=(Lorg/renjin/gcc/runtime/Ptr;)V
+member=close

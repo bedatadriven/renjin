@@ -290,6 +290,21 @@ public class Builtins {
     throw new RuntimeException(Stdlib.format(format, new FormatArrayInput(arguments)));
   }
 
+  public static int _gfortran_pow_i4_i4(int base, int power) {
+    int result = 1;
+    for (int i = 1; i <= power; i++) {
+      result *= base;
+    }
+    return result;
+  }
+  private static volatile int __sync_synchronize_value = 0;
+
+  public static void __sync_synchronize() {
+    // The following volatile field access should convince the JVM to emit a memory fence instruction.
+    // https://www.infoq.com/articles/memory_barriers_jvm_concurrency
+    __sync_synchronize_value++;
+  }
+
   public static void _gfortran_concat_string(int resultLength, Ptr result, int arg1Length, Ptr arg1, int arg2Length, Ptr arg2) {
     int resultPos = 0;
     for(int i=0;i<arg1Length;++i) {
@@ -313,12 +328,4 @@ public class Builtins {
     }
     return result;
   }
-  private static volatile int __sync_synchronize_value = 0;
-
-  public static void __sync_synchronize() {
-    // The following volatile field access should convince the JVM to emit a memory fence instruction.
-    // https://www.infoq.com/articles/memory_barriers_jvm_concurrency
-    __sync_synchronize_value++;
-  }
-
 }

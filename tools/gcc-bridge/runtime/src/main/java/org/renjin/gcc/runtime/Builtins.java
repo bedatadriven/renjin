@@ -290,6 +290,13 @@ public class Builtins {
     throw new RuntimeException(Stdlib.format(format, new FormatArrayInput(arguments)));
   }
 
+  public static int _gfortran_pow_i4_i4(int base, int power) {
+    int result = 1;
+    for (int i = 1; i <= power; i++) {
+      result *= base;
+    }
+    return result;
+  }
   private static volatile int __sync_synchronize_value = 0;
 
   public static void __sync_synchronize() {

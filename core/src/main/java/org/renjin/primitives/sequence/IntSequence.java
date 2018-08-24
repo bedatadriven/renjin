@@ -71,6 +71,11 @@ public class IntSequence extends IntVector {
   }
 
   @Override
+  public boolean anyNA() {
+    return false;
+  }
+
+  @Override
   public boolean isConstantAccessTime() {
     return true;
   }

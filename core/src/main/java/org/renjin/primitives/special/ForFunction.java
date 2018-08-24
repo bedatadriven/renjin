@@ -18,6 +18,7 @@
  */
 package org.renjin.primitives.special;
 
+import org.renjin.compiler.CachedLoopBody;
 import org.renjin.compiler.CompiledLoopBody;
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.TypeSolver;
@@ -25,6 +26,8 @@ import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.cfg.DominanceTree;
 import org.renjin.compiler.cfg.UseDefMap;
 import org.renjin.compiler.codegen.ByteCodeEmitter;
+import org.renjin.compiler.ir.TypeSet;
+import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.ssa.SsaTransformer;
 import org.renjin.compiler.ir.tac.IRBody;
@@ -39,11 +42,12 @@ import org.renjin.sexp.*;
 public class ForFunction extends SpecialFunction {
 
   public static boolean COMPILE_LOOPS = Boolean.getBoolean("renjin.compile.loops");
+  public static boolean COMPILE_LOOPS_VERBOSE = Boolean.getBoolean("renjin.compile.loops.verbose");
 
   public static boolean FAIL_ON_COMPILATION_ERROR = false;
   
   private static final int COMPILE_THRESHOLD = 200;
-  private static final int WARMUP_ITERATIONS = 5;
+  private static final int WARMUP_ITERATIONS = 3;
 
   public ForFunction() {
     super("for");
@@ -66,6 +70,8 @@ public class ForFunction extends SpecialFunction {
     if(profiling) {
       Profiler.loopStart(call, elements);
     }
+
+
 
     int i = 0;
     
@@ -103,50 +109,71 @@ public class ForFunction extends SpecialFunction {
     return Null.INSTANCE;
   }
 
-  private boolean tryCompileAndRun(Context context, Environment rho, FunctionCall call, Vector elements, int i) {
+  private boolean tryCompileAndRun(Context context, Environment rho, FunctionCall call, Vector sequence, int i) {
 
     CompiledLoopBody compiledBody = null;
 
-    try {
-
-      RuntimeState runtimeState = new RuntimeState(context, rho);
-      IRBodyBuilder builder = new IRBodyBuilder(runtimeState);
-      IRBody body = builder.buildLoopBody(call, elements);
-
-      ControlFlowGraph cfg = new ControlFlowGraph(body);
-
-      DominanceTree dTree = new DominanceTree(cfg);
-      SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);
-      ssaTransformer.transform();
-
-
-      UseDefMap useDefMap = new UseDefMap(cfg);
-      TypeSolver types = new TypeSolver(cfg, useDefMap);
-      types.execute();
-
-      types.verifyFunctionAssumptions(runtimeState);
-
-      ssaTransformer.removePhiFunctions(types);
-
-
-      ByteCodeEmitter emitter = new ByteCodeEmitter(cfg, types);
-      compiledBody = emitter.compileLoopBody().newInstance();
-
-    } catch (NotCompilableException e) {
-      if(FAIL_ON_COMPILATION_ERROR) {
-        throw new AssertionError("Loop compilation failed: " + e.toString(context));
+    if(call.cache instanceof CachedLoopBody) {
+      CachedLoopBody cachedLoopBody = (CachedLoopBody) call.cache;
+      if(cachedLoopBody.assumptionsStillMet(context, rho, sequence)) {
+        compiledBody = cachedLoopBody.getCompiledBody();
       }
-      context.warn("Could not compile loop because: " + e.toString(context));
-      return false;
-
-    } catch (InvalidSyntaxException e) {
-      throw new EvalException(e.getMessage());
-      
-    } catch (Exception e) {
-      throw new EvalException("Exception compiling loop: " + e.getMessage(), e);
     }
 
-    compiledBody.run(context, rho, elements, i);
+    if(compiledBody == null) {
+      try {
+
+        if (COMPILE_LOOPS_VERBOSE) {
+          System.err.print("Attempting loop compilation on " + System.identityHashCode(call) + "...");
+        }
+
+        RuntimeState runtimeState = new RuntimeState(context, rho);
+
+        ValueBounds sequenceBounds = ValueBounds.builder().setTypeSet(TypeSet.of(sequence)).build();
+
+        IRBodyBuilder builder = new IRBodyBuilder(runtimeState);
+        IRBody body = builder.buildLoopBody(call, sequenceBounds);
+
+        ControlFlowGraph cfg = new ControlFlowGraph(body);
+
+        DominanceTree dTree = new DominanceTree(cfg);
+        SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);
+        ssaTransformer.transform();
+
+        UseDefMap useDefMap = new UseDefMap(cfg);
+        TypeSolver types = new TypeSolver(cfg, useDefMap);
+        types.execute();
+
+        types.verifyFunctionAssumptions(runtimeState);
+
+        ssaTransformer.removePhiFunctions(types);
+
+        ByteCodeEmitter emitter = new ByteCodeEmitter(cfg, types);
+        compiledBody = emitter.compileLoopBody().newInstance();
+
+
+        System.out.println("ASSUMPTIONS: " + runtimeState.getAssumptions());
+
+        // Cache for subsequent evaluations...
+        call.cache = new CachedLoopBody(compiledBody, sequenceBounds, runtimeState.getAssumptions());
+
+      } catch (NotCompilableException e) {
+        if (FAIL_ON_COMPILATION_ERROR) {
+          throw new AssertionError("Loop compilation failed: " + e.toString(context));
+        }
+        context.warn("Could not compile loop because: " + e.toString(context));
+        return false;
+
+      } catch (InvalidSyntaxException e) {
+        throw new EvalException(e.getMessage());
+
+      } catch (Exception e) {
+        throw new EvalException("Exception compiling loop: " + e.getMessage(), e);
+      }
+    }
+
+    compiledBody.run(context, rho, sequence, i);
+
 
     return true;
   }

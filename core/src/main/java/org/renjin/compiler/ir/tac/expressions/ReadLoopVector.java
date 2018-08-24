@@ -35,10 +35,6 @@ public class ReadLoopVector implements Expression {
     this.bounds = bounds;
   }
 
-  public ReadLoopVector(SEXP elements) {
-    bounds = ValueBounds.of(elements).withVaryingValues();
-  }
-
   @Override
   public boolean isPure() {
     return true;

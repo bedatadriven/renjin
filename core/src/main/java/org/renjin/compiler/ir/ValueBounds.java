@@ -18,11 +18,13 @@
  */
 package org.renjin.compiler.ir;
 
+import org.renjin.primitives.Identical;
 import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.*;
+import org.renjin.sexp.Vector;
 
 import java.util.*;
 
@@ -546,6 +548,56 @@ public class ValueBounds {
 
   public static ValueBounds.Builder builder() {
     return new Builder();
+  }
+
+  /**
+   * Returns true if the given {@code sexp} falls within these bounds.
+   */
+  public boolean test(SEXP sexp) {
+    if(constantValue != null) {
+      return Identical.identical(constantValue, sexp);
+    }
+    int sexpType = TypeSet.of(sexp);
+    if((this.typeSet & sexpType) == 0) {
+      return false;
+    }
+    if(this.length != UNKNOWN_LENGTH) {
+      if(this.length != sexp.length()) {
+        return false;
+      }
+    }
+    if(this.na == NO_NA && sexp instanceof Vector) {
+      Vector vector = (Vector) sexp;
+      if(vector.anyNA()) {
+        return false;
+      }
+    }
+
+    // Fast attribute checks
+    if (this.attributes.isEmpty()) {
+      // No bounds on attributes
+      if(attributesOpen) {
+        return true;
+      } else {
+        return sexp.getAttributes().isEmpty();
+      }
+    }
+
+    // Otherwise check
+    AttributeMap attributes = sexp.getAttributes();
+    for (Symbol symbol : attributes.names()) {
+      SEXP expectedAttribute = this.attributes.get(symbol);
+      if(expectedAttribute == null) {
+        if(!attributesOpen) {
+          return false;
+        }
+      } else {
+        if (!Identical.identical(expectedAttribute, attributes.get(symbol))) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
 

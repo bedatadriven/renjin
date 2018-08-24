@@ -93,13 +93,19 @@ public class TypeSet {
     } else if (type.equals(Complex.class)) {
       return COMPLEX;
 
-    } else if (type.equals(IntVector.class)) {
+    } else if (IntVector.class.isAssignableFrom(type)) {
       return INT;
 
-    } else if (type.equals(ListVector.class)) {
+    } else if (DoubleVector.class.isAssignableFrom(type)) {
+      return INT;
+
+    } else if (ListVector.class.isAssignableFrom(type)) {
       return LIST;
 
-    } else if (type.equals(AtomicVector.class)) {
+    } else if (LogicalVector.class.isAssignableFrom(type)) {
+      return LIST;
+
+    } else if (AtomicVector.class.isAssignableFrom(type)) {
       return ANY_ATOMIC_VECTOR;
       
     } else if (type.equals(SEXP.class)) {
@@ -265,5 +271,9 @@ public class TypeSet {
   public static boolean isDefinitelyAtomic(int typeSet) {
     return (typeSet & ANY_ATOMIC_VECTOR) != 0 &&
         (typeSet & ~ANY_ATOMIC_VECTOR) == 0;
+  }
+
+  public static boolean isDefinitelyNotAtomicVector(int typeSet) {
+    return (typeSet & ANY_ATOMIC_VECTOR) == 0;
   }
 }

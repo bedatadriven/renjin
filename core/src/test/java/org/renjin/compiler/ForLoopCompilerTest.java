@@ -103,11 +103,15 @@ public class ForLoopCompilerTest extends EvalTestCase {
   @Test
   public void loopWithClosureCubeCall() {
     eval(" myfn <- function(i, z) (i/length(z))^2 ");
-    eval(" s <- 0 ");
-    eval(" z <- 1:500 ");
-    evalAndAssertCompiled(" for(i in z) s <- s + myfn(i, z) ");
+    eval(" mysum <- function(z) { s <- 0; for(i in z) s <- s + myfn(i, z); s } ");
 
-    assertThat(eval("s"), closeTo(c(167.167), 0.1));
+    assertThat(evalAndAssertCompiled("mysum(1:500)"), closeTo(c(167.167), 0.1));
+    assertThat(evalAndAssertCompiled("mysum(1:10000)"), closeTo(c(3333.833), 0.1));
+
+    // Redefine myfn
+    eval(" myfn <- function(i, z) i*2 ");
+    assertThat(evalAndAssertCompiled("mysum(1:1000)"), closeTo(c(1001000), 0));
+
   }
 
   @Test
@@ -154,6 +158,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
     assertThat(eval("sum"), elementsIdenticalTo(c(120d)));
 
   }
+
 
   @Test
   public void activeBindingInEnvironment() {

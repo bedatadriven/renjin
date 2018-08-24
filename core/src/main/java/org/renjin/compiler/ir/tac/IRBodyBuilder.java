@@ -24,6 +24,7 @@ import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.tac.expressions.*;
 import org.renjin.compiler.ir.tac.functions.*;
 import org.renjin.compiler.ir.tac.statements.*;
+import org.renjin.primitives.Primitives;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.*;
@@ -75,20 +76,23 @@ public class IRBodyBuilder {
     addStatement(new ReturnStatement(returnValue));
    
     removeRedundantJumps();
+
+    System.out.println(statements);
+
     insertVariableInitializations();
     updateVariableReturn();
     
     return new IRBody(statements, labels);
   }
   
-  public IRBody buildLoopBody(FunctionCall call, SEXP sequence) {
+  public IRBody buildLoopBody(FunctionCall call, ValueBounds sequenceBounds) {
     statements = Lists.newArrayList();
     labels = Maps.newHashMap();
 
     LocalVariable vector = newLocalVariable("elements");
     LocalVariable counter = newLocalVariable("i");
 
-    statements.add(new Assignment(vector, new ReadLoopVector(sequence)));
+    statements.add(new Assignment(vector, new ReadLoopVector(sequenceBounds)));
     statements.add(new Assignment(counter, new ReadLoopIt()));
 
     LoopBodyContext bodyContext = new LoopBodyContext(runtimeContext);
@@ -176,17 +180,15 @@ public class IRBodyBuilder {
   private void insertVariableInitializations() {
     // For every variable that comes from the environment, 
     // declare it as a constant in the beginning of the block
-    
+
     List<Assignment> initializations = new ArrayList<>();
     
     for (EnvironmentVariable environmentVariable : variables.values()) {
       if(!paramSet.contains(environmentVariable.getName())) {
-        SEXP value = runtimeContext.findVariable(environmentVariable.getName());
-
-        if (value != Symbol.UNBOUND_VALUE) {
+        runtimeContext.findVariableBounds(environmentVariable.getName()).ifPresent(bounds -> {
           initializations.add(new Assignment(environmentVariable,
-              new ReadEnvironment(environmentVariable.getName(), ValueBounds.of(value))));
-        }
+              new ReadEnvironment(environmentVariable.getName(), bounds)));
+        });
       }
     }
     
@@ -195,7 +197,6 @@ public class IRBodyBuilder {
     for (IRLabel label : labels.keySet()) {
       labels.put(label, labels.get(label) + initializations.size());
     }
-    
   }
 
   public void dump(SEXP exp) {
@@ -261,7 +262,12 @@ public class IRBodyBuilder {
     if( functionName instanceof PrimitiveFunction) {
       return (PrimitiveFunction) functionName;
     } else if (functionName instanceof Symbol) {
-      return runtimeContext.findFunction((Symbol) functionName);
+      Symbol symbol = (Symbol) functionName;
+      if(symbol.isReservedWord()) {
+        return Primitives.getReservedBuiltin(symbol);
+      } else {
+        return runtimeContext.findFunction(symbol);
+      }
     }
     throw new NotCompilableException(functionName);
   }

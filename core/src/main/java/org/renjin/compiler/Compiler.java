@@ -59,7 +59,6 @@ public class Compiler {
 
       types.dumpBounds();
 
-
       types.verifyFunctionAssumptions(runtimeState);
 
       ssaTransformer.removePhiFunctions(types);

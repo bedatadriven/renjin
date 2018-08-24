@@ -19,6 +19,8 @@
 package org.renjin.compiler.ir.tac;
 
 import org.renjin.compiler.NotCompilableException;
+import org.renjin.compiler.ir.TypeSet;
+import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.eval.Context;
 import org.renjin.packaging.SerializedPromise;
@@ -26,7 +28,10 @@ import org.renjin.primitives.S3;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Provides access to the runtime environment at the moment of compilation,
@@ -38,6 +43,8 @@ public class RuntimeState {
   private Environment rho;
   
   private Environment methodTable;
+
+  private List<RuntimeAssumption> assumptions = new ArrayList<>();
 
 
   /**
@@ -82,91 +89,177 @@ public class RuntimeState {
     return (PairList) ellipses;
   }
 
-  public SEXP findVariable(Symbol name) {
+  /**
+   * Finds the value bounds of a variable that is coming from "outside" the
+   * compiled S-expression. The bounds returned are recorded as assumptions for
+   * future runs.
+   *
+   */
+  public Optional<ValueBounds> findVariableBounds(Symbol name) {
 
-    SEXP value = null;
+    SEXP value = findVariableWithoutSideEffects(context, rho, name, false);
+    if(value == Symbol.UNBOUND_VALUE) {
+      return Optional.empty();
+    }
+
+    ValueBounds bounds = reasonableBounds(value);
+
+    assumptions.add(new AssumeVariableBounds(name, bounds));
+
+    return Optional.of(bounds);
+  }
+
+  /**
+   * Climbs the enclosing environment tree to find a variable, but *without* triggering
+   * any side effects in the form of active bindings or unevaluated promises.
+   *
+   * @param rho the enclosing environment
+   * @param name the name of the binding to find
+   * @param findFunction true if we are looking for a function.
+   * @return the value of the binding, or {@code Symbol.UNBOUND_VALUE} if it could not be found.
+   * @throws NotCompilableException if an active binding or unevaluated promise was encountered in the search path.
+   */
+  private static SEXP findVariableWithoutSideEffects(Context context, Environment rho, Symbol name, boolean findFunction) {
+
+    SEXP value;
     Environment environment = rho;
-    while(environment != Environment.EMPTY) {
+
+    do {
       if (environment.isActiveBinding(name)) {
         throw new NotCompilableException(name, "Active Binding encountered");
       }
-      value = rho.findVariable(context, name);
-      if(value instanceof Promise) {
+
+      // Using unsafe because we already checked for active binding
+      value = environment.getVariableUnsafe(name);
+
+      // Functions loaded from packages are initialized stored as SerializedPromises
+      // so the AST does not have to be loaded into memory until the function is first
+      // needed. Though technically this does involve I/O and thus side-effects,
+      // we don't consider it to have any affect on the running program, and so
+      // can safely force it.
+
+      if(value instanceof SerializedPromise) {
+        value = value.force(context);
+      }
+
+      while(value instanceof Promise) {
         Promise promisedValue = (Promise) value;
+
         if(promisedValue.isEvaluated()) {
           value = promisedValue.force(context);
+
         } else {
           // Promises can have side effects, and evaluation order is important
           // so we can't just force all the promises in the beginning of the loop
           throw new NotCompilableException(name, "Unevaluated promise encountered");
         }
       }
+
+      if(value != Symbol.UNBOUND_VALUE) {
+        if(!findFunction || value instanceof Function) {
+          break;
+        }
+      }
+
+      // Climb up to the next level
       environment = environment.getParent();
-    }
-    if(value == null) {
-      throw new NotCompilableException(name, "Symbol not found. Should not reach here!");
-    }
+
+    } while(environment != Environment.EMPTY);
+
     return value;
   }
 
+  /**
+   * Now decide how much we want to assume about this value.
+   * <p>
+   * The more information we include in the value bounds, the more we will be
+   * able to specialize and the more efficient our result will be.
+   * <p>
+   * The more we surface as a value bounds, however, the less likely we will be able
+   * to reuse the compiled fragment.
+   * <p>
+   * So we need a series of heuristics to determine what is useful to assume
+   * and what we should leave open
+   *
+   */
+  private static ValueBounds reasonableBounds(SEXP sexp) {
 
+    int length = sexp.length();
+    int type = TypeSet.of(sexp);
+
+    // 1) Constants
+    // These types of S-Expressions are unlikely to change across executions, and
+    // have a huge impact on specialization.
+
+    if (length == 0 || TypeSet.isDefinitelyNotAtomicVector(type)) {
+      return ValueBounds.of(sexp);
+    }
+
+    // 2) Numeric, scalar of values 0 and 1 we will treat as constants
+    if(length == 1 && (type == TypeSet.DOUBLE || type == TypeSet.INT || type == TypeSet.LOGICAL)) {
+      double doubleValue = ((AtomicVector) sexp).getElementAsDouble(0);
+      if(doubleValue == 0d || doubleValue == 1d || DoubleVector.isNA(doubleValue)) {
+        return ValueBounds.of(sexp);
+      }
+    }
+
+    // 3) Atomic vectors we want to assume their shape, and attributes
+    Vector vector = (Vector) sexp;
+    AttributeMap attributes = sexp.getAttributes();
+    ValueBounds.Builder bounds = ValueBounds.builder().setTypeSet(type);
+
+    if(length == 1 && vector.isElementNA(0)) {
+      return ValueBounds.of(sexp);
+    }
+
+    /// Treat scalars specially, this is hugely important to specialization
+    if(length == 1) {
+
+      if (vector.isElementNA(0)) {
+        // Scalar NAs assume constant
+        return ValueBounds.of(sexp);
+
+      } else {
+        bounds.setLength(length);
+        bounds.setNA(ValueBounds.NO_NA);
+      }
+    }
+
+    // Ideally we would like to leave the precise dimensions open, but
+    // the modeling of Valuebounds would need to change
+    bounds.setClosedAttributes(attributes.toMap());
+
+    return bounds.build();
+  }
+
+  /**
+   * Finds a function with the given name in the enclosing environment, without
+   * triggering any side affects.
+   *
+   * @param functionName the name of the function to lookup
+   * @return
+   */
   public Function findFunction(Symbol functionName) {
 
     Function f = findFunctionIfExists(functionName);
     if (f != null) {
+      assumptions.add(new AssumeFunctionDefinition(functionName, f));
       return f;
     }
     throw new NotCompilableException(functionName, "Could not find function " + functionName);
   }
 
-  public Function findFunctionIfExists(Symbol functionName) {
+  private Function findFunctionIfExists(Symbol functionName) {
     if(resolvedFunctions.containsKey(functionName)) {
       return resolvedFunctions.get(functionName);
     }
 
-    Environment environment = rho;
-    while(environment != Environment.EMPTY) {
-      Function f = isFunction(functionName, environment.getVariable(context, functionName));
-      if(f != null) {
-        resolvedFunctions.put(functionName, f);
-        return f;
-      }
-      environment = environment.getParent();
-    }
-    return null;
-  }
-
-  /**
-   * Tries to safely determine whether the expression is a function, without
-   * forcing any promises that might have side effects.
-   * @param exp
-   * @return null if the expr is definitely not a function, or {@code expr} if the
-   * value can be resolved to a Function without side effects
-   * @throws NotCompilableException if it is not possible to determine
-   * whether the value is a function without risking side effects.
-   */
-  private Function isFunction(Symbol functionName, SEXP exp) {
-    if(exp instanceof Function) {
-      return (Function)exp;
-
-    } else if(exp instanceof SerializedPromise) {
-      // Functions loaded from packages are initialized stored as SerializedPromises
-      // so the AST does not have to be loaded into memory until the function is first 
-      // needed. Though technically this does involve I/O and thus side-effects,
-      // we don't consider it to have any affect on the running program, and so
-      // can safely force it.
-      return isFunction(functionName, exp.force(this.context));
-
-    } else if(exp instanceof Promise) {
-      Promise promise = (Promise)exp;
-      if(promise.isEvaluated()) {
-        return isFunction(functionName, promise.getValue());
-      } else {
-        throw new NotCompilableException(functionName, "Symbol " + functionName + " cannot be resolved to a function " +
-            " an enclosing environment has a binding of the same name to an unevaluated promise");
-      }
-    } else {
+    SEXP function = findVariableWithoutSideEffects(context, rho, functionName, true);
+    if(function == Symbol.UNBOUND_VALUE) {
       return null;
+    } else {
+      resolvedFunctions.put(functionName, (Function) function);
+      return (Function) function;
     }
   }
 
@@ -182,7 +275,7 @@ public class RuntimeState {
    */
   public Function findMethod(String generic, String group, StringVector objectClasses) {
 
-    Function method = null;
+    Function method;
     
     for(String className : objectClasses) {
       method = findMethod(generic, group, className);
@@ -213,9 +306,8 @@ public class RuntimeState {
 
     // TODO: this requires some thought because we are making
     // assumptions about not only the functions we find, but those we DON'T find,
-    // and method table entires can easily be changed if new packages are loaded, even if the
+    // and method table entries can easily be changed if new packages are loaded, even if the
     // environment is sealed.
-
 
     Symbol method = Symbol.get(generic + "." + className);
     Function function = findFunctionIfExists(method);
@@ -236,4 +328,77 @@ public class RuntimeState {
     return null;
   }
 
+  public List<RuntimeAssumption> getAssumptions() {
+    return assumptions;
+  }
+
+
+  /**
+   * Assumes that the variable in the expression's immediate environment
+   * matches the ValueBounds used to compile the fragment
+   */
+  public static class AssumeVariableBounds implements RuntimeAssumption {
+    private final Symbol name;
+    private final ValueBounds bounds;
+
+    public AssumeVariableBounds(Symbol name, ValueBounds bounds) {
+      this.name = name;
+      this.bounds = bounds;
+    }
+
+    @Override
+    public String toString() {
+      return "Variable{" + name + " = " + bounds + "}";
+    }
+
+    @Override
+    public boolean test(Context context, Environment rho) {
+      SEXP value;
+      try {
+        value = findVariableWithoutSideEffects(context, rho, name, false);
+      } catch (NotCompilableException e) {
+        return false;
+      }
+      if(value == Symbol.UNBOUND_VALUE) {
+        return false;
+      }
+      return bounds.test(value);
+    }
+  }
+
+  public static class AssumeFunctionDefinition implements RuntimeAssumption {
+    private final Symbol name;
+    private final Function function;
+
+    public AssumeFunctionDefinition(Symbol name, Function function) {
+      this.name = name;
+      this.function = function;
+    }
+
+    @Override
+    public String toString() {
+      if (function instanceof PrimitiveFunction) {
+        return "Function{" + name + " = " + ((PrimitiveFunction) function).getName() + "()}";
+      } else {
+        return "Function{" + name + " = f() }";
+      }
+    }
+
+    @Override
+    public boolean test(Context context, Environment rho) {
+      SEXP value;
+      try {
+        value = findVariableWithoutSideEffects(context, rho, name, false);
+      } catch (NotCompilableException e) {
+        return false;
+      }
+      if(value == Symbol.UNBOUND_VALUE) {
+        return false;
+      }
+
+      // TODO: This will not allow us to reuse compiled fragments between
+      // different Renjin sessions
+      return function == value;
+    }
+  }
 }

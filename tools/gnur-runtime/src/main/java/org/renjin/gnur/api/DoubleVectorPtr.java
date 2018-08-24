@@ -18,7 +18,10 @@
  */
 package org.renjin.gnur.api;
 
-import org.renjin.gcc.runtime.*;
+import org.renjin.gcc.runtime.AbstractPtr;
+import org.renjin.gcc.runtime.DoublePtr;
+import org.renjin.gcc.runtime.OffsetPtr;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.sexp.AtomicVector;
 
 import static org.renjin.gcc.runtime.DoublePtr.BYTES;
@@ -39,7 +42,7 @@ public class DoubleVectorPtr extends AbstractPtr {
 
   @Override
   public final int getOffsetInBytes() {
-    return offset * IntPtr.BYTES;
+    return offset * DoublePtr.BYTES;
   }
 
   @Override
@@ -52,8 +55,8 @@ public class DoubleVectorPtr extends AbstractPtr {
     if(bytes == 0) {
       return this;
     }
-    if(bytes % IntPtr.BYTES == 0) {
-      return new DoubleVectorPtr(this.vector, this.offset + (bytes / IntPtr.BYTES));
+    if(bytes % DoublePtr.BYTES == 0) {
+      return new DoubleVectorPtr(this.vector, this.offset + (bytes / DoublePtr.BYTES));
     }
     return new OffsetPtr(this, bytes);
   }
@@ -68,18 +71,12 @@ public class DoubleVectorPtr extends AbstractPtr {
     if(offset % BYTES == 0) {
       return getAlignedDouble(offset / BYTES);
     }
-    return super.getInt(offset);
+    return super.getDouble(offset);
   }
-
 
   @Override
   public byte getByte(int bytes) {
-    int index = bytes / BYTES;
-    double element = getAlignedDouble(index);
-    long elementBits = Double.doubleToRawLongBits(element);
-    int shift = (bytes % BYTES) * BITS_PER_BYTE;
-
-    return (byte)(elementBits >>> shift);
+    return getByteViaDouble(bytes);
   }
   @Override
   public void setByte(int offset, byte value) {

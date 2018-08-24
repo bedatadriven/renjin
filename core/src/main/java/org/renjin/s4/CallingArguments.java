@@ -158,7 +158,7 @@ public class CallingArguments {
     int step = 0;
     for(int index = 0; step < length; ++index) {
       if(argumentIt.hasNext()) {
-        String nodeTag = argumentIt.next().getTag().getPrintName();
+        String nodeTag = argumentIt.next().getName();
         if(args.isEmpty() || args.contains(nodeTag)) {
           classes[step] = getArgumentClass(index);
           step++;

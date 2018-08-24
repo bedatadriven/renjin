@@ -600,6 +600,25 @@ public class ValueBounds {
     return true;
   }
 
+  /**
+   * Returns true if this ValueBounds is either an integer or double scalar, with a value
+   * equal to {@value}
+   *
+   */
+  public boolean isNumericScalarConstantEqualTo(double value) {
+    if(constantValue == null) {
+      return false;
+    }
+    if(constantValue.length() != 1) {
+      return false;
+    }
+    if(!(constantValue instanceof DoubleVector || constantValue instanceof IntVector)) {
+      return false;
+    }
+    AtomicVector vector = (AtomicVector) constantValue;
+    return vector.getElementAsDouble(0) == value;
+  }
+
 
   public static class Builder {
     private ValueBounds bounds;

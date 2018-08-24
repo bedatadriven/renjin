@@ -713,7 +713,7 @@ public class Deparse {
         Complex complex = vector.getElementAsComplex(index);
         double r = complex.getReal();
         double i = complex.getImaginary();
-        if(DoubleVector.isFinite(r) && DoubleVector.isFinite(i)) {
+        if(Double.isFinite(r) && Double.isFinite(i)) {
           StringBuilder sb = new StringBuilder();
           sb.append(NumericLiterals.toString(complex.getReal()));
           if(complex.getImaginary() >= 0 || Double.isNaN(complex.getImaginary())) {

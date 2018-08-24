@@ -280,7 +280,7 @@ public class RDataWriter implements AutoCloseable {
     if(serializationType == SerializationType.ASCII) {
       for(int i=0;i!=vector.length();++i) {
         double d = vector.getElementAsDouble(i);
-        if(!DoubleVector.isFinite(d)) {
+        if(!Double.isFinite(d)) {
           if(DoubleVector.isNaN(d)) {
             conn.writeBytes("NA\n");
           } else if (d < 0) {

@@ -87,8 +87,12 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
     }
   }
 
+  /**
+   * @deprecated See Java 1.8 {@link Double#isFinite(double)}
+   */
+  @Deprecated
   public static boolean isFinite(double d) {
-    return !Double.isInfinite(d) && !Double.isNaN(d);
+    return Double.isFinite(d);
   }
 
   @Override

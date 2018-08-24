@@ -62,7 +62,7 @@ public class Polyroot {
         double re = z.getElementAsDouble(i);
         double im = z.getElementAsComplexIm(i);
 
-        if(!DoubleVector.isFinite(re) || !DoubleVector.isFinite(im)) {
+        if(!Double.isFinite(re) || !Double.isFinite(im)) {
           throw new EvalException("invalid polynomial coefficient");
         }
         zr[degree - i] = re;

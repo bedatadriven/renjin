@@ -242,11 +242,16 @@ public class TypeSet {
     }
   }
 
-
+  /**
+   * Return true if the type of the ValueBounds is definitely either double or integer
+   */
   public static boolean isDefinitelyNumeric(ValueBounds subscript) {
     return isDefinitelyNumeric(subscript.getTypeSet());
   }
 
+  /**
+   * Return true if the typeset is definitely either double or integer
+   */
   public static boolean isDefinitelyNumeric(int typeSet) {
     return (typeSet & NUMERIC) != 0 &&
         (typeSet & ~NUMERIC) == 0;

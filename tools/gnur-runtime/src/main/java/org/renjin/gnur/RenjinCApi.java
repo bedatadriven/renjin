@@ -56,7 +56,7 @@ public class RenjinCApi {
   }
 
   public static int R_finite(double x) {
-    return DoubleVector.isFinite(x) ? 1 : 0;
+    return Double.isFinite(x) ? 1 : 0;
   }
 
   public static double R_pow(double x, double y) {
@@ -74,7 +74,7 @@ public class RenjinCApi {
       return DoubleVector.NA;
     }
     if (n != 0) {
-      if (!DoubleVector.isFinite(x)) {
+      if (!Double.isFinite(x)) {
         return R_pow(x, (double)n);
       }
       boolean isNegative = (n < 0);

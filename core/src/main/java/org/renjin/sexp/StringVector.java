@@ -71,7 +71,7 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
     } else {
       String value = getElementAsString(index);
       double doubleValue = NumericLiterals.parseDouble(value, 0, value.length(), '.', true);
-      if(DoubleVector.isFinite(doubleValue)) {
+      if(Double.isFinite(doubleValue)) {
         return (int)doubleValue;
       } else {
         return IntVector.NA;

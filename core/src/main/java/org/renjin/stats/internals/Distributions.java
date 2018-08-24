@@ -941,7 +941,7 @@ public class Distributions {
     int npos = 0;
 
     for (int i = 0; i < n; i++) {
-      if (!DoubleVector.isFinite(p[i])) {
+      if (!Double.isFinite(p[i])) {
         throw new EvalException("NA in probability vector");
       }
       if (p[i] < 0.0) {

@@ -51,6 +51,11 @@ public final class DoubleArrayVector extends DoubleVector {
     }
   }
 
+  public DoubleArrayVector(double value) {
+    super(AttributeMap.EMPTY);
+    this.values = new double[] { value };
+  }
+
   public DoubleArrayVector(double... values) {
     this(values, AttributeMap.EMPTY);
   }

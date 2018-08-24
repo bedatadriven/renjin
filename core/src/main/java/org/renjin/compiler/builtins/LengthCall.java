@@ -46,7 +46,7 @@ public class LengthCall implements Specialization {
     emitContext.convert(mv, argument.getType(), Type.getType(SEXP.class));
     
     mv.invokeinterface(Type.getInternalName(SEXP.class), "length", 
-        Type.getMethodDescriptor(Type.INT_TYPE, Type.getType(SEXP.class)));
+        Type.getMethodDescriptor(Type.INT_TYPE));
   }
 
   @Override

@@ -53,7 +53,8 @@ public class S4Slot {
 
     StringVector class1 = StringVector.valueOf(valueClass);
     SEXP classDef1 = Methods.getClassDef(context, class1, Null.INSTANCE, Null.INSTANCE, true);
-    StringVector valueclassContains = Attributes.getContainsSlotNames(classDef1);
+    StringVector valueSuperclasses = Attributes.getSlotElementsNames(classDef1, S4.CONTAINS);
+    StringVector valueSubclasses = Attributes.getSlotElementsNames(classDef1, S4.SUBCLASSES);
 
     StringVector class2 = StringVector.valueOf(slotClass);
     SEXP classDef2 = Methods.getClassDef(context, class2, Null.INSTANCE, Null.INSTANCE, true);
@@ -65,24 +66,19 @@ public class S4Slot {
           + "\") is not TRUE");
     }
 
-    if(Arrays.asList(valueclassContains.toArray()).contains(slotClass)) {
+    if(Arrays.asList(valueSuperclasses.toArray()).contains(slotClass)) {
       return;
     } else {
-//      StringVector class1 = StringVector.valueOf(valueClass);
-//      classDef1 = Methods.getClassDef(context, class1, Null.INSTANCE, Null.INSTANCE, true);
-      ListVector valueSubclasses = (ListVector) classDef1.getAttribute(S4.SUBCLASSES);
 
-      if(valueSubclasses != null && valueSubclasses.length() > 0) {
-        String classDef2Class = ((StringArrayVector)classDef2.getAttribute(Symbols.CLASS)).getElementAsString(0);
+      if(valueSubclasses.length() > 0 || valueSuperclasses.length() > 0) {
+        String classDef2Class = ((StringVector) classDef2.getAttribute(Symbols.CLASS)).getElementAsString(0);
         if(!"classRepresenation".equals(classDef2Class) && "ClassUnionRepresentation".equals(classDef2Class)) {
           List<String> allClasses = new ArrayList<>();
           allClasses.add(valueClass);
-          allClasses.addAll(Arrays.asList(valueclassContains.toArray()));
-          if(classDef2.getAttribute(S4.SUBCLASSES) != null) {
-            StringArrayVector slotclassSubclasses = (StringArrayVector) classDef2.getAttribute(S4.SUBCLASSES).getAttribute(Symbols.NAMES);
-            if(slotclassSubclasses != null && slotclassSubclasses.length() > 0) {
-              allClasses.addAll(Arrays.asList(slotclassSubclasses.toArray()));
-            }
+          allClasses.addAll(Arrays.asList(valueSuperclasses.toArray()));
+          StringVector slotSubclasses = Attributes.getSlotElementsNames(classDef2, S4.SUBCLASSES);
+          if(slotSubclasses.length() > 0) {
+            allClasses.addAll(Arrays.asList(slotSubclasses.toArray()));
           }
 
           if(hasDuplicate(allClasses)) {
@@ -93,7 +89,7 @@ public class S4Slot {
       } else {
         SEXP slotclassContains = classDef2.getAttribute(S4.CONTAINS);
         if(slotclassContains != null) {
-          StringArrayVector slotclassNames = (StringArrayVector) slotclassContains.getAttribute(Symbols.NAMES);
+          StringVector slotclassNames = (StringVector) slotclassContains.getAttribute(Symbols.NAMES);
           if(slotclassNames != null) {
             List<String> namesList = Arrays.asList(slotclassNames.toArray());
             if(namesList.contains(valueClass)) {

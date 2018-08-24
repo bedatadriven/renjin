@@ -342,9 +342,10 @@ public class Attributes {
     return 0;
   }
 
-  public static StringVector getContainsSlotNames(SEXP exp) {
-    if(exp.getAttribute(S4.CONTAINS) != null) {
-      return (StringArrayVector) exp.getAttribute(S4.CONTAINS).getNames();
+  public static StringVector getSlotElementsNames(SEXP exp, Symbol slot) {
+    SEXP attribute = exp.getAttribute(slot);
+    if(attribute != null && attribute.length() > 0) {
+      return (StringVector) attribute.getNames();
     }
     else {
       return StringVector.EMPTY;

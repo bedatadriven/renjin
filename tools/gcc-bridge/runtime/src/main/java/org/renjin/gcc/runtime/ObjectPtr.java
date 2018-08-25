@@ -96,7 +96,7 @@ public class ObjectPtr<T> extends AbstractPtr {
 
   @Override
   public int toInt() {
-    throw new UnsupportedOperationException("TODO");
+    return offset * 4;
   }
 
   @Override

@@ -22,10 +22,7 @@ import org.renjin.base.Base;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Profiler;
-import org.renjin.gcc.runtime.BytePtr;
-import org.renjin.gcc.runtime.DoublePtr;
-import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.gcc.runtime.ObjectPtr;
+import org.renjin.gcc.runtime.*;
 import org.renjin.invoke.annotations.*;
 import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.invoke.reflection.FunctionBinding;
@@ -217,7 +214,7 @@ public class Native {
   /**
    * Converts a StringVector to an array of null-terminated strings.
    */
-  private static ObjectPtr stringPtrToCharPtrPtr(SEXP sexp) {
+  private static PointerPtr stringPtrToCharPtrPtr(SEXP sexp) {
     if(!((sexp instanceof StringVector))) {
       throw new EvalException(".C function expected 'character', but argument was '%s'", sexp.getTypeName());
     }
@@ -229,7 +226,7 @@ public class Native {
         strings[i] = BytePtr.nullTerminatedString(element, Charsets.UTF_8);
       }
     }
-    return new ObjectPtr(strings, 0);
+    return new PointerPtr(strings, 0);
   }
 
   private static SEXP sexpFromPointer(Object ptr, AttributeMap attributes) {

@@ -265,7 +265,7 @@ public abstract class GraphicsDevice {
     container.add(new GDRect(x0, y0, x1, y1));
   }
 
-  public void raster(byte[] image, int imageWidth, int imageHeight, double x, double y, double w, double h, double rot, boolean interpolate) {
+  public void raster(Ptr image, int imageWidth, int imageHeight, double x, double y, double w, double h, double rot, boolean interpolate) {
     if (container == null) {
       return;
     }

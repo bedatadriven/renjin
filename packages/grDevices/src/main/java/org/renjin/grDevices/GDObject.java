@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 package org.renjin.grDevices;
 
+import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.Ptr;
 
 import java.awt.*;
@@ -448,7 +449,7 @@ class GDRaster implements GDObject {
   private Image image;
   private AffineTransform atrans;
 
-  public GDRaster(byte[] image, int imageWidth, int imageHeight, double x, double y, double w, double h, double rot, boolean interpolate) {
+  public GDRaster(Ptr image, int imageWidth, int imageHeight, double x, double y, double w, double h, double rot, boolean interpolate) {
     this.interpolate = interpolate;
     atrans = new AffineTransform();
     // R seems to use flipped y coordinates
@@ -461,7 +462,8 @@ class GDRaster implements GDObject {
     atrans.rotate(-rot / 180 * Math.PI, 0, y);
     atrans.scale(sx, sy);
 
-    DataBuffer dbuf = new DataBufferByte(image, imageWidth * imageHeight, 0);
+    DataBuffer dbuf = toDataBuffer(image, imageWidth * imageHeight * 4);
+
     int[] compOffsets = {0, 1, 2, 3};
     SampleModel sm = new PixelInterleavedSampleModel(DataBuffer.TYPE_BYTE, imageWidth, imageHeight,
         4, imageWidth * 4, compOffsets);
@@ -469,6 +471,22 @@ class GDRaster implements GDObject {
     ColorModel cm = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
         true, false, Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
     this.image = new BufferedImage(cm, raster, false, null);
+  }
+
+  private DataBuffer toDataBuffer(Ptr image, int size) {
+    if(image instanceof BytePtr) {
+      // Fast path
+      BytePtr bytePtr = (BytePtr) image;
+      return new DataBufferByte(bytePtr.array, size, bytePtr.offset);
+
+    } else {
+      // Need to make a copy...
+      byte[] buffer = new byte[size];
+      for (int i = 0; i < buffer.length; i++) {
+        buffer[i] = image.getByte(i);
+      }
+      return new DataBufferByte(buffer, size, 0);
+    }
   }
 
   @Override

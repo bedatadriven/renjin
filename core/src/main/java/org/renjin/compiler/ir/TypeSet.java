@@ -232,7 +232,7 @@ public class TypeSet {
     appendType(s, "S4", mask, S4);
     return s.toString();
   }
-  
+
   private static void appendType(StringBuilder sb, String name, int mask, int bit) {
     if( (mask & bit) != 0) {
       if(sb.length() > 1) {
@@ -257,8 +257,32 @@ public class TypeSet {
         (typeSet & ~NUMERIC) == 0;
   }
 
+  /**
+   * Given two vectors with possible {@code TypeSet}s {@code x} and {@code y},
+   * find the TypeSet of the widest operator.
+   *
+   * For example, the widest of {character} and {double} is {character}, because
+   * {character} is always wider than {double}.
+   *
+   * But if you have widestVectorType({int, character}, {double}) then result will be
+   * {character,double}, because we don't know whether x is a
+   *
+   * @param x
+   * @param y
+   * @return
+   */
   public static int widestVectorType(int x, int y) {
-    return Math.max(x, y);
+    if(x == y) {
+      return x;
+    }
+    if(Integer.bitCount(x) == 1 && Integer.bitCount(y) == 1) {
+      return Math.max(x, y);
+    }
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  public static boolean mightBe(int typeSet, int type) {
+    return (typeSet & type) != 0;
   }
 
   public static int elementOf(int typeSet) {

@@ -53,8 +53,7 @@ public class SubsetSpecializer implements Specializer, BuiltinSpecializer {
     // If more than one subscript is provided
     // Such as x[i,j] or x[i,j,k], then treat this as a matrix selection
     if (subscripts.size() > 1) {
-      //return new MatrixSubset(source, subscripts).tryFurtherSpecialize();
-      return UnspecializedCall.INSTANCE;
+      return new MatrixSubset(source, subscripts).tryFurtherSpecialize();
     }
 
     ValueBounds subscript = subscripts.get(0);

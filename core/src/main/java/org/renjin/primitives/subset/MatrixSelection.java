@@ -224,10 +224,6 @@ public class MatrixSelection implements SelectionStrategy {
 
   /**
    * Computes the {@code ValueBounds} of the result of this matrix selection based on available type information.
-   * @param source
-   * @param subscripts
-   * @param drop
-   * @return
    */
   public static ValueBounds computeResultBounds(ValueBounds source, List<ValueBounds> subscripts, boolean drop) {
 

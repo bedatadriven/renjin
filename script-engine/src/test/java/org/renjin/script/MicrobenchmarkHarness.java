@@ -1,22 +1,23 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-${$file.lastModified.year} BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, a copy is available at
- * https://www.gnu.org/licenses/gpl-2.0.txt
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, a copy is available at
+ *  https://www.gnu.org/licenses/gpl-2.0.txt
+ *
  */
-package org.renjin.compiler;
+package org.renjin.script;
 
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
@@ -37,12 +38,15 @@ public class MicrobenchmarkHarness {
 
   public static void main(String[] args) throws IOException {
 
-    File script = new File("/home/alex/dev/renjin-benchmarks/microbenchmarks/r_vs_cpp/curly/curly.R");
+    File script = new File("/home/alex/dev/renjin-benchmarks/microbenchmarks/r_vs_cpp/fuzzycluster/fuzzycluster.R");
 
     ForFunction.COMPILE_LOOPS = true;
     ForFunction.COMPILE_LOOPS_VERBOSE = true;
 
-    Session session = new SessionBuilder().build();
+    Session session = new SessionBuilder()
+        .withDefaultPackages()
+        .build();
+    session.setWorkingDirectory(script.getParentFile());
     session.getTopLevelContext().evaluate(RParser.parseSource(Files.asCharSource(script, Charsets.UTF_8), Null.INSTANCE));
 
     FunctionCall call = FunctionCall.newCall(Symbol.get("run"));
@@ -57,7 +61,7 @@ public class MicrobenchmarkHarness {
       session.getTopLevelContext().evaluate(call);
     }
 
-    System.out.println(started.elapsed(TimeUnit.MILLISECONDS) / 1000d);
+    System.out.println(started.elapsed(TimeUnit.MILLISECONDS) / 100d);
 
     session.printWarnings();
 

@@ -30,6 +30,7 @@ import org.renjin.repackaged.asm.*;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.asm.tree.MethodNode;
 import org.renjin.repackaged.asm.util.Textifier;
+import org.renjin.repackaged.asm.util.TraceMethodVisitor;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 
@@ -106,7 +107,7 @@ public class ByteCodeEmitter implements Opcodes {
         null, null);
 
     Textifier p = new Textifier();
-    //mv = new TraceMethodVisitor(mv, p);
+    mv = new TraceMethodVisitor(mv, p);
     
     mv.visitCode();
     writeBody(emitContext, mv, cfg);

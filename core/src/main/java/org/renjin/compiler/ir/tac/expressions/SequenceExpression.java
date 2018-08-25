@@ -19,12 +19,14 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.primitives.sequence.DoubleSequence;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.DoubleVector;
 
 import java.util.Map;
 
@@ -48,15 +50,27 @@ public class SequenceExpression extends SpecializedCallExpression {
 
   @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
-    ValueBounds fromType = childAt(0).updateTypeBounds(typeMap);
-    ValueBounds toType = childAt(1).updateTypeBounds(typeMap);
+    int fromType = endpointType(childAt(0).updateTypeBounds(typeMap));
+    int toType = endpointType(childAt(1).updateTypeBounds(typeMap));
 
     valueBounds = ValueBounds.builder()
-        .setTypeSet(fromType.getTypeSet() | toType.getTypeSet())
+        .setTypeSet(fromType | toType)
+        .setNA(ValueBounds.NO_NA)
         .setEmptyAttributes()
         .build();
-    
+
     return valueBounds;
+  }
+
+  private int endpointType(ValueBounds valueBounds) {
+    // Should we treat this is a integer, even though it might be of type double?
+    if(valueBounds.isConstant() && valueBounds.getConstantValue() instanceof DoubleVector) {
+      double doubleValue = ((DoubleVector) valueBounds.getConstantValue()).getElementAsDouble(0);
+      if(doubleValue < Integer.MAX_VALUE && doubleValue == (int)doubleValue) {
+        return TypeSet.INT;
+      }
+    }
+    return valueBounds.getTypeSet();
   }
 
   @Override

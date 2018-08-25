@@ -71,8 +71,6 @@ public class ForFunction extends SpecialFunction {
       Profiler.loopStart(call, elements);
     }
 
-
-
     int i = 0;
     
     try {
@@ -140,9 +138,13 @@ public class ForFunction extends SpecialFunction {
         SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);
         ssaTransformer.transform();
 
+        System.out.println(cfg);
+
         UseDefMap useDefMap = new UseDefMap(cfg);
         TypeSolver types = new TypeSolver(cfg, useDefMap);
         types.execute();
+
+        types.dumpBounds();
 
         types.verifyFunctionAssumptions(runtimeState);
 

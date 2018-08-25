@@ -538,6 +538,9 @@ public class ValueBounds {
    * @return a new {@code ValueBounds} with the same type, length, and attributes, but non-constant values.
    */
   public ValueBounds withVaryingValues() {
+    if(constantValue == null) {
+      return this;
+    }
     ValueBounds bounds = new ValueBounds();
     bounds.length = this.length;
     bounds.typeSet = this.typeSet;
@@ -619,6 +622,13 @@ public class ValueBounds {
     return vector.getElementAsDouble(0) == value;
   }
 
+  /**
+   *
+   * @return true if this is an atomic vector of length 1
+   */
+  public boolean isScalar() {
+    return TypeSet.isDefinitelyAtomic(typeSet) && length == 1;
+  }
 
   public static class Builder {
     private ValueBounds bounds;

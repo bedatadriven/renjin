@@ -283,8 +283,9 @@ public class Native {
     DllSymbol method = findMethod(context, methodExp, packageName, className, DllSymbol.Convention.FORTRAN);
 
     Class<?>[] fortranTypes = method.getMethodHandle().type().parameterArray();
-    if(fortranTypes.length != callArguments.length()) {
-      throw new EvalException("Invalid number of args");
+    if(fortranTypes.length > callArguments.length()) {
+      throw new EvalException("Argument mismatch while invoking .Fortran(" + method.getName() + ", ...): " +
+          " expected " + fortranTypes.length + " arguments, received " + callArguments.length() + " arguments");
     }
 
     Object[] fortranArgs = new Object[fortranTypes.length];
@@ -298,7 +299,7 @@ public class Native {
     // reference to the fortran subroutine, and then return the modified arguments
     // as a ListVector.
 
-    for(int i=0;i!=callArguments.length();++i) {
+    for(int i=0;i!=fortranTypes.length;++i) {
       AtomicVector vector = (AtomicVector) callArguments.get(i);
       if(vector instanceof DoubleVector) {
         double[] array = vector.toDoubleArray();

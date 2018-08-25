@@ -25,15 +25,18 @@ import org.renjin.sexp.*;
 public class TypeSet {
 
 
+  public static final int LOGICAL_BIT = 2;
+  public static final int LIST_BIT = 8;
+
   // Type Flags
-  public static final int LIST = (1 << 1);
-  public static final int NULL = (1 << 2);
-  public static final int LOGICAL = (1 << 3);
+  public static final int NULL = (1 << 1);
+  public static final int LOGICAL = (1 << LOGICAL_BIT);
+  public static final int RAW = (1 << 3);
   public static final int INT = (1 << 4);
   public static final int DOUBLE = (1 << 5);
-  public static final int STRING = (1 << 6);
-  public static final int COMPLEX = (1 << 7);
-  public static final int RAW = (1 << 8);
+  public static final int COMPLEX = (1 << 6);
+  public static final int STRING = (1 << 7);
+  public static final int LIST = (1 << LIST_BIT);
   public static final int SYMBOL = (1 << 9);
   public static final int FUNCTION = (1 << 10);
   public static final int ENVIRONMENT = (1 << 11);
@@ -44,6 +47,8 @@ public class TypeSet {
   public static final int ANY_TYPE = ANY_VECTOR | PAIRLIST | ENVIRONMENT | SYMBOL | FUNCTION;
 
   public static final int NUMERIC = INT | DOUBLE;
+
+
 
   public static int of(SEXP constant) {
     if(constant instanceof ListVector) {
@@ -217,14 +222,14 @@ public class TypeSet {
     }
 
     StringBuilder s = new StringBuilder();
-    appendType(s, "list", mask, LIST);
     appendType(s, "null", mask, NULL);
+    appendType(s, "logical", mask, LOGICAL);
+    appendType(s, "raw", mask, RAW);
     appendType(s, "int", mask, INT);
     appendType(s, "double", mask, DOUBLE);
-    appendType(s, "logical", mask, LOGICAL);
     appendType(s, "character", mask, STRING);
     appendType(s, "complex", mask, COMPLEX);
-    appendType(s, "raw", mask, RAW);
+    appendType(s, "list", mask, LIST);
     appendType(s, "symbol", mask, SYMBOL);
     appendType(s, "function", mask, FUNCTION);
     appendType(s, "environment", mask, ENVIRONMENT);
@@ -278,7 +283,24 @@ public class TypeSet {
     if(Integer.bitCount(x) == 1 && Integer.bitCount(y) == 1) {
       return Math.max(x, y);
     }
-    throw new UnsupportedOperationException("TODO");
+
+    int result = 0;
+
+    // If either x or y are sets with multiple possible types, then
+    // we have to figure out the widest of all possible combinations.
+
+    for (int i = LOGICAL_BIT; i <= LIST_BIT; i++) {
+      for (int j = LOGICAL_BIT; j <= LIST_BIT; ++j) {
+        if(mightBe(x, 1 << i) && mightBe(y, 1 << j)) {
+          if(i < j) {
+            result |= (1 << j);
+          } else {
+            result |= (1 << i);
+          }
+        }
+      }
+    }
+    return result;
   }
 
   public static boolean mightBe(int typeSet, int type) {

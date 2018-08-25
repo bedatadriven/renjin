@@ -21,7 +21,6 @@
 package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.codegen.EmitContext;
-import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.repackaged.asm.Type;
@@ -29,39 +28,12 @@ import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 import java.util.List;
 
-public class MatrixReplacement implements Specialization {
+public class SumSpecialization implements Specialization {
 
-  private ValueBounds resultBounds;
+  private final ValueBounds resultBounds;
 
-  public MatrixReplacement(ValueBounds sourceVector, ValueBounds[] subscriptBounds, ValueBounds replacement) {
-
-    // First determine our result type
-    ValueBounds.Builder builder = ValueBounds.builder()
-        .setTypeSet(computeResultType(sourceVector, replacement));
-
-    // Now specialize for a few specific cases
-    if(isSingleElementReplaced(subscriptBounds)) {
-
-    }
-
-    resultBounds = sourceVector.withVaryingValues();
-  }
-
-  private boolean isSingleElementReplaced(ValueBounds[] subscriptBounds) {
-    for (int i = 0; i < subscriptBounds.length; i++) {
-      ValueBounds subscriptBound = subscriptBounds[i];
-      if(!subscriptBound.isScalar()) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private int computeResultType(ValueBounds sourceVector, ValueBounds replacement) {
-    int sourceType = sourceVector.getTypeSet();
-    int replacementType = replacement.getTypeSet();
-
-    return TypeSet.widestVectorType(sourceType, replacementType);
+  public SumSpecialization(ValueBounds resultBounds) {
+    this.resultBounds = resultBounds;
   }
 
   @Override

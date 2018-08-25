@@ -21,7 +21,6 @@ package org.renjin.compiler.builtins;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -46,23 +45,24 @@ public class ReplaceSpecializer implements Specializer, BuiltinSpecializer {
     ValueBounds inputVector = arguments.get(0).getBounds();
     ValueBounds replacement = arguments.get(numArguments - 1).getBounds();
 
-    ValueBounds[] subscriptBounds = new ValueBounds[numArguments - 2];
+    ValueBounds[] subscripts = new ValueBounds[numArguments - 2];
     for (int i = 1; i < numArguments - 1; i++) {
-      subscriptBounds[i - 1] = arguments.get(i).getBounds();
+      subscripts[i - 1] = arguments.get(i).getBounds();
     }
 
-    if(subscriptBounds.length > 1) {
+    if(subscripts.length > 1) {
       // Matrix replacements are a bit easier because it never changes the shape
       // of the input source.
-      return new MatrixReplacement(inputVector, subscriptBounds, replacement);
+      return new MatrixReplacement(inputVector, subscripts, replacement);
+
     }
 
+    if(subscripts.length == 1 &&
+       subscripts[0].getLength() == 1 &&
+       replacement.getLength() == 1 &&
+       inputVector.getTypeSet() == replacement.getTypeSet()) {
 
-    if(subscript.getLength() == 1 && replacement.getLength() == 1 &&
-          inputVector.getTypeSet() == replacement.getTypeSet()) {
-        return new UpdateElementCall(inputVector, subscript, replacement);
-      }
-      
+      return new UpdateElementCall(inputVector, subscripts[0], replacement);
     }
 
     return UnspecializedCall.INSTANCE;

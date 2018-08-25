@@ -59,6 +59,7 @@ public class BuiltinSpecializers {
     specializers.put("is.array", new GenericBuiltinGuard(new IsArraySpecializer()));
     specializers.put("dim", new GenericBuiltinGuard(new DimSpecializer()));
     specializers.put("rep", new RepSpecializer());
+    specializers.put("sum", new GenericBuiltinGuard(new SumSpecializer("sum")));
     specializers.put("invisible", new InvisibleSpecializer());
 
     cache = CacheBuilder.newBuilder().build(new CacheLoader<String, Specializer>() {

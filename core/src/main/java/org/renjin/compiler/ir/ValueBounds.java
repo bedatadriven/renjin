@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.ir;
 
+import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.primitives.Identical;
 import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.repackaged.asm.Type;
@@ -622,6 +623,13 @@ public class ValueBounds {
     return vector.getElementAsDouble(0) == value;
   }
 
+  public boolean isConstantFlagEqualTo(boolean value) {
+    if(constantValue == null) {
+      return false;
+    }
+    return WrapperRuntime.convertToBooleanPrimitive(constantValue) == value;
+  }
+
   /**
    *
    * @return true if this is an atomic vector of length 1
@@ -629,6 +637,7 @@ public class ValueBounds {
   public boolean isScalar() {
     return TypeSet.isDefinitelyAtomic(typeSet) && length == 1;
   }
+
 
   public static class Builder {
     private ValueBounds bounds;
@@ -679,7 +688,15 @@ public class ValueBounds {
       bounds.attributesOpen = false;
     }
 
-    
+    public Builder setHasNoNAs(boolean hasNoNas) {
+      if(hasNoNas) {
+        bounds.na = NO_NA;
+      } else {
+        bounds.na = MAY_HAVE_NA;
+      }
+      return this;
+    }
+
     public void setAttribute(Symbol name, SEXP value) {
       if(bounds.attributes == null) {
         bounds.attributes = new HashMap<>();

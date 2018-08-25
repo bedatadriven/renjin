@@ -86,9 +86,9 @@ public class WrapperRuntime {
 
   public static boolean convertToBooleanPrimitive(SEXP exp) {
     if(exp.length() == 0) {
-      return false;
+      return true;
     }
-    return exp.asLogical() == Logical.TRUE;
+    return exp.asLogical() != Logical.FALSE;
   }
   
   public static Vector convertToVector(SEXP exp) {

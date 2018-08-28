@@ -18,6 +18,9 @@
  */
 package org.renjin.compiler.ir.tac.expressions;
 
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+
 /**
  * A SimpleExpression is non recursive: it does not have
  * any "child" operations like a function call does.
@@ -25,4 +28,8 @@ package org.renjin.compiler.ir.tac.expressions;
 public interface SimpleExpression extends Expression {
 
 
+  @Override
+  default CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    throw new UnsupportedOperationException("TODO");
+  }
 }

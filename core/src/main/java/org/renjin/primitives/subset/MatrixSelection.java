@@ -257,7 +257,7 @@ public class MatrixSelection implements SelectionStrategy {
     
     // (C) Are the dimnames known (or known to be absent) ?
     Vector sourceDimNames = null;
-    if(source.isAttributeConstant()) {
+    if(source.isConstantAttributes()) {
       sourceDimNames = source.getConstantAttributes().getDimNames();
     }
     
@@ -284,8 +284,14 @@ public class MatrixSelection implements SelectionStrategy {
         }
       }
     } else {
-      // all we know is what we could end up with
+      // all we know is what we *could* end up with a dim attribute,
+      // but it could also be dropped if one of the subscripts is '0'.
+
+      // For example,
       resultBounds.attributeCouldBePresent(Symbols.DIM);
+
+
+
       if(source.attributeCouldBePresent(Symbols.DIMNAMES)) {
         resultBounds.attributeCouldBePresent(Symbols.DIMNAMES);
       }

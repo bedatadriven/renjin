@@ -24,6 +24,7 @@ import org.renjin.compiler.codegen.ByteCodeEmitter;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.InlineEmitContext;
 import org.renjin.compiler.codegen.InlineParamExpr;
+import org.renjin.compiler.codegen.var.VariableStrategy;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.ssa.SsaTransformer;
 import org.renjin.compiler.ir.tac.IRArgument;
@@ -56,6 +57,7 @@ public class InlinedFunction {
   private final UseDefMap useDefMap;
   private final TypeSolver types;
   private final List<ReadParam> params;
+  private final LiveSet liveSet;
 
   private List<ReturnStatement> returnStatements = Lists.newArrayList();
   private Closure closure;
@@ -78,6 +80,7 @@ public class InlinedFunction {
     ssaTransformer.transform();
     useDefMap = new UseDefMap(cfg);
     types = new TypeSolver(cfg, useDefMap);
+    liveSet = new LiveSet(dTree, useDefMap);
     params = body.getParams();
 
     for (Statement statement : body.getStatements()) {
@@ -131,9 +134,13 @@ public class InlinedFunction {
     return types.isPure();
   }
   
-  public void writeInline(EmitContext emitContext, InstructionAdapter mv, MatchedArgumentPositions matching, List<IRArgument> arguments) {
+  public void writeInline(EmitContext emitContext,
+                          InstructionAdapter mv,
+                          MatchedArgumentPositions matching,
+                          List<IRArgument> arguments,
+                          VariableStrategy returnVariable) {
  
-    InlineEmitContext inlineContext = emitContext.inlineContext(cfg, types);
+    InlineEmitContext inlineContext = emitContext.inlineContext(cfg, types, liveSet, returnVariable);
 
     for (Map.Entry<Symbol, Integer> formal : matching.getMatchedFormals().entrySet()) {
       inlineContext.setInlineParameter(formal.getKey(),

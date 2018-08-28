@@ -18,6 +18,8 @@
  */
 package org.renjin.compiler.ir.tac.expressions;
 
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 
 import java.util.Map;
@@ -62,6 +64,11 @@ public abstract class SpecializedCallExpression implements Expression {
   @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
     return ValueBounds.UNBOUNDED;
+  }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    throw new UnsupportedOperationException("TODO");
   }
 
 }

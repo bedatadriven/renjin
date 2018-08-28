@@ -19,8 +19,11 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.ScalarExpr;
+import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 import java.util.Map;
@@ -33,17 +36,6 @@ public class ReadLoopIt implements Expression {
   }
 
   @Override
-  public int load(EmitContext emitContext, InstructionAdapter mv) {
-    mv.load(emitContext.getLoopIterationIndex(), Type.INT_TYPE);
-    return 1;
-  }
-
-  @Override
-  public Type getType() {
-    return Type.INT_TYPE;
-  }
-
-  @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
     return ValueBounds.INT_PRIMITIVE;
   }
@@ -51,6 +43,16 @@ public class ReadLoopIt implements Expression {
   @Override
   public ValueBounds getValueBounds() {
     return ValueBounds.INT_PRIMITIVE;
+  }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    return new ScalarExpr(VectorType.INT) {
+      @Override
+      public void loadScalar(EmitContext context, InstructionAdapter mv) {
+        mv.visitVarInsn(Opcodes.ILOAD, context.getLoopIterationIndex());
+      }
+    };
   }
 
   @Override

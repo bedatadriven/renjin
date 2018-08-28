@@ -21,7 +21,6 @@ package org.renjin.compiler.ir;
 import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.primitives.Identical;
 import org.renjin.primitives.sequence.IntSequence;
-import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.*;
@@ -67,6 +66,11 @@ public class ValueBounds {
    * Whether this value may have NA elements
    */
   private int na = MAY_HAVE_NA;
+
+  /**
+   * The number of dimensions that this value has, or -1 if it's not known.
+   */
+  private int dimCount = -1;
   
   /**
    * The bit set of this value's possible types.
@@ -100,6 +104,7 @@ public class ValueBounds {
     this.length = toCopy.length;
     this.typeSet = toCopy.typeSet;
     this.na = toCopy.na;
+    this.dimCount = toCopy.dimCount;
     this.constantValue = toCopy.constantValue;
     this.attributes = toCopy.attributes;
     this.attributesOpen = toCopy.attributesOpen;
@@ -130,6 +135,7 @@ public class ValueBounds {
     valueBounds.length = value.length();
     valueBounds.attributes = value.getAttributes().toMap();
     valueBounds.attributesOpen = false;
+    valueBounds.dimCount = value.getAttributes().getDim().length();
     return valueBounds;
   }
 
@@ -221,8 +227,11 @@ public class ValueBounds {
   public boolean isDimCountConstant() {
     return isDimAttributeConstant();
   }
-  
-  public boolean isAttributeConstant() {
+
+  /**
+   * @return true if the attributes of the SEXP are constant.
+   */
+  public boolean isConstantAttributes() {
     return !attributesOpen && !attributes.containsValue(null);
   }
 
@@ -389,37 +398,6 @@ public class ValueBounds {
     return union;
   }
 
-  
-  public Type storageType() {
-    if(typeSet == TypeSet.DOUBLE) {
-      if(length == 1) {
-        return Type.DOUBLE_TYPE;
-      } else {
-        return Type.getType(DoubleVector.class);
-      }
-    } else if(typeSet == TypeSet.INT ||
-        typeSet == TypeSet.LOGICAL) {
-      if(length == 1) {
-        return Type.INT_TYPE;
-      } else {
-        return Type.getType(IntVector.class);
-      }
-    } else if(typeSet == TypeSet.RAW) {
-      if(length == 1) {
-        return Type.BYTE_TYPE;
-      } else {
-        return Type.getType(RawVector.class);
-      }
-    } else if(typeSet == TypeSet.STRING) {
-      if (length == 1) {
-        return Type.getType(String.class);
-      } else {
-        return Type.getType(StringVector.class);
-      }
-    } else {
-      return Type.getType(SEXP.class);
-    }
-  }
 
   @Override
   public String toString() {
@@ -447,7 +425,20 @@ public class ValueBounds {
     for (Map.Entry<Symbol, SEXP> attribute : attributes.entrySet()) {
       s.append(", ").append(attribute.getKey().getPrintName()).append("=");
       if(attribute.getValue() == null) {
-        s.append("?");
+        if(attribute.getKey() == Symbols.DIM) {
+          if(dimCount == -1) {
+            s.append("?");
+          } else {
+            s.append("[");
+            for (int j = 0; j < dimCount; j++) {
+              if(j > 0) {
+                s.append(",");
+              }
+              s.append("*");
+            }
+            s.append("]");
+          }
+        }
       } else if(attribute.getValue() == Null.INSTANCE) {
         s.append("∅");
       } else {
@@ -544,6 +535,7 @@ public class ValueBounds {
     }
     ValueBounds bounds = new ValueBounds();
     bounds.length = this.length;
+    bounds.dimCount = this.dimCount;
     bounds.typeSet = this.typeSet;
     bounds.attributes = this.attributes;
     bounds.attributesOpen = this.attributesOpen;
@@ -688,12 +680,27 @@ public class ValueBounds {
       bounds.attributesOpen = false;
     }
 
+    /**
+     * Sets the "attributes closed" flag, which means that the only attributes of this
+     * value are those defined here.
+     */
+    public Builder closeAttributes() {
+      bounds.attributesOpen = false;
+      return this;
+    }
+
     public Builder setHasNoNAs(boolean hasNoNas) {
       if(hasNoNas) {
         bounds.na = NO_NA;
       } else {
         bounds.na = MAY_HAVE_NA;
       }
+      return this;
+    }
+
+    public Builder setDimCount(int count) {
+      bounds.dimCount = (short)count;
+      setAttribute(Symbols.DIM, null);
       return this;
     }
 

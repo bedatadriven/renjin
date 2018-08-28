@@ -225,9 +225,16 @@ public class RuntimeState {
       }
     }
 
-    // Ideally we would like to leave the precise dimensions open, but
-    // the modeling of Valuebounds would need to change
-    bounds.setClosedAttributes(attributes.toMap());
+    for (Symbol symbol : attributes.names()) {
+      if(symbol == Symbols.DIM) {
+        bounds.setDimCount((short)attributes.getDim().length());
+        bounds.setAttribute(symbol, null);
+      } else {
+        bounds.setAttribute(symbol, attributes.get(symbol));
+      }
+    }
+
+    bounds.closeAttributes();
 
     return bounds.build();
   }

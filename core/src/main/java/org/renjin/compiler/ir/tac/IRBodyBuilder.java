@@ -149,7 +149,7 @@ public class IRBodyBuilder {
     }
     
     TranslationContext context = new InlinedContext(closure.getFormals());
-    Expression returnValue = translateExpression(context, closure.getBody());
+    Expression returnValue = translateSimpleExpression(context, closure.getBody());
     addStatement(new ReturnStatement(returnValue));
 
     removeRedundantJumps();

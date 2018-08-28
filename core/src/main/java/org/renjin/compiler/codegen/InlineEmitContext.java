@@ -18,7 +18,12 @@
  */
 package org.renjin.compiler.codegen;
 
+import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.cfg.ControlFlowGraph;
+import org.renjin.compiler.cfg.LiveSet;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.var.LocalVarAllocator;
+import org.renjin.compiler.codegen.var.VariableStrategy;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -30,21 +35,16 @@ import java.util.Map;
 public class InlineEmitContext extends EmitContext {
 
 
+  private final VariableStrategy returnVariable;
   private Map<Symbol, InlineParamExpr> inlinedParameters = Maps.newHashMap();
 
   private final Label exitLabel;
 
-  public InlineEmitContext(ControlFlowGraph cfg, int paramCount, VariableSlots childSlots) {
-    super(cfg, paramCount, childSlots);
+  public InlineEmitContext(ControlFlowGraph cfg, LiveSet liveSet, TypeSolver types,
+                           LocalVarAllocator localVarAllocator, VariableStrategy returnVariable) {
+    super(cfg, liveSet, types, localVarAllocator, Type.VOID_TYPE);
+    this.returnVariable = returnVariable;
     this.exitLabel = new Label();
-  }
-
-  public InlineParamExpr getInlineParameter(Symbol param) {
-    InlineParamExpr paramExpr = inlinedParameters.get(param);
-    if(paramExpr == null) {
-      throw new IllegalStateException("No expression set for parameter " + param);
-    }
-    return paramExpr;
   }
 
 
@@ -53,13 +53,13 @@ public class InlineEmitContext extends EmitContext {
   }
 
   @Override
-  public void loadParam(InstructionAdapter mv, Symbol param) {
-    InlineParamExpr value = inlinedParameters.get(param);
-    value.load(mv);
+  public CompiledSexp getParamExpr(Symbol paramName) {
+    return inlinedParameters.get(paramName).getCompiledExpr();
   }
 
   @Override
-  public void writeReturn(InstructionAdapter mv, Type returnType) {
+  public void writeReturn(InstructionAdapter mv, CompiledSexp returnExpr) {
+    returnVariable.store(this, mv, returnExpr);
     mv.goTo(exitLabel);
   }
 

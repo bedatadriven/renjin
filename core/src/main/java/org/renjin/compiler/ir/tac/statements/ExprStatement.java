@@ -21,7 +21,6 @@ package org.renjin.compiler.ir.tac.statements;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 import java.util.Collections;
@@ -88,13 +87,9 @@ public class ExprStatement implements Statement {
   }
 
   @Override
-  public int emit(EmitContext emitContext, InstructionAdapter mv) {
+  public void emit(EmitContext emitContext, InstructionAdapter mv) {
     if(!operand.isPure()) {
-      int stackSizeIncrease = operand.load(emitContext, mv);
-      mv.visitInsn(Opcodes.POP);
-      return stackSizeIncrease;
-    } else {
-      return 0;
+      operand.emitExecute(emitContext, mv);
     }
   }
 

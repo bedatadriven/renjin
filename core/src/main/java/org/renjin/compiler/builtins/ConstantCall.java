@@ -18,14 +18,13 @@
  */
 package org.renjin.compiler.builtins;
 
-import org.renjin.compiler.codegen.ConstantBytecode;
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.reflection.converters.Converters;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.*;
 
 import java.util.HashMap;
@@ -69,33 +68,18 @@ public class ConstantCall implements Specialization {
     }
   }
 
-  @Override
-  public Type getType() {
-    return type;
-  }
-
   public ValueBounds getResultBounds() {
     return valueBounds;
   }
 
   @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-    if(constantValue instanceof Integer) {
-      mv.iconst((Integer) constantValue);
-    } else if(constantValue instanceof Double) {
-      mv.dconst((Double) constantValue);
-    } else if(constantValue instanceof Boolean) {
-      mv.iconst(constantValue == Boolean.TRUE ? 1 : 0);
-    } else if(constantValue instanceof SEXP) {
-      ConstantBytecode.pushConstant(mv, ((SEXP) constantValue));
-    } else {
-      throw new UnsupportedOperationException("constantValue: " + constantValue.getClass());
-    }
+  public boolean isPure() {
+    return true;
   }
 
   @Override
-  public boolean isPure() {
-    return true;
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+    throw new UnsupportedOperationException("TODO");
   }
 
   public static ConstantCall evaluate(JvmMethod method, List<ValueBounds> arguments) {

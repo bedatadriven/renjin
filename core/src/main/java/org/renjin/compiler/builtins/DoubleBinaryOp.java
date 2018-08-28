@@ -20,12 +20,13 @@ package org.renjin.compiler.builtins;
 
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.ScalarExpr;
+import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.repackaged.asm.Opcodes;
-import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 import java.util.List;
@@ -43,33 +44,29 @@ public class DoubleBinaryOp implements Specialization {
     this.valueBounds = valueBounds;
   }
 
-  @Override
-  public Type getType() {
-    return Type.DOUBLE_TYPE;
-  }
-
   public ValueBounds getResultBounds() {
     return valueBounds;
   }
 
   @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-    assert  arguments.size() == 2;
-    Expression x = arguments.get(0).getExpression();
-    Expression y = arguments.get(1).getExpression();
-
-    x.load(emitContext, mv);
-    emitContext.convert(mv, x.getType(), Type.DOUBLE_TYPE);
-
-    y.load(emitContext, mv);
-    emitContext.convert(mv, y.getType(), Type.DOUBLE_TYPE);
-    
-    mv.visitInsn(opcode);
+  public boolean isPure() {
+    return true;
   }
 
   @Override
-  public boolean isPure() {
-    return true;
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+    return new ScalarExpr(VectorType.DOUBLE) {
+      @Override
+      public void loadScalar(EmitContext context, InstructionAdapter mv) {
+        assert  arguments.size() == 2;
+        CompiledSexp x = arguments.get(0).getExpression().getCompiledExpr(emitContext);
+        CompiledSexp y = arguments.get(1).getExpression().getCompiledExpr(emitContext);
+
+        x.loadScalar(emitContext, mv, VectorType.DOUBLE);
+        y.loadScalar(emitContext, mv, VectorType.DOUBLE);
+        mv.visitInsn(opcode);
+      }
+    };
   }
 
   public static DoubleBinaryOp trySpecialize(String name, JvmMethod overload, ValueBounds resultBounds) {

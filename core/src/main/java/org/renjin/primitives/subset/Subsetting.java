@@ -26,6 +26,7 @@ import org.renjin.primitives.Types;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -484,6 +485,15 @@ public class Subsetting {
       builder.removeAttribute(Symbols.DIM);
     }
     return builder.build();
+  }
+
+  /**
+   * Optimized version of {@code setElement} for SEXPs compiled to arrays
+   */
+  public static double[] setElement(double[] vector, int index, double value) {
+    double[] copy = Arrays.copyOf(vector, vector.length);
+    copy[index - 1] = value;
+    return copy;
   }
 
 }

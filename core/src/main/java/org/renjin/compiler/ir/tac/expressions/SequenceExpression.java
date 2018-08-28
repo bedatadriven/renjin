@@ -19,13 +19,9 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.primitives.sequence.DoubleSequence;
-import org.renjin.repackaged.asm.Opcodes;
-import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.DoubleVector;
 
 import java.util.Map;
@@ -79,23 +75,8 @@ public class SequenceExpression extends SpecializedCallExpression {
   }
 
   @Override
-  public int load(EmitContext emitContext, InstructionAdapter mv) {
-
-    childAt(0).load(emitContext, mv);
-    emitContext.convert(mv, childAt(0).getType(), Type.DOUBLE_TYPE);
-
-    childAt(1).load(emitContext, mv);
-    emitContext.convert(mv, childAt(1).getType(), Type.DOUBLE_TYPE);
-
-    mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(DoubleSequence.class), "fromTo",
-        Type.getMethodDescriptor(Type.getType(AtomicVector.class), Type.DOUBLE_TYPE, Type.DOUBLE_TYPE), false);
-
-    return 0;
-  }
-
-  @Override
-  public Type getType() {
-    return valueBounds.storageType();
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    throw new UnsupportedOperationException("TODO");
   }
 
 

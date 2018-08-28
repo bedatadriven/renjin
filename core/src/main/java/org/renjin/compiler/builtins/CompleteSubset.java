@@ -19,10 +19,9 @@
 package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 import java.util.List;
 
@@ -34,22 +33,18 @@ public class CompleteSubset implements Specialization {
     this.sourceBounds = sourceBounds;
   }
 
-  @Override
-  public Type getType() {
-    return sourceBounds.storageType();
-  }
-
   public ValueBounds getResultBounds() {
     return sourceBounds;
-  }
-
-  @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-    arguments.get(0).getExpression().load(emitContext, mv);
   }
 
   @Override
   public boolean isPure() {
     return true;
   }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
 }

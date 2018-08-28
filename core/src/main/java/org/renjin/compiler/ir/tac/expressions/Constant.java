@@ -19,9 +19,9 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.ConstantExpr;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.*;
 
 import java.util.Map;
@@ -39,12 +39,10 @@ public final class Constant implements SimpleExpression {
 
   private SEXP value;
   private ValueBounds valueBounds;
-  private Type type;
 
   public Constant(SEXP value) {
     this.value = value;
     this.valueBounds = ValueBounds.of(value);
-    this.type = valueBounds.storageType();
   }
   
   public Constant(int value) {
@@ -75,34 +73,6 @@ public final class Constant implements SimpleExpression {
   }
 
   @Override
-  public int load(EmitContext emitContext, InstructionAdapter mv) {
-    if (type.equals(Type.INT_TYPE)) {
-      mv.iconst(((AtomicVector) value).getElementAsInt(0));
-
-    } else if (type.equals(Type.DOUBLE_TYPE)) {
-      mv.dconst(((AtomicVector) value).getElementAsDouble(0));
-
-    } else if (type.equals(Type.getType(String.class))) {
-      mv.aconst(((AtomicVector) value).getElementAsString(0));
-
-    } else if (type.equals(Type.getType(SEXP.class))) {
-      if(value == Null.INSTANCE) {
-        mv.getstatic(Type.getInternalName(Null.class), "INSTANCE", Type.getDescriptor(Null.class));
-      } else {
-        throw new UnsupportedOperationException("const sexp: " + value.getClass().getName());
-      }
-    } else {
-      throw new UnsupportedOperationException("type: " + type);
-    }
-    return 1;
-  }
-
-  @Override
-  public Type getType() {
-    return type;
-  }
-
-  @Override
   public final void setChild(int i, Expression expr) {
     throw new IllegalArgumentException();
   }
@@ -115,6 +85,11 @@ public final class Constant implements SimpleExpression {
   @Override
   public ValueBounds getValueBounds() {
     return valueBounds;
+  }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    return new ConstantExpr(value);
   }
 
   @Override

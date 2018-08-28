@@ -19,9 +19,10 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.ScalarExpr;
+import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.repackaged.asm.Opcodes;
-import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 import java.util.Map;
@@ -51,18 +52,6 @@ public class Length extends SpecializedCallExpression implements SimpleExpressio
   }
 
   @Override
-  public int load(EmitContext emitContext, InstructionAdapter mv) {
-    int stackSizeIncrease = getVector().load(emitContext, mv);
-    mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "org/renjin/sexp/SEXP", "length", "()I", true);
-    return stackSizeIncrease;
-  }
-
-  @Override
-  public Type getType() {
-    return Type.INT_TYPE;
-  }
-
-  @Override
   public String toString() {
     return "length(" + getVector() + ")";
   }
@@ -75,6 +64,16 @@ public class Length extends SpecializedCallExpression implements SimpleExpressio
   @Override
   public ValueBounds getValueBounds() {
     return ValueBounds.INT_PRIMITIVE;
+  }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    return new ScalarExpr(VectorType.INT) {
+      @Override
+      public void loadScalar(EmitContext context, InstructionAdapter mv) {
+        getVector().getCompiledExpr(context).loadLength(context, mv);
+      }
+    };
   }
 
 }

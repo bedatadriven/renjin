@@ -19,10 +19,11 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.SexpExpr;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.SEXP;
 
 import java.util.Map;
 
@@ -41,17 +42,6 @@ public class ReadLoopVector implements Expression {
   }
 
   @Override
-  public int load(EmitContext emitContext, InstructionAdapter mv) {
-    mv.load(emitContext.getLoopVectorIndex(), Type.getType(SEXP.class));
-    return 1;
-  }
-
-  @Override
-  public Type getType() {
-    return Type.getType(SEXP.class);
-  }
-
-  @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
     return bounds;
   }
@@ -59,6 +49,16 @@ public class ReadLoopVector implements Expression {
   @Override
   public ValueBounds getValueBounds() {
     return bounds;
+  }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    return new SexpExpr() {
+      @Override
+      public void loadSexp(EmitContext context, InstructionAdapter mv) {
+        mv.visitVarInsn(Opcodes.ALOAD, context.getLoopVectorIndex());
+      }
+    };
   }
 
   @Override

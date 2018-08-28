@@ -19,6 +19,9 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+
 /**
  * Variable that is to be stored as a JVM local variable when 
  * compiled.
@@ -36,6 +39,11 @@ public class LocalVariable extends Variable {
   @Override
   public boolean isPure() {
     return false;
+  }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override

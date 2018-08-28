@@ -28,6 +28,10 @@ import org.renjin.util.DebugGraph;
 
 import java.util.*;
 
+/**
+ * Representation, using graph notation, of all paths that might be traversed through a block of R code
+ * through its execution.
+ */
 public class ControlFlowGraph {
 
   private final IRBody parent;
@@ -46,8 +50,7 @@ public class ControlFlowGraph {
   }
 
   private void addBasicBlocks() {
-
-    entry = new BasicBlock(parent);
+    entry = new BasicBlock(0);
     entry.setDebugId("entry");
     basicBlocks.add(entry);
 
@@ -66,7 +69,8 @@ public class ControlFlowGraph {
       }
     }
 
-    exit = new BasicBlock(parent);
+    int exitBlockIndex = basicBlocks.size();
+    exit = new BasicBlock(exitBlockIndex);
     exit.setDebugId("exit");
     basicBlocks.add(exit);
 
@@ -79,7 +83,8 @@ public class ControlFlowGraph {
   }
 
   private BasicBlock addNewBasicBlock(IRBody body, int i) {
-    BasicBlock bb = BasicBlock.createWithStartAt(body, i);
+    int newBlockIndex = basicBlocks.size();
+    BasicBlock bb = BasicBlock.createWithStartAt(newBlockIndex, body, i);
     bb.setDebugId(basicBlocks.size());
     basicBlocks.add(bb);
     for(IRLabel label : bb.getLabels()) {

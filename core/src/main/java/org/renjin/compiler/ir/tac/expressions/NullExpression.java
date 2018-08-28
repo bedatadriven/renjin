@@ -19,9 +19,8 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 import java.util.Map;
 
@@ -43,16 +42,6 @@ public class NullExpression implements Expression {
   }
 
   @Override
-  public int load(EmitContext emitContext, InstructionAdapter mv) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public Type getType() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
     throw new UnsupportedOperationException();
   }
@@ -60,6 +49,11 @@ public class NullExpression implements Expression {
   @Override
   public ValueBounds getValueBounds() {
     return ValueBounds.UNBOUNDED;
+  }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override

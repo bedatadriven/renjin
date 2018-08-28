@@ -58,9 +58,9 @@ public class ReplaceSpecializer implements Specializer, BuiltinSpecializer {
     }
 
     if(subscripts.length == 1 &&
-       subscripts[0].getLength() == 1 &&
-       replacement.getLength() == 1 &&
-       inputVector.getTypeSet() == replacement.getTypeSet()) {
+        subscripts[0].getLength() == 1 &&
+        replacement.getLength() == 1 &&
+        inputVector.getTypeSet() == replacement.getTypeSet()) {
 
       return new UpdateElementCall(inputVector, subscripts[0], replacement);
     }

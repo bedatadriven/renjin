@@ -41,7 +41,7 @@ public interface Statement extends TreeNode {
    * @param mv
    * @return the required increase to the stack
    */
-  int emit(EmitContext emitContext, InstructionAdapter mv);
+  void emit(EmitContext emitContext, InstructionAdapter mv);
 
   /**
    *

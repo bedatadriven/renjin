@@ -19,13 +19,12 @@
 package org.renjin.compiler.ir.tac.statements;
 
 import org.renjin.compiler.codegen.EmitContext;
-import org.renjin.compiler.codegen.VariableStorage;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.CmpGE;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
-import org.renjin.repackaged.asm.Opcodes;
-import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.Logical;
 
@@ -35,38 +34,38 @@ import static org.renjin.repackaged.asm.Opcodes.*;
 
 
 public class IfStatement implements Statement, BasicBlockEndingStatement {
-  
+
   private Expression condition;
   private IRLabel trueTarget;
   private IRLabel falseTarget;
   private IRLabel naTarget;
 
   private Logical constantValue;
-  
+
   public IfStatement(Expression condition, IRLabel trueTarget, IRLabel falseTarget, IRLabel naTarget) {
     this.condition = condition;
     this.trueTarget = trueTarget;
     this.falseTarget = falseTarget;
     this.naTarget = naTarget;
   }
-  
+
   public IfStatement(Expression condition, IRLabel trueTarget, IRLabel falseTarget) {
     this.condition = condition;
     this.trueTarget = trueTarget;
     this.falseTarget = falseTarget;
     this.naTarget = null;
   }
-  
+
 
   public Expression getCondition() {
     return condition;
   }
-  
+
   @Override
   public Expression getRHS() {
     return condition;
   }
-  
+
   public IRLabel getTrueTarget() {
     return trueTarget;
   }
@@ -74,11 +73,11 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
   public IRLabel getFalseTarget() {
     return falseTarget;
   }
-  
+
   public IfStatement setTrueTarget(IRLabel label) {
     return new IfStatement(condition, label, falseTarget, naTarget);
   }
-  
+
   public IfStatement setFalseTarget(IRLabel label) {
     return new IfStatement(condition, trueTarget, label, naTarget);
   }
@@ -86,7 +85,7 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
   @Override
   public Iterable<IRLabel> possibleTargets() {
     if(naTarget == null) {
-      return Arrays.asList(trueTarget, falseTarget); 
+      return Arrays.asList(trueTarget, falseTarget);
     } else {
       return Arrays.asList(trueTarget, falseTarget, naTarget);
     }
@@ -140,7 +139,7 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
   }
 
   @Override
-  public int emit(EmitContext emitContext, InstructionAdapter mv) {
+  public void emit(EmitContext emitContext, InstructionAdapter mv) {
 
     if(constantValue == Logical.TRUE) {
       mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(trueTarget));
@@ -149,31 +148,19 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
       mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(falseTarget));
     }
 
-    int stackSizeIncrease = 0;
-
     if(condition instanceof CmpGE) {
-
-      CmpGE cmp = (CmpGE) getCondition();
-      stackSizeIncrease =
-          cmp.childAt(0).load(emitContext, mv) +
-          cmp.childAt(1).load(emitContext, mv);
-
+      CmpGE comparison = (CmpGE) condition;
+      comparison.childAt(0).getCompiledExpr(emitContext).loadScalar(emitContext, mv, VectorType.INT);
+      comparison.childAt(1).getCompiledExpr(emitContext).loadScalar(emitContext, mv, VectorType.INT);
       mv.visitJumpInsn(IF_ICMPLT, emitContext.getAsmLabel(falseTarget));
       mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(trueTarget));
 
     } else if (condition instanceof LValue) {
-      VariableStorage storage = emitContext.getVariableStorage((LValue) condition);
-      if (storage.getType().equals(Type.BOOLEAN_TYPE) ||
-          storage.getType().equals(Type.INT_TYPE)) {
-        mv.visitVarInsn(Opcodes.ILOAD, storage.getSlotIndex());
-        mv.visitJumpInsn(IFEQ, emitContext.getAsmLabel(falseTarget));
-        mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(trueTarget));
-      } else {
-        throw new UnsupportedOperationException("TODO: " + storage.getType());
-      }
+      CompiledSexp conditionExpr = condition.getCompiledExpr(emitContext);
+      conditionExpr.loadScalar(emitContext, mv, VectorType.LOGICAL);
+      mv.visitJumpInsn(IFEQ, emitContext.getAsmLabel(falseTarget));
+      mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(trueTarget));
     }
-
-    return stackSizeIncrease;
   }
 
   @Override

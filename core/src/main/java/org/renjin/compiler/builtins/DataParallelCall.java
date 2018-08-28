@@ -19,12 +19,11 @@
 package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Primitives;
-import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
@@ -46,16 +45,13 @@ public class DataParallelCall implements Specialization {
   private final JvmMethod method;
   private List<ValueBounds> argumentBounds;
   private final ValueBounds resultBounds;
-  private final Type type;
 
   public DataParallelCall(Primitives.Entry primitive, JvmMethod method, List<ValueBounds> argumentBounds) {
     this.name = primitive.name;
     this.method = method;
     this.argumentBounds = argumentBounds;
     this.resultBounds = computeBounds(argumentBounds);
-    this.type = resultBounds.storageType();
   }
-
 
   private ValueBounds computeBounds(List<ValueBounds> argumentBounds) {
 
@@ -159,13 +155,37 @@ public class DataParallelCall implements Specialization {
 
 
     // If we don't know the result length, we don't know which
-    // argument to take the attributes from.
+    // argument to take the attributes from, but we do know *which* attributes will be
+    // present.
+
     if(resultLength == ValueBounds.UNKNOWN_LENGTH && argumentBounds.size() > 1) {
-      // TOOD: if all argument bounds have closed attribute sets, then we can still
-      // infer SOME information
-      return;
+      computeAttributeBoundsConservatively(bounds, argumentBounds);
+    } else {
+      computeAttributeBoundsPrecisely(bounds, argumentBounds, resultLength);
+    }
+  }
+
+
+  private void computeAttributeBoundsConservatively(ValueBounds.Builder bounds, List<ValueBounds> argumentBounds) {
+    boolean closed = true;
+
+    for (ValueBounds argumentBound : argumentBounds) {
+      if(argumentBound.isAttributeSetOpen()) {
+        closed = false;
+      }
+
+      for (Symbol attribute : argumentBound.getAttributeBounds().keySet()) {
+        bounds.attributeCouldBePresent(attribute);
+      }
     }
 
+    if(closed) {
+      bounds.closeAttributes();
+    }
+  }
+
+
+  private void computeAttributeBoundsPrecisely(ValueBounds.Builder bounds, List<ValueBounds> argumentBounds, int resultLength) {
     Map<Symbol, SEXP> attributes = new HashMap<>();
 
     boolean open = false;
@@ -173,12 +193,12 @@ public class DataParallelCall implements Specialization {
     for (ValueBounds argumentBound : argumentBounds) {
       if (argumentBound.getLength() == resultLength) {
 
-        if(argumentBound.isAttributeSetOpen()) {
+        if (argumentBound.isAttributeSetOpen()) {
           open = true;
         }
 
         for (Map.Entry<Symbol, SEXP> entry : argumentBound.getAttributeBounds().entrySet()) {
-          if(!attributes.containsKey(entry.getKey())) {
+          if (!attributes.containsKey(entry.getKey())) {
             attributes.put(entry.getKey(), entry.getValue());
           }
         }
@@ -187,7 +207,6 @@ public class DataParallelCall implements Specialization {
     bounds.setAttributeBounds(attributes);
     bounds.setAttributeSetOpen(open);
   }
-
 
   public Specialization specializeFurther() {
     if(resultBounds.getLength() == 1) {
@@ -234,22 +253,18 @@ public class DataParallelCall implements Specialization {
     return new ConstantCall(constantValue);
   }
 
-  @Override
-  public Type getType() {
-    return type;
-  }
-
   public ValueBounds getResultBounds() {
     return resultBounds;
-  }
-
-  @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-    throw new FailedToSpecializeException();
   }
 
   @Override
   public boolean isPure() {
     return method.isPure();
   }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
 }

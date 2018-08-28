@@ -18,6 +18,8 @@
  */
 package org.renjin.compiler.ir.tac.expressions;
 
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.sexp.Symbol;
 
 
@@ -68,6 +70,11 @@ public class EnvironmentVariable extends Variable {
   @Override
   public boolean isPure() {
     return false;
+  }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    throw new UnsupportedOperationException("TODO");
   }
 
 

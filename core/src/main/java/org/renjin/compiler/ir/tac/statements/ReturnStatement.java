@@ -18,10 +18,9 @@
  */
 package org.renjin.compiler.ir.tac.statements;
 
-import org.renjin.compiler.codegen.ConstantBytecode;
 import org.renjin.compiler.codegen.EmitContext;
-import org.renjin.compiler.codegen.VariableStorage;
-import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.var.VariableStrategy;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.EnvironmentVariable;
 import org.renjin.compiler.ir.tac.expressions.Expression;
@@ -29,7 +28,6 @@ import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
@@ -46,7 +44,6 @@ public class ReturnStatement implements Statement, BasicBlockEndingStatement {
   private List<Expression> environmentVariables = Lists.newArrayList();
   
   public ReturnStatement(Expression returnValue) {
-    super();
     this.returnValue = returnValue;
   }
   
@@ -110,41 +107,27 @@ public class ReturnStatement implements Statement, BasicBlockEndingStatement {
   }
 
   @Override
-  public int emit(EmitContext emitContext, InstructionAdapter mv) {
+  public void emit(EmitContext emitContext, InstructionAdapter mv) {
 
     // Set the current local variables back into the environment
     for (int i = 0; i < environmentVariableNames.size(); i++) {
 
-      VariableStorage variableStorage = emitContext.getVariableStorage((LValue) environmentVariables.get(i));
-      if(variableStorage != null) {
+      VariableStrategy variable = emitContext.getVariable((LValue) environmentVariables.get(i));
+      if(variable != null) {
         // Environment.setVariable(String, SEXP)
         mv.load(emitContext.getEnvironmentVarIndex(), Type.getType(Environment.class));
         mv.aconst(environmentVariableNames.get(i).getPrintName());
-        
-        mv.load(variableStorage.getSlotIndex(), variableStorage.getType());
-        emitContext.convert(mv, variableStorage.getType(), Type.getType(SEXP.class));
 
-        if(variableStorage.getType().getSort() != Type.OBJECT) {
-          ValueBounds bounds = environmentVariables.get(i).getValueBounds();
-          if(bounds.isAttributeConstant()) {
-            AttributeMap attributes = bounds.getConstantAttributes();
-            if(attributes != AttributeMap.EMPTY) {
-              ConstantBytecode.generateAttributes(mv, attributes);
-            } 
-          } else {
-            throw new UnsupportedOperationException("Lost attributes");
-          }
-        }
+        variable.getCompiledExpr().loadSexp(emitContext, mv);
 
         mv.invokevirtual(Type.getInternalName(Environment.class), "setVariableUnsafe",
             Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(SEXP.class)), false);
-
       }
     }
-    
-    returnValue.load(emitContext, mv);
-    emitContext.writeReturn(mv, returnValue.getType());
-    return 0;
+
+    CompiledSexp compiledReturnValue = returnValue.getCompiledExpr(emitContext);
+
+    emitContext.writeReturn(mv, compiledReturnValue);
   }
 
   @Override

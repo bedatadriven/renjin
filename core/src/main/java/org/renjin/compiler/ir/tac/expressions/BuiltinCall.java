@@ -18,13 +18,13 @@
  */
 package org.renjin.compiler.ir.tac.expressions;
 
-import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.builtins.*;
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
-import org.renjin.repackaged.asm.Type;
+import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.sexp.FunctionCall;
@@ -76,17 +76,6 @@ public class BuiltinCall implements CallExpression {
   }
 
   @Override
-  public int load(EmitContext emitContext, InstructionAdapter mv) {
-    try {
-      specialization.load(emitContext, mv, arguments);
-
-    } catch (FailedToSpecializeException e) {
-      throw new NotCompilableException(call, "Failed to specialize .Primitive(" + primitiveName + ")");
-    }
-    return 1;
-  }
-
-  @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
     List<ArgumentBounds> argumentTypes = new ArrayList<>();
     for (IRArgument argument : arguments) {
@@ -98,15 +87,25 @@ public class BuiltinCall implements CallExpression {
   }
 
   @Override
-  public Type getType() {
-    return specialization.getType();
-  }
-
-  @Override
   public ValueBounds getValueBounds() {
     return specialization.getResultBounds();
   }
-  
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    return specialization.getCompiledExpr(emitContext, arguments);
+  }
+
+  @Override
+  public void emitAssignment(EmitContext emitContext, InstructionAdapter mv, Assignment statement) {
+    specialization.emitAssignment(emitContext, mv, statement, arguments);
+  }
+
+  @Override
+  public void emitExecute(EmitContext emitContext, InstructionAdapter mv) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
   @Override
   public String toString() {
     return "(" + primitiveName + " " + Joiner.on(" ").join(arguments) + ")";

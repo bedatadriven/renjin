@@ -24,6 +24,7 @@ import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.cfg.DominanceTree;
+import org.renjin.compiler.cfg.LiveSet;
 import org.renjin.compiler.cfg.UseDefMap;
 import org.renjin.compiler.codegen.ByteCodeEmitter;
 import org.renjin.compiler.ir.TypeSet;
@@ -141,6 +142,9 @@ public class ForFunction extends SpecialFunction {
         System.out.println(cfg);
 
         UseDefMap useDefMap = new UseDefMap(cfg);
+
+        LiveSet liveSet = new LiveSet(dTree, useDefMap);
+
         TypeSolver types = new TypeSolver(cfg, useDefMap);
         types.execute();
 
@@ -150,7 +154,7 @@ public class ForFunction extends SpecialFunction {
 
         ssaTransformer.removePhiFunctions(types);
 
-        ByteCodeEmitter emitter = new ByteCodeEmitter(cfg, types);
+        ByteCodeEmitter emitter = new ByteCodeEmitter(cfg, liveSet, types);
         compiledBody = emitter.compileLoopBody().newInstance();
 
 

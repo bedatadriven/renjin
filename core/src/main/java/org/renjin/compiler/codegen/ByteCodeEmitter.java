@@ -22,6 +22,8 @@ package org.renjin.compiler.codegen;
 import org.renjin.compiler.*;
 import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.ControlFlowGraph;
+import org.renjin.compiler.cfg.LiveSet;
+import org.renjin.compiler.codegen.var.LocalVarAllocator;
 import org.renjin.compiler.ir.exception.InternalCompilerException;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.statements.Statement;
@@ -49,12 +51,14 @@ public class ByteCodeEmitter implements Opcodes {
   private ControlFlowGraph cfg;
   private String className;
 
+  private final LiveSet liveSet;
   private TypeSolver types;
 
 
-  public ByteCodeEmitter(ControlFlowGraph cfg, TypeSolver types) {
+  public ByteCodeEmitter(ControlFlowGraph cfg, LiveSet liveSet, TypeSolver types) {
     super();
     this.cfg = cfg;
+    this.liveSet = liveSet;
     this.types = types;
     this.className = "Body" + CLASS_COUNTER.getAndIncrement();
   }
@@ -99,8 +103,9 @@ public class ByteCodeEmitter implements Opcodes {
 
   private void writeImplementation() {
     int argumentSize = 3; // this + context + environment
-    VariableSlots variableSlots = new VariableSlots(argumentSize, types);
-    EmitContext emitContext = new EmitContext(cfg, argumentSize, variableSlots);
+
+    LocalVarAllocator allocator = new LocalVarAllocator(argumentSize);
+    EmitContext emitContext = new EmitContext(cfg, liveSet, types, allocator, SexpTypes.SEXP_TYPE);
     
     MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "evaluate", 
         getMethodDescriptor(Type.getType(SEXP.class), getType(Context.class), getType(Environment.class)), 
@@ -120,8 +125,8 @@ public class ByteCodeEmitter implements Opcodes {
 
   private void writeLoopImplementation() {
     int argumentSize = 5; // this + context + environment + sequence + iteration
-    VariableSlots variableSlots = new VariableSlots(argumentSize, types);
-    EmitContext emitContext = new EmitContext(cfg, argumentSize, variableSlots);
+    LocalVarAllocator localVarAllocator = new LocalVarAllocator(argumentSize);
+    EmitContext emitContext = new EmitContext(cfg, liveSet, types, localVarAllocator, SexpTypes.SEXP_TYPE);
     emitContext.setLoopVectorIndex(3);
     emitContext.setLoopIterationIndex(4);
 
@@ -139,7 +144,7 @@ public class ByteCodeEmitter implements Opcodes {
 
 
     Textifier p = new Textifier();
-//    mv = new TraceMethodVisitor(mv, p);
+    mv = new TraceMethodVisitor(mv, p);
 
     mv.visitCode();
     writeBody(emitContext, mv, cfg);

@@ -19,11 +19,8 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.codegen.EmitContext;
-import org.renjin.compiler.codegen.VariableStorage;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.SEXP;
 
 import java.util.Map;
 
@@ -33,7 +30,6 @@ import java.util.Map;
 public abstract class LValue implements SimpleExpression {
 
   private ValueBounds valueBounds = ValueBounds.UNBOUNDED;
-  private Type type = Type.getType(SEXP.class);
 
   @Override
   public final int getChildCount() {
@@ -50,19 +46,8 @@ public abstract class LValue implements SimpleExpression {
     throw new IllegalArgumentException();
   }
 
-  @Override
-  public final int load(EmitContext emitContext, InstructionAdapter mv) {
-    VariableStorage storage = emitContext.getVariableStorage(this);
-    if(storage == null) {
-      throw new IllegalStateException("No storage defined for " + this);
-    }
-    mv.load(storage.getSlotIndex(), storage.getType());
-    return storage.getType().getSize();
-  }
-  
   public void update(ValueBounds valueBounds) {
     this.valueBounds = valueBounds;
-    this.type = valueBounds.storageType();
   }
 
   @Override
@@ -73,7 +58,6 @@ public abstract class LValue implements SimpleExpression {
     } else {
       valueBounds = type;
     }
-    this.type = valueBounds.storageType();
     return valueBounds;
   }
 
@@ -83,8 +67,9 @@ public abstract class LValue implements SimpleExpression {
   }
 
   @Override
-  public Type getType() {
-    return type;
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    throw new UnsupportedOperationException("TODO");
   }
+
 }
 

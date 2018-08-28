@@ -20,10 +20,13 @@ package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.cfg.InlinedFunction;
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.var.VariableStrategy;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.eval.MatchedArgumentPositions;
 import org.renjin.primitives.S3;
 import org.renjin.repackaged.asm.Type;
@@ -71,7 +74,6 @@ public class S3Specialization implements Specialization {
     }
   
     returnBounds = inlinedMethod.updateBounds(arguments);
-    type = returnBounds.storageType();
   }
   
   public static Specialization trySpecialize(String generic, RuntimeState runtimeState, ValueBounds objectExpr, List<ArgumentBounds> arguments) {
@@ -90,30 +92,10 @@ public class S3Specialization implements Specialization {
     
     return UnspecializedCall.INSTANCE;
   }
-  
-  @Override
-  public Type getType() {
-    return type;
-  }
-  
+
   @Override
   public ValueBounds getResultBounds() {
     return returnBounds;
-  }
-  
-  @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-  
-    if(inlinedMethod == null) {
-      throw new FailedToSpecializeException("Could not resolve S3 method");
-    }
-  
-    if(matchedArguments.hasExtraArguments()) {
-      throw new FailedToSpecializeException("Extra arguments not supported");
-    }
-  
-    inlinedMethod.writeInline(emitContext, mv, matchedArguments, arguments);
-  
   }
 
   @Override
@@ -122,5 +104,26 @@ public class S3Specialization implements Specialization {
       return false;
     }
     return inlinedMethod.isPure();
+  }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void emitAssignment(EmitContext emitContext, InstructionAdapter mv, Assignment statement, List<IRArgument> arguments) {
+
+    if(inlinedMethod == null) {
+      throw new FailedToSpecializeException("Could not resolve S3 method");
+    }
+
+    if(matchedArguments.hasExtraArguments()) {
+      throw new FailedToSpecializeException("Extra arguments not supported");
+    }
+
+    VariableStrategy lhs = emitContext.getVariable(statement.getLHS());
+
+    inlinedMethod.writeInline(emitContext, mv, matchedArguments, arguments, lhs);
   }
 }

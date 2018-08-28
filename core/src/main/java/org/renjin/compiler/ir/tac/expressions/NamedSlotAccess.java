@@ -20,9 +20,8 @@ package org.renjin.compiler.ir.tac.expressions;
 
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.Symbol;
 
 import java.util.Map;
@@ -49,11 +48,6 @@ public class NamedSlotAccess implements Expression {
   }
 
   @Override
-  public int load(EmitContext emitContext, InstructionAdapter mv) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
     
     ValueBounds object = typeMap.get(expression);
@@ -70,13 +64,13 @@ public class NamedSlotAccess implements Expression {
   }
 
   @Override
-  public Type getType() {
-    return valueBounds.storageType();
+  public ValueBounds getValueBounds() {
+    return valueBounds;
   }
 
   @Override
-  public ValueBounds getValueBounds() {
-    return valueBounds;
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    throw new UnsupportedOperationException("TODO");
   }
 
 

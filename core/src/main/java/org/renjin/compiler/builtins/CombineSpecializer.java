@@ -19,15 +19,12 @@
 package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.codegen.EmitContext;
-import org.renjin.compiler.codegen.VectorGen;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
-import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.primitives.combine.Combine;
-import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;
 
@@ -118,44 +115,20 @@ public class CombineSpecializer implements Specializer, BuiltinSpecializer {
     }
 
     @Override
-    public Type getType() {
-      return bounds.storageType();
-    }
-
-    @Override
     public ValueBounds getResultBounds() {
       return bounds;
-    }
-
-    @Override
-    public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-
-      VectorGen vectorType = VectorGen.forType(bounds.getTypeSet());
-
-      int length = bounds.getLength();
-
-      mv.iconst(length);
-      mv.newarray(vectorType.getElementType());
-      mv.dup();
-
-      for (int i = 0; i < length; i++) {
-        mv.iconst(i);
-        Expression expression = arguments.get(0).getExpression();
-        expression.load(emitContext, mv);
-        emitContext.convert(mv, expression.getType(), vectorType.getElementType());
-        mv.astore(vectorType.getElementType());
-      }
-
-      mv.invokestatic(vectorType.getVectorArrayType().getInternalName(), "unsafe",
-          Type.getMethodDescriptor(vectorType.getVectorArrayType(), vectorType.getArrayType()),
-          false);
-
     }
 
     @Override
     public boolean isPure() {
       return true;
     }
+
+    @Override
+    public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+      throw new UnsupportedOperationException("TODO");
+    }
+
   }
 
 

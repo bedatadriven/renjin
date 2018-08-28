@@ -18,6 +18,8 @@
  */
 package org.renjin.compiler.ir.tac.expressions;
 
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.IRFormatting;
 
 
@@ -46,6 +48,11 @@ public class Temp extends LValue {
   @Override
   public boolean isPure() {
     return true;
+  }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    return emitContext.getVariable(this).getCompiledExpr();
   }
 
   @Override

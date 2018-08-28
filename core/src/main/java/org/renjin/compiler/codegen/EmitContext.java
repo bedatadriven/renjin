@@ -22,36 +22,45 @@ package org.renjin.compiler.codegen;
 import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.ControlFlowGraph;
+import org.renjin.compiler.cfg.LiveSet;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.var.LocalVarAllocator;
+import org.renjin.compiler.codegen.var.VariableMap;
+import org.renjin.compiler.codegen.var.VariableStrategy;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.collect.HashMultimap;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.repackaged.guava.collect.Multimap;
-import org.renjin.sexp.*;
+import org.renjin.sexp.Symbol;
 
 import java.util.Map;
 
 public class EmitContext {
 
+  private final LiveSet liveSet;
+  private final LocalVarAllocator localVariables;
+  private final Type returnType;
+  private final VariableMap variableMap;
   private Map<IRLabel, Label> labels = Maps.newHashMap();
   private Multimap<LValue, Expression> definitionMap = HashMultimap.create();
-  private int paramSize;
-  private VariableSlots variableSlots;
-  
+
   private int loopVectorIndex;
   private int loopIterationIndex;
 
-  private int maxInlineVariables;
-
-  public EmitContext(ControlFlowGraph cfg, int paramSize, VariableSlots variableSlots) {
-    this.paramSize = paramSize;
-    this.variableSlots = variableSlots;
+  public EmitContext(ControlFlowGraph cfg, LiveSet liveSet,
+                     TypeSolver types, LocalVarAllocator localVariables, Type returnType) {
+    this.liveSet = liveSet;
+    this.localVariables = localVariables;
+    this.returnType = returnType;
+    this.variableMap = new VariableMap(localVariables, types);
     buildDefinitionMap(cfg);
   }
 
@@ -73,6 +82,10 @@ public class EmitContext {
     }
   }
 
+  public Type getReturnType() {
+    return returnType;
+  }
+
   public Label getAsmLabel(IRLabel irLabel) {
     Label asmLabel = labels.get(irLabel);
     if(asmLabel == null) {
@@ -84,18 +97,11 @@ public class EmitContext {
 
   /**
    * Creates a new {@code EmitContext} that allocates local variables in the same context, and overrides
-   * {@link #writeReturn(InstructionAdapter, Type)} to jump to the end of the inlined function rather than
+   * {@link #writeReturn(InstructionAdapter, CompiledSexp)} to jump to the end of the inlined function rather than
    * actually returning.
    */
-  public InlineEmitContext inlineContext(ControlFlowGraph cfg, TypeSolver types) {
-    VariableSlots childSlots = new VariableSlots(paramSize + variableSlots.getNumLocals(), types);
-    if(childSlots.getNumLocals() > maxInlineVariables) {
-      maxInlineVariables = childSlots.getNumLocals();
-    }
-    return new InlineEmitContext(cfg,
-        EmitContext.this.paramSize +
-        EmitContext.this.variableSlots.getNumLocals(),
-        childSlots);
+  public InlineEmitContext inlineContext(ControlFlowGraph cfg, TypeSolver types, LiveSet liveSet, VariableStrategy returnVariable) {
+    return new InlineEmitContext(cfg, liveSet, types, localVariables, returnVariable);
   }
 
   public int getLoopVectorIndex() {
@@ -114,99 +120,25 @@ public class EmitContext {
     this.loopIterationIndex = loopIterationIndex;
   }
 
-  public int getRegister(LValue lValue) {
-    return variableSlots.getSlot(lValue);
-  }
-
-  public int convert(InstructionAdapter mv, Type fromType, Type toType) {
-
-    if(fromType.equals(Type.getType(DoubleArrayVector.class))) {
-      fromType = Type.getType(DoubleVector.class);
-    }
-
-    if(fromType.equals(toType)) {
-      // NOOP
-      return 0;
-
-
-    } else if(fromType.getSort() != Type.OBJECT && toType.getSort() != Type.OBJECT) {
-      // Simple primitive conversion
-      mv.cast(fromType, toType);
-      return 0;
-      
-    } else if(fromType.equals(Type.getType(SEXP.class)) || fromType.equals(Type.getType(DoubleVector.class))) {
-      // FROM SEXP -> .....
-      if (toType.getSort() == Type.OBJECT) {
-        mv.checkcast(toType);
-        return 0;
-
-      } else if (toType.equals(Type.DOUBLE_TYPE)) {
-        mv.invokeinterface(Type.getInternalName(SEXP.class), "asReal",
-            Type.getMethodDescriptor(Type.DOUBLE_TYPE));
-        return 0;
-
-      } else if (toType.equals(Type.INT_TYPE)) {
-        mv.checkcast(Type.getType(Vector.class));
-        mv.iconst(0);
-        mv.invokeinterface(Type.getInternalName(Vector.class), "getElementAsInt",
-            Type.getMethodDescriptor(Type.INT_TYPE, Type.INT_TYPE));
-        return 1;
-
-      }
-
-    } else if(toType.equals(Type.getType(AtomicVector.class))) {
-      // TO DOUBLE VECTOR
-
-      if (fromType.equals(Type.getType(DoubleVector.class))) {
-        // noop
-        return 0;
-      }
-
-    } else if(toType.equals(Type.getType(SEXP.class))) {
-      // TO SEXP --->
-      
-      if(fromType.getSort() == Type.OBJECT) {
-        // No cast necessary
-        return 0;
-      }
-      
-      switch (fromType.getSort()) {
-        case Type.INT:
-          return box(mv, IntVector.class, Type.INT_TYPE);
-        
-        case Type.DOUBLE:
-          return box(mv, DoubleVector.class, Type.DOUBLE_TYPE);
-        
-      }
-    }
-    
-    throw new UnsupportedOperationException("Unsupported conversion: " + fromType + " -> " + toType);
-  }
-  
-  private int box(InstructionAdapter mv, Class vectorClass, Type primitiveType) {
-    mv.invokestatic(Type.getInternalName(vectorClass), "valueOf",
-        Type.getMethodDescriptor(Type.getType(vectorClass), primitiveType), false);
-    return 0;
-  }
-
-  public VariableStorage getVariableStorage(LValue lhs) {
-    return variableSlots.getStorage(lhs);
-  }
-
   public int getLocalVariableCount() {
-    return paramSize + variableSlots.getNumLocals();
+    return localVariables.getCount();
   }
 
-  public void writeReturn(InstructionAdapter mv, Type returnType) {
-    mv.areturn(returnType);
+  public void writeReturn(InstructionAdapter mv, CompiledSexp returnExpr) {
+    returnExpr.loadSexp(this, mv);
+    mv.visitInsn(Opcodes.ARETURN);
   }
 
   public void writeDone(InstructionAdapter mv) {
 
   }
 
-  public void loadParam(InstructionAdapter mv, Symbol param) {
+  public CompiledSexp getParamExpr(Symbol paramName) {
     throw new IllegalStateException();
+  }
+
+  public VariableStrategy getVariable(LValue lhs) {
+    return variableMap.getStorage(lhs);
   }
 
 }

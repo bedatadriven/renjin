@@ -23,10 +23,11 @@ import org.renjin.compiler.builtins.S3Specialization;
 import org.renjin.compiler.builtins.Specialization;
 import org.renjin.compiler.builtins.UnspecializedCall;
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
-import org.renjin.repackaged.asm.Type;
+import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.sexp.FunctionCall;
@@ -72,17 +73,6 @@ public class UseMethodCall implements Expression {
   }
 
   @Override
-  public int load(EmitContext emitContext, InstructionAdapter mv) {
-    specialization.load(emitContext, mv, arguments);
-    return 0;
-  }
-
-  @Override
-  public Type getType() {
-    return specialization.getType();
-  }
-
-  @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
 
     ValueBounds objectBounds = typeMap.get(objectExpr);
@@ -95,6 +85,21 @@ public class UseMethodCall implements Expression {
   @Override
   public ValueBounds getValueBounds() {
     return specialization.getResultBounds();
+  }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    return specialization.getCompiledExpr(emitContext, arguments);
+  }
+
+  @Override
+  public void emitAssignment(EmitContext emitContext, InstructionAdapter mv, Assignment statement) {
+    specialization.emitAssignment(emitContext, mv, statement, arguments);
+  }
+
+  @Override
+  public void emitExecute(EmitContext emitContext, InstructionAdapter mv) {
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override

@@ -23,7 +23,6 @@ import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Variable;
 import org.renjin.compiler.ir.tac.statements.*;
-import org.renjin.repackaged.guava.base.Predicates;
 import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.repackaged.guava.collect.Lists;
 
@@ -32,8 +31,12 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 
+/**
+ * Represents a straight-line piece of code without any jumps or jump targets.
+ * Jump targets start a block, and jumps end a block.
+ */
 public class BasicBlock {
-  private final IRBody parent;
+  private final int index;
   private String debugId;
   
   private Set<IRLabel> labels;
@@ -50,9 +53,8 @@ public class BasicBlock {
 
   private boolean live = false;
   
-  public BasicBlock(IRBody parent) {
-    super();
-    this.parent = parent;
+  BasicBlock(int index) {
+    this.index = index;
   }
   
   public void addStatement(Statement statement) {
@@ -93,8 +95,8 @@ public class BasicBlock {
     this.debugId = string;
   }
   
-  public static BasicBlock createWithStartAt(IRBody parent, int statementIndex) {
-    BasicBlock block = new BasicBlock(parent);
+  public static BasicBlock createWithStartAt(int blockIndex, IRBody parent, int statementIndex) {
+    BasicBlock block = new BasicBlock(blockIndex);
     block.labels = parent.getIntructionLabels(statementIndex);
     block.statements = Lists.newArrayList();
     block.statements.add(parent.getStatements().get(statementIndex));

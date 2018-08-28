@@ -36,6 +36,10 @@ public class LiveSet {
   public LiveSet(DominanceTree tree, UseDefMap useDefMap) {
     this.tree = tree;
     this.useDefMap = useDefMap;
+
+    // Pre-compute for each node q a set T_q that contains all relevant back edge targets r
+
+
   }
 
   public boolean isLiveOut(BasicBlock q, Statement s, LValue a) {
@@ -107,4 +111,5 @@ public class LiveSet {
     }
     return false;
   }
+
 }

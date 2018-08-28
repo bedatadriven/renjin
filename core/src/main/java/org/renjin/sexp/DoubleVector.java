@@ -318,6 +318,9 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
   public static DoubleVector valueOf(double value) {
     return new DoubleArrayVector(value);
   }
+  public static DoubleVector valueOf(double value, AttributeMap attributes) {
+    return new DoubleArrayVector(value, attributes);
+  }
 
   public static class DoubleType extends Type {
     public DoubleType() {

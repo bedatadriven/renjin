@@ -21,10 +21,9 @@
 package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 import java.util.List;
 
@@ -37,22 +36,18 @@ public class SumSpecialization implements Specialization {
   }
 
   @Override
-  public Type getType() {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
   public ValueBounds getResultBounds() {
     return resultBounds;
-  }
-
-  @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
   public boolean isPure() {
     return true;
   }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
 }

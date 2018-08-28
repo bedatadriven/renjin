@@ -19,13 +19,10 @@
 package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbols;
@@ -37,9 +34,7 @@ import java.util.List;
  */
 public class GetAtomicElement implements Specialization {
 
-
   private final ValueBounds resultBounds;
-  private final Type type;
 
   public static boolean accept(ValueBounds source, ValueBounds subscript) {
 
@@ -72,7 +67,6 @@ public class GetAtomicElement implements Specialization {
     }
 
     this.resultBounds = resultBounds.build();
-    this.type = this.resultBounds.storageType();
   }
 
   private SEXP namesBounds(ValueBounds source) {
@@ -108,45 +102,18 @@ public class GetAtomicElement implements Specialization {
   }
 
   @Override
-  public Type getType() {
-    return type;
-  }
-
-  @Override
   public ValueBounds getResultBounds() {
     return resultBounds;
-  }
-
-  @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-    // Load the source
-    Expression sourceArgument = arguments.get(0).getExpression();
-    sourceArgument.load(emitContext, mv);
-    emitContext.convert(mv, sourceArgument.getType(), Type.getType(AtomicVector.class));
-
-    // Load the index
-    Expression indexArgument = arguments.get(0).getExpression();
-    indexArgument.load(emitContext, mv);
-    emitContext.convert(mv, indexArgument.getType(), Type.INT_TYPE);
-
-    switch (resultBounds.getTypeSet()) {
-      case TypeSet.INT:
-        mv.invokeinterface(Type.getInternalName(AtomicVector.class), "getElementAsInt",
-            Type.getMethodDescriptor(Type.INT_TYPE, Type.INT_TYPE));
-        break;
-      case TypeSet.DOUBLE:
-        mv.invokeinterface(Type.getInternalName(AtomicVector.class), "getElementAsDouble",
-            Type.getMethodDescriptor(Type.DOUBLE_TYPE, Type.INT_TYPE));
-        break;
-
-      default:
-        throw new UnsupportedOperationException("type: " + TypeSet.toString(resultBounds.getTypeSet()));
-
-    }
   }
 
   @Override
   public boolean isPure() {
     return true;
   }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
 }

@@ -19,31 +19,32 @@
 package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.ArrayExpr;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
+import org.renjin.primitives.subset.Subsetting;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 import java.util.List;
 
 /**
- * Updates a single element in an atomic vector with a new scalar value.
+ * Updates a single element in an atomic vector of known type with a new scalar value.
  */
 public class UpdateElementCall implements Specialization {
-  
+
   private ValueBounds inputVector;
   private ValueBounds subscript;
   private ValueBounds replacement;
+  private final VectorType resultVectorType;
 
   public UpdateElementCall(ValueBounds inputVector, ValueBounds subscript, ValueBounds replacement) {
     this.inputVector = inputVector;
     this.subscript = subscript;
     this.replacement = replacement;
-  }
-
-  @Override
-  public Type getType() {
-    return inputVector.storageType();
+    this.resultVectorType = VectorType.of(inputVector.getTypeSet());
   }
 
   public ValueBounds getResultBounds() {
@@ -51,14 +52,31 @@ public class UpdateElementCall implements Specialization {
   }
 
   @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-    throw new FailedToSpecializeException("TODO");
-  }
-
-  @Override
   public boolean isPure() {
     // Despite the name, values in R have copy-on-write semantics
     // so "update" operations have no side-effects, they return a new value.
     return true;
+  }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+    CompiledSexp inputVector = arguments.get(0).getExpression().getCompiledExpr(emitContext);
+    CompiledSexp subscript = arguments.get(1).getExpression().getCompiledExpr(emitContext);
+    CompiledSexp replacement = arguments.get(2).getExpression().getCompiledExpr(emitContext);
+
+    return new ArrayExpr(resultVectorType) {
+      @Override
+      public void loadArray(EmitContext context, InstructionAdapter mv, VectorType vectorType) {
+        inputVector.loadArray(context, mv, resultVectorType);
+        subscript.loadScalar(context, mv, VectorType.INT);
+        replacement.loadScalar(context, mv, resultVectorType);
+
+        mv.invokestatic(Type.getInternalName(Subsetting.class), "setElement",
+            Type.getMethodDescriptor(resultVectorType.getJvmArrayType(),
+                resultVectorType.getJvmArrayType(),
+                Type.INT_TYPE,
+                resultVectorType.getJvmType()), false);
+      }
+    };
   }
 }

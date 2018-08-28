@@ -19,12 +19,10 @@
 package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.invoke.model.JvmMethod;
-import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 import java.util.List;
 
@@ -66,32 +64,18 @@ public class StaticMethodCall implements Specialization {
     return this;
   }
 
-  @Override
-  public Type getType() {
-    return Type.getType(method.getReturnType());
-  }
-
   public ValueBounds getResultBounds() {
     return valueBounds;
-  }
-
-  @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-
-    for (JvmMethod.Argument argument : method.getAllArguments()) {
-      assert !argument.isContextual();
-      Expression argumentExpr = arguments.get(argument.getIndex()).getExpression();
-      argumentExpr.load(emitContext, mv);
-      emitContext.convert(mv, argumentExpr.getType(), Type.getType(argument.getClazz()));
-    }
-
-    mv.invokestatic(Type.getInternalName(method.getDeclaringClass()), method.getName(),
-        Type.getMethodDescriptor(method.getMethod()), false);
-
   }
 
   @Override
   public boolean isPure() {
     return method.isPure();
   }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
 }

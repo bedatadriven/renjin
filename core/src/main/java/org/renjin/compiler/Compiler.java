@@ -20,6 +20,7 @@ package org.renjin.compiler;
 
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.cfg.DominanceTree;
+import org.renjin.compiler.cfg.LiveSet;
 import org.renjin.compiler.cfg.UseDefMap;
 import org.renjin.compiler.codegen.ByteCodeEmitter;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
@@ -57,6 +58,8 @@ public class Compiler {
       TypeSolver types = new TypeSolver(cfg, useDefMap);
       types.execute();
 
+      LiveSet liveSet = new LiveSet(dTree, useDefMap);
+
       types.dumpBounds();
 
       types.verifyFunctionAssumptions(runtimeState);
@@ -65,7 +68,7 @@ public class Compiler {
 
       System.out.println(cfg);
 
-      ByteCodeEmitter emitter = new ByteCodeEmitter(cfg, types);
+      ByteCodeEmitter emitter = new ByteCodeEmitter(cfg, liveSet, types);
       return emitter.compile().newInstance();
 
     } catch (NotCompilableException e) {

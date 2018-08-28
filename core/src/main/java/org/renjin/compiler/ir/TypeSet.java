@@ -327,4 +327,8 @@ public class TypeSet {
   public static boolean isDefinitelyNotAtomicVector(int typeSet) {
     return (typeSet & ANY_ATOMIC_VECTOR) == 0;
   }
+
+  public static int size(int typeSet) {
+    return Integer.bitCount(typeSet);
+  }
 }

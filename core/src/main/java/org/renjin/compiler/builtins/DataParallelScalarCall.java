@@ -19,9 +19,11 @@
 package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.ScalarExpr;
+import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -48,37 +50,47 @@ public class DataParallelScalarCall implements Specialization {
     return this;
   }
 
-  @Override
-  public Type getType() {
-    return Type.getType(method.getReturnType());
-  }
-
   public ValueBounds getResultBounds() {
     return valueBounds;
-  }
-
-  @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-    
-    Iterator<IRArgument> argumentIt = arguments.iterator();
-
-    for (JvmMethod.Argument formal : method.getAllArguments()) {
-      if(formal.isContextual()) {
-        throw new UnsupportedOperationException("TODO");
-        
-      } else if(formal.isRecycle()) {
-        Expression argument = argumentIt.next().getExpression();
-        argument.load(emitContext, mv);
-        emitContext.convert(mv, argument.getType(), Type.getType(formal.getClazz()));
-      }
-    }
-    
-    mv.invokestatic(Type.getInternalName(method.getDeclaringClass()), method.getName(), 
-        Type.getMethodDescriptor(method.getMethod()), false);
   }
 
   @Override
   public boolean isPure() {
     return method.isPure();
   }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+    return new ScalarExpr(vectorTypeOf(method.getReturnType())) {
+      @Override
+      public void loadScalar(EmitContext context, InstructionAdapter mv) {
+        Iterator<IRArgument> argumentIt = arguments.iterator();
+
+        for (JvmMethod.Argument formal : method.getAllArguments()) {
+          if(formal.isContextual()) {
+            throw new UnsupportedOperationException("TODO");
+
+          } else if(formal.isRecycle()) {
+            CompiledSexp argument = argumentIt.next().getExpression().getCompiledExpr(emitContext);
+            argument.loadAsArgument(emitContext, mv, formal.getClazz());
+          }
+        }
+
+        mv.invokestatic(Type.getInternalName(method.getDeclaringClass()), method.getName(),
+            Type.getMethodDescriptor(method.getMethod()), false);
+      }
+    };
+  }
+
+  private VectorType vectorTypeOf(Class returnType) {
+    if(returnType.equals(int.class)) {
+      return VectorType.INT;
+    } else if(returnType.equals(double.class)) {
+      return VectorType.DOUBLE;
+    } else if(returnType.equals(byte.class)) {
+      return VectorType.BYTE;
+    }
+    throw new UnsupportedOperationException("TODO: " + returnType.getSimpleName());
+  }
+
 }

@@ -18,8 +18,13 @@
  */
 package org.renjin.primitives.special;
 
-import org.renjin.compiler.Compiler;
+import org.renjin.compiler.CachedBody;
+import org.renjin.compiler.CompiledBody;
+import org.renjin.compiler.NotCompilableException;
+import org.renjin.compiler.SexpCompiler;
+import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
 public class WhileFunction extends SpecialFunction {
@@ -27,7 +32,7 @@ public class WhileFunction extends SpecialFunction {
   public WhileFunction() {
     super("while");
   }
-  
+
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     SEXP condition = args.getElementAsSEXP(0);
@@ -42,7 +47,7 @@ public class WhileFunction extends SpecialFunction {
         iterationCount ++;
 
         if(ForFunction.COMPILE_LOOPS && iterationCount > 50 && !compilationFailed) {
-          if(Compiler.tryCompileAndRun(context, rho, call)) {
+          if(tryCompileAndRun(context, rho, call)) {
             break;
           } else {
             compilationFailed = true;
@@ -59,5 +64,45 @@ public class WhileFunction extends SpecialFunction {
     }
     context.setInvisibleFlag();
     return Null.INSTANCE;
+  }
+
+
+  public static boolean tryCompileAndRun(Context context, Environment rho, FunctionCall call) {
+
+    CompiledBody compiledBody = null;
+
+    if(call.cache instanceof CachedBody) {
+      CachedBody cachedLoopBody = (CachedBody) call.cache;
+      if(cachedLoopBody.assumptionsStillMet(context, rho)) {
+        compiledBody = cachedLoopBody.getCompiledBody();
+      }
+    }
+
+    if(compiledBody == null) {
+      try {
+
+        CachedBody compiled = SexpCompiler.compileSexp(context, rho, call);
+
+        // Cache for subsequent evaluations...
+        call.cache = compiled;
+        compiledBody = compiled.getCompiledBody();
+
+      } catch (NotCompilableException e) {
+        if (ForFunction.FAIL_ON_COMPILATION_ERROR) {
+          throw new AssertionError("Loop compilation failed: " + e.toString(context));
+        }
+        context.warn("Could not compile while loop because: " + e.toString(context));
+        return false;
+
+      } catch (InvalidSyntaxException e) {
+        throw new EvalException(e.getMessage());
+
+      } catch (Exception e) {
+        throw new EvalException("Exception compiling loop: " + e.getMessage(), e);
+      }
+    }
+
+    compiledBody.evaluate(context, rho);
+    return true;
   }
 }

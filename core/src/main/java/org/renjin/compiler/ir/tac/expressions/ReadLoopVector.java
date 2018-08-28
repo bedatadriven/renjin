@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.ir.tac.expressions;
 
+import org.renjin.compiler.CompiledLoopBody;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.SexpExpr;
@@ -29,7 +30,7 @@ import java.util.Map;
 
 
 public class ReadLoopVector implements Expression {
-  
+
   private ValueBounds bounds;
 
   public ReadLoopVector(ValueBounds bounds) {
@@ -56,7 +57,7 @@ public class ReadLoopVector implements Expression {
     return new SexpExpr() {
       @Override
       public void loadSexp(EmitContext context, InstructionAdapter mv) {
-        mv.visitVarInsn(Opcodes.ALOAD, context.getLoopVectorIndex());
+        mv.visitVarInsn(Opcodes.ALOAD, CompiledLoopBody.LOOP_VECTOR_INDEX);
       }
     };
   }

@@ -36,10 +36,10 @@ public abstract class ArrayExpr implements CompiledSexp {
   }
 
   @Override
-  public void loadScalar(EmitContext context, InstructionAdapter mv, VectorType type) {
+  public void loadScalar(EmitContext context, InstructionAdapter mv, VectorType vectorType) {
 
     // Array
-    loadArray(context, mv, type);
+    loadArray(context, mv, vectorType);
 
     // Array index to load
     mv.visitInsn(Opcodes.ICONST_0);

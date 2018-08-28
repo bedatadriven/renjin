@@ -70,7 +70,7 @@ public abstract class SexpExpr implements CompiledSexp {
 
 
   @Override
-  public final void loadScalar(EmitContext context, InstructionAdapter mv, VectorType type) {
+  public final void loadScalar(EmitContext context, InstructionAdapter mv, VectorType vectorType) {
 
     // Load the SEXP onto the stack
     loadSexp(context, mv);
@@ -81,7 +81,7 @@ public abstract class SexpExpr implements CompiledSexp {
     // Request first element
     mv.visitInsn(Opcodes.ICONST_0);
 
-    switch (type) {
+    switch (vectorType) {
       case BYTE:
         mv.invokeinterface(Type.getInternalName(Vector.class), "getElementAsByte", "(I)B");
         break;
@@ -95,7 +95,7 @@ public abstract class SexpExpr implements CompiledSexp {
         mv.invokeinterface(Type.getInternalName(Vector.class), "getElementAsString", "(I)S");
         break;
       default:
-        throw new IllegalArgumentException(type.toString());
+        throw new IllegalArgumentException(vectorType.toString());
     }
   }
 

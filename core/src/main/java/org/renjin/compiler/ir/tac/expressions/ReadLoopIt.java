@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.ir.tac.expressions;
 
+import org.renjin.compiler.CompiledLoopBody;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.ScalarExpr;
@@ -50,7 +51,7 @@ public class ReadLoopIt implements Expression {
     return new ScalarExpr(VectorType.INT) {
       @Override
       public void loadScalar(EmitContext context, InstructionAdapter mv) {
-        mv.visitVarInsn(Opcodes.ILOAD, context.getLoopIterationIndex());
+        mv.visitVarInsn(Opcodes.ILOAD, CompiledLoopBody.LOOP_ITERATION_INDEX);
       }
     };
   }

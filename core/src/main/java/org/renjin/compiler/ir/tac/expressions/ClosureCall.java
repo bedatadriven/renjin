@@ -127,7 +127,7 @@ public class ClosureCall implements Expression {
 
     VariableStrategy lhs = emitContext.getVariable(statement.getLHS());
 
-    inlinedFunction.writeInline(emitContext, mv, matching, arguments, lhs);
+    inlinedFunction.emitInline(emitContext, mv, matching, arguments, lhs);
   }
 
   @Override

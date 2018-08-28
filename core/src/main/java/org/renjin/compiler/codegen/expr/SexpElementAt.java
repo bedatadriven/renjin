@@ -41,11 +41,11 @@ class SexpElementAt implements CompiledSexp {
   }
 
   @Override
-  public void loadScalar(EmitContext context, InstructionAdapter mv, VectorType type) {
+  public void loadScalar(EmitContext context, InstructionAdapter mv, VectorType vectorType) {
     sexpExpr.loadSexp(context, mv);
     indexExpr.loadScalar(context, mv, VectorType.INT);
 
-    switch (type) {
+    switch (vectorType) {
       case BYTE:
         mv.invokeinterface(SexpTypes.SEXP_INTERNAL_NAME, "getElementAsByte", "(I)B");
         break;
@@ -60,7 +60,7 @@ class SexpElementAt implements CompiledSexp {
         mv.invokeinterface(SexpTypes.SEXP_INTERNAL_NAME, "getElementAsString", "(I)Ljava/lang/String;");
         break;
       default:
-        throw new UnsupportedOperationException(type.toString());
+        throw new UnsupportedOperationException(vectorType.toString());
     }
   }
 

@@ -97,7 +97,7 @@ public class BasicBlock {
   
   public static BasicBlock createWithStartAt(int blockIndex, IRBody parent, int statementIndex) {
     BasicBlock block = new BasicBlock(blockIndex);
-    block.labels = parent.getIntructionLabels(statementIndex);
+    block.labels = parent.getInstructionLabels(statementIndex);
     block.statements = Lists.newArrayList();
     block.statements.add(parent.getStatements().get(statementIndex));
     return block;

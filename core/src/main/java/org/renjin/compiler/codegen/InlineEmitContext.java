@@ -18,43 +18,66 @@
  */
 package org.renjin.compiler.codegen;
 
-import org.renjin.compiler.TypeSolver;
-import org.renjin.compiler.cfg.ControlFlowGraph;
-import org.renjin.compiler.cfg.LiveSet;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.var.LocalVarAllocator;
+import org.renjin.compiler.codegen.var.VariableMap;
 import org.renjin.compiler.codegen.var.VariableStrategy;
+import org.renjin.compiler.ir.tac.IRLabel;
+import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.repackaged.asm.Label;
-import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.Symbol;
 
 import java.util.Map;
 
-public class InlineEmitContext extends EmitContext {
+public class InlineEmitContext implements EmitContext {
 
-
+  private final EmitContext parentContext;
+  private final Map<Symbol, CompiledSexp> paramMap;
+  private final VariableMap variableMap;
   private final VariableStrategy returnVariable;
-  private Map<Symbol, InlineParamExpr> inlinedParameters = Maps.newHashMap();
-
+  private final LabelMap labelMap = new LabelMap();
   private final Label exitLabel;
 
-  public InlineEmitContext(ControlFlowGraph cfg, LiveSet liveSet, TypeSolver types,
-                           LocalVarAllocator localVarAllocator, VariableStrategy returnVariable) {
-    super(cfg, liveSet, types, localVarAllocator, Type.VOID_TYPE);
+  public InlineEmitContext(EmitContext parentContext,
+                           Map<Symbol, CompiledSexp> paramMap,
+                           VariableMap variableMap,
+                           VariableStrategy returnVariable) {
+    this.parentContext = parentContext;
+    this.paramMap = paramMap;
+    this.variableMap = variableMap;
     this.returnVariable = returnVariable;
     this.exitLabel = new Label();
   }
 
-
-  public void setInlineParameter(Symbol parameterName, InlineParamExpr value) {
-    inlinedParameters.put(parameterName, value);
+  @Override
+  public CompiledSexp getParamExpr(Symbol paramName) {
+    return paramMap.get(paramName);
   }
 
   @Override
-  public CompiledSexp getParamExpr(Symbol paramName) {
-    return inlinedParameters.get(paramName).getCompiledExpr();
+  public VariableStrategy getVariable(LValue lhs) {
+    return variableMap.getStorage(lhs);
+  }
+
+  @Override
+  public int getContextVarIndex() {
+    return parentContext.getContextVarIndex();
+  }
+
+  @Override
+  public int getEnvironmentVarIndex() {
+    return parentContext.getEnvironmentVarIndex();
+  }
+
+  @Override
+  public LocalVarAllocator getLocalVarAllocator() {
+    return parentContext.getLocalVarAllocator();
+  }
+
+  @Override
+  public Label getBytecodeLabel(IRLabel label) {
+    return labelMap.getBytecodeLabel(label);
   }
 
   @Override
@@ -65,7 +88,6 @@ public class InlineEmitContext extends EmitContext {
 
   @Override
   public void writeDone(InstructionAdapter mv) {
-    super.writeDone(mv);
     mv.mark(exitLabel);
   }
 }

@@ -20,36 +20,21 @@
 
 package org.renjin.compiler.codegen;
 
-import org.renjin.compiler.codegen.expr.CompiledSexp;
-import org.renjin.compiler.codegen.var.LocalVarAllocator;
-import org.renjin.compiler.codegen.var.VariableStrategy;
 import org.renjin.compiler.ir.tac.IRLabel;
-import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.repackaged.asm.Label;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.Symbol;
 
-public interface EmitContext {
+import java.util.HashMap;
+import java.util.Map;
 
-  /**
-   * @return the index of the local variable holding the {@code Context} instance
-   */
-  int getContextVarIndex();
+public class LabelMap {
+  private Map<IRLabel, Label> map = new HashMap<>();
 
-  /**
-   * @return the index of the local variable holding the {@code Environment} instance
-   */
-  int getEnvironmentVarIndex();
-
-  LocalVarAllocator getLocalVarAllocator();
-
-  Label getBytecodeLabel(IRLabel label);
-
-  void writeReturn(InstructionAdapter mv, CompiledSexp returnExpr);
-
-  void writeDone(InstructionAdapter mv);
-
-  CompiledSexp getParamExpr(Symbol paramName);
-
-  VariableStrategy getVariable(LValue lhs);
+  public Label getBytecodeLabel(IRLabel label) {
+    Label bytecodeLabel = map.get(label);
+    if(bytecodeLabel == null) {
+      bytecodeLabel = new Label();
+      map.put(label, bytecodeLabel);
+    }
+    return bytecodeLabel;
+  }
 }

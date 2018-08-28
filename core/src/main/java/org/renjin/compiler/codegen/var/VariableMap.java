@@ -21,6 +21,7 @@
 package org.renjin.compiler.codegen.var;
 
 import org.renjin.compiler.TypeSolver;
+import org.renjin.compiler.cfg.UseDefMap;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.expressions.LValue;
@@ -30,10 +31,12 @@ import java.util.Map;
 
 public class VariableMap {
   private LocalVarAllocator localVars;
+  private UseDefMap useDefMap;
   private Map<LValue, VariableStrategy> map = new HashMap<>();
 
-  public VariableMap(LocalVarAllocator localVars, TypeSolver typeSolver) {
+  public VariableMap(LocalVarAllocator localVars, TypeSolver typeSolver, UseDefMap useDefMap) {
     this.localVars = localVars;
+    this.useDefMap = useDefMap;
     for (Map.Entry<LValue, ValueBounds> entry : typeSolver.getVariables().entrySet()) {
       map.put(entry.getKey(), findBestStrategy(entry.getValue()));
     }

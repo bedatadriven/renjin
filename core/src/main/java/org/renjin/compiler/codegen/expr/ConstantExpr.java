@@ -55,8 +55,8 @@ public class ConstantExpr implements CompiledSexp {
   }
 
   @Override
-  public void loadScalar(EmitContext context, InstructionAdapter mv, VectorType type) {
-    switch (type) {
+  public void loadScalar(EmitContext context, InstructionAdapter mv, VectorType vectorType) {
+    switch (vectorType) {
       case BYTE:
         mv.iconst(((Vector) sexp).getElementAsByte(0));
         break;

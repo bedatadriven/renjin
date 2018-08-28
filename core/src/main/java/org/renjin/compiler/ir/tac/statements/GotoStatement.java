@@ -87,7 +87,7 @@ public class GotoStatement implements Statement, BasicBlockEndingStatement {
 
   @Override
   public void emit(EmitContext emitContext, InstructionAdapter mv) {
-    mv.visitJumpInsn(Opcodes.GOTO, emitContext.getAsmLabel(target));
+    mv.visitJumpInsn(Opcodes.GOTO, emitContext.getBytecodeLabel(target));
   }
 
   @Override

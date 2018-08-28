@@ -39,7 +39,7 @@ import org.renjin.sexp.Symbol;
 import static org.junit.Assert.assertTrue;
 
 
-public class ByteCodeEmitterTest {
+public class ClassGeneratorTest {
 
   private Session session;
 

@@ -21,19 +21,8 @@ package org.renjin.primitives.special;
 import org.renjin.compiler.CachedLoopBody;
 import org.renjin.compiler.CompiledLoopBody;
 import org.renjin.compiler.NotCompilableException;
-import org.renjin.compiler.TypeSolver;
-import org.renjin.compiler.cfg.ControlFlowGraph;
-import org.renjin.compiler.cfg.DominanceTree;
-import org.renjin.compiler.cfg.LiveSet;
-import org.renjin.compiler.cfg.UseDefMap;
-import org.renjin.compiler.codegen.ByteCodeEmitter;
-import org.renjin.compiler.ir.TypeSet;
-import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.SexpCompiler;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
-import org.renjin.compiler.ir.ssa.SsaTransformer;
-import org.renjin.compiler.ir.tac.IRBody;
-import org.renjin.compiler.ir.tac.IRBodyBuilder;
-import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Profiler;
@@ -108,7 +97,7 @@ public class ForFunction extends SpecialFunction {
     return Null.INSTANCE;
   }
 
-  private boolean tryCompileAndRun(Context context, Environment rho, FunctionCall call, Vector sequence, int i) {
+  public boolean tryCompileAndRun(Context context, Environment rho, FunctionCall call, Vector sequence, int i) {
 
     CompiledLoopBody compiledBody = null;
 
@@ -122,49 +111,14 @@ public class ForFunction extends SpecialFunction {
     if(compiledBody == null) {
       try {
 
-        if (COMPILE_LOOPS_VERBOSE) {
-          System.err.print("Attempting loop compilation on " + System.identityHashCode(call) + "...");
-        }
-
-        RuntimeState runtimeState = new RuntimeState(context, rho);
-
-        ValueBounds sequenceBounds = ValueBounds.builder().setTypeSet(TypeSet.of(sequence)).build();
-
-        IRBodyBuilder builder = new IRBodyBuilder(runtimeState);
-        IRBody body = builder.buildLoopBody(call, sequenceBounds);
-
-        ControlFlowGraph cfg = new ControlFlowGraph(body);
-
-        DominanceTree dTree = new DominanceTree(cfg);
-        SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);
-        ssaTransformer.transform();
-
-        System.out.println(cfg);
-
-        UseDefMap useDefMap = new UseDefMap(cfg);
-
-        LiveSet liveSet = new LiveSet(dTree, useDefMap);
-
-        TypeSolver types = new TypeSolver(cfg, useDefMap);
-        types.execute();
-
-        types.dumpBounds();
-
-        types.verifyFunctionAssumptions(runtimeState);
-
-        ssaTransformer.removePhiFunctions(types);
-
-        ByteCodeEmitter emitter = new ByteCodeEmitter(cfg, liveSet, types);
-        compiledBody = emitter.compileLoopBody().newInstance();
-
-
-        System.out.println("ASSUMPTIONS: " + runtimeState.getAssumptions());
+        CachedLoopBody compiled = SexpCompiler.compileForLoop(context, rho, call, sequence);
 
         // Cache for subsequent evaluations...
-        call.cache = new CachedLoopBody(compiledBody, sequenceBounds, runtimeState.getAssumptions());
+        call.cache = compiled;
+        compiledBody = compiled.getCompiledBody();
 
       } catch (NotCompilableException e) {
-        if (FAIL_ON_COMPILATION_ERROR) {
+        if (ForFunction.FAIL_ON_COMPILATION_ERROR) {
           throw new AssertionError("Loop compilation failed: " + e.toString(context));
         }
         context.warn("Could not compile loop because: " + e.toString(context));
@@ -179,8 +133,6 @@ public class ForFunction extends SpecialFunction {
     }
 
     compiledBody.run(context, rho, sequence, i);
-
-
     return true;
   }
 

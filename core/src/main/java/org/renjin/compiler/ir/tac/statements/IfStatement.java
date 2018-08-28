@@ -142,24 +142,24 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
   public void emit(EmitContext emitContext, InstructionAdapter mv) {
 
     if(constantValue == Logical.TRUE) {
-      mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(trueTarget));
+      mv.visitJumpInsn(GOTO, emitContext.getBytecodeLabel(trueTarget));
     }
     if(constantValue == Logical.FALSE) {
-      mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(falseTarget));
+      mv.visitJumpInsn(GOTO, emitContext.getBytecodeLabel(falseTarget));
     }
 
     if(condition instanceof CmpGE) {
       CmpGE comparison = (CmpGE) condition;
       comparison.childAt(0).getCompiledExpr(emitContext).loadScalar(emitContext, mv, VectorType.INT);
       comparison.childAt(1).getCompiledExpr(emitContext).loadScalar(emitContext, mv, VectorType.INT);
-      mv.visitJumpInsn(IF_ICMPLT, emitContext.getAsmLabel(falseTarget));
-      mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(trueTarget));
+      mv.visitJumpInsn(IF_ICMPLT, emitContext.getBytecodeLabel(falseTarget));
+      mv.visitJumpInsn(GOTO, emitContext.getBytecodeLabel(trueTarget));
 
     } else if (condition instanceof LValue) {
       CompiledSexp conditionExpr = condition.getCompiledExpr(emitContext);
       conditionExpr.loadScalar(emitContext, mv, VectorType.LOGICAL);
-      mv.visitJumpInsn(IFEQ, emitContext.getAsmLabel(falseTarget));
-      mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(trueTarget));
+      mv.visitJumpInsn(IFEQ, emitContext.getBytecodeLabel(falseTarget));
+      mv.visitJumpInsn(GOTO, emitContext.getBytecodeLabel(trueTarget));
     }
   }
 

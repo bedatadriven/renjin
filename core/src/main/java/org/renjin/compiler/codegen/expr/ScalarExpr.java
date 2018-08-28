@@ -44,14 +44,14 @@ public abstract class ScalarExpr implements CompiledSexp {
   }
 
   @Override
-  public final void loadScalar(EmitContext context, InstructionAdapter mv, VectorType loadType) {
+  public final void loadScalar(EmitContext context, InstructionAdapter mv, VectorType vectorType) {
     loadScalar(context, mv);
 
-    if(this.type != loadType) {
+    if(this.type != vectorType) {
       if(this.type == VectorType.INT || this.type == VectorType.LOGICAL) {
-        convertIntTo(mv, loadType);
+        convertIntTo(mv, vectorType);
       } else {
-        throw new UnsupportedOperationException("TODO: " + this.type + "=>" + loadType);
+        throw new UnsupportedOperationException("TODO: " + this.type + "=>" + vectorType);
       }
     }
   }

@@ -21,25 +21,40 @@
 package org.renjin.compiler.codegen.expr;
 
 import org.renjin.compiler.codegen.EmitContext;
-import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.SEXP;
 
-import static org.renjin.repackaged.asm.Opcodes.GOTO;
-import static org.renjin.repackaged.asm.Opcodes.IFEQ;
-
 public interface CompiledSexp {
 
+  /**
+   * Writes the bytecode to load this expression onto the stack as an {@code SEXP} object.
+   */
   void loadSexp(EmitContext context, InstructionAdapter mv);
 
-  void loadScalar(EmitContext context, InstructionAdapter mv, VectorType type);
+  /**
+   * Writes the bytecode to load this expression onto the stack as a scalar of
+   * the given {@code vectorType}. The value on the stack will match the type
+   * of {@code type.jvmType()}
+   */
+  void loadScalar(EmitContext context, InstructionAdapter mv, VectorType vectorType);
 
+  /**
+   * Writes the bytecode to load this expression onto the stack as an array of
+   * the given {@code vectorType}.
+   *
+   */
   void loadArray(EmitContext context, InstructionAdapter mv, VectorType vectorType);
 
+  /**
+   * Writes the bytecode to load the length of this expression onto the stack as an {@code int}
+   */
   void loadLength(EmitContext context, InstructionAdapter mv);
 
-  CompiledSexp elementAt(EmitContext context, CompiledSexp indexExpr);
-
+  /**
+   * Writes the bytecode to load this expression onto the stack as a value matching the type
+   * of {@code argumentClass}.
+   *
+   */
   default void loadAsArgument(EmitContext emitContext, InstructionAdapter mv, Class argumentClass) {
     if(SEXP.class.isAssignableFrom(argumentClass)) {
       loadSexp(emitContext, mv);
@@ -52,10 +67,11 @@ public interface CompiledSexp {
     }
   }
 
-  default void branch(EmitContext emitContext, InstructionAdapter mv, IRLabel trueTarget, IRLabel falseTarget) {
-    loadScalar(emitContext, mv, VectorType.LOGICAL);
-    mv.visitJumpInsn(IFEQ, emitContext.getAsmLabel(falseTarget));
-    mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(trueTarget));
-  }
+  /**
+   * Returns a new {@code CompiledExpr} that has the value of an element of this
+   * expression at the given {@code indexExpr}.
+   */
+  CompiledSexp elementAt(EmitContext context, CompiledSexp indexExpr);
+
 
 }

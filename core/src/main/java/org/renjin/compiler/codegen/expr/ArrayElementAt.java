@@ -28,7 +28,7 @@ class ArrayElementAt extends ScalarExpr {
   private final ArrayExpr arrayExpr;
   private final CompiledSexp indexExpr;
 
-  public ArrayElementAt(ArrayExpr arrayExpr, CompiledSexp indexExpr) {
+  ArrayElementAt(ArrayExpr arrayExpr, CompiledSexp indexExpr) {
     super(arrayExpr.getVectorType());
     this.arrayExpr = arrayExpr;
     this.indexExpr = indexExpr;
@@ -39,7 +39,5 @@ class ArrayElementAt extends ScalarExpr {
     arrayExpr.loadArray(context, mv, arrayExpr.getVectorType());
     indexExpr.loadScalar(context, mv, VectorType.INT);
     arrayExpr.loadElement(mv);
-
-
   }
 }

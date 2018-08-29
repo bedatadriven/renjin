@@ -350,12 +350,7 @@ public class Methods {
   public static SEXP getClass(@Current Context context, SEXP className, boolean dotForce, SEXP where) {
 
     if(className instanceof S4Object) {
-      SEXP classes = className.getAttribute(Symbol.get("class"));
-      if(classes instanceof StringVector) {
-        if("classRepresentation".equals(((StringVector)classes).getElementAsString(0))) {
-          return className;
-        }
-      }
+      return className;
     }
 
     SEXP classDef = getClassDef(context, ((StringVector)className), Null.INSTANCE, Null.INSTANCE, true);

@@ -143,8 +143,8 @@ public class GraphicsDevices {
     ((GraphicsDevice) p.getArray()).text(x, y, Stdlib.nullTerminatedString(str), rot, hadj);
   }
 
-  public static void raster(Ptr p, Ptr raster, int w, int h, double x, double y, double width, double height, double rot, double interpolate) {
-    throw new UnsupportedOperationException("TODO");
+  public static void raster(Ptr p, Ptr raster, int w, int h, double x, double y, double width, double height, double rot, int interpolate) {
+    ((GraphicsDevice) p.getArray()).raster(raster, w, h, x, y, width, height, rot, interpolate != 0);
   }
 
   public static void setColor(Ptr p, int color) {

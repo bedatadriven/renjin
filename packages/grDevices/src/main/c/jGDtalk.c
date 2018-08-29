@@ -39,7 +39,7 @@ void    GraphicsDevices_rect(void *p, double x0, double y0, double x1, double y1
 double* GraphicsDevices_size(void *p);
 double  GraphicsDevices_strWidth(void *p, const char *str);
 void    GraphicsDevices_text(void *p, double x, double y, const char *str, double rot, double hadj);
-void    GraphicsDevices_raster(void *p, unsigned int *raster, int w, int h, double x, double y, double width, double height, double rot, double interpolate);
+void    GraphicsDevices_raster(void *p, unsigned int *raster, int w, int h, double x, double y, double width, double height, double rot, int interpolate);
 
 void    GraphicsDevices_setColor(void *p, int col);
 void    GraphicsDevices_setFill(void *p, int col);

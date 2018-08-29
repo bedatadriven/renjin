@@ -180,6 +180,31 @@ public class Stdlib {
     return new OffsetPtr(string, offset);
   }
 
+  /**
+   * Scans str1 for the first occurrence of any of the characters that are part of str2,
+   * returning the number of characters of str1 read before this first occurrence.
+   *
+   * The search includes the terminating null-characters. Therefore, the function will return the
+   * length of str1 if none of the characters of str2 are found in str1.
+   */
+  public static int strcspn(Ptr str1, Ptr str2) {
+    int i = 0;
+    byte c, d;
+    while(true) {
+      c = str1.getByte(i);
+      int j = 0;
+      do {
+        d = str2.getByte(j);
+        if(c == d) {
+          return i;
+        }
+        j++;
+      } while(d != 0);
+      i++;
+    }
+  }
+
+
   @Deprecated
   public static long strtol(Ptr string) {
     return strtol(string, BytePtr.NULL, 10);
@@ -554,10 +579,19 @@ public class Stdlib {
    * Returns the time since the Epoch (00:00:00 UTC, January 1, 1970), measured in seconds.
    * If seconds is not NULL, the return value is also stored in variable seconds.
    */
+  @Deprecated
   public static int time(IntPtr seconds) {
+    return time((Ptr)seconds);
+  }
+
+  /**
+   * Returns the time since the Epoch (00:00:00 UTC, January 1, 1970), measured in seconds.
+   * If seconds is not NULL, the return value is also stored in variable seconds.
+   */
+  public static int time(Ptr seconds) {
     int time = (int) (System.currentTimeMillis() / 1000L);
-    if(seconds.array != null) {
-      seconds.array[seconds.offset] = time;
+    if(!seconds.isNull()) {
+      seconds.setInt(time);
     }
     return time;
   }

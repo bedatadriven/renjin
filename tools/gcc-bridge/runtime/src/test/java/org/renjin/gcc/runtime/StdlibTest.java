@@ -72,6 +72,16 @@ public class StdlibTest {
     assertThat(Stdlib.strtoul(cstring("0xfffffffffffffffe"), NULL, 0), equalTo(0xfffffffffffffffeL));
   }
 
+  @Test
+  public void strcspn() {
+    Ptr x = BytePtr.nullTerminatedString("hello world", StandardCharsets.US_ASCII);
+    Ptr y = BytePtr.nullTerminatedString("MXo", StandardCharsets.US_ASCII);
+    Ptr z = BytePtr.nullTerminatedString("QP", StandardCharsets.US_ASCII);
+
+    assertThat(Stdlib.strcspn(x, y), equalTo(4));
+    assertThat(Stdlib.strcspn(x, z), equalTo(Stdlib.strlen(x)));
+  }
+
   private BytePtr cstring(String str) {
     return BytePtr.nullTerminatedString(str, StandardCharsets.UTF_8);
   }

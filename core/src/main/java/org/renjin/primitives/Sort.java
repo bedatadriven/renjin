@@ -141,8 +141,8 @@ public class Sort {
   }
   
   @Internal("findInterval")
-  public static SEXP findInterval(DoubleArrayVector vec, DoubleArrayVector x, LogicalArrayVector rightmostClosed,
-                                  LogicalArrayVector allInside, LogicalArrayVector leftOpen) {
+  public static SEXP findInterval(DoubleVector vec, DoubleVector x, LogicalVector rightmostClosed,
+                                  LogicalVector allInside, LogicalVector leftOpen) {
     int n = vec.length();
     int nx = x.length();
   

@@ -52,11 +52,11 @@ public class SsaTransformTest extends CompilerTestCase {
     assertThat(Iterables.size(assignmentsToK), equalTo(3));
 
     System.out.println("PREDECESSORS:");
-    for (BasicBlock basicBlock : cfg.getLiveBasicBlocks()) {
+    for (BasicBlock basicBlock : cfg.getBasicBlocks()) {
       System.out.println(basicBlock.getDebugId() + " => " + cfg.getPredecessors(basicBlock));
     }
     System.out.println("SUCESSORS:");
-    for (BasicBlock basicBlock : cfg.getLiveBasicBlocks()) {
+    for (BasicBlock basicBlock : cfg.getBasicBlocks()) {
       System.out.println(basicBlock.getDebugId() + " => " + cfg.getSuccessors(basicBlock));
     }
 

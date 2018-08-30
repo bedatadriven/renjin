@@ -91,7 +91,7 @@ public class SsaTransformer {
     for(Variable V : allVariables) {
       iterCount = iterCount + 1;
 
-      for(BasicBlock X : Iterables.filter(cfg.getLiveBasicBlocks(), CfgPredicates.containsAssignmentTo(V))) {
+      for(BasicBlock X : Iterables.filter(cfg.getBasicBlocks(), CfgPredicates.containsAssignmentTo(V))) {
         work[X.getIndex()] = iterCount;
         W.add(X);
       }
@@ -220,7 +220,6 @@ public class SsaTransformer {
     return stack.peek();
   }
 
-
   /**
    * @return an integer telling which predecessor of Y in CFG is
    * X. The jth operand of a phi-function in Y corresponds to the 
@@ -275,5 +274,4 @@ public class SsaTransformer {
     }
   }
 
-  public void deadCod
 }

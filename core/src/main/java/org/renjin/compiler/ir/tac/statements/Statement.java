@@ -23,7 +23,10 @@ import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.TreeNode;
 import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+
+import java.util.function.Consumer;
 
 
 public abstract class Statement implements TreeNode {
@@ -39,6 +42,20 @@ public abstract class Statement implements TreeNode {
    * statement has no right hand side.
    */
   public abstract Expression getRHS();
+
+  public void forEachVariableUsed(Consumer<LValue> consumer) {
+    Expression rhs = getRHS();
+    if(rhs instanceof LValue) {
+      consumer.accept((LValue)rhs);
+    } else {
+      for (int i = 0; i < rhs.getChildCount(); i++) {
+        Expression child = rhs.childAt(i);
+        if(child instanceof LValue) {
+          consumer.accept((LValue) child);
+        }
+      }
+    }
+  }
 
   /**
    * Emits the bytecode for this instruction

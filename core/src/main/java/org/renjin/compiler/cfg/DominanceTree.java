@@ -19,25 +19,25 @@
 package org.renjin.compiler.cfg;
 
 
-import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.HashMultimap;
 import org.renjin.repackaged.guava.collect.Multimap;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.util.DebugGraph;
 
-import java.util.*;
-
-import static org.renjin.repackaged.guava.base.Predicates.equalTo;
-import static org.renjin.repackaged.guava.base.Predicates.not;
-import static org.renjin.repackaged.guava.collect.Iterables.filter;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class DominanceTree {
 
-  private final ControlFlowGraph cfg;
+  private final Graph cfg;
   private final HashMultimap<BasicBlock, BasicBlock> Dom = HashMultimap.create();
   private final Multimap<BasicBlock, BasicBlock> dominanceFrontier = HashMultimap.create();
-  
-  public DominanceTree(ControlFlowGraph cfg) {
+  private final Multimap<BasicBlock, BasicBlock> successors = HashMultimap.create();
+  private final Multimap<BasicBlock, BasicBlock> predecessors = HashMultimap.create();
+
+  public DominanceTree(Graph cfg) {
     this.cfg = cfg;
     computeDominators();
     buildTree();
@@ -52,23 +52,26 @@ public class DominanceTree {
     Dom.put(cfg.getEntry(), cfg.getEntry());
 
     // for all other nodes, set all nodes as the dominators
-    for(BasicBlock n : filter(cfg.getLiveBasicBlocks(), not(equalTo(cfg.getEntry())))) {
-      Dom.putAll(n, cfg.getLiveBasicBlocks());
+    for(BasicBlock n : cfg.getBasicBlocks()) {
+      if(n != cfg.getEntry()) {
+        Dom.putAll(n, cfg.getBasicBlocks());
+      }
     }
 
     // iteratively eliminate nodes that are not dominators
     boolean changes;
     do {
       changes = false;
-      for(BasicBlock n : filter(cfg.getLiveBasicBlocks(), not(equalTo(cfg.getEntry())))) {
-        // Dom(n) = {n} union with intersection over all p in pred(n) of Dom(p)
-        Set<BasicBlock> newDom = computeNewDominance(n);
-        Set<BasicBlock> original = Dom.get(n);
+      for(BasicBlock n : cfg.getBasicBlocks()) {
+        if (n != cfg.getEntry()) {
+          // Dom(n) = {n} union with intersection over all p in pred(n) of Dom(p)
+          Set<BasicBlock> newDom = computeNewDominance(n);
+          Set<BasicBlock> original = Dom.get(n);
 
-        if(!original.equals(newDom)) {
-         // System.out.printf("Dom(%s) = %s%n", n.getDebugId(), toString(newDom));
-          Dom.replaceValues(n, newDom);
-          changes = true;
+          if (!original.equals(newDom)) {
+            Dom.replaceValues(n, newDom);
+            changes = true;
+          }
         }
       }
     } while(changes);
@@ -79,11 +82,10 @@ public class DominanceTree {
    * node, and union that with the node itself.
    */
   private Set<BasicBlock> computeNewDominance(BasicBlock n) {
-    List<BasicBlock> predecessors = n.getFlowPredecessors();
 
     Set<BasicBlock> set = new HashSet<>();
     boolean first = true;
-    for (BasicBlock predecessor : predecessors) {
+    for (BasicBlock predecessor : cfg.getPredecessors(n)) {
       Set<BasicBlock> frontier = Dom.get(predecessor);
       if(first) {
         set.addAll(frontier);
@@ -98,20 +100,12 @@ public class DominanceTree {
     return set;
   }
 
-  private String toString(Set<BasicBlock> newDom) {
-    List<String> strings = new ArrayList<>();
-    for (BasicBlock basicBlock : newDom) {
-      strings.add(basicBlock.getDebugId());
-    }
-    Collections.sort(strings);
-    return "{" + Joiner.on(", ").join(strings) + "}";
-  }
-
   private void buildTree() {
     for(BasicBlock n : cfg.getBasicBlocks()) {
       BasicBlock d = calculateImmediateDominator(n);
       if(d != null) {
-        d.addDominanceSuccessor(n);
+        successors.put(d, n);
+        predecessors.put(n, d);
       }
     }
   }
@@ -126,7 +120,7 @@ public class DominanceTree {
   }
   
   public BasicBlock getImmediateDominator(BasicBlock n) {
-    Collection<BasicBlock> parent = n.getDominancePredecessors();
+    Collection<BasicBlock> parent = predecessors.get(n);
     if(parent.size() != 1) {
       throw new IllegalArgumentException(n.toString());
     }
@@ -192,7 +186,7 @@ public class DominanceTree {
    * Y such that X dominates a predecessor of Y but does not strictly dominate Y
    */
   private void calculateDominanceFrontier(BasicBlock X) {
-    for(BasicBlock child : X.getDominanceSuccessors()) {
+    for(BasicBlock child : successors.get(X)) {
       calculateDominanceFrontier(child);
     }
     
@@ -203,7 +197,7 @@ public class DominanceTree {
       }
     }
     // calculate 
-    for(BasicBlock Z : X.getDominanceSuccessors()) {
+    for(BasicBlock Z : successors.get(X)) {
       for(BasicBlock Y : dominanceFrontier.get(Z)) {
         if(getImmediateDominator(Y) != X) {
           dominanceFrontier.put(X, Y);
@@ -222,14 +216,14 @@ public class DominanceTree {
   }
 
   public Collection<BasicBlock> getChildren(BasicBlock x) {
-    return x.getDominanceSuccessors();
+    return successors.get(x);
   }
   
 
   public void dumpGraph() {
     DebugGraph dump = new DebugGraph("dominance");
     for (BasicBlock basicBlock : cfg.getBasicBlocks()) {
-      for (BasicBlock dominated : basicBlock.getDominanceSuccessors()) {
+      for (BasicBlock dominated : successors.get(basicBlock)) {
         dump.printEdge(basicBlock.getDebugId(), dominated.getDebugId());
       }
     }

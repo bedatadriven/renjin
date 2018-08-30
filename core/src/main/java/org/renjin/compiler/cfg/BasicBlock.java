@@ -42,12 +42,9 @@ public class BasicBlock {
   private Set<IRLabel> labels;
   private List<Statement> statements = Lists.newLinkedList();
   
-  private List<BasicBlock> flowSuccessors = new ArrayList<>();
-  private List<BasicBlock> flowPredecessors = new ArrayList<>();
+  private List<BasicBlock> successors = new ArrayList<>();
+  private List<BasicBlock> predecessors = new ArrayList<>();
 
-  private List<BasicBlock> dominanceSuccessors = new ArrayList<>();
-  private List<BasicBlock> dominancePredecessors = new ArrayList<>();
-  
   private final List<FlowEdge> outgoing = new ArrayList<>();
   private final List<FlowEdge> incoming = new ArrayList<>();
 
@@ -113,14 +110,9 @@ public class BasicBlock {
   public void addFlowSuccessor(BasicBlock successor) {
     FlowEdge edge = new FlowEdge(this, successor);
     outgoing.add(edge);
-    flowSuccessors.add(successor);
+    successors.add(successor);
     successor.incoming.add(edge);
-    successor.flowPredecessors.add(this);
-  }
-
-  public void addDominanceSuccessor(BasicBlock basicBlock) {
-    dominanceSuccessors.add(basicBlock);
-    basicBlock.dominancePredecessors.add(this);
+    successor.predecessors.add(this);
   }
 
   public List<FlowEdge> getIncoming() {
@@ -140,20 +132,12 @@ public class BasicBlock {
     throw new IllegalStateException("No outgoing edge to " + target);
   }
 
-  public List<BasicBlock> getFlowSuccessors() {
-    return flowSuccessors;
+  public List<BasicBlock> getSuccessors() {
+    return successors;
   }
 
-  public List<BasicBlock> getFlowPredecessors() {
-    return flowPredecessors;
-  }
-
-  public List<BasicBlock> getDominanceSuccessors() {
-    return dominanceSuccessors;
-  }
-  
-  public List<BasicBlock> getDominancePredecessors() {
-    return dominancePredecessors;
+  public List<BasicBlock> getPredecessors() {
+    return predecessors;
   }
 
   public boolean returns() {
@@ -211,8 +195,8 @@ public class BasicBlock {
   }
 
   public void removeDeadEdges(Set<BasicBlock> live) {
-    flowPredecessors.retainAll(live);
-    flowSuccessors.retainAll(live);
+    predecessors.retainAll(live);
+    successors.retainAll(live);
 
     ListIterator<FlowEdge> incomingIt = incoming.listIterator();
     while(incomingIt.hasNext()) {

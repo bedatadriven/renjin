@@ -26,13 +26,16 @@ import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.util.DebugGraph;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Representation, using graph notation, of all paths that might be traversed through a block of R code
  * through its execution.
  */
-public class ControlFlowGraph {
+public class ControlFlowGraph implements Graph {
 
   private final IRBody parent;
   private final List<BasicBlock> basicBlocks;
@@ -76,10 +79,6 @@ public class ControlFlowGraph {
 
     // Cytron adds an edge from entry to exit??
     addEdge(entry, exit);
-  }
-  
-  public List<BasicBlock> getLiveBasicBlocks() {
-    return Collections.unmodifiableList(basicBlocks);
   }
 
   private BasicBlock addNewBasicBlock(IRBody body, int i) {
@@ -133,7 +132,7 @@ public class ControlFlowGraph {
       changing=false;
 
       for (BasicBlock basicBlock : Lists.newArrayList(live)) {
-        if(live.addAll(basicBlock.getFlowSuccessors())) {
+        if(live.addAll(basicBlock.getSuccessors())) {
           changing = true;
         }
       }
@@ -180,17 +179,17 @@ public class ControlFlowGraph {
   }
 
   public List<BasicBlock> getSuccessors(BasicBlock x) {
-    return x.getFlowSuccessors();
+    return x.getSuccessors();
   }
 
   public List<BasicBlock> getPredecessors(BasicBlock x) {
-    return x.getFlowPredecessors();
+    return x.getPredecessors();
   }
 
   public void dumpGraph() {
     DebugGraph dump = new DebugGraph("compute");
     for (BasicBlock basicBlock : basicBlocks) {
-      for (BasicBlock successor : basicBlock.getFlowSuccessors()) {
+      for (BasicBlock successor : basicBlock.getSuccessors()) {
         dump.printEdge(basicBlock.getDebugId(), successor.getDebugId());
       }
     }
@@ -199,7 +198,7 @@ public class ControlFlowGraph {
 
   public void dumpEdges() {
     for (BasicBlock basicBlock : basicBlocks) {
-      for (BasicBlock block : basicBlock.getFlowSuccessors()) {
+      for (BasicBlock block : basicBlock.getSuccessors()) {
         System.out.println("edge[" + basicBlock.getDebugId() + ", " + block.getDebugId() + "]");
       }
     }

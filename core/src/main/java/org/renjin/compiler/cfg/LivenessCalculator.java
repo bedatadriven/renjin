@@ -88,7 +88,7 @@ public class LivenessCalculator {
     }
 
     // Propagate backward
-    for (BasicBlock p : b.getFlowPredecessors()) {
+    for (BasicBlock p : b.getPredecessors()) {
       liveOut.set(p.getIndex());
       upAndMark(liveIn, liveOut, p, v);
     }
@@ -113,7 +113,7 @@ public class LivenessCalculator {
   }
 
   private boolean usedAtExitOf(BasicBlock b, LValue v) {
-    List<BasicBlock> successors = b.getFlowSuccessors();
+    List<BasicBlock> successors = b.getSuccessors();
     for (BasicBlock successor : successors) {
       for (Statement statement : successor.getStatements()) {
         if(statement instanceof Assignment) {

@@ -18,10 +18,7 @@
  */
 package org.renjin.compiler;
 
-import org.renjin.compiler.cfg.BasicBlock;
-import org.renjin.compiler.cfg.ControlFlowGraph;
-import org.renjin.compiler.cfg.DominanceTree;
-import org.renjin.compiler.cfg.UseDefMap;
+import org.renjin.compiler.cfg.*;
 import org.renjin.compiler.codegen.ClassGenerator;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.InlineEmitContext;
@@ -129,8 +126,16 @@ public class SexpCompiler {
     types.execute();
     types.dumpBounds();
     types.verifyFunctionAssumptions(runtimeState);
-    ssaTransformer.removePhiFunctions(types);
+    lowerSSA();
 
+  }
+
+  private void lowerSSA() {
+
+    DeadCodeElimination dce = new DeadCodeElimination(cfg, useDefMap);
+    dce.run();
+
+    ssaTransformer.removePhiFunctions(types);
   }
 
   private CompiledLoopBody compileForLoopBody() throws IllegalAccessException, InstantiationException {
@@ -182,9 +187,9 @@ public class SexpCompiler {
 
     // Last check
     types.verifyFunctionAssumptions(runtimeState);
-    ssaTransformer.removePhiFunctions(types);
-
     types.dumpBounds();
+
+    lowerSSA();
 
     // Now map our variables to storage strategies
     VariableMap variableMap = new VariableMap(cfg, emitContext.getLocalVarAllocator(), types, useDefMap);

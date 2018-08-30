@@ -21,11 +21,13 @@ package org.renjin.compiler.ir.tac.statements;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.compiler.ir.tac.expressions.NullExpression;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 
 public class GotoStatement extends Statement implements BasicBlockEndingStatement {
@@ -57,6 +59,11 @@ public class GotoStatement extends Statement implements BasicBlockEndingStatemen
     return NullExpression.INSTANCE;
   }
 
+  @Override
+  public void forEachVariableUsed(Consumer<LValue> consumer) {
+    // NOOP: Nothing used
+  }
+
 
   @Override
   public void setChild(int childIndex, Expression child) {
@@ -80,6 +87,6 @@ public class GotoStatement extends Statement implements BasicBlockEndingStatemen
 
   @Override
   public boolean isPure() {
-    return true;
+    return false;
   }
 }

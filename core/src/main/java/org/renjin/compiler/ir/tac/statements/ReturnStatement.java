@@ -35,6 +35,7 @@ import org.renjin.sexp.Symbol;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 
 public class ReturnStatement extends Statement implements BasicBlockEndingStatement {
@@ -42,7 +43,7 @@ public class ReturnStatement extends Statement implements BasicBlockEndingStatem
   private Expression returnValue;
 
   private List<Symbol> environmentVariableNames = Lists.newArrayList();
-  private List<Expression> environmentVariables = Lists.newArrayList();
+  private List<LValue> environmentVariables = Lists.newArrayList();
 
   public ReturnStatement(Expression returnValue) {
     this.returnValue = returnValue;
@@ -56,6 +57,14 @@ public class ReturnStatement extends Statement implements BasicBlockEndingStatem
   @Override
   public Expression getRHS() {
     return returnValue;
+  }
+
+  @Override
+  public void forEachVariableUsed(Consumer<LValue> consumer) {
+    super.forEachVariableUsed(consumer);
+    for (LValue environmentVariable : environmentVariables) {
+      consumer.accept(environmentVariable);
+    }
   }
 
   @Override
@@ -74,7 +83,7 @@ public class ReturnStatement extends Statement implements BasicBlockEndingStatem
     environmentVariables.add(lValue);
   }
 
-  public List<Expression> getEnvironmentVariables() {
+  public List<LValue> getEnvironmentVariables() {
     return environmentVariables;
   }
 
@@ -97,7 +106,7 @@ public class ReturnStatement extends Statement implements BasicBlockEndingStatem
     if(childIndex == 0) {
       returnValue = child;
     } else {
-      environmentVariables.set(childIndex - 1, child);
+      environmentVariables.set(childIndex - 1, (LValue) child);
     }
   }
 
@@ -135,7 +144,7 @@ public class ReturnStatement extends Statement implements BasicBlockEndingStatem
 
   @Override
   public boolean isPure() {
-    return true;
+    return false;
   }
 
   @Override

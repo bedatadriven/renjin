@@ -92,8 +92,11 @@ public class TypeSolver {
   
   public Map<LValue, ValueBounds> getVariables() {
     Map<LValue, ValueBounds> map = new HashMap<>();
-    for (LValue variable : useDefMap.getUsedVariables()) {
-      map.put(variable, variableBounds.get(variable));
+
+    for (Map.Entry<Expression, ValueBounds> entry : variableBounds.entrySet()) {
+      if(entry.getKey() instanceof LValue) {
+        map.put((LValue) entry.getKey(), entry.getValue());
+      }
     }
     return map;
   }

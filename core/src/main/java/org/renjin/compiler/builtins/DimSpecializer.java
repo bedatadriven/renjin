@@ -18,12 +18,14 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Attributes;
 import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.sexp.Symbols;
 
 import java.util.List;
 
@@ -58,7 +60,27 @@ public class DimSpecializer implements BuiltinSpecializer {
     if(sexp.isDimAttributeConstant()) {
       return new ConstantCall(sexp.getConstantDimAttribute());
     }
-    
-    return new StaticMethodCall(method);
+
+    ValueBounds dim;
+    if(!sexp.attributeCouldBePresent(Symbols.DIM)) {
+      dim = ValueBounds.builder()
+          .setTypeSet(TypeSet.NULL)
+          .setFlag(ValueBounds.FLAG_NO_NA)
+          .build();
+
+    } else if(sexp.getConstantDimCount() > 0) {
+      dim = ValueBounds.builder()
+          .setTypeSet(TypeSet.INT)
+          .setFlag(ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_NON_ZERO_LENGTH)
+          .build();
+
+    } else {
+      dim = ValueBounds.builder()
+          .setTypeSet(TypeSet.NULL | TypeSet.INT)
+          .setFlag(ValueBounds.FLAG_NO_NA)
+          .build();
+    }
+
+    return new StaticMethodCall(method, dim);
   }
 }

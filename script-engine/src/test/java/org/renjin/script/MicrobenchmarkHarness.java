@@ -38,7 +38,9 @@ public class MicrobenchmarkHarness {
 
   public static void main(String[] args) throws IOException {
 
-    File script = new File("/home/alex/dev/renjin-benchmarks/microbenchmarks/r_vs_cpp/dmvnorm/dmvnorm.R");
+    ForFunction.FAIL_ON_COMPILATION_ERROR = true;
+
+    File script = new File("/home/alex/dev/renjin-benchmarks/microbenchmarks/r_vs_cpp/fuzzycluster/fuzzycluster.R");
 
     ForFunction.COMPILE_LOOPS = true;
     ForFunction.COMPILE_LOOPS_VERBOSE = true;

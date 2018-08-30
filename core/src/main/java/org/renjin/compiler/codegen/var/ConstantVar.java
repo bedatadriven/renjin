@@ -41,6 +41,5 @@ public class ConstantVar extends VariableStrategy {
 
   @Override
   public void store(EmitContext emitContext, InstructionAdapter mv, CompiledSexp compiledSexp) {
-    throw new UnsupportedOperationException("TODO");
   }
 }

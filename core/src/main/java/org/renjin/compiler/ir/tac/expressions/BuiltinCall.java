@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.ir.tac.expressions;
 
+import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.builtins.*;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
@@ -49,10 +50,16 @@ public class BuiltinCall implements CallExpression {
 
   public BuiltinCall(RuntimeState runtimeState, FunctionCall call, String primitiveName, List<IRArgument> arguments) {
     this.runtimeState = runtimeState;
-    this.call = call;
     this.primitiveName = primitiveName;
     this.arguments = arguments;
     this.specializer = BuiltinSpecializers.INSTANCE.get(primitiveName);
+  }
+
+  public BuiltinCall(RuntimeState runtimeState, String primitiveName, Specializer specializer, List<IRArgument> arguments) {
+    this.runtimeState = runtimeState;
+    this.primitiveName = primitiveName;
+    this.arguments = arguments;
+    this.specializer = specializer;
   }
 
   @Override
@@ -79,7 +86,10 @@ public class BuiltinCall implements CallExpression {
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
     List<ArgumentBounds> argumentTypes = new ArrayList<>();
     for (IRArgument argument : arguments) {
-      argumentTypes.add(new ArgumentBounds(argument.getName(), argument.getExpression().updateTypeBounds(typeMap)));
+      argumentTypes.add(new ArgumentBounds(
+          argument.getName(),
+          argument.getExpression(),
+          argument.getExpression().updateTypeBounds(typeMap)));
     }
     specialization = specializer.trySpecialize(runtimeState, argumentTypes);
     
@@ -98,7 +108,11 @@ public class BuiltinCall implements CallExpression {
 
   @Override
   public void emitAssignment(EmitContext emitContext, InstructionAdapter mv, Assignment statement) {
-    specialization.emitAssignment(emitContext, mv, statement, arguments);
+    try {
+      specialization.emitAssignment(emitContext, mv, statement, arguments);
+    } catch (FailedToSpecializeException e) {
+      throw new NotCompilableException(call, "Failed to specialize .Primitive(" + primitiveName + ")");
+    }
   }
 
   @Override

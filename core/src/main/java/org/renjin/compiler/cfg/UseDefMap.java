@@ -22,6 +22,7 @@ import org.renjin.compiler.ir.tac.TreeNode;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.compiler.ir.tac.statements.Assignment;
+import org.renjin.compiler.ir.tac.statements.ReturnStatement;
 import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.repackaged.guava.collect.HashMultimap;
 import org.renjin.repackaged.guava.collect.Maps;
@@ -82,21 +83,29 @@ public class UseDefMap {
       for (Statement statement : basicBlock.getStatements()) {
         Expression rhs = statement.getRHS();
         if(rhs instanceof LValue) {
-          addSsaEdge((LValue) rhs, basicBlock, statement);
-          useBlockMap.put((LValue)rhs, basicBlock);
+          addUse(basicBlock, statement, (LValue) rhs);
         } else {
           for(int i=0;i!= rhs.getChildCount();++i) {
             TreeNode uses = rhs.childAt(i);
             if(uses instanceof LValue) {
-              addSsaEdge((LValue) uses, basicBlock, statement);
-              useBlockMap.put((LValue)uses, basicBlock);
+              addUse(basicBlock, statement, (LValue)uses);
             }
+          }
+        }
+        if(statement instanceof ReturnStatement) {
+          ReturnStatement returnStatement = (ReturnStatement) statement;
+          for (Expression expression : returnStatement.getEnvironmentVariables()) {
+            addUse(basicBlock, statement, (LValue)expression);
           }
         }
       }
     }
   }
 
+  private void addUse(BasicBlock basicBlock, Statement statement, LValue rhs) {
+    addSsaEdge(rhs, basicBlock, statement);
+    useBlockMap.put(rhs, basicBlock);
+  }
 
   private void addSsaEdge(LValue variable, BasicBlock basicBlock, Statement usage) {
     Assignment definition = assignmentMap.get(variable);

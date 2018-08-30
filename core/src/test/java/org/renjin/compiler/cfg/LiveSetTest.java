@@ -18,7 +18,6 @@
  */
 package org.renjin.compiler.cfg;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.compiler.CompilerTestCase;
 import org.renjin.compiler.ir.ssa.SsaTransformer;
@@ -27,16 +26,15 @@ import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.expressions.EnvironmentVariable;
 import org.renjin.compiler.ir.tac.statements.Statement;
 
-import static org.junit.Assert.assertFalse;
-
 public class LiveSetTest extends CompilerTestCase {
 
-  @Ignore
   @Test
   public void test() {
 
     IRBody body = buildBody("x <- numeric(100); for(i in 1:100) x[i] <- i");
     ControlFlowGraph cfg = new ControlFlowGraph(body);
+    cfg.dumpGraph();
+
     DominanceTree tree = new DominanceTree(cfg);
     
     SsaTransformer transformer = new SsaTransformer(cfg, tree);
@@ -46,7 +44,7 @@ public class LiveSetTest extends CompilerTestCase {
     
     UseDefMap useDefMap = new UseDefMap(cfg);
     
-    LiveSet liveSet = new LiveSet(tree, useDefMap);
+    LivenessCalculator liveSet = new LivenessCalculator(cfg, useDefMap);
     
     BasicBlock loopBody = cfg.get("BB3");
     Statement replaceStatement = loopBody.getStatements().get(1);
@@ -57,8 +55,11 @@ public class LiveSetTest extends CompilerTestCase {
    
     // Verify that x₂ is NOT live-out
     SsaVariable x2 = new SsaVariable(new EnvironmentVariable("x"), 2);
-    assertFalse(liveSet.isLiveOut(loopBody, replaceStatement, x2));
-  
+
+    liveSet.computeLiveOutSet(x2);
+
+
+
   }
   
 }

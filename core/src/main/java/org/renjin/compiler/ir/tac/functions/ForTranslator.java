@@ -18,6 +18,8 @@
  */
 package org.renjin.compiler.ir.tac.functions;
 
+import org.renjin.compiler.builtins.LengthSpecializer;
+import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.*;
@@ -28,6 +30,8 @@ import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
+
+import java.util.Collections;
 
 public class ForTranslator extends FunctionCallTranslator {
 
@@ -70,7 +74,8 @@ public class ForTranslator extends FunctionCallTranslator {
     IRLabel nextLabel = factory.newLabel();
     IRLabel exitLabel = factory.newLabel();
 
-    factory.addStatement(new Assignment(length, new Length(vector)));
+    factory.addStatement(new Assignment(length, new BuiltinCall(factory.getRuntimeState(), "length",
+        new LengthSpecializer(), Collections.singletonList(new IRArgument(vector)))));
 
     // check the counter and potentially loop
     factory.addLabel(counterLabel);
@@ -85,7 +90,7 @@ public class ForTranslator extends FunctionCallTranslator {
 
     // increment the counter
     factory.addLabel(nextLabel);
-    factory.addStatement(new Assignment(counter, new Increment(counter)));
+    factory.addStatement(new Assignment(counter, new IncrementCounter(counter)));
     factory.addStatement(new GotoStatement(counterLabel));
 
     factory.addLabel(exitLabel);

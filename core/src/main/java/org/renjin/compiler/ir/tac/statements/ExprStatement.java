@@ -29,7 +29,7 @@ import java.util.Collections;
 /**
  * Statement that is evaluated for side-effects
  */
-public class ExprStatement implements Statement {
+public class ExprStatement extends Statement {
 
   private Expression operand;
   
@@ -54,11 +54,6 @@ public class ExprStatement implements Statement {
   }
 
   @Override
-  public void setRHS(Expression newRHS) {
-    this.operand = newRHS;
-  }
-
-  @Override
   public int getChildCount() {
     return 1;
   }
@@ -79,11 +74,6 @@ public class ExprStatement implements Statement {
     } else {
       throw new IllegalArgumentException();
     }
-  }
-
-  @Override
-  public void accept(StatementVisitor visitor) {
-    visitor.visitExprStatement(this);
   }
 
   @Override

@@ -231,4 +231,30 @@ public class ForLoopCompilerTest extends EvalTestCase {
     assertThat(eval("s"), elementsIdenticalTo(c(5.0005e7)));
   }
 
+  @Test
+  public void nestedForLoop1() {
+    evalAndAssertCompiled(Joiner.on("\n").join(
+        "s <- 0",
+        "for(i in 1:300) {",
+        "  for(j in 1:20) {",
+        "    for(k in 1:3) {",
+        "       s <- s + (i * j) + k",
+        "    }",
+        "  }",
+        "}"));
+
+    assertThat(eval("i"), elementsIdenticalTo(300L));
+  }
+
+  @Test
+  public void nestedForLoop() {
+    evalAndAssertCompiled(Joiner.on("\n").join(
+        "m <- matrix(1:1200, nrow=300)",
+        "for(i in 1:nrow(m)) {",
+        "  for(j in 1:ncol(m)) {",
+        "    m[i,j] <- m[i,j]*2",
+        "  }",
+        "}"));
+  }
+
 }

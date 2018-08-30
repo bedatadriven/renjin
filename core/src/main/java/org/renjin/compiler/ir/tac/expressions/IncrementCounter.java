@@ -23,26 +23,31 @@ import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.ScalarExpr;
 import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 import java.util.Map;
 
 
 /**
- * The length of an expression.
+ * Increments a counter variable. Only used for the 
+ * 'for' loop, will see if really need this
  * 
- * <p>This is a bit annoying to add this to the set of expressions,
- * but we need it to translate for expressions, because the length
- * primitive is generic, but the for loop always uses the actual length of the
- * vector.
  */
-public class Length extends SpecializedCallExpression implements SimpleExpression {
+public class IncrementCounter extends SpecializedCallExpression {
 
-  public Length(Expression vector) {
-    super(vector);
+
+
+  public IncrementCounter(LValue counter) {
+    super(counter);
   }
 
-  public Expression getVector() {
+  @Override
+  public String toString() {
+    return "increment counter " + arguments[0];
+  }
+
+  public Expression getCounter() {
     return arguments[0];
   }
 
@@ -52,18 +57,18 @@ public class Length extends SpecializedCallExpression implements SimpleExpressio
   }
 
   @Override
-  public String toString() {
-    return "length(" + getVector() + ")";
+  public boolean isPure() {
+    return true;
   }
 
   @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
-    return ValueBounds.INT_PRIMITIVE;
+    return getValueBounds();
   }
 
   @Override
   public ValueBounds getValueBounds() {
-    return ValueBounds.INT_PRIMITIVE;
+    return ReadLoopIt.COUNTER_BOUNDS;
   }
 
   @Override
@@ -71,9 +76,10 @@ public class Length extends SpecializedCallExpression implements SimpleExpressio
     return new ScalarExpr(VectorType.INT) {
       @Override
       public void loadScalar(EmitContext context, InstructionAdapter mv) {
-        getVector().getCompiledExpr(context).loadLength(context, mv);
+        getCounter().getCompiledExpr(emitContext).loadScalar(context, mv, VectorType.INT);
+        mv.visitInsn(Opcodes.ICONST_1);
+        mv.visitInsn(Opcodes.IADD);
       }
     };
   }
-
 }

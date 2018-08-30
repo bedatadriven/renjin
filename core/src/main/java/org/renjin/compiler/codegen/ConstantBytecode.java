@@ -93,15 +93,8 @@ public class ConstantBytecode {
       mv.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(Null.class), "INSTANCE", Type.getDescriptor(Null.class));
       return;
     }
-    if(value instanceof StringVector) {
-      if(value.length() == 1 && value.getAttributes().isEmpty()) {
-        mv.visitLdcInsn(((StringVector) value).getElementAsString(0));
-        mv.invokestatic(Type.getInternalName(StringVector.class), "valueOf",
-            Type.getMethodDescriptor(Type.getType(StringVector.class), Type.getType(String.class)), false);
-        return;
-      }
-    } else if(value instanceof DoubleVector) {
-      if(value.length() == 1) {
+    if(value instanceof DoubleVector) {
+      if (value.length() == 1) {
         mv.anew(Type.getType(DoubleArrayVector.class));
         mv.dup();
         mv.dconst(((DoubleVector) value).getElementAsDouble(0));
@@ -112,7 +105,18 @@ public class ConstantBytecode {
 
         return;
       }
-    }
+    } else if(value instanceof IntVector) {
+      if(value.length() == 1) {
+
+      }
+    } else if(value instanceof StringVector) {
+      if(value.length() == 1 && value.getAttributes().isEmpty()) {
+        mv.visitLdcInsn(((StringVector) value).getElementAsString(0));
+        mv.invokestatic(Type.getInternalName(StringVector.class), "valueOf",
+            Type.getMethodDescriptor(Type.getType(StringVector.class), Type.getType(String.class)), false);
+        return;
+      }
+    } else
 
     throw new UnsupportedOperationException("TODO: constant = " + value);
   }

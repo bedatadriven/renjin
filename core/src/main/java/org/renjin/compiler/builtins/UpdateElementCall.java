@@ -22,8 +22,11 @@ import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.ArrayExpr;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.VectorType;
+import org.renjin.compiler.codegen.var.VariableStrategy;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
+import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.primitives.subset.Subsetting;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -35,20 +38,20 @@ import java.util.List;
  */
 public class UpdateElementCall implements Specialization {
 
-  private ValueBounds inputVector;
-  private ValueBounds subscript;
-  private ValueBounds replacement;
+  private ArgumentBounds inputVector;
+  private ArgumentBounds subscript;
+  private ArgumentBounds replacement;
   private final VectorType resultVectorType;
 
-  public UpdateElementCall(ValueBounds inputVector, ValueBounds subscript, ValueBounds replacement) {
+  public UpdateElementCall(ArgumentBounds inputVector, ArgumentBounds subscript, ArgumentBounds replacement) {
     this.inputVector = inputVector;
     this.subscript = subscript;
     this.replacement = replacement;
-    this.resultVectorType = VectorType.of(inputVector.getTypeSet());
+    this.resultVectorType = VectorType.of(inputVector.getBounds().getTypeSet());
   }
 
   public ValueBounds getResultBounds() {
-    return inputVector.withVaryingValues();
+    return inputVector.getBounds().withVaryingValues();
   }
 
   @Override
@@ -59,19 +62,35 @@ public class UpdateElementCall implements Specialization {
   }
 
   @Override
+  public void emitAssignment(EmitContext emitContext, InstructionAdapter mv, Assignment statement, List<IRArgument> arguments) {
+    Expression source = arguments.get(0).getExpression();
+    boolean mutableSource = emitContext.isSafelyMutable(statement, source);
+
+    VariableStrategy lhs = emitContext.getVariable(statement.getLHS());
+    CompiledSexp rhs = getCompiledExpr(emitContext, arguments, mutableSource);
+
+    lhs.store(emitContext, mv, rhs);
+  }
+
+  @Override
   public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
-    CompiledSexp inputVector = arguments.get(0).getExpression().getCompiledExpr(emitContext);
-    CompiledSexp subscript = arguments.get(1).getExpression().getCompiledExpr(emitContext);
-    CompiledSexp replacement = arguments.get(2).getExpression().getCompiledExpr(emitContext);
+    return getCompiledExpr(emitContext, arguments, false);
+  }
+
+  private CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments, boolean mutableSource) {
+    CompiledSexp compiledSource = inputVector.getCompiledExpr(emitContext);
+    CompiledSexp subscript = this.subscript.getCompiledExpr(emitContext);
+    CompiledSexp replacement = this.replacement.getCompiledExpr(emitContext);
 
     return new ArrayExpr(resultVectorType) {
       @Override
       public void loadArray(EmitContext context, InstructionAdapter mv, VectorType vectorType) {
-        inputVector.loadArray(context, mv, resultVectorType);
+        compiledSource.loadArray(context, mv, resultVectorType);
         subscript.loadScalar(context, mv, VectorType.INT);
         replacement.loadScalar(context, mv, resultVectorType);
 
-        mv.invokestatic(Type.getInternalName(Subsetting.class), "setElement",
+        mv.invokestatic(Type.getInternalName(Subsetting.class),
+            mutableSource ? "setElementMutating" : "setElement",
             Type.getMethodDescriptor(resultVectorType.getJvmArrayType(),
                 resultVectorType.getJvmArrayType(),
                 Type.INT_TYPE,

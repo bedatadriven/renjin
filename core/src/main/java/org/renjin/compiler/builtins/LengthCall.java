@@ -22,6 +22,7 @@ import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.ScalarExpr;
 import org.renjin.compiler.codegen.expr.VectorType;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -31,8 +32,19 @@ import java.util.List;
 
 public class LengthCall implements Specialization {
 
+  private final ValueBounds bounds;
+
+  public LengthCall(ValueBounds argumentBounds) {
+    bounds = ValueBounds.builder()
+        .setTypeSet(TypeSet.INT)
+        .setFlag(ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_LENGTH_ONE)
+        .setFlag(ValueBounds.FLAG_POSITIVE, argumentBounds.isFlagSet(ValueBounds.FLAG_NON_ZERO_LENGTH))
+        .setEmptyAttributes()
+        .build();
+  }
+
   public ValueBounds getResultBounds() {
-    return ValueBounds.INT_PRIMITIVE;
+    return bounds;
   }
 
   @Override

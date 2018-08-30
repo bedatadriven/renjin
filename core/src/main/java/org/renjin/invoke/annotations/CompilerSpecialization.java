@@ -18,19 +18,15 @@
  *
  */
 
-package org.renjin.compiler.codegen;
+package org.renjin.invoke.annotations;
 
-import org.renjin.repackaged.asm.Type;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.SEXP;
+import java.lang.annotation.*;
 
-public final class SexpTypes {
-
-  public static final Type SEXP_TYPE = Type.getType(SEXP.class);
-  public static final Type DOUBLE_VECTOR_TYPE = Type.getType(DoubleVector.class);
-
-  public static final String SEXP_INTERNAL_NAME = SEXP_TYPE.getInternalName();
-
-  private SexpTypes() {
-  }
+/**
+ * Indicates the given method is intended to be called by compiled R code
+ */
+@Documented
+@Retention(RetentionPolicy.SOURCE)
+@Target(ElementType.METHOD)
+public @interface CompilerSpecialization {
 }

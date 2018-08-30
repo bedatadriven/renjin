@@ -25,6 +25,8 @@ import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.eval.Context;
 import org.renjin.packaging.SerializedPromise;
 import org.renjin.primitives.S3;
+import org.renjin.primitives.sequence.DoubleSequence;
+import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.*;
 
@@ -220,9 +222,16 @@ public class RuntimeState {
         return ValueBounds.of(sexp);
 
       } else {
-        bounds.setLength(length);
-        bounds.setNA(ValueBounds.NO_NA);
+        bounds.setFlag(ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_LENGTH_ONE);
+        bounds.setFlag(ValueBounds.FLAG_POSITIVE, vector.getElementAsDouble(0) > 0);
       }
+
+    } else {
+      // We don't want to spend a lot of time checking for NAs, but if it is trivial to
+      // determine, then stel that vast.
+      bounds.setFlag(ValueBounds.FLAG_NO_NA,
+          vector instanceof IntSequence ||
+          vector instanceof DoubleSequence);
     }
 
     for (Symbol symbol : attributes.names()) {

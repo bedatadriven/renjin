@@ -33,7 +33,7 @@ import java.util.Arrays;
 import static org.renjin.repackaged.asm.Opcodes.*;
 
 
-public class IfStatement implements Statement, BasicBlockEndingStatement {
+public class IfStatement extends Statement implements BasicBlockEndingStatement {
 
   private Expression condition;
   private IRLabel trueTarget;
@@ -92,11 +92,6 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
   }
 
   @Override
-  public void setRHS(Expression newRHS) {
-    this.condition = newRHS;
-  }
-
-  @Override
   public String toString() {
     return "if " + condition + " => TRUE:" + trueTarget + ", FALSE:" +  falseTarget +
           ", NA:" + (naTarget == null ? "ERROR" : naTarget);
@@ -131,11 +126,6 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
 
   public void setConstantValue(Logical constantValue) {
     this.constantValue = constantValue;
-  }
-
-  @Override
-  public void accept(StatementVisitor visitor) {
-    visitor.visitIf(this);
   }
 
   @Override

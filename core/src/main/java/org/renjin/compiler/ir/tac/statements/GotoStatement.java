@@ -28,7 +28,7 @@ import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import java.util.Arrays;
 
 
-public class GotoStatement implements Statement, BasicBlockEndingStatement {
+public class GotoStatement extends Statement implements BasicBlockEndingStatement {
 
   private final IRLabel target;
 
@@ -57,13 +57,6 @@ public class GotoStatement implements Statement, BasicBlockEndingStatement {
     return NullExpression.INSTANCE;
   }
 
-  @Override
-  public void setRHS(Expression newRHS) {
-    if(newRHS != NullExpression.INSTANCE) {
-      throw new IllegalArgumentException();
-    }
-  }
-
 
   @Override
   public void setChild(int childIndex, Expression child) {
@@ -78,11 +71,6 @@ public class GotoStatement implements Statement, BasicBlockEndingStatement {
   @Override
   public Expression childAt(int index) {
     throw new IllegalArgumentException();
-  }
-
-  @Override
-  public void accept(StatementVisitor visitor) {
-    visitor.visitGoto(this);
   }
 
   @Override

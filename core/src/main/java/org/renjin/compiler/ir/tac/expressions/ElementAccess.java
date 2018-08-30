@@ -20,6 +20,7 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 
 import java.util.Map;
@@ -63,10 +64,18 @@ public class ElementAccess extends SpecializedCallExpression {
 
   @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
-    int typeSet = getVector().updateTypeBounds(typeMap).getTypeSet();
-      
-    valueBounds = ValueBounds.primitive(typeSet);
-    
+    ValueBounds vectorBounds = getVector().updateTypeBounds(typeMap);
+
+    if(TypeSet.isDefinitelyAtomic(vectorBounds.getTypeSet())) {
+      valueBounds = ValueBounds.builder()
+          .setTypeSet(vectorBounds.getTypeSet())
+          .setFlag(ValueBounds.FLAG_LENGTH_ONE)
+          .setFlagsFrom(vectorBounds, ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_POSITIVE)
+          .setEmptyAttributes()
+          .build();
+    } else {
+      valueBounds = ValueBounds.UNBOUNDED;
+    }
     return valueBounds;
   }
 

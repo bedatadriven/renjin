@@ -40,6 +40,7 @@ import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.eval.Context;
+import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.FunctionCall;
@@ -49,7 +50,7 @@ import org.renjin.sexp.Symbol;
 import java.util.Map;
 
 /**
- * Compiles SEXPs to JVM bytecode.
+ * Compiles SEXPs to JVM bytecode using runtime type information.
  */
 public class SexpCompiler {
 
@@ -57,7 +58,7 @@ public class SexpCompiler {
   private final IRBody body;
 
   private final ControlFlowGraph cfg;
-  private final DominanceTree dTree;
+  private final DominanceTree dominanceTree;
   private final UseDefMap useDefMap;
   private final TypeSolver types;
   private final SsaTransformer ssaTransformer;
@@ -67,11 +68,17 @@ public class SexpCompiler {
     this.body = body;
 
     cfg = new ControlFlowGraph(body);
+    cfg.dumpGraph();
 
-    dTree = new DominanceTree(cfg);
 
-    ssaTransformer = new SsaTransformer(cfg, dTree);
+
+    dominanceTree = new DominanceTree(cfg);
+
+    ssaTransformer = new SsaTransformer(cfg, dominanceTree);
     ssaTransformer.transform();
+
+    System.out.println(cfg);
+
 
     useDefMap = new UseDefMap(cfg);
 
@@ -81,7 +88,10 @@ public class SexpCompiler {
   public static CachedLoopBody compileForLoop(Context context, Environment rho, FunctionCall call, SEXP sequence) throws InstantiationException, IllegalAccessException {
 
     RuntimeState runtimeState = new RuntimeState(context, rho);
-    ValueBounds sequenceBounds = ValueBounds.builder().setTypeSet(TypeSet.of(sequence)).build();
+    ValueBounds sequenceBounds = ValueBounds.builder()
+        .setTypeSet(TypeSet.of(sequence))
+        .setFlag(sequenceFlags(sequence))
+        .build();
 
     IRBodyBuilder builder = new IRBodyBuilder(runtimeState);
     IRBody body = builder.buildLoopBody(call, sequenceBounds);
@@ -91,6 +101,18 @@ public class SexpCompiler {
     CompiledLoopBody compiledLoopBody = compiler.compileForLoopBody();
 
     return new CachedLoopBody(compiledLoopBody, sequenceBounds, runtimeState.getAssumptions());
+  }
+
+  private static int sequenceFlags(SEXP sequence) {
+    int flags = 0;
+    if(sequence instanceof IntSequence) {
+      IntSequence intSequence = (IntSequence) sequence;
+      flags |= ValueBounds.FLAG_NO_NA;
+      if(intSequence.isPositive()) {
+        flags |= ValueBounds.FLAG_POSITIVE;
+      }
+    }
+    return flags;
   }
 
   public static CachedBody compileSexp(Context context, Environment rho, SEXP expression) throws InstantiationException, IllegalAccessException {
@@ -108,14 +130,17 @@ public class SexpCompiler {
     types.dumpBounds();
     types.verifyFunctionAssumptions(runtimeState);
     ssaTransformer.removePhiFunctions(types);
+
   }
 
   private CompiledLoopBody compileForLoopBody() throws IllegalAccessException, InstantiationException {
 
     solveAndFinalize();
 
+    System.out.println(cfg);
+
     LocalVarAllocator localVars = new LocalVarAllocator(CompiledLoopBody.PARAM_SIZE);
-    VariableMap variableMap = new VariableMap(localVars, types, useDefMap);
+    VariableMap variableMap = new VariableMap(cfg, localVars, types, useDefMap);
     LoopBodyEmitContext emitContext = new LoopBodyEmitContext(localVars, variableMap);
 
     ClassGenerator<CompiledLoopBody> classGenerator = new ClassGenerator<>(CompiledLoopBody.class);
@@ -131,11 +156,11 @@ public class SexpCompiler {
     return classGenerator.finishAndLoad().newInstance();
   }
 
-  public CompiledBody compileBody() throws IllegalAccessException, InstantiationException {
+  private CompiledBody compileBody() throws IllegalAccessException, InstantiationException {
     solveAndFinalize();
 
     LocalVarAllocator localVars = new LocalVarAllocator(CompiledBody.PARAM_SIZE);
-    VariableMap variableMap = new VariableMap(localVars, types, useDefMap);
+    VariableMap variableMap = new VariableMap(cfg, localVars, types, useDefMap);
     LoopBodyEmitContext emitContext = new LoopBodyEmitContext(localVars, variableMap);
 
     ClassGenerator<CompiledBody> classGenerator = new ClassGenerator<>(CompiledBody.class);
@@ -159,8 +184,10 @@ public class SexpCompiler {
     types.verifyFunctionAssumptions(runtimeState);
     ssaTransformer.removePhiFunctions(types);
 
+    types.dumpBounds();
+
     // Now map our variables to storage strategies
-    VariableMap variableMap = new VariableMap(emitContext.getLocalVarAllocator(), types, useDefMap);
+    VariableMap variableMap = new VariableMap(cfg, emitContext.getLocalVarAllocator(), types, useDefMap);
 
     InlineEmitContext inlineContext = new InlineEmitContext(emitContext, paramMap, variableMap, returnVariable);
 

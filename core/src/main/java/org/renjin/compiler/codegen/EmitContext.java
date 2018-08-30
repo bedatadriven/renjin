@@ -24,7 +24,10 @@ import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.var.LocalVarAllocator;
 import org.renjin.compiler.codegen.var.VariableStrategy;
 import org.renjin.compiler.ir.tac.IRLabel;
+import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
+import org.renjin.compiler.ir.tac.expressions.Temp;
+import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.Symbol;
@@ -52,4 +55,17 @@ public interface EmitContext {
   CompiledSexp getParamExpr(Symbol paramName);
 
   VariableStrategy getVariable(LValue lhs);
+
+  default boolean isSafelyMutable(Statement statement, Expression expression) {
+    if(expression instanceof LValue) {
+      if(expression instanceof Temp) {
+        return true;
+      } else {
+        VariableStrategy variable = getVariable((LValue) expression);
+        return variable.isLiveOut(statement);
+      }
+    } else {
+      return false;
+    }
+  }
 }

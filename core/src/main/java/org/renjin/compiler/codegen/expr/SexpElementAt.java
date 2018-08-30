@@ -21,8 +21,11 @@
 package org.renjin.compiler.codegen.expr;
 
 import org.renjin.compiler.codegen.EmitContext;
-import org.renjin.compiler.codegen.SexpTypes;
+import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+
+import static org.renjin.compiler.codegen.BytecodeTypes.ATOMIC_VECTOR_INTERNAL_NAME;
+import static org.renjin.compiler.codegen.BytecodeTypes.SEXP_INTERNAL_NAME;
 
 class SexpElementAt implements CompiledSexp {
   private final CompiledSexp sexpExpr;
@@ -37,27 +40,29 @@ class SexpElementAt implements CompiledSexp {
   public void loadSexp(EmitContext context, InstructionAdapter mv) {
     sexpExpr.loadSexp(context, mv);
     indexExpr.loadScalar(context, mv, VectorType.INT);
-    mv.invokeinterface(SexpTypes.SEXP_INTERNAL_NAME, "getElementAsSEXP", "(I)L" + SexpTypes.SEXP_INTERNAL_NAME + ";");
+    mv.invokeinterface(SEXP_INTERNAL_NAME, "getElementAsSEXP", "(I)L" + SEXP_INTERNAL_NAME + ";");
   }
 
   @Override
   public void loadScalar(EmitContext context, InstructionAdapter mv, VectorType vectorType) {
     sexpExpr.loadSexp(context, mv);
+    mv.visitTypeInsn(Opcodes.CHECKCAST, ATOMIC_VECTOR_INTERNAL_NAME);
+
     indexExpr.loadScalar(context, mv, VectorType.INT);
 
     switch (vectorType) {
       case BYTE:
-        mv.invokeinterface(SexpTypes.SEXP_INTERNAL_NAME, "getElementAsByte", "(I)B");
+        mv.invokeinterface(ATOMIC_VECTOR_INTERNAL_NAME, "getElementAsByte", "(I)B");
         break;
       case LOGICAL:
       case INT:
-        mv.invokeinterface(SexpTypes.SEXP_INTERNAL_NAME, "getElementAsInt", "(I)I");
+        mv.invokeinterface(ATOMIC_VECTOR_INTERNAL_NAME, "getElementAsInt", "(I)I");
         break;
       case DOUBLE:
-        mv.invokeinterface(SexpTypes.SEXP_INTERNAL_NAME, "getElementAsDouble", "(I)D");
+        mv.invokeinterface(ATOMIC_VECTOR_INTERNAL_NAME, "getElementAsDouble", "(I)D");
         break;
       case STRING:
-        mv.invokeinterface(SexpTypes.SEXP_INTERNAL_NAME, "getElementAsString", "(I)Ljava/lang/String;");
+        mv.invokeinterface(ATOMIC_VECTOR_INTERNAL_NAME, "getElementAsString", "(I)Ljava/lang/String;");
         break;
       default:
         throw new UnsupportedOperationException(vectorType.toString());
@@ -72,7 +77,7 @@ class SexpElementAt implements CompiledSexp {
   @Override
   public void loadLength(EmitContext context, InstructionAdapter mv) {
     loadSexp(context, mv);
-    mv.invokeinterface(SexpTypes.SEXP_INTERNAL_NAME, "length", "()I");
+    mv.invokeinterface(SEXP_INTERNAL_NAME, "length", "()I");
   }
 
   @Override

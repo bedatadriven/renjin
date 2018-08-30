@@ -67,37 +67,46 @@ public class SsaTransformer {
     // See Figure 11
     // http://www.cs.utexas.edu/~pingali/CS380C/2010/papers/ssaCytron.pdf
 
-    int iterCount = 0;
 
-    Map<BasicBlock, Integer> hasAlready = Maps.newHashMap();
-    Map<BasicBlock, Integer> work = Maps.newHashMap();
+    // HasAlready(*) is an array of flags, one for each node, where HasAlready(X)
+    // indicates whether a Φ-function for V has already been inserted at X
 
-    for(BasicBlock X : cfg.getLiveBasicBlocks()) {
-      hasAlready.put(X, 0);
-      work.put(X, 0);
-    }
+    // Work(*) is an array of flags, one flag for each node, where Work(X)
+    // indicates whether X has ever been added to W during the current iteration
+    // of the outer loop.
+
+    // These two flags could have been implemented with just
+    // the values true and false, but this would require additional record keeping
+    // to reset any true flags between iterations, without the expense of looping
+    // over all the nodes. It is simpler to devote an integer to each flag and to test
+    // flags by comparing them with the current iteration count.
+
+    int hasAlready[] = new int[cfg.getBasicBlocks().size()];
+    int work[] = new int[cfg.getBasicBlocks().size()];
+
 
     Queue<BasicBlock> W = Lists.newLinkedList();
-    
+
+    int iterCount = 0;
     for(Variable V : allVariables) {
       iterCount = iterCount + 1;
 
       for(BasicBlock X : Iterables.filter(cfg.getLiveBasicBlocks(), CfgPredicates.containsAssignmentTo(V))) {
-        work.put(X, iterCount);
+        work[X.getIndex()] = iterCount;
         W.add(X);
       }
       while(!W.isEmpty()) {
         BasicBlock X = W.poll();
         for(BasicBlock Y : dtree.getFrontier(X)) {
-          if(X != cfg.getExit()) {
-            if(hasAlready.get(Y) < iterCount) {
-              Y.insertPhiFunction(V, Y.getIncoming());
-              // place (V <- phi(V,..., V)) at Y
-              hasAlready.put(Y, iterCount);
-              if(work.get(Y) < iterCount) {
-                work.put(Y, iterCount);
-                W.add(Y);
-              }
+          if(hasAlready[Y.getIndex()] < iterCount) {
+
+            // place (V <- phi(V,..., V)) at Y
+            Y.insertPhiFunction(V, Y.getIncoming());
+
+            hasAlready[Y.getIndex()] = iterCount;
+            if(work[Y.getIndex()] < iterCount) {
+              work[Y.getIndex()] = iterCount;
+              W.add(Y);
             }
           }
         }
@@ -211,6 +220,7 @@ public class SsaTransformer {
     return stack.peek();
   }
 
+
   /**
    * @return an integer telling which predecessor of Y in CFG is
    * X. The jth operand of a phi-function in Y corresponds to the 
@@ -264,4 +274,6 @@ public class SsaTransformer {
       }
     }
   }
+
+  public void deadCod
 }

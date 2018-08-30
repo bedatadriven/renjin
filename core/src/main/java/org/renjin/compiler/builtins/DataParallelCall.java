@@ -18,22 +18,26 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.codegen.BytecodeTypes;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.SexpExpr;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
+import org.renjin.eval.Context;
+import org.renjin.invoke.codegen.WrapperGenerator2;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Primitives;
+import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Environment;
 import org.renjin.sexp.Symbol;
 import org.renjin.sexp.Symbols;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Specialization for builtins that are marked {@link org.renjin.invoke.annotations.DataParallel} and
@@ -57,35 +61,36 @@ public class DataParallelCall implements Specialization {
 
     List<ValueBounds> recycledArguments = recycledArgumentBounds(argumentBounds);
 
-    int resultLength = computeResultLength(this.argumentBounds);
-
     ValueBounds.Builder bounds = new ValueBounds.Builder();
     bounds.setType(method.getReturnType());
-    bounds.setNA(anyNAs(argumentBounds));
-    bounds.setLength(resultLength);
+    bounds.setFlag(computeFlags(argumentBounds));
 
     switch (method.getPreserveAttributesStyle()) {
       case NONE:
         bounds.setEmptyAttributes();
         break;
       case STRUCTURAL:
-        buildStructuralBounds(bounds, recycledArguments, resultLength);
+        buildStructuralBounds(bounds, recycledArguments);
         break;
       case ALL:
-        buildAllBounds(bounds, recycledArguments, resultLength);
+        buildAllBounds(bounds, recycledArguments);
         break;
     }
 
     return bounds.build();
   }
 
-  private int anyNAs(List<ValueBounds> argumentBounds) {
+  private int computeFlags(List<ValueBounds> argumentBounds) {
+    assert !argumentBounds.isEmpty();
+
+    // These properties are preserved if all arguments share them
+    int flags = ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_NON_ZERO_LENGTH | ValueBounds.FLAG_LENGTH_ONE;
+
     for (ValueBounds argumentBound : argumentBounds) {
-      if(argumentBound.getNA() == ValueBounds.MAY_HAVE_NA) {
-        return ValueBounds.MAY_HAVE_NA;
-      }
+      flags &= argumentBound.getFlags();
     }
-    return ValueBounds.NO_NA;
+
+    return flags;
   }
 
   /**
@@ -102,71 +107,25 @@ public class DataParallelCall implements Specialization {
     return list;
   }
 
-  private int computeResultLength(List<ValueBounds> argumentBounds) {
-    Iterator<ValueBounds> it = argumentBounds.iterator();
-    int resultLength = 0;
-
-    while(it.hasNext()) {
-      int argumentLength = it.next().getLength();
-      if(argumentLength == ValueBounds.UNKNOWN_LENGTH) {
-        return ValueBounds.UNKNOWN_LENGTH;
-      }
-      if(argumentLength == 0) {
-        return 0;
-      }
-      resultLength = Math.max(resultLength, argumentLength);
-    }
-
-    return resultLength;
-  }
-
-  private void buildStructuralBounds(ValueBounds.Builder bounds, List<ValueBounds> argumentBounds, int resultLength) {
-
-    Map<Symbol, SEXP> attributes = new HashMap<>();
-    attributes.put(Symbols.DIM, combineAttribute(Symbols.DIM, argumentBounds, resultLength));
-    attributes.put(Symbols.DIMNAMES, combineAttribute(Symbols.DIM, argumentBounds, resultLength));
-    attributes.put(Symbols.NAMES, combineAttribute(Symbols.DIM, argumentBounds, resultLength));
-    bounds.setClosedAttributes(attributes);
-
-  }
-
-  private SEXP combineAttribute(Symbol symbol, List<ValueBounds> argumentBounds, int resultLength) {
-
-    // If we don't know the result length, we don't know which
-    // argument to take the attributes from.
-    if(resultLength == ValueBounds.UNKNOWN_LENGTH && argumentBounds.size() > 1) {
-      return null; // unknown
-    }
+  private void buildStructuralBounds(ValueBounds.Builder bounds, List<ValueBounds> argumentBounds) {
 
     for (ValueBounds argumentBound : argumentBounds) {
-      if (argumentBound.getLength() == resultLength) {
-
-        SEXP value = argumentBound.getAttributeIfConstant(symbol);
-        if (value != Null.INSTANCE) {
-          return value;
-        }
+      if(argumentBound.attributeCouldBePresent(Symbols.DIM)) {
+        bounds.attributeCouldBePresent(Symbols.DIM);
+      }
+      if(argumentBound.attributeCouldBePresent(Symbols.DIMNAMES)) {
+        bounds.attributeCouldBePresent(Symbols.DIMNAMES);
+      }
+      if(argumentBound.attributeCouldBePresent(Symbols.NAMES)) {
+        bounds.attributeCouldBePresent(Symbols.NAMES);
       }
     }
-    return Null.INSTANCE;
+    bounds.closeAttributes();
   }
 
 
-  private void buildAllBounds(ValueBounds.Builder bounds, List<ValueBounds> argumentBounds, int resultLength) {
+  private void buildAllBounds(ValueBounds.Builder bounds, List<ValueBounds> argumentBounds) {
 
-
-    // If we don't know the result length, we don't know which
-    // argument to take the attributes from, but we do know *which* attributes will be
-    // present.
-
-    if(resultLength == ValueBounds.UNKNOWN_LENGTH && argumentBounds.size() > 1) {
-      computeAttributeBoundsConservatively(bounds, argumentBounds);
-    } else {
-      computeAttributeBoundsPrecisely(bounds, argumentBounds, resultLength);
-    }
-  }
-
-
-  private void computeAttributeBoundsConservatively(ValueBounds.Builder bounds, List<ValueBounds> argumentBounds) {
     boolean closed = true;
 
     for (ValueBounds argumentBound : argumentBounds) {
@@ -184,44 +143,19 @@ public class DataParallelCall implements Specialization {
     }
   }
 
-
-  private void computeAttributeBoundsPrecisely(ValueBounds.Builder bounds, List<ValueBounds> argumentBounds, int resultLength) {
-    Map<Symbol, SEXP> attributes = new HashMap<>();
-
-    boolean open = false;
-
-    for (ValueBounds argumentBound : argumentBounds) {
-      if (argumentBound.getLength() == resultLength) {
-
-        if (argumentBound.isAttributeSetOpen()) {
-          open = true;
-        }
-
-        for (Map.Entry<Symbol, SEXP> entry : argumentBound.getAttributeBounds().entrySet()) {
-          if (!attributes.containsKey(entry.getKey())) {
-            attributes.put(entry.getKey(), entry.getValue());
-          }
-        }
-      }
-    }
-    bounds.setAttributeBounds(attributes);
-    bounds.setAttributeSetOpen(open);
-  }
-
   public Specialization specializeFurther() {
-    if(resultBounds.getLength() == 1) {
+    if(ValueBounds.allConstant(argumentBounds)) {
+      return evaluateConstant();
+    }
 
-      if(ValueBounds.allConstant(argumentBounds)) {
-        return evaluateConstant();
-      }
+    if(resultBounds.isFlagSet(ValueBounds.FLAG_LENGTH_ONE | ValueBounds.FLAG_NO_NA) &&
+        resultBounds.hasNoAttributes()) {
 
       DoubleBinaryOp op = DoubleBinaryOp.trySpecialize(name, method, resultBounds);
       if(op != null) {
         return op;
       }
-      if(resultBounds.getNA() == ValueBounds.NO_NA) {
-        return new DataParallelScalarCall(method, argumentBounds, resultBounds).trySpecializeFurther();
-      }
+      return new DataParallelScalarCall(method, argumentBounds, resultBounds).trySpecializeFurther();
     }
     return this;
   }
@@ -264,7 +198,40 @@ public class DataParallelCall implements Specialization {
 
   @Override
   public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
-    throw new UnsupportedOperationException("TODO");
+    return new SexpExpr() {
+      @Override
+      public void loadSexp(EmitContext context, InstructionAdapter mv) {
+
+        // Call into R$primitive$$plus$$doApply
+
+        mv.visitVarInsn(Opcodes.ALOAD, context.getContextVarIndex());
+        mv.visitVarInsn(Opcodes.ALOAD, context.getEnvironmentVarIndex());
+
+        for (IRArgument argument : arguments) {
+          argument.getExpression().getCompiledExpr(emitContext).loadSexp(emitContext, mv);
+        }
+
+        mv.invokestatic(getWrapperInternalClassName(), "doApply",
+            getWrapperApplySignature(arguments), false);
+      }
+    };
   }
 
+  private String getWrapperInternalClassName() {
+    return "org/renjin/primitives/" + WrapperGenerator2.toJavaName(name);
+  }
+
+  private String getWrapperApplySignature(List<IRArgument> arguments) {
+    String sexpDescriptor = "L" + BytecodeTypes.SEXP_INTERNAL_NAME + ";";
+    StringBuilder signature = new StringBuilder();
+    signature.append('(');
+    signature.append(Type.getDescriptor(Context.class));
+    signature.append(Type.getDescriptor(Environment.class));
+    for (int i = 0; i < arguments.size(); i++) {
+      signature.append(sexpDescriptor);
+    }
+    signature.append(')');
+    signature.append(sexpDescriptor);
+    return signature.toString();
+  }
 }

@@ -50,14 +50,11 @@ public class SingleSubsetSpecializer implements BuiltinSpecializer {
       ValueBounds index = arguments.get(1).getBounds();
 
       if(TypeSet.isDefinitelyNumeric(index) &&
-          index.isLengthConstant() &&
-          index.getLength() == 1) {
+          index.isFlagSet(ValueBounds.FLAG_LENGTH_ONE)) {
 
         if(source.getTypeSet() == TypeSet.LIST) {
           return new GetListElement(source, index);
 
-        } else if(TypeSet.isDefinitelyAtomic(source.getTypeSet())) {
-          return new GetAtomicElement(source, index);
         }
 
       }

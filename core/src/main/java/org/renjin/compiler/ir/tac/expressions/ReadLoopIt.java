@@ -23,6 +23,7 @@ import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.ScalarExpr;
 import org.renjin.compiler.codegen.expr.VectorType;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -31,6 +32,13 @@ import java.util.Map;
 
 
 public class ReadLoopIt implements Expression {
+
+  public static final ValueBounds COUNTER_BOUNDS = ValueBounds.builder()
+      .setTypeSet(TypeSet.INT)
+      .setFlag(ValueBounds.FLAG_LENGTH_ONE | ValueBounds.FLAG_NO_NA)
+      .setEmptyAttributes()
+      .build();
+
   @Override
   public boolean isPure() {
     return true;
@@ -38,12 +46,12 @@ public class ReadLoopIt implements Expression {
 
   @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
-    return ValueBounds.INT_PRIMITIVE;
+    return COUNTER_BOUNDS;
   }
 
   @Override
   public ValueBounds getValueBounds() {
-    return ValueBounds.INT_PRIMITIVE;
+    return COUNTER_BOUNDS;
   }
 
   @Override

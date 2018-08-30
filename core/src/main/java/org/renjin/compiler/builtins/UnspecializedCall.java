@@ -49,7 +49,7 @@ public class UnspecializedCall implements Specialization {
 
   @Override
   public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
-    throw new UnsupportedOperationException("TODO");
+    throw new FailedToSpecializeException();
   }
 
 }

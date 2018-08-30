@@ -47,7 +47,7 @@ public class SexpLocalVar extends VariableStrategy {
     return new SexpExpr() {
       @Override
       public void loadSexp(EmitContext context, InstructionAdapter mv) {
-        mv.visitInsn(Opcodes.ALOAD);
+        mv.visitVarInsn(Opcodes.ALOAD, index);
       }
     };
   }
@@ -55,6 +55,6 @@ public class SexpLocalVar extends VariableStrategy {
   @Override
   public void store(EmitContext emitContext, InstructionAdapter mv, CompiledSexp compiledSexp) {
     compiledSexp.loadSexp(emitContext, mv);
-    mv.visitInsn(Opcodes.ASTORE);
+    mv.visitVarInsn(Opcodes.ASTORE, index);
   }
 }

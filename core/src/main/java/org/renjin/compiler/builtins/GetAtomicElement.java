@@ -23,8 +23,6 @@ import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbols;
 
 import java.util.List;
@@ -36,69 +34,43 @@ public class GetAtomicElement implements Specialization {
 
   private final ValueBounds resultBounds;
 
-  public static boolean accept(ValueBounds source, ValueBounds subscript) {
+  public static GetAtomicElement trySpecialize(ValueBounds source, List<ValueBounds> subscripts) {
 
-    if(!TypeSet.isDefinitelyAtomic(source.getTypeSet())) {
-      return false;
+    if(subscripts.size() != 1) {
+      return null;
     }
 
-    if (subscript.getLength() != 1) {
-      return false;
-    }
-    if (subscript.maybeNA()) {
-      return false;
+    ValueBounds subscript = subscripts.get(0);
+
+    if (!TypeSet.isSpecificAtomic(source.getTypeSet())) {
+      return null;
     }
 
-    return true;
+    if (!subscript.isFlagSet(ValueBounds.FLAG_LENGTH_ONE)) {
+      return null;
+    }
+
+    // The subscript *must* not be NA, and *must* be known to be positive, otherwise
+    // we could end up with x[0] or x[-1] or x[NA], which does *not* produce a scalar
+    if (!subscript.isFlagSet(ValueBounds.FLAG_NO_NA & ValueBounds.FLAG_POSITIVE)) {
+      return null;
+    }
+
+    // If the source *could* have a NAME attribute
+    if(source.attributeCouldBePresent(Symbols.NAME)) {
+      return null;
+    }
+
+    return new GetAtomicElement(new ValueBounds.Builder()
+      .setTypeSet(TypeSet.elementOf(source.getTypeSet()))
+      .setFlag(ValueBounds.FLAG_LENGTH_ONE)
+      .setFlagsFrom(source, ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_POSITIVE)
+      .setEmptyAttributes()
+      .build());
   }
 
-  public GetAtomicElement(ValueBounds source, ValueBounds subscript) {
-    assert accept(source, subscript);
-
-    ValueBounds.Builder resultBounds = new ValueBounds.Builder();
-    resultBounds.setTypeSet(TypeSet.elementOf(source.getTypeSet()));
-    resultBounds.setNA(source.getNA());
-    resultBounds.setAttributeSetOpen(false);
-    resultBounds.setLength(1);
-
-    SEXP resultNames = namesBounds(source);
-    if(resultNames != Null.INSTANCE) {
-      resultBounds.setAttribute(Symbols.NAMES, null);
-    }
-
-    this.resultBounds = resultBounds.build();
-  }
-
-  private SEXP namesBounds(ValueBounds source) {
-
-    // Names attribute either comes from either:
-    // - the dimnames attribute of the source if length(dim(source)) == 1
-    // - the names attribute of the source otherwise
-
-
-    // So if both names and dimnames are null, then we're done.
-    SEXP names = source.getAttributeIfConstant(Symbols.NAMES);
-    SEXP dimnames = source.getAttributeIfConstant(Symbols.DIMNAMES);
-
-    if(names == Null.INSTANCE && dimnames == Null.INSTANCE) {
-      return Null.INSTANCE;
-    }
-
-    SEXP dim = source.getAttributeIfConstant(Symbols.DIM);
-    if(dim != null) {
-      if(dim.length() == 1) {
-        if(dimnames == Null.INSTANCE) {
-          return Null.INSTANCE;
-        }
-      } else {
-        if(names == Null.INSTANCE) {
-          return Null.INSTANCE;
-        }
-      }
-    }
-
-    // varying
-    return null;
+  private GetAtomicElement(ValueBounds resultBounds) {
+    this.resultBounds = resultBounds;
   }
 
   @Override

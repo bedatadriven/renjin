@@ -21,6 +21,8 @@
 package org.renjin.compiler.codegen.var;
 
 import org.renjin.compiler.TypeSolver;
+import org.renjin.compiler.cfg.ControlFlowGraph;
+import org.renjin.compiler.cfg.LivenessCalculator;
 import org.renjin.compiler.cfg.UseDefMap;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
@@ -30,30 +32,38 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class VariableMap {
-  private LocalVarAllocator localVars;
-  private UseDefMap useDefMap;
-  private Map<LValue, VariableStrategy> map = new HashMap<>();
+  private final LocalVarAllocator localVars;
+  private final UseDefMap useDefMap;
+  private final Map<LValue, VariableStrategy> map = new HashMap<>();
+  private final LivenessCalculator livenessCalculator;
 
-  public VariableMap(LocalVarAllocator localVars, TypeSolver typeSolver, UseDefMap useDefMap) {
+  public VariableMap(ControlFlowGraph cfg, LocalVarAllocator localVars, TypeSolver typeSolver, UseDefMap useDefMap) {
     this.localVars = localVars;
     this.useDefMap = useDefMap;
+    this.livenessCalculator = new LivenessCalculator(cfg, useDefMap);
     for (Map.Entry<LValue, ValueBounds> entry : typeSolver.getVariables().entrySet()) {
-      map.put(entry.getKey(), findBestStrategy(entry.getValue()));
+      VariableStrategy strategy = findBestStrategy(entry.getKey(), entry.getValue());
+
+      System.out.println(entry.getKey() + " => " + strategy.getClass().getSimpleName());
+
+      map.put(entry.getKey(), strategy);
     }
   }
 
-  private VariableStrategy findBestStrategy(ValueBounds bounds) {
+  private VariableStrategy findBestStrategy(LValue variable, ValueBounds bounds) {
 
-    if(bounds.isConstant()) {
-      return new ConstantVar(bounds.getConstantValue());
-    }
+//    if(bounds.isConstant()) {
+//      return new ConstantVar(bounds.getConstantValue());
+//    }
 
-    if(TypeSet.size(bounds.getTypeSet()) == 1 && bounds.isScalar()) {
-      return new ScalarVar(localVars, bounds);
-    }
+    if(bounds.isConstantAttributes() && TypeSet.size(bounds.getTypeSet()) == 1) {
 
-    if(TypeSet.size(bounds.getTypeSet()) == 1 && TypeSet.isDefinitelyAtomic(bounds.getTypeSet())) {
-      return new ArrayVar(localVars, bounds);
+      if (bounds.isFlagSet(ValueBounds.FLAG_LENGTH_ONE)) {
+        return new ScalarVar(localVars, bounds);
+      }
+      if (TypeSet.isDefinitelyAtomic(bounds.getTypeSet())) {
+        return new ArrayVar(variable, livenessCalculator, localVars, bounds);
+      }
     }
 
     return new SexpLocalVar(localVars.reserve(SexpLocalVar.SEXP_TYPE));

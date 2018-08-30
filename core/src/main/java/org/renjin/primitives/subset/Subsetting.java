@@ -321,6 +321,21 @@ public class Subsetting {
       subscripts.add(argumentList.get(i));
     }
 
+    return setSubset(context, source, replacement, subscripts);
+  }
+
+  @CompilerSpecialization
+  public static SEXP setSubset(Context context, SEXP source, SEXP subscript, SEXP replacement) {
+    return setSubset(context, source, (Vector) replacement, Arrays.asList(subscript));
+  }
+
+  @CompilerSpecialization
+  public static SEXP setSubset(Context context, SEXP source, SEXP subscript1, SEXP subscript2, SEXP replacement) {
+    return setSubset(context, source, (Vector) replacement, Arrays.asList(subscript1, subscript2));
+  }
+
+
+  private static SEXP setSubset(Context context, SEXP source, Vector replacement, List<SEXP> subscripts) {
     SelectionStrategy selection = Selections.parseSelection(source, subscripts);
 
     if(source instanceof ListVector) {
@@ -495,5 +510,11 @@ public class Subsetting {
     copy[index - 1] = value;
     return copy;
   }
+
+  public static double[] setElementMutating(double[] vector, int index, double value) {
+    vector[index - 1] = value;
+    return vector;
+  }
+
 
 }

@@ -47,15 +47,15 @@ public class BuiltinCallTest {
         Arrays.asList( new IRArgument(x), new IRArgument(y)));
 
     Map<Expression, ValueBounds> typeMap = new HashMap<>();
-    typeMap.put(x, ValueBounds.DOUBLE_PRIMITIVE);
-    typeMap.put(y, ValueBounds.DOUBLE_PRIMITIVE);
+    typeMap.put(x, scalar(TypeSet.DOUBLE));
+    typeMap.put(y, scalar(TypeSet.DOUBLE));
 
     ValueBounds bounds = call.updateTypeBounds(typeMap);
 
     System.out.println(bounds);
     
     assertTrue(bounds.getTypeSet() == TypeSet.DOUBLE);
-    assertTrue(bounds.getLength() == 1);
+    assertTrue(bounds.isFlagSet(ValueBounds.FLAG_LENGTH_ONE));
   }
 
   @Test
@@ -73,14 +73,24 @@ public class BuiltinCallTest {
         Arrays.asList( new IRArgument(x), new IRArgument(y) ));
 
     Map<Expression, ValueBounds> typeMap = new HashMap<>();
-    typeMap.put(x, ValueBounds.DOUBLE_PRIMITIVE);
-    typeMap.put(y, ValueBounds.INT_PRIMITIVE);
+    typeMap.put(x, scalar(TypeSet.DOUBLE));
+    typeMap.put(y, scalar(TypeSet.INT));
 
     ValueBounds bounds = call.updateTypeBounds(typeMap);
 
     System.out.println(bounds);
 
     assertTrue(bounds.getTypeSet() == TypeSet.DOUBLE);
-    assertTrue(bounds.getLength() == 1);
+    assertTrue(bounds.isFlagSet(ValueBounds.FLAG_LENGTH_ONE));
   }
+
+
+  private ValueBounds scalar(int type) {
+    return ValueBounds.builder()
+        .setTypeSet(type)
+        .setFlag(ValueBounds.FLAG_LENGTH_ONE)
+        .setEmptyAttributes()
+        .build();
+  }
+
 }

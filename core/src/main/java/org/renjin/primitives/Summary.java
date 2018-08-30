@@ -27,8 +27,6 @@ import org.renjin.primitives.summary.DeferredMean;
 import org.renjin.primitives.summary.DeferredSum;
 import org.renjin.sexp.*;
 
-import java.io.IOException;
-
 
 /**
  * Summary group functions of vectors such as min, max, sum, etc.
@@ -452,7 +450,7 @@ public class Summary {
   @Builtin
   @GroupGeneric
   public static SEXP sum(@Current Context context, @ArgumentList ListVector arguments,
-                         @NamedFlag("na.rm") boolean removeNA) throws IOException {
+                         @NamedFlag("na.rm") boolean removeNA) {
 
 
     // Check the return type first
@@ -562,6 +560,22 @@ public class Summary {
     } else {
       return new IntArrayVector(intSum);
     }
+  }
+
+  /**
+   * Optimized version of sum() to be called by compiled R code.
+   */
+  @CompilerSpecialization
+  public static double sum(double[] array) {
+    double sum = 0;
+    for (int i = 0; i < array.length; i++) {
+      double x = array[i];
+      if(DoubleVector.isNA(x)) {
+        return DoubleVector.NA;
+      }
+      sum += x;
+    }
+    return sum;
   }
 
   /**

@@ -21,6 +21,7 @@ package org.renjin.compiler.builtins;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.tac.RuntimeState;
+import org.renjin.sexp.IntVector;
 
 import java.util.List;
 
@@ -45,11 +46,11 @@ public class LengthSpecializer implements Specializer, BuiltinSpecializer {
     }
 
     ValueBounds argumentBounds = arguments.get(0).getBounds();
-    if(argumentBounds.isLengthConstant()) {
-      return new ConstantCall(argumentBounds.getLength());
+    if(argumentBounds.isFlagSet(ValueBounds.FLAG_LENGTH_ONE)) {
+      return new ConstantCall(IntVector.valueOf(1));
     }
     
-    return new LengthCall();
+    return new LengthCall(argumentBounds);
   }
 
 }

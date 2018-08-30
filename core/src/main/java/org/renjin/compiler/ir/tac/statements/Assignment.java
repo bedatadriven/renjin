@@ -30,7 +30,7 @@ import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import java.util.Collections;
 
 
-public class Assignment implements Statement {
+public class Assignment extends Statement {
   private LValue lhs;
   private Expression rhs;
  
@@ -51,12 +51,6 @@ public class Assignment implements Statement {
   @Override
   public Iterable<IRLabel> possibleTargets() {
     return Collections.emptySet();
-  }
-  
-
-  @Override
-  public void setRHS(Expression newRHS) {
-    this.rhs = newRHS;
   }
 
   @Override
@@ -88,11 +82,6 @@ public class Assignment implements Statement {
   }
 
   @Override
-  public void accept(StatementVisitor visitor) {
-    visitor.visitAssignment(this);
-  }
-
-  @Override
   public void emit(EmitContext emitContext, InstructionAdapter mv) {
 
 
@@ -109,7 +98,6 @@ public class Assignment implements Statement {
   public boolean isPure() {
     return rhs.isPure();
   }
-
 
   public void setLHS(LValue lhs) {
     this.lhs = lhs;

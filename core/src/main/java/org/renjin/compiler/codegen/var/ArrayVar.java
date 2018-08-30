@@ -20,13 +20,20 @@
 
 package org.renjin.compiler.codegen.var;
 
+import org.renjin.compiler.cfg.BasicBlock;
+import org.renjin.compiler.cfg.LivenessCalculator;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.ArrayExpr;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.expressions.LValue;
+import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+
+import java.util.BitSet;
 
 /**
  * Store an S-expression known to be an atomic vector as a java array local variable.
@@ -34,10 +41,16 @@ import org.renjin.repackaged.asm.commons.InstructionAdapter;
  */
 public class ArrayVar extends VariableStrategy {
 
-  private VectorType vectorType;
-  private int index;
+  private final LValue variable;
+  private final VectorType vectorType;
+  private final int index;
+  private final LivenessCalculator livenessCalculator;
 
-  public ArrayVar(LocalVarAllocator localVars, ValueBounds bounds) {
+  private BitSet liveOut = null;
+
+  public ArrayVar(LValue variable, LivenessCalculator livenessCalculator, LocalVarAllocator localVars, ValueBounds bounds) {
+    this.variable = variable;
+    this.livenessCalculator = livenessCalculator;
     this.index = localVars.reserveArray();
     this.vectorType = VectorType.of(bounds.getTypeSet());
   }
@@ -59,5 +72,27 @@ public class ArrayVar extends VariableStrategy {
   public void store(EmitContext emitContext, InstructionAdapter mv, CompiledSexp compiledSexp) {
     compiledSexp.loadArray(emitContext, mv, vectorType);
     mv.visitVarInsn(Opcodes.ASTORE, index);
+  }
+
+  @Override
+  public boolean isLiveOut(Statement statement) {
+
+    // Check first to see if it is used in this block
+    BasicBlock basicBlock = statement.getBasicBlock();
+    int useIndex = basicBlock.getStatements().indexOf(statement);
+
+    for (int i = useIndex + 1; i < basicBlock.getStatements().size(); i++) {
+      Expression rhs = basicBlock.getStatements().get(i).getRHS();
+      for (int j = 0; j < rhs.getChildCount(); j++) {
+        if(rhs.childAt(j).equals(variable)) {
+          return true;
+        }
+      }
+    }
+
+    if(liveOut == null) {
+      liveOut = livenessCalculator.computeLiveOutSet(variable);
+    }
+    return !liveOut.get(basicBlock.getIndex());
   }
 }

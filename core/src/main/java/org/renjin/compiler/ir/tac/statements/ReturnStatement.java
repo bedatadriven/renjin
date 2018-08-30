@@ -21,6 +21,7 @@ package org.renjin.compiler.ir.tac.statements;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.var.VariableStrategy;
+import org.renjin.compiler.ir.ssa.SsaVariable;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.EnvironmentVariable;
 import org.renjin.compiler.ir.tac.expressions.Expression;
@@ -36,30 +37,25 @@ import java.util.Collections;
 import java.util.List;
 
 
-public class ReturnStatement implements Statement, BasicBlockEndingStatement {
+public class ReturnStatement extends Statement implements BasicBlockEndingStatement {
 
   private Expression returnValue;
-  
+
   private List<Symbol> environmentVariableNames = Lists.newArrayList();
   private List<Expression> environmentVariables = Lists.newArrayList();
-  
+
   public ReturnStatement(Expression returnValue) {
     this.returnValue = returnValue;
   }
-  
+
   public Expression getReturnValue() {
     return returnValue;
   }
-  
+
 
   @Override
   public Expression getRHS() {
     return returnValue;
-  }
-  
-  @Override
-  public void setRHS(Expression newRHS) {
-    this.returnValue = newRHS;
   }
 
   @Override
@@ -72,12 +68,16 @@ public class ReturnStatement implements Statement, BasicBlockEndingStatement {
       addEnvironmentVariable(variable.getName(), variable);
     }
   }
-  
+
   public void addEnvironmentVariable(Symbol symbol, LValue lValue) {
     environmentVariableNames.add(symbol);
     environmentVariables.add(lValue);
   }
-  
+
+  public List<Expression> getEnvironmentVariables() {
+    return environmentVariables;
+  }
+
   @Override
   public int getChildCount() {
     return 1 + environmentVariableNames.size();
@@ -102,28 +102,31 @@ public class ReturnStatement implements Statement, BasicBlockEndingStatement {
   }
 
   @Override
-  public void accept(StatementVisitor visitor) {
-    visitor.visitReturn(this);
-  }
-
-  @Override
   public void emit(EmitContext emitContext, InstructionAdapter mv) {
 
     // Set the current local variables back into the environment
     for (int i = 0; i < environmentVariableNames.size(); i++) {
 
-      VariableStrategy variable = emitContext.getVariable((LValue) environmentVariables.get(i));
-      if(variable != null) {
-        // Environment.setVariable(String, SEXP)
-        mv.load(emitContext.getEnvironmentVarIndex(), Type.getType(Environment.class));
-        mv.aconst(environmentVariableNames.get(i).getPrintName());
+      Expression variable = environmentVariables.get(i);
+      if(variable instanceof SsaVariable) {
+        // Check if this variable has been updated at all
+        SsaVariable ssaVariable = (SsaVariable) variable;
+        if(ssaVariable.getVersion() > 1) {
+          VariableStrategy strategy = emitContext.getVariable(ssaVariable);
+          if(strategy != null) {
+            // Environment.setVariable(String, SEXP)
+            mv.load(emitContext.getEnvironmentVarIndex(), Type.getType(Environment.class));
+            mv.aconst(environmentVariableNames.get(i).getPrintName());
 
-        variable.getCompiledExpr().loadSexp(emitContext, mv);
+            strategy.getCompiledExpr().loadSexp(emitContext, mv);
 
-        mv.invokevirtual(Type.getInternalName(Environment.class), "setVariableUnsafe",
-            Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(SEXP.class)), false);
+            mv.invokevirtual(Type.getInternalName(Environment.class), "setVariableUnsafe",
+                Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(SEXP.class)), false);
+          }
+        }
       }
     }
+
 
     CompiledSexp compiledReturnValue = returnValue.getCompiledExpr(emitContext);
 
@@ -134,7 +137,6 @@ public class ReturnStatement implements Statement, BasicBlockEndingStatement {
   public boolean isPure() {
     return true;
   }
-
 
   @Override
   public String toString() {

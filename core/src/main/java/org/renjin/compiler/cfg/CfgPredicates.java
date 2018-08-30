@@ -40,7 +40,7 @@ public class CfgPredicates {
       return false;
     };
   }
-  
+
   public static Predicate<Statement> isPhiAssignment() {
     return input -> {
       if(!(input instanceof Assignment)) {

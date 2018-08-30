@@ -21,19 +21,26 @@
 package org.renjin.compiler.codegen.expr;
 
 import org.renjin.compiler.ir.TypeSet;
+import org.renjin.repackaged.asm.ByteVector;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.StringVector;
 
 public enum VectorType {
-  BYTE(Type.BYTE_TYPE),
-  LOGICAL(Type.INT_TYPE),
-  INT(Type.INT_TYPE),
-  DOUBLE(Type.DOUBLE_TYPE),
-  STRING(Type.getType(String.class));
+  BYTE(Type.BYTE_TYPE, Type.getType(ByteVector.class)),
+  LOGICAL(Type.INT_TYPE, Type.getType(LogicalVector.class)),
+  INT(Type.INT_TYPE, Type.getType(IntVector.class)),
+  DOUBLE(Type.DOUBLE_TYPE, Type.getType(DoubleVector.class)),
+  STRING(Type.getType(String.class), Type.getType(StringVector.class));
 
   Type jvmType;
+  Type vectorClassType;
 
-  private VectorType(Type jvmType) {
+  private VectorType(Type jvmType, Type vectorClassType) {
     this.jvmType = jvmType;
+    this.vectorClassType = vectorClassType;
   }
 
   public Type getJvmType() {
@@ -42,6 +49,10 @@ public enum VectorType {
 
   public Type getJvmArrayType() {
     return Type.getType("[" + getJvmType().getDescriptor());
+  }
+
+  public Type getVectorClassType() {
+    return vectorClassType;
   }
 
   public static VectorType of(int typeSet) {
@@ -62,4 +73,17 @@ public enum VectorType {
     }
   }
 
+  public static VectorType fromJvmType(Class type) {
+    if(type.equals(byte.class)) {
+      return BYTE;
+    } else if(type.equals(int.class)) {
+      return INT;
+    } else if(type.equals(double.class)) {
+      return DOUBLE;
+    } else if(type.equals(String.class)) {
+      return STRING;
+    } else {
+      throw new IllegalArgumentException(type.getName());
+    }
+  }
 }

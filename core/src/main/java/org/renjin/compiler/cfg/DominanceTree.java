@@ -189,8 +189,7 @@ public class DominanceTree {
 
   /**
    * The dominance frontier DF(X) of a CFG node X is the set of all CFG nodes
-   * Y such that X dominates a predecessor of Y but does not strictly dominate
-   * Y
+   * Y such that X dominates a predecessor of Y but does not strictly dominate Y
    */
   private void calculateDominanceFrontier(BasicBlock X) {
     for(BasicBlock child : X.getDominanceSuccessors()) {
@@ -212,7 +211,12 @@ public class DominanceTree {
       }
     }
   }
-  
+
+  /**
+   * The dominance frontier of a basic block {@code n} is the set of all blocks that are immediate successors dominated by
+   * {@code n}, but which aren't themselves strictly dominated by {@code n}.
+   *
+   */
   public Collection<BasicBlock> getFrontier(BasicBlock bb) {
     return dominanceFrontier.get(bb);
   }

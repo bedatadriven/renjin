@@ -20,6 +20,7 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 
 import java.util.Map;
@@ -29,6 +30,11 @@ import java.util.Map;
  * Op1 and op2 must be integers. (Not sexps!)
  */
 public class CmpGE extends SpecializedCallExpression {
+
+  private static final ValueBounds BOUNDS = ValueBounds.builder()
+      .setTypeSet(TypeSet.LOGICAL)
+      .setFlag(ValueBounds.FLAG_LENGTH_ONE | ValueBounds.FLAG_NO_NA)
+      .build();
 
   public CmpGE(Expression op1, Expression op2) {
     super(op1, op2);
@@ -56,7 +62,7 @@ public class CmpGE extends SpecializedCallExpression {
 
   @Override
   public ValueBounds getValueBounds() {
-    return ValueBounds.LOGICAL_PRIMITIVE;
+    return BOUNDS;
   }
 
   @Override

@@ -20,8 +20,8 @@ package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
-import org.renjin.sexp.Symbol;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -44,27 +44,36 @@ public class SubsetSpecializer implements Specializer, BuiltinSpecializer {
   public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
 
     ValueBounds source = arguments.get(0).getBounds();
-    List<ValueBounds> subscripts = ArgumentBounds.withoutNames(arguments.subList(1, arguments.size()));
-    
+    ValueBounds drop = null;
+
+    List<ValueBounds> subscripts = new ArrayList<>();
+
+    for (int i = 1; i < arguments.size(); i++) {
+      ArgumentBounds argument = arguments.get(i);
+      if("drop".equals(argument.getName())) {
+        drop = argument.getBounds();
+      } else {
+        subscripts.add(argument.getBounds());
+      }
+    }
+
     if (subscripts.size() == 0) {
       return new CompleteSubset(source);
     }
 
-    // If more than one subscript is provided
-    // Such as x[i,j] or x[i,j,k], then treat this as a matrix selection
-    if (subscripts.size() > 1) {
-      return new MatrixSubset(source, subscripts).tryFurtherSpecialize();
+    // If exactly two subscripts are provided
+    // Such as x[i,j] or x[i,], AND
+    // the source type is known, then treat this as a matrix selection
+    SingleRowOrColumn singleRowOrColumn = SingleRowOrColumn.trySpecialize(source, subscripts, drop);
+    if(singleRowOrColumn != null) {
+      return singleRowOrColumn;
     }
 
-    ValueBounds subscript = subscripts.get(0);
-
-    if(subscript.isConstant() && subscript.getConstantValue() == Symbol.MISSING_ARG) {
-      return new CompleteSubset(source);
+    GetAtomicElement singleElement = GetAtomicElement.trySpecialize(source, subscripts);
+    if(singleElement != null) {
+      return singleElement;
     }
 
-    if(GetAtomicElement.accept(source, subscript)) {
-      return new GetAtomicElement(source, subscript);
-    }
 
     return UnspecializedCall.INSTANCE;
     

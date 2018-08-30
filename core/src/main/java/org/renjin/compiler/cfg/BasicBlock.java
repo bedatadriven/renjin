@@ -42,23 +42,28 @@ public class BasicBlock {
   private Set<IRLabel> labels;
   private List<Statement> statements = Lists.newLinkedList();
   
-  List<BasicBlock> flowSuccessors = new ArrayList<>();
-  List<BasicBlock> flowPredecessors = new ArrayList<>();
+  private List<BasicBlock> flowSuccessors = new ArrayList<>();
+  private List<BasicBlock> flowPredecessors = new ArrayList<>();
 
-  List<BasicBlock> dominanceSuccessors = new ArrayList<>();
-  List<BasicBlock> dominancePredecessors = new ArrayList<>();
+  private List<BasicBlock> dominanceSuccessors = new ArrayList<>();
+  private List<BasicBlock> dominancePredecessors = new ArrayList<>();
   
-  final List<FlowEdge> outgoing = new ArrayList<>();
-  final List<FlowEdge> incoming = new ArrayList<>();
+  private final List<FlowEdge> outgoing = new ArrayList<>();
+  private final List<FlowEdge> incoming = new ArrayList<>();
 
   private boolean live = false;
   
   BasicBlock(int index) {
     this.index = index;
   }
-  
+
+  public int getIndex() {
+    return index;
+  }
+
   public void addStatement(Statement statement) {
     statements.add(statement);
+    statement.setBasicBlock(this);
   }
   
   public void insertPhiFunction(Variable variable, List<FlowEdge> incomingEdges) {
@@ -71,16 +76,6 @@ public class BasicBlock {
 
   public void setLive(boolean live) {
     this.live = live;
-  }
-
-  public Statement replaceStatement(Statement stmt, Statement newStmt) {
-    int i = statements.indexOf(stmt);
-    statements.set(i, newStmt);
-    return newStmt;
-  }
- 
-  public void replaceStatement(int i, Statement stmt) {
-    statements.set(i, stmt);
   }
 
   public List<Statement> getStatements() {

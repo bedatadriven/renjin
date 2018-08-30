@@ -18,27 +18,22 @@
  *
  */
 
-package org.renjin.compiler.codegen.var;
+package org.renjin.compiler.codegen;
 
-import org.renjin.compiler.codegen.EmitContext;
-import org.renjin.compiler.codegen.expr.CompiledSexp;
-import org.renjin.compiler.ir.tac.statements.Statement;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.SEXP;
 
-/**
- * Strategy for storing SEXP variables on the stack
- */
-public abstract class VariableStrategy {
+public final class BytecodeTypes {
 
-  public abstract CompiledSexp getCompiledExpr();
+  public static final Type SEXP_TYPE = Type.getType(SEXP.class);
 
-  public abstract void store(EmitContext emitContext, InstructionAdapter mv, CompiledSexp compiledSexp);
+  public static final Type ATOMIC_VECTOR_TYPE = Type.getType(AtomicVector.class);
 
-  /**
-   * @return true if this variable is "live out" at the given {@code statement}. In other words, can we
-   * mutate it here without interfering with subsequent uses?
-   */
-  public boolean isLiveOut(Statement statement) {
-    return true;
+  public static final String SEXP_INTERNAL_NAME = SEXP_TYPE.getInternalName();
+
+  public static final String ATOMIC_VECTOR_INTERNAL_NAME = ATOMIC_VECTOR_TYPE.getInternalName();
+
+  private BytecodeTypes() {
   }
 }

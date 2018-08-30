@@ -42,30 +42,29 @@ public class ReplaceSpecializer implements Specializer, BuiltinSpecializer {
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
     int numArguments = arguments.size();
-    ValueBounds inputVector = arguments.get(0).getBounds();
-    ValueBounds replacement = arguments.get(numArguments - 1).getBounds();
+    ArgumentBounds inputVector = arguments.get(0);
+    ArgumentBounds replacement = arguments.get(numArguments - 1);
 
-    ValueBounds[] subscripts = new ValueBounds[numArguments - 2];
+    ArgumentBounds[] subscripts = new ArgumentBounds[numArguments - 2];
     for (int i = 1; i < numArguments - 1; i++) {
-      subscripts[i - 1] = arguments.get(i).getBounds();
+      subscripts[i - 1] = arguments.get(i);
     }
 
-    if(subscripts.length > 1) {
-      // Matrix replacements are a bit easier because it never changes the shape
-      // of the input source.
-      return new MatrixReplacement(inputVector, subscripts, replacement);
-
-    }
+//    if(subscripts.length > 1) {
+//      // Matrix replacements are a bit easier because it never changes the shape
+//      // of the input source.
+//      return new MatrixReplacement(inputVector, subscripts, replacement);
+//    }
 
     if(subscripts.length == 1 &&
-        subscripts[0].getLength() == 1 &&
-        replacement.getLength() == 1 &&
-        inputVector.getTypeSet() == replacement.getTypeSet()) {
+        subscripts[0].getBounds().isFlagSet(ValueBounds.FLAG_LENGTH_ONE) &&
+        replacement.getBounds().isFlagSet(ValueBounds.FLAG_LENGTH_ONE) &&
+        inputVector.getBounds().getTypeSet() == replacement.getBounds().getTypeSet()) {
 
       return new UpdateElementCall(inputVector, subscripts[0], replacement);
     }
 
-    return UnspecializedCall.INSTANCE;
+    return new ReplaceSpecialization(inputVector, subscripts, replacement);
   }
 
 }

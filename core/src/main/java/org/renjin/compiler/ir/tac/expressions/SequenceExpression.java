@@ -20,8 +20,13 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.primitives.sequence.Sequences;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.DoubleVector;
 
 import java.util.Map;
@@ -46,16 +51,22 @@ public class SequenceExpression extends SpecializedCallExpression {
 
   @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
-    int fromType = endpointType(childAt(0).updateTypeBounds(typeMap));
-    int toType = endpointType(childAt(1).updateTypeBounds(typeMap));
+    ValueBounds fromBounds = childAt(0).updateTypeBounds(typeMap);
+    ValueBounds toBounds = childAt(1).updateTypeBounds(typeMap);
 
-    valueBounds = ValueBounds.builder()
+    int fromType = endpointType(fromBounds);
+    int toType = endpointType(toBounds);
+
+    this.valueBounds = ValueBounds.builder()
         .setTypeSet(fromType | toType)
-        .setNA(ValueBounds.NO_NA)
+        .setFlag(ValueBounds.FLAG_NO_NA)
+        .setFlag(ValueBounds.FLAG_POSITIVE,
+            toBounds.isFlagSet(ValueBounds.FLAG_POSITIVE) &&
+            toBounds.isFlagSet(ValueBounds.FLAG_POSITIVE))
         .setEmptyAttributes()
         .build();
 
-    return valueBounds;
+    return this.valueBounds;
   }
 
   private int endpointType(ValueBounds valueBounds) {
@@ -76,7 +87,46 @@ public class SequenceExpression extends SpecializedCallExpression {
 
   @Override
   public CompiledSexp getCompiledExpr(EmitContext emitContext) {
-    throw new UnsupportedOperationException("TODO");
+    CompiledSexp fromExpr = childAt(0).getCompiledExpr(emitContext);
+    CompiledSexp toExpr = childAt(1).getCompiledExpr(emitContext);
+
+    return new CompiledSexp() {
+      @Override
+      public void loadSexp(EmitContext context, InstructionAdapter mv) {
+        fromExpr.loadScalar(emitContext, mv, VectorType.DOUBLE);
+        toExpr.loadScalar(emitContext, mv, VectorType.DOUBLE);
+        mv.invokestatic(Type.getInternalName(Sequences.class), "colonSequence",
+            Type.getMethodDescriptor(Type.getType(AtomicVector.class), Type.DOUBLE_TYPE, Type.DOUBLE_TYPE), false);
+      }
+
+      @Override
+      public void loadScalar(EmitContext context, InstructionAdapter mv, VectorType vectorType) {
+        fromExpr.loadScalar(emitContext, mv, vectorType);
+      }
+
+      @Override
+      public void loadArray(EmitContext context, InstructionAdapter mv, VectorType vectorType) {
+        switch (vectorType) {
+          case INT:
+            fromExpr.loadScalar(context, mv, VectorType.INT);
+            toExpr.loadScalar(context, mv, VectorType.INT);
+            mv.invokestatic(Type.getInternalName(Sequences.class), "colonSequence", "(II)[I", false);
+            break;
+          default:
+            throw new UnsupportedOperationException("TODO: " + vectorType);
+        }
+      }
+
+      @Override
+      public void loadLength(EmitContext context, InstructionAdapter mv) {
+        throw new UnsupportedOperationException("TODO");
+      }
+
+      @Override
+      public CompiledSexp elementAt(EmitContext context, CompiledSexp indexExpr) {
+        throw new UnsupportedOperationException("TODO");
+      }
+    };
   }
 
 

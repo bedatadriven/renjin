@@ -22,7 +22,6 @@ package org.renjin.compiler.codegen.expr;
 
 import org.renjin.compiler.codegen.ConstantBytecode;
 import org.renjin.compiler.codegen.EmitContext;
-import org.renjin.compiler.codegen.SexpTypes;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -74,25 +73,15 @@ public abstract class ScalarExpr implements CompiledSexp {
   @Override
   public final void loadSexp(EmitContext context, InstructionAdapter mv) {
     loadScalar(context, mv, type);
-    switch (type) {
-      case DOUBLE:
-        loadAsDoubleVector(mv);
-        break;
-      default:
-        throw new UnsupportedOperationException("TODO: " + type);
-    }
-  }
-
-  private void loadAsDoubleVector(InstructionAdapter mv) {
-    if(attributes == null) {
-      mv.invokestatic(SexpTypes.DOUBLE_VECTOR_TYPE.getInternalName(), "valueOf",
-          Type.getMethodDescriptor(SexpTypes.DOUBLE_VECTOR_TYPE, Type.DOUBLE_TYPE), false);
+    if(attributes == null || attributes == AttributeMap.EMPTY) {
+      mv.invokestatic(type.getVectorClassType().getInternalName(), "valueOf",
+          Type.getMethodDescriptor(type.getVectorClassType(), type.getJvmType()), false);
     } else {
 
       ConstantBytecode.pushAttributes(mv, attributes);
-      mv.invokestatic(SexpTypes.DOUBLE_VECTOR_TYPE.getInternalName(), "valueOf",
-          Type.getMethodDescriptor(SexpTypes.DOUBLE_VECTOR_TYPE,
-              Type.DOUBLE_TYPE,
+      mv.invokestatic(type.getVectorClassType().getInternalName(), "valueOf",
+          Type.getMethodDescriptor(type.getVectorClassType(),
+              type.getJvmType(),
               Type.getType(AttributeMap.class)), false);
     }
   }

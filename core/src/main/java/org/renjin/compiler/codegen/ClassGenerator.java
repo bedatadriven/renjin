@@ -30,6 +30,8 @@ import org.renjin.repackaged.asm.util.TraceMethodVisitor;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -68,6 +70,18 @@ public class ClassGenerator<T> implements Opcodes {
 
   public Class<T> finishAndLoad() {
     writeClassEnd();
+
+    try {
+      File file = new File("/tmp/jit.class");
+      org.renjin.repackaged.guava.io.Files.write(cw.toByteArray(), file);
+
+      System.out.println("Class file: " + file.getAbsolutePath());
+
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+
     return JitClassLoader.defineClass(interfaceClass, className.replace('/', '.'), cw.toByteArray());
   }
 

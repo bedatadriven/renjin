@@ -32,40 +32,30 @@ import java.util.*;
  * Describes the bounds of known types for an expression.
  */
 public class ValueBounds {
-  
-  public static final int UNKNOWN_LENGTH = -1;
-  public static final int SCALAR_LENGTH = 1;
-
-  /**
-   * The value may have some elements which are NA
-   */
-  public static final int MAY_HAVE_NA = 0;
 
 
   /**
    * The values has no elements which are NAs
    */
-  public static final int NO_NA = 1;
+  public static final int FLAG_NO_NA = 1;
+
+  /**
+   * The values are all positive integers or real numbers > 0
+   */
+  public static final int FLAG_POSITIVE = 1 << 1;
+
+  public static final int FLAG_NON_ZERO_LENGTH = 1 << 3;
+
+  public static final int FLAG_LENGTH_ONE = (1 << 2) | FLAG_NON_ZERO_LENGTH;
+
+  /**
+   * The value definitely has no attributes
+   */
+  public static final int FLAG_NO_ATTRIBUTES = (1 << 5);
 
 
   public static final ValueBounds UNBOUNDED = new ValueBounds.Builder().build();
-  
-  public static final ValueBounds INT_PRIMITIVE = primitive(TypeSet.INT);
-  
-  public static final ValueBounds DOUBLE_PRIMITIVE = primitive(TypeSet.DOUBLE);
 
-  public static final ValueBounds LOGICAL_PRIMITIVE = primitive(TypeSet.LOGICAL);
-  
-  /**
-   * The length of this value, or {@code UNKNOWN_LENGTH} if not known or known to vary.
-   */
-  private int length = UNKNOWN_LENGTH;
-
-
-  /**
-   * Whether this value may have NA elements
-   */
-  private int na = MAY_HAVE_NA;
 
   /**
    * The number of dimensions that this value has, or -1 if it's not known.
@@ -82,6 +72,10 @@ public class ValueBounds {
    */
   private SEXP constantValue = null;
 
+  /**
+   * Bitset of properties about this value that are known to be true
+   */
+  private int flags;
 
   /**
    * If true, the precise set of attributes defined for this value are not known, and attributes that 
@@ -89,7 +83,6 @@ public class ValueBounds {
    */
   private boolean attributesOpen = true;
 
-  
   /**
    * Map to known attributes. Each value will either be a SEXP not equal to Null.INSTANCE indicating that 
    * value is known to be constant, or {@code null} if this value is known to have this attribute, but the value of the
@@ -101,9 +94,8 @@ public class ValueBounds {
   
   private ValueBounds(ValueBounds toCopy) {
     assert toCopy.attributes != null;
-    this.length = toCopy.length;
     this.typeSet = toCopy.typeSet;
-    this.na = toCopy.na;
+    this.flags = toCopy.flags;
     this.dimCount = toCopy.dimCount;
     this.constantValue = toCopy.constantValue;
     this.attributes = toCopy.attributes;
@@ -117,10 +109,9 @@ public class ValueBounds {
   public static ValueBounds primitive(int type) {
     ValueBounds valueBounds = new ValueBounds();
     valueBounds.typeSet = type;
-    valueBounds.length = SCALAR_LENGTH;
     valueBounds.attributes = Collections.emptyMap();
     valueBounds.attributesOpen = false;
-    valueBounds.na = NO_NA;
+    valueBounds.flags = FLAG_NO_NA;
     return valueBounds;
   }
 
@@ -129,23 +120,31 @@ public class ValueBounds {
    */
   public static ValueBounds of(SEXP value) {
     ValueBounds valueBounds = new ValueBounds();
-    valueBounds.na = hasAnyNAs(value);
+    if(!hasAnyNAs(value)) {
+      valueBounds.flags |= FLAG_NO_NA;
+    }
+
+    if(value.length() == 1) {
+      valueBounds.flags |= FLAG_LENGTH_ONE;
+    } else if(value.length() > 0) {
+      valueBounds.flags |= FLAG_NON_ZERO_LENGTH;
+    }
+
     valueBounds.constantValue = value;
     valueBounds.typeSet = TypeSet.of(value);
-    valueBounds.length = value.length();
     valueBounds.attributes = value.getAttributes().toMap();
     valueBounds.attributesOpen = false;
     valueBounds.dimCount = value.getAttributes().getDim().length();
     return valueBounds;
   }
 
-  private static int hasAnyNAs(SEXP value) {
+  private static boolean hasAnyNAs(SEXP value) {
     if(value instanceof AtomicVector) {
       if(((AtomicVector) value).containsNA()) {
-        return MAY_HAVE_NA;
+        return true;
       }
     }
-    return NO_NA;
+    return false;
   }
 
   public ValueBounds of(Object value) {
@@ -165,9 +164,7 @@ public class ValueBounds {
     valueBounds.attributes = Collections.emptyMap();
     valueBounds.typeSet = TypeSet.of(returnType);
     if(returnType.isPrimitive()) {
-      valueBounds.length = 1;
-    } else {
-      valueBounds.length = UNKNOWN_LENGTH;
+      valueBounds.flags |= FLAG_LENGTH_ONE;
     }
     return valueBounds;
   }
@@ -181,7 +178,7 @@ public class ValueBounds {
   }
 
   public boolean isLengthConstant() {
-    return length != UNKNOWN_LENGTH;
+    return isFlagSet(FLAG_LENGTH_ONE);
   }
   
   public boolean isAttributeConstant(Symbol name) {
@@ -262,7 +259,11 @@ public class ValueBounds {
   }
 
   public int getConstantDimCount() {
-    return getConstantDimAttribute().length();
+    AtomicVector dimAttribute = getConstantDimAttribute();
+    if(dimAttribute != null) {
+      return dimAttribute.length();
+    }
+    return dimCount;
   }
 
   public Map<Symbol, SEXP> getAttributeBounds() {
@@ -316,17 +317,16 @@ public class ValueBounds {
     return typeSet;
   }
 
-  public int getNA() {
-    return na;
-  }
-
-
-  public boolean maybeNA() {
-    return na == MAY_HAVE_NA;
+  public boolean isFlagSet(int flag) {
+    return (flags & flag) == flag;
   }
 
   public int getLength() {
-    return length;
+    if(isFlagSet(FLAG_LENGTH_ONE)) {
+      return 1;
+    } else {
+      return -1;
+    }
   }
 
   /**
@@ -335,8 +335,7 @@ public class ValueBounds {
   public ValueBounds union(ValueBounds other) {
     ValueBounds u = new ValueBounds();
     u.typeSet = this.typeSet | other.typeSet;
-    u.length = unionLengths(this.length, other.length);
-    u.na = this.na & other.na;
+    u.flags = this.flags & other.flags;
     u.attributesOpen = this.attributesOpen || other.attributesOpen;
     
     if(this.attributes == other.attributes) {
@@ -357,13 +356,6 @@ public class ValueBounds {
     return u;
   }
 
-
-  private static int unionLengths(int x, int y) {
-    if(x == y) {
-      return x;
-    }
-    return UNKNOWN_LENGTH;
-  }
 
   private <T> T unionConstant(T x, T y) {
     // If either class(x) is unknown, or class(y) is unknown, then
@@ -406,21 +398,26 @@ public class ValueBounds {
       return "[const " + formatConstant(constantValue) + "]";
     }
     
-    if(typeSet == TypeSet.ANY_TYPE && length == UNKNOWN_LENGTH) {
+    if(typeSet == TypeSet.ANY_TYPE) {
       return "[*]";
     }
     
     StringBuilder s = new StringBuilder();
     s.append("[");
     s.append(TypeSet.toString(typeSet));
-    s.append(", len=");
-    if(length == UNKNOWN_LENGTH) {
-      s.append("*");
+
+    if(isFlagSet(FLAG_LENGTH_ONE)) {
+      s.append(", len=1");
+    } else if (isFlagSet(FLAG_NON_ZERO_LENGTH)) {
+      s.append(", len>0");
     } else {
-      s.append(length);
+      s.append(", len=*");
     }
-    if(na == MAY_HAVE_NA) {
+    if(!isFlagSet(FLAG_NO_NA)) {
       s.append(", ?NA");
+    }
+    if(isFlagSet(FLAG_POSITIVE)) {
+      s.append(", pos");
     }
     for (Map.Entry<Symbol, SEXP> attribute : attributes.entrySet()) {
       s.append(", ").append(attribute.getKey().getPrintName()).append("=");
@@ -438,6 +435,8 @@ public class ValueBounds {
             }
             s.append("]");
           }
+        } else {
+          s.append("?");
         }
       } else if(attribute.getValue() == Null.INSTANCE) {
         s.append("∅");
@@ -488,27 +487,21 @@ public class ValueBounds {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    ValueBounds that = (ValueBounds) o;
-
-    return length == that.length && typeSet == that.typeSet &&
-        this.attributesOpen == that.attributesOpen &&
-        this.na == that.na &&
-        Objects.equals(this.constantValue, that.constantValue) &&
-        Objects.equals(this.attributes, that.attributes);
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    ValueBounds bounds = (ValueBounds) o;
+    return
+        dimCount == bounds.dimCount &&
+        typeSet == bounds.typeSet &&
+        flags == bounds.flags &&
+        attributesOpen == bounds.attributesOpen &&
+        Objects.equals(constantValue, bounds.constantValue) &&
+        Objects.equals(attributes, bounds.attributes);
   }
 
   @Override
   public int hashCode() {
-    int result = length;
-    result = 31 * result + typeSet;
-    return result;
+    return Objects.hash(typeSet, flags);
   }
 
   public SEXP getConstantValue() {
@@ -534,8 +527,8 @@ public class ValueBounds {
       return this;
     }
     ValueBounds bounds = new ValueBounds();
-    bounds.length = this.length;
     bounds.dimCount = this.dimCount;
+    bounds.flags = flags;
     bounds.typeSet = this.typeSet;
     bounds.attributes = this.attributes;
     bounds.attributesOpen = this.attributesOpen;
@@ -557,12 +550,16 @@ public class ValueBounds {
     if((this.typeSet & sexpType) == 0) {
       return false;
     }
-    if(this.length != UNKNOWN_LENGTH) {
-      if(this.length != sexp.length()) {
+    if(isFlagSet(FLAG_LENGTH_ONE)) {
+      if(sexp.length() != 1) {
+        return false;
+      }
+    } else if(isFlagSet(FLAG_NON_ZERO_LENGTH)) {
+      if(sexp.length() == 0) {
         return false;
       }
     }
-    if(this.na == NO_NA && sexp instanceof Vector) {
+    if(isFlagSet(FLAG_NO_NA) && sexp instanceof Vector) {
       Vector vector = (Vector) sexp;
       if(vector.anyNA()) {
         return false;
@@ -622,12 +619,12 @@ public class ValueBounds {
     return WrapperRuntime.convertToBooleanPrimitive(constantValue) == value;
   }
 
-  /**
-   *
-   * @return true if this is an atomic vector of length 1
-   */
-  public boolean isScalar() {
-    return TypeSet.isDefinitelyAtomic(typeSet) && length == 1;
+  public int getFlags() {
+    return flags;
+  }
+
+  public boolean hasNoAttributes() {
+    return !attributesOpen && attributes.isEmpty();
   }
 
 
@@ -643,7 +640,11 @@ public class ValueBounds {
     }
     
     public Builder setLength(int length) {
-      bounds.length = length;
+      if(length == 1) {
+        setFlag(ValueBounds.FLAG_LENGTH_ONE);
+      } else if(length > 0) {
+        setFlag(ValueBounds.FLAG_NON_ZERO_LENGTH);
+      }
       return this;
     }
     
@@ -652,9 +653,21 @@ public class ValueBounds {
       return this;
     }
 
-    public Builder setNA(int na) {
-      bounds.na = na;
+    public Builder setFlag(int flag, boolean set) {
+      if(set) {
+        bounds.flags |= flag;
+      } else {
+        bounds.flags &= ~flag;
+      }
       return this;
+    }
+
+    public Builder setFlag(int flag) {
+      return setFlag(flag, true);
+    }
+
+    public Builder setFlagsFrom(ValueBounds source, int mask) {
+      return setFlag(source.getFlags() & mask);
     }
 
     public Builder setType(Class type) {
@@ -686,15 +699,6 @@ public class ValueBounds {
      */
     public Builder closeAttributes() {
       bounds.attributesOpen = false;
-      return this;
-    }
-
-    public Builder setHasNoNAs(boolean hasNoNas) {
-      if(hasNoNas) {
-        bounds.na = NO_NA;
-      } else {
-        bounds.na = MAY_HAVE_NA;
-      }
       return this;
     }
 

@@ -48,6 +48,7 @@ public class SumSpecializer implements BuiltinSpecializer {
   public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
 
     int resultType = 0;
+    int summandCount = 0;
     boolean hasNoNAs = true;
     boolean naRm = false;
 
@@ -57,30 +58,38 @@ public class SumSpecializer implements BuiltinSpecializer {
           naRm = true;
         }
       } else {
+        summandCount ++;
+
         ValueBounds bounds = argument.getBounds();
         if(resultType == 0) {
           resultType = bounds.getTypeSet();
         } else {
           resultType = TypeSet.widestVectorType(resultType, bounds.getTypeSet());
         }
-        if(bounds.getNA() == ValueBounds.MAY_HAVE_NA) {
+        if(!bounds.isFlagSet(ValueBounds.FLAG_NO_NA)) {
           hasNoNAs = false;
         }
       }
     }
 
-    // Integer sums are promoted to double on overflow...
+    boolean naResultPossible = hasNoNAs || naRm;
+
+    // Integers can overflow to NA
     if(TypeSet.mightBe(resultType, TypeSet.INT)) {
-      resultType |= TypeSet.DOUBLE;
+      naResultPossible = true;
     }
 
     ValueBounds resultBounds = ValueBounds.builder()
         .setTypeSet(resultType)
         .setEmptyAttributes()
-        .setLength(1)
-        .setHasNoNAs(hasNoNAs || naRm)
+        .setFlag(ValueBounds.FLAG_LENGTH_ONE)
+        .setFlag(ValueBounds.FLAG_NO_NA, naResultPossible)
         .build();
 
-    return new SumSpecialization(resultBounds);
+    if(summandCount == 1 && arguments.size() == 1 && resultType == TypeSet.DOUBLE) {
+      return new SumSpecialization(resultBounds);
+    }
+
+    return UnspecializedCall.INSTANCE;
   }
 }

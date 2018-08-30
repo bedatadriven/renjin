@@ -319,6 +319,14 @@ public class TypeSet {
 
   }
 
+  /**
+   * Returns true if this typeSet is *definitely* an atomic vector, and it
+   * is known *which* atomic vector it is.
+   */
+  public static boolean isSpecificAtomic(int typeSet) {
+    return isDefinitelyAtomic(typeSet) && size(typeSet) == 1;
+  }
+
   public static boolean isDefinitelyAtomic(int typeSet) {
     return (typeSet & ANY_ATOMIC_VECTOR) != 0 &&
         (typeSet & ~ANY_ATOMIC_VECTOR) == 0;

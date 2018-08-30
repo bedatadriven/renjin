@@ -22,6 +22,8 @@ package org.renjin.compiler.ir.tac.expressions;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 
+import java.util.Objects;
+
 /**
  * Variable that is to be stored as a JVM local variable when 
  * compiled.
@@ -43,31 +45,20 @@ public class LocalVariable extends Variable {
 
   @Override
   public CompiledSexp getCompiledExpr(EmitContext emitContext) {
-    throw new UnsupportedOperationException("TODO");
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    LocalVariable that = (LocalVariable) o;
+    return Objects.equals(name, that.name);
   }
 
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((name == null) ? 0 : name.hashCode());
-    return result;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    LocalVariable other = (LocalVariable) obj;
-    
-    return name.equals(other.name);
+    return name.hashCode();
   }
 
   @Override

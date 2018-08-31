@@ -22,6 +22,7 @@ package org.renjin.compiler.codegen.expr;
 
 import org.renjin.compiler.codegen.ConstantBytecode;
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.primitives.Vectors;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -49,6 +50,8 @@ public abstract class ScalarExpr implements CompiledSexp {
     if(this.type != vectorType) {
       if(this.type == VectorType.INT || this.type == VectorType.LOGICAL) {
         convertIntTo(mv, vectorType);
+      } else if(this.type == VectorType.DOUBLE) {
+        convertDoubleTo(mv, vectorType);
       } else {
         throw new UnsupportedOperationException("TODO: " + this.type + "=>" + vectorType);
       }
@@ -59,14 +62,30 @@ public abstract class ScalarExpr implements CompiledSexp {
     switch (loadType) {
       case LOGICAL:
       case INT:
+      case BYTE:
         break;
       case DOUBLE:
-        mv.visitInsn(Opcodes.I2D);
+        mv.invokestatic(Type.getInternalName(Vectors.class), "toDouble", "(I)D", false);
         break;
       default:
         throw new UnsupportedOperationException("TODO: " + this.type + "=>" + loadType);
     }
   }
+
+  private void convertDoubleTo(InstructionAdapter mv, VectorType loadType) {
+    switch (loadType) {
+      case LOGICAL:
+      case INT:
+        mv.invokestatic(Type.getInternalName(Vectors.class), "toInt", "(D)I", false);
+        break;
+      case BYTE:
+        mv.visitInsn(Opcodes.I2D);
+        break;
+      default:
+        throw new UnsupportedOperationException("TODO:" + loadType);
+    }
+  }
+
 
   public abstract void loadScalar(EmitContext context, InstructionAdapter mv);
 
@@ -94,7 +113,29 @@ public abstract class ScalarExpr implements CompiledSexp {
 
   @Override
   public void loadArray(EmitContext context, InstructionAdapter mv, VectorType vectorType) {
-    throw new UnsupportedOperationException("TODO");
+    mv.visitInsn(Opcodes.ICONST_1);
+    mv.newarray(vectorType.getJvmType());
+    mv.visitInsn(Opcodes.DUP);
+    mv.visitInsn(Opcodes.ICONST_0);
+    loadScalar(context, mv, vectorType);
+
+    switch (vectorType) {
+      case BYTE:
+        mv.visitInsn(Opcodes.BASTORE);
+        break;
+      case LOGICAL:
+      case INT:
+        mv.visitInsn(Opcodes.IASTORE);
+        break;
+      case DOUBLE:
+        mv.visitInsn(Opcodes.DASTORE);
+        break;
+      case STRING:
+        mv.visitInsn(Opcodes.AASTORE);
+        break;
+      default:
+        throw new UnsupportedOperationException("todo: " + vectorType);
+    }
   }
 
   @Override

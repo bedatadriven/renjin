@@ -47,17 +47,17 @@ public class DataParallelCall implements Specialization {
 
   private final String name;
   private final JvmMethod method;
-  private List<ValueBounds> argumentBounds;
+  private final List<ArgumentBounds> argumentBounds;
   private final ValueBounds resultBounds;
 
-  public DataParallelCall(Primitives.Entry primitive, JvmMethod method, List<ValueBounds> argumentBounds) {
+  public DataParallelCall(Primitives.Entry primitive, JvmMethod method, List<ArgumentBounds> argumentBounds) {
     this.name = primitive.name;
     this.method = method;
     this.argumentBounds = argumentBounds;
     this.resultBounds = computeBounds(argumentBounds);
   }
 
-  private ValueBounds computeBounds(List<ValueBounds> argumentBounds) {
+  private ValueBounds computeBounds(List<ArgumentBounds> argumentBounds) {
 
     List<ValueBounds> recycledArguments = recycledArgumentBounds(argumentBounds);
 
@@ -80,13 +80,13 @@ public class DataParallelCall implements Specialization {
     return bounds.build();
   }
 
-  private int computeFlags(List<ValueBounds> argumentBounds) {
+  private int computeFlags(List<ArgumentBounds> argumentBounds) {
     assert !argumentBounds.isEmpty();
 
     // These properties are preserved if all arguments share them
     int flags = ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_NON_ZERO_LENGTH | ValueBounds.FLAG_LENGTH_ONE;
 
-    for (ValueBounds argumentBound : argumentBounds) {
+    for (ArgumentBounds argumentBound : argumentBounds) {
       flags &= argumentBound.getFlags();
     }
 
@@ -96,12 +96,12 @@ public class DataParallelCall implements Specialization {
   /**
    * Makes a list of {@link ValueBounds} for @Recycled arguments.
    */
-  private List<ValueBounds> recycledArgumentBounds(List<ValueBounds> argumentBounds) {
+  private List<ValueBounds> recycledArgumentBounds(List<ArgumentBounds> argumentBounds) {
     List<ValueBounds> list = Lists.newArrayList();
-    Iterator<ValueBounds> argumentIt = argumentBounds.iterator();
+    Iterator<ArgumentBounds> argumentIt = argumentBounds.iterator();
     for (JvmMethod.Argument formal : method.getFormals()) {
       if (formal.isRecycle()) {
-        list.add(argumentIt.next());
+        list.add(argumentIt.next().getBounds());
       }
     }
     return list;
@@ -144,7 +144,7 @@ public class DataParallelCall implements Specialization {
   }
 
   public Specialization specializeFurther() {
-    if(ValueBounds.allConstant(argumentBounds)) {
+    if(ValueBounds.allConstantArguments(argumentBounds)) {
       return evaluateConstant();
     }
 
@@ -152,10 +152,23 @@ public class DataParallelCall implements Specialization {
         resultBounds.hasNoAttributes()) {
 
       DoubleBinaryOp op = DoubleBinaryOp.trySpecialize(name, method, resultBounds);
-      if(op != null) {
+      if (op != null) {
         return op;
       }
       return new DataParallelScalarCall(method, argumentBounds, resultBounds).trySpecializeFurther();
+
+    } else if(method.getReturnType().equals(double.class) &&
+        method.getPositionalFormals().size() == 1 &&
+        method.getPositionalFormals().get(0).getClazz().equals(double.class)) {
+
+      return new DoubleUnaryArrayOp(method, argumentBounds, resultBounds);
+
+    } else if(method.getReturnType().equals(double.class) &&
+              method.getPositionalFormals().size() == 2 &&
+              method.getPositionalFormals().get(0).getClazz().equals(double.class) &&
+              method.getPositionalFormals().get(1).getClazz().equals(double.class)) {
+
+      return new DoubleBinaryArrayOp(method, argumentBounds, resultBounds);
     }
     return this;
   }
@@ -166,14 +179,14 @@ public class DataParallelCall implements Specialization {
 
     List<JvmMethod.Argument> formals = method.getAllArguments();
     Object[] args = new Object[formals.size()];
-    Iterator<ValueBounds> it = argumentBounds.iterator();
+    Iterator<ArgumentBounds> it = argumentBounds.iterator();
     int argIndex = 0;
     for (JvmMethod.Argument formal : formals) {
       if(formal.isContextual()) {
         throw new UnsupportedOperationException("in " + method +  ", " + "formal: " + formal);
       } else {
-        ValueBounds argument = it.next();
-        args[argIndex++] = ConstantCall.convert(argument.getConstantValue(), formal.getClazz());
+        ArgumentBounds argument = it.next();
+        args[argIndex++] = ConstantCall.convert(argument.getBounds().getConstantValue(), formal.getClazz());
       }
     }
 
@@ -208,7 +221,7 @@ public class DataParallelCall implements Specialization {
         mv.visitVarInsn(Opcodes.ALOAD, context.getEnvironmentVarIndex());
 
         for (IRArgument argument : arguments) {
-          argument.getExpression().getCompiledExpr(emitContext).loadSexp(emitContext, mv);
+          argument.getExpression().getCompiledExpr(context).loadSexp(context, mv);
         }
 
         mv.invokestatic(getWrapperInternalClassName(), "doApply",

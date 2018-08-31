@@ -22,53 +22,50 @@ package org.renjin.compiler.codegen.expr;
 
 import org.renjin.compiler.codegen.ConstantBytecode;
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.ir.TypeSet;
+import org.renjin.repackaged.asm.ByteVector;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
-public class ConstantExpr implements CompiledSexp {
+public class ConstantExpr {
 
-  private final SEXP sexp;
-
-  public ConstantExpr(SEXP sexp) {
-    this.sexp = sexp;
+  private ConstantExpr() {
   }
 
-  @Override
-  public void loadSexp(EmitContext context, InstructionAdapter mv) {
-    ConstantBytecode.pushConstant(mv, sexp);
-  }
+  public static CompiledSexp createConstantExpr(SEXP sexp) {
 
-  @Override
-  public void loadArray(EmitContext context, InstructionAdapter mv, VectorType vectorType) {
-    throw new UnsupportedOperationException("TODO");
-  }
+    if((sexp instanceof DoubleVector ||
+        sexp instanceof IntVector ||
+        sexp instanceof ByteVector ||
+        sexp instanceof StringVector) && sexp.length() == 1 && sexp.getAttributes().isEmpty()) {
 
-  @Override
-  public void loadLength(EmitContext context, InstructionAdapter mv) {
-    mv.visitLdcInsn(sexp.length());
-  }
-
-  @Override
-  public CompiledSexp elementAt(EmitContext context, CompiledSexp indexExpr) {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
-  public void loadScalar(EmitContext context, InstructionAdapter mv, VectorType vectorType) {
-    switch (vectorType) {
-      case BYTE:
-        mv.iconst(((Vector) sexp).getElementAsByte(0));
-        break;
-      case INT:
-        mv.iconst(((Vector) sexp).getElementAsInt(0));
-        break;
-      case DOUBLE:
-        mv.dconst(((Vector) sexp).getElementAsDouble(0));
-        break;
-      case STRING:
-        mv.aconst(((Vector) sexp).getElementAsString(0));
-        break;
+      VectorType vectorType = VectorType.of(TypeSet.of(sexp));
+      return new ScalarExpr(vectorType) {
+        @Override
+        public void loadScalar(EmitContext context, InstructionAdapter mv) {
+          switch (vectorType) {
+            case BYTE:
+              mv.iconst(((Vector) sexp).getElementAsByte(0));
+              break;
+            case INT:
+              mv.iconst(((Vector) sexp).getElementAsInt(0));
+              break;
+            case DOUBLE:
+              mv.dconst(((Vector) sexp).getElementAsDouble(0));
+              break;
+            case STRING:
+              mv.aconst(((Vector) sexp).getElementAsString(0));
+              break;
+          }
+        }
+      };
+    } else {
+      return new SexpExpr() {
+        @Override
+        public void loadSexp(EmitContext context, InstructionAdapter mv) {
+          ConstantBytecode.pushConstant(mv, sexp);
+        }
+      };
     }
   }
 }

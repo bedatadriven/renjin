@@ -28,6 +28,7 @@ import org.renjin.primitives.vector.ConvertingStringVector;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.sexp.*;
 
+import java.lang.invoke.MethodHandle;
 import java.util.Arrays;
 import java.util.function.Predicate;
 
@@ -779,5 +780,76 @@ public class Vectors {
     return bits.build();
   }
 
+  @CompilerSpecialization
+  public static double[] apply(MethodHandle method, double[] xa, double[] ya) throws Throwable {
+    if(xa.length == ya.length) {
+      int length = xa.length;
+      double[] result = new double[length];
+      for (int i = 0; i < length; i++) {
+        double x = xa[i];
+        double y = ya[i];
+        result[i] = (double)method.invokeExact(x, y);
+      }
+      return result;
+    } else {
+      throw new UnsupportedOperationException("TODO");
+    }
+  }
 
+  @CompilerSpecialization
+  public static double[] apply(MethodHandle method, double[] xa, double y) throws Throwable {
+    int length = xa.length;
+    double[] result = new double[length];
+    for (int i = 0; i < length; i++) {
+      double x = xa[i];
+      result[i] = (double)method.invokeExact(x, y);
+    }
+    return result;
+  }
+
+  @CompilerSpecialization
+  public static double apply(MethodHandle method, double x, double y) throws Throwable {
+    if(DoubleVector.isNA(x) || DoubleVector.isNA(y)) {
+      return DoubleVector.NA;
+    } else {
+      return (double) method.invokeExact(x, y);
+    }
+  }
+
+  @CompilerSpecialization
+  public static double apply(MethodHandle method, double x) throws Throwable {
+    if(DoubleVector.isNA(x)) {
+      return DoubleVector.NA;
+    } else {
+      return (double) method.invokeExact(x);
+    }
+  }
+
+  @CompilerSpecialization
+  public static int toInt(double x) {
+    if(Double.isNaN(x)) {
+      return IntVector.NA;
+    } else {
+      return (int) x;
+    }
+  }
+
+  @CompilerSpecialization
+  public static double toDouble(int x) {
+    if(IntVector.isNA(x)) {
+      return DoubleVector.NA;
+    } else {
+      return x;
+    }
+  }
+
+  @CompilerSpecialization
+  public static int[] toIntArray(int x) {
+    return new int[] { x };
+  }
+
+  @CompilerSpecialization
+  public static double[] toDoubleArray(double x) {
+    return new double[] { x };
+  }
 }

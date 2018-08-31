@@ -89,7 +89,7 @@ public final class Constant implements SimpleExpression {
 
   @Override
   public CompiledSexp getCompiledExpr(EmitContext emitContext) {
-    return new ConstantExpr(value);
+    return ConstantExpr.createConstantExpr(value);
   }
 
   @Override

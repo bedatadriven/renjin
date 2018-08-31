@@ -40,10 +40,10 @@ public class DataParallelScalarCall implements Specialization {
   private final ValueBounds valueBounds;
   private final boolean constant;
 
-  public DataParallelScalarCall(JvmMethod method, List<ValueBounds> argumentBounds, ValueBounds resultBounds) {
+  public DataParallelScalarCall(JvmMethod method, List<ArgumentBounds> argumentBounds, ValueBounds resultBounds) {
     this.method = method;
     this.valueBounds = resultBounds;
-    this.constant = ValueBounds.allConstant(argumentBounds);
+    this.constant = ValueBounds.allConstantArguments(argumentBounds);
   }
   
   public Specialization trySpecializeFurther() {
@@ -60,7 +60,7 @@ public class DataParallelScalarCall implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+  public CompiledSexp getCompiledExpr(EmitContext context, List<IRArgument> arguments) {
     return new ScalarExpr(vectorTypeOf(method.getReturnType())) {
       @Override
       public void loadScalar(EmitContext context, InstructionAdapter mv) {
@@ -71,8 +71,8 @@ public class DataParallelScalarCall implements Specialization {
             throw new UnsupportedOperationException("TODO");
 
           } else if(formal.isRecycle()) {
-            CompiledSexp argument = argumentIt.next().getExpression().getCompiledExpr(emitContext);
-            argument.loadAsArgument(emitContext, mv, formal.getClazz());
+            CompiledSexp argument = argumentIt.next().getExpression().getCompiledExpr(context);
+            argument.loadAsArgument(context, mv, formal.getClazz());
           }
         }
 

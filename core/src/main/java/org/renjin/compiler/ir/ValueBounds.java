@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.ir;
 
+import org.renjin.compiler.builtins.ArgumentBounds;
 import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.primitives.Identical;
 import org.renjin.primitives.sequence.IntSequence;
@@ -508,6 +509,14 @@ public class ValueBounds {
     return constantValue;
   }
 
+  public static boolean allConstantArguments(Iterable<ArgumentBounds> argumentTypes) {
+    for (ArgumentBounds argumentType : argumentTypes) {
+      if(!argumentType.getBounds().isConstant()) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   public static boolean allConstant(Iterable<ValueBounds> argumentTypes) {
     for (ValueBounds argumentType : argumentTypes) {

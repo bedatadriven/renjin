@@ -36,7 +36,7 @@ public class ConstantVar extends VariableStrategy {
 
   @Override
   public CompiledSexp getCompiledExpr() {
-    return new ConstantExpr(constantValue);
+    return ConstantExpr.createConstantExpr(constantValue);
   }
 
   @Override

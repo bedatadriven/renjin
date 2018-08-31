@@ -80,13 +80,13 @@ public class AnnotationBasedSpecializer implements BuiltinSpecializer {
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> namedArguments) {
     List<ValueBounds> arguments = ArgumentBounds.withoutNames(namedArguments);
-    JvmMethod method = selectOverload(arguments);
+    JvmMethod method = selectOverload(namedArguments);
     if(method == null) {
       return UnspecializedCall.INSTANCE;
     }
     
     if(method.isDataParallel()) {
-      return new DataParallelCall(primitive, method, arguments).specializeFurther();
+      return new DataParallelCall(primitive, method, namedArguments).specializeFurther();
     } else {
       if(StaticMethodCall.isEligible(method)) {
         return new StaticMethodCall(method).furtherSpecialize(arguments);
@@ -96,7 +96,7 @@ public class AnnotationBasedSpecializer implements BuiltinSpecializer {
     }
   }
 
-  private JvmMethod selectOverload(List<ValueBounds> argumentTypes) {
+  private JvmMethod selectOverload(List<ArgumentBounds> argumentTypes) {
     for (JvmMethod method : methods) {
       if(matches(method, argumentTypes)) {
         return method;
@@ -105,13 +105,13 @@ public class AnnotationBasedSpecializer implements BuiltinSpecializer {
     return null;
   }
 
-  private boolean matches(JvmMethod method, List<ValueBounds> argumentTypes) {
+  private boolean matches(JvmMethod method, List<ArgumentBounds> argumentTypes) {
     if(!arityMatches(method, argumentTypes)) {
       return false;
     }
     for (int i = 0; i < method.getPositionalFormals().size(); i++) {
       JvmMethod.Argument formal = method.getPositionalFormals().get(i);
-      ValueBounds actualType = argumentTypes.get(i);
+      ValueBounds actualType = argumentTypes.get(i).getBounds();
 
       if(!TypeSet.matches(formal.getClazz(), actualType.getTypeSet())) {
         return false;
@@ -120,7 +120,7 @@ public class AnnotationBasedSpecializer implements BuiltinSpecializer {
     return true;
   }
 
-  private boolean arityMatches(JvmMethod method, List<ValueBounds> argumentTypes) {
+  private boolean arityMatches(JvmMethod method, List<ArgumentBounds> argumentTypes) {
     int numPosArgs = method.getPositionalFormals().size();
     return (argumentTypes.size() == numPosArgs) ||
         (method.acceptsArgumentList() && (argumentTypes.size() >= numPosArgs));

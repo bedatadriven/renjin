@@ -55,7 +55,7 @@ public class ClassGenerator<T> implements Opcodes {
     this.className = "Body" + CLASS_COUNTER.getAndIncrement();
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
     cv = cw;
-    cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null,
+    cv.visit(V1_8, ACC_PUBLIC + ACC_SUPER, className, null,
         Type.getInternalName(Object.class), new String[] { Type.getInternalName(interfaceClass) });
 
     writeConstructor();

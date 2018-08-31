@@ -307,7 +307,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    * @throws AssertionError when active bindings are present.
    */
   public void setVariableUnsafe(String name, SEXP value) {
-    System.out.println("setVariableUnsafe(" + name + ")");
     if(StringVector.isNA(name)) {
       name = "NA";
     }

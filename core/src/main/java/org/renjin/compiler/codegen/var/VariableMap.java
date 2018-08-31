@@ -52,9 +52,9 @@ public class VariableMap {
 
   private VariableStrategy findBestStrategy(LValue variable, ValueBounds bounds) {
 
-//    if(bounds.isConstant()) {
-//      return new ConstantVar(bounds.getConstantValue());
-//    }
+    if(bounds.isConstant()) {
+      return new ConstantVar(bounds.getConstantValue());
+    }
 
     if(bounds.isConstantAttributes() && TypeSet.size(bounds.getTypeSet()) == 1) {
 
@@ -66,7 +66,7 @@ public class VariableMap {
       }
     }
 
-    return new SexpLocalVar(localVars.reserve(SexpLocalVar.SEXP_TYPE));
+    return new SexpLocalVar(variable, livenessCalculator, localVars.reserve(SexpLocalVar.SEXP_TYPE));
   }
 
   public VariableStrategy getStorage(LValue lhs) {

@@ -18,11 +18,14 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.codegen.BytecodeTypes;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.ArrayExpr;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.SexpExpr;
 import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.codegen.var.VariableStrategy;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.expressions.Expression;
@@ -39,15 +42,34 @@ import java.util.List;
 public class UpdateElementCall implements Specialization {
 
   private ArgumentBounds inputVector;
-  private ArgumentBounds subscript;
+  private ArgumentBounds[] subscript;
   private ArgumentBounds replacement;
   private final VectorType resultVectorType;
 
-  public UpdateElementCall(ArgumentBounds inputVector, ArgumentBounds subscript, ArgumentBounds replacement) {
+  public UpdateElementCall(ArgumentBounds inputVector, ArgumentBounds[] subscript, ArgumentBounds replacement) {
     this.inputVector = inputVector;
     this.subscript = subscript;
     this.replacement = replacement;
     this.resultVectorType = VectorType.of(inputVector.getBounds().getTypeSet());
+  }
+
+  public static UpdateElementCall trySpecialize(ArgumentBounds inputVector, ArgumentBounds[] subscript, ArgumentBounds replacement) {
+    int inputTypeSet = inputVector.getTypeSet();
+    if(!TypeSet.isSpecificAtomic(inputTypeSet)) {
+      return null;
+    }
+    int resultTypeSet = TypeSet.widestVectorType(inputTypeSet, replacement.getTypeSet());
+    if(resultTypeSet != inputTypeSet) {
+      return null;
+    }
+    for (int i = 0; i < subscript.length; i++) {
+      ValueBounds subscriptBounds = subscript[i].getBounds();
+      if(!subscriptBounds.isFlagSet(ValueBounds.FLAG_LENGTH_ONE) ||
+          !TypeSet.isDefinitelyNumeric(subscriptBounds.getTypeSet())) {
+        return null;
+      }
+    }
+    return new UpdateElementCall(inputVector, subscript, replacement);
   }
 
   public ValueBounds getResultBounds() {
@@ -67,35 +89,65 @@ public class UpdateElementCall implements Specialization {
     boolean mutableSource = emitContext.isSafelyMutable(statement, source);
 
     VariableStrategy lhs = emitContext.getVariable(statement.getLHS());
-    CompiledSexp rhs = getCompiledExpr(emitContext, arguments, mutableSource);
+    CompiledSexp rhs = getCompiledExpr(emitContext, mutableSource);
 
     lhs.store(emitContext, mv, rhs);
   }
 
   @Override
   public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
-    return getCompiledExpr(emitContext, arguments, false);
+    return getCompiledExpr(emitContext, false);
   }
 
-  private CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments, boolean mutableSource) {
+  private CompiledSexp getCompiledExpr(EmitContext emitContext, boolean mutableSource) {
     CompiledSexp compiledSource = inputVector.getCompiledExpr(emitContext);
-    CompiledSexp subscript = this.subscript.getCompiledExpr(emitContext);
     CompiledSexp replacement = this.replacement.getCompiledExpr(emitContext);
 
-    return new ArrayExpr(resultVectorType) {
-      @Override
-      public void loadArray(EmitContext context, InstructionAdapter mv, VectorType vectorType) {
-        compiledSource.loadArray(context, mv, resultVectorType);
-        subscript.loadScalar(context, mv, VectorType.INT);
-        replacement.loadScalar(context, mv, resultVectorType);
+    final String methodName = mutableSource ? "setElementMutating" : "setElement";
 
-        mv.invokestatic(Type.getInternalName(Subsetting.class),
-            mutableSource ? "setElementMutating" : "setElement",
-            Type.getMethodDescriptor(resultVectorType.getJvmArrayType(),
-                resultVectorType.getJvmArrayType(),
-                Type.INT_TYPE,
-                resultVectorType.getJvmType()), false);
-      }
-    };
+    if(compiledSource instanceof ArrayExpr) {
+
+      return new ArrayExpr(resultVectorType) {
+        @Override
+        public void loadArray(EmitContext context, InstructionAdapter mv, VectorType vectorType) {
+          compiledSource.loadArray(context, mv, resultVectorType);
+          for (int i = 0; i < subscript.length; i++) {
+            subscript[i].getCompiledExpr(emitContext).loadScalar(context, mv, VectorType.INT);
+          }
+          replacement.loadScalar(context, mv, resultVectorType);
+
+          mv.invokestatic(Type.getInternalName(Subsetting.class),
+              methodName,
+              signature(resultVectorType.getJvmArrayType(), resultVectorType), false);
+        }
+      };
+    } else {
+      return new SexpExpr() {
+        @Override
+        public void loadSexp(EmitContext context, InstructionAdapter mv) {
+          compiledSource.loadSexp(context, mv);
+          for (int i = 0; i < subscript.length; i++) {
+            subscript[i].getCompiledExpr(emitContext).loadScalar(context, mv, VectorType.INT);
+          }
+          replacement.loadScalar(context, mv, resultVectorType);
+
+          mv.invokestatic(Type.getInternalName(Subsetting.class),
+              methodName,
+              signature(BytecodeTypes.SEXP_TYPE, resultVectorType), false);
+        }
+      };
+    }
+  }
+
+  private String signature(Type inputType, VectorType vectorType) {
+
+    Type[] argumentTypes = new Type[1 + subscript.length + 1];
+    argumentTypes[0] = inputType;
+    for (int i = 0; i < subscript.length; i++) {
+      argumentTypes[i + 1] = Type.INT_TYPE;
+    }
+    argumentTypes[1 + subscript.length] = vectorType.getJvmType();
+
+    return Type.getMethodDescriptor(inputType, argumentTypes);
   }
 }

@@ -20,8 +20,7 @@
 
 package org.renjin.compiler.cfg;
 
-import org.renjin.compiler.ir.tac.statements.GotoStatement;
-import org.renjin.compiler.ir.tac.statements.ReturnStatement;
+import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.Statement;
 
 import java.util.*;
@@ -42,9 +41,11 @@ public class DeadCodeElimination {
     Set<Statement> live = new HashSet<>();
 
     for (BasicBlock basicBlock : cfg.getBasicBlocks()) {
-      for (Statement statement : basicBlock.getStatements()) {
-        if(statement instanceof ReturnStatement) {
-          live.add(statement);
+      if(basicBlock.isLive()) {
+        for (Statement statement : basicBlock.getStatements()) {
+          if (!statement.isPure()) {
+            live.add(statement);
+          }
         }
       }
     }
@@ -61,7 +62,7 @@ public class DeadCodeElimination {
       }
 
       for (BasicBlock b : controlDependencePredecessors(s.getBasicBlock())) {
-        if(b != cfg.getEntry()) {
+        if(!b.getStatements().isEmpty()) {
           Statement last = b.getTerminal();
           if (live.add(last)) {
             workList.add(last);
@@ -72,20 +73,11 @@ public class DeadCodeElimination {
 
     for (BasicBlock basicBlock : cfg.getBasicBlocks()) {
       ListIterator<Statement> it = basicBlock.getStatements().listIterator();
-      boolean blockIsLive = false;
       while(it.hasNext()) {
         Statement s = it.next();
-        if(s instanceof GotoStatement) {
-          if(!blockIsLive) {
-            it.remove();
-          }
-        } else {
-          if (live.contains(s)) {
-            blockIsLive = true;
-          } else {
-            System.out.println("REMOVING: " + s);
-            it.remove();
-          }
+        if (!live.contains(s)) {
+          System.out.println("REMOVING: " + s);
+          it.remove();
         }
       }
     }
@@ -99,7 +91,10 @@ public class DeadCodeElimination {
   private Iterable<Statement> definers(Statement s) {
     List<Statement> definers = new ArrayList<>();
     s.forEachVariableUsed(v -> {
-      definers.add(useDefMap.getDefinition(v));
+      Assignment definer = useDefMap.getDefinition(v);
+      if(definer != null) {
+        definers.add(definer);
+      }
     });
     return definers;
   }

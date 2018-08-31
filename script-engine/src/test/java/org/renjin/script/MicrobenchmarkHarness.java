@@ -59,7 +59,7 @@ public class MicrobenchmarkHarness {
 
     Stopwatch started = Stopwatch.createStarted();
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 10; i++) {
       session.getTopLevelContext().evaluate(call);
     }
 

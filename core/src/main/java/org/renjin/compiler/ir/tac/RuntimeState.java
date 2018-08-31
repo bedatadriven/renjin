@@ -150,6 +150,13 @@ public class RuntimeState {
         if(promisedValue.isEvaluated()) {
           value = promisedValue.force(context);
 
+        } else if(promisedValue.getExpression() instanceof Symbol) {
+          // For simple expressions like a Symbol, we may still be able to resolve
+          // the expression without side effects....
+          value = findVariableWithoutSideEffects(context,
+              promisedValue.getEnvironment(),
+              (Symbol)promisedValue.getExpression(), findFunction);
+
         } else {
           // Promises can have side effects, and evaluation order is important
           // so we can't just force all the promises in the beginning of the loop

@@ -160,4 +160,9 @@ public class ReturnStatement extends Statement implements BasicBlockEndingStatem
     }
     return s.toString();
   }
+
+  public void removeEnvironmentVariable(int index) {
+    environmentVariableNames.remove(index);
+    environmentVariables.remove(index);
+  }
 }

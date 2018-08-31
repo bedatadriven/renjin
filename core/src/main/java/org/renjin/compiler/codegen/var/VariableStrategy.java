@@ -30,9 +30,11 @@ import org.renjin.repackaged.asm.commons.InstructionAdapter;
  */
 public abstract class VariableStrategy {
 
+
   public abstract CompiledSexp getCompiledExpr();
 
   public abstract void store(EmitContext emitContext, InstructionAdapter mv, CompiledSexp compiledSexp);
+
 
   /**
    * @return true if this variable is "live out" at the given {@code statement}. In other words, can we

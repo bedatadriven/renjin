@@ -243,7 +243,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
         "  }",
         "}"));
 
-    assertThat(eval("i"), elementsIdenticalTo(300L));
+    assertThat(eval("i"), elementsIdenticalTo(c_i(300)));
   }
 
   @Test

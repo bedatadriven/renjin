@@ -334,7 +334,6 @@ public class Subsetting {
     return setSubset(context, source, (Vector) replacement, Arrays.asList(subscript1, subscript2));
   }
 
-
   private static SEXP setSubset(Context context, SEXP source, Vector replacement, List<SEXP> subscripts) {
     SelectionStrategy selection = Selections.parseSelection(source, subscripts);
 
@@ -505,15 +504,75 @@ public class Subsetting {
   /**
    * Optimized version of {@code setElement} for SEXPs compiled to arrays
    */
+  @CompilerSpecialization
   public static double[] setElement(double[] vector, int index, double value) {
+    if(index <= 0) {
+      return vector;
+    }
     double[] copy = Arrays.copyOf(vector, vector.length);
     copy[index - 1] = value;
     return copy;
   }
 
+  @CompilerSpecialization
   public static double[] setElementMutating(double[] vector, int index, double value) {
-    vector[index - 1] = value;
-    return vector;
+    if(index <= 0) {
+      return vector;
+    }
+    if(index <= vector.length) {
+      vector[index - 1] = value;
+      return vector;
+    }
+    return setElement(vector, index, value);
+  }
+
+  @CompilerSpecialization
+  public static SEXP setElementMutating(SEXP matrixSexp, int row, int column, double value) {
+    if(row <= 0 || column <= 0) {
+      return matrixSexp;
+    }
+
+    DoubleArrayVector matrix;
+    double[] array;
+    if(matrixSexp instanceof DoubleArrayVector) {
+      matrix = (DoubleArrayVector) matrixSexp;
+      array = matrix.toDoubleArrayUnsafe();
+    } else {
+      array = ((DoubleVector) matrixSexp).toDoubleArray();
+      matrix = DoubleArrayVector.unsafe(array, matrixSexp.getAttributes());
+    }
+
+    int[] dim = matrix.getAttributes().getDimArray();
+    int numRows = dim[0];
+
+    array[(column-1) * numRows + (row-1)] = value;
+
+    return matrix;
+  }
+
+
+  /**
+   *
+   * @param matrixSexp an SEXP of type {@code double}
+   * @param rowIndex 1-based row index
+   * @return an array containing the matrix row
+   */
+  @CompilerSpecialization
+  public static double[] getMatrixRow(SEXP matrixSexp, int rowIndex) {
+    assert rowIndex >= 1;
+
+    DoubleVector matrix = (DoubleVector) matrixSexp;
+    int[] dim = matrix.getAttributes().getDimArray();
+    int numRows = dim[0];
+    int numCols = dim[1];
+
+    double[] row = new double[numCols];
+    int i = rowIndex - 1;
+    for (int colIndex = 0; colIndex < numCols; colIndex++) {
+      row[colIndex] = matrix.getElementAsDouble(i);
+      i += numRows;
+    }
+    return row;
   }
 
 

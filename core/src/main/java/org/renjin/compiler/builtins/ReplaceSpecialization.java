@@ -90,12 +90,13 @@ public class ReplaceSpecialization implements Specialization {
 
         mv.visitVarInsn(Opcodes.ALOAD, context.getContextVarIndex());
 
-        inputVector.getCompiledExpr(context).loadSexp(context, mv);
+        CompiledSexp inputExpr = inputVector.getCompiledExpr(context);
+        inputExpr.loadSexp(context, mv);
         for (int i = 0; i < subscripts.length; i++) {
           subscripts[i].getCompiledExpr(context).loadSexp(context, mv);
         }
-
         replacement.getCompiledExpr(context).loadSexp(context, mv);
+
 
         mv.invokestatic(Type.getInternalName(Subsetting.class), "setSubset", signature(), false);
       }

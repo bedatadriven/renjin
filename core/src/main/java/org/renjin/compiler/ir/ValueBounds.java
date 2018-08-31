@@ -581,7 +581,7 @@ public class ValueBounds {
     for (Symbol symbol : attributes.names()) {
       SEXP expectedAttribute = this.attributes.get(symbol);
       if(expectedAttribute == null) {
-        if(!attributesOpen) {
+        if(!this.attributes.containsKey(symbol) && !attributesOpen) {
           return false;
         }
       } else {

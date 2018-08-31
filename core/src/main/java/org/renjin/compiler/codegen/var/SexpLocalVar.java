@@ -20,9 +20,11 @@
 
 package org.renjin.compiler.codegen.var;
 
+import org.renjin.compiler.cfg.LivenessCalculator;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.SexpExpr;
+import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -32,13 +34,13 @@ import org.renjin.sexp.SEXP;
  * Stores an SEXP as a reference to a {@link org.renjin.sexp.SEXP} as
  * a JVM local variable
  */
-public class SexpLocalVar extends VariableStrategy {
+public class SexpLocalVar extends AbstractMutableVar {
 
   public static final Type SEXP_TYPE = Type.getType(SEXP.class);
-
   private final int index;
 
-  public SexpLocalVar(int varIndex) {
+  public SexpLocalVar(LValue variable, LivenessCalculator livenessCalculator, int varIndex) {
+    super(variable, livenessCalculator);
     this.index = varIndex;
   }
 
@@ -57,4 +59,5 @@ public class SexpLocalVar extends VariableStrategy {
     compiledSexp.loadSexp(emitContext, mv);
     mv.visitVarInsn(Opcodes.ASTORE, index);
   }
+
 }

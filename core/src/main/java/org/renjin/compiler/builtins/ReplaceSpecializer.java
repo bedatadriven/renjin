@@ -18,7 +18,6 @@
  */
 package org.renjin.compiler.builtins;
 
-import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
 
 import java.util.List;
@@ -50,18 +49,9 @@ public class ReplaceSpecializer implements Specializer, BuiltinSpecializer {
       subscripts[i - 1] = arguments.get(i);
     }
 
-//    if(subscripts.length > 1) {
-//      // Matrix replacements are a bit easier because it never changes the shape
-//      // of the input source.
-//      return new MatrixReplacement(inputVector, subscripts, replacement);
-//    }
-
-    if(subscripts.length == 1 &&
-        subscripts[0].getBounds().isFlagSet(ValueBounds.FLAG_LENGTH_ONE) &&
-        replacement.getBounds().isFlagSet(ValueBounds.FLAG_LENGTH_ONE) &&
-        inputVector.getBounds().getTypeSet() == replacement.getBounds().getTypeSet()) {
-
-      return new UpdateElementCall(inputVector, subscripts[0], replacement);
+    UpdateElementCall updateElementCall = UpdateElementCall.trySpecialize(inputVector, subscripts, replacement);
+    if(updateElementCall != null) {
+      return updateElementCall;
     }
 
     return new ReplaceSpecialization(inputVector, subscripts, replacement);

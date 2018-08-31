@@ -35,9 +35,7 @@ public class LiveSetTest extends CompilerTestCase {
     ControlFlowGraph cfg = new ControlFlowGraph(body);
     cfg.dumpGraph();
 
-    DominanceTree tree = new DominanceTree(cfg);
-    
-    SsaTransformer transformer = new SsaTransformer(cfg, tree);
+    SsaTransformer transformer = new SsaTransformer(cfg);
     transformer.transform();
 
     System.out.println(cfg);

@@ -22,7 +22,6 @@ import org.renjin.compiler.ir.tac.TreeNode;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.compiler.ir.tac.statements.Assignment;
-import org.renjin.compiler.ir.tac.statements.ReturnStatement;
 import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.repackaged.guava.collect.HashMultimap;
 import org.renjin.repackaged.guava.collect.Maps;
@@ -90,12 +89,6 @@ public class UseDefMap {
             if(uses instanceof LValue) {
               addUse(basicBlock, statement, (LValue)uses);
             }
-          }
-        }
-        if(statement instanceof ReturnStatement) {
-          ReturnStatement returnStatement = (ReturnStatement) statement;
-          for (Expression expression : returnStatement.getEnvironmentVariables()) {
-            addUse(basicBlock, statement, (LValue)expression);
           }
         }
       }

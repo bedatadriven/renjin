@@ -47,7 +47,7 @@ public class ReadEnvironment implements Expression {
 
   @Override
   public boolean isPure() {
-    return false;
+    return true;
   }
 
   @Override
@@ -95,6 +95,6 @@ public class ReadEnvironment implements Expression {
 
   @Override
   public String toString() {
-    return "read(" + name + " = " + valueBounds + ")";
+    return "readEnv(" + name + " = " + valueBounds + ")";
   }
 }

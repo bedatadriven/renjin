@@ -37,7 +37,7 @@ public class ForFunction extends SpecialFunction {
   public static boolean FAIL_ON_COMPILATION_ERROR = false;
   
   private static final int COMPILE_THRESHOLD = 200;
-  private static final int WARMUP_ITERATIONS = 3;
+  private static final int WARMUP_ITERATIONS = 0;
 
   public ForFunction() {
     super("for");

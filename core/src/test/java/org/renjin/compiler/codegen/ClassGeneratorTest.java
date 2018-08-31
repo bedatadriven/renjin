@@ -67,7 +67,7 @@ public class ClassGeneratorTest {
     DominanceTree dTree = new DominanceTree(cfg);
     dTree.dumpGraph();
 
-    SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);
+    SsaTransformer ssaTransformer = new SsaTransformer(cfg);
     ssaTransformer.transform();
 
     System.out.println(cfg);

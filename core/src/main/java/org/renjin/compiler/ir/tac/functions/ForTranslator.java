@@ -24,8 +24,8 @@ import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.*;
 import org.renjin.compiler.ir.tac.statements.Assignment;
-import org.renjin.compiler.ir.tac.statements.GotoStatement;
 import org.renjin.compiler.ir.tac.statements.IfStatement;
+import org.renjin.compiler.ir.tac.statements.NoopStatement;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
@@ -66,20 +66,19 @@ public class ForTranslator extends FunctionCallTranslator {
 
     Variable elementVariable = factory.getEnvironmentVariable(symbol);
 
-
     SEXP body = call.getArgument(2);
 
-    IRLabel counterLabel = factory.newLabel();
     IRLabel bodyLabel = factory.newLabel();
     IRLabel nextLabel = factory.newLabel();
+    IRLabel noLoopLabel = factory.newLabel();
     IRLabel exitLabel = factory.newLabel();
 
     factory.addStatement(new Assignment(length, new BuiltinCall(factory.getRuntimeState(), "length",
         new LengthSpecializer(), Collections.singletonList(new IRArgument(vector)))));
 
-    // check the counter and potentially loop
-    factory.addLabel(counterLabel);
-    factory.addStatement(new IfStatement(new CmpGE(counter, length), exitLabel, bodyLabel));
+    // In order to avoid updating the enclosing environment at each loop iteration,
+    // we need an extra check to see whether the loop is executed at all
+    factory.addStatement(new IfStatement(new EqZero(length), noLoopLabel, bodyLabel));
 
     // start the body here
     factory.addLabel(bodyLabel);
@@ -91,8 +90,13 @@ public class ForTranslator extends FunctionCallTranslator {
     // increment the counter
     factory.addLabel(nextLabel);
     factory.addStatement(new Assignment(counter, new IncrementCounter(counter)));
-    factory.addStatement(new GotoStatement(counterLabel));
+
+    // check the counter and potentially loop
+    factory.addStatement(new IfStatement(new CmpGE(counter, length), exitLabel, bodyLabel));
 
     factory.addLabel(exitLabel);
+    factory.addStatement(new NoopStatement());
+
+    factory.addLabel(noLoopLabel);
   }
 }

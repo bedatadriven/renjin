@@ -56,6 +56,7 @@ public class RuntimeState {
    */
   private Map<Symbol, Function> resolvedFunctions = Maps.newHashMap();
 
+
   /**
    * Creates a new {@code RuntimeState} for an arbitrary execution environment.
    * @param context

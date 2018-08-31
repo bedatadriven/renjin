@@ -145,6 +145,9 @@ public class BasicBlock {
   }
   
   public boolean fallsThrough() {
+    if(statements.isEmpty()) {
+      return true;
+    }
     Statement terminal = getTerminal();
     return !( terminal instanceof GotoStatement ||
               terminal instanceof IfStatement ||

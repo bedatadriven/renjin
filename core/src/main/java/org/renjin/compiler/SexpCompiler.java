@@ -18,7 +18,10 @@
  */
 package org.renjin.compiler;
 
-import org.renjin.compiler.cfg.*;
+import org.renjin.compiler.cfg.BasicBlock;
+import org.renjin.compiler.cfg.ControlFlowGraph;
+import org.renjin.compiler.cfg.DeadCodeElimination;
+import org.renjin.compiler.cfg.UseDefMap;
 import org.renjin.compiler.codegen.ClassGenerator;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.InlineEmitContext;
@@ -55,27 +58,27 @@ public class SexpCompiler {
   private final IRBody body;
 
   private final ControlFlowGraph cfg;
-  private final DominanceTree dominanceTree;
   private final UseDefMap useDefMap;
   private final TypeSolver types;
   private final SsaTransformer ssaTransformer;
 
-  public SexpCompiler(RuntimeState runtimeState, IRBody body) {
+  public SexpCompiler(RuntimeState runtimeState, IRBody body, boolean environmentVisible) {
     this.runtimeState = runtimeState;
     this.body = body;
 
     cfg = new ControlFlowGraph(body);
     cfg.dumpGraph();
 
-
-
-    dominanceTree = new DominanceTree(cfg);
-
-    ssaTransformer = new SsaTransformer(cfg, dominanceTree);
-    ssaTransformer.transform();
-
+    ssaTransformer = new SsaTransformer(cfg);
+    if(environmentVisible) {
+      ssaTransformer.insertEnvironmentUpdates();
+    }
     System.out.println(cfg);
 
+    ssaTransformer.transform();
+
+    System.out.println("AFTER SSA TRANSFORM ===================");
+    System.out.println(cfg);
 
     useDefMap = new UseDefMap(cfg);
 
@@ -94,7 +97,7 @@ public class SexpCompiler {
     IRBody body = builder.buildLoopBody(call, sequenceBounds);
 
 
-    SexpCompiler compiler = new SexpCompiler(runtimeState, body);
+    SexpCompiler compiler = new SexpCompiler(runtimeState, body, true);
     CompiledLoopBody compiledLoopBody = compiler.compileForLoopBody();
 
     return new CachedLoopBody(compiledLoopBody, sequenceBounds, runtimeState.getAssumptions());
@@ -116,18 +119,18 @@ public class SexpCompiler {
     RuntimeState runtimeState = new RuntimeState(context, rho);
     IRBody body = new IRBodyBuilder(runtimeState).build(expression);
 
-    SexpCompiler compiler = new SexpCompiler(runtimeState, body);
+    SexpCompiler compiler = new SexpCompiler(runtimeState, body, true);
     CompiledBody compiledBody = compiler.compileBody();
 
     return new CachedBody(compiledBody, runtimeState.getAssumptions());
   }
 
-  private void solveAndFinalize() {
+  private void compileForBody() {
+
     types.execute();
     types.dumpBounds();
     types.verifyFunctionAssumptions(runtimeState);
     lowerSSA();
-
   }
 
   private void lowerSSA() {
@@ -136,13 +139,15 @@ public class SexpCompiler {
     dce.run();
 
     ssaTransformer.removePhiFunctions(types);
+
+    System.out.println("FINAL CFG =============== ");
+    System.out.println(cfg);
   }
 
   private CompiledLoopBody compileForLoopBody() throws IllegalAccessException, InstantiationException {
 
-    solveAndFinalize();
+    compileForBody();
 
-    System.out.println(cfg);
 
     LocalVarAllocator localVars = new LocalVarAllocator(CompiledLoopBody.PARAM_SIZE);
     VariableMap variableMap = new VariableMap(cfg, localVars, types, useDefMap);
@@ -162,7 +167,7 @@ public class SexpCompiler {
   }
 
   private CompiledBody compileBody() throws IllegalAccessException, InstantiationException {
-    solveAndFinalize();
+    compileForBody();
 
     LocalVarAllocator localVars = new LocalVarAllocator(CompiledBody.PARAM_SIZE);
     VariableMap variableMap = new VariableMap(cfg, localVars, types, useDefMap);

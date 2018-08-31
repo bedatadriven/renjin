@@ -20,7 +20,6 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
-import org.renjin.compiler.ir.IRFormatting;
 
 
 /**
@@ -28,7 +27,7 @@ import org.renjin.compiler.ir.IRFormatting;
  * A temporary value can only be assigned once, so it is not
  * have to be processed by the SSA transformation
  */
-public class Temp extends LValue {
+public class Temp extends Variable {
   
   private static final String TAO = "τ";
   
@@ -40,9 +39,7 @@ public class Temp extends LValue {
 
   @Override 
   public String toString() {
-    StringBuilder sb = new StringBuilder(TAO);
-    IRFormatting.appendSubscript(sb, index+1);
-    return sb.toString();
+    return "T" + (index+1);
   }
 
   @Override

@@ -65,7 +65,7 @@ public class InlinedFunction {
     IRBodyBuilder builder = new IRBodyBuilder(runtimeState);
     IRBody body = builder.buildFunctionBody(closure, arguments);
 
-    compiler = new SexpCompiler(runtimeState, body);
+    compiler = new SexpCompiler(runtimeState, body, false);
     params = body.getParams();
 
     for (Statement statement : body.getStatements()) {

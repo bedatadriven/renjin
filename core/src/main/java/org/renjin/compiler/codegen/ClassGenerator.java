@@ -128,9 +128,8 @@ public class ClassGenerator<T> implements Opcodes {
 
 
   public InstructionAdapter addBodyMethod() {
-    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "run",
-        getMethodDescriptor(Type.getType(SEXP.class), getType(Context.class), getType(Environment.class),
-            getType(SEXP.class), Type.INT_TYPE),
+    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "evaluate",
+        getMethodDescriptor(Type.getType(SEXP.class), getType(Context.class), getType(Environment.class)),
         null, null);
 
     return new InstructionAdapter(mv);

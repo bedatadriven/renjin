@@ -63,7 +63,7 @@ public class SsaTransformTest extends CompilerTestCase {
     DominanceTree dtree = new DominanceTree(cfg);
     System.out.println(dtree);
 
-    SsaTransformer transformer = new SsaTransformer(cfg, dtree);
+    SsaTransformer transformer = new SsaTransformer(cfg);
     transformer.transform();
 
 
@@ -99,7 +99,7 @@ public class SsaTransformTest extends CompilerTestCase {
     System.out.println("Dominance Tree:");  
     System.out.println(dtree);
     
-    SsaTransformer transformer = new SsaTransformer(cfg, dtree);
+    SsaTransformer transformer = new SsaTransformer(cfg);
     transformer.transform();
      
   }
@@ -110,7 +110,7 @@ public class SsaTransformTest extends CompilerTestCase {
 
     ControlFlowGraph cfg = new ControlFlowGraph(block);
     DominanceTree dtree = new DominanceTree(cfg);
-    SsaTransformer transformer = new SsaTransformer(cfg, dtree);
+    SsaTransformer transformer = new SsaTransformer(cfg);
     transformer.transform();
     
     System.out.println(cfg);
@@ -122,7 +122,7 @@ public class SsaTransformTest extends CompilerTestCase {
     IRBody block = buildBody("x <- 1; for(i in 1:2) { x<-x+1 }; x;");
     ControlFlowGraph cfg = new ControlFlowGraph(block);
     DominanceTree dtree = new DominanceTree(cfg);
-    SsaTransformer transformer = new SsaTransformer(cfg, dtree);
+    SsaTransformer transformer = new SsaTransformer(cfg);
     transformer.transform();
 
     System.out.println(cfg);

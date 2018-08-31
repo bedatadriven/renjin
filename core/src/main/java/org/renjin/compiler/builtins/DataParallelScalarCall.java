@@ -89,6 +89,8 @@ public class DataParallelScalarCall implements Specialization {
       return VectorType.DOUBLE;
     } else if(returnType.equals(byte.class)) {
       return VectorType.BYTE;
+    } else if(returnType.equals(boolean.class)) {
+      return VectorType.LOGICAL;
     }
     throw new UnsupportedOperationException("TODO: " + returnType.getSimpleName());
   }

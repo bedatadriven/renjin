@@ -80,8 +80,7 @@ public class IRBodyBuilder {
     System.out.println(statements);
 
     insertVariableInitializations();
-    updateVariableReturn();
-    
+
     return new IRBody(statements, labels);
   }
   
@@ -101,10 +100,9 @@ public class IRBodyBuilder {
 
     addStatement(new ReturnStatement(new Constant(Null.INSTANCE)));
     
-    removeRedundantJumps();
+//    removeRedundantJumps();
     insertVariableInitializations();
-    updateVariableReturn();
-    
+
     return new IRBody(statements, labels);
   }
   
@@ -166,16 +164,6 @@ public class IRBodyBuilder {
                defaultValue instanceof FunctionCall);
     
   }
-
-  private void updateVariableReturn() {
-
-    for (Statement statement : statements) {
-      if(statement instanceof ReturnStatement) {
-        ((ReturnStatement) statement).addEnvironmentVariables(variables.values());
-      }
-    }
-  }
-
 
   private void insertVariableInitializations() {
     // For every variable that comes from the environment, 

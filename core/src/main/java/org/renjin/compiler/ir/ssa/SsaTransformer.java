@@ -21,15 +21,14 @@ package org.renjin.compiler.ir.ssa;
 import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.cfg.*;
 import org.renjin.compiler.ir.tac.TreeNode;
-import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.LValue;
-import org.renjin.compiler.ir.tac.expressions.Variable;
+import org.renjin.compiler.ir.tac.expressions.*;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.repackaged.guava.collect.Sets;
+import org.renjin.sexp.Symbol;
 
 import java.util.*;
 
@@ -42,21 +41,73 @@ public class SsaTransformer {
 
   private ControlFlowGraph cfg;
   private DominanceTree dtree;
+  private final DominanceTree rdt;
 
   private Map<Variable, Integer> C = Maps.newHashMap();
   private Map<Variable, Stack<Integer>> S = Maps.newHashMap();
   private Set<Variable> allVariables;
 
-  public SsaTransformer(ControlFlowGraph cfg, DominanceTree dtree) {
+  public SsaTransformer(ControlFlowGraph cfg) {
     super();
     this.cfg = cfg;
-    this.dtree = dtree;
+    this.dtree = new DominanceTree(cfg);
+    this.rdt = new DominanceTree(new ReverseControlFlowGraph(cfg));
+    this.rdt.dumpGraph();
     this.allVariables = allVariables();
   }
 
   public void transform() {
     insertPhiFunctions();
     renameVariables();
+  }
+
+  public void insertEnvironmentUpdates() {
+    Collection<BasicBlock> returningBlocks = rdt.getChildren(cfg.getExit());
+    for (BasicBlock returningBlock : returningBlocks) {
+      if (returningBlock != cfg.getEntry()) {
+        insertEnvironmentUpdates(returningBlock, returningBlock, Collections.emptySet());
+      }
+    }
+  }
+
+  private void insertEnvironmentUpdates(BasicBlock target, BasicBlock block, Set<Symbol> alreadyInserted) {
+
+    Set<Symbol> inserted = Sets.newHashSet(alreadyInserted);
+
+    List<Statement> statements = block.getStatements();
+    List<Statement> updates = new ArrayList<>();
+
+    for (int i = statements.size() - 1; i >= 0; i--) {
+      Statement statement = statements.get(i);
+      if (statement instanceof Assignment) {
+        Assignment assignment = (Assignment) statement;
+        if (assignment.getLHS() instanceof EnvironmentVariable) {
+          EnvironmentVariable var = (EnvironmentVariable) assignment.getLHS();
+          if(!(assignment.getRHS() instanceof ReadEnvironment)) {
+            Symbol name = var.getName();
+            if (inserted.add(name)) {
+              updates.add(new UpdateEnvironment(name, var));
+            }
+          }
+        }
+      }
+    }
+
+    if(target.fallsThrough()) {
+      target.getStatements().addAll(updates);
+    } else {
+      target.getStatements().addAll(target.getStatements().size() - 1, updates);
+    }
+
+
+    Collection<BasicBlock> successors = rdt.getChildren(block);
+    for (BasicBlock successor : successors) {
+      if(successors.size() > 1) {
+        insertEnvironmentUpdates(successor, successor, inserted);
+      } else {
+        insertEnvironmentUpdates(target, successor, inserted);
+      }
+    }
   }
 
   /**
@@ -237,6 +288,7 @@ public class SsaTransformer {
     throw new IllegalArgumentException("X is not a predecessor of Y");
   }
 
+
   public void removePhiFunctions(TypeSolver types) {
     for(BasicBlock bb : cfg.getBasicBlocks()) {
       if (bb != cfg.getExit()) {
@@ -264,14 +316,11 @@ public class SsaTransformer {
     for (int i = 0; i < phi.getArguments().size(); i++) {
       SsaVariable variable = (SsaVariable)phi.getArgument(i);
 
-      if(variable.getVersion() == 0) {
-        cfg.getEntry().addStatement(new Assignment(lhs, variable));
-      } else {
-        FlowEdge incoming = phi.getIncomingEdges().get(i);
-        BasicBlock definingBlock = incoming.getPredecessor();
-        definingBlock.addStatementBeforeJump(new Assignment(lhs, variable));
-      }
+      FlowEdge incoming = phi.getIncomingEdges().get(i);
+      BasicBlock definingBlock = incoming.getPredecessor();
+      definingBlock.addStatementBeforeJump(new Assignment(lhs, variable));
     }
   }
+
 
 }

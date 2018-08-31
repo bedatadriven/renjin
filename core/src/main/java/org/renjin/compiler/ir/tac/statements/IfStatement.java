@@ -23,6 +23,7 @@ import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.CmpGE;
+import org.renjin.compiler.ir.tac.expressions.EqZero;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -138,7 +139,12 @@ public class IfStatement extends Statement implements BasicBlockEndingStatement 
       mv.visitJumpInsn(GOTO, emitContext.getBytecodeLabel(falseTarget));
     }
 
-    if(condition instanceof CmpGE) {
+    if(condition instanceof EqZero) {
+      EqZero check = (EqZero) condition;
+      check.childAt(0).getCompiledExpr(emitContext).loadScalar(emitContext, mv, VectorType.INT);
+      mv.visitJumpInsn(IFEQ, emitContext.getBytecodeLabel(trueTarget));
+      mv.visitJumpInsn(GOTO, emitContext.getBytecodeLabel(falseTarget));
+    } else if(condition instanceof CmpGE) {
       CmpGE comparison = (CmpGE) condition;
       comparison.childAt(0).getCompiledExpr(emitContext).loadScalar(emitContext, mv, VectorType.INT);
       comparison.childAt(1).getCompiledExpr(emitContext).loadScalar(emitContext, mv, VectorType.INT);
@@ -155,6 +161,6 @@ public class IfStatement extends Statement implements BasicBlockEndingStatement 
 
   @Override
   public boolean isPure() {
-    return condition.isPure();
+    return false;
   }
 }

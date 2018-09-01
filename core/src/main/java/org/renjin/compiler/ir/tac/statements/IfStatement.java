@@ -20,18 +20,14 @@ package org.renjin.compiler.ir.tac.statements;
 
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
-import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.tac.IRLabel;
-import org.renjin.compiler.ir.tac.expressions.CmpGE;
-import org.renjin.compiler.ir.tac.expressions.EqZero;
 import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.Logical;
 
 import java.util.Arrays;
 
-import static org.renjin.repackaged.asm.Opcodes.*;
+import static org.renjin.repackaged.asm.Opcodes.GOTO;
 
 
 public class IfStatement extends Statement implements BasicBlockEndingStatement {
@@ -139,24 +135,18 @@ public class IfStatement extends Statement implements BasicBlockEndingStatement 
       mv.visitJumpInsn(GOTO, emitContext.getBytecodeLabel(falseTarget));
     }
 
-    if(condition instanceof EqZero) {
-      EqZero check = (EqZero) condition;
-      check.childAt(0).getCompiledExpr(emitContext).loadScalar(emitContext, mv, VectorType.INT);
-      mv.visitJumpInsn(IFEQ, emitContext.getBytecodeLabel(trueTarget));
-      mv.visitJumpInsn(GOTO, emitContext.getBytecodeLabel(falseTarget));
-    } else if(condition instanceof CmpGE) {
-      CmpGE comparison = (CmpGE) condition;
-      comparison.childAt(0).getCompiledExpr(emitContext).loadScalar(emitContext, mv, VectorType.INT);
-      comparison.childAt(1).getCompiledExpr(emitContext).loadScalar(emitContext, mv, VectorType.INT);
-      mv.visitJumpInsn(IF_ICMPLT, emitContext.getBytecodeLabel(falseTarget));
-      mv.visitJumpInsn(GOTO, emitContext.getBytecodeLabel(trueTarget));
-
-    } else if (condition instanceof LValue) {
-      CompiledSexp conditionExpr = condition.getCompiledExpr(emitContext);
-      conditionExpr.loadScalar(emitContext, mv, VectorType.LOGICAL);
-      mv.visitJumpInsn(IFEQ, emitContext.getBytecodeLabel(falseTarget));
-      mv.visitJumpInsn(GOTO, emitContext.getBytecodeLabel(trueTarget));
+    if(condition.getValueBounds().isConstant()) {
+      if(condition.getValueBounds().isConstantFlagEqualTo(true)) {
+        mv.goTo(emitContext.getBytecodeLabel(trueTarget));
+      } else {
+        mv.goTo(emitContext.getBytecodeLabel(falseTarget));
+      }
     }
+
+    CompiledSexp conditionExpr = condition.getCompiledExpr(emitContext);
+    conditionExpr.jumpIfTrue(emitContext, mv, emitContext.getBytecodeLabel(trueTarget));
+
+    mv.goTo(emitContext.getBytecodeLabel(falseTarget));
   }
 
   @Override

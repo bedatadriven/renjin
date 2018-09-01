@@ -50,6 +50,12 @@ public class ControlFlowGraph implements Graph {
     addBasicBlocks();
     linkBasicBlocks();
     removeDeadBlocks();
+
+    // renumber basic blocks
+    for (int i = 0; i < basicBlocks.size(); i++) {
+      BasicBlock basicBlock = basicBlocks.get(i);
+      basicBlock.index = i;
+    }
   }
 
   private void addBasicBlocks() {

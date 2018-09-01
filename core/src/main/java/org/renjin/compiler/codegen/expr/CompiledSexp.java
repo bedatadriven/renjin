@@ -21,6 +21,8 @@
 package org.renjin.compiler.codegen.expr;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.SEXP;
 
@@ -65,6 +67,14 @@ public interface CompiledSexp {
     } else if(argumentClass.equals(String.class)) {
       loadScalar(emitContext, mv, VectorType.STRING);
     }
+  }
+
+  /**
+   * Writes the bytecode to jump to the given {@code label} if this expression is true
+   */
+  default void jumpIfTrue(EmitContext emitContext, InstructionAdapter mv, Label trueLabel) {
+    loadScalar(emitContext, mv, VectorType.INT);
+    mv.visitJumpInsn(Opcodes.IFNE, trueLabel);
   }
 
   /**

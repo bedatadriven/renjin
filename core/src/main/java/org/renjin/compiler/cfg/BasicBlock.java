@@ -36,7 +36,8 @@ import java.util.Set;
  * Jump targets start a block, and jumps end a block.
  */
 public class BasicBlock {
-  private final int index;
+
+  int index;
   private String debugId;
   
   private Set<IRLabel> labels;

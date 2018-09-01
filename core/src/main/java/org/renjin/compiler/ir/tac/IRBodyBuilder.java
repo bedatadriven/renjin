@@ -339,6 +339,7 @@ public class IRBodyBuilder {
   }
 
   public void addLabel(IRLabel label) {
+    assert label != null;
     labels.put(label, statements.size());
     currentLabel = label;
   }

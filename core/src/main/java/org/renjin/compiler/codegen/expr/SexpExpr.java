@@ -92,7 +92,7 @@ public abstract class SexpExpr implements CompiledSexp {
         mv.invokeinterface(Type.getInternalName(Vector.class), "getElementAsDouble", "(I)D");
         break;
       case STRING:
-        mv.invokeinterface(Type.getInternalName(Vector.class), "getElementAsString", "(I)S");
+        mv.invokeinterface(Type.getInternalName(Vector.class), "getElementAsString", "(I)Ljava/lang/String;");
         break;
       default:
         throw new IllegalArgumentException(vectorType.toString());

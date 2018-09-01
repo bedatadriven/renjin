@@ -23,10 +23,14 @@ package org.renjin.compiler;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.parser.RParser;
+import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
 
+import java.io.IOException;
 import java.io.StringReader;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class SexpCompilerTest extends EvalTestCase {
@@ -52,10 +56,62 @@ public class SexpCompilerTest extends EvalTestCase {
     assertThat(eval("y"), elementsIdenticalTo(88d * 99d));
   }
 
-  private SEXP compileAndEvaluate(String source) throws Exception {
-    return SexpCompiler.compileSexp(topLevelContext, topLevelContext.getGlobalEnvironment(),
-        RParser.parseAllSource(new StringReader(source)))
-        .getCompiledBody().evaluate(topLevelContext, topLevelContext.getGlobalEnvironment());
+  @Test
+  public void switchByName() throws Exception {
+    eval("x <- 'foo'");
+    assertThat(compileAndEvaluate("switch(x, bar=91, foo=92)"), elementsIdenticalTo(92));
+    assertThat(compileAndEvaluate("switch(x, bar=91, fooz=92)"), equalTo(Null.INSTANCE));
+    assertThat(compileAndEvaluate("switch(x, bar=91, fooz=92, 93)"), elementsIdenticalTo(93));
   }
 
+  @Test
+  public void switchByPosition() throws Exception {
+    eval("x <- 2");
+    assertThat(compileAndEvaluate("switch(x, bar=91, foo=92)"), elementsIdenticalTo(92));
+    assertThat(compileAndEvaluate("switch(1.5, 91, 92)"), elementsIdenticalTo(91));
+    assertThat(compileAndEvaluate("switch(2.5, 91, 92)"), elementsIdenticalTo(92));
+    assertThat(compileAndEvaluate("switch(1.7, 91, 92)"), elementsIdenticalTo(91));
+  }
+
+  @Test
+  public void switchByUnknownType() throws Exception {
+    eval("x <- 104");
+
+    SEXP result;
+    CompiledBody body = compile(Joiner.on("\n").join(
+        "if(x > 50) {",
+            "y <- 2",
+            "} else {",
+            "y <- 'foo'",
+            "}",
+            "switch(y, foo=41, bar=42)"));
+
+    result = body.evaluate(topLevelContext, topLevelContext.getGlobalEnvironment());
+    assertThat(result, elementsIdenticalTo(42));
+
+    eval("x <- 30");
+
+    result = body.evaluate(topLevelContext, topLevelContext.getGlobalEnvironment());
+    assertThat(result, elementsIdenticalTo(41));
+  }
+
+
+  @Test
+  public void switchStatement() throws Exception {
+    eval("x <- 2");
+    compileAndEvaluate("switch(x, NULL, { y <- 99 }); NULL");
+
+    assertThat(eval("y"), elementsIdenticalTo(99));
+
+  }
+
+  private SEXP compileAndEvaluate(String source) throws Exception {
+    return compile(source).evaluate(topLevelContext, topLevelContext.getGlobalEnvironment());
+  }
+
+  private CompiledBody compile(String source) throws InstantiationException, IllegalAccessException, IOException {
+    return SexpCompiler.compileSexp(topLevelContext, topLevelContext.getGlobalEnvironment(),
+        RParser.parseAllSource(new StringReader(source)))
+        .getCompiledBody();
+  }
 }

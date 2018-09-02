@@ -105,6 +105,18 @@ public class SexpCompilerTest extends EvalTestCase {
 
   }
 
+  @Test
+  public void ncol() throws Exception {
+    eval("m <- matrix(1:12, nrow=3)");
+    assertThat(compileAndEvaluate("dim(m)[2L]"), elementsIdenticalTo(c_i(4)));
+  }
+
+  @Test
+  public void storageMode() throws Exception {
+    eval("x <- 99");
+    assertThat(compileAndEvaluate("storage.mode(x)"), elementsIdenticalTo(c("double")));
+  }
+
   private SEXP compileAndEvaluate(String source) throws Exception {
     return compile(source).evaluate(topLevelContext, topLevelContext.getGlobalEnvironment());
   }

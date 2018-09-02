@@ -27,14 +27,14 @@ import java.util.List;
 
 public class CompleteSubset implements Specialization {
 
-  private ValueBounds sourceBounds;
+  private ArgumentBounds sourceBounds;
 
-  public CompleteSubset(ValueBounds sourceBounds) {
+  public CompleteSubset(ArgumentBounds sourceBounds) {
     this.sourceBounds = sourceBounds;
   }
 
   public ValueBounds getResultBounds() {
-    return sourceBounds;
+    return sourceBounds.getBounds();
   }
 
   @Override

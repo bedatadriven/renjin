@@ -112,7 +112,10 @@ public class TypeSet {
 
     } else if (AtomicVector.class.isAssignableFrom(type)) {
       return ANY_ATOMIC_VECTOR;
-      
+
+    } else if (Vector.class.isAssignableFrom(type)) {
+      return ANY_ATOMIC_VECTOR | LIST;
+
     } else if (type.equals(SEXP.class)) {
       return ANY_TYPE;
 
@@ -154,6 +157,12 @@ public class TypeSet {
 
     } else if(type.equals(RawVector.class)) {
       return RAW;
+
+    } else if(type.equals(ListVector.class)) {
+      return LIST;
+
+    } else if(type.equals(PairList.class)) {
+      return PAIRLIST | NULL;
 
     } else if(type.equals(Vector.class)) {
       return ANY_VECTOR;

@@ -93,6 +93,10 @@ public class ConstantBytecode {
       mv.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(Null.class), "INSTANCE", Type.getDescriptor(Null.class));
       return;
     }
+    if(value == Symbol.MISSING_ARG) {
+      mv.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(Symbol.class), "MISSING_ARG", Type.getDescriptor(Symbol.class));
+      return;
+    }
     if(value instanceof DoubleVector) {
       if (value.length() == 1) {
         mv.anew(Type.getType(DoubleArrayVector.class));
@@ -107,7 +111,7 @@ public class ConstantBytecode {
       }
     } else if(value instanceof IntVector) {
       if(value.length() == 1) {
-
+        throw new UnsupportedOperationException("TODO");
       }
     } else if(value instanceof StringVector) {
       if(value.length() == 1 && value.getAttributes().isEmpty()) {
@@ -116,7 +120,7 @@ public class ConstantBytecode {
             Type.getMethodDescriptor(Type.getType(StringVector.class), Type.getType(String.class)), false);
         return;
       }
-    } else
+    }
 
     throw new UnsupportedOperationException("TODO: constant = " + value);
   }

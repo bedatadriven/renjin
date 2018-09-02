@@ -18,7 +18,6 @@
  */
 package org.renjin.compiler.builtins;
 
-import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
 
 import java.util.ArrayList;
@@ -43,17 +42,17 @@ public class SubsetSpecializer implements Specializer, BuiltinSpecializer {
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
 
-    ValueBounds source = arguments.get(0).getBounds();
-    ValueBounds drop = null;
+    ArgumentBounds source = arguments.get(0);
+    ArgumentBounds drop = null;
 
-    List<ValueBounds> subscripts = new ArrayList<>();
+    List<ArgumentBounds> subscripts = new ArrayList<>();
 
     for (int i = 1; i < arguments.size(); i++) {
       ArgumentBounds argument = arguments.get(i);
       if("drop".equals(argument.getName())) {
-        drop = argument.getBounds();
+        drop = argument;
       } else {
-        subscripts.add(argument.getBounds());
+        subscripts.add(argument);
       }
     }
 
@@ -74,37 +73,7 @@ public class SubsetSpecializer implements Specializer, BuiltinSpecializer {
       return singleElement;
     }
 
-
-    return UnspecializedCall.INSTANCE;
-    
-//    // A single subscript can also contain a matrix in the form
-//    //    x1, y1  
-//    // [  x2, y2 ]
-//    //    x3, y3
-//    if(CoordinateMatrixSelection.isCoordinateMatrix(source, subscript)) {
-//      return new CoordinateMatrixSelection((AtomicVector) subscript);
-//    }
-//
-//    // Otherwise we treat it as an index into a vector  
-//    if (subscript instanceof LogicalVector) {
-//      return new LogicalSelection((LogicalVector) subscript);
-//
-//    } else if (subscript instanceof StringVector) {
-//      return new NamedSelection((StringVector) subscript);
-//
-//    } else if (subscript instanceof DoubleVector ||
-//        subscript instanceof IntVector) {
-//
-//      return new VectorIndexSelection((AtomicVector) subscript);
-//
-//    } else if(subscript == Null.INSTANCE) {
-//      return NullSelection.INSTANCE;
-//
-//    } else {
-//      throw new EvalException("invalid subscript type '%s'", subscript.getTypeName());
-//    }
-//    
-//    throw new UnsupportedOperationException();
+    return new SubsetSpecialization(source, subscripts, drop);
   }
 
 }

@@ -71,7 +71,7 @@ public class IRBodyBuilder {
     labels = Maps.newHashMap();
     
     TranslationContext context = new TopLevelContext();
-    Expression returnValue = translateExpression(context, exp);
+    Expression returnValue = translateSimpleExpression(context, exp);
     
     addStatement(new ReturnStatement(returnValue));
    

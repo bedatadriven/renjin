@@ -66,18 +66,21 @@ public class DimSpecializer implements BuiltinSpecializer {
       dim = ValueBounds.builder()
           .setTypeSet(TypeSet.NULL)
           .setFlag(ValueBounds.FLAG_NO_NA)
+          .setEmptyAttributes()
           .build();
 
     } else if(sexp.getConstantDimCount() > 0) {
       dim = ValueBounds.builder()
           .setTypeSet(TypeSet.INT)
           .setFlag(ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_NON_ZERO_LENGTH)
+          .setEmptyAttributes()
           .build();
 
     } else {
       dim = ValueBounds.builder()
           .setTypeSet(TypeSet.NULL | TypeSet.INT)
           .setFlag(ValueBounds.FLAG_NO_NA)
+          .setEmptyAttributes()
           .build();
     }
 

@@ -51,7 +51,12 @@ public class SingleRowOrColumn implements Specialization {
     this.dimension = dimension;
   }
 
-  public static SingleRowOrColumn trySpecialize(ValueBounds source, List<ValueBounds> subscripts, ValueBounds drop) {
+  public static SingleRowOrColumn trySpecialize(ArgumentBounds source, List<ArgumentBounds> subscripts, ArgumentBounds drop) {
+
+    // Check for matrix indexing...
+    if(subscripts.size() != 2) {
+      return null;
+    }
 
     // Need to know the type of the source
     if(!TypeSet.isSpecificAtomic(source.getTypeSet())) {
@@ -59,13 +64,13 @@ public class SingleRowOrColumn implements Specialization {
     }
 
     // Should be in the form m[i,] or m[,j]
-    ValueBounds index;
+    ArgumentBounds index;
     int dimension;
-    if(subscripts.get(0).isConstant(Symbol.MISSING_ARG)) {
+    if(subscripts.get(0).getBounds().isConstant(Symbol.MISSING_ARG)) {
       index = subscripts.get(1);
       dimension = COLUMN;
 
-    } else if(subscripts.get(1).isConstant(Symbol.MISSING_ARG)) {
+    } else if(subscripts.get(1).getBounds().isConstant(Symbol.MISSING_ARG)) {
       index = subscripts.get(0);
       dimension = ROW;
 
@@ -75,12 +80,12 @@ public class SingleRowOrColumn implements Specialization {
 
     // The drop argument must be absent or known to be true,
     // otherwise we may need to handle attributes
-    if(drop != null && !drop.isConstantFlagEqualTo(true)) {
+    if(drop != null && !drop.getBounds().isConstantFlagEqualTo(true)) {
       return null;
     }
 
     // The index *must* be a scalar, *not* NA, *and* known to be positive.
-    if(!index.isFlagSet(ValueBounds.FLAG_LENGTH_ONE | ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_POSITIVE)) {
+    if(!index.getBounds().isFlagSet(ValueBounds.FLAG_LENGTH_ONE | ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_POSITIVE)) {
       return null;
     }
 

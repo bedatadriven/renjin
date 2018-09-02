@@ -71,7 +71,7 @@ public class BuiltinSpecializers {
           entry = Primitives.getInternalEntry(primitiveName);
         }
         if(entry == null) {
-          throw new IllegalStateException("No builtin entry for " + primitiveName);
+          throw new IllegalStateException("No builtin entry for '" + primitiveName + "'");
         }
         AnnotationBasedSpecializer specializer = new AnnotationBasedSpecializer(entry);
         if(specializer.isGeneric()) {

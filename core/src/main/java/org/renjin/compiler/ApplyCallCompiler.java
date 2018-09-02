@@ -68,7 +68,7 @@ public class ApplyCallCompiler {
   }
 
   private ValueBounds computeElementBounds() {
-    return ValueBounds.of(vector).getElementBounds();
+    throw new UnsupportedOperationException("TODO");
   }
 
   private Symbol findElementFormal(Closure closure) {

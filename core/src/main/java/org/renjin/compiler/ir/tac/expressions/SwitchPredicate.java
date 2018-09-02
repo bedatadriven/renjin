@@ -45,8 +45,7 @@ public class SwitchPredicate implements Expression {
 
   private static final ValueBounds LOWER_BOUNDS = ValueBounds.builder()
     .setTypeSet(TypeSet.LOGICAL)
-    .setFlag(ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_LENGTH_ONE)
-    .setEmptyAttributes()
+    .addFlags(ValueBounds.FLAG_NO_NA | ValueBounds.LENGTH_ONE)
     .build();
 
   private final int branchNumber;
@@ -100,9 +99,9 @@ public class SwitchPredicate implements Expression {
 
     } else if(expressionBounds.getTypeSet() == TypeSet.STRING && branchName == null) {
       if(finalBranch) {
-        bounds = ValueBounds.of(LogicalVector.TRUE);
+        bounds = ValueBounds.constantValue(LogicalVector.TRUE);
       } else {
-        bounds = ValueBounds.of(LogicalVector.FALSE);
+        bounds = ValueBounds.constantValue(LogicalVector.FALSE);
       }
 
     } else {
@@ -114,10 +113,10 @@ public class SwitchPredicate implements Expression {
   private ValueBounds evaluate(SEXP expr) {
     if(expr instanceof StringVector) {
       String name = SwitchFunction.branchName(expr);
-      return ValueBounds.of(LogicalVector.valueOf(name.equals(branchName)));
+      return ValueBounds.constantValue(LogicalVector.valueOf(name.equals(branchName)));
     } else if(expr instanceof AtomicVector) {
       int number = SwitchFunction.branchNumber((AtomicVector) expr);
-      return ValueBounds.of(LogicalVector.valueOf(number == branchNumber));
+      return ValueBounds.constantValue(LogicalVector.valueOf(number == branchNumber));
     } else {
       return ValueBounds.UNBOUNDED;
     }

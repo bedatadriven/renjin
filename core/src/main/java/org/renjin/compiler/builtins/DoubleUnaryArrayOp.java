@@ -46,7 +46,7 @@ public class DoubleUnaryArrayOp implements Specialization {
   public DoubleUnaryArrayOp(JvmMethod method, List<ArgumentBounds> argumentBounds, ValueBounds resultBounds) {
     this.method = method;
     this.x = argumentBounds.get(0);
-    this.scalar = x.getBounds().isFlagSet(ValueBounds.FLAG_LENGTH_ONE);
+    this.scalar = x.getBounds().isFlagSet(ValueBounds.LENGTH_ONE);
     this.resultBounds = resultBounds;
   }
 

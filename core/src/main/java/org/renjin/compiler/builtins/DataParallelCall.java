@@ -33,8 +33,6 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.Environment;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
 
 import java.util.Iterator;
 import java.util.List;
@@ -63,31 +61,45 @@ public class DataParallelCall implements Specialization {
 
     ValueBounds.Builder bounds = new ValueBounds.Builder();
     bounds.setType(method.getReturnType());
-    bounds.setFlag(computeFlags(argumentBounds));
+    bounds.addFlags(computeFlags(argumentBounds,
+        ValueBounds.FLAG_NO_NA | ValueBounds.LENGTH_NON_ZERO | ValueBounds.LENGTH_ONE));
 
     switch (method.getPreserveAttributesStyle()) {
       case NONE:
-        bounds.setEmptyAttributes();
+        // Result will have no attributes
         break;
       case STRUCTURAL:
-        buildStructuralBounds(bounds, recycledArguments);
+        // Result may only have "dim", "names" or "dimnames" attributes
+        bounds.addFlags(computeAttributes(argumentBounds,
+            ValueBounds.MAYBE_DIM | ValueBounds.MAYBE_DIMNAMES | ValueBounds.MAYBE_NAMES));
         break;
       case ALL:
-        buildAllBounds(bounds, recycledArguments);
+        // Result may have any of the attributes present in the arguments
+        bounds.addFlags(computeAttributes(argumentBounds, ValueBounds.MAYBE_ATTRIBUTES));
         break;
     }
 
     return bounds.build();
   }
 
-  private int computeFlags(List<ArgumentBounds> argumentBounds) {
+  private int computeFlags(List<ArgumentBounds> argumentBounds, int mask) {
     assert !argumentBounds.isEmpty();
 
     // These properties are preserved if all arguments share them
-    int flags = ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_NON_ZERO_LENGTH | ValueBounds.FLAG_LENGTH_ONE;
+    int flags = mask;
 
     for (ArgumentBounds argumentBound : argumentBounds) {
       flags &= argumentBound.getFlags();
+    }
+
+    return flags;
+  }
+
+  private int computeAttributes(List<ArgumentBounds> argumentBounds, int mask) {
+    int flags = 0;
+
+    for (ArgumentBounds argumentBound : argumentBounds) {
+      flags |= (argumentBound.getFlags() & mask);
     }
 
     return flags;
@@ -107,48 +119,13 @@ public class DataParallelCall implements Specialization {
     return list;
   }
 
-  private void buildStructuralBounds(ValueBounds.Builder bounds, List<ValueBounds> argumentBounds) {
-
-    for (ValueBounds argumentBound : argumentBounds) {
-      if(argumentBound.attributeCouldBePresent(Symbols.DIM)) {
-        bounds.attributeCouldBePresent(Symbols.DIM);
-      }
-      if(argumentBound.attributeCouldBePresent(Symbols.DIMNAMES)) {
-        bounds.attributeCouldBePresent(Symbols.DIMNAMES);
-      }
-      if(argumentBound.attributeCouldBePresent(Symbols.NAMES)) {
-        bounds.attributeCouldBePresent(Symbols.NAMES);
-      }
-    }
-    bounds.closeAttributes();
-  }
-
-
-  private void buildAllBounds(ValueBounds.Builder bounds, List<ValueBounds> argumentBounds) {
-
-    boolean closed = true;
-
-    for (ValueBounds argumentBound : argumentBounds) {
-      if(argumentBound.isAttributeSetOpen()) {
-        closed = false;
-      }
-
-      for (Symbol attribute : argumentBound.getAttributeBounds().keySet()) {
-        bounds.attributeCouldBePresent(attribute);
-      }
-    }
-
-    if(closed) {
-      bounds.closeAttributes();
-    }
-  }
 
   public Specialization specializeFurther() {
     if(ValueBounds.allConstantArguments(argumentBounds)) {
       return evaluateConstant();
     }
 
-    if(resultBounds.isFlagSet(ValueBounds.FLAG_LENGTH_ONE | ValueBounds.FLAG_NO_NA) &&
+    if(resultBounds.isFlagSet(ValueBounds.LENGTH_ONE | ValueBounds.FLAG_NO_NA) &&
         resultBounds.hasNoAttributes()) {
 
       DoubleBinaryOp op = DoubleBinaryOp.trySpecialize(name, method, resultBounds);
@@ -157,13 +134,16 @@ public class DataParallelCall implements Specialization {
       }
       return new DataParallelScalarCall(method, argumentBounds, resultBounds).trySpecializeFurther();
 
-    } else if(method.getReturnType().equals(double.class) &&
+    } else if(
+        resultBounds.hasNoAttributes() &&
+        method.getReturnType().equals(double.class) &&
         method.getPositionalFormals().size() == 1 &&
         method.getPositionalFormals().get(0).getClazz().equals(double.class)) {
 
       return new DoubleUnaryArrayOp(method, argumentBounds, resultBounds);
 
-    } else if(method.getReturnType().equals(double.class) &&
+    } else if(resultBounds.hasNoAttributes() &&
+              method.getReturnType().equals(double.class) &&
               method.getPositionalFormals().size() == 2 &&
               method.getPositionalFormals().get(0).getClazz().equals(double.class) &&
               method.getPositionalFormals().get(1).getClazz().equals(double.class)) {

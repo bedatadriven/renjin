@@ -202,14 +202,14 @@ public class RuntimeState {
     // have a huge impact on specialization.
 
     if (length == 0 || TypeSet.isDefinitelyNotAtomicVector(type)) {
-      return ValueBounds.of(sexp);
+      return ValueBounds.constantValue(sexp);
     }
 
     // 2) Numeric, scalar of values 0 and 1 we will treat as constants
     if(length == 1 && (type == TypeSet.DOUBLE || type == TypeSet.INT || type == TypeSet.LOGICAL)) {
       double doubleValue = ((AtomicVector) sexp).getElementAsDouble(0);
       if(doubleValue == 0d || doubleValue == 1d || DoubleVector.isNA(doubleValue)) {
-        return ValueBounds.of(sexp);
+        return ValueBounds.constantValue(sexp);
       }
     }
 
@@ -219,7 +219,7 @@ public class RuntimeState {
     ValueBounds.Builder bounds = ValueBounds.builder().setTypeSet(type);
 
     if(length == 1 && vector.isElementNA(0)) {
-      return ValueBounds.of(sexp);
+      return ValueBounds.constantValue(sexp);
     }
 
     /// Treat scalars specially, this is hugely important to specialization
@@ -227,31 +227,22 @@ public class RuntimeState {
 
       if (vector.isElementNA(0)) {
         // Scalar NAs assume constant
-        return ValueBounds.of(sexp);
+        return ValueBounds.constantValue(sexp);
 
       } else {
-        bounds.setFlag(ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_LENGTH_ONE);
-        bounds.setFlag(ValueBounds.FLAG_POSITIVE, vector.getElementAsDouble(0) > 0);
+        bounds.addFlags(ValueBounds.FLAG_NO_NA | ValueBounds.LENGTH_ONE);
+        bounds.addFlags(ValueBounds.FLAG_POSITIVE, vector.getElementAsDouble(0) > 0);
       }
 
     } else {
       // We don't want to spend a lot of time checking for NAs, but if it is trivial to
       // determine, then stel that vast.
-      bounds.setFlag(ValueBounds.FLAG_NO_NA,
+      bounds.addFlags(ValueBounds.FLAG_NO_NA,
           vector instanceof IntSequence ||
           vector instanceof DoubleSequence);
     }
 
-    for (Symbol symbol : attributes.names()) {
-      if(symbol == Symbols.DIM) {
-        bounds.setDimCount((short)attributes.getDim().length());
-        bounds.setAttribute(symbol, null);
-      } else {
-        bounds.setAttribute(symbol, attributes.get(symbol));
-      }
-    }
-
-    bounds.closeAttributes();
+    bounds.setAttributes(vector.getAttributes());
 
     return bounds.build();
   }

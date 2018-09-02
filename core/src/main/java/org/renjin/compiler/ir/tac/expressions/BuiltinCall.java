@@ -51,6 +51,7 @@ public class BuiltinCall implements CallExpression {
   public BuiltinCall(RuntimeState runtimeState, FunctionCall call, String primitiveName, List<IRArgument> arguments) {
     this.runtimeState = runtimeState;
     this.primitiveName = primitiveName;
+    this.call = call;
     this.arguments = arguments;
     this.specializer = BuiltinSpecializers.INSTANCE.get(primitiveName);
   }

@@ -39,7 +39,7 @@ public class EqZero extends SpecializedCallExpression {
 
   private static final ValueBounds BOUNDS = ValueBounds.builder()
       .setTypeSet(TypeSet.LOGICAL)
-      .setFlag(ValueBounds.FLAG_LENGTH_ONE | ValueBounds.FLAG_NO_NA)
+      .addFlags(ValueBounds.LENGTH_ONE | ValueBounds.FLAG_NO_NA)
       .build();
 
   public EqZero(Expression op) {

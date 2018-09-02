@@ -48,8 +48,8 @@ public class DoubleBinaryArrayOp implements Specialization {
     this.method = method;
     this.x = argumentBounds.get(0);
     this.y = argumentBounds.get(1);
-    this.scalarX = x.getBounds().isFlagSet(ValueBounds.FLAG_LENGTH_ONE);
-    this.scalarY = y.getBounds().isFlagSet(ValueBounds.FLAG_LENGTH_ONE);
+    this.scalarX = x.getBounds().isFlagSet(ValueBounds.LENGTH_ONE);
+    this.scalarY = y.getBounds().isFlagSet(ValueBounds.LENGTH_ONE);
     this.resultBounds = resultBounds;
   }
 

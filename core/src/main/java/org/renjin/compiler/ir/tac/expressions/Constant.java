@@ -42,7 +42,7 @@ public final class Constant implements SimpleExpression {
 
   public Constant(SEXP value) {
     this.value = value;
-    this.valueBounds = ValueBounds.of(value);
+    this.valueBounds = ValueBounds.constantValue(value);
   }
   
   public Constant(int value) {

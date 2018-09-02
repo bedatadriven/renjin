@@ -55,7 +55,7 @@ public class BuiltinCallTest {
     System.out.println(bounds);
     
     assertTrue(bounds.getTypeSet() == TypeSet.DOUBLE);
-    assertTrue(bounds.isFlagSet(ValueBounds.FLAG_LENGTH_ONE));
+    assertTrue(bounds.isFlagSet(ValueBounds.LENGTH_ONE));
   }
 
   @Test
@@ -81,15 +81,14 @@ public class BuiltinCallTest {
     System.out.println(bounds);
 
     assertTrue(bounds.getTypeSet() == TypeSet.DOUBLE);
-    assertTrue(bounds.isFlagSet(ValueBounds.FLAG_LENGTH_ONE));
+    assertTrue(bounds.isFlagSet(ValueBounds.LENGTH_ONE));
   }
 
 
   private ValueBounds scalar(int type) {
     return ValueBounds.builder()
         .setTypeSet(type)
-        .setFlag(ValueBounds.FLAG_LENGTH_ONE)
-        .setEmptyAttributes()
+        .addFlags(ValueBounds.LENGTH_ONE)
         .build();
   }
 

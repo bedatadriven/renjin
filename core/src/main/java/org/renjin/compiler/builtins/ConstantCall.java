@@ -45,23 +45,23 @@ public class ConstantCall implements Specialization {
 
     if (constantValue instanceof Integer) {
       type = Type.INT_TYPE;
-      valueBounds = ValueBounds.of(IntVector.valueOf((Integer) constantValue));
+      valueBounds = ValueBounds.constantValue(IntVector.valueOf((Integer) constantValue));
     
     } else if(constantValue instanceof Double) {
       type = Type.DOUBLE_TYPE;
-      valueBounds = ValueBounds.of(DoubleVector.valueOf((Double) constantValue));
+      valueBounds = ValueBounds.constantValue(DoubleVector.valueOf((Double) constantValue));
 
     } else if(constantValue instanceof Boolean) {
       type = Type.BOOLEAN_TYPE;
-      valueBounds = ValueBounds.of(LogicalVector.valueOf((Boolean) constantValue));
+      valueBounds = ValueBounds.constantValue(LogicalVector.valueOf((Boolean) constantValue));
 
     } else if(constantValue instanceof String) {
       type = Type.getType(String.class);
-      valueBounds = ValueBounds.of(StringVector.valueOf((String) constantValue));
+      valueBounds = ValueBounds.constantValue(StringVector.valueOf((String) constantValue));
 
     } else if(constantValue instanceof SEXP) {
       type = Type.getType(constantValue.getClass());
-      valueBounds = ValueBounds.of((SEXP)constantValue);
+      valueBounds = ValueBounds.constantValue((SEXP)constantValue);
       
     } else {
       throw new UnsupportedOperationException("constantValue: " + constantValue);

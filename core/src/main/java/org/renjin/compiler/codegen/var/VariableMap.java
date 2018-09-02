@@ -54,12 +54,12 @@ public class VariableMap {
       return new ConstantVar(bounds.getConstantValue());
     }
 
-    if(bounds.isConstantAttributes() && TypeSet.size(bounds.getTypeSet()) == 1) {
+    if(bounds.hasNoAttributes() && TypeSet.size(bounds.getTypeSet()) == 1) {
 
-      if (bounds.isFlagSet(ValueBounds.FLAG_LENGTH_ONE)) {
+      if (bounds.isFlagSet(ValueBounds.LENGTH_ONE)) {
         return new ScalarVar(localVars, bounds);
       }
-      if (TypeSet.isDefinitelyAtomic(bounds.getTypeSet())) {
+      if (TypeSet.isDefinitelyAtomic(bounds.getTypeSet()) && bounds.getTypeSet() != TypeSet.NULL) {
         return new ArrayVar(variable, livenessCalculator, localVars, bounds);
       }
     }

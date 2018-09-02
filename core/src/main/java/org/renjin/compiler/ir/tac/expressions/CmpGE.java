@@ -39,7 +39,7 @@ public class CmpGE extends SpecializedCallExpression {
 
   private static final ValueBounds BOUNDS = ValueBounds.builder()
       .setTypeSet(TypeSet.LOGICAL)
-      .setFlag(ValueBounds.FLAG_LENGTH_ONE | ValueBounds.FLAG_NO_NA)
+      .addFlags(ValueBounds.LENGTH_ONE | ValueBounds.FLAG_NO_NA)
       .build();
 
   public CmpGE(Expression op1, Expression op2) {

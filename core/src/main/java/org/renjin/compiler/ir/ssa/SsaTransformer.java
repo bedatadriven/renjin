@@ -50,7 +50,6 @@ public class SsaTransformer {
   public SsaTransformer(ControlFlowGraph cfg) {
     super();
     this.cfg = cfg;
-    System.out.println(cfg);
     this.dtree = new DominanceTree(cfg);
     this.rdt = new DominanceTree(new ReverseControlFlowGraph(cfg));
     this.rdt.dumpGraph();

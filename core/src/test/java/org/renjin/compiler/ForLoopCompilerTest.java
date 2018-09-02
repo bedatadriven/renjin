@@ -246,6 +246,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
     assertThat(eval("i"), elementsIdenticalTo(c_i(300)));
   }
 
+  @Ignore("wip")
   @Test
   public void nestedForLoop() {
     evalAndAssertCompiled(Joiner.on("\n").join(

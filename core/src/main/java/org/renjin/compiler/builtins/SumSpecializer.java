@@ -79,9 +79,8 @@ public class SumSpecializer implements BuiltinSpecializer {
 
     ValueBounds resultBounds = ValueBounds.builder()
         .setTypeSet(resultType)
-        .setEmptyAttributes()
-        .setFlag(ValueBounds.FLAG_LENGTH_ONE)
-        .setFlag(ValueBounds.FLAG_NO_NA, naResultPossible)
+        .addFlags(ValueBounds.LENGTH_ONE)
+        .addFlags(ValueBounds.FLAG_NO_NA, naResultPossible)
         .build();
 
     if(summandCount == 1 && arguments.size() == 1 && resultType == TypeSet.DOUBLE) {

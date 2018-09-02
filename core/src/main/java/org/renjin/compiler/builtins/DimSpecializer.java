@@ -25,7 +25,6 @@ import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Attributes;
 import org.renjin.repackaged.guava.collect.Iterables;
-import org.renjin.sexp.Symbols;
 
 import java.util.List;
 
@@ -56,31 +55,31 @@ public class DimSpecializer implements BuiltinSpecializer {
       throw new InvalidSyntaxException("dim() takes one argument.");
     }
     ValueBounds sexp = arguments.get(0).getBounds();
-    
-    if(sexp.isDimAttributeConstant()) {
-      return new ConstantCall(sexp.getConstantDimAttribute());
-    }
 
     ValueBounds dim;
-    if(!sexp.attributeCouldBePresent(Symbols.DIM)) {
+    if(!sexp.isFlagSet(ValueBounds.MAYBE_DIM)) {
+
+      // Definitely NULL
       dim = ValueBounds.builder()
           .setTypeSet(TypeSet.NULL)
-          .setFlag(ValueBounds.FLAG_NO_NA)
-          .setEmptyAttributes()
+          .addFlags(ValueBounds.FLAG_NO_NA)
           .build();
 
-    } else if(sexp.getConstantDimCount() > 0) {
+    } else if(sexp.isFlagSet(ValueBounds.HAS_DIM1)) {
+
+      // Definitely *not* null
       dim = ValueBounds.builder()
           .setTypeSet(TypeSet.INT)
-          .setFlag(ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_NON_ZERO_LENGTH)
-          .setEmptyAttributes()
+          .addFlags(ValueBounds.FLAG_NO_NA | ValueBounds.LENGTH_NON_ZERO)
           .build();
 
     } else {
+
+      // Either NULL or int
+
       dim = ValueBounds.builder()
           .setTypeSet(TypeSet.NULL | TypeSet.INT)
-          .setFlag(ValueBounds.FLAG_NO_NA)
-          .setEmptyAttributes()
+          .addFlags(ValueBounds.FLAG_NO_NA)
           .build();
     }
 

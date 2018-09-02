@@ -30,12 +30,8 @@ import org.renjin.primitives.subset.Subsetting;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
 
 import java.util.List;
-import java.util.Map;
 
 public class ReplaceSpecialization implements Specialization {
 
@@ -51,20 +47,11 @@ public class ReplaceSpecialization implements Specialization {
 
     ValueBounds.Builder builder = ValueBounds.builder()
         .setTypeSet(TypeSet.widestVectorType(inputVector.getTypeSet(), replacement.getTypeSet()))
-        .setFlag(inputVector.getFlags() & replacement.getFlags() & (ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_POSITIVE));
+        .addFlags(inputVector.getFlags() & replacement.getFlags() & (ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_POSITIVE));
 
     // Attributes are mostly preserved
     // However, some subscripts can change the shape of a matrix or array
-
-    for (Map.Entry<Symbol, SEXP> attribute : inputVector.getBounds().getAttributeBounds().entrySet()) {
-      Symbol attributeName = attribute.getKey();
-      if(attributeName == Symbols.DIM || attributeName == Symbols.NAMES || attributeName == Symbols.DIMNAMES) {
-        builder.attributeCouldBePresent(attributeName);
-      } else {
-        builder.setAttribute(attributeName, attribute.getValue());
-      }
-    }
-    builder.closeAttributes();
+    builder.addFlagsFrom(inputVector.getBounds(), ValueBounds.MAYBE_ATTRIBUTES);
 
     resultBounds = builder.build();
   }

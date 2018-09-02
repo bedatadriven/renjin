@@ -110,7 +110,6 @@ public class CombineSpecializer implements Specializer, BuiltinSpecializer {
       bounds = ValueBounds.builder()
           .setLength(length)
           .setTypeSet(typeSet)
-          .setEmptyAttributes()
           .build();
     }
 

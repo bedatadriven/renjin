@@ -18,8 +18,6 @@
  */
 package org.renjin.compiler.builtins;
 
-import org.renjin.compiler.ir.TypeSet;
-import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
 
 import java.util.List;
@@ -41,27 +39,6 @@ public class SingleSubsetSpecializer implements BuiltinSpecializer {
 
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
-
-
-    // Case of x[[i]]:
-    if(arguments.size() == 2) {
-
-      ValueBounds source = arguments.get(0).getBounds();
-      ValueBounds index = arguments.get(1).getBounds();
-
-      if(TypeSet.isDefinitelyNumeric(index) &&
-          index.isFlagSet(ValueBounds.FLAG_LENGTH_ONE)) {
-
-        if(source.getTypeSet() == TypeSet.LIST) {
-          return new GetListElement(source, index);
-
-        }
-
-      }
-
-      throw new UnsupportedOperationException("TODO");
-    }
-
-    return UnspecializedCall.INSTANCE;
+    throw new UnsupportedOperationException("TODO");
   }
 }

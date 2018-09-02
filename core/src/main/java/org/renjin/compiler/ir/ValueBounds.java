@@ -23,11 +23,10 @@ import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.primitives.Identical;
 import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.repackaged.guava.base.Preconditions;
-import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.*;
-import org.renjin.sexp.Vector;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.Objects;
 
 /**
  * Describes the bounds of known types for an expression.
@@ -45,98 +44,119 @@ public class ValueBounds {
    */
   public static final int FLAG_POSITIVE = 1 << 1;
 
-  public static final int FLAG_NON_ZERO_LENGTH = 1 << 3;
-
-  public static final int FLAG_LENGTH_ONE = (1 << 2) | FLAG_NON_ZERO_LENGTH;
+  /**
+   * This value *definitely* has a non-zero length
+   */
+  public static final int LENGTH_NON_ZERO = 1 << 2;
 
   /**
-   * The value definitely has no attributes
+   * This value *definitely* has a length of one
    */
-  public static final int FLAG_NO_ATTRIBUTES = (1 << 5);
-
-
-  public static final ValueBounds UNBOUNDED = new ValueBounds.Builder().build();
+  public static final int LENGTH_ONE = (1 << 3) | LENGTH_NON_ZERO;
 
 
   /**
-   * The number of dimensions that this value has, or -1 if it's not known.
+   * This value *may* have a class attribute
    */
-  private int dimCount = -1;
+  public static final int MAYBE_CLASS = 1 << 4;
+
+  /**
+   * This value *may* have a "dim" attribute of length one or greater
+   */
+  public static final int MAYBE_DIM = 1 << 5;
+
+  /**
+   * This value *may* have a "dimnames" attribute
+   */
+  public static final int MAYBE_DIMNAMES = 1 << 6;
+
+  /**
+   * This value *may* have a "names" attribute
+   */
+  public static final int MAYBE_NAMES = 1 << 7;
+
+  /**
+   * This value *may* have an attribute *other* than class, dim, dimnames, or names
+   */
+  public static final int MAYBE_OTHER_ATTR = 1 << 8;
+
+  /**
+   * This value *may* have attributes
+   */
+  public static final int MAYBE_ATTRIBUTES = MAYBE_CLASS | MAYBE_DIM | MAYBE_DIMNAMES | MAYBE_NAMES | MAYBE_OTHER_ATTR;
+
+  /**
+   * This value *definitely* has a dim attribute of length 1
+   */
+  public static final int HAS_DIM1 = 1 << 9;
+
+  /**
+   * This value *definitely* has a dim attribute of length 2
+   */
+  public static final int HAS_DIM2 = 1 << 10;
+
+
+  /**
+   * This value *definitely* has a dim attribute of length 3 or greater.
+   */
+  public static final int HAS_DIM_MORE = 1 << 11;
+
+  public static final int HAS_DIM = HAS_DIM1 | HAS_DIM2 | HAS_DIM_MORE;
+
+  private static final int INTERSECT_MASK = FLAG_NO_NA | FLAG_POSITIVE | LENGTH_NON_ZERO | LENGTH_ONE | HAS_DIM;
+
+  private static final int UNION_MASK = MAYBE_ATTRIBUTES;
+
+
+  public static final ValueBounds UNBOUNDED = new ValueBounds.Builder()
+      .setTypeSet(TypeSet.ANY_TYPE)
+      .addFlags(MAYBE_ATTRIBUTES)
+      .build();
+
   
   /**
    * The bit set of this value's possible types.
    */
   private int typeSet = TypeSet.ANY_TYPE;
 
+
+  /**
+   * Bit set of properties about this value that are known to be true
+   */
+  private int flags;
+
   /**
    * This value, if constant. {@code null} if unknown or known to vary.
    */
   private SEXP constantValue = null;
 
-  /**
-   * Bitset of properties about this value that are known to be true
-   */
-  private int flags;
 
   /**
-   * If true, the precise set of attributes defined for this value are not known, and attributes that 
-   * are not defined in attributeBounds should be considered to have an unbounded value.
+   * The value of the class attribute, if constant.
    */
-  private boolean attributesOpen = true;
+  private AtomicVector classAttribute;
 
-  /**
-   * Map to known attributes. Each value will either be a SEXP not equal to Null.INSTANCE indicating that 
-   * value is known to be constant, or {@code null} if this value is known to have this attribute, but the value of the
-   * attribute is not known.
-   */
-  private Map<Symbol, SEXP> attributes;
 
   private ValueBounds() {}
   
   private ValueBounds(ValueBounds toCopy) {
-    assert toCopy.attributes != null;
     this.typeSet = toCopy.typeSet;
     this.flags = toCopy.flags;
-    this.dimCount = toCopy.dimCount;
     this.constantValue = toCopy.constantValue;
-    this.attributes = toCopy.attributes;
-    this.attributesOpen = toCopy.attributesOpen;
   }
 
   /**
-   * Constructs a {@code ValueBounds} for a scalar value of a known type with no attributes
-   * and not NA.
+   * Constructs a {@code ValueBounds} for a constant {@code SEXP}. That is, a value that is
+   * entirely known at compile time.
    */
-  public static ValueBounds primitive(int type) {
-    ValueBounds valueBounds = new ValueBounds();
-    valueBounds.typeSet = type;
-    valueBounds.attributes = Collections.emptyMap();
-    valueBounds.attributesOpen = false;
-    valueBounds.flags = FLAG_NO_NA;
-    return valueBounds;
-  }
-
-  /**
-   * Constructs a {@code ValueBounds} for a constant {@code SEXP}, that is, an {@code SEXP} that we
-   */
-  public static ValueBounds of(SEXP value) {
-    ValueBounds valueBounds = new ValueBounds();
-    if(!hasAnyNAs(value)) {
-      valueBounds.flags |= FLAG_NO_NA;
-    }
-
-    if(value.length() == 1) {
-      valueBounds.flags |= FLAG_LENGTH_ONE;
-    } else if(value.length() > 0) {
-      valueBounds.flags |= FLAG_NON_ZERO_LENGTH;
-    }
-
-    valueBounds.constantValue = value;
-    valueBounds.typeSet = TypeSet.of(value);
-    valueBounds.attributes = value.getAttributes().toMap();
-    valueBounds.attributesOpen = false;
-    valueBounds.dimCount = value.getAttributes().getDim().length();
-    return valueBounds;
+  public static ValueBounds constantValue(SEXP value) {
+    Builder bounds = ValueBounds.builder();
+    bounds.addFlags(FLAG_NO_NA, hasAnyNAs(value));
+    bounds.setLength(value.length());
+    bounds.setTypeSet(TypeSet.of(value));
+    bounds.setAttributes(value.getAttributes());
+    bounds.bounds.constantValue = value;
+    return bounds.build();
   }
 
   private static boolean hasAnyNAs(SEXP value) {
@@ -150,22 +170,20 @@ public class ValueBounds {
 
   public ValueBounds of(Object value) {
     if(value instanceof SEXP) {
-      return of((SEXP)value);
+      return constantValue((SEXP)value);
     } else if(value instanceof Integer) {
-      return of(IntVector.valueOf((Integer) value));
+      return constantValue(IntVector.valueOf((Integer) value));
     } else if(value instanceof Double) {
-      return of(DoubleVector.valueOf((Double) value));
+      return constantValue(DoubleVector.valueOf((Double) value));
     }
     throw new UnsupportedOperationException("value: " + value);
   }
 
   public static ValueBounds of(Class returnType) {
     ValueBounds valueBounds = new ValueBounds();
-    valueBounds.attributesOpen = true;
-    valueBounds.attributes = Collections.emptyMap();
     valueBounds.typeSet = TypeSet.of(returnType);
     if(returnType.isPrimitive()) {
-      valueBounds.flags |= FLAG_LENGTH_ONE;
+      valueBounds.flags |= LENGTH_ONE;
     }
     return valueBounds;
   }
@@ -178,139 +196,22 @@ public class ValueBounds {
     return constantValue == symbol;
   }
 
-  public boolean isLengthConstant() {
-    return isFlagSet(FLAG_LENGTH_ONE);
-  }
-  
-  public boolean isAttributeConstant(Symbol name) {
-    if(attributesOpen) {
-      return attributes.get(name) != null;
-    } else {
-      // if the attribute set is closed, and this entry is missing
-      // from the map, then we know the value is NULL
-      if(!attributes.containsKey(name)) {
-        return true;
-      }
-      return attributes.get(name) != null;
-    }
-  }
-
-
-  public boolean isAttributeDefinitelyNull(Symbol name) {
-    return getAttributeIfConstant(name) == Null.INSTANCE;
-  }
-
-  public SEXP getAttributeIfConstant(Symbol name) {
-    if(attributesOpen) {
-      return attributes.get(name);
-    } else {
-      // if the attribute set is closed, and this entry is missing
-      // from the map, then we know the value is NULL
-      if(!attributes.containsKey(name)) {
-        return Null.INSTANCE;
-      }
-      return attributes.get(name);
-    }
-  }
-  
-  
-  public boolean isClassAttributeConstant() {
-    return isAttributeConstant(Symbols.CLASS);
-  }
-
-  public boolean isDimAttributeConstant() {
-    return isAttributeConstant(Symbols.DIM);
-  }
-
-  public boolean isDimCountConstant() {
-    return isDimAttributeConstant();
-  }
-
-  /**
-   * @return true if the attributes of the SEXP are constant.
-   */
-  public boolean isConstantAttributes() {
-    return !attributesOpen && !attributes.containsValue(null);
-  }
-
-  public boolean attributeCouldBePresent(Symbol attributeName) {
-
-    // Is this attribute known to be absent?
-    SEXP bounds = attributes.get(attributeName);
-    if(bounds == Null.INSTANCE) {
+  public boolean hasUnknownClassAttribute() {
+    if (!isFlagSet(MAYBE_CLASS)) {
       return false;
     }
-    
-    if(attributesOpen) {
-      // Open set: could be present unless explicitly exluded above
-      return true;
-
-    } else {
-      // Closed set: must have an entry in attributeBounds to be present
-      return attributes.containsKey(attributeName);
-    }
+    return classAttribute == null;
   }
-  
+
+
+  public boolean isDimCountConstant() {
+    return !isFlagSet(MAYBE_DIM) || isAnyFlagSet(ValueBounds.HAS_DIM);
+  }
+
   public AtomicVector getConstantClassAttribute() {
-    return (AtomicVector) getAttributeIfConstant(Symbols.CLASS);
-  }
-  
-  public AtomicVector getConstantDimAttribute() {
-    return (AtomicVector) getAttributeIfConstant(Symbols.DIM);
+    return classAttribute;
   }
 
-  public int getConstantDimCount() {
-    AtomicVector dimAttribute = getConstantDimAttribute();
-    if(dimAttribute != null) {
-      return dimAttribute.length();
-    }
-    return dimCount;
-  }
-
-  public Map<Symbol, SEXP> getAttributeBounds() {
-    return attributes;
-  }
-  
-  public boolean isAttributeSetOpen() {
-    return attributesOpen;
-  }
-
-  /**
-   * @return the value bounds of elements of this vector, as if from the
-   * expression X[[i]]
-   */
-  public ValueBounds getElementBounds() {
-    if(constantValue instanceof ListVector) {
-      ListVector constantList = (ListVector) this.constantValue;
-      List<ValueBounds> elementBounds = new ArrayList<>();
-      for (int i = 0; i < constantList.length(); i++) {
-        elementBounds.add(ValueBounds.of(constantList.getElementAsSEXP(i)));
-      }
-      return union(elementBounds);
-
-    } else if(TypeSet.isDefinitelyAtomic(typeSet)) {
-      return ValueBounds.primitive(typeSet);
-
-    } else {
-      return ValueBounds.UNBOUNDED;
-    }
-  }
-
-  public AttributeMap getConstantAttributes() {
-    
-    if(attributesOpen) {
-      throw new IllegalArgumentException("attribute set is not closed");
-    }
-    
-    AttributeMap.Builder attributeMap = AttributeMap.builder();
-    for (Map.Entry<Symbol, SEXP> entry : attributes.entrySet()) {
-      assert entry.getValue() != null;
-      attributeMap.set(entry.getKey(), entry.getValue());
-    }
-    
-    return attributeMap.build();
-  }
-  
   /**
    * @return a bit mask indicating which R types are included in this bounds.
    */
@@ -322,8 +223,12 @@ public class ValueBounds {
     return (flags & flag) == flag;
   }
 
+  public boolean isAnyFlagSet(int mask) {
+    return (flags & mask) != 0;
+  }
+
   public int getLength() {
-    if(isFlagSet(FLAG_LENGTH_ONE)) {
+    if(isFlagSet(LENGTH_ONE)) {
       return 1;
     } else {
       return -1;
@@ -336,44 +241,20 @@ public class ValueBounds {
   public ValueBounds union(ValueBounds other) {
     ValueBounds u = new ValueBounds();
     u.typeSet = this.typeSet | other.typeSet;
-    u.flags = this.flags & other.flags;
-    u.attributesOpen = this.attributesOpen || other.attributesOpen;
-    
-    if(this.attributes == other.attributes) {
-      Preconditions.checkNotNull(attributes, "attributes");
-      u.attributes = attributes;
-    } else if(this.attributes.isEmpty() && other.attributes.isEmpty()) {
-      u.attributes = Collections.emptyMap();
-    } else {
-      u.attributes = new HashMap<>();
-      Set<Symbol> attributeNames = Sets.union(this.attributes.keySet(), other.attributes.keySet());
-      for (Symbol attributeName : attributeNames) {
-        SEXP thisValue = this.attributes.get(attributeName);
-        SEXP otherValue = other.attributes.get(attributeName);
-
-        u.attributes.put(attributeName, unionConstant(thisValue, otherValue));
-      }
-    }
+    u.flags = ((this.flags & UNION_MASK) | (other.flags & UNION_MASK)) |
+              ((this.flags & INTERSECT_MASK) & (other.flags & INTERSECT_MASK));
+    u.classAttribute = unionClasses(this.classAttribute, u.classAttribute);
     return u;
   }
 
-
-  private <T> T unionConstant(T x, T y) {
-    // If either class(x) is unknown, or class(y) is unknown, then
-    // their union is also unknown
-    if(x == null || y == null) {
+  private static AtomicVector unionClasses(AtomicVector x, AtomicVector y) {
+    if(classesEqual(x, y)) {
+      return x;
+    } else {
       return null;
     }
-    
-    // If they have the same class, then their unknown is null
-    if(x.equals(y)) {
-      return x;
-    }
-    
-    // Otherwise we don't know what the class will be.
-    return null;
   }
-  
+
 
   /**
    * @return a new {@code TypeBounds} that is the union of the given {@code bounds}. 
@@ -407,9 +288,9 @@ public class ValueBounds {
     s.append("[");
     s.append(TypeSet.toString(typeSet));
 
-    if(isFlagSet(FLAG_LENGTH_ONE)) {
+    if(isFlagSet(LENGTH_ONE)) {
       s.append(", len=1");
-    } else if (isFlagSet(FLAG_NON_ZERO_LENGTH)) {
+    } else if (isFlagSet(LENGTH_NON_ZERO)) {
       s.append(", len>0");
     } else {
       s.append(", len=*");
@@ -420,35 +301,29 @@ public class ValueBounds {
     if(isFlagSet(FLAG_POSITIVE)) {
       s.append(", pos");
     }
-    for (Map.Entry<Symbol, SEXP> attribute : attributes.entrySet()) {
-      s.append(", ").append(attribute.getKey().getPrintName()).append("=");
-      if(attribute.getValue() == null) {
-        if(attribute.getKey() == Symbols.DIM) {
-          if(dimCount == -1) {
-            s.append("?");
-          } else {
-            s.append("[");
-            for (int j = 0; j < dimCount; j++) {
-              if(j > 0) {
-                s.append(",");
-              }
-              s.append("*");
-            }
-            s.append("]");
-          }
-        } else {
-          s.append("?");
-        }
-      } else if(attribute.getValue() == Null.INSTANCE) {
-        s.append("∅");
-      } else {
-        s.append("{").append(attribute.getValue()).append("}");
-      }
+    if(isFlagSet(HAS_DIM1)) {
+      s.append(", dim=[*]");
+    } else if(isFlagSet(HAS_DIM2)) {
+      s.append(", dim=[*,*]");
+    } else if(isFlagSet(HAS_DIM_MORE)) {
+      s.append(", dim=[*,*,...]");
+    } else if(isFlagSet(MAYBE_DIM)) {
+      s.append(", dim?");
     }
-    if(attributesOpen) {
-      s.append(", ...=?");
+    if (isFlagSet(MAYBE_NAMES)) {
+      s.append(", names?");
     }
-    
+    if (isFlagSet(MAYBE_DIMNAMES)) {
+      s.append(", dimnames?");
+    }
+    if (classAttribute != null) {
+      s.append(", class=").append(classAttribute);
+    } else if (isFlagSet(MAYBE_CLASS)) {
+      s.append(", class?");
+    }
+    if (isFlagSet(MAYBE_OTHER_ATTR)) {
+      s.append(", attr?");
+    }
     s.append("]");
     
     return s.toString();
@@ -496,12 +371,30 @@ public class ValueBounds {
     }
     ValueBounds bounds = (ValueBounds) o;
     return
-        dimCount == bounds.dimCount &&
         typeSet == bounds.typeSet &&
         flags == bounds.flags &&
-        attributesOpen == bounds.attributesOpen &&
         Objects.equals(constantValue, bounds.constantValue) &&
-        Objects.equals(attributes, bounds.attributes);
+        classesEqual(classAttribute, bounds.classAttribute);
+  }
+
+  private static boolean classesEqual(AtomicVector x, AtomicVector y) {
+    if(x == null && y == null) {
+      return true;
+
+    } else if(x != null && y != null) {
+      if (x.length() != y.length()) {
+        return false;
+      }
+      for (int i = 0; i < x.length(); i++) {
+        if (!Objects.equals(x.getElementAsString(i), y.getElementAsString(i))) {
+          return false;
+        }
+      }
+      return true;
+
+    } else {
+      return false;
+    }
   }
 
   @Override
@@ -540,12 +433,10 @@ public class ValueBounds {
       return this;
     }
     ValueBounds bounds = new ValueBounds();
-    bounds.dimCount = this.dimCount;
     bounds.flags = flags;
     bounds.typeSet = this.typeSet;
-    bounds.attributes = this.attributes;
-    bounds.attributesOpen = this.attributesOpen;
-    return this;
+    bounds.classAttribute = this.classAttribute;
+    return bounds;
   }
 
   public static ValueBounds.Builder builder() {
@@ -553,7 +444,7 @@ public class ValueBounds {
   }
 
   /**
-   * Returns true if the given {@code sexp} falls within these bounds.
+   * Returns true if the given {@code sexp} falls within these {@code ValueBounds}.
    */
   public boolean test(SEXP sexp) {
     if(constantValue != null) {
@@ -563,11 +454,11 @@ public class ValueBounds {
     if((this.typeSet & sexpType) == 0) {
       return false;
     }
-    if(isFlagSet(FLAG_LENGTH_ONE)) {
+    if(isFlagSet(LENGTH_ONE)) {
       if(sexp.length() != 1) {
         return false;
       }
-    } else if(isFlagSet(FLAG_NON_ZERO_LENGTH)) {
+    } else if(isFlagSet(LENGTH_NON_ZERO)) {
       if(sexp.length() == 0) {
         return false;
       }
@@ -579,50 +470,33 @@ public class ValueBounds {
       }
     }
 
-    // Fast attribute checks
-    if (this.attributes.isEmpty()) {
-      // No bounds on attributes
-      if(attributesOpen) {
-        return true;
-      } else {
-        return sexp.getAttributes().isEmpty();
-      }
-    }
-
-    // Otherwise check
     AttributeMap attributes = sexp.getAttributes();
-    for (Symbol symbol : attributes.names()) {
-      SEXP expectedAttribute = this.attributes.get(symbol);
-      if(expectedAttribute == null) {
-        if(!this.attributes.containsKey(symbol) && !attributesOpen) {
+    if(hasNoAttributes() && attributes.isEmpty()) {
+      return true;
+    }
+    for (Symbol attribute : attributes.names()) {
+      if(attribute == Symbols.CLASS) {
+
+      } else if (attribute == Symbols.NAMES) {
+        if (!isFlagSet(MAYBE_NAMES)) {
+          return false;
+        }
+      } else if (attribute == Symbols.DIMNAMES) {
+        if (!isFlagSet(MAYBE_DIMNAMES)) {
+          return false;
+        }
+      } else if (attribute == Symbols.DIM) {
+        if (!isFlagSet(MAYBE_DIM)) {
           return false;
         }
       } else {
-        if (!Identical.identical(expectedAttribute, attributes.get(symbol))) {
+        if (!isFlagSet(MAYBE_OTHER_ATTR)) {
           return false;
         }
       }
     }
-    return true;
-  }
 
-  /**
-   * Returns true if this ValueBounds is either an integer or double scalar, with a value
-   * equal to {@value}
-   *
-   */
-  public boolean isNumericScalarConstantEqualTo(double value) {
-    if(constantValue == null) {
-      return false;
-    }
-    if(constantValue.length() != 1) {
-      return false;
-    }
-    if(!(constantValue instanceof DoubleVector || constantValue instanceof IntVector)) {
-      return false;
-    }
-    AtomicVector vector = (AtomicVector) constantValue;
-    return vector.getElementAsDouble(0) == value;
+    return true;
   }
 
   public boolean isConstantFlagEqualTo(boolean value) {
@@ -637,7 +511,7 @@ public class ValueBounds {
   }
 
   public boolean hasNoAttributes() {
-    return !attributesOpen && attributes.isEmpty();
+    return !isAnyFlagSet(MAYBE_ATTRIBUTES);
   }
 
 
@@ -654,9 +528,9 @@ public class ValueBounds {
     
     public Builder setLength(int length) {
       if(length == 1) {
-        setFlag(ValueBounds.FLAG_LENGTH_ONE);
+        addFlags(ValueBounds.LENGTH_ONE);
       } else if(length > 0) {
-        setFlag(ValueBounds.FLAG_NON_ZERO_LENGTH);
+        addFlags(ValueBounds.LENGTH_NON_ZERO);
       }
       return this;
     }
@@ -666,7 +540,7 @@ public class ValueBounds {
       return this;
     }
 
-    public Builder setFlag(int flag, boolean set) {
+    public Builder addFlags(int flag, boolean set) {
       if(set) {
         bounds.flags |= flag;
       } else {
@@ -675,73 +549,59 @@ public class ValueBounds {
       return this;
     }
 
-    public Builder setFlag(int flag) {
-      return setFlag(flag, true);
+    public Builder addFlags(int flag) {
+      return addFlags(flag, true);
     }
 
-    public Builder setFlagsFrom(ValueBounds source, int mask) {
-      return setFlag(source.getFlags() & mask);
+    public Builder addFlagsFrom(ValueBounds source, int mask) {
+      return addFlags(source.getFlags() & mask);
     }
 
     public Builder setType(Class type) {
       return setTypeSet(TypeSet.of(type));
     }
 
-    public Builder setEmptyAttributes() {
-      bounds.attributes = Collections.emptyMap();
-      bounds.attributesOpen = false;
-      return this;
-    }
-    
-    public void setAttributeBounds(Map<Symbol, SEXP> attributes) {
-      bounds.attributes = attributes;
-    }
-    
-    public void setAttributeSetOpen(boolean open) {
-      bounds.attributesOpen = open;
-    }
-
-    public void setClosedAttributes(Map<Symbol, SEXP> attributes) {
-      bounds.attributes = attributes;
-      bounds.attributesOpen = false;
-    }
-
-    /**
-     * Sets the "attributes closed" flag, which means that the only attributes of this
-     * value are those defined here.
-     */
-    public Builder closeAttributes() {
-      bounds.attributesOpen = false;
-      return this;
-    }
-
     public Builder setDimCount(int count) {
-      bounds.dimCount = (short)count;
-      setAttribute(Symbols.DIM, null);
+      if(count == 1) {
+        bounds.flags |= HAS_DIM1;
+      } else if(count == 2) {
+        bounds.flags |= HAS_DIM2;
+      } else {
+        bounds.flags |= HAS_DIM_MORE;
+      }
       return this;
     }
 
-    public void setAttribute(Symbol name, SEXP value) {
-      if(bounds.attributes == null) {
-        bounds.attributes = new HashMap<>();
+    public Builder setClassAttribute(SEXP classVector) {
+      if(classVector instanceof AtomicVector) {
+        bounds.flags |= MAYBE_CLASS;
+        bounds.classAttribute = (AtomicVector) classVector;
       }
-      bounds.attributes.put(name, value);
+      return this;
     }
 
-    public void attributeCouldBePresent(Symbol attributeName) {
-      setAttribute(attributeName, null);
-    }
-    
-    public void setDimAttribute(AtomicVector value) {
-      setAttribute(Symbols.DIM, value);
-    }
-    
-    public ValueBounds build() {
-      if(bounds.attributes == null) {
-        bounds.attributes = Collections.emptyMap();
+    public void setAttributes(AttributeMap attributes) {
+      for (Symbol symbol : attributes.names()) {
+        if(symbol == Symbols.DIM) {
+          setDimCount((short)attributes.getDim().length());
+
+        } else if(symbol == Symbols.DIMNAMES) {
+          addFlags(ValueBounds.MAYBE_DIMNAMES);
+
+        } else if(symbol == Symbols.NAMES) {
+          addFlags(ValueBounds.MAYBE_NAMES);
+
+        } else if(symbol == Symbols.CLASS) {
+          setClassAttribute(attributes.getClassVector());
+
+        } else {
+          addFlags(ValueBounds.MAYBE_OTHER_ATTR);
+        }
       }
+    }
+
+    public ValueBounds build() {
       return bounds;
     }
-
   }
 }

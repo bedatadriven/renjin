@@ -46,7 +46,7 @@ public class LengthSpecializer implements Specializer, BuiltinSpecializer {
     }
 
     ValueBounds argumentBounds = arguments.get(0).getBounds();
-    if(argumentBounds.isFlagSet(ValueBounds.FLAG_LENGTH_ONE)) {
+    if(argumentBounds.isFlagSet(ValueBounds.LENGTH_ONE)) {
       return new ConstantCall(IntVector.valueOf(1));
     }
     

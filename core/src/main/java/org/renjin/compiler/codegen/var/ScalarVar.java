@@ -35,18 +35,16 @@ public class ScalarVar extends VariableStrategy {
 
   private final VectorType type;
   private final int index;
-  private final AttributeMap attributes;
 
   public ScalarVar(LocalVarAllocator localVars, ValueBounds bounds) {
-    assert bounds.isConstantAttributes() : "attributes must be constant";
+    assert bounds.hasNoAttributes();
     type = VectorType.of(bounds.getTypeSet());
     index = localVars.reserve(type.getJvmType());
-    attributes = bounds.getConstantAttributes();
   }
 
   @Override
   public CompiledSexp getCompiledExpr() {
-    return new ScalarExpr(type, attributes) {
+    return new ScalarExpr(type, AttributeMap.EMPTY) {
 
       @Override
       public void loadScalar(EmitContext context, InstructionAdapter mv) {

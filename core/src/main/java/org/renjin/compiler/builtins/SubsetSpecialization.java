@@ -29,7 +29,6 @@ import org.renjin.primitives.subset.Subsetting;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.Symbols;
 
 import java.util.List;
 
@@ -48,15 +47,7 @@ public class SubsetSpecialization implements Specialization {
     builder.setTypeSet(computeResultTypeSet(source));
 
     // Only dim, dimnames, names attributes *might* be preserved
-    if(source.getBounds().attributeCouldBePresent(Symbols.DIM)) {
-      builder.attributeCouldBePresent(Symbols.DIM);
-    }
-    if(source.getBounds().attributeCouldBePresent(Symbols.NAMES)) {
-      builder.attributeCouldBePresent(Symbols.NAMES);
-    }
-    if(source.getBounds().attributeCouldBePresent(Symbols.DIMNAMES)) {
-      builder.attributeCouldBePresent(Symbols.DIMNAMES);
-    }
+    builder.addFlagsFrom(source.getBounds(), ValueBounds.MAYBE_DIM | ValueBounds.MAYBE_DIMNAMES| ValueBounds.MAYBE_NAMES);
 
     resultBounds = builder.build();
   }

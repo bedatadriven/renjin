@@ -37,9 +37,8 @@ public class LengthCall implements Specialization {
   public LengthCall(ValueBounds argumentBounds) {
     bounds = ValueBounds.builder()
         .setTypeSet(TypeSet.INT)
-        .setFlag(ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_LENGTH_ONE)
-        .setFlag(ValueBounds.FLAG_POSITIVE, argumentBounds.isFlagSet(ValueBounds.FLAG_NON_ZERO_LENGTH))
-        .setEmptyAttributes()
+        .addFlags(ValueBounds.FLAG_NO_NA | ValueBounds.LENGTH_ONE)
+        .addFlags(ValueBounds.FLAG_POSITIVE, argumentBounds.isFlagSet(ValueBounds.LENGTH_NON_ZERO))
         .build();
   }
 

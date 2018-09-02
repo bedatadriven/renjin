@@ -26,9 +26,7 @@ import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.repackaged.asm.Opcodes;
-import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.Symbols;
 
 import java.util.List;
 
@@ -50,11 +48,11 @@ public class GetAtomicElement implements Specialization {
 
     ArgumentBounds subscript = subscripts.get(0);
 
-    if (!TypeSet.isSpecificAtomic(source.getTypeSet())) {
+    if (!TypeSet.isSpecificAtomic(source.getTypeSet()) || source.getTypeSet() == TypeSet.NULL) {
       return null;
     }
 
-    if (!subscript.getBounds().isFlagSet(ValueBounds.FLAG_LENGTH_ONE)) {
+    if (!subscript.getBounds().isFlagSet(ValueBounds.LENGTH_ONE)) {
       return null;
     }
 
@@ -64,16 +62,16 @@ public class GetAtomicElement implements Specialization {
       return null;
     }
 
-    // If the source *could* have a NAME attribute
-    if(source.getBounds().attributeCouldBePresent(Symbols.NAME)) {
+    // If the source *could* have a "names" attribute, then we can't
+    // represent it as a scalar
+    if(source.getBounds().isFlagSet(ValueBounds.MAYBE_NAMES)) {
       return null;
     }
 
     ValueBounds resultBounds = new ValueBounds.Builder()
         .setTypeSet(TypeSet.elementOf(source.getTypeSet()))
-        .setFlag(ValueBounds.FLAG_LENGTH_ONE)
-        .setFlagsFrom(source.getBounds(), ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_POSITIVE)
-        .setEmptyAttributes()
+        .addFlags(ValueBounds.LENGTH_ONE)
+        .addFlagsFrom(source.getBounds(), ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_POSITIVE)
         .build();
 
     return new GetAtomicElement(source, subscripts, resultBounds);
@@ -118,14 +116,4 @@ public class GetAtomicElement implements Specialization {
     };
   }
 
-  private String signature(Type sourceType) {
-    StringBuilder s = new StringBuilder();
-    s.append("(").append(sourceType.getDescriptor());
-    for (int i = 0; i < subscripts.size(); i++) {
-      s.append("I");
-    }
-    s.append(")");
-    s.append(vectorType.getJvmType());
-    return s.toString();
-  }
 }

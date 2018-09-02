@@ -73,8 +73,6 @@ public class SexpCompiler {
     if(environmentVisible) {
       ssaTransformer.insertEnvironmentUpdates();
     }
-    System.out.println(cfg);
-
     ssaTransformer.transform();
 
     System.out.println("AFTER SSA TRANSFORM ===================");
@@ -90,7 +88,7 @@ public class SexpCompiler {
     RuntimeState runtimeState = new RuntimeState(context, rho);
     ValueBounds sequenceBounds = ValueBounds.builder()
         .setTypeSet(TypeSet.of(sequence))
-        .setFlag(sequenceFlags(sequence))
+        .addFlags(sequenceFlags(sequence))
         .build();
 
     IRBodyBuilder builder = new IRBodyBuilder(runtimeState);

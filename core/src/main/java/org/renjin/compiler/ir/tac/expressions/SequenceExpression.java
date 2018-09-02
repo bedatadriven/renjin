@@ -59,11 +59,10 @@ public class SequenceExpression extends SpecializedCallExpression {
 
     this.valueBounds = ValueBounds.builder()
         .setTypeSet(fromType | toType)
-        .setFlag(ValueBounds.FLAG_NO_NA)
-        .setFlag(ValueBounds.FLAG_POSITIVE,
+        .addFlags(ValueBounds.FLAG_NO_NA)
+        .addFlags(ValueBounds.FLAG_POSITIVE,
             toBounds.isFlagSet(ValueBounds.FLAG_POSITIVE) &&
             toBounds.isFlagSet(ValueBounds.FLAG_POSITIVE))
-        .setEmptyAttributes()
         .build();
 
     return this.valueBounds;

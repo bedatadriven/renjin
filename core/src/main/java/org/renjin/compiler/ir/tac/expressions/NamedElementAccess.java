@@ -60,9 +60,9 @@ public class NamedElementAccess implements Expression {
       // the operation may have side-effects.
       SEXP object = argumentBounds.getConstantValue();
       if(object instanceof ListVector) {
-        valueBounds = ValueBounds.of(DollarFunction.fromList((ListVector) object, memberName));
+        valueBounds = ValueBounds.constantValue(DollarFunction.fromList((ListVector) object, memberName));
       } else if(object instanceof PairList) {
-        valueBounds = ValueBounds.of(DollarFunction.fromPairList((PairList) object, memberName));
+        valueBounds = ValueBounds.constantValue(DollarFunction.fromPairList((PairList) object, memberName));
       }
     }
     

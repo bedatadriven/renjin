@@ -22,7 +22,6 @@ import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.compiler.ApplyCallCompiler;
 import org.renjin.compiler.ir.TypeSet;
-import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.Closure;
@@ -47,7 +46,7 @@ public class ApplyCallCompilerTest extends EvalTestCase {
     ApplyCallCompiler compiler = new ApplyCallCompiler(topLevelContext, global, function, vector);
     compiler.tryCompile();
 
-    assertThat(compiler.getFunctionBounds(), equalTo(ValueBounds.primitive(TypeSet.DOUBLE)));
+    assertThat(compiler.getFunctionBounds().getTypeSet(), equalTo(TypeSet.DOUBLE));
     assertThat(compiler.isPure(), equalTo(true));
 
     Class<?> compiledClass = compiler.compile();

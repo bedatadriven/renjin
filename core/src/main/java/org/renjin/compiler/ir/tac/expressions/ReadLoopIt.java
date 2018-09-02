@@ -35,8 +35,7 @@ public class ReadLoopIt implements Expression {
 
   public static final ValueBounds COUNTER_BOUNDS = ValueBounds.builder()
       .setTypeSet(TypeSet.INT)
-      .setFlag(ValueBounds.FLAG_LENGTH_ONE | ValueBounds.FLAG_NO_NA)
-      .setEmptyAttributes()
+      .addFlags(ValueBounds.LENGTH_ONE | ValueBounds.FLAG_NO_NA)
       .build();
 
   @Override

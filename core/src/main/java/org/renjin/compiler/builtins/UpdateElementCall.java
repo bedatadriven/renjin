@@ -64,7 +64,7 @@ public class UpdateElementCall implements Specialization {
     }
     for (int i = 0; i < subscript.length; i++) {
       ValueBounds subscriptBounds = subscript[i].getBounds();
-      if(!subscriptBounds.isFlagSet(ValueBounds.FLAG_LENGTH_ONE) ||
+      if(!subscriptBounds.isFlagSet(ValueBounds.LENGTH_ONE) ||
           !TypeSet.isDefinitelyNumeric(subscriptBounds.getTypeSet())) {
         return null;
       }

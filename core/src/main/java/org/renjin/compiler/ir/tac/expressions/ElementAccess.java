@@ -69,9 +69,8 @@ public class ElementAccess extends SpecializedCallExpression {
     if(TypeSet.isDefinitelyAtomic(vectorBounds.getTypeSet())) {
       valueBounds = ValueBounds.builder()
           .setTypeSet(vectorBounds.getTypeSet())
-          .setFlag(ValueBounds.FLAG_LENGTH_ONE)
-          .setFlagsFrom(vectorBounds, ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_POSITIVE)
-          .setEmptyAttributes()
+          .addFlags(ValueBounds.LENGTH_ONE)
+          .addFlagsFrom(vectorBounds, ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_POSITIVE)
           .build();
     } else {
       valueBounds = ValueBounds.UNBOUNDED;

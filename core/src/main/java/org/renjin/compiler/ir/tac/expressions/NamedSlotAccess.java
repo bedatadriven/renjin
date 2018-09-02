@@ -49,18 +49,7 @@ public class NamedSlotAccess implements Expression {
 
   @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
-    
-    ValueBounds object = typeMap.get(expression);
-  
-    if(object.isAttributeConstant(slot)) {
-      valueBounds = ValueBounds.of(object.getAttributeIfConstant(slot));
-    } else {
-      throw new UnsupportedOperationException("TODO: ");
-    }
-    
-    
-    
-    return valueBounds;
+    throw new UnsupportedOperationException("TODO: ");
   }
 
   @Override

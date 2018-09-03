@@ -79,9 +79,6 @@ public class SexpCompiler {
     }
     ssaTransformer.transform();
 
-    System.out.println("AFTER SSA TRANSFORM ===================");
-    System.out.println(cfg);
-
     useDefMap = new UseDefMap(cfg);
 
     types = new TypeSolver(cfg, useDefMap);
@@ -141,12 +138,11 @@ public class SexpCompiler {
     dce.run();
 
     ssaTransformer.removePhiFunctions(types);
-
-    System.out.println("FINAL CFG =============== ");
-    System.out.println(cfg);
   }
 
   private CompiledLoopBody compileForLoopBody() throws IllegalAccessException, InstantiationException {
+
+    System.out.println(cfg);
 
     compileForBody();
 
@@ -235,7 +231,6 @@ public class SexpCompiler {
 
   public void updateTypes() {
     types.execute();
-    types.dumpBounds();
   }
 
   public boolean isPure() {

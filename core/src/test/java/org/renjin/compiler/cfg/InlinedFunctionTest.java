@@ -56,7 +56,7 @@ public class InlinedFunctionTest extends EvalTestCase {
   
   private InlinedFunction compileFunction(String functionDecl) {
     Closure closure = (Closure) eval(functionDecl);
-    return new InlinedFunction(new RuntimeState(topLevelContext, topLevelContext.getGlobalEnvironment()),
+    return new InlinedFunction("f", new RuntimeState(topLevelContext, topLevelContext.getGlobalEnvironment()),
         closure, Collections.emptySet());
   }
 

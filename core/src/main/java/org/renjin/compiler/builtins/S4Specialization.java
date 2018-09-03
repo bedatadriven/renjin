@@ -65,7 +65,7 @@ public class S4Specialization implements Specialization {
     // Otherwise, try to resolve the function
     if (inlinedMethod == null || inlinedMethod.getClosure() != function) {
       matchedArguments = MatchedArgumentPositions.matchArgumentBounds(closure, arguments);
-      inlinedMethod = new InlinedFunction(runtimeState, closure, matchedArguments.getSuppliedFormals());
+      inlinedMethod = new InlinedFunction("g", runtimeState, closure, matchedArguments.getSuppliedFormals());
     }
     
 //    if (matchedArguments.hasExtraArguments()) {

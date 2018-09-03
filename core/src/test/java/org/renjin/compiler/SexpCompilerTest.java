@@ -125,7 +125,7 @@ public class SexpCompilerTest extends EvalTestCase {
     eval("t <- c(TRUE,FALSE)");
     eval("x <- c(91, 92)");
     eval("y <- c(41, 42)");
-    assertThat(compileAndEvaluate("ifelse(t, x, y)"), elementsIdenticalTo(91, 42));
+    assertThat(compileAndEvaluate("zz <- ifelse(t, x, y); zz"), elementsIdenticalTo(91, 42));
   }
 
   @Test
@@ -170,7 +170,7 @@ public class SexpCompilerTest extends EvalTestCase {
         .setTypeSet(TypeSet.DOUBLE)
         .build();
 
-    InlinedFunction inlinedFunction = new InlinedFunction(parentState, (Closure) closure, params);
+    InlinedFunction inlinedFunction = new InlinedFunction("f", parentState, (Closure) closure, params);
     ValueBounds functionBounds = inlinedFunction.updateBounds(Arrays.asList(new ArgumentBounds(p), new ArgumentBounds(q)));
 
     System.out.println(functionBounds);

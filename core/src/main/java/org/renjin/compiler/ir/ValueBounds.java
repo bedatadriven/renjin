@@ -554,6 +554,9 @@ public class ValueBounds {
     }
 
     public Builder setDimCount(int count) {
+      if(count > 0) {
+        bounds.flags |= MAYBE_DIM;
+      }
       if(count == 1) {
         bounds.flags |= HAS_DIM1;
       } else if(count == 2) {

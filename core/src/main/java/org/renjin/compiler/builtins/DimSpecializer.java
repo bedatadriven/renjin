@@ -65,12 +65,13 @@ public class DimSpecializer implements BuiltinSpecializer {
           .addFlags(ValueBounds.FLAG_NO_NA)
           .build();
 
-    } else if(sexp.isFlagSet(ValueBounds.HAS_DIM1)) {
+    } else if(sexp.isAnyFlagSet(ValueBounds.HAS_DIM)) {
 
       // Definitely *not* null
       dim = ValueBounds.builder()
           .setTypeSet(TypeSet.INT)
           .addFlags(ValueBounds.FLAG_NO_NA | ValueBounds.LENGTH_NON_ZERO)
+          .addFlags(ValueBounds.LENGTH_ONE, sexp.isFlagSet(ValueBounds.HAS_DIM1))
           .build();
 
     } else {

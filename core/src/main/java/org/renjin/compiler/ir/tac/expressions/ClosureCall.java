@@ -33,6 +33,7 @@ import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.Symbol;
 
 import java.util.List;
 import java.util.Map;
@@ -77,7 +78,7 @@ public class ClosureCall implements Expression {
 
     if(inlinedFunction == null) {
       try {
-        this.inlinedFunction = new InlinedFunction(runtimeState, closure, this.matching.getSuppliedFormals());
+        this.inlinedFunction = new InlinedFunction(functionName(), runtimeState, closure, this.matching.getSuppliedFormals());
       } catch (NotCompilableException e) {
         throw new NotCompilableException(call, e);
       }
@@ -90,6 +91,14 @@ public class ClosureCall implements Expression {
     returnBounds = inlinedFunction.updateBounds(ArgumentBounds.create(arguments, typeMap));
 
     return returnBounds;
+  }
+
+  private String functionName() {
+    if(call.getFunction() instanceof Symbol) {
+      return ((Symbol) call.getFunction()).getPrintName();
+    } else {
+      return "f";
+    }
   }
 
   @Override

@@ -61,7 +61,7 @@ public class ApplyCallCompiler {
     List<ArgumentBounds> arguments = Lists.newArrayList(new ArgumentBounds(computeElementBounds()));
 
     // Now try to compile the function and resolve types
-    inlinedFunction = new InlinedFunction(runtimeState, closure, suppliedFormals);
+    inlinedFunction = new InlinedFunction("f", runtimeState, closure, suppliedFormals);
     functionBounds = inlinedFunction.updateBounds(arguments);
     pure = inlinedFunction.isPure();
     System.out.println("F = " + functionBounds);

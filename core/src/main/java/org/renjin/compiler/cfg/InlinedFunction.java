@@ -50,14 +50,17 @@ public class InlinedFunction {
   private final List<ReadParam> params;
 
   private List<ReturnStatement> returnStatements = Lists.newArrayList();
+  private final String functionName;
   private Closure closure;
 
 
   /**
+   * @param functionName
    * @param closure the closure to inline
    * @param arguments the names of the formals that will be supplied to this inline call
    */
-  public InlinedFunction(RuntimeState parentState, Closure closure, Set<Symbol> arguments) {
+  public InlinedFunction(String functionName, RuntimeState parentState, Closure closure, Set<Symbol> arguments) {
+    this.functionName = functionName;
     this.closure = closure;
 
     runtimeState = new RuntimeState(parentState, closure.getEnclosingEnvironment());
@@ -105,7 +108,11 @@ public class InlinedFunction {
     for (ReturnStatement returnStatement : returnStatements) {
       returnBounds.add(returnStatement.getRHS().getValueBounds());
     }
-    return ValueBounds.union(returnBounds);
+    ValueBounds union = ValueBounds.union(returnBounds);
+
+    System.err.println("function " + functionName + "() => " + union);
+
+    return union;
   }
 
   /**

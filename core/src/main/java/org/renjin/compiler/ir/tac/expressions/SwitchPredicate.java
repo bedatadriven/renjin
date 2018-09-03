@@ -44,9 +44,9 @@ import java.util.Objects;
 public class SwitchPredicate implements Expression {
 
   private static final ValueBounds LOWER_BOUNDS = ValueBounds.builder()
-    .setTypeSet(TypeSet.LOGICAL)
-    .addFlags(ValueBounds.FLAG_NO_NA | ValueBounds.LENGTH_ONE)
-    .build();
+      .setTypeSet(TypeSet.LOGICAL)
+      .addFlags(ValueBounds.FLAG_NO_NA | ValueBounds.LENGTH_ONE)
+      .build();
 
   private final int branchNumber;
   private final String branchName;

@@ -95,7 +95,7 @@ public class MatchedArguments {
   public SEXP getActualForFormal(int formalIndex) {
     int actualIndex = getActualIndex(formalIndex);
     if(actualIndex == -1) {
-      throw new EvalException("Arugment \"" + getFormalName(formalIndex).getPrintName() + "\" is missing, with no default");
+      throw new EvalException("Argument \"" + getFormalName(formalIndex).getPrintName() + "\" is missing, with no default");
     }
     return actualValues[actualIndex];
   }

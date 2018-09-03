@@ -25,7 +25,6 @@ import org.renjin.invoke.codegen.OverloadComparator;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Primitives;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -46,7 +45,11 @@ public class AnnotationBasedSpecializer implements BuiltinSpecializer {
 
     this.genericGroup = findGenericGroup(methods);
 
-    Collections.sort( methods, new OverloadComparator());
+    methods.sort(new OverloadComparator());
+  }
+
+  public List<JvmMethod> getMethods() {
+    return methods;
   }
 
   @Override
@@ -82,17 +85,13 @@ public class AnnotationBasedSpecializer implements BuiltinSpecializer {
     List<ValueBounds> arguments = ArgumentBounds.withoutNames(namedArguments);
     JvmMethod method = selectOverload(namedArguments);
     if(method == null) {
-      return UnspecializedCall.INSTANCE;
+      return new WrapperApplyCall(primitive, namedArguments);
     }
     
     if(method.isDataParallel()) {
-      return new DataParallelCall(primitive, method, namedArguments).specializeFurther();
+      return new DataParallelCall(primitive, method, namedArguments).specialize();
     } else {
-      if(StaticMethodCall.isEligible(method)) {
-        return new StaticMethodCall(method).furtherSpecialize(arguments);
-      } else {
-        return UnspecializedCall.INSTANCE;
-      }
+      return new StaticMethodCall(method).furtherSpecialize(arguments);
     }
   }
 

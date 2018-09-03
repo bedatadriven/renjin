@@ -20,13 +20,25 @@ package org.renjin.compiler;
 
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.compiler.builtins.ArgumentBounds;
+import org.renjin.compiler.cfg.InlinedFunction;
+import org.renjin.compiler.ir.TypeSet;
+import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.ir.tac.IRBody;
+import org.renjin.compiler.ir.tac.IRBodyBuilder;
+import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.parser.RParser;
 import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.collect.Sets;
+import org.renjin.sexp.Closure;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Arrays;
+import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -100,7 +112,6 @@ public class SexpCompilerTest extends EvalTestCase {
     compileAndEvaluate("switch(x, NULL, { y <- 99 }); NULL");
 
     assertThat(eval("y"), elementsIdenticalTo(99));
-
   }
 
   @Test
@@ -110,9 +121,61 @@ public class SexpCompilerTest extends EvalTestCase {
   }
 
   @Test
+  public void ifelse() throws Exception {
+    eval("t <- c(TRUE,FALSE)");
+    eval("x <- c(91, 92)");
+    eval("y <- c(41, 42)");
+    assertThat(compileAndEvaluate("ifelse(t, x, y)"), elementsIdenticalTo(91, 42));
+  }
+
+  @Test
   public void storageMode() throws Exception {
     eval("x <- 99");
     assertThat(compileAndEvaluate("storage.mode(x)"), elementsIdenticalTo(c("double")));
+  }
+
+  @Test
+  public void setStorageMode() throws Exception {
+    eval("x <- 1:12");
+    compileAndEvaluate("storage.mode(x) <- 'integer'");
+  }
+
+  @Test
+  public void logicalComparison() throws IOException {
+    eval("p <- 1:12");
+    eval("q <- 100:300");
+
+    RuntimeState runtimeState = new RuntimeState(topLevelContext, topLevelContext.getGlobalEnvironment());
+    IRBodyBuilder bodyBuilder = new IRBodyBuilder(runtimeState);
+    IRBody body = bodyBuilder.build(RParser.parseAllSource(new StringReader("p == 0 | q == 0")));
+
+    SexpCompiler compiler = new SexpCompiler(runtimeState, body, false);
+    compiler.types.execute();
+    compiler.types.dumpBounds();
+  }
+
+  @Test
+  public void kld() {
+    eval("kld = function(p, q) sum(ifelse(p == 0 | q == 0, 0, log(p / q) * p))");
+
+    RuntimeState parentState = new RuntimeState(topLevelContext, topLevelContext.getGlobalEnvironment());
+    Set<Symbol> params = Sets.newHashSet(Symbol.get("p"), Symbol.get("q"));
+    SEXP closure = eval("kld");
+
+    ValueBounds p = ValueBounds.builder()
+        .setTypeSet(TypeSet.DOUBLE)
+        .build();
+
+    ValueBounds q = ValueBounds.builder()
+        .setTypeSet(TypeSet.DOUBLE)
+        .build();
+
+    InlinedFunction inlinedFunction = new InlinedFunction(parentState, (Closure) closure, params);
+    ValueBounds functionBounds = inlinedFunction.updateBounds(Arrays.asList(new ArgumentBounds(p), new ArgumentBounds(q)));
+
+    System.out.println(functionBounds);
+
+
   }
 
   private SEXP compileAndEvaluate(String source) throws Exception {

@@ -32,22 +32,39 @@ import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
+import java.lang.invoke.MethodHandle;
 import java.util.List;
 
-public class DoubleUnaryArrayOp implements Specialization {
+public class DataParallelUnaryOp implements Specialization {
 
   private final JvmMethod method;
   private final ValueBounds resultBounds;
+  private final VectorType resultType;
+  private final VectorType argumentType;
   private final ArgumentBounds x;
 
   private boolean scalar;
   private boolean scalarY;
 
-  public DoubleUnaryArrayOp(JvmMethod method, List<ArgumentBounds> argumentBounds, ValueBounds resultBounds) {
+  private String applyMethodName;
+
+  public DataParallelUnaryOp(JvmMethod method, List<ArgumentBounds> argumentBounds, ValueBounds resultBounds) {
     this.method = method;
     this.x = argumentBounds.get(0);
     this.scalar = x.getBounds().isFlagSet(ValueBounds.LENGTH_ONE);
     this.resultBounds = resultBounds;
+    this.resultType = VectorType.fromJvmType(method.getReturnType());
+    Class<?> parameterType = method.getMethod().getParameterTypes()[0];
+    this.argumentType = VectorType.fromJvmType(parameterType);
+
+    this.applyMethodName = "apply" + code(method.getReturnType()) + code(parameterType);
+    if(!method.isPassNA()) {
+      this.applyMethodName += "NA";
+    }
+  }
+
+  private String code(Class type) {
+    return type.getSimpleName().toUpperCase().substring(0, 1);
   }
 
   @Override
@@ -64,20 +81,22 @@ public class DoubleUnaryArrayOp implements Specialization {
   public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
 
     if(scalar) {
-      return new ScalarExpr(VectorType.DOUBLE) {
+      return new ScalarExpr(resultType) {
         @Override
         public void loadScalar(EmitContext context, InstructionAdapter mv) {
+
           mv.visitLdcInsn(new Handle(Opcodes.H_INVOKESTATIC, Type.getInternalName(method.getDeclaringClass()), method.getName(),
               Type.getMethodDescriptor(method.getMethod())));
 
           CompiledSexp cx = x.getCompiledExpr(context);
-          cx.loadScalar(context, mv, VectorType.DOUBLE);
-          mv.invokestatic(Type.getInternalName(Vectors.class), "apply", "(Ljava/lang/invoke/MethodHandle;D)D", false);
+          cx.loadScalar(context, mv, argumentType);
+          mv.invokestatic(Type.getInternalName(Vectors.class), applyMethodName,
+              Type.getMethodDescriptor(resultType.getJvmType(), Type.getType(MethodHandle.class), argumentType.getJvmType()), false);
         }
       };
 
     } else {
-      return new ArrayExpr(VectorType.DOUBLE) {
+      return new ArrayExpr(resultType) {
         @Override
         public void loadArray(EmitContext context, InstructionAdapter mv, VectorType vectorType) {
 
@@ -85,9 +104,10 @@ public class DoubleUnaryArrayOp implements Specialization {
               Type.getMethodDescriptor(method.getMethod())));
 
           CompiledSexp cx = x.getCompiledExpr(context);
-          cx.loadArray(context, mv, VectorType.DOUBLE);
+          cx.loadArray(context, mv, argumentType);
 
-          mv.invokestatic(Type.getInternalName(Vectors.class), "apply", "(Ljava/lang/invoke/MethodHandle;[D)[D", false);
+          mv.invokestatic(Type.getInternalName(Vectors.class), applyMethodName,
+              Type.getMethodDescriptor(resultType.getJvmArrayType(), Type.getType(MethodHandle.class), argumentType.getJvmArrayType()), false);
         }
       };
     }

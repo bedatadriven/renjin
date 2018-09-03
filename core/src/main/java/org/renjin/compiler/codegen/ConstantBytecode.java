@@ -109,10 +109,22 @@ public class ConstantBytecode {
 
         return;
       }
-    } else if(value instanceof IntVector) {
+    } else if(value instanceof LogicalVector) {
       if(value.length() == 1) {
+        mv.visitLdcInsn(((LogicalVector) value).getElementAsInt(0));
+        mv.invokestatic(Type.getInternalName(LogicalVector.class), "valueOf", "(I)Lorg/renjin/sexp/LogicalVector;", false);
+      } else {
         throw new UnsupportedOperationException("TODO");
       }
+      return;
+    } else if(value instanceof IntVector) {
+      if(value.length() == 1) {
+        mv.visitLdcInsn(((IntVector) value).getElementAsInt(0));
+        mv.invokestatic(Type.getInternalName(IntVector.class), "valueOf", "(I)Lorg/renjin/sexp/IntVector;", false);
+      } else {
+        throw new UnsupportedOperationException("TODO");
+      }
+      return;
     } else if(value instanceof StringVector) {
       if(value.length() == 1 && value.getAttributes().isEmpty()) {
         mv.visitLdcInsn(((StringVector) value).getElementAsString(0));

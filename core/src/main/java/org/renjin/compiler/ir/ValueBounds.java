@@ -179,14 +179,6 @@ public class ValueBounds {
     throw new UnsupportedOperationException("value: " + value);
   }
 
-  public static ValueBounds of(Class returnType) {
-    ValueBounds valueBounds = new ValueBounds();
-    valueBounds.typeSet = TypeSet.of(returnType);
-    if(returnType.isPrimitive()) {
-      valueBounds.flags |= LENGTH_ONE;
-    }
-    return valueBounds;
-  }
 
   public boolean isConstant() {
     return constantValue != null;

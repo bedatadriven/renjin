@@ -18,6 +18,7 @@
  */
 package org.renjin.eval;
 
+import org.renjin.compiler.builtins.ArgumentBounds;
 import org.renjin.sexp.*;
 
 import java.util.Arrays;
@@ -83,6 +84,14 @@ public class ArgumentMatcher {
     } else {
       return formalNames.length - 1;
     }
+  }
+
+  public MatchedArgumentPositions match(List<ArgumentBounds> arguments) {
+    String[] actualNames = new String[arguments.size()];
+    for (int i = 0; i < arguments.size(); i++) {
+      actualNames[i] = arguments.get(i).getName();
+    }
+    return match(actualNames);
   }
 
 
@@ -268,4 +277,6 @@ public class ArgumentMatcher {
   public List<String> getFormalNames() {
     return Arrays.asList(formalNames);
   }
+
+
 }

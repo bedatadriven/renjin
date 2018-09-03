@@ -42,6 +42,7 @@ import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.eval.Context;
 import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
@@ -59,7 +60,10 @@ public class SexpCompiler {
 
   private final ControlFlowGraph cfg;
   private final UseDefMap useDefMap;
-  private final TypeSolver types;
+
+  @VisibleForTesting
+  final TypeSolver types;
+
   private final SsaTransformer ssaTransformer;
 
   public SexpCompiler(RuntimeState runtimeState, IRBody body, boolean environmentVisible) {
@@ -172,13 +176,12 @@ public class SexpCompiler {
     LoopBodyEmitContext emitContext = new LoopBodyEmitContext(localVars, variableMap);
 
     ClassGenerator<CompiledBody> classGenerator = new ClassGenerator<>(CompiledBody.class);
-    InstructionAdapter mv = classGenerator.addBodyMethod();
-    mv.visitCode();
-
-    emitBody(emitContext, mv);
-
-    mv.visitMaxs(0, localVars.getCount());
-    mv.visitEnd();
+    classGenerator.addBodyMethod(mv -> {
+      mv.visitCode();
+      emitBody(emitContext, mv);
+      mv.visitMaxs(0, localVars.getCount());
+      mv.visitEnd();
+    });
 
     return classGenerator.finishAndLoad().newInstance();
   }
@@ -190,7 +193,7 @@ public class SexpCompiler {
 
     // Last check
     types.verifyFunctionAssumptions(runtimeState);
-    types.dumpBounds();
+//    types.dumpBounds();
 
     lowerSSA();
 
@@ -232,6 +235,7 @@ public class SexpCompiler {
 
   public void updateTypes() {
     types.execute();
+    types.dumpBounds();
   }
 
   public boolean isPure() {

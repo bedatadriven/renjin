@@ -37,15 +37,19 @@ import java.util.List;
 public class DoubleBinaryOp implements Specialization {
   
   private int opcode;
-  private ValueBounds valueBounds;
+  private final ArgumentBounds x;
+  private final ArgumentBounds y;
+  private ValueBounds resultBounds;
   
-  public DoubleBinaryOp(int opcode, ValueBounds valueBounds) {
+  public DoubleBinaryOp(int opcode, ArgumentBounds x, ArgumentBounds y, ValueBounds resultBounds) {
     this.opcode = opcode;
-    this.valueBounds = valueBounds;
+    this.x = x;
+    this.y = y;
+    this.resultBounds = resultBounds;
   }
 
   public ValueBounds getResultBounds() {
-    return valueBounds;
+    return resultBounds;
   }
 
   @Override
@@ -59,31 +63,36 @@ public class DoubleBinaryOp implements Specialization {
       @Override
       public void loadScalar(EmitContext context, InstructionAdapter mv) {
         assert  arguments.size() == 2;
-        CompiledSexp x = arguments.get(0).getExpression().getCompiledExpr(emitContext);
-        CompiledSexp y = arguments.get(1).getExpression().getCompiledExpr(emitContext);
+        CompiledSexp cx = x.getCompiledExpr(emitContext);
+        CompiledSexp cy = y.getCompiledExpr(emitContext);
 
-        x.loadScalar(emitContext, mv, VectorType.DOUBLE);
-        y.loadScalar(emitContext, mv, VectorType.DOUBLE);
+        cx.loadScalar(emitContext, mv, VectorType.DOUBLE);
+        cy.loadScalar(emitContext, mv, VectorType.DOUBLE);
         mv.visitInsn(opcode);
       }
     };
   }
 
-  public static DoubleBinaryOp trySpecialize(String name, JvmMethod overload, ValueBounds resultBounds) {
+  public static DoubleBinaryOp trySpecialize(String name, JvmMethod overload, List<ArgumentBounds> arguments, ValueBounds resultBounds) {
+
     List<JvmMethod.Argument> formals = overload.getPositionalFormals();
     if(formals.size() == 2 &&
+        arguments.size() == 2 &&
         formals.get(0).getClazz().equals(double.class) &&
         formals.get(1).getClazz().equals(double.class)) {
 
+      ArgumentBounds x = arguments.get(0);
+      ArgumentBounds y = arguments.get(1);
+
       switch (name) {
         case "+":
-          return new DoubleBinaryOp(Opcodes.DADD, resultBounds);
+          return new DoubleBinaryOp(Opcodes.DADD, x, y, resultBounds);
         case "-":
-          return new DoubleBinaryOp(Opcodes.DSUB, resultBounds);
+          return new DoubleBinaryOp(Opcodes.DSUB, x, y, resultBounds);
         case "*":
-          return new DoubleBinaryOp(Opcodes.DMUL, resultBounds);
+          return new DoubleBinaryOp(Opcodes.DMUL, x, y, resultBounds);
         case "/":
-          return new DoubleBinaryOp(Opcodes.DDIV, resultBounds);
+          return new DoubleBinaryOp(Opcodes.DDIV, x, y, resultBounds);
       }
     }
     return null;

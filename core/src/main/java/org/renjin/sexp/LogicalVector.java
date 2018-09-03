@@ -51,6 +51,10 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
         throw new IllegalArgumentException("value: " + value);
     }
   }
+
+  public static LogicalVector valueOf(int value) {
+    return new LogicalArrayVector(value);
+  }
   
   public LogicalVector(AttributeMap attributes) {
     super(attributes);

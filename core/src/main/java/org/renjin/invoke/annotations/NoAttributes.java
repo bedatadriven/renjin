@@ -21,10 +21,11 @@ package org.renjin.invoke.annotations;
 import java.lang.annotation.*;
 
 /**
- * Indicates the given method is intended to be called by compiled R code
+ * Indicates that the result of this builtin or internal function will not have
+ * any attributes.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface CompilerSpecialization {
+public @interface NoAttributes {
 }

@@ -37,13 +37,13 @@ import java.util.List;
 public class DataParallelScalarCall implements Specialization {
   
   private final JvmMethod method;
+  private final List<ArgumentBounds> argumentBounds;
   private final ValueBounds valueBounds;
-  private final boolean constant;
 
   public DataParallelScalarCall(JvmMethod method, List<ArgumentBounds> argumentBounds, ValueBounds resultBounds) {
     this.method = method;
+    this.argumentBounds = argumentBounds;
     this.valueBounds = resultBounds;
-    this.constant = ValueBounds.allConstantArguments(argumentBounds);
   }
   
   public Specialization trySpecializeFurther() {
@@ -64,7 +64,7 @@ public class DataParallelScalarCall implements Specialization {
     return new ScalarExpr(vectorTypeOf(method.getReturnType())) {
       @Override
       public void loadScalar(EmitContext context, InstructionAdapter mv) {
-        Iterator<IRArgument> argumentIt = arguments.iterator();
+        Iterator<ArgumentBounds> argumentIt = argumentBounds.iterator();
 
         for (JvmMethod.Argument formal : method.getAllArguments()) {
           if(formal.isContextual()) {

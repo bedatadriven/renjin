@@ -80,6 +80,8 @@ public enum VectorType {
       return DOUBLE;
     } else if(type.equals(String.class)) {
       return STRING;
+    } else if(type.equals(boolean.class)) {
+      return LOGICAL;
     } else {
       throw new IllegalArgumentException(type.getName());
     }

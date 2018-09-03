@@ -21,25 +21,26 @@ package org.renjin.compiler.builtins;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
+import org.renjin.primitives.Primitives;
 
 import java.util.List;
 
 public class SumSpecializer implements BuiltinSpecializer {
 
-  private final String name;
+  private final AnnotationBasedSpecializer fallback;
 
-  public SumSpecializer(String name) {
-    this.name = name;
+  public SumSpecializer() {
+    fallback = new AnnotationBasedSpecializer(Primitives.getBuiltinEntry("sum"));
   }
 
   @Override
   public String getName() {
-    return "sum";
+    return fallback.getName();
   }
 
   @Override
   public String getGroup() {
-    return "Summary";
+    return fallback.getGroup();
   }
 
   @Override
@@ -87,6 +88,6 @@ public class SumSpecializer implements BuiltinSpecializer {
       return new SumSpecialization(resultBounds);
     }
 
-    return UnspecializedCall.INSTANCE;
+    return fallback.trySpecialize(runtimeState, arguments);
   }
 }

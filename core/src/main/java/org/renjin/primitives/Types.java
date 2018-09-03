@@ -18,11 +18,11 @@
  */
 package org.renjin.primitives;
 
+import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Options;
 import org.renjin.invoke.annotations.*;
-import org.renjin.primitives.vector.IsNaVector;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
 
@@ -229,21 +229,37 @@ public class Types {
   
   @Generic
   @Builtin("is.na")
-  public static LogicalVector isNA(final AtomicVector vector) {
-    if(vector.length() > 100 || vector.isDeferred()) {
-      return new IsNaVector(vector);
+  @DataParallel(value = PreserveAttributeStyle.STRUCTURAL, passNA = true)
+  public static boolean isNA(double x) {
+    return Double.isNaN(x);
+  }
 
-    } else {
-      LogicalArrayVector.Builder result = new LogicalArrayVector.Builder(vector.length());
-      for (int i = 0; i != vector.length(); ++i) {
-        result.set(i, vector.isElementNaN(i));
-      }
-      result.setAttribute(Symbols.DIM, vector.getAttribute(Symbols.DIM));
-      result.setAttribute(Symbols.NAMES, vector.getAttribute(Symbols.NAMES));
-      result.setAttribute(Symbols.DIMNAMES, vector.getAttribute(Symbols.DIMNAMES));
+  @Generic
+  @Builtin("is.na")
+  @DataParallel(value = PreserveAttributeStyle.STRUCTURAL, passNA = true)
+  public static boolean isNA(@Cast(CastStyle.EXPLICIT) int x) {
+    return IntVector.isNA(x);
+  }
 
-      return result.build();
-    }
+  @Generic
+  @Builtin("is.na")
+  @DataParallel(value = PreserveAttributeStyle.STRUCTURAL, passNA = true)
+  public static boolean isNA(String x) {
+    return x == null;
+  }
+
+  @Generic
+  @Builtin("is.na")
+  @DataParallel(value = PreserveAttributeStyle.STRUCTURAL, passNA = true)
+  public static boolean isNA(Complex x) {
+    return ComplexVector.isNA(x);
+  }
+
+  @Generic
+  @Builtin("is.na")
+  @DataParallel(value = PreserveAttributeStyle.STRUCTURAL, passNA = true)
+  public static boolean isNA(byte x) {
+    return false;
   }
 
   @Generic
@@ -253,7 +269,6 @@ public class Types {
   public static boolean isNaN(@AllowNull double value) {
     return !DoubleVector.isNA(value) && DoubleVector.isNaN(value);
   }
-
 
   @Generic
   @Builtin("is.nan")

@@ -42,7 +42,7 @@ public class VariableMap {
     for (Map.Entry<LValue, ValueBounds> entry : typeSolver.getVariables().entrySet()) {
       VariableStrategy strategy = findBestStrategy(entry.getKey(), entry.getValue());
 
-      System.out.println(entry.getKey() + " => " + strategy.getClass().getSimpleName());
+//      System.out.println(entry.getKey() + " => " + strategy.getClass().getSimpleName());
 
       map.put(entry.getKey(), strategy);
     }

@@ -18,7 +18,12 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.ir.TypeSet;
+import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
+import org.renjin.invoke.model.JvmMethod;
+import org.renjin.primitives.Primitives;
+import org.renjin.repackaged.guava.collect.Iterables;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +33,13 @@ import java.util.List;
  */
 public class SubsetSpecializer implements Specializer, BuiltinSpecializer {
 
+  private final JvmMethod method;
+  private final Primitives.Entry primitive;
+
+  public SubsetSpecializer() {
+    primitive = Primitives.getBuiltinEntry("[");
+    method = Iterables.getOnlyElement(JvmMethod.findOverloads(primitive.functionClass, primitive.name, primitive.methodName));
+  }
 
   @Override
   public String getName() {
@@ -73,7 +85,24 @@ public class SubsetSpecializer implements Specializer, BuiltinSpecializer {
       return singleElement;
     }
 
-    return new SubsetSpecialization(source, subscripts, drop);
+    // Call the generic runtime version....
+    // Only dim, dimnames, names attributes *might* be preserved
+
+    ValueBounds bounds = ValueBounds.builder()
+      .setTypeSet(computeResultTypeSet(source))
+      .addFlagsFrom(source.getBounds(), ValueBounds.MAYBE_DIM | ValueBounds.MAYBE_DIMNAMES| ValueBounds.MAYBE_NAMES)
+      .build();
+
+    return new StaticMethodCall(method, bounds);
+  }
+
+  private int computeResultTypeSet(ArgumentBounds source) {
+    int set = source.getTypeSet();
+    if(TypeSet.mightBe(set, TypeSet.PAIRLIST)) {
+      set |= TypeSet.LIST;
+      set &= ~TypeSet.PAIRLIST;
+    }
+    return set;
   }
 
 }

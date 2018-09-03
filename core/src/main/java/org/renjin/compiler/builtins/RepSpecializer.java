@@ -18,7 +18,21 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.codegen.ConstantBytecode;
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.SexpExpr;
+import org.renjin.compiler.codegen.expr.VectorType;
+import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.ir.exception.InvalidSyntaxException;
+import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
+import org.renjin.eval.MatchedArgumentPositions;
+import org.renjin.primitives.sequence.RepFunction;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.Vector;
 
 import java.util.List;
 
@@ -28,9 +42,78 @@ import java.util.List;
 public class RepSpecializer implements Specializer {
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
-    // TODO: generic dispatch is squirelly for this function. See RepFunction implementation
 
-    return UnspecializedCall.INSTANCE;
+    if(arguments.isEmpty()) {
+      return new ConstantCall(Null.INSTANCE);
+    }
 
+    final MatchedArgumentPositions match = RepFunction.ARGUMENT_MATCHER.match(arguments);
+    int x = match.getActualIndex(RepFunction.FORMAL_X);
+    int lengthOut = match.getActualIndex(RepFunction.FORMAL_LENGTH_OUT);
+    int each = match.getActualIndex(RepFunction.FORMAL_EACH);
+    int times = match.getActualIndex(RepFunction.FORMAL_TIMES);
+
+    if(x == -1) {
+      throw new InvalidSyntaxException("Missing argument 'x' to rep()");
+    }
+
+    ValueBounds input = arguments.get(x).getBounds();
+    ValueBounds result = ValueBounds.builder()
+        .setTypeSet(input.getTypeSet())
+        .addFlagsFrom(input, ValueBounds.FLAG_POSITIVE | ValueBounds.MAYBE_NAMES | ValueBounds.FLAG_NO_NA)
+        .build();
+
+
+    return new Specialization() {
+      @Override
+      public ValueBounds getResultBounds() {
+        return result;
+      }
+
+      @Override
+      public boolean isPure() {
+        return true;
+      }
+
+      @Override
+      public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+
+        return new SexpExpr() {
+          @Override
+          public void loadSexp(EmitContext context, InstructionAdapter mv) {
+
+            // Invoke:
+            // Vector rep(Vector x, Vector times, int lengthOut, int each)
+
+            arguments.get(x).getExpression().getCompiledExpr(context).loadSexp(context, mv);
+            mv.checkcast(Type.getType(Vector.class));
+
+            if(times == -1) {
+              ConstantBytecode.pushConstant(mv, RepFunction.DEFAULT_TIMES_ARGUMENT);
+            } else {
+              arguments.get(times).getExpression().getCompiledExpr(context).loadSexp(context, mv);
+              mv.checkcast(Type.getType(Vector.class));
+            }
+
+            if(lengthOut == -1) {
+              mv.visitLdcInsn(RepFunction.DEFAULT_LENGTH_OUT);
+            } else {
+              arguments.get(lengthOut).getExpression().getCompiledExpr(context).loadScalar(context, mv, VectorType.INT);
+            }
+
+            if(each == -1) {
+              mv.visitLdcInsn(RepFunction.DEFAULT_EACH);
+            } else {
+              arguments.get(each).getExpression().getCompiledExpr(context).loadScalar(context, mv, VectorType.INT);
+            }
+
+            mv.invokestatic(Type.getInternalName(RepFunction.class), "rep",
+                Type.getMethodDescriptor(Type.getType(Vector.class),
+                    Type.getType(Vector.class), Type.getType(Vector.class), Type.INT_TYPE, Type.INT_TYPE), false);
+
+          }
+        };
+      }
+    };
   }
 }

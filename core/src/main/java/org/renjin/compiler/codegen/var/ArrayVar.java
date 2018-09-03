@@ -50,7 +50,7 @@ public class ArrayVar extends AbstractMutableVar {
     return new ArrayExpr(vectorType) {
       @Override
       public void loadArray(EmitContext context, InstructionAdapter mv, VectorType vectorType) {
-        if(vectorType != ArrayVar.this.vectorType) {
+        if(!vectorType.getJvmArrayType().equals(ArrayVar.this.vectorType.getJvmArrayType())) {
           throw new UnsupportedOperationException("TODO: Array type mismatch");
         }
         mv.visitVarInsn(Opcodes.ALOAD, index);

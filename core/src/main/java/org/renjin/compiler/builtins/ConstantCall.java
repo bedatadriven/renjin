@@ -84,7 +84,6 @@ public class ConstantCall implements Specialization {
 
   public static ConstantCall evaluate(JvmMethod method, List<ValueBounds> arguments) {
 
-
     ListVector.Builder varArgs = null;
     Map<String, Object> namedFlags = null;
 

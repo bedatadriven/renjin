@@ -64,6 +64,8 @@ public interface CompiledSexp {
       loadScalar(emitContext, mv, VectorType.DOUBLE);
     } else if(argumentClass.equals(String.class)) {
       loadScalar(emitContext, mv, VectorType.STRING);
+    } else {
+      throw new UnsupportedOperationException("TODO: " + argumentClass.getName());
     }
   }
 

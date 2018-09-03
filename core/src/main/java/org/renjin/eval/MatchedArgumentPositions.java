@@ -130,4 +130,8 @@ public class MatchedArgumentPositions {
     }
     return true;
   }
+
+  public boolean isFormalMatched(int formalIndex) {
+    return getActualIndex(formalIndex) != -1;
+  }
 }

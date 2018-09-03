@@ -130,9 +130,11 @@ public class IfStatement extends Statement implements BasicBlockEndingStatement 
 
     if(constantValue == Logical.TRUE) {
       mv.visitJumpInsn(GOTO, emitContext.getBytecodeLabel(trueTarget));
+      return;
     }
     if(constantValue == Logical.FALSE) {
       mv.visitJumpInsn(GOTO, emitContext.getBytecodeLabel(falseTarget));
+      return;
     }
 
     if(condition.getValueBounds().isConstant()) {

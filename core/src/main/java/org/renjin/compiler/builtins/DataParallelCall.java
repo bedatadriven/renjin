@@ -18,21 +18,10 @@
  */
 package org.renjin.compiler.builtins;
 
-import org.renjin.compiler.codegen.BytecodeTypes;
-import org.renjin.compiler.codegen.EmitContext;
-import org.renjin.compiler.codegen.expr.CompiledSexp;
-import org.renjin.compiler.codegen.expr.SexpExpr;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.eval.Context;
-import org.renjin.invoke.codegen.WrapperGenerator2;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Primitives;
-import org.renjin.repackaged.asm.Opcodes;
-import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.sexp.Environment;
 
 import java.util.Iterator;
 import java.util.List;
@@ -41,15 +30,15 @@ import java.util.List;
  * Specialization for builtins that are marked {@link org.renjin.invoke.annotations.DataParallel} and
  * whose arguments are "recycled" for multiple calls.
  */
-public class DataParallelCall implements Specialization {
+public class DataParallelCall {
 
-  private final String name;
+  private final Primitives.Entry primitive;
   private final JvmMethod method;
   private final List<ArgumentBounds> argumentBounds;
   private final ValueBounds resultBounds;
 
   public DataParallelCall(Primitives.Entry primitive, JvmMethod method, List<ArgumentBounds> argumentBounds) {
-    this.name = primitive.name;
+    this.primitive = primitive;
     this.method = method;
     this.argumentBounds = argumentBounds;
     this.resultBounds = computeBounds(argumentBounds);
@@ -70,12 +59,12 @@ public class DataParallelCall implements Specialization {
         break;
       case STRUCTURAL:
         // Result may only have "dim", "names" or "dimnames" attributes
-        bounds.addFlags(computeAttributes(argumentBounds,
+        bounds.addFlags(computeAttributes(recycledArguments,
             ValueBounds.MAYBE_DIM | ValueBounds.MAYBE_DIMNAMES | ValueBounds.MAYBE_NAMES));
         break;
       case ALL:
         // Result may have any of the attributes present in the arguments
-        bounds.addFlags(computeAttributes(argumentBounds, ValueBounds.MAYBE_ATTRIBUTES));
+        bounds.addFlags(computeAttributes(recycledArguments, ValueBounds.MAYBE_ATTRIBUTES));
         break;
     }
 
@@ -95,10 +84,10 @@ public class DataParallelCall implements Specialization {
     return flags;
   }
 
-  private int computeAttributes(List<ArgumentBounds> argumentBounds, int mask) {
+  private int computeAttributes(List<ValueBounds> argumentBounds, int mask) {
     int flags = 0;
 
-    for (ArgumentBounds argumentBound : argumentBounds) {
+    for (ValueBounds argumentBound : argumentBounds) {
       flags |= (argumentBound.getFlags() & mask);
     }
 
@@ -120,7 +109,7 @@ public class DataParallelCall implements Specialization {
   }
 
 
-  public Specialization specializeFurther() {
+  public Specialization specialize() {
     if(ValueBounds.allConstantArguments(argumentBounds)) {
       return evaluateConstant();
     }
@@ -128,7 +117,7 @@ public class DataParallelCall implements Specialization {
     if(resultBounds.isFlagSet(ValueBounds.LENGTH_ONE | ValueBounds.FLAG_NO_NA) &&
         resultBounds.hasNoAttributes()) {
 
-      DoubleBinaryOp op = DoubleBinaryOp.trySpecialize(name, method, resultBounds);
+      DoubleBinaryOp op = DoubleBinaryOp.trySpecialize(primitive.name, method, argumentBounds, resultBounds);
       if (op != null) {
         return op;
       }
@@ -136,11 +125,9 @@ public class DataParallelCall implements Specialization {
 
     } else if(
         resultBounds.hasNoAttributes() &&
-        method.getReturnType().equals(double.class) &&
-        method.getPositionalFormals().size() == 1 &&
-        method.getPositionalFormals().get(0).getClazz().equals(double.class)) {
+        method.getPositionalFormals().size() == 1) {
 
-      return new DoubleUnaryArrayOp(method, argumentBounds, resultBounds);
+      return new DataParallelUnaryOp(method, argumentBounds, resultBounds);
 
     } else if(resultBounds.hasNoAttributes() &&
               method.getReturnType().equals(double.class) &&
@@ -150,7 +137,7 @@ public class DataParallelCall implements Specialization {
 
       return new DoubleBinaryArrayOp(method, argumentBounds, resultBounds);
     }
-    return this;
+    return new WrapperApplyCall(primitive, argumentBounds, resultBounds);
   }
 
   private Specialization evaluateConstant() {
@@ -180,51 +167,4 @@ public class DataParallelCall implements Specialization {
     return new ConstantCall(constantValue);
   }
 
-  public ValueBounds getResultBounds() {
-    return resultBounds;
-  }
-
-  @Override
-  public boolean isPure() {
-    return method.isPure();
-  }
-
-  @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
-    return new SexpExpr() {
-      @Override
-      public void loadSexp(EmitContext context, InstructionAdapter mv) {
-
-        // Call into R$primitive$$plus$$doApply
-
-        mv.visitVarInsn(Opcodes.ALOAD, context.getContextVarIndex());
-        mv.visitVarInsn(Opcodes.ALOAD, context.getEnvironmentVarIndex());
-
-        for (IRArgument argument : arguments) {
-          argument.getExpression().getCompiledExpr(context).loadSexp(context, mv);
-        }
-
-        mv.invokestatic(getWrapperInternalClassName(), "doApply",
-            getWrapperApplySignature(arguments), false);
-      }
-    };
-  }
-
-  private String getWrapperInternalClassName() {
-    return "org/renjin/primitives/" + WrapperGenerator2.toJavaName(name);
-  }
-
-  private String getWrapperApplySignature(List<IRArgument> arguments) {
-    String sexpDescriptor = "L" + BytecodeTypes.SEXP_INTERNAL_NAME + ";";
-    StringBuilder signature = new StringBuilder();
-    signature.append('(');
-    signature.append(Type.getDescriptor(Context.class));
-    signature.append(Type.getDescriptor(Environment.class));
-    for (int i = 0; i < arguments.size(); i++) {
-      signature.append(sexpDescriptor);
-    }
-    signature.append(')');
-    signature.append(sexpDescriptor);
-    return signature.toString();
-  }
 }

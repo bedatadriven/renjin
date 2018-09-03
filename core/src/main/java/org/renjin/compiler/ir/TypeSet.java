@@ -108,7 +108,7 @@ public class TypeSet {
       return LIST;
 
     } else if (LogicalVector.class.isAssignableFrom(type)) {
-      return LIST;
+      return LOGICAL;
 
     } else if (AtomicVector.class.isAssignableFrom(type)) {
       return ANY_ATOMIC_VECTOR;

@@ -127,12 +127,30 @@ public class ClassGenerator<T> implements Opcodes {
   }
 
 
-  public InstructionAdapter addBodyMethod() {
-    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "evaluate",
+  public void addBodyMethod(Consumer<InstructionAdapter> writer) {
+
+
+    MethodNode methodNode = new MethodNode(ACC_PUBLIC, "evaluate",
         getMethodDescriptor(Type.getType(SEXP.class), getType(Context.class), getType(Environment.class)),
         null, null);
 
-    return new InstructionAdapter(mv);
+    MethodVisitor mv = methodNode;
+
+
+    Textifier p = new Textifier();
+    mv = new TraceMethodVisitor(mv, p);
+
+    mv.visitCode();
+
+    writer.accept(new InstructionAdapter(mv));
+
+    mv.visitEnd();
+
+    PrintWriter pw = new PrintWriter(System.err);
+    p.print(pw);
+    pw.flush();
+
+    methodNode.accept(cv);
   }
 
 

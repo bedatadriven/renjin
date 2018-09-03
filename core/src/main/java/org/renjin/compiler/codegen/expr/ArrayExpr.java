@@ -24,6 +24,7 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.IntArrayVector;
+import org.renjin.sexp.LogicalArrayVector;
 
 public abstract class ArrayExpr implements CompiledSexp {
 
@@ -83,13 +84,17 @@ public abstract class ArrayExpr implements CompiledSexp {
             Type.getMethodDescriptor(Type.getType(IntArrayVector.class), vectorType.getJvmArrayType()),
             false);
         break;
+      case LOGICAL:
+        mv.invokestatic(Type.getInternalName(LogicalArrayVector.class), "unsafe",
+            Type.getMethodDescriptor(Type.getType(LogicalArrayVector.class), vectorType.getJvmArrayType()),
+            false);
+        break;
       case DOUBLE:
         mv.invokestatic(Type.getInternalName(DoubleArrayVector.class), "unsafe",
             Type.getMethodDescriptor(Type.getType(DoubleArrayVector.class), vectorType.getJvmArrayType()),
             false);
         break;
-      case STRING:
-        break;
+
       default:
         throw new UnsupportedOperationException("TODO: " + vectorType);
     }

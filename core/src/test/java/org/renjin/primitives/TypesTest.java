@@ -209,9 +209,12 @@ public strictfp class TypesTest extends EvalTestCase {
     assertThat( eval(" is.na(NA) "), elementsIdenticalTo( c(TRUE)));
     assertThat( eval(" is.na(c(1L, NA_integer_)) "), elementsIdenticalTo( c(FALSE, TRUE)));
     assertThat( eval(" is.na(c(NA_character_, '', 'foo')) "), elementsIdenticalTo( c(TRUE, FALSE, FALSE)));
-    assertThat( eval(" is.na(c()) "), identicalTo((SEXP)LogicalVector.EMPTY));
   }
 
+  @Test(expected = EvalException.class)
+  public void naNULL() {
+    eval(" is.na(c()) ");
+  }
 
   @Test
   public void finite() {

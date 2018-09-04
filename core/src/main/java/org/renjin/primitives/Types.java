@@ -252,7 +252,7 @@ public class Types {
   @Builtin("is.na")
   @DataParallel(value = PreserveAttributeStyle.STRUCTURAL, passNA = true)
   public static boolean isNA(Complex x) {
-    return ComplexVector.isNA(x);
+    return ComplexVector.isNaN(x);
   }
 
   @Generic

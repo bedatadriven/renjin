@@ -104,9 +104,6 @@ public class LivenessCalculator {
         upAndMark(liveIn, liveOut, b, v);
       }
     }
-
-    System.out.println("liveIn = " + liveIn);
-    System.out.println("liveOut = " + liveOut);
     return liveOut;
   }
 

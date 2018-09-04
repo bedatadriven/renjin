@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.ir.tac;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.compiler.ApplyCallCompiler;
@@ -37,6 +38,7 @@ import static org.junit.Assert.assertThat;
 
 public class ApplyCallCompilerTest extends EvalTestCase {
 
+  @Ignore("wip")
   @Test
   public void test() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException {
 

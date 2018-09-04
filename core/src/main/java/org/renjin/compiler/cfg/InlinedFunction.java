@@ -110,8 +110,6 @@ public class InlinedFunction {
     }
     ValueBounds union = ValueBounds.union(returnBounds);
 
-    System.err.println("function " + functionName + "() => " + union);
-
     return union;
   }
 

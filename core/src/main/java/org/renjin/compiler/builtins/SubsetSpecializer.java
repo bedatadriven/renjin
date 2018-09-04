@@ -65,7 +65,7 @@ public class SubsetSpecializer implements Specializer, BuiltinSpecializer {
         drop = argument;
       } else {
         subscripts.add(argument);
-    }
+      }
     }
 
     if (subscripts.size() == 0) {
@@ -89,9 +89,9 @@ public class SubsetSpecializer implements Specializer, BuiltinSpecializer {
     // Only dim, dimnames, names attributes *might* be preserved
 
     ValueBounds bounds = ValueBounds.builder()
-      .setTypeSet(computeResultTypeSet(source))
-      .addFlagsFrom(source.getBounds(), ValueBounds.MAYBE_DIM | ValueBounds.MAYBE_DIMNAMES| ValueBounds.MAYBE_NAMES)
-      .build();
+        .setTypeSet(computeResultTypeSet(source))
+        .addFlagsFrom(source.getBounds(), ValueBounds.MAYBE_DIM | ValueBounds.MAYBE_DIMNAMES| ValueBounds.MAYBE_NAMES)
+        .build();
 
     return new StaticMethodCall(method, bounds);
   }

@@ -127,7 +127,7 @@ public class SsaTransformTest extends CompilerTestCase {
 
     System.out.println(cfg);
 
-    ReturnStatement stmt = (ReturnStatement) cfg.getBasicBlocks().get(5).getStatements().get(0);
+    ReturnStatement stmt = (ReturnStatement) cfg.getBasicBlocks().get(5).getTerminal();
     assertThat(stmt.getRHS(), instanceOf(SsaVariable.class));
   }
 }

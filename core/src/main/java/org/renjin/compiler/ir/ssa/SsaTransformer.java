@@ -52,7 +52,6 @@ public class SsaTransformer {
     this.cfg = cfg;
     this.dtree = new DominanceTree(cfg);
     this.rdt = new DominanceTree(new ReverseControlFlowGraph(cfg));
-    this.rdt.dumpGraph();
     this.allVariables = allVariables();
   }
 

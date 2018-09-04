@@ -82,10 +82,6 @@ public class ClassGeneratorTest {
     ssaTransformer.removePhiFunctions(types);
 
     System.out.println(cfg);
-//
-//    ByteCodeEmitter emitter = new ByteCodeEmitter(cfg);
-//    CompiledBody compiledBody = emitter.compile().newInstance();
-//
-//    System.out.println(compiledBody.evaluate(session.getTopLevelContext(), session.getGlobalEnvironment()));
+
   }
 }

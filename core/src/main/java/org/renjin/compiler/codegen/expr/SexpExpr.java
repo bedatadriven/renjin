@@ -83,6 +83,7 @@ public abstract class SexpExpr implements CompiledSexp {
       case BYTE:
         mv.invokeinterface(Type.getInternalName(Vector.class), "getElementAsByte", "(I)B");
         break;
+      case LOGICAL:
       case INT:
         mv.invokeinterface(Type.getInternalName(Vector.class), "getElementAsInt", "(I)I");
         break;

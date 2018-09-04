@@ -71,7 +71,7 @@ public class SexpCompiler {
     this.body = body;
 
     cfg = new ControlFlowGraph(body);
-    cfg.dumpGraph();
+//    cfg.dumpGraph();
 
     ssaTransformer = new SsaTransformer(cfg);
     if(environmentVisible) {
@@ -127,7 +127,7 @@ public class SexpCompiler {
   private void compileForBody() {
 
     types.execute();
-    types.dumpBounds();
+//    types.dumpBounds();
     types.verifyFunctionAssumptions(runtimeState);
     lowerSSA();
   }
@@ -142,7 +142,7 @@ public class SexpCompiler {
 
   private CompiledLoopBody compileForLoopBody() throws IllegalAccessException, InstantiationException {
 
-    System.out.println(cfg);
+//    System.out.println(cfg);
 
     compileForBody();
 

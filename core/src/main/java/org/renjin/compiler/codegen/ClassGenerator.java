@@ -41,6 +41,8 @@ import static org.renjin.repackaged.asm.Type.getType;
 
 public class ClassGenerator<T> implements Opcodes {
 
+  private static final boolean DEBUG = false;
+
   private static final AtomicLong CLASS_COUNTER = new AtomicLong(1);
 
   private final Class<T> interfaceClass;
@@ -71,17 +73,17 @@ public class ClassGenerator<T> implements Opcodes {
   public Class<T> finishAndLoad() {
     writeClassEnd();
 
-    try {
-      File file = new File("/tmp/jit.class");
-      org.renjin.repackaged.guava.io.Files.write(cw.toByteArray(), file);
+    if(DEBUG) {
+      try {
+        File file = new File("/tmp/jit.class");
+        org.renjin.repackaged.guava.io.Files.write(cw.toByteArray(), file);
 
-      System.out.println("Class file: " + file.getAbsolutePath());
+        System.out.println("Class file: " + file.getAbsolutePath());
 
-    } catch (IOException e) {
-      e.printStackTrace();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
     }
-
-
     return JitClassLoader.defineClass(interfaceClass, className.replace('/', '.'), cw.toByteArray());
   }
 
@@ -97,62 +99,50 @@ public class ClassGenerator<T> implements Opcodes {
 
   public void addLoopBodyMethod(Consumer<InstructionAdapter> writer) {
 
-    MethodNode methodNode = new MethodNode(ACC_PUBLIC, "run",
-        getMethodDescriptor(Type.getType(SEXP.class), getType(Context.class), getType(Environment.class),
-            getType(SEXP.class), Type.INT_TYPE),
-        null, null);
-
-    MethodVisitor mv = methodNode;
-
-//    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "run",
-//        getMethodDescriptor(Type.getType(SEXP.class), getType(Context.class), getType(Environment.class),
-//        getType(SEXP.class), Type.INT_TYPE),
-//        null, null);
-
-
-    Textifier p = new Textifier();
-    mv = new TraceMethodVisitor(mv, p);
-
-    mv.visitCode();
-
-    writer.accept(new InstructionAdapter(mv));
-
-    mv.visitEnd();
-
-    PrintWriter pw = new PrintWriter(System.err);
-    p.print(pw);
-    pw.flush();
-
-    methodNode.accept(cv);
+    addMethod(writer, "run", getMethodDescriptor(Type.getType(SEXP.class),
+        getType(Context.class),
+        getType(Environment.class),
+        getType(SEXP.class),
+        Type.INT_TYPE));
   }
 
 
   public void addBodyMethod(Consumer<InstructionAdapter> writer) {
-
-
-    MethodNode methodNode = new MethodNode(ACC_PUBLIC, "evaluate",
-        getMethodDescriptor(Type.getType(SEXP.class), getType(Context.class), getType(Environment.class)),
-        null, null);
-
-    MethodVisitor mv = methodNode;
-
-
-    Textifier p = new Textifier();
-    mv = new TraceMethodVisitor(mv, p);
-
-    mv.visitCode();
-
-    writer.accept(new InstructionAdapter(mv));
-
-    mv.visitEnd();
-
-    PrintWriter pw = new PrintWriter(System.err);
-    p.print(pw);
-    pw.flush();
-
-    methodNode.accept(cv);
+    addMethod(writer, "evaluate", getMethodDescriptor(Type.getType(SEXP.class),
+        getType(Context.class),
+        getType(Environment.class)));
   }
 
+  private void addMethod(Consumer<InstructionAdapter> writer, String methodName, String descriptor) {
+    if(DEBUG) {
+      MethodNode methodNode = new MethodNode(ACC_PUBLIC, methodName, descriptor,null, null);
+
+      MethodVisitor mv = methodNode;
+
+      Textifier p = new Textifier();
+      mv = new TraceMethodVisitor(mv, p);
+
+      mv.visitCode();
+
+      writer.accept(new InstructionAdapter(mv));
+
+      mv.visitEnd();
+
+      PrintWriter pw = new PrintWriter(System.err);
+      p.print(pw);
+      pw.flush();
+
+      methodNode.accept(cv);
+
+    } else {
+
+      MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, methodName, descriptor, null, null);
+
+      mv.visitCode();
+      writer.accept(new InstructionAdapter(mv));
+      mv.visitEnd();
+    }
+  }
 
 
   private void writeClassEnd() {

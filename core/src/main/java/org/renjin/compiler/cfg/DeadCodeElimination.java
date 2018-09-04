@@ -74,7 +74,6 @@ public class DeadCodeElimination {
       while(it.hasNext()) {
         Statement s = it.next();
         if (!live.contains(s)) {
-          System.out.println("REMOVING: " + s);
           it.remove();
         }
       }

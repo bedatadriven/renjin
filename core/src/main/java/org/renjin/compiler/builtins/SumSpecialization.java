@@ -19,7 +19,6 @@
 package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.codegen.EmitContext;
-import org.renjin.compiler.codegen.expr.ArrayExpr;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.ScalarExpr;
 import org.renjin.compiler.codegen.expr.VectorType;
@@ -60,11 +59,8 @@ public class SumSpecialization implements Specialization {
     return new ScalarExpr(VectorType.DOUBLE) {
       @Override
       public void loadScalar(EmitContext context, InstructionAdapter mv) {
-        if(argument instanceof ArrayExpr) {
-          ArrayExpr arrayExpr = (ArrayExpr) argument;
-          arrayExpr.loadArray(emitContext, mv, VectorType.DOUBLE);
-          mv.invokestatic(Type.getInternalName(Summary.class), "sum", "([D)D", false);
-        }
+        argument.loadArray(emitContext, mv, VectorType.DOUBLE);
+        mv.invokestatic(Type.getInternalName(Summary.class), "sum", "([D)D", false);
       }
     };
   }

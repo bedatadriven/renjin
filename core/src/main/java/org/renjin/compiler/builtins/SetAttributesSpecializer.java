@@ -48,7 +48,11 @@ public class SetAttributesSpecializer implements Specializer {
               ValueBounds.FLAG_POSITIVE |
               ValueBounds.LENGTH_NON_ZERO |
               ValueBounds.LENGTH_ONE)
-          .addFlags(ValueBounds.MAYBE_ATTRIBUTES)
+          .addFlags(ValueBounds.MAYBE_NAMES)
+          .addFlags(ValueBounds.MAYBE_DIM)
+          .addFlags(ValueBounds.MAYBE_DIMNAMES)
+          .addFlags(ValueBounds.MAYBE_CLASS, !attributes.getBounds().isFlagSet(ValueBounds.NAME_CLASS_ABSENT))
+          .addFlags(ValueBounds.MAYBE_OTHER_ATTR)
           .build();
 
       return new WrapperApplyCall(primitive, arguments, resultBounds);

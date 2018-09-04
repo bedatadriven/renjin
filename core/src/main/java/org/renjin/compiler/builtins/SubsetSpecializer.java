@@ -65,7 +65,7 @@ public class SubsetSpecializer implements Specializer, BuiltinSpecializer {
         drop = argument;
       } else {
         subscripts.add(argument);
-      }
+    }
     }
 
     if (subscripts.size() == 0) {

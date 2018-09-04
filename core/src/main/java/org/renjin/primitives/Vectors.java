@@ -840,7 +840,7 @@ public class Vectors {
   }
 
   @CompilerSpecialization
-  public static double apply(MethodHandle method, double x) throws Throwable {
+  public static double applyDD(MethodHandle method, double x) throws Throwable {
     if(DoubleVector.isNA(x)) {
       return DoubleVector.NA;
     } else {

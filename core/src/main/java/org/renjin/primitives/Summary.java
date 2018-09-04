@@ -37,6 +37,7 @@ public class Summary {
 
   @Builtin
   @GroupGeneric
+  @NoAttributes
   public static SEXP min(@ArgumentList ListVector arguments,
                          @NamedFlag("na.rm") boolean removeNA) {
 
@@ -48,6 +49,7 @@ public class Summary {
 
   @Builtin
   @GroupGeneric
+  @NoAttributes
   public static SEXP max(@ArgumentList ListVector arguments,
                          @NamedFlag("na.rm") boolean removeNA) {
 
@@ -68,6 +70,7 @@ public class Summary {
    */
   @Builtin
   @GroupGeneric
+  @NoAttributes
   public static Vector range(@ArgumentList ListVector arguments,
                              @NamedFlag("na.rm") boolean removeNA) {
 
@@ -386,6 +389,7 @@ public class Summary {
    */
   @Builtin
   @GroupGeneric
+  @NoAttributes
   public static AtomicVector prod(@ArgumentList ListVector arguments, @NamedFlag("na.rm") boolean removeNA) {
 
     double realProduct = realProduct(arguments, removeNA);
@@ -448,6 +452,7 @@ public class Summary {
   }
 
   @Builtin
+  @NoAttributes
   @GroupGeneric
   public static SEXP sum(@Current Context context, @ArgumentList ListVector arguments,
                          @NamedFlag("na.rm") boolean removeNA) {
@@ -652,6 +657,7 @@ public class Summary {
 
   @Deferrable
   @Internal
+  @NoAttributes
   public static DoubleVector mean(Vector x) {
 
     if(x.isDeferred() || x.length() > 100000) {

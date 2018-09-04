@@ -103,7 +103,15 @@ public class ValueBounds {
 
   public static final int HAS_DIM = HAS_DIM1 | HAS_DIM2 | HAS_DIM_MORE;
 
-  private static final int INTERSECT_MASK = FLAG_NO_NA | FLAG_POSITIVE | LENGTH_NON_ZERO | LENGTH_ONE | HAS_DIM;
+
+  /**
+   * This value *definitely* does not have a "names" attribute that contains the character "class"
+   */
+  public static final int NAME_CLASS_ABSENT = 1 << 12;
+
+
+  private static final int INTERSECT_MASK = FLAG_NO_NA | FLAG_POSITIVE | LENGTH_NON_ZERO | LENGTH_ONE | HAS_DIM |
+                                            NAME_CLASS_ABSENT;
 
   private static final int UNION_MASK = MAYBE_ATTRIBUTES;
 
@@ -307,6 +315,7 @@ public class ValueBounds {
     }
     if (isFlagSet(MAYBE_DIMNAMES)) {
       s.append(", dimnames?");
+
     }
     if (classAttribute != null) {
       s.append(", class=").append(classAttribute);

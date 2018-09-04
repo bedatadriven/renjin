@@ -38,13 +38,16 @@ public class GetAttributesSpecializer implements Specializer {
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
     ArgumentBounds sexp = arguments.get(0);
-    if(sexp.getBounds().hasNoAttributes()) {
+    ValueBounds bounds = sexp.getBounds();
+
+    if(bounds.hasNoAttributes()) {
       return new ConstantCall(Null.INSTANCE);
 
     } else {
       return new WrapperApplyCall(primitive, arguments, ValueBounds.builder()
           .setTypeSet(TypeSet.NULL | TypeSet.LIST)
           .addFlags(ValueBounds.MAYBE_NAMES)
+          .addFlags(ValueBounds.NAME_CLASS_ABSENT, !bounds.isFlagSet(ValueBounds.MAYBE_CLASS))
           .build());
     }
   }

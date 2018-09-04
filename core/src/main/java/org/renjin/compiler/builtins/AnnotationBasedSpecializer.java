@@ -24,6 +24,7 @@ import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.invoke.codegen.OverloadComparator;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Primitives;
+import org.renjin.repackaged.guava.collect.Iterables;
 
 import java.util.List;
 
@@ -79,7 +80,16 @@ public class AnnotationBasedSpecializer implements BuiltinSpecializer {
     }
     return false;
   }
-  
+
+  public static JvmMethod findMethod(String primitiveName) {
+    Primitives.Entry entry = Primitives.getBuiltinEntry(primitiveName);
+    return Iterables.getOnlyElement(JvmMethod.findOverloads(
+        entry.functionClass,
+        entry.name,
+        entry.methodName));
+  }
+
+
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> namedArguments) {
     List<ValueBounds> arguments = ArgumentBounds.withoutNames(namedArguments);

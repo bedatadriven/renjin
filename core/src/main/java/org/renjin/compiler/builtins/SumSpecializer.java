@@ -21,32 +21,32 @@ package org.renjin.compiler.builtins;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
-import org.renjin.primitives.Primitives;
+import org.renjin.invoke.model.JvmMethod;
 
 import java.util.List;
 
 public class SumSpecializer implements BuiltinSpecializer {
 
-  private final AnnotationBasedSpecializer fallback;
+  private final JvmMethod fallback;
 
   public SumSpecializer() {
-    fallback = new AnnotationBasedSpecializer(Primitives.getBuiltinEntry("sum"));
+    fallback = AnnotationBasedSpecializer.findMethod("sum");
   }
 
   @Override
   public String getName() {
-    return fallback.getName();
+    return "sum";
   }
 
   @Override
   public String getGroup() {
-    return fallback.getGroup();
+    return "Summary";
   }
 
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
 
-    int resultType = 0;
+    int resultType = TypeSet.INT;
     int summandCount = 0;
     boolean hasNoNAs = true;
     boolean naRm = false;
@@ -60,11 +60,17 @@ public class SumSpecializer implements BuiltinSpecializer {
         summandCount ++;
 
         ValueBounds bounds = argument.getBounds();
-        if(resultType == 0) {
-          resultType = bounds.getTypeSet();
-        } else {
-          resultType = TypeSet.widestVectorType(resultType, bounds.getTypeSet());
+        int argumentTypeSet = bounds.getTypeSet();
+
+        // Promote logical vectors to integers
+        if((argumentTypeSet & TypeSet.LOGICAL) != 0) {
+          argumentTypeSet &= ~TypeSet.LOGICAL;
+          argumentTypeSet |= TypeSet.INT;
         }
+
+        resultType = TypeSet.widestVectorType(resultType,
+            (argumentTypeSet & (TypeSet.INT | TypeSet.DOUBLE | TypeSet.COMPLEX)));
+
         if(!bounds.isFlagSet(ValueBounds.FLAG_NO_NA)) {
           hasNoNAs = false;
         }
@@ -88,6 +94,6 @@ public class SumSpecializer implements BuiltinSpecializer {
       return new SumSpecialization(resultBounds);
     }
 
-    return fallback.trySpecialize(runtimeState, arguments);
+    return new StaticMethodCall(fallback, resultBounds);
   }
 }

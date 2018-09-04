@@ -84,14 +84,14 @@ public class SingleRowOrColumn implements Specialization {
       return null;
     }
 
-    // The index *must* be a scalar, *not* NA, *and* known to be positive.
+    // The index *muast* be a scalar, *not* NA, *and* known to be positive.
     if(!index.getBounds().isFlagSet(ValueBounds.LENGTH_ONE | ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_POSITIVE)) {
       return null;
     }
 
     return new SingleRowOrColumn(dimension, ValueBounds.builder()
       .setTypeSet(source.getTypeSet())
-      .addFlags(source.getFlags() & (ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_POSITIVE))
+      .addFlagsFrom(source.getBounds(), ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_POSITIVE)
       .build(), dimension);
   }
 

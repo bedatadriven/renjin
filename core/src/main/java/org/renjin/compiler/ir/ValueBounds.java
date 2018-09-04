@@ -159,7 +159,7 @@ public class ValueBounds {
    */
   public static ValueBounds constantValue(SEXP value) {
     Builder bounds = ValueBounds.builder();
-    bounds.addFlags(FLAG_NO_NA, hasAnyNAs(value));
+    bounds.addFlags(FLAG_NO_NA, !hasAnyNAs(value));
     bounds.setLength(value.length());
     bounds.setTypeSet(TypeSet.of(value));
     bounds.setAttributes(value.getAttributes());

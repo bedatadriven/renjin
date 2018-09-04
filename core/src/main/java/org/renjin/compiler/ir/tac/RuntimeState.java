@@ -156,7 +156,10 @@ public class RuntimeState {
           // the expression without side effects....
           value = findVariableWithoutSideEffects(context,
               promisedValue.getEnvironment(),
-              (Symbol)promisedValue.getExpression(), findFunction);
+              (Symbol) promisedValue.getExpression(), findFunction);
+
+        } else if(!hasSideEffects(promisedValue.getExpression())) {
+          value = promisedValue.force(context);
 
         } else {
           // Promises can have side effects, and evaluation order is important
@@ -177,6 +180,16 @@ public class RuntimeState {
     } while(environment != Environment.EMPTY);
 
     return value;
+  }
+
+  private static boolean hasSideEffects(SEXP sexp) {
+    if(sexp instanceof AtomicVector) {
+      return false;
+    }
+    if(sexp instanceof ListVector) {
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -215,7 +228,6 @@ public class RuntimeState {
 
     // 3) Atomic vectors we want to assume their shape, and attributes
     Vector vector = (Vector) sexp;
-    AttributeMap attributes = sexp.getAttributes();
     ValueBounds.Builder bounds = ValueBounds.builder().setTypeSet(type);
 
     if(length == 1 && vector.isElementNA(0)) {

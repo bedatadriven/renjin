@@ -60,18 +60,16 @@ public class S4Specialization implements Specialization {
   }
   
   private void updateTypeBounds(Closure function, List<ArgumentBounds> arguments) {
-    
-    
+
     // Otherwise, try to resolve the function
     if (inlinedMethod == null || inlinedMethod.getClosure() != function) {
-      matchedArguments = MatchedArgumentPositions.matchArgumentBounds(closure, arguments);
-      inlinedMethod = new InlinedFunction("g", runtimeState, closure, matchedArguments.getSuppliedFormals());
+      inlinedMethod = new InlinedFunction("g", runtimeState, closure, ArgumentBounds.names(arguments));
     }
-    
+
 //    if (matchedArguments.hasExtraArguments()) {
 //      throw new FailedToSpecializeException("Extra arguments not supported");
 //    }
-    
+
     returnBounds = inlinedMethod.updateBounds(arguments);
   }
   

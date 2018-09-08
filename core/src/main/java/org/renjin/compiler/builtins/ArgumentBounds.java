@@ -103,4 +103,12 @@ public class ArgumentBounds {
   public int getFlags() {
     return bounds.getFlags();
   }
+
+  public static String[] names(List<ArgumentBounds> arguments) {
+    String[] names = new String[arguments.size()];
+    for (int i = 0; i < names.length; i++) {
+      names[i] = arguments.get(i).getName();
+    }
+    return names;
+  }
 }

@@ -32,7 +32,6 @@ import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.sexp.FunctionCall;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -57,14 +56,12 @@ public class UseMethodCall implements Expression {
   
   private Specialization specialization = UnspecializedCall.INSTANCE;
   
-  public UseMethodCall(RuntimeState runtimeState, FunctionCall call, String generic, Expression objectExpr) {
+  public UseMethodCall(RuntimeState runtimeState, FunctionCall call, String generic, List<IRArgument> arguments) {
     this.runtimeState = runtimeState;
     this.call = call;
     this.generic = generic;
-    this.objectExpr = objectExpr;
-    
-    // Cheating for now because we only support unary functions...
-    arguments = Collections.singletonList(new IRArgument(objectExpr));
+    this.objectExpr = arguments.get(0).getExpression();
+    this.arguments = arguments;
   }
 
   @Override

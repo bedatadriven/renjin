@@ -28,7 +28,6 @@ import org.renjin.compiler.ir.tac.expressions.Temp;
 import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.Symbol;
 
 public interface EmitContext {
 
@@ -50,7 +49,7 @@ public interface EmitContext {
 
   void writeDone(InstructionAdapter mv);
 
-  CompiledSexp getParamExpr(Symbol paramName);
+  CompiledSexp getParamExpr(int parameterIndex);
 
   VariableStrategy getVariable(LValue lhs);
 

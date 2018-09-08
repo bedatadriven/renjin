@@ -29,16 +29,13 @@ import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.parser.RParser;
 import org.renjin.repackaged.guava.base.Joiner;
-import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Arrays;
-import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -159,7 +156,7 @@ public class SexpCompilerTest extends EvalTestCase {
     eval("kld = function(p, q) sum(ifelse(p == 0 | q == 0, 0, log(p / q) * p))");
 
     RuntimeState parentState = new RuntimeState(topLevelContext, topLevelContext.getGlobalEnvironment());
-    Set<Symbol> params = Sets.newHashSet(Symbol.get("p"), Symbol.get("q"));
+    String[] params = new String[] { "p", "q" };
     SEXP closure = eval("kld");
 
     ValueBounds p = ValueBounds.builder()
@@ -174,8 +171,12 @@ public class SexpCompilerTest extends EvalTestCase {
     ValueBounds functionBounds = inlinedFunction.updateBounds(Arrays.asList(new ArgumentBounds(p), new ArgumentBounds(q)));
 
     System.out.println(functionBounds);
+  }
 
-
+  @Test
+  public void variadicFunctions() throws Exception {
+    eval("f <- function(...) length(list(...))");
+    assertThat(compileAndEvaluate("f(1,2,3)"), elementsIdenticalTo(c_i(3)));
   }
 
   private SEXP compileAndEvaluate(String source) throws Exception {

@@ -26,33 +26,36 @@ import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.Symbol;
 
-import java.util.Map;
+import java.util.List;
 
 public class InlineEmitContext implements EmitContext {
 
   private final EmitContext parentContext;
-  private final Map<Symbol, CompiledSexp> paramMap;
+  private final List<CompiledSexp> parameters;
   private final VariableMap variableMap;
   private final VariableStrategy returnVariable;
   private final LabelMap labelMap = new LabelMap();
   private final Label exitLabel;
 
   public InlineEmitContext(EmitContext parentContext,
-                           Map<Symbol, CompiledSexp> paramMap,
+                           List<CompiledSexp> parameters,
                            VariableMap variableMap,
                            VariableStrategy returnVariable) {
     this.parentContext = parentContext;
-    this.paramMap = paramMap;
+    this.parameters = parameters;
     this.variableMap = variableMap;
     this.returnVariable = returnVariable;
     this.exitLabel = new Label();
   }
 
+  /**
+   * @param parameterIndex the index of the parameter supplied to the function (NOT the index of the closure's formal!)
+   * @return the {@link CompiledSexp} for the given parameter
+   */
   @Override
-  public CompiledSexp getParamExpr(Symbol paramName) {
-    return paramMap.get(paramName);
+  public CompiledSexp getParamExpr(int parameterIndex) {
+    return parameters.get(parameterIndex);
   }
 
   @Override

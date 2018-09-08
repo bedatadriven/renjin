@@ -16,42 +16,42 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.compiler.ir.tac.functions;
+package org.renjin.compiler.ir.tac.expressions;
 
-import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.compiler.ir.tac.IRLabel;
-import org.renjin.sexp.Symbol;
+import java.util.Objects;
 
-import java.util.List;
+public class EllipsesVar extends Variable {
 
-public class LoopContext implements TranslationContext {
+  public int index;
 
-  private TranslationContext parentContext;
-  private final IRLabel startLabel;
-  private final IRLabel exitLabel;
-  
-  public LoopContext(TranslationContext parentContext, IRLabel startLabel, IRLabel exitLabel) {
-    super();
-    this.parentContext = parentContext;
-    this.startLabel = startLabel;
-    this.exitLabel = exitLabel;
-  }
-
-  public IRLabel getStartLabel() {
-    return startLabel;
-  }
-
-  public IRLabel getExitLabel() {
-    return exitLabel;
+  public EllipsesVar(int index) {
+    this.index = index;
   }
 
   @Override
-  public List<IRArgument> getEllipsesArguments() {
-    return parentContext.getEllipsesArguments();
+  public boolean isPure() {
+    return true;
   }
 
   @Override
-  public boolean isMissing(Symbol name) {
-    return parentContext.isMissing(name);
+  public String toString() {
+    return ".." + (index + 1);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    EllipsesVar that = (EllipsesVar) o;
+    return index == that.index;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(index);
   }
 }

@@ -31,7 +31,7 @@ import org.renjin.sexp.SEXP;
 /**
  * Translator for the {@code function} function.
  */
-public class ClosureTranslator extends FunctionCallTranslator {
+public class ClosureDefinitionTranslator extends FunctionCallTranslator {
 
   @Override
   public Expression translateToExpression(IRBodyBuilder builder,

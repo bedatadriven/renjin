@@ -24,6 +24,8 @@ import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
+import java.util.List;
+
 
 public class IRArgument {
 
@@ -66,14 +68,13 @@ public class IRArgument {
   public void setExpression(Expression expression) {
     this.expression = expression;
   }
-  
-  public static boolean anyNamed(Iterable<IRArgument> arguments) {
-    for (IRArgument argument : arguments) {
-      if(argument.isNamed()) {
-        return true;
-      }
+
+  public static String[] names(List<IRArgument> arguments) {
+    String[] names = new String[arguments.size()];
+    for (int i = 0; i < names.length; i++) {
+      names[i] = arguments.get(i).getName();
     }
-    return false;
+    return names;
   }
 
   @Override

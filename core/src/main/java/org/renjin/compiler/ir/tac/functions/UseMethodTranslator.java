@@ -20,6 +20,7 @@ package org.renjin.compiler.ir.tac.functions;
 
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
+import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.InlinedContext;
 import org.renjin.compiler.ir.tac.expressions.Constant;
@@ -27,6 +28,9 @@ import org.renjin.compiler.ir.tac.expressions.EnvironmentVariable;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.UseMethodCall;
 import org.renjin.sexp.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Handles a call to UseMethod
@@ -57,40 +61,31 @@ public class UseMethodTranslator extends FunctionCallTranslator {
     }
     String generic = ((StringVector) genericSexp).getElementAsString(0);
 
-    // Next we need the object to dispatch on. If omitted, the value of the first 
-    // FORMAL is used. 
-    Expression objectExpr;
+
+    // Next we need the arguments to the call. If omitted, the value of the first
+    // FORMAL is used.
+    List<IRArgument> arguments = new ArrayList<>();
     if(arity == 1) {
       PairList formals = inlinedContext.getFormals();
       if(formals == Null.INSTANCE) {
-        objectExpr = new Constant(Null.INSTANCE);
+        arguments.add(new IRArgument(new Constant(Null.INSTANCE)));
       } else {
-        Symbol formalName = formals.getTag();
-        if(formalName == Symbols.ELLIPSES) {
-          throw new NotCompilableException(call, "UseMethod() not supported when first argument to function is '...'");
-        } else {
-          objectExpr = new EnvironmentVariable(formalName);
+        for (PairList.Node argumentNode : formals.nodes()) {
+          Symbol formalName = argumentNode.getTag();
+          if(formalName == Symbols.ELLIPSES) {
+            if(!context.getEllipsesArguments().isEmpty()) {
+              throw new NotCompilableException(call, "UseMethod()");
+            }
+          } else {
+            arguments.add(new IRArgument(formalName.getPrintName(), new EnvironmentVariable(formalName)));
+          }
         }
       }
     } else {
       throw new NotCompilableException(call);
     }
     
-    assertUnaryFunction(call, inlinedContext.getFormals());
-    
-    return new UseMethodCall(builder.getRuntimeState(), call, generic, objectExpr);
-  }
-
-  private void assertUnaryFunction(FunctionCall call, PairList formals) {
-    PairList second = ((PairList.Node) formals).getNext();
-    if(second == Null.INSTANCE) {
-      return;
-    }
-    // A second argument is fine as long as it is the ... 
-    PairList.Node secondNode = (PairList.Node) second;
-    if(secondNode.getRawTag() != Symbols.ELLIPSES || secondNode.getNext() != Null.INSTANCE) {
-      throw new NotCompilableException(call, "UseMethod() not yet supported when more than one argument is present.");
-    }
+    return new UseMethodCall(builder.getRuntimeState(), call, generic, arguments);
   }
 
   @Override

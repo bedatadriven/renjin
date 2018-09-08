@@ -20,19 +20,25 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.SexpExpr;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.eval.Context;
+import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.SEXP;
 
 import java.util.Map;
 
+public class ReadEllipses implements Expression {
 
-public class ReadParam implements Expression {
-
-  private final int argumentIndex;
+  private final int index;
   private ValueBounds valueBounds;
 
-  public ReadParam(int argumentIndex) {
-    this.argumentIndex = argumentIndex;
-    this.valueBounds = ValueBounds.UNBOUNDED;
+  public ReadEllipses(int index, ValueBounds valueBounds) {
+    this.index = index;
+    this.valueBounds = valueBounds;
   }
 
   @Override
@@ -40,10 +46,6 @@ public class ReadParam implements Expression {
     return true;
   }
 
-  public void updateBounds(ValueBounds argumentBounds) {
-    valueBounds = argumentBounds;
-  }
-  
   @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
     return valueBounds;
@@ -56,12 +58,23 @@ public class ReadParam implements Expression {
 
   @Override
   public CompiledSexp getCompiledExpr(EmitContext emitContext) {
-    return emitContext.getParamExpr(argumentIndex);
+    return new SexpExpr() {
+      @Override
+      public void loadSexp(EmitContext emitContext, InstructionAdapter mv) {
+        mv.visitVarInsn(Opcodes.ALOAD, emitContext.getEnvironmentVarIndex());
+        mv.visitLdcInsn(index + 1);
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(Environment.class), "findVarArg",
+            Type.getMethodDescriptor(Type.getType(SEXP.class), Type.INT_TYPE), false);
+        mv.visitVarInsn(Opcodes.ALOAD, emitContext.getContextVarIndex());
+        mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getInternalName(SEXP.class), "force",
+            Type.getMethodDescriptor(Type.getType(SEXP.class), Type.getType(Context.class)), true);
+      }
+    };
   }
 
   @Override
   public void setChild(int childIndex, Expression child) {
-    throw new IllegalArgumentException("no children");
+    throw new IllegalArgumentException();
   }
 
   @Override
@@ -71,11 +84,11 @@ public class ReadParam implements Expression {
 
   @Override
   public Expression childAt(int index) {
-    throw new IllegalArgumentException("no children");
+    throw new IllegalArgumentException();
   }
 
   @Override
   public String toString() {
-    return "param(" + argumentIndex + ")";
+    return "readEllipses(" + (index+1) + " = " + valueBounds + ")";
   }
 }

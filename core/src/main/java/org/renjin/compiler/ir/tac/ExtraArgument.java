@@ -16,17 +16,29 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.compiler.ir.tac.functions;
+package org.renjin.compiler.ir.tac;
 
+import org.renjin.compiler.ir.ValueBounds;
 
-import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.sexp.Symbol;
+public class ExtraArgument {
+  private final String name;
+  private final ValueBounds bounds;
 
-import java.util.List;
+  public ExtraArgument(String name, ValueBounds bounds) {
+    this.name = name;
+    this.bounds = bounds;
+  }
 
-public interface TranslationContext {
-  
-  List<IRArgument> getEllipsesArguments();
+  public ExtraArgument(ValueBounds bounds) {
+    this.name = null;
+    this.bounds = bounds;
+  }
 
-  boolean isMissing(Symbol name);
+  public ValueBounds getBounds() {
+    return bounds;
+  }
+
+  public String getName() {
+    return name;
+  }
 }

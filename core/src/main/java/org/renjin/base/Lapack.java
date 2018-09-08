@@ -796,6 +796,11 @@ public class Lapack {
     return DoubleArrayVector.unsafe(b, resultAttributes.build());
   }
 
+  @Internal
+  public static SEXP La_solve_cmplx(SEXP A, SEXP Bin) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
   public static SEXP rg(SEXP x, boolean ov) {
 
     int lwork;

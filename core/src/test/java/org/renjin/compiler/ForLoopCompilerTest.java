@@ -217,9 +217,25 @@ public class ForLoopCompilerTest extends EvalTestCase {
     eval("s <- 0");
     evalAndAssertCompiled("for(i in as.numeric(1:1e6)) s <- s + f(i)");
     assertThat(eval("s"), elementsIdenticalTo(c(2e+06)));
-
   }
 
+  @Test
+  public void ellipsesInLoop() {
+    eval("f <- function(...) {" +
+        "   s <- 0; " +
+        "   for(i in 1:500) {" +
+            " s <- s + sum(i, ...) " +
+            "}\n" +
+            "s" +
+        "}");
+
+    assertThat(eval("f(4, 5, 6)"), elementsIdenticalTo(132750));
+
+    // Recompile should be triggered because environment no longer
+    // meets assumptions
+    assertThat(eval("f()"), elementsIdenticalTo(125250));
+
+  }
 
   @Test
   public void constantConditional() {

@@ -46,14 +46,15 @@ import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * Compiles SEXPs to JVM bytecode using runtime type information.
  */
 public class SexpCompiler {
+
+  private static final boolean DEBUG = false;
 
   private final RuntimeState runtimeState;
   private final IRBody body;
@@ -71,7 +72,6 @@ public class SexpCompiler {
     this.body = body;
 
     cfg = new ControlFlowGraph(body);
-//    cfg.dumpGraph();
 
     ssaTransformer = new SsaTransformer(cfg);
     if(environmentVisible) {
@@ -94,7 +94,6 @@ public class SexpCompiler {
 
     IRBodyBuilder builder = new IRBodyBuilder(runtimeState);
     IRBody body = builder.buildLoopBody(call, sequenceBounds);
-
 
     SexpCompiler compiler = new SexpCompiler(runtimeState, body, true);
     CompiledLoopBody compiledLoopBody = compiler.compileForLoopBody();
@@ -127,7 +126,10 @@ public class SexpCompiler {
   private void compileForBody() {
 
     types.execute();
-//    types.dumpBounds();
+    if(DEBUG) {
+      cfg.dumpGraph();
+      types.dumpBounds();
+    }
     types.verifyFunctionAssumptions(runtimeState);
     lowerSSA();
   }
@@ -142,7 +144,7 @@ public class SexpCompiler {
 
   private CompiledLoopBody compileForLoopBody() throws IllegalAccessException, InstantiationException {
 
-//    System.out.println(cfg);
+    System.out.println(cfg);
 
     compileForBody();
 
@@ -184,7 +186,7 @@ public class SexpCompiler {
 
   public void compileInline(EmitContext emitContext,
                             InstructionAdapter mv,
-                            Map<Symbol, CompiledSexp> paramMap,
+                            List<CompiledSexp> parameters,
                             VariableStrategy returnVariable) {
 
     // Last check
@@ -196,7 +198,7 @@ public class SexpCompiler {
     // Now map our variables to storage strategies
     VariableMap variableMap = new VariableMap(cfg, emitContext.getLocalVarAllocator(), types, useDefMap);
 
-    InlineEmitContext inlineContext = new InlineEmitContext(emitContext, paramMap, variableMap, returnVariable);
+    InlineEmitContext inlineContext = new InlineEmitContext(emitContext, parameters, variableMap, returnVariable);
 
     emitBody(inlineContext, mv);
 

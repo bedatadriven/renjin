@@ -55,6 +55,7 @@ public class RuntimeState {
    * they have been assigned to.
    */
   private Map<Symbol, Function> resolvedFunctions = Maps.newHashMap();
+  private List<ExtraArgument> extraArguments;
 
 
   /**
@@ -84,12 +85,31 @@ public class RuntimeState {
     }
   }
 
-  public PairList getEllipsesVariable() {
+  public List<ExtraArgument> findEllipses() {
+    if(extraArguments != null) {
+      return extraArguments;
+    }
     SEXP ellipses = rho.getEllipsesVariable();
     if(ellipses == Symbol.UNBOUND_VALUE) {
       throw new InvalidSyntaxException("'...' used in an incorrect context.");
     }
-    return (PairList) ellipses;
+    extraArguments = new ArrayList<>();
+    if(ellipses instanceof PairList) {
+      PairList pairList = (PairList) ellipses;
+      for (PairList.Node node : pairList.nodes()) {
+        SEXP value = forceWithoutSideEffects(context, false, node.getValue());
+        if(value instanceof Promise) {
+          throw new NotCompilableException(node.getValue(), "Unevaluated promise encountered");
+        }
+        if (node.hasName()) {
+          extraArguments.add(new ExtraArgument(node.getName(), reasonableBounds(value)));
+        } else {
+          extraArguments.add(new ExtraArgument(reasonableBounds(value)));
+        }
+      }
+    }
+    assumptions.add(new AssumeEllipses(extraArguments));
+    return extraArguments;
   }
 
   /**
@@ -111,6 +131,7 @@ public class RuntimeState {
 
     return Optional.of(bounds);
   }
+
 
   /**
    * Climbs the enclosing environment tree to find a variable, but *without* triggering
@@ -145,27 +166,9 @@ public class RuntimeState {
         value = value.force(context);
       }
 
-      while(value instanceof Promise) {
-        Promise promisedValue = (Promise) value;
-
-        if(promisedValue.isEvaluated()) {
-          value = promisedValue.force(context);
-
-        } else if(promisedValue.getExpression() instanceof Symbol) {
-          // For simple expressions like a Symbol, we may still be able to resolve
-          // the expression without side effects....
-          value = findVariableWithoutSideEffects(context,
-              promisedValue.getEnvironment(),
-              (Symbol) promisedValue.getExpression(), findFunction);
-
-        } else if(!hasSideEffects(promisedValue.getExpression())) {
-          value = promisedValue.force(context);
-
-        } else {
-          // Promises can have side effects, and evaluation order is important
-          // so we can't just force all the promises in the beginning of the loop
-          throw new NotCompilableException(name, "Unevaluated promise encountered");
-        }
+      value = forceWithoutSideEffects(context, findFunction, value);
+      if(value instanceof Promise) {
+        throw new NotCompilableException(name, "Unevaluated promise encountered");
       }
 
       if(value != Symbol.UNBOUND_VALUE) {
@@ -179,6 +182,32 @@ public class RuntimeState {
 
     } while(environment != Environment.EMPTY);
 
+    return value;
+  }
+
+  private static SEXP forceWithoutSideEffects(Context context, boolean findFunction, SEXP value) {
+    while(value instanceof Promise) {
+      Promise promisedValue = (Promise) value;
+
+      if(promisedValue.isEvaluated()) {
+        value = promisedValue.force(context);
+
+      } else if(promisedValue.getExpression() instanceof Symbol) {
+        // For simple expressions like a Symbol, we may still be able to resolve
+        // the expression without side effects....
+        value = findVariableWithoutSideEffects(context,
+            promisedValue.getEnvironment(),
+            (Symbol) promisedValue.getExpression(), findFunction);
+
+      } else if(!hasSideEffects(promisedValue.getExpression())) {
+        value = promisedValue.force(context);
+
+      } else {
+        // Promises can have side effects, and evaluation order is important
+        // so we can't just force all the promises in the beginning of the loop
+        break;
+      }
+    }
     return value;
   }
 
@@ -359,6 +388,10 @@ public class RuntimeState {
     return assumptions;
   }
 
+  public boolean isMissing(Symbol name) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
 
   /**
    * Assumes that the variable in the expression's immediate environment
@@ -428,4 +461,43 @@ public class RuntimeState {
       return function == value;
     }
   }
+
+  public static class AssumeEllipses implements RuntimeAssumption {
+
+    private final List<ExtraArgument> arguments;
+
+    public AssumeEllipses(List<ExtraArgument> arguments) {
+      this.arguments = arguments;
+    }
+
+    @Override
+    public boolean test(Context context, Environment rho) {
+      SEXP ellipses = rho.getEllipsesVariable();
+      if(arguments.isEmpty() && ellipses == Null.INSTANCE) {
+        return true;
+      }
+      if(!(ellipses instanceof PairList)) {
+        return false;
+      }
+      for (ExtraArgument expectedArgument : arguments) {
+        if (!(ellipses instanceof PairList.Node)) {
+          return false;
+        }
+        PairList.Node argument = (PairList.Node) ellipses;
+        if(!argument.getName().equals(expectedArgument.getName())) {
+          return false;
+        }
+        if(!expectedArgument.getBounds().test(argument.getValue())) {
+          return false;
+        }
+        ellipses = argument.getNext();
+      }
+      if(ellipses != Null.INSTANCE) {
+        // Are there more 'extra arguments' than expected?
+        return false;
+      }
+      return true;
+    }
+  }
+
 }

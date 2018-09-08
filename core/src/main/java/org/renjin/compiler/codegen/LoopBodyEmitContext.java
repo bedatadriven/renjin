@@ -28,7 +28,6 @@ import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.Symbol;
 
 public class LoopBodyEmitContext implements EmitContext {
   private final LocalVarAllocator localVars;
@@ -71,7 +70,7 @@ public class LoopBodyEmitContext implements EmitContext {
   }
 
   @Override
-  public CompiledSexp getParamExpr(Symbol paramName) {
+  public CompiledSexp getParamExpr(int parameterIndex) {
     throw new IllegalStateException("Loop bodies do not have parameters");
   }
 

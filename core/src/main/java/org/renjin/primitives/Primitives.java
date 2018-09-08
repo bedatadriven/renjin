@@ -988,6 +988,7 @@ public class Primitives {
     f("La_zgecon", Lapack.class, 11);
     f("La_ztrcon", Lapack.class, 11);
     f("La_solve", Lapack.class, 11);
+    f("La_solve_cmplx", Lapack.class, 11);
     f("backsolve", Lapack.class, 11);
 
 

@@ -18,26 +18,43 @@
  */
 package org.renjin.compiler.ir.tac;
 
+import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.tac.functions.TranslationContext;
-import org.renjin.sexp.Null;
+import org.renjin.eval.MatchedArgumentPositions;
 import org.renjin.sexp.PairList;
+import org.renjin.sexp.Symbol;
+
+import java.util.List;
 
 
 public class InlinedContext implements TranslationContext {
 
-  private PairList formals;
+  private final PairList formals;
+  private final MatchedArgumentPositions matched;
+  private final List<IRArgument> extraArguments;
 
-  public InlinedContext(PairList formals) {
+  public InlinedContext(PairList formals, MatchedArgumentPositions matched, List<IRArgument> extraArguments) {
     this.formals = formals;
+    this.matched = matched;
+    this.extraArguments = extraArguments;
   }
 
   @Override
-  public PairList getEllipsesArguments() {
-    // We are only supporting the inlining of functions when no arguments are passed via ...
-    return Null.INSTANCE;
+  public List<IRArgument> getEllipsesArguments() {
+    return extraArguments;
   }
 
   public PairList getFormals() {
     return formals;
+  }
+
+  @Override
+  public boolean isMissing(Symbol name) {
+    for (int formalIndex = 0; formalIndex < matched.getFormalCount(); formalIndex++) {
+      if(matched.getFormalName(formalIndex) == name) {
+        return matched.isFormalMatched(formalIndex);
+      }
+    }
+    throw new InvalidSyntaxException("'missing' can only used for arguments");
   }
 }

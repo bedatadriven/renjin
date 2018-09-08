@@ -82,6 +82,10 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     return new ListVector(x, y);
   }
 
+  public static ListVector of(SEXP... elements) {
+    return new ListVector(elements);
+  }
+
   @Override
   public String getTypeName() {
     return TYPE_NAME;

@@ -28,7 +28,6 @@ import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.compiler.ir.tac.statements.Assignment;
-import org.renjin.eval.MatchedArgumentPositions;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.sexp.Closure;
@@ -44,23 +43,23 @@ public class ClosureCall implements Expression {
   private final RuntimeState runtimeState;
   private final FunctionCall call;
   private final List<IRArgument> arguments;
+  private final String[] argumentNames;
   private final Closure closure;
 
   private final String debugName;
 
-  private MatchedArgumentPositions matching;
   private InlinedFunction inlinedFunction;
   
   private ValueBounds returnBounds;
 
-  public ClosureCall(RuntimeState runtimeState, FunctionCall call, Closure closure, String closureDebugName, List<IRArgument> arguments) {
+  public ClosureCall(RuntimeState runtimeState, FunctionCall call, Closure closure, String closureDebugName,
+                     List<IRArgument> arguments) {
     this.runtimeState = runtimeState;
     this.call = call;
     this.closure = closure;
     this.arguments = arguments;
+    this.argumentNames = IRArgument.names(arguments);
     this.debugName = closureDebugName;
-
-    this.matching = MatchedArgumentPositions.matchIRArguments(closure, arguments);
     this.returnBounds = ValueBounds.UNBOUNDED;
   }
 
@@ -78,16 +77,12 @@ public class ClosureCall implements Expression {
 
     if(inlinedFunction == null) {
       try {
-        this.inlinedFunction = new InlinedFunction(functionName(), runtimeState, closure, this.matching.getSuppliedFormals());
+        this.inlinedFunction = new InlinedFunction(functionName(), runtimeState, closure, argumentNames);
       } catch (NotCompilableException e) {
         throw new NotCompilableException(call, e);
       }
     }
-    
-    if(matching.hasExtraArguments()) {
-      throw new NotCompilableException(call, "Extra arguments not supported");
-    }
-   
+
     returnBounds = inlinedFunction.updateBounds(ArgumentBounds.create(arguments, typeMap));
 
     return returnBounds;
@@ -130,13 +125,9 @@ public class ClosureCall implements Expression {
   @Override
   public void emitAssignment(EmitContext emitContext, InstructionAdapter mv, Assignment statement) {
 
-    if(matching.hasExtraArguments()) {
-      throw new NotCompilableException(call, "Extra arguments not supported");
-    }
-
     VariableStrategy lhs = emitContext.getVariable(statement.getLHS());
+    inlinedFunction.emitInline(emitContext, mv, arguments, lhs);
 
-    inlinedFunction.emitInline(emitContext, mv, matching, arguments, lhs);
   }
 
   @Override

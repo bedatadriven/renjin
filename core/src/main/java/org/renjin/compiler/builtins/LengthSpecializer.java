@@ -44,8 +44,12 @@ public class LengthSpecializer implements Specializer, BuiltinSpecializer {
     if(arguments.size() != 1) {
       throw new InvalidSyntaxException("length() takes one argument.");
     }
-
     ValueBounds argumentBounds = arguments.get(0).getBounds();
+
+    if(argumentBounds.isConstant()) {
+      return new ConstantCall(IntVector.valueOf(argumentBounds.getConstantValue().length()));
+    }
+
     if(argumentBounds.isFlagSet(ValueBounds.LENGTH_ONE)) {
       return new ConstantCall(IntVector.valueOf(1));
     }

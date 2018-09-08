@@ -40,7 +40,9 @@ public class MicrobenchmarkHarness {
 
     ForFunction.FAIL_ON_COMPILATION_ERROR = true;
 
-    File script = new File("/home/alex/dev/renjin-benchmarks/microbenchmarks/r_vs_cpp/leibniz/leibniz.R");
+//    File script = new File("/home/alex/dev/renjin-benchmarks/microbenchmarks/r_vs_cpp/leibniz/leibniz.R");
+    File script = new File("/home/alex/dev/renjin-benchmarks/microbenchmarks/r_vs_cpp/dmvnorm/dmvnorm.R");
+//    File script = new File("/home/alex/dev/renjin-benchmarks/microbenchmarks/r_vs_cpp/fuzzycluster/fuzzycluster.R");
 //    File script = new File("/home/alex/dev/renjin-benchmarks/microbenchmarks/r_vs_cpp/jensen-shannon/jensen-shannon.R");
 
     ForFunction.COMPILE_LOOPS = true;

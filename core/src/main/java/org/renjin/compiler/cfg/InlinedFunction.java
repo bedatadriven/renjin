@@ -31,15 +31,14 @@ import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.compiler.ir.tac.expressions.ReadParam;
 import org.renjin.compiler.ir.tac.statements.ReturnStatement;
 import org.renjin.compiler.ir.tac.statements.Statement;
-import org.renjin.eval.MatchedArgumentPositions;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Function;
-import org.renjin.sexp.Symbol;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class InlinedFunction {
@@ -57,16 +56,17 @@ public class InlinedFunction {
   /**
    * @param functionName
    * @param closure the closure to inline
-   * @param arguments the names of the formals that will be supplied to this inline call
+   * @param argumentNames the names of the arguments supplied to the function call
    */
-  public InlinedFunction(String functionName, RuntimeState parentState, Closure closure, Set<Symbol> arguments) {
+  public InlinedFunction(String functionName, RuntimeState parentState, Closure closure, String[] argumentNames) {
+
     this.functionName = functionName;
     this.closure = closure;
 
     runtimeState = new RuntimeState(parentState, closure.getEnclosingEnvironment());
     
     IRBodyBuilder builder = new IRBodyBuilder(runtimeState);
-    IRBody body = builder.buildFunctionBody(closure, arguments);
+    IRBody body = builder.buildFunctionBody(closure, argumentNames);
 
     compiler = new SexpCompiler(runtimeState, body, false);
     params = body.getParams();
@@ -76,7 +76,7 @@ public class InlinedFunction {
         returnStatements.add((ReturnStatement) statement);
       }
     }
-
+    System.out.println(compiler.getControlFlowGraph());
   }
 
   @VisibleForTesting
@@ -123,16 +123,14 @@ public class InlinedFunction {
   
   public void emitInline(EmitContext emitContext,
                          InstructionAdapter mv,
-                         MatchedArgumentPositions matching,
                          List<IRArgument> arguments,
                          VariableStrategy returnVariable) {
 
-    Map<Symbol, CompiledSexp> paramMap = new HashMap<>();
-    for (Map.Entry<Symbol, Integer> formal : matching.getMatchedFormals().entrySet()) {
-      paramMap.put(formal.getKey(), arguments.get(formal.getValue()).getExpression().getCompiledExpr(emitContext));
+    List<CompiledSexp> parameters = new ArrayList<>();
+    for (IRArgument argument : arguments) {
+      parameters.add(argument.getExpression().getCompiledExpr(emitContext));
     }
-
-    compiler.compileInline(emitContext, mv, paramMap, returnVariable);
+    compiler.compileInline(emitContext, mv, parameters, returnVariable);
   }
 
 

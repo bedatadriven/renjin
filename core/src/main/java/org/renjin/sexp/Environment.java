@@ -525,7 +525,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    * @param varArgReferenceIndex index of varArg to return
    * @return
    */
-  private SEXP findVarArg(int varArgReferenceIndex) {
+  public SEXP findVarArg(int varArgReferenceIndex) {
     SEXP ellipses = findVariableUnsafe(Symbols.ELLIPSES);
     if(ellipses == Symbol.UNBOUND_VALUE) {
       throw new EvalException("..%d used in an incorrect context, no ... to look in", varArgReferenceIndex);

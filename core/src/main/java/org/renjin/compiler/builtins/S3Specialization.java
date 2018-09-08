@@ -26,7 +26,6 @@ import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.compiler.ir.tac.statements.Assignment;
-import org.renjin.eval.MatchedArgumentPositions;
 import org.renjin.primitives.S3;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.Closure;
@@ -43,7 +42,6 @@ public class S3Specialization implements Specialization {
   private Closure closure;
 
   private InlinedFunction inlinedMethod = null;
-  private MatchedArgumentPositions matchedArguments;
 
   private ValueBounds returnBounds;
 
@@ -59,12 +57,7 @@ public class S3Specialization implements Specialization {
   
     // Otherwise, try to resolve the function
     if(inlinedMethod == null || inlinedMethod.getClosure() != function) {
-      matchedArguments = MatchedArgumentPositions.matchArgumentBounds(closure, arguments);
-      inlinedMethod = new InlinedFunction(generic, runtimeState, closure, matchedArguments.getSuppliedFormals());
-    }
-    
-    if(matchedArguments.hasExtraArguments()) {
-      throw new FailedToSpecializeException("Extra arguments not supported");
+      inlinedMethod = new InlinedFunction(generic, runtimeState, closure, ArgumentBounds.names(arguments));
     }
   
     returnBounds = inlinedMethod.updateBounds(arguments);
@@ -112,12 +105,8 @@ public class S3Specialization implements Specialization {
       throw new FailedToSpecializeException("Could not resolve S3 method");
     }
 
-    if(matchedArguments.hasExtraArguments()) {
-      throw new FailedToSpecializeException("Extra arguments not supported");
-    }
-
     VariableStrategy lhs = emitContext.getVariable(statement.getLHS());
 
-    inlinedMethod.emitInline(emitContext, mv, matchedArguments, arguments, lhs);
+    inlinedMethod.emitInline(emitContext, mv, arguments, lhs);
   }
 }

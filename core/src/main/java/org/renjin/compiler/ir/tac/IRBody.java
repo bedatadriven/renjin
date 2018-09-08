@@ -28,8 +28,8 @@ import java.util.*;
 import java.util.Map.Entry;
 
 public class IRBody {
-  
-  private Statement statements[];
+
+  private Statement[] statements;
   private int labels[];
   
   private List<ReadParam> params = Collections.emptyList();

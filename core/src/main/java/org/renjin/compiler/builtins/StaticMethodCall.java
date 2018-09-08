@@ -228,7 +228,17 @@ public class StaticMethodCall implements Specialization {
           Type.getType(ListVector.class), BytecodeTypes.SEXP_TYPE, BytecodeTypes.SEXP_TYPE), false);
 
     } else {
-      throw new UnsupportedOperationException("TODO");
+      mv.visitLdcInsn(argumentList.size());
+      mv.newarray(BytecodeTypes.SEXP_TYPE);
+
+      for (int i = 0; i < argumentList.size(); i++) {
+        mv.dup();
+        mv.visitLdcInsn(i);
+        argumentList.get(i).getExpression().getCompiledExpr(emitContext).loadSexp(emitContext, mv);
+        mv.visitInsn(Opcodes.AASTORE);
+      }
+      mv.invokestatic(Type.getInternalName(ListVector.class), "of",
+          "([Lorg/renjin/sexp/SEXP;)Lorg/renjin/sexp/ListVector;", false);
     }
   }
 

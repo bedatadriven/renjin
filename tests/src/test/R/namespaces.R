@@ -19,7 +19,7 @@
 
 library(hamcrest)
 library(stats)
-library(org.renjin.test.thirdparty)
+library('org.renjin.test:thirdparty')
 
 test.getNamespaceName <- function() {
     

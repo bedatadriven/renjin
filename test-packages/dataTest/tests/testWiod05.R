@@ -19,7 +19,7 @@
 
 library(hamcrest)
 library(utils)
-library(org.renjin.test.dataTest)
+library('org.renjin.test:dataTest')
 
 data(wiod05)
 assertThat(ls(), identicalTo(c("countries", "final05", "industries", "inter05", "output05")))

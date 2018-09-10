@@ -39,7 +39,7 @@ public class BuilderTest {
     Builder.execute("build", new String[] { sourceRoot.getAbsolutePath() });
 
     Session session = sessionWithTestPackage("square");
-    session.getTopLevelContext().evaluate(RParser.parseSource("library(org.renjin.cran.square)"));
+    session.getTopLevelContext().evaluate(RParser.parseSource("library('org.renjin.cran:square')"));
     session.getTopLevelContext().evaluate(RParser.parseSource("stopifnot(sqr(2) == 4)"));
   }
 

@@ -36,8 +36,7 @@ public class PackageRepoClientTest {
     PackageRepoClient client = new PackageRepoClient();
 
     Map<String, ResolvedDependency> result = client.resolve(
-        singletonList(
-            new PackageDescription.PackageDependency("Matrix")));
+        singletonList("Matrix"));
 
     ResolvedDependency matrixPackage = result.get("Matrix");
 

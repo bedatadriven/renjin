@@ -36,15 +36,15 @@ import java.util.Map;
  */
 public class PackageRepoClient {
 
-  public Map<String, ResolvedDependency> resolve(Iterable<PackageDescription.PackageDependency> dependencies) throws IOException {
+  public Map<String, ResolvedDependency> resolve(Iterable<String> packageNames) throws IOException {
 
     // Use super-simple JDK classes to avoid dependency conflicts...
     StringBuilder queryString = new StringBuilder();
-    for (PackageDescription.PackageDependency dependency : dependencies) {
+    for (String packageName : packageNames) {
       if(queryString.length() > 0) {
         queryString.append("&");
       }
-      queryString.append("p=").append(UrlEscapers.urlFormParameterEscaper().escape(dependency.getName()));
+      queryString.append("p=").append(UrlEscapers.urlFormParameterEscaper().escape(packageName));
     }
 
     URL url = null;

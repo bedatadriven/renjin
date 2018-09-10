@@ -24,10 +24,14 @@ import java.util.Optional;
 public interface PackageLoader {
 
   /**
-   * @param name the package name
+   * @param packageName the fully-qualified package name
    * @return a set of resources implementing the Package interface,
    * if a package matching the name could be located
    */
   Optional<Package> load(FqPackageName packageName);
 
+  /**
+   * @param packageName a local package name, not qualified with a group name
+   */
+  Optional<Package> load(String packageName);
 }

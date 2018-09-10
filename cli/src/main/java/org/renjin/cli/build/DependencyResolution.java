@@ -45,10 +45,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.renjin.repackaged.guava.collect.Iterables.concat;
 
@@ -61,7 +58,6 @@ public class DependencyResolution {
   private final URLClassLoader classLoader;
   private final PackageLoader packageLoader;
   private DependencyNode node;
-  private Map<String, String> groupMap;
   private List<Dependency> dependencies;
 
   public DependencyResolution(CliBuildLogger logger, PackageDescription description) {
@@ -115,7 +111,7 @@ public class DependencyResolution {
       }
     }
 
-    classLoader = new URLClassLoader(urls.stream().toArray(URL[]::new));
+    classLoader = new URLClassLoader(urls.toArray(new URL[0]));
     packageLoader = new ClasspathPackageLoader(classLoader);
   }
 
@@ -139,11 +135,16 @@ public class DependencyResolution {
         description.getDepends(),
         description.getImports());
 
-    PackageRepoClient repoClient = new PackageRepoClient();
+
+    Set<String> packageNames = new HashSet<>();
+    for (PackageDescription.PackageDependency dependency : dependencies) {
+      packageNames.add(dependency.getName());
+    }
 
     Map<String, ResolvedDependency> resolved;
     try {
-      resolved = repoClient.resolve(dependencies);
+      PackageRepoClient repoClient = new PackageRepoClient();
+      resolved = repoClient.resolve(packageNames);
     } catch (IOException e) {
       throw new BuildException("Querying packages.renjin.org failed.", e);
     }
@@ -191,7 +192,7 @@ public class DependencyResolution {
     return packageLoader;
   }
 
-  public Map<String, String> getQualifiedMap() {
+  public Map<String, String> getPackageGroupMap() {
     Map<String, String> map = new HashMap<>();
     for (Dependency dependency : dependencies) {
       map.put(dependency.getArtifact().getArtifactId(), dependency.getArtifact().getGroupId());

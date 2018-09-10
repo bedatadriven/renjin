@@ -173,6 +173,6 @@ public class PackageBuild implements BuildContext {
 
   @Override
   public Map<String, String> getPackageGroupMap() {
-    return dependencyResolution.getQualifiedMap();
+    return dependencyResolution.getPackageGroupMap();
   }
 }

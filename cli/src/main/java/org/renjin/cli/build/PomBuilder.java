@@ -25,7 +25,6 @@ import org.renjin.eval.Session;
 import org.renjin.packaging.BuildException;
 import org.renjin.packaging.PackageDescription;
 import org.renjin.packaging.PackageSource;
-import org.renjin.packaging.ResolvedDependency;
 import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Strings;
@@ -115,25 +114,14 @@ public class PomBuilder {
       model.addDeveloper(developer);
     }
 
-    for(String dependencyName : dependencies()) {
-      if(!IGNORED_PACKAGES.contains(dependencyName)) {
-
-        if(isPartOfRenjin(dependencyName)) {
-          addCoreModule(model, dependencyName);
-
-        } else {
-          ResolvedDependency resolvedDependency =
-              build.getDependencyResolution().getResolvedDependency(dependencyName);
-
-          Dependency mavenDep = new Dependency();
-          mavenDep.setGroupId(resolvedDependency.getGroupId());
-          mavenDep.setArtifactId(resolvedDependency.getName());
-          mavenDep.setVersion(resolvedDependency.getVersion());
-          model.addDependency(mavenDep);
-        }
-      }
+    for (org.eclipse.aether.graph.Dependency dependency : build.getDependencyResolution().getDependencies()) {
+      Dependency mavenDep = new Dependency();
+      mavenDep.setGroupId(dependency.getArtifact().getGroupId());
+      mavenDep.setArtifactId(dependency.getArtifact().getArtifactId());
+      mavenDep.setVersion(dependency.getArtifact().getVersion());
+      model.addDependency(mavenDep);
     }
-    
+
     DeploymentRepository deploymentRepo = new DeploymentRepository();
     deploymentRepo.setId("renjin-packages");
     deploymentRepo.setUrl("https://nexus.bedatadriven.com/content/repositories/renjin-packages");

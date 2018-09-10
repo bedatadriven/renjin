@@ -196,7 +196,7 @@ public class NamespaceRegistry {
         Namespace namespace = createNamespace(pkg);
 
         CharSource namespaceSource = pkg.getResource("NAMESPACE").asCharSource(Charsets.UTF_8);
-        NamespaceFile namespaceFile = NamespaceFile.parse(context, namespaceSource);
+        NamespaceFile namespaceFile = NamespaceFile.parseFile(context, namespaceSource);
 
         // set up the namespace
         namespace.populateNamespace(context);

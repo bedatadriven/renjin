@@ -92,11 +92,39 @@ public class PackageDescription {
     }
   }
 
-  private static class PackageDependencyParser implements Function<String, PackageDependency> {
+  /**
+   * A fully qualified JVM dependency in the form {groupId}:{artifact/packageName}:{version}
+   */
+  public static class Dependency {
+    private String groupId;
+    private String name;
+    private String version;
 
-    @Override
-    public PackageDependency apply(String arg0) {
-      return new PackageDependency(arg0);
+    public Dependency(String spec) {
+      String[] parts = spec.split(":");
+      if(parts.length != 2 && parts.length != 3) {
+        throw new IllegalArgumentException(
+            "Expected dependency in the format {groupId}:{packageName} or {groupId}:{packageName}:{version}");
+      }
+      this.groupId = parts[0];
+      this.name = parts[1];
+      if(parts.length == 3) {
+        this.version = parts[2];
+      } else {
+        this.version = "RELEASE";
+      }
+    }
+
+    public String getGroupId() {
+      return groupId;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public String getVersion() {
+      return version;
     }
   }
 
@@ -300,7 +328,16 @@ public class PackageDescription {
     if(Strings.isNullOrEmpty(list)) {
       return Collections.emptySet();
     } else {
-      return Iterables.transform(Arrays.asList(list.split("\\s*,\\s*")), new PackageDependencyParser());
+      return Iterables.transform(Arrays.asList(list.split("\\s*,\\s*")), PackageDependency::new);
+    }
+  }
+
+  public Iterable<Dependency> getDependencyList() {
+    String list = getFirstProperty("Dependencies");
+    if(Strings.isNullOrEmpty(list)) {
+      return Collections.emptySet();
+    } else {
+      return Iterables.transform(Arrays.asList(list.split("\\s*,\\s*")), Dependency::new);
     }
   }
 
@@ -321,7 +358,6 @@ public class PackageDescription {
     
     return "yes".equalsIgnoreCase(needed);
   }
-
 
   public void writeTo(File description) throws IOException {
     try(FileWriter writer = new FileWriter(description)) {

@@ -29,6 +29,7 @@ import org.renjin.primitives.packaging.PackageLoader;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public class PackageBuild implements BuildContext {
 
@@ -168,5 +169,10 @@ public class PackageBuild implements BuildContext {
   @Override
   public String getCompileClasspath() {
     return "";
+  }
+
+  @Override
+  public Map<String, String> getPackageGroupMap() {
+    return dependencyResolution.getQualifiedMap();
   }
 }

@@ -19,11 +19,13 @@
 package org.renjin.packaging;
 
 import org.apache.commons.vfs2.FileSystemException;
+import org.renjin.RenjinVersion;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
+import org.renjin.primitives.Deparse;
 import org.renjin.primitives.io.serialization.HeadlessWriteContext;
 import org.renjin.primitives.io.serialization.RDataWriter;
 import org.renjin.primitives.packaging.Namespace;
@@ -63,13 +65,14 @@ public class NamespaceBuilder2 {
             source.getFqName(), 
             buildContext.getPackageOutputDir(),
             buildContext.getClassLoader()));
-    
+
     loadDepends(context);
     importDependencies(context, namespace);
     loadPackageData(context, namespace);
     evaluateSources(context, namespace.getNamespaceEnvironment());
     invokeOnLoad(context, namespace.getNamespaceEnvironment());
     serializeEnvironment(context, namespace.getNamespaceEnvironment(), environmentFile);
+    writeTransformedNamespace();
     writeRequires();
     writePackageRds();
   }
@@ -89,11 +92,22 @@ public class NamespaceBuilder2 {
   }
 
   private void importDependencies(Context context, Namespace namespace) throws IOException {
-
     CharSource namespaceSource = Files.asCharSource(source.getNamespaceFile(), Charsets.UTF_8);
-    NamespaceFile namespaceFile = NamespaceFile.parse(context, namespaceSource);
+    ExpressionVector namespaceSexp = NamespaceQualifier.qualify(buildContext, NamespaceFile.parseSexp(namespaceSource));
 
+    writeTransformedNamespace(context, namespaceSexp);
+
+    NamespaceFile namespaceFile = NamespaceFile.parseFile(context, namespaceSexp);
     namespace.initImports(context, context.getNamespaceRegistry(), namespaceFile);
+  }
+
+  private void writeTransformedNamespace(Context context, ExpressionVector namespace) throws IOException {
+    try(PrintWriter writer = new PrintWriter(new File(buildContext.getPackageOutputDir(), "NAMESPACE"))) {
+      writer.println("# Transformed by Renjin " + RenjinVersion.getVersionName());
+      for (SEXP statement : namespace) {
+        writer.println(Deparse.deparseExp(context, statement));
+      }
+    }
   }
 
   private Context initContext()  {
@@ -235,6 +249,12 @@ public class NamespaceBuilder2 {
     }
     return list.build();
   }
+
+
+  private void writeTransformedNamespace() {
+
+  }
+
 
 
   private void writeRequires() {

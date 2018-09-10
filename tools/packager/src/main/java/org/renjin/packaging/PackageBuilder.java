@@ -46,24 +46,18 @@ public class PackageBuilder {
   }
 
   public void build() throws IOException {
-    copyRootFiles();
+    copyDescriptionFile();
     compileNativeSources();
     copyInstalledFiles();
     compileNamespace();
     compileDatasets();
   }
 
-
   /**
    * Copies files from the package root, including DESCRIPTION and NAMESPACE
    */
-  public void copyRootFiles() throws IOException {
+  public void copyDescriptionFile() throws IOException {
     packageSource.getDescription().writeTo(new File(context.getPackageOutputDir(), "DESCRIPTION"));
-    copyRootFile(packageSource.getNamespaceFile());
-  }
-
-  private void copyRootFile(File file) throws IOException {
-    Files.copy(file, new File(context.getPackageOutputDir(), file.getName()));
   }
 
   private void compileNativeSources() {

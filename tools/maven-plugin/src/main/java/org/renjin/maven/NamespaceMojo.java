@@ -117,7 +117,7 @@ public class NamespaceMojo extends AbstractMojo {
       buildContext.setDefaultPackages(defaultPackages);
 
       PackageBuilder builder = new PackageBuilder(source, buildContext);
-      builder.copyRootFiles();
+      builder.copyDescriptionFile();
       builder.compileNamespace();
       builder.compileDatasets();
 

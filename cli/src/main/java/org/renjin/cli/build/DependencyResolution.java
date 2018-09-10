@@ -46,6 +46,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -60,22 +61,17 @@ public class DependencyResolution {
   private final URLClassLoader classLoader;
   private final PackageLoader packageLoader;
   private DependencyNode node;
-  private Map<String, ResolvedDependency> resolved;
+  private Map<String, String> groupMap;
+  private List<Dependency> dependencies;
 
   public DependencyResolution(CliBuildLogger logger, PackageDescription description) {
 
     logger.info("Resolving dependencies...");
 
-    Iterable<PackageDescription.PackageDependency> dependencies = concat(
-        description.getDepends(),
-        description.getImports());
-
-    PackageRepoClient repoClient = new PackageRepoClient();
-
-    try {
-      resolved = repoClient.resolve(dependencies);
-    } catch (IOException e) {
-      throw new BuildException("Querying packages.renjin.org failed.", e);
+    if(description.hasProperty("Dependencies")) {
+      dependencies = resolveQualifiedDependencies(description);
+    } else {
+      dependencies = resolveUnqualifiedDependencies(description);
     }
 
     logger.info("Resolving transitive dependencies...");
@@ -87,10 +83,8 @@ public class DependencyResolution {
     CollectRequest collectRequest = new CollectRequest();
     collectRequest.setRepositories(repositories);
 
-    for (PackageDescription.PackageDependency depend : dependencies) {
-      if(!isExcluded(depend)) {
-        collectRequest.addDependency(qualify(resolved, depend));
-      }
+    for (Dependency dependency : dependencies) {
+      collectRequest.addDependency(dependency);
     }
 
     logger.info("Downloading dependencies...");
@@ -125,8 +119,48 @@ public class DependencyResolution {
     packageLoader = new ClasspathPackageLoader(classLoader);
   }
 
-  public ResolvedDependency getResolvedDependency(String name) {
-    return resolved.get(name);
+  private List<Dependency> resolveQualifiedDependencies(PackageDescription description) {
+
+    List<Dependency> dependencies = new ArrayList<>();
+    for (PackageDescription.Dependency dependency : description.getDependencyList()) {
+      Artifact artifact = new DefaultArtifact(
+          dependency.getGroupId(),
+          dependency.getName(), "jar",
+          dependency.getVersion());
+
+      dependencies.add(new Dependency(artifact, "compile"));
+    }
+    return dependencies;
+  }
+
+  private List<Dependency> resolveUnqualifiedDependencies(PackageDescription description) {
+
+    Iterable<PackageDescription.PackageDependency> dependencies = concat(
+        description.getDepends(),
+        description.getImports());
+
+    PackageRepoClient repoClient = new PackageRepoClient();
+
+    Map<String, ResolvedDependency> resolved;
+    try {
+      resolved = repoClient.resolve(dependencies);
+    } catch (IOException e) {
+      throw new BuildException("Querying packages.renjin.org failed.", e);
+    }
+
+    List<Dependency> dependencyList = new ArrayList<>();
+
+    for (PackageDescription.PackageDependency depend : dependencies) {
+      if(!isExcluded(depend)) {
+        dependencyList.add(qualify(resolved, depend));
+      }
+    }
+
+    return dependencyList;
+  }
+
+  public List<Dependency> getDependencies() {
+    return dependencies;
   }
 
   private boolean isExcluded(PackageDescription.PackageDependency depend) {
@@ -155,5 +189,13 @@ public class DependencyResolution {
 
   public PackageLoader getPackageLoader() {
     return packageLoader;
+  }
+
+  public Map<String, String> getQualifiedMap() {
+    Map<String, String> map = new HashMap<>();
+    for (Dependency dependency : dependencies) {
+      map.put(dependency.getArtifact().getArtifactId(), dependency.getArtifact().getGroupId());
+    }
+    return map;
   }
 }

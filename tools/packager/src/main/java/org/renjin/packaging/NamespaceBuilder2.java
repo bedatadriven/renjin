@@ -19,7 +19,6 @@
 package org.renjin.packaging;
 
 import org.apache.commons.vfs2.FileSystemException;
-import org.joda.time.DateTime;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;

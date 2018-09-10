@@ -164,4 +164,9 @@ public class PackageBuild implements BuildContext {
   public List<String> getDefaultPackages() {
     return Session.DEFAULT_PACKAGES;
   }
+
+  @Override
+  public String getCompileClasspath() {
+    return "";
+  }
 }

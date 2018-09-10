@@ -36,4 +36,10 @@ public class CliBuildLogger implements BuildLogger {
   public void error(String message) {
     System.err.println("[ERROR] " + message);
   }
+
+  @Override
+  public void error(String message, Exception e) {
+    System.err.println("[ERROR] " + message);
+    e.printStackTrace(System.err);
+  }
 }

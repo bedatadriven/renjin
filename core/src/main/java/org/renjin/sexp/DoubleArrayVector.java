@@ -81,9 +81,10 @@ public final class DoubleArrayVector extends DoubleVector {
   }
 
   /**
-   * Creates a new DoubleArrayVector that is a copy of the given {@code vector}
+   * Creates a new DoubleArrayVector that is a copy of the given {@code vector},
+   * with the same attributes.
    */
-  public DoubleArrayVector(DoubleVector vector) {
+  public DoubleArrayVector(AtomicVector vector) {
     super(vector.getAttributes());
     this.values = vector.toDoubleArray();
   }

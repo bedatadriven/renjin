@@ -1164,6 +1164,10 @@ public final class Rinternals {
     return GnuCharSexp.valueOf(((AtomicVector) p0).getElementAsString(0));
   }
 
+  /**
+   * Coerces a vector from one type to another. Calling code expects to be
+   * able to safely modify the resulting vector.
+   */
   public static SEXP Rf_coerceVector(SEXP p0, /*SEXPTYPE*/ int type) {
     switch(type) {
       case SexpType.LISTSXP:
@@ -1171,9 +1175,9 @@ public final class Rinternals {
       case SexpType.LGLSXP:
         return Vectors.asLogical(((Vector) p0)).setAttributes(p0.getAttributes());
       case SexpType.INTSXP:
-        return Vectors.asInteger((Vector)p0).setAttributes(p0.getAttributes());
+        return new IntArrayVector((AtomicVector)p0);
       case SexpType.REALSXP:
-        return Vectors.asDouble((Vector)p0).setAttributes(p0.getAttributes());
+        return new DoubleArrayVector((AtomicVector) p0);
       case SexpType.CPLXSXP:
         return Vectors.asComplex((Vector)p0).setAttributes(p0.getAttributes());
       case SexpType.STRSXP:

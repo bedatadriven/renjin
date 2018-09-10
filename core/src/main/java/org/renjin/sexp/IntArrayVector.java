@@ -36,7 +36,11 @@ public class IntArrayVector extends IntVector {
     this.values = Arrays.copyOf(values, values.length);
   }
 
-  public IntArrayVector(IntVector vector) {
+  /**
+   * Creates a new IntArrayVector that is a copy of the given {@code vector},
+   * with the same attributes.
+   */
+  public IntArrayVector(AtomicVector vector) {
     super(vector.getAttributes());
     this.values = vector.toIntArray();
   }

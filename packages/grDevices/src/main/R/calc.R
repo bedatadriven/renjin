@@ -1,5 +1,7 @@
 #  File src/library/grDevices/R/calc.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 #### Functions that calculate useful stuff for plotting
 #### BUT which do not do any actual drawing
@@ -67,29 +69,26 @@ function (x = seq(0, 1, length.out = nrow(z)),
 	stop("increasing 'x' and 'y' values expected")
     if (!is.matrix(z) || nrow(z) <= 1 || ncol(z) <= 1)
 	stop("no proper 'z' matrix specified")
-    ##- don't lose  dim(.)
-    if (!is.double(z)) storage.mode(z) <- "double"
-    invisible(.Internal(contourLines(as.double(x), as.double(y), z,
-                                     as.double(levels))))
+    if (1.0 * length(x) * length(y) != length(z))
+        stop("dimensions of 'x', 'y' and 'z' do not match")
+    invisible(.External2(C_contourLines, x, y, z, levels))
 }
 
 chull <- function(x, y = NULL)
 {
-    X <- xy.coords(x, y, recycle = TRUE)
+    X <- xy.coords(x, y, recycle = TRUE, setLab = FALSE)
     x <- cbind(X$x, X$y)
-    n <- nrow(x)
-    if(n == 0) return(integer())
-    z <- .C(R_chull,
-	    n = as.integer(n),
-	    as.double(x),
-	    as.integer(n),
-	    as.integer(1L:n),
-	    integer(n),
-	    integer(n),
-	    ih = integer(n),
-	    nh = integer(1),
-	    il = integer(n))
-    rev(z$ih[1L:z$nh])
+    if(any(!is.finite(x))) stop("finite coordinates are needed")
+    if(nrow(x) == 0) return(integer())
+    if(nrow(x) == 1) return(1L)
+    res <- .Call(C_chull, x)
+    ## if this is called on multiple copies of a single point
+    ## res is of length one.
+    if (length(res) < 2L) return(res)
+    ## fix up order: needed in rare cases: PR#15127
+    xx <- sweep(x[res, ], 2L, colMeans(x[res, ]))
+    angs <- atan2(xx[, 2L], -xx[, 1L])
+    res[order(angs)]
 }
 
 nclass.Sturges <- function(x) ceiling(log2(length(x)) + 1)
@@ -114,7 +113,7 @@ xyTable <- function(x, y = NULL, digits)
 {
     ## Compute number := multiplicities of (x[i], y[i])
 
-    x <- xy.coords(x, y)
+    x <- xy.coords(x, y, setLab = FALSE)
 
     ## get rid of rounding fuzz:
     y <- signif(x$y, digits=digits)
@@ -138,9 +137,9 @@ xyTable <- function(x, y = NULL, digits)
 axisTicks <- function(usr, log, axp = NULL, nint = 5) {
     if(is.null(axp))
 	axp <- unlist(.axisPars(usr, log=log, nintLog=nint), use.names=FALSE)
-    .Call(R_CreateAtVector, axp, if(log) 10^usr else usr, nint, log)
+    .Call(C_R_CreateAtVector, axp, if(log) 10^usr else usr, nint, log)
 }
 
 .axisPars <- function(usr, log = FALSE, nintLog = 5) {
-    .Call(R_GAxisPars, usr, log, nintLog)
+    .Call(C_R_GAxisPars, usr, log, nintLog)
 }

@@ -104,9 +104,6 @@ public class GccBridgeMojo extends AbstractMojo {
   @Parameter
   private List<String> cxxFlags;
 
-  @Parameter(defaultValue = "true")
-  private boolean pruneUnusedSymbols = true;
-
   @Parameter(defaultValue = "${gcc.bridge.trace}")
   private boolean tracePlugin = false;
 
@@ -227,7 +224,6 @@ public class GccBridgeMojo extends AbstractMojo {
     compiler.setPackageName(packageName);
     compiler.setClassName(mainClass);
     compiler.setVerbose(true);
-    compiler.setPruneUnusedSymbols(pruneUnusedSymbols);
     compiler.addMathLibrary();
     compiler.setOutputDirectory(outputDirectory);
     compiler.setLinkClassLoader(getLinkClassLoader());

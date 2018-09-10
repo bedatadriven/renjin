@@ -22,10 +22,7 @@ import org.renjin.base.Base;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Profiler;
-import org.renjin.gcc.runtime.BytePtr;
-import org.renjin.gcc.runtime.DoublePtr;
-import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.gcc.runtime.ObjectPtr;
+import org.renjin.gcc.runtime.*;
 import org.renjin.invoke.annotations.*;
 import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.invoke.reflection.FunctionBinding;
@@ -34,8 +31,6 @@ import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.primitives.packaging.DllSymbol;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.base.Charsets;
-import java.util.function.Predicate;
-import org.renjin.repackaged.guava.base.Predicates;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
 
@@ -45,6 +40,7 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 public class Native {
 
@@ -218,7 +214,7 @@ public class Native {
   /**
    * Converts a StringVector to an array of null-terminated strings.
    */
-  private static ObjectPtr stringPtrToCharPtrPtr(SEXP sexp) {
+  private static PointerPtr stringPtrToCharPtrPtr(SEXP sexp) {
     if(!((sexp instanceof StringVector))) {
       throw new EvalException(".C function expected 'character', but argument was '%s'", sexp.getTypeName());
     }
@@ -230,7 +226,7 @@ public class Native {
         strings[i] = BytePtr.nullTerminatedString(element, Charsets.UTF_8);
       }
     }
-    return new ObjectPtr(strings, 0);
+    return new PointerPtr(strings, 0);
   }
 
   private static SEXP sexpFromPointer(Object ptr, AttributeMap attributes) {
@@ -284,8 +280,9 @@ public class Native {
     DllSymbol method = findMethod(context, methodExp, packageName, className, DllSymbol.Convention.FORTRAN);
 
     Class<?>[] fortranTypes = method.getMethodHandle().type().parameterArray();
-    if(fortranTypes.length != callArguments.length()) {
-      throw new EvalException("Invalid number of args");
+    if(fortranTypes.length > callArguments.length()) {
+      throw new EvalException("Argument mismatch while invoking .Fortran(" + method.getName() + ", ...): " +
+          " expected " + fortranTypes.length + " arguments, received " + callArguments.length() + " arguments");
     }
 
     Object[] fortranArgs = new Object[fortranTypes.length];
@@ -299,7 +296,7 @@ public class Native {
     // reference to the fortran subroutine, and then return the modified arguments
     // as a ListVector.
 
-    for(int i=0;i!=callArguments.length();++i) {
+    for(int i=0;i!=fortranTypes.length;++i) {
       AtomicVector vector = (AtomicVector) callArguments.get(i);
       if(vector instanceof DoubleVector) {
         double[] array = vector.toDoubleArray();
@@ -364,6 +361,9 @@ public class Native {
     DllSymbol method = findMethod(context, methodExp, packageName, className, DllSymbol.Convention.CALL);
 
     MethodHandle methodHandle = method.getMethodHandle();
+    if(methodHandle == null) {
+      throw new NullPointerException("methodHandle for " + method.getName() + " is null.");
+    }
     if(methodHandle.type().parameterCount() != callArguments.length()) {
       throw new EvalException("Expected %d arguments, found %d in call to %s",
           methodHandle.type().parameterCount(),
@@ -404,7 +404,7 @@ public class Native {
                               SEXP methodExp,
                               @ArgumentList ListVector callArguments,
                               @NamedFlag("PACKAGE") String packageName,
-                              @NamedFlag("CLASS") String className) throws ClassNotFoundException {
+                              @NamedFlag("CLASS") String className) {
 
 
     DllSymbol symbol = findMethod(context, methodExp, packageName, className, DllSymbol.Convention.EXTERNAL);
@@ -538,7 +538,7 @@ public class Native {
     }
 
     if(method instanceof ExternalPtr) {
-      return findMethodFromExternalPointer((ExternalPtr<?>) method);
+      return findMethodFromExternalPointer(convention, (ExternalPtr<?>) method);
     }
 
     if(method instanceof StringVector) {
@@ -548,9 +548,9 @@ public class Native {
     throw new EvalException("Invalid method object of type '%s'", method.getTypeName());
   }
 
-  private static DllSymbol findMethodFromExternalPointer(ExternalPtr<?> method)  {
+  private static DllSymbol findMethodFromExternalPointer(DllSymbol.Convention convention, ExternalPtr<?> method)  {
     if (method.getInstance() instanceof Method) {
-      return new DllSymbol((Method) method.getInstance());
+      return new DllSymbol(convention, (Method) method.getInstance());
     }
     throw new EvalException("Invalid method external pointer of (java) class '%s'", method.getInstance().getClass().getName());
   }
@@ -558,7 +558,7 @@ public class Native {
   private static DllSymbol findMethodByName(Context context, String methodName, String packageName, String className, DllSymbol.Convention convention) {
 
     if(className != null) {
-      return findMethodByReflection(methodName, className);
+      return findMethodByReflection(methodName, convention, className);
     }
 
     if(packageName == null) {
@@ -576,7 +576,7 @@ public class Native {
     }
   }
 
-  private static DllSymbol findMethodByReflection(String methodName, String className) {
+  private static DllSymbol findMethodByReflection(String methodName, DllSymbol.Convention convention, String className) {
     Class<?> declaringClass = null;
     try {
       declaringClass = Class.forName(className);
@@ -584,17 +584,17 @@ public class Native {
       throw new EvalException("Could not find Java class " + className);
     }
 
-    return findMethodByReflection(methodName, declaringClass);
+    return findMethodByReflection(methodName, convention, declaringClass);
   }
 
-  private static DllSymbol findMethodByReflection(String methodName, Class<?> declaringClass) {
+  private static DllSymbol findMethodByReflection(String methodName, DllSymbol.Convention convention, Class<?> declaringClass) {
     for(Method method : declaringClass.getMethods()) {
       if(method.getName().equals(methodName) &&
           Modifier.isPublic(method.getModifiers()) &&
           Modifier.isStatic(method.getModifiers())) {
 
 
-        return new DllSymbol(method);
+        return new DllSymbol(convention, method);
       }
     }
 

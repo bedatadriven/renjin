@@ -56,10 +56,14 @@ public class Identical {
     if(x == y) {
       return true;
     }
-    if(x.length() != y.length()) {
+    if(x instanceof Environment || y instanceof Environment) {
+      // Environments are only identical if they have the same reference
       return false;
     }
     if(!x.getTypeName().equals(y.getTypeName())) {
+      return false;
+    }
+    if(x.length() != y.length()) {
       return false;
     }
     if(x instanceof AtomicVector) {

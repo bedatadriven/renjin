@@ -36,7 +36,7 @@ public final class Symbol extends AbstractSEXP {
 
   public static final Symbol UNBOUND_VALUE = new Symbol();
   
-  public static final Symbol MISSING_ARG = new Symbol();
+  public static final Symbol MISSING_ARG = new Symbol("",0);
  
   /**
    * The symbol's name 

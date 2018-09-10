@@ -21,14 +21,9 @@
 library(org.renjin.test.alpha)
 library(hamcrest)
 
-test.invokeMethodsInJvmDependency <- function() {
-    node <- parseAlpha('{ "foo": 42 }')
-    assertThat(node$nodeType, identicalTo('OBJECT'))
-    assertThat(node$get('foo')$asInt(), equalTo(42))
-}
 
-test.jacksonVersion <- function() {
-    assertThat(alphaVersion(), identicalTo("2.5.1"))
+test.jtsVersion <- function() {
+    assertThat(alphaVersion(), identicalTo("1.13.0"))
 }
 
 test.invokeMethodsInJavaClasses <- function() {
@@ -47,9 +42,8 @@ test.dependenciesLoadedOnClasspath <- function() {
     # will be on or added to the JVM's classpath, and so available to any R 
     # code that happens to run. 
     
-    import(com.fasterxml.jackson.databind.ObjectMapper)
-    om <- ObjectMapper$new()
-    assertThat(om$version()$toString(), identicalTo("2.5.1"))
+    jv <- import(com.vividsolutions.jts.JTSVersion)
+    assertThat(jv$CURRENT_VERSION$toString(), identicalTo("1.13.0"))
 }
 
 test.definedDuringLoad <- function() {

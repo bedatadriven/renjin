@@ -324,7 +324,7 @@ public class RecordUnitPtrPtr<T> implements Ptr {
 
   @Override
   public void setPointer(Ptr value) {
-    throw new UnsupportedOperationException("TODO");
+    array[this.offset] = (T) value.getArray();
   }
 
   @Override

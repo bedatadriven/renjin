@@ -19,21 +19,22 @@
 formula <- function(x, ...) UseMethod("formula")
 formula.default <- function (x = NULL, env = parent.frame(), ...)
 {
-	notAtomic <- !is.atomic(x)
-	notnull <- function(z) notAtomic && !is.null(z)
-	
-	if (notnull(x$formula)) eval(x$formula)
-	else if (notnull(x$terms)) {z <- x$terms; oldClass(z) <- "formula"; z}
-	else if (notnull(x$call$formula))	eval(x$call$formula)
-	else if (!is.null(attr(x, "formula"))) attr(x, "formula")
-	else {
-		form <- switch(mode(x),
-				NULL = structure(NULL, class = "formula"),
-				character = formula(eval(parse(text = x)[[1L]])),
-				call = eval(x), stop("invalid formula"))
-		environment(form) <- env
-		form
-	}
+    notAtomic <- !is.atomic(x)
+    notnull <- function(z) notAtomic && !is.null(z)
+
+    if (notnull(x$formula)) eval(x$formula)
+    else if (notnull(x$terms)) {z <- x$terms; oldClass(z) <- "formula"; z}
+    else if (notnull(x$call$formula))	eval(x$call$formula)
+    else if (!is.null(attr(x, "formula"))) attr(x, "formula")
+    else {
+        form <- switch(mode(x),
+                       NULL = structure(list(), class = "formula"),
+                       character = formula(
+                           eval(parse(text = x, keep.source = FALSE)[[1L]])),
+                       call = eval(x), stop("invalid formula"))
+        environment(form) <- env
+        form
+    }
 }
 formula.formula <- function(x, ...) x
 formula.terms <- function(x, ...) {

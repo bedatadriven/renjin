@@ -20,22 +20,19 @@
 library(hamcrest)
 library(methods)
 
-test.group.dispatch.00 = function() {
+setClass("Gene", representation(name="character", size="numeric"))
 
-    setGroupGeneric('SequenceAnalysis', function(x, y) NULL)
-    setClass("Gene", representation(name="character", size="numeric"))
-    setGeneric('add', group = 'SequenceAnalysis', function(x, y) standardGeneric('add'))
-    setGeneric('devide', group = 'SequenceAnalysis', function(x, y) standardGeneric('devide'))
-    setMethod('add', signature(x = 'numeric', y = 'numeric'), function(x, y) x + y)
-    setMethod('devide', signature(x = 'numeric', y = 'numeric'), function(x, y) x / y)
-    setMethod('SequenceAnalysis', signature(x = 'Gene', y = 'Gene'), function(x, y) callGeneric(x@size, y@size))
-    a <- new("Gene", name="Gene1", size = 5)
-    b <- new("Gene", name="Gene2", size = 6)
-    assertThat(add(a, b), identicalTo(11))
-}
+setGroupGeneric('SequenceAnalysis', function(x, y) NULL)
+setMethod('SequenceAnalysis', signature(x = 'Gene', y = 'Gene'), function(x, y) callGeneric(x@size, y@size))
 
-test.group.dispatch.01 = function() {
-    a <- new("Gene", name="Gene1", size = 5)
-    b <- new("Gene", name="Gene2", size = 6)
-    assertThat(devide(b, a), identicalTo(1.2))
-}
+setGeneric('add', group = 'SequenceAnalysis', function(x, y) standardGeneric('add'))
+setMethod('add', signature(x = 'numeric', y = 'numeric'), function(x, y) x + y)
+
+setGeneric('devide', group = 'SequenceAnalysis', function(x, y) standardGeneric('devide'))
+setMethod('devide', signature(x = 'numeric', y = 'numeric'), function(x, y) x / y)
+
+a <- new("Gene", name="Gene1", size = 5)
+b <- new("Gene", name="Gene2", size = 6)
+
+test.group.dispatch.00 = function() { assertThat(add(a, b), identicalTo(11)) }
+test.group.dispatch.01 = function() { assertThat(devide(b, a), identicalTo(1.2)) }

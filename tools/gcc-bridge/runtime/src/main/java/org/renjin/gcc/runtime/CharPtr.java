@@ -112,11 +112,8 @@ public class CharPtr extends AbstractPtr {
   }
 
   @Override
-  public byte getByte(int offset) {
-    int byteIndex = this.offset * BYTES + offset;
-    int index = byteIndex / BYTES;
-    int shift = (byteIndex % BYTES) * 8;
-    return (byte)(this.array[index] >>> shift);
+  public byte getByte(int byteIndex) {
+    return getByteViaChar(byteIndex);
   }
 
   @Override

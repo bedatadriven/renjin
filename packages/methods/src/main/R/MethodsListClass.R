@@ -86,6 +86,7 @@
     setClass("ObjectsWithPackage", representation("character", package = "character"),
              where = envir); clList <- c(clList, "ObjectsWithPackage")
     assign(".SealedClasses", c(get(".SealedClasses", envir), clList), envir)
+    invalidateS4Cache(".InitMethodsListClass() assigned .SealedClasses...")
     TRUE
 }
 

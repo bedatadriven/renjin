@@ -20,6 +20,7 @@ package org.renjin.primitives.io.serialization;
 
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.parser.NumericLiterals;
 import org.renjin.primitives.Primitives;
 import org.renjin.primitives.sequence.IntSequence;
@@ -731,7 +732,15 @@ public class RDataReader implements AutoCloseable {
   private SEXP readPrimitive(int flags) throws IOException {
     int nameLength = in.readInt();
     String name = new String(in.readString(nameLength));
-    return Primitives.getBuiltin(name);
+    PrimitiveFunction builtin = Primitives.getBuiltin(name);
+    if(builtin != null) {
+      return builtin;
+    }
+    builtin = Primitives.getInternal(Symbol.get(name));
+    if(builtin != null) {
+      return builtin;
+    }
+    throw new EvalException("Cannot read primitive '" + name + "': does not exist.");
   }
 
   private SEXP readWeakReference(int flags) throws IOException {

@@ -42,7 +42,7 @@ public class SwitchFunction extends SpecialFunction {
     }
 
     PairList.Node exprNode = argIt.nextNode();
-    if(exprNode.hasTag() && !exprNode.getTag().getPrintName().equals("EXPR")) {
+    if(exprNode.hasTag() && !"EXPR".startsWith(exprNode.getTag().getPrintName())) {
       throw new EvalException("supplied argument name '%s' does not match 'EXPR'", exprNode.getTag().getPrintName());
     }
 

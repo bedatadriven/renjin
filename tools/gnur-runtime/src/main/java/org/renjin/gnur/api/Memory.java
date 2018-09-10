@@ -19,6 +19,8 @@
 // Initial template generated from Memory.h from R 3.2.2
 package org.renjin.gnur.api;
 
+import org.renjin.gcc.annotations.Noop;
+
 /**
  * GNU R API methods defined in the "R_ext/Memory.h" header file
  */
@@ -34,6 +36,7 @@ public final class Memory {
     return null;
   }
 
+  @Noop
   public static void vmaxset(Object p0) {
     // NOOP
   }
@@ -41,6 +44,7 @@ public final class Memory {
   /**
    * Intended to invoke the R garbage collector but implemented to have no effect in Renjin.
    */
+  @Noop
   public static void R_gc() {
     // NOOP
   }

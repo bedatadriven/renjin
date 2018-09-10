@@ -22,22 +22,25 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.ProvidedGlobalVar;
 import org.renjin.gcc.ProvidedGlobalVarField;
 import org.renjin.gcc.annotations.GlobalVar;
+import org.renjin.gcc.annotations.Noop;
 import org.renjin.gcc.codegen.call.*;
 import org.renjin.gcc.codegen.cpp.*;
+import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.lib.SymbolFunction;
 import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.lib.SymbolMethod;
 import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.codegen.vptr.VPtrStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
+import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.gcc.link.LinkSymbol;
-import org.renjin.gcc.runtime.*;
+import org.renjin.gcc.runtime.Builtins;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Maps;
-import org.renjin.repackaged.guava.collect.Sets;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -146,20 +149,22 @@ public class GlobalSymbolTable implements SymbolTable {
     addFunction(BeginCatchCallGenerator.NAME, new BeginCatchCallGenerator());
     addFunction(EndCatchGenerator.NAME, new EndCatchGenerator());
     addFunction(RethrowGenerator.NAME, new RethrowGenerator());
-    
+
+    try {
+      addVariable("__dso_handle", new VPtrStrategy(new GimpleVoidType()).providedGlobalVariable(
+          new GimpleVarDecl(), Expressions.staticField(Builtins.class.getField("__dso_handle")), false));
+    } catch (NoSuchFieldException e) {
+      throw new Error(e);
+    }
+
     addMethod("__builtin_log10__", Math.class, "log10");
 
     addFunction("memcpy", new MemCopyCallGenerator(false));
     addFunction(MemCopyCallGenerator.MEMMOVE, new MemCopyCallGenerator(true));
     addFunction("memcmp", new MemCmpCallGenerator(typeOracle));
     addFunction("memset", new MemSetGenerator(typeOracle));
-    
-    addMethods(Builtins.class);
-    addMethods(Stdlib.class);
-    addMethods(Stdlib2.class);
-    addMethods(Mathlib.class);
-    addMethods(Std.class);
-    addMethods(PosixThreads.class);
+
+
   }
 
   public void addLibrary(SymbolLibrary lib) {
@@ -186,7 +191,17 @@ public class GlobalSymbolTable implements SymbolTable {
 
   public void addFunction(String functionName, Method method) {
     Preconditions.checkArgument(Modifier.isStatic(method.getModifiers()), "Method '%s' must be static", method);
-    functions.put(functionName, new FunctionCallGenerator(new StaticMethodStrategy(typeOracle, method)));
+
+    FunctionCallGenerator callGenerator = new FunctionCallGenerator(new StaticMethodStrategy(typeOracle, method));
+    if(method.isAnnotationPresent(Noop.class)) {
+      if(!method.getReturnType().equals(void.class)) {
+        throw new IllegalStateException("Method " + method + " is annotated with @" + Noop.class.getSimpleName() +
+          " but does not have a void return type.");
+      }
+      functions.put(functionName, new NoopCallGenerator(callGenerator));
+    } else {
+      functions.put(functionName, callGenerator);
+    }
   }
 
   public void addMethods(Class<?> clazz) {
@@ -202,7 +217,7 @@ public class GlobalSymbolTable implements SymbolTable {
         if(method.getAnnotation(GlobalVar.class) != null) {
           continue;
         }
-        
+
         addFunction(method.getName(), method);
       }
     }

@@ -1,5 +1,7 @@
 #  File src/library/graphics/R/mosaicplot.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ## Original code copyright (C) 1998 John W. Emerson
 ## This version distributed under GPL (version 2 or later)
@@ -53,7 +55,7 @@ function(x, main = deparse(substitute(x)), sub = NULL, xlab = NULL,
             XP <- rep.int(0, xdim)
             for (i in seq_len(xdim))
                 XP[i] <- sum(X[X[, 1L] == i,p]) / sum(X[,p])
-            if(any(is.na(XP))) stop("missing values in contingency table")
+            if(anyNA(XP)) stop("missing values in contingency table")
             white <- off[1L] * (x2 - x1) / max(1, xdim-1)
             x.l <- x1
             x.r <- x1 + (1 - off[1L]) * XP[1L] * (x2 - x1)
@@ -178,10 +180,7 @@ function(x, main = deparse(substitute(x)), sub = NULL, xlab = NULL,
     dimd <- length(dx <- dim(x))
     if(dimd == 0L || any(dx == 0L))
         stop("'x' must not have 0 dimensionality")
-    if(length(list(...)))
-        warning(gettextf("extra argument(s) %s will be disregarded",
-                         paste(sQuote(names(list(...))), collapse = ", ")),
-                domain = NA)
+    chkDots(...)
     ##-- Set up 'Ind' matrix : to contain indices and data
     Ind <- 1L:dx[1L]
     if(dimd > 1L) {
@@ -252,12 +251,12 @@ function(x, main = deparse(substitute(x)), sub = NULL, xlab = NULL,
     if(is.null(off))
         off <- if(dimd == 2) 2 * (dx - 1) else rep.int(10, dimd)
     if(length(off) != dimd)
-        off <- rep(off, length.out = dimd)
+        off <- rep_len(off, dimd)
     if(any(off > 50))
         off <- off * 50/max(off)
     ## Initialize directions.
     if (is.null(dir) || length(dir) != dimd) {
-        dir <- rep(c("v","h"), length.out = dimd)
+        dir <- rep_len(c("v","h"), dimd)
     }
     if (!is.null(sort)) {
         if(length(sort) != dimd)
@@ -290,18 +289,18 @@ function(x, main = deparse(substitute(x)), sub = NULL, xlab = NULL,
         color <-
             if(is.logical(color))
                 if(color[1L])
-                    grey.colors(ncolors)
+                    gray.colors(ncolors)
                 else
                     rep.int(0, ncolors)
             else if(is.null(color))
                 rep.int("grey", ncolors)
             else                        # recycle
-                rep(color, length.out = ncolors)
+                rep_len(color, ncolors)
     }
 
     ##-- Plotting
-    # dev.hold(); on.exit(dev.flush())
-    # plot.new()
+    dev.hold(); on.exit(dev.flush())
+    plot.new()
     if(!extended) {
         opar <- par(usr = c(1, 1000, 1, 1000), mgp = c(1, 1, 0))
         on.exit(par(opar), add = TRUE)
@@ -339,20 +338,20 @@ function(x, main = deparse(substitute(x)), sub = NULL, xlab = NULL,
         y.t <- 1000 * rev(seq.int(from = 0.95, by = - bh, length.out = 2 * len))
         y.b <- y.t - 1000 * 0.8 * bh
         ltype <- c(rep.int(2, len), rep.int(1, len))
-        # for(i in 1 : (2 * len)) {
-        #     polygon(c(x.l, x.r, x.r, x.l),
-        #             c(y.b[i], y.b[i], y.t[i], y.t[i]),
-        #             col = color[i], lty = ltype[i], border = border)
-        # }
+        for(i in 1 : (2 * len)) {
+            polygon(c(x.l, x.r, x.r, x.l),
+                    c(y.b[i], y.b[i], y.t[i], y.t[i]),
+                    col = color[i], lty = ltype[i], border = border)
+        }
         brks <- round(breaks, 2)
         y.m <- y.b + 1000 * 0.4 * bh
-        # text(1000 * (1.05 + rtxtWidth), y.m,
-        #      c(paste("<", brks[2L], sep = ""),
-        #        paste(brks[2 : (2 * len - 1)],
-        #              brks[3 : (2 * len)],
-        #              sep = ":"),
-        #        paste(">", brks[2 * len], sep = "")),
-        #      srt = 90, cex = cex.axis, xpd = NA)
+        text(1000 * (1.05 + rtxtWidth), y.m,
+             c(paste0("<", brks[2L]),
+               paste(brks[2 : (2 * len - 1)],
+                     brks[3 : (2 * len)],
+                     sep = ":"),
+               paste0(">", brks[2 * len])),
+             srt = 90, cex = cex.axis, xpd = NA)
     }
 
     if (!is.null(main) || !is.null(xlab) || !is.null(ylab) || !is.null(sub))
@@ -376,13 +375,13 @@ function(x, main = deparse(substitute(x)), sub = NULL, xlab = NULL,
         adj.y <- 0
         x1 <- x1 + maxlen.ylabel
     }
-    warning("graphics are not yet implemented (mosaicplot.default).\n")
-    #mosaic.cell(Ind, x1 = x1, y1 = y1, x2 = x2, y2 = y2,
-    #            srt.x = srt.x, srt.y = srt.y, adj.x = adj.x,
-    #            adj.y = adj.y, off = off / 100, dir = dir,
-    #            color = color, lablevx = 2, lablevy = 2,
-    #            maxdim = apply(as.matrix(Ind[,1L:dimd]), 2L, max),
-    #            currlev = 1, label = label)
+
+    mosaic.cell(Ind, x1 = x1, y1 = y1, x2 = x2, y2 = y2,
+                srt.x = srt.x, srt.y = srt.y, adj.x = adj.x,
+                adj.y = adj.y, off = off / 100, dir = dir,
+                color = color, lablevx = 2, lablevy = 2,
+                maxdim = apply(as.matrix(Ind[,1L:dimd]), 2L, max),
+                currlev = 1, label = label)
 }
 
 mosaicplot.formula <-
@@ -396,20 +395,19 @@ function(formula, data = NULL, ...,
        || inherits(edata, "table")
        || length(dim(edata)) > 2) {
         data <- as.table(data)
-        varnames <- attr(stats:::terms.formula(formula), "term.labels")
+        varnames <- attr(stats::terms.formula(formula), "term.labels")
         if(all(varnames != "."))
             data <- margin.table(data,
                                  match(varnames, names(dimnames(data))))
-        #mosaicplot(data, main = main, ...)
-        warning("graphics are not yet implemented (mosaicplot.formula).\n")
+        mosaicplot(data, main = main, ...)
     } else {
         if(is.matrix(edata))
             m$data <- as.data.frame(data)
         m$main <- m$... <- NULL
         m$na.action <- na.action
-        m[[1L]] <- as.name("model.frame")
+        ## need stats:: for non-standard evaluation
+        m[[1L]] <- quote(stats::model.frame)
         mf <- eval(m, parent.frame())
-        #mosaicplot(table(mf), main = main, ...)
-        warning("graphics are not yet implemented (mosaicplot.formula).\n")
+        mosaicplot(table(mf), main = main, ...)
     }
 }

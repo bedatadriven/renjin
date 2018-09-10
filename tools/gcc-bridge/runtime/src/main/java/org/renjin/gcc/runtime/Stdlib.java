@@ -18,8 +18,11 @@
  */
 package org.renjin.gcc.runtime;
 
-import org.renjin.gcc.StdOutHandle;
 import org.renjin.gcc.annotations.Struct;
+import org.renjin.gcc.format.FormatArrayInput;
+import org.renjin.gcc.format.FormatInput;
+import org.renjin.gcc.format.Formatter;
+import org.renjin.gcc.format.VarArgsInput;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -33,6 +36,7 @@ import java.util.Date;
 import java.util.Random;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 /**
  * C standard library functions
@@ -47,8 +51,11 @@ public class Stdlib {
   public static int timezone;
   public static int daylight;
 
-  public static final StdOutHandle stdout = new StdOutHandle(System.out);
-  public static final StdOutHandle stderr = new StdOutHandle(System.err);
+  public static final Ptr stdout = new RecordUnitPtr<>(new StdOutHandle(System.out));
+
+  public static final Ptr stderr = new RecordUnitPtr<>(new StdOutHandle(System.err));
+
+  public static final Ptr stdin = new RecordUnitPtr<>(new StdInHandle());
 
   @Deprecated
   public static int strncmp(BytePtr x, BytePtr y, int n) {
@@ -125,14 +132,47 @@ public class Stdlib {
     return 0;
   }
 
+  /**
+   * Returns a pointer to the first occurrence of character in the C string str.
+   *
+   * The terminating null-character is considered part of the C string. Therefore,
+   * it can also be located in order to retrieve a pointer to the end of a string.
+   *
+   * @param string C string.
+   * @param ch Character to be located. It is passed as its int promotion, but it is internally
+   *          converted back to char for the comparison.
+   * @return A pointer to the first occurrence of character in str.
+   *    If the character is not found, the function returns a null pointer.
+   */
   public static Ptr strchr(Ptr string, int ch) {
-    final int offset = nullTerminatedString(string).indexOf(ch);
-    return new OffsetPtr(string, offset);
+    int pos = 0;
+    while(true) {
+      int pc = string.getByte(pos);
+      if(pc == ch) {
+        return string.pointerPlus(pos);
+      }
+      if(pc == 0) {
+        break;
+      }
+      pos++;
+    }
+    return BytePtr.NULL;
   }
 
   public static Ptr strrchr(Ptr string, int ch) {
-    final int offset = nullTerminatedString(string).lastIndexOf(ch);
-    return new OffsetPtr(string, offset);
+    int len = 0;
+    while(string.getByte(len) != 0) {
+      len++;
+    }
+    int pos = len - 1;
+    while(pos > 0) {
+      int pc = string.getByte(pos);
+      if(pc == ch) {
+        return string.pointerPlus(pos);
+      }
+      pos--;
+    }
+    return BytePtr.NULL;
   }
 
   public static Ptr strstr(Ptr string, Ptr searched) {
@@ -140,8 +180,57 @@ public class Stdlib {
     return new OffsetPtr(string, offset);
   }
 
+  /**
+   * Scans str1 for the first occurrence of any of the characters that are part of str2,
+   * returning the number of characters of str1 read before this first occurrence.
+   *
+   * The search includes the terminating null-characters. Therefore, the function will return the
+   * length of str1 if none of the characters of str2 are found in str1.
+   */
+  public static int strcspn(Ptr str1, Ptr str2) {
+    int i = 0;
+    byte c, d;
+    while(true) {
+      c = str1.getByte(i);
+      int j = 0;
+      do {
+        d = str2.getByte(j);
+        if(c == d) {
+          return i;
+        }
+        j++;
+      } while(d != 0);
+      i++;
+    }
+  }
+
+
+  @Deprecated
   public static long strtol(Ptr string) {
-    return Long.parseLong(nullTerminatedString(string));
+    return strtol(string, BytePtr.NULL, 10);
+  }
+
+  public static long strtol(Ptr str, Ptr endptr, int radix) {
+    return strtol(str, endptr, radix, true);
+  }
+
+  /**
+   * Parses the C-string str, interpreting its content as an integral number of the specified base, which is
+   * returned as an value of type unsigned long int.
+   *
+   * @param str C-string containing the representation of an integral number.
+   * @param endptr Reference to an object of type char*, whose value is set by the function to the next character
+   *              in str after the numerical value. This parameter can also be a null pointer,
+   *               in which case it is not used.
+   * @param radix Numerical base (radix) that determines the valid characters and their interpretation.
+   *        If this is 0, the base used is determined by the format in the sequence (see strtol for details).
+   * @return On success, the function returns the converted integral number as an unsigned long int value.
+   * If no valid conversion could be performed, a zero value is returned.
+   * If the value read is out of the range of representable values by an unsigned long int, the function returns ULONG_MAX
+   * (defined in <climits>), and errno is set to ERANGE.
+   */
+  public static long strtoul(Ptr str, Ptr endptr, int radix) {
+    return strtol(str, endptr, radix, false);
   }
 
   public static double strtold(Ptr string) {
@@ -150,6 +239,78 @@ public class Stdlib {
 
   public static double strtod(Ptr string) {
     return Double.parseDouble(nullTerminatedString(string));
+  }
+
+  static long strtol(Ptr str, Ptr endptr, int radix, boolean signed) {
+
+    String s = nullTerminatedString(str);
+
+    // Find the start of the number
+    int start = 0;
+
+    // Skip beginning whitespace
+    while (start < s.length() && Character.isWhitespace(s.charAt(start))) {
+      start++;
+    }
+
+    int pos = start;
+
+    // Check for +/- prefix
+    if(pos < s.length() && (s.charAt(pos) == '-' || s.charAt(pos) == '+')) {
+      pos++;
+    }
+
+    // Check for hex prefix 0x/0X if the radix is 16 or unspecified
+    else if( (radix == 0 || radix == 16) &&
+        pos + 1 < s.length() && s.charAt(pos) == '0' &&
+        (s.charAt(pos+1) == 'x' || s.charAt(pos+1) == 'X')) {
+      start+=2;
+      pos = start;
+      radix = 16;
+
+    }
+
+    // If radix is not specified, then check for octal prefix
+    else if(radix == 0 &&  pos < s.length() && s.charAt(pos) == '0') {
+      radix = 8;
+    }
+
+    // Otherwise if radix is not specified, and there is no prefix,
+    // assume decimal
+    if(radix == 0) {
+      radix = 10;
+    }
+
+    // Advance until we run out of digits
+    while(pos < s.length() && Character.digit(s.charAt(pos), radix) != -1) {
+      pos++;
+    }
+
+    // If requested, update the endptr
+    if(!endptr.isNull()) {
+      endptr.setPointer(str.pointerPlus(pos));
+    }
+
+    // If empty, return 0 and exit
+    if(start == pos) {
+      return 0;
+    }
+
+    s = s.substring(start, pos);
+
+    if(signed) {
+      try {
+        return Long.parseLong(s, radix);
+      } catch (NumberFormatException e) {
+        return Long.MAX_VALUE;
+      }
+    } else {
+      try {
+        return Long.parseUnsignedLong(s, radix);
+      } catch (NumberFormatException e) {
+        return -1;
+      }
+    }
   }
 
   public static Ptr strdup(Ptr s) {
@@ -230,6 +391,14 @@ public class Stdlib {
       return 0;
     }
   }
+
+  public static double asinh(double x) {
+    if(Double.isInfinite(x)) {
+      return x;
+    }
+    return Math.log(x + Math.sqrt(x * x + 1));
+  }
+
   public static double atanh(double x) {
     return 0.5 * Math.log((1d + x) / (1d - x));
   }
@@ -296,7 +465,7 @@ public class Stdlib {
     String outputString;
 
     try {
-      outputString = format(format, arguments);
+      outputString = format(format, f -> new FormatArrayInput(arguments));
     } catch (Exception e) {
       return -1;
     }
@@ -321,7 +490,15 @@ public class Stdlib {
   }
 
   public static int snprintf(BytePtr string, int limit, BytePtr format, Object... arguments) {
+    return sprintf(string, limit, format, f -> new FormatArrayInput(arguments));
+  }
 
+
+  public static int vsnprintf(BytePtr string, int n, BytePtr format, Ptr argumentList) {
+    return sprintf(string, n, format, f -> new VarArgsInput(f, argumentList));
+  }
+
+  private static int sprintf(BytePtr string, int limit, BytePtr format, Function<Formatter, FormatInput> arguments) {
     String outputString;
 
     try {
@@ -338,8 +515,10 @@ public class Stdlib {
     if(bytesToCopy > 0) {
       // copy the formatted string to the output
       System.arraycopy(outputBytes, 0, string.array, string.offset, bytesToCopy);
+    }
 
-      // terminate string with null byte
+    // terminate string with null byte
+    if(limit > 0) {
       string.array[string.offset + bytesToCopy] = 0;
     }
 
@@ -350,6 +529,7 @@ public class Stdlib {
     throw new UnsupportedOperationException("TODO: implement " + Stdlib.class.getName() + ".sscanf");
   }
 
+
   public static int tolower(int c) {
     return Character.toLowerCase(c);
   }
@@ -358,31 +538,14 @@ public class Stdlib {
     return Character.toUpperCase(c);
   }
 
-  public static String format(Ptr format, Object[] arguments) {
-    Object[] convertedArgs = new Object[arguments.length];
-    for (int i = 0; i < arguments.length; i++) {
-      convertedArgs[i] = convertFormatArg(arguments[i]);
-    }
-
-    String formatString = nullTerminatedString(format);
-    if(formatString.equals("%2.2x")) {
-      return String.format("%02x", convertedArgs);
-    } else if(formatString.equals("%016llx")) {
-      return String.format("%016x", convertedArgs);
-    } else {
-      return String.format(formatString, convertedArgs);
-    }
+  public static String format(Ptr format, Object... arguments) {
+    return format(format, f -> new FormatArrayInput(arguments));
   }
 
-  private static Object convertFormatArg(Object argument) {
-    if(argument instanceof Ptr && ((Ptr) argument).isNull()) {
-      return null;
-    }
-    if(argument instanceof BytePtr || argument instanceof MixedPtr) {
-      return Stdlib.nullTerminatedString((Ptr) argument);
-    } else {
-      return argument;
-    }
+  public static String format(Ptr format, Function<Formatter, FormatInput> input) {
+    String formatString = nullTerminatedString(format);
+    Formatter formatter = new Formatter(formatString);
+    return formatter.format(input.apply(formatter));
   }
 
   public static void qsort(Ptr base, int nitems, int size, MethodHandle comparator) {
@@ -416,10 +579,19 @@ public class Stdlib {
    * Returns the time since the Epoch (00:00:00 UTC, January 1, 1970), measured in seconds.
    * If seconds is not NULL, the return value is also stored in variable seconds.
    */
+  @Deprecated
   public static int time(IntPtr seconds) {
+    return time((Ptr)seconds);
+  }
+
+  /**
+   * Returns the time since the Epoch (00:00:00 UTC, January 1, 1970), measured in seconds.
+   * If seconds is not NULL, the return value is also stored in variable seconds.
+   */
+  public static int time(Ptr seconds) {
     int time = (int) (System.currentTimeMillis() / 1000L);
-    if(seconds.array != null) {
-      seconds.array[seconds.offset] = time;
+    if(!seconds.isNull()) {
+      seconds.setInt(time);
     }
     return time;
   }
@@ -496,13 +668,28 @@ public class Stdlib {
     return secondsSinceProgramStart * CLOCKS_PER_SEC;
   }
 
+  /**
+   *  Identifier for system-wide realtime clock.
+   */
   private static final int CLOCK_REALTIME = 0;
+
+  /**
+   * High-resolution timer from the CPU.
+   */
   private static final int CLOCK_MONOTONIC = 1;
+
+  /**
+   * Monotonic system-wide clock, not adjusted for frequency scaling.
+   */
+  private static final int CLOCK_MONOTONIC_RAW = 4;
+
+  /**
+   * Identifier for system-wide realtime clock, updated only on ticks.
+   */
   private static final int CLOCK_REALTIME_COARSE = 5;
 
   @Deprecated
   public static int clock_gettime(int clockId, timespec tp) {
-
     switch (clockId) {
       case CLOCK_REALTIME:
       case CLOCK_REALTIME_COARSE:
@@ -510,6 +697,7 @@ public class Stdlib {
         tp.set(System.currentTimeMillis(), TimeUnit.MILLISECONDS);
         return 0;
 
+      case CLOCK_MONOTONIC_RAW:
       case CLOCK_MONOTONIC:
         // Return a high precision time from some arbitrary offset
         tp.set(System.nanoTime(), TimeUnit.NANOSECONDS);
@@ -535,6 +723,7 @@ public class Stdlib {
         break;
 
       case CLOCK_MONOTONIC:
+      case CLOCK_MONOTONIC_RAW:
         // Return a high precision time from some arbitrary offset
         duration = System.nanoTime();
         timeUnit = TimeUnit.NANOSECONDS;
@@ -594,7 +783,7 @@ public class Stdlib {
 
   public static int fprintf(Ptr stream, BytePtr format, Object... arguments) {
     try {
-      String outputString = format(format, arguments);
+      String outputString = format(format, f -> new FormatArrayInput(arguments));
       BytePtr outputBytes = BytePtr.nullTerminatedString(outputString, StandardCharsets.UTF_8);
       int bytesWritten = fwrite(outputBytes, 1, outputBytes.getArray().length, stream);
 

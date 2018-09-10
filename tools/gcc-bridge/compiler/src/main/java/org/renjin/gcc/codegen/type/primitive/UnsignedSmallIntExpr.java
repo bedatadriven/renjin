@@ -64,14 +64,15 @@ public class UnsignedSmallIntExpr extends AbstractIntExpr {
   public UnsignedSmallIntExpr plus(GExpr operand) {
     return lift(truncate(Expressions.sum(jexpr(), jexpr(operand))));
   }
+
   @Override
   public UnsignedSmallIntExpr minus(GExpr operand) {
-    return lift(truncate(Expressions.sum(jexpr(), jexpr(operand))));
+    return lift(truncate(Expressions.difference(jexpr(), jexpr(operand))));
   }
 
   @Override
   public UnsignedSmallIntExpr multiply(GExpr operand) {
-    return lift(truncate(Expressions.sum(jexpr(), jexpr(operand))));
+    return lift(truncate(Expressions.product(jexpr(), jexpr(operand))));
   }
 
   @Override

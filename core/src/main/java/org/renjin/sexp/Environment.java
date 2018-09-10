@@ -21,11 +21,11 @@ package org.renjin.sexp;
 import org.renjin.base.BaseFrame;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import java.util.function.Predicate;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * The Environment data type.
@@ -746,7 +746,8 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   }
 
   public boolean hasVariable(Symbol symbol) {
-    return frame.getVariable(symbol) != Symbol.UNBOUND_VALUE;
+    return frame.getVariable(symbol) != Symbol.UNBOUND_VALUE ||
+        (activeBindings != null && activeBindings.containsKey(symbol));
   }
 
   @Override

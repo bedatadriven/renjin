@@ -48,3 +48,7 @@ test.typeConvert.6 <- function() {
 test.typeConvert.7 <- function() {
     assertThat(type.convert(c('3.5','3.6','FOO'), 'FOO', FALSE), identicalTo(c(3.5,3.6,NA)))
 }
+
+test.typeConvert.8 <- function() {
+    assertThat(type.convert(c('C','A','B'), 'FOO', FALSE), identicalTo(   structure(c(3L, 1L, 2L), .Label = c("A", "B", "C"), class = "factor")   ))
+}

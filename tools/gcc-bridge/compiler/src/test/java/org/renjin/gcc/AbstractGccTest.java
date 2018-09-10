@@ -105,20 +105,22 @@ public abstract class AbstractGccTest {
   protected final Class<?> compileAndTest(String source) throws Exception {
     Class<?> clazz = compile(source);
 
-    boolean testsRun = false;
-    List<String> methods = new ArrayList<>();
+    List<Method> methods = new ArrayList<>();
     
     for (Method method : clazz.getMethods()) {
       if(Modifier.isPublic(method.getModifiers()) && Modifier.isStatic(method.getModifiers())) {
-        methods.add(method.getName());
         if(method.getName().startsWith("test")) {
-          method.invoke(null);
-          testsRun = true;
+          methods.add(method);
         }
       }
     }
+
+    methods.sort((o1, o2) -> o1.getName().compareTo(o2.getName()));
+    for (Method method : methods) {
+      method.invoke(null);
+    }
     
-    if(!testsRun) {
+    if(methods.isEmpty()) {
       throw new IllegalStateException("No test_ methods declared: " + methods);
     }
 

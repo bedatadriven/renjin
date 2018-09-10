@@ -22,10 +22,6 @@ import org.renjin.base.Lapack;
 import org.renjin.base.internals.AllNamesVisitor;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.graphics.internals.Graphics;
-import org.renjin.graphics.internals.Par;
-import org.renjin.graphics.internals.Plot;
-import org.renjin.graphics.internals.RgbHsv;
 import org.renjin.invoke.codegen.WrapperGenerator2;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.combine.ColumnBindFunction;
@@ -49,6 +45,7 @@ import org.renjin.primitives.text.Text;
 import org.renjin.primitives.time.Time;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
+import org.renjin.s4.S4;
 import org.renjin.sexp.*;
 import org.renjin.stats.internals.CompleteCases;
 import org.renjin.stats.internals.Distributions;
@@ -93,6 +90,11 @@ public class Primitives {
 
   public static PrimitiveFunction getInternal(Symbol symbol) {
     return getPrimitive(INSTANCE.internalEntries, INSTANCE.internals, symbol);
+  }
+
+  public static boolean isBuiltin(String opName) {
+    Symbol symbol = Symbol.get(opName);
+    return INSTANCE.builtinEntries.containsKey(symbol);
   }
 
   private static PrimitiveFunction getPrimitive(IdentityHashMap<Symbol, Entry> entryMap,
@@ -674,10 +676,10 @@ public class Primitives {
     f("deparseRd", /*deparseRd*/ null, 11);
     f("dump", /*dump*/ null, 111);
     add(new SubstituteFunction());
-    add(new QuoteFunction());// f("quote", Evaluation.class, 0, 0, 1);
+    add(new QuoteFunction());
     f("quit", Sessions.class, 111);
     f("interactive", Sessions.class, 0);
-    f("readline", /*readln*/ null, 11);
+    f("readline", Sessions.class, 11);
     f("print.default", Print.class, 111);
     f("print.function", Print.class, 111);
     f("prmatrix", /*prmatrix*/ null, 111);
@@ -700,9 +702,6 @@ public class Primitives {
     f("getRegisteredSymbols", Native.class, 11);
     f("getRegisteredRoutines", Native.class, 11);
 
-    f(".External.graphics", /*Externalgr*/ null, 1);
-    f(".Call.graphics", /*dotcallgr*/ null, 1);
-    f("recordGraphics", /*recordGraphics*/ null, 211);
     f("dyn.load", null, 111);
     f("dyn.unload", null, 111);
     f("ls", Environments.class, 11);
@@ -832,76 +831,23 @@ public class Primitives {
     f("Sys.getpid",System.class, 11);
     f("normalizePath", Files.class, 11);
     f("Sys.glob", Files.class, "glob", 11);
+    f("Sys.which", Files.class, 11);
     f("unlink", Files.class, 111);
     f("local.file", Files.class, 111);
 
 /* Complex Valued Functions */
     f("polyroot", Polyroot.class, 11);
 
-/* Device Drivers */
-
-
-/* Graphics */
-
-    f("dev.control", /*devcontrol*/ null, 111);
-    f("dev.displaylist", /*devcontrol*/ null, 111);
-    f("dev.copy", /*devcopy*/ null, 111);
-    f("dev.cur", /*devcur*/ null, 111);
-    f("dev.next", /*devnext*/ null, 111);
-    f("dev.off", /*devoff*/ null, 111);
-    f("dev.prev", /*devprev*/ null, 111);
-    f("dev.set", /*devset*/ null, 111);
-    f("rgb", RgbHsv.class, 11);
-    f("rgb256", RgbHsv.class, 11);
-    f("rgb2hsv", RgbHsv.class, 11);
-    f("hsv", RgbHsv.class, 11);
-    f("hcl", /*hcl*/ null, 11);
-    f("gray", RgbHsv.class, 11);
-    f("col2rgb", RgbHsv.class, 11);
-    f("palette", /*palette*/ null, 11);
-    f("plot.new", Plot.class, 111);
-    f("plot.window", Plot.class, 111);
-    f("axis", Plot.class, 111);
-    f("plot.xy", /*plot_xy*/ null, 111);
-    f("text", /*text*/ null, 111);
-    f("mtext", /*mtext*/ null, 111);
-    f("title", Plot.class, 111);
-    f("abline", /*abline*/ null, 111);
-    f("box", null, 111);
-    f("rect", Plot.class, 111);
-    f("polygon", null, 111);
-    f("xspline", null, 111);
-    f("par", Par.class, 11);
-    f("segments", /*segments*/ null, 111);
-    f("arrows", /*arrows*/ null, 111);
-    f("layout", /*layout*/ null, 111);
-    f("locator", /*locator*/ null, 11);
-    f("identify", /*identify*/ null, 211);
-    f("strheight", /*strheight*/ null, 11);
-    f("strwidth", /*strwidth*/ null, 11);
-    f("contour", /*contour*/ null, 11);
-    f("contourLines", /*contourLines*/ null, 11);
-    f("image", /*image*/ null, 111);
-    f("dend", /*dend*/ null, 111);
-    f("dend.window", /*dendwindow*/ null, 111);
-    f("erase", /*erase*/ null, 111);
-    f("persp", /*persp*/ null, 111);
-    f("filledcontour", /*filledcontour*/ null, 111);
-    f("getSnapshot", /*getSnapshot*/ null, 111);
-    f("playSnapshot", /*playSnapshot*/ null, 111);
-    f("symbols", /*symbols*/ null, 111);
-    f("getGraphicsEvent", /*getGraphicsEvent*/ null, 11);
-    f("devAskNewPage", /*devAskNewPage*/ null, 211);
-    f("dev.size", /*devsize*/ null, 11);
-    f("clip", /*clip*/ null, 111);
-    f("grconvertX", Graphics.class, 11);
-    f("grconvertY", Graphics.class, 11);
-
 /* Objects */
     f("inherits", Attributes.class, 11);
     f("UseMethod", S3.class, 200);
     f("NextMethod", S3.class, 210);
+    f("invalidateS4Cache", S4.class, 1);
+    f("invalidateS4MethodCache", S4.class, 1);
     f("standardGeneric", Methods.class, 201);
+    f("getClassDef", Methods.class, 11);
+    f("getClass", Methods.class, 11);
+    f("selectMethod", Methods.class, 11);
 
 /* Modelling Functionality */
 
@@ -909,7 +855,7 @@ public class Primitives {
     f("fmin", Optimizations.class, 11);
     f("zeroin", /*zeroin*/ null, 11);
     f("zeroin2", Roots.class, 11);
-
+    
     f("D", /*D*/ null, 11);
     f("deriv.default", /*deriv*/ null, 11);
 
@@ -999,6 +945,7 @@ public class Primitives {
     f("getNamespaceName", Namespaces.class, 0);
     f("getNamespaceExports", Namespaces.class, 0);
     f("getNamespaceImports", Namespaces.class, 0);
+    f("registerS3method", Namespaces.class, 11);
 
     f("getNamespaceRegistry", Namespaces.class, 11);
 

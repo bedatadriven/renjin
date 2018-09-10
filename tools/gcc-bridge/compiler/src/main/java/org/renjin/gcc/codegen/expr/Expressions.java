@@ -789,6 +789,9 @@ public class Expressions {
   }
 
   public static JExpr constantClass(final Type valueType) {
+    Preconditions.checkArgument(valueType.getSort() == OBJECT || valueType.getSort() == ARRAY,
+        "Expected valueType to be an OBJECT or ARRAY sort");
+
     return new JExpr() {
       @Nonnull
       @Override
@@ -1123,4 +1126,18 @@ public class Expressions {
     };
   }
 
+  public static JExpr constantString(String string) {
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return Type.getType(String.class);
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        mv.aconst(string);
+      }
+    };
+  }
 }

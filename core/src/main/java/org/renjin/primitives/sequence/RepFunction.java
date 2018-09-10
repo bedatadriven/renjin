@@ -108,7 +108,7 @@ public class RepFunction extends SpecialFunction {
       }
     }
     if(!IntVector.isNA(each)) {
-      resultLength = x.length() * each;
+      resultLength = resultLength * each;
     } else {
       each = 1;
     }

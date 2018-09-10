@@ -77,5 +77,6 @@ test.replace.call.by.index <- function() {
     call[[2]] <- 94
     call[3] <- 42
 
+    assertThat(attributes(call), identicalTo(NULL))
     assertThat(call, identicalTo(quote(f(a=94,b=42))))
 }

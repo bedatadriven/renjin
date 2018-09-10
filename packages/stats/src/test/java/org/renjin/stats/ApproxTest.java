@@ -16,7 +16,9 @@ public class ApproxTest {
   @Test
   public void testApprox() throws Exception {
 
-    Class clazz = Class.forName("org.renjin.stats.stats");
+
+
+    Class clazz = Class.forName("org.renjin.stats.approx__");
     Method method = clazz.getMethod("R_approx", Ptr.class, Ptr.class, Ptr.class, Ptr.class, Ptr.class, Ptr.class,
         Ptr.class, Ptr.class, Ptr.class);
 

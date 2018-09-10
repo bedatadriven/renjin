@@ -26,6 +26,10 @@ setMethod("+", signature = c("numeric", "Molecule"), function(e1, e2) { 42 } )
 assertThat(a+1, identicalTo(41))
 assertThat(1+a, identicalTo(42))
 
+# The matrix multiplication operator is NOT a member of the Ops group,
+# and has different formal names than generics in the Ops group, but
+# dispatch IS done on *both* arguments, just as the Ops groups does.
+
 setMethod("%*%", signature = c("Molecule", "numeric"), function(x, y) { 43 } )
 setMethod("%*%", signature = c("numeric", "Molecule"), function(x, y) { 44 } )
 

@@ -46,4 +46,9 @@ public class Sessions {
   public static boolean interactive(@Current Context context) {
     return context.getSession().getSessionController().isInteractive();
   }
+
+  @Internal
+  public static String readline(@Current Context context, String prompt) {
+    return context.getSession().getSessionController().readLine(prompt);
+  }
 }

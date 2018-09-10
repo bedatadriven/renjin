@@ -18,6 +18,8 @@
  */
 package org.renjin.gcc.runtime;
 
+import org.renjin.gcc.format.FormatArrayInput;
+
 public class Builtins {
 
   private static final ThreadLocal<IntPtr> ERRNO = new ThreadLocal<>();
@@ -273,15 +275,28 @@ public class Builtins {
   public static void __cxa_pure_virtual() {
     throw new RuntimeException("Pure virtual function invoked");
   }
+
+  /**
+   * A handle for __cxa_finalize to manage c++ local destructors.
+   */
+  public static Ptr[] __dso_handle = new Ptr[] { BytePtr.NULL };
+
   
   public static void undefined_std() {
     throw new RuntimeException("Invocation of std:: method");
   }
 
   public static void _gfortran_runtime_error_at(Ptr position, Ptr format, Object... arguments) {
-    throw new RuntimeException(Stdlib.format(format, arguments));
+    throw new RuntimeException(Stdlib.format(format, new FormatArrayInput(arguments)));
   }
 
+  public static int _gfortran_pow_i4_i4(int base, int power) {
+    int result = 1;
+    for (int i = 1; i <= power; i++) {
+      result *= base;
+    }
+    return result;
+  }
   private static volatile int __sync_synchronize_value = 0;
 
   public static void __sync_synchronize() {
@@ -306,11 +321,4 @@ public class Builtins {
     return previous;
   }
 
-  public static int _gfortran_pow_i4_i4(int base, int power) {
-    int result = 1;
-    for (int i = 1; i <= power; i++) {
-      result *= base;
-    }
-    return result;
-  }
 }

@@ -95,6 +95,9 @@ public class GnurCompilerMojo extends AbstractMojo {
   @Parameter(defaultValue = "${project.build.directory}/include")
   private File unpackedIncludeDir;
 
+  @Parameter
+  private boolean transformGlobalVariables;
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
 
@@ -119,6 +122,7 @@ public class GnurCompilerMojo extends AbstractMojo {
     compiler.setGimpleDirectory(gimpleDirectory);
     compiler.setLinkClassLoader(GccBridgeHelper.getLinkClassLoader(project, getLog()));
     compiler.setLoggingDir(loggingDirectory);
+    compiler.setTransformGlobalVariables(transformGlobalVariables);
 
     
     // Unpack any headers from dependencies

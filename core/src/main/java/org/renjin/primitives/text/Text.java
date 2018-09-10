@@ -20,6 +20,7 @@ package org.renjin.primitives.text;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.gcc.format.Formatter;
 import org.renjin.invoke.annotations.*;
 import org.renjin.primitives.Deparse;
 import org.renjin.primitives.matrix.IntMatrixBuilder;
@@ -29,7 +30,6 @@ import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.primitives.text.regex.FuzzyMatcher;
 import org.renjin.primitives.text.regex.RE;
 import org.renjin.primitives.text.regex.REFactory;
-import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Function;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -141,14 +141,25 @@ public class Text {
     AtomicVector[] formatArgs = new AtomicVector[arguments.length()];
     for(int i=0;i!=formatArgs.length;++i) {
       SEXP argument = arguments.getElementAsSEXP(i);
-      if(formatters[0].isFormattedString(i) && !(argument instanceof StringVector)) {
-        argument = context.evaluate( FunctionCall.newCall(Symbol.get("as.character"), argument), 
-            rho); 
+      if(formatters[0].getArgumentType(i) == Formatter.ArgumentType.STRING && !(argument instanceof StringVector)) {
+        argument = context.evaluate( FunctionCall.newCall(Symbol.get("as.character"), argument), rho);
       }
       if(!(argument instanceof AtomicVector)) {
         throw new EvalException("Format argument %d is not an atomic vector", i);
       }
       formatArgs[i] = (AtomicVector)argument;
+    }
+
+    // Find the maximum number of arguments expected
+    int argumentCount = 0;
+    for (Formatter formatter : formatters) {
+      if(formatter.getArgumentTypes().size() > argumentCount) {
+        argumentCount = formatter.getArgumentTypes().size();
+      }
+    }
+
+    if(argumentCount > arguments.length()) {
+      throw new EvalException("Too few arguments provided for format string");
     }
     
     // count cycles
@@ -161,13 +172,13 @@ public class Text {
         cycles = formatArg.length();
       }
     }
-    
+
+    VectorFormatInput input = new VectorFormatInput(formatArgs);
 
     for(int resultIndex=0; resultIndex != cycles; ++resultIndex) {
-
       Formatter formatter = formatters[resultIndex % formatters.length];
-      
-      result.add( formatter.sprintf(formatArgs, resultIndex) );
+      result.add(formatter.format(input));
+      input.next();
     }
 
     return result.build();
@@ -187,12 +198,12 @@ public class Text {
         return "";
       } else if(input instanceof AtomicVector) {
         AtomicVector vector = (AtomicVector) input;
-        if(vector.isElementNA(index % input.length())) {
+        String elementValue = vector.getElementAsString(index % input.length());
+        if(StringVector.isNA(elementValue)) {
           return "NA";
         } else {
-          return vector.getElementAsString(index % input.length());
+          return elementValue;
         }
-
       } else if(input instanceof ListVector) {
         SEXP element = ((ListVector) input).getElementAsSEXP(index % input.length());
         return listElementToString(element);

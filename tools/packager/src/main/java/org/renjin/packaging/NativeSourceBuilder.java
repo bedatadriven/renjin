@@ -21,8 +21,8 @@ package org.renjin.packaging;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParser;
+import org.renjin.gnur.GlobalVarPlugin;
 import org.renjin.gnur.GnurSourcesCompiler;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.base.Charsets;
@@ -30,12 +30,13 @@ import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.io.Files;
 import org.renjin.repackaged.guava.io.LineProcessor;
+import soot.G;
+import soot.Main;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
@@ -47,17 +48,22 @@ public class NativeSourceBuilder {
   private static final List<String> SOURCE_EXTENSIONS = Lists.newArrayList(
       "c",
       "f", "f77", "f90", "f95", "f03", "for",
-      "cpp", "cxx");
+      "cpp", "cxx", "cc");
 
   private PackageSource source;
   private BuildContext buildContext;
-
-  private List<String> entryPoints;
-
+  private boolean transformGlobalVariables;
 
   public NativeSourceBuilder(PackageSource source, BuildContext buildContext) {
     this.source = source;
     this.buildContext = buildContext;
+  }
+
+  /**
+   * Determines whether we attempt to transform global variables to Renjin-context scoped global variables.
+   */
+  public void setTransformGlobalVariables(boolean transformGlobalVariables) {
+    this.transformGlobalVariables = transformGlobalVariables;
   }
 
   public void build() throws IOException, InterruptedException {
@@ -65,6 +71,17 @@ public class NativeSourceBuilder {
     make();
     compileGimple();
     buildContext.getLogger().info("Compilation of GNU R sources succeeded.");
+
+    try {
+      optimizeClasses();
+    } catch (Exception e) {
+      buildContext.getLogger().error("Soot optimization run failed", e);
+    }
+
+    // When soot hits an error, it can set the interrupt flag for this
+    // thread.
+    Thread.interrupted();
+
   }
 
   private void configure() throws IOException, InterruptedException {
@@ -140,11 +157,11 @@ public class NativeSourceBuilder {
       if(!source.isCXX11()) {
         System.out.println("Checking wether in Makevars CXX_STD is set to CXX11... yes");
       }
-      commandLine.add("CXX=g++-4.7 -std=gnu++11");
-      commandLine.add("CXXFLAGS=${RENJIN_FLAGS} -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g $(LTO)");
-      commandLine.add("CXXPICFLAGS=-fpic");
-      commandLine.add("SHLIB_LDFLAGS=-shared# $(CFLAGS) $(CPICFLAGS)");
-      commandLine.add("SHLIB_LD=$(CC)");
+      commandLine.add("CXX=$(CXX11) $(CXX11STD)");
+      commandLine.add("CXXFLAGS=$(CXX11FLAGS)");
+      commandLine.add("CXXPICFLAGS=$(CXX11PICFLAGS)");
+      commandLine.add("SHLIB_LDFLAGS=$(SHLIB_CXX11LDFLAGS)");
+      commandLine.add("SHLIB_LD=$(SHLIB_CXX11LD)");
     } else {
       System.out.println("Checking wether in Makevars CXX_STD is set to CXX11... no");
     }
@@ -200,19 +217,14 @@ public class NativeSourceBuilder {
     compiler.setClassName(findLibraryName());
     compiler.setLoggingDirectory(buildContext.getCompileLogDir());
 
-    if(entryPoints != null && !entryPoints.isEmpty()) {
-      compiler.setEntryPointPredicate(new Predicate<GimpleFunction>() {
-        @Override
-        public boolean test(GimpleFunction input) {
-          return entryPoints.contains(input.getMangledName());
-        }
-      });
-    }
-
     try {
       GnurSourcesCompiler.setupCompiler(compiler);
     } catch (ClassNotFoundException e) {
       throw new BuildException("Failed to setup Gimple Compiler", e);
+    }
+
+    if(transformGlobalVariables) {
+      compiler.addPlugin(new GlobalVarPlugin(compiler.getPackageName()));
     }
 
     try {
@@ -221,6 +233,48 @@ public class NativeSourceBuilder {
       throw new BuildException("Failed to compile Gimple", e);
     }
   }
+
+  private void optimizeClasses() {
+
+    List<String> classes = new ArrayList<>();
+    findClassfiles(buildContext.getOutputDir(), "", classes);
+
+    List<String> args = new ArrayList<>();
+    // Preprend maven's classpath
+    args.add("-pp");
+
+    // Classpath for soot analysis
+    args.add("-cp");
+    args.add(buildContext.getCompileClasspath());
+
+    args.add("-asm-backend");
+    args.add("-java-version");
+    args.add("1.8");
+
+    // Add classes to optimize
+    args.add("-O");
+    args.addAll(classes);
+
+    // Write out to build directory and overwrite existing classfiles
+    args.add("-d");
+    args.add(buildContext.getOutputDir().getAbsolutePath());
+
+    G.reset();
+
+    Main.v().run(args.toArray(new String[args.size()]));
+  }
+
+
+  private void findClassfiles(File file, String packageName, List<String> classes) {
+    for (File child : file.listFiles()) {
+      if(child.isFile() && child.getName().endsWith(".class")) {
+        classes.add(packageName + Files.getNameWithoutExtension(child.getName()));
+      } else if(child.isDirectory()) {
+        findClassfiles(child, packageName + child.getName() + ".", classes);
+      }
+    }
+  }
+
 
   private String findLibraryName() {
     // Packages can rename the shared library after it's build.
@@ -251,7 +305,7 @@ public class NativeSourceBuilder {
       private boolean defined = false;
 
       @Override
-      public boolean processLine(String line) throws IOException {
+      public boolean processLine(String line) {
         if(definitionRegexp.matcher(line).find()) {
           defined = true;
           return false;

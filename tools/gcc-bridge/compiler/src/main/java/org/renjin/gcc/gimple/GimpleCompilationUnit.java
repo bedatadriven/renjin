@@ -19,7 +19,6 @@
 package org.renjin.gcc.gimple;
 
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
-import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.repackaged.guava.collect.Lists;
 
@@ -46,12 +45,21 @@ public class GimpleCompilationUnit {
     if(sourceFile == null) {
       throw new IllegalStateException("sourceFile property is null");
     }
+
     String filename = sourceFile.getName();
-    int firstDot = filename.indexOf('.');
-    if(firstDot == -1) {
-      throw new IllegalStateException("Expected file name ending in .xx.gimple");
+
+    // First strip off the ".gimple" extension
+    if(!filename.endsWith(".gimple")) {
+      throw new IllegalStateException("Expected file name ending in .gimple");
     }
-    return filename.substring(0, firstDot);
+    filename = filename.substring(0, filename.length() - ".gimple".length());
+
+    // Now remove the filetype extension like .c or .cc
+    int firstDot = filename.indexOf('.');
+    if(firstDot != -1) {
+      filename = filename.substring(0, firstDot);
+    }
+    return filename;
   }
 
   public String getSourceName() {

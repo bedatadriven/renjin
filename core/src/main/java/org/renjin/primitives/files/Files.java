@@ -26,8 +26,7 @@ import org.renjin.primitives.Warning;
 import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.primitives.text.regex.REFactory;
 import org.renjin.primitives.text.regex.RESyntaxException;
-import java.util.function.Predicate;
-import org.renjin.repackaged.guava.base.Predicates;
+import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.io.ByteStreams;
 import org.renjin.sexp.*;
@@ -40,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.function.Predicate;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -293,6 +293,62 @@ public class Files {
       }
     }
     return new StringArrayVector(matching);
+  }
+
+  private static boolean isWindows() {
+    String operatingSystem = Strings.nullToEmpty(System.getProperty("os.name")).toLowerCase();
+    return operatingSystem.contains("win");
+  }
+
+  @Internal("Sys.which")
+  public static StringVector sysWhich(@Current Context context, StringVector names) {
+
+    if(isWindows()) {
+      throw new EvalException("Sys.which() not implemented for Windows");
+    }
+
+    String[] path = Strings.nullToEmpty(System.getenv("PATH")).split(File.pathSeparator);
+
+    StringVector.Builder result = new StringArrayVector.Builder(0, names.length());
+    result.setAttribute(Symbols.NAMES, names.setAttributes(AttributeMap.EMPTY));
+
+    for (String name : names) {
+      result.add(findExecutable(context, path, name));
+    }
+
+    return result.build();
+  }
+
+  private static String findExecutable(Context context, String[] paths, String name) {
+    if(isAbsolutePath(name)) {
+      return executablePath(context, name);
+    } else {
+      for (String path : paths) {
+        String executablePath = executablePath(context, path + File.separator + name);
+        if(!executablePath.isEmpty()) {
+          return executablePath;
+        }
+      }
+    }
+    return "";
+  }
+
+  private static String executablePath(Context context, String name) {
+    try {
+      FileObject fileObject = context.resolveFile(name);
+      if(fileObject.exists()) {
+        return friendlyFileName(fileObject);
+      } else  {
+        return "";
+      }
+    } catch (FileSystemException e) {
+      return "";
+    }
+  }
+
+  private static boolean isAbsolutePath(String name) {
+    File file = new File(name);
+    return file.isAbsolute();
   }
 
   /**

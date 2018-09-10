@@ -336,6 +336,11 @@ public interface Ptr extends Comparable<Ptr> {
    */
   Ptr copyOf(int offset, int numBytes);
 
+  /**
+   * Creates a copy of the memory to which this pointer points.
+   * @param numBytes the number of bytes to copy
+   * @return a pointer to the copied memory.
+   */
   Ptr copyOf(int numBytes);
 
   boolean isNull();

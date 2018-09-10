@@ -1,5 +1,7 @@
 #  File src/library/graphics/R/pie.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 pie <-
     function (x, labels = names(x), edges = 200, radius = 0.8,
@@ -43,11 +45,15 @@ pie <-
             c("white", "lightblue", "mistyrose", "lightcyan",
               "lavender", "cornsilk")
         else par("fg")
-    col <- rep(col, length.out = nx)
-    border <- rep(border, length.out = nx)
-    lty <- rep(lty, length.out = nx)
-    angle <- rep(angle, length.out = nx)
-    density <- rep(density, length.out = nx)
+    if(!is.null(col))
+        col <- rep_len(col, nx)
+    if(!is.null(border))
+        border <- rep_len(border, nx)
+    if(!is.null(lty))
+        lty <- rep_len(lty, nx)
+    angle <- rep(angle, nx)
+    if(!is.null(density))
+        density <- rep_len(density, nx)
     twopi <- if(clockwise) -2*pi else 2*pi
     t2xy <- function(t) {
         t2p <- twopi*t + init.angle * pi/180

@@ -29,6 +29,7 @@ import org.renjin.gcc.gimple.type.GimpleBooleanType;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRealType;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nullable;
@@ -47,6 +48,11 @@ public enum PrimitiveType {
     @Override
     public Type jvmType() {
       return Type.FLOAT_TYPE;
+    }
+
+    @Override
+    public String javaTypeName() {
+      return "float";
     }
 
     @Override
@@ -77,6 +83,11 @@ public enum PrimitiveType {
     }
 
     @Override
+    public String javaTypeName() {
+      return "double";
+    }
+
+    @Override
     public PrimitiveExpr cast(PrimitiveExpr x) {
       return x.toReal(64);
     }
@@ -104,6 +115,11 @@ public enum PrimitiveType {
     }
 
     @Override
+    public String javaTypeName() {
+      return "double";
+    }
+
+    @Override
     public PrimitiveExpr cast(PrimitiveExpr x) {
       return x.toReal(96);
     }
@@ -127,6 +143,11 @@ public enum PrimitiveType {
     @Override
     public Type jvmType() {
       return Type.BOOLEAN_TYPE;
+    }
+
+    @Override
+    public String javaTypeName() {
+      return "boolean";
     }
 
     @Override
@@ -157,6 +178,11 @@ public enum PrimitiveType {
     }
 
     @Override
+    public String javaTypeName() {
+      return "byte";
+    }
+
+    @Override
     public PrimitiveExpr cast(PrimitiveExpr x) {
       return x.toSignedInt(8);
     }
@@ -181,6 +207,11 @@ public enum PrimitiveType {
     @Override
     public Type jvmType() {
       return Type.SHORT_TYPE;
+    }
+
+    @Override
+    public String javaTypeName() {
+      return "short";
     }
 
     @Override
@@ -213,6 +244,11 @@ public enum PrimitiveType {
     }
 
     @Override
+    public String javaTypeName() {
+      return "int";
+    }
+
+    @Override
     public PrimitiveExpr cast(PrimitiveExpr x) {
       return x.toSignedInt(32);
     }
@@ -240,6 +276,11 @@ public enum PrimitiveType {
     }
 
     @Override
+    public String javaTypeName() {
+      return "long";
+    }
+
+    @Override
     public PrimitiveExpr cast(PrimitiveExpr x) {
       return x.toSignedInt(64);
     }
@@ -264,6 +305,11 @@ public enum PrimitiveType {
     @Override
     public Type jvmType() {
       return Type.BYTE_TYPE;
+    }
+
+    @Override
+    public String javaTypeName() {
+      return "byte";
     }
 
     @Override
@@ -305,6 +351,11 @@ public enum PrimitiveType {
     }
 
     @Override
+    public String javaTypeName() {
+      return "char";
+    }
+
+    @Override
     public PrimitiveExpr cast(PrimitiveExpr x) {
       return x.toUnsignedInt(16);
     }
@@ -329,6 +380,11 @@ public enum PrimitiveType {
     @Override
     public Type jvmType() {
       return Type.INT_TYPE;
+    }
+
+    @Override
+    public String javaTypeName() {
+      return "int";
     }
 
     @Override
@@ -359,6 +415,11 @@ public enum PrimitiveType {
     }
 
     @Override
+    public String javaTypeName() {
+      return "long";
+    }
+
+    @Override
     public PrimitiveExpr cast(PrimitiveExpr x) {
       return x.toUnsignedInt(64);
     }
@@ -383,6 +444,8 @@ public enum PrimitiveType {
 
   public abstract Type jvmType();
 
+  public abstract String javaTypeName();
+
   public abstract PrimitiveExpr cast(PrimitiveExpr x);
 
   public Type localVariableType() {
@@ -403,6 +466,14 @@ public enum PrimitiveType {
     return fromNonStackValue(jExpr, null);
   }
   public abstract GExpr constantExpr(GimpleConstant expr);
+
+  public JExpr fieldPointer(Type declaringType, String fieldName) {
+    String capitalizedJavaTypeName = javaTypeName().substring(0, 1).toUpperCase() + javaTypeName().substring(1);
+    Type ptrClassName = Type.getType("Lorg/renjin/gcc/runtime/" + capitalizedJavaTypeName + "FieldPtr;");
+    String addressOfDescriptor = Type.getMethodDescriptor(Type.getType(Ptr.class), Type.getType(Class.class), Type.getType(String.class));
+    return Expressions.staticMethodCall(ptrClassName, "addressOf", addressOfDescriptor,
+          Expressions.constantClass(declaringType), Expressions.constantString(fieldName));
+  }
 
   public static PrimitiveType of(GimplePrimitiveType type) {
     if(type instanceof GimpleRealType) {

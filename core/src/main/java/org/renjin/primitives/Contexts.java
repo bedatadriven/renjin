@@ -298,6 +298,10 @@ public class Contexts {
    */
   public static Context findCallingContext(Context context) {
     Environment callingEnvironment = context.getCallingEnvironment();
+    return findCallingContext(context, callingEnvironment);
+  }
+
+  public static Context findCallingContext(Context context, Environment callingEnvironment) {
     while (!context.isTopLevel()) {
       if(context.getEnvironment() == callingEnvironment) {
         break;
@@ -306,7 +310,6 @@ public class Contexts {
     }
     return context;
   }
-
 
 
 }

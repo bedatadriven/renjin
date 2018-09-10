@@ -130,7 +130,7 @@ public class Sort {
     return 0;
   }
 
-  private static int rcmp(double x, double y, boolean nalast) {
+  public static int rcmp(double x, double y, boolean nalast) {
     boolean nax = DoubleVector.isNA(x), nay = DoubleVector.isNA(y);
     if (nax && nay) {
       return 0;

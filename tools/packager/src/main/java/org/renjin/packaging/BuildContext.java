@@ -86,4 +86,6 @@ public interface BuildContext {
    * 
    */
   List<String> getDefaultPackages();
+
+  String getCompileClasspath();
 }

@@ -30,6 +30,7 @@ import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repackaged.guava.collect.ImmutableList;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
+import org.renjin.s4.S4Cache;
 import org.renjin.sexp.*;
 import org.renjin.stats.internals.distributions.RNG;
 import org.renjin.util.FileSystemUtils;
@@ -56,6 +57,8 @@ public class Session {
       "stats",  "graphics", "grDevices", "utils",  "datasets", "methods");
   
   private final Context topLevelContext;
+
+  private S4Cache s4Cache = new S4Cache();
 
   private FinalizerRegistry finalizers = null;
 
@@ -131,7 +134,6 @@ public class Session {
    */
   Context conditionStack = null;
 
-
   Session(FileSystemManager fileSystemManager,
           ClassLoader classLoader,
           PackageLoader packageLoader,
@@ -196,6 +198,11 @@ public class Session {
       singletons.put(clazz, instance);
     }
     return instance;
+  }
+
+
+  public Options getOptions() {
+    return getSingleton(Options.class);
   }
 
   public void setSessionController(SessionController sessionController) {
@@ -299,6 +306,23 @@ public class Session {
     return fileSystemManager;
   }
 
+  /**
+   * Translates a uri/path into a VFS {@code FileObject}.
+   *
+   * @param uri uniform resource indicator. This could be, for example:
+   * <ul>
+   * <li>jar:file:///path/to/my/libray.jar!/mylib/R/mylib.R</li>
+   * <li>/usr/lib</li>
+   * <li>c:&#92;users&#92;owner&#92;data.txt</li>
+   * </ul>
+   *
+   * @return
+   * @throws FileSystemException
+   */
+  public FileObject resolveFile(String uri) throws FileSystemException {
+    return fileSystemManager.resolveFile(workingDirectory, uri);
+  }
+
   public Environment getBaseEnvironment() {
     return baseEnvironment;
   }
@@ -327,7 +351,9 @@ public class Session {
     return classLoader;
   }
 
-
+  public S4Cache getS4Cache() {
+    return s4Cache;
+  }
 
   public void registerFinalizer(SEXP sexp, FinalizationHandler handler, boolean onExit) {
     if(finalizers == null) {
@@ -385,4 +411,6 @@ public class Session {
   public void clearWarnings() {
     baseEnvironment.remove(Warning.LAST_WARNING);
   }
+
+
 }

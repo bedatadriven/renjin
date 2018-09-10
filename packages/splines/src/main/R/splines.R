@@ -1,5 +1,7 @@
 #  File src/library/splines/R/splines.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,32 +14,32 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 bs <- function(x, df = NULL, knots = NULL, degree = 3, intercept = FALSE,
                Boundary.knots = range(x))
 {
+    ord <- 1L + (degree <- as.integer(degree))
+    if(ord <= 1) stop("'degree' must be integer >= 1")
     nx <- names(x)
     x <- as.vector(x)
     nax <- is.na(x)
     if(nas <- any(nax))
         x <- x[!nax]
-    if(!missing(Boundary.knots)) {
+    outside <- if(!missing(Boundary.knots)) {
         Boundary.knots <- sort(Boundary.knots)
-        outside <- (ol <- x < Boundary.knots[1L]) | (or <- x > Boundary.knots[2L])
-    }
-    else outside <- FALSE #rep(FALSE, length = length(x))
+        (ol <- x < Boundary.knots[1L]) | (or <- x > Boundary.knots[2L])
+    } else FALSE
 
-    ord <- 1 + (degree <- as.integer(degree))
-    if(ord <= 1) stop("'degree' must be integer >= 1")
-    if(!missing(df) && missing(knots)) {
-        nIknots <- df - ord + (1 - intercept)
-        if(nIknots < 0) {
-            nIknots <- 0
-            warning("'df' was too small; have used  ", ord - (1 - intercept))
+    if(!is.null(df) && is.null(knots)) {
+	nIknots <- df - ord + (1L - intercept) # ==  #{inner knots}
+        if(nIknots < 0L) {
+            nIknots <- 0L
+            warning(gettextf("'df' was too small; have used %d",
+                             ord - (1L - intercept)), domain = NA)
         }
         knots <-
-            if(nIknots > 0) {
+            if(nIknots > 0L) {
                 knots <- seq.int(from = 0, to = 1,
                                  length.out = nIknots + 2)[-c(1, nIknots + 2)]
                 stats::quantile(x[!outside], knots)
@@ -49,22 +51,25 @@ bs <- function(x, df = NULL, knots = NULL, degree = 3, intercept = FALSE,
         derivs <- 0:degree
         scalef <- gamma(1L:ord)# factorials
         basis <- array(0, c(length(x), length(Aknots) - degree - 1L))
+	e <- 1/4 # in theory anything in (0,1); was (implicitly) 0 in R <= 3.2.2
         if(any(ol)) {
-            k.pivot <- Boundary.knots[1L]
+	    ## left pivot inside, i.e., a bit to the right of the boundary knot
+	    k.pivot <- (1-e)*Boundary.knots[1L] + e*Aknots[ord+1]
             xl <- cbind(1, outer(x[ol] - k.pivot, 1L:degree, "^"))
-            tt <- spline.des(Aknots, rep(k.pivot, ord), ord, derivs)$design
-            basis[ol,  ] <- xl %*% (tt/scalef)
+            tt <- splineDesign(Aknots, rep(k.pivot, ord), ord, derivs)
+            basis[ol, ] <- xl %*% (tt/scalef)
         }
         if(any(or)) {
-            k.pivot <- Boundary.knots[2L]
+	    ## right pivot inside, i.e., a bit to the left of the boundary knot:
+	    k.pivot <- (1-e)*Boundary.knots[2L] + e*Aknots[length(Aknots)-ord]
             xr <- cbind(1, outer(x[or] - k.pivot, 1L:degree, "^"))
-            tt <- spline.des(Aknots, rep(k.pivot, ord), ord, derivs)$design
-            basis[or,  ] <- xr %*% (tt/scalef)
+            tt <- splineDesign(Aknots, rep(k.pivot, ord), ord, derivs)
+            basis[or, ] <- xr %*% (tt/scalef)
         }
         if(any(inside <- !outside))
-            basis[inside,  ] <- spline.des(Aknots, x[inside], ord)$design
+            basis[inside,  ] <- splineDesign(Aknots, x[inside], ord)
     }
-    else basis <- spline.des(Aknots, x, ord)$design
+    else basis <- splineDesign(Aknots, x, ord)
     if(!intercept)
         basis <- basis[, -1L , drop = FALSE]
     n.col <- ncol(basis)
@@ -94,17 +99,18 @@ ns <- function(x, df = NULL, knots = NULL, intercept = FALSE,
         outside <- (ol <- x < Boundary.knots[1L]) | (or <- x > Boundary.knots[2L])
     }
     else outside <- FALSE # rep(FALSE, length = length(x))
-    if(!missing(df) && missing(knots)) {
+    if(!is.null(df) && is.null(knots)) {
         ## df = number(interior knots) + 1 + intercept
-        nIknots <- df - 1 - intercept
-        if(nIknots < 0) {
-            nIknots <- 0
-            warning("'df' was too small; have used ", 1 + intercept)
+        nIknots <- df - 1L - intercept
+        if(nIknots < 0L) {
+            nIknots <- 0L
+            warning(gettextf("'df' was too small; have used %d",
+                             1L + intercept), domain = NA)
         }
-        knots <- if(nIknots > 0) {
+        knots <- if(nIknots > 0L) {
             knots <- seq.int(0, 1,
                              length.out = nIknots + 2L)[-c(1L, nIknots + 2L)]
-            stats::quantile(x[!outside], knots)
+            quantile(x[!outside], knots)
         } ## else  NULL
     } else nIknots <- length(knots)
     Aknots <- sort(c(rep(Boundary.knots, 4L), knots))
@@ -113,20 +119,20 @@ ns <- function(x, df = NULL, knots = NULL, intercept = FALSE,
         if(any(ol)) {
             k.pivot <- Boundary.knots[1L]
             xl <- cbind(1, x[ol] - k.pivot)
-            tt <- spline.des(Aknots, rep(k.pivot, 2L), 4, c(0, 1))$design
+            tt <- splineDesign(Aknots, rep(k.pivot, 2L), 4, c(0, 1))
             basis[ol,  ] <- xl %*% tt
         }
         if(any(or)) {
             k.pivot <- Boundary.knots[2L]
             xr <- cbind(1, x[or] - k.pivot)
-            tt <- spline.des(Aknots, rep(k.pivot, 2L), 4, c(0, 1))$design
+            tt <- splineDesign(Aknots, rep(k.pivot, 2L), 4, c(0, 1))
             basis[or,  ] <- xr %*% tt
         }
         if(any(inside <- !outside))
-            basis[inside,  ] <- spline.des(Aknots, x[inside], 4)$design
+            basis[inside,  ] <- splineDesign(Aknots, x[inside], 4)
     }
-    else basis <- spline.des(Aknots, x, 4)$design
-    const <- spline.des(Aknots, Boundary.knots, 4, c(2, 2))$design
+    else basis <- splineDesign(Aknots, x, 4)
+    const <- splineDesign(Aknots, Boundary.knots, 4, c(2, 2))
     if(!intercept) {
         const <- const[, -1 , drop = FALSE]
         basis <- basis[, -1 , drop = FALSE]
@@ -140,7 +146,7 @@ ns <- function(x, df = NULL, knots = NULL, intercept = FALSE,
         basis <- nmat
     }
     dimnames(basis) <- list(nx, 1L:n.col)
-    a <- list(degree = 3, knots = if(is.null(knots)) numeric(0) else knots,
+    a <- list(degree = 3L, knots = if(is.null(knots)) numeric() else knots,
               Boundary.knots = Boundary.knots, intercept = intercept)
     attributes(basis) <- c(attributes(basis), a)
     class(basis) <- c("ns", "basis", "matrix")
@@ -171,7 +177,7 @@ makepredictcall.ns <- function(var, call)
 {
     if(as.character(call)[1L] != "ns") return(call)
     at <- attributes(var)[c("knots", "Boundary.knots", "intercept")]
-    xxx <- call[1L:2]
+    xxx <- call[1L:2L]
     xxx[names(at)] <- at
     xxx
 }
@@ -186,10 +192,13 @@ makepredictcall.bs <- function(var, call)
 }
 
 
-spline.des <-
-    function(knots, x, ord = 4, derivs = integer(length(x)), outer.ok = FALSE)
+spline.des <- function(knots, x, ord = 4, derivs = integer(length(x)),
+		       outer.ok = FALSE, sparse = FALSE)
 {
-    list(knots = sort(as.vector(knots)), order = ord, derivs = derivs,
-         design = splineDesign(knots, x, ord, derivs, outer.ok = outer.ok))
+    if(is.unsorted(knots <- as.numeric(knots)))
+	knots <- sort.int(knots)
+    list(knots = knots, order = ord, derivs = derivs,
+	 design = splineDesign(knots, x, ord, derivs,
+			       outer.ok = outer.ok, sparse = sparse))
 }
 ## splineDesign() is in ./splineClasses.R

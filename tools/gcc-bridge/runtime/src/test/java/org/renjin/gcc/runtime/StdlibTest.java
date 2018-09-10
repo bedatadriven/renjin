@@ -20,8 +20,11 @@ package org.renjin.gcc.runtime;
 
 import org.junit.Test;
 
+import java.nio.charset.StandardCharsets;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.renjin.gcc.runtime.BytePtr.NULL;
 
 public class StdlibTest {
 
@@ -48,6 +51,39 @@ public class StdlibTest {
     assertThat(Stdlib.lroundf(Float.POSITIVE_INFINITY), equalTo(Long.MAX_VALUE));
 
     assertThat(Stdlib.lroundf(Long.MAX_VALUE+1.5f), equalTo(Long.MAX_VALUE));
+  }
+
+  @Test
+  public void strtol() {
+    assertThat(Stdlib.strtol(cstring("  13"), NULL, 0), equalTo(13L));
+    assertThat(Stdlib.strtol(cstring(" 42  "), NULL, 10), equalTo(42L));
+    assertThat(Stdlib.strtol(cstring(" CAFE"), NULL, 16), equalTo(0xCAFEL));
+    assertThat(Stdlib.strtol(cstring("0xCAFE  "), NULL, 16), equalTo(0xCAFEL));
+    assertThat(Stdlib.strtol(cstring("0xCAFE  "), NULL, 0), equalTo(0xCAFEL));
+    assertThat(Stdlib.strtol(cstring("0600 the fo"), NULL, 8), equalTo(0600L));
+    assertThat(Stdlib.strtol(cstring("-33405"), NULL, 10), equalTo(-33405L));
+    assertThat(Stdlib.strtol(cstring("+63423"), NULL, 10), equalTo(+63423L));
+  }
+
+  @Test
+  public void strtoul() {
+    assertThat(Stdlib.strtoul(cstring("18446744073709551615"), NULL, 0), equalTo(0xffffffffffffffffL));
+    assertThat(Stdlib.strtoul(cstring("18446744073709551614"), NULL, 0), equalTo(0xfffffffffffffffeL));
+    assertThat(Stdlib.strtoul(cstring("0xfffffffffffffffe"), NULL, 0), equalTo(0xfffffffffffffffeL));
+  }
+
+  @Test
+  public void strcspn() {
+    Ptr x = BytePtr.nullTerminatedString("hello world", StandardCharsets.US_ASCII);
+    Ptr y = BytePtr.nullTerminatedString("MXo", StandardCharsets.US_ASCII);
+    Ptr z = BytePtr.nullTerminatedString("QP", StandardCharsets.US_ASCII);
+
+    assertThat(Stdlib.strcspn(x, y), equalTo(4));
+    assertThat(Stdlib.strcspn(x, z), equalTo(Stdlib.strlen(x)));
+  }
+
+  private BytePtr cstring(String str) {
+    return BytePtr.nullTerminatedString(str, StandardCharsets.UTF_8);
   }
 
 }

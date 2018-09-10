@@ -1,5 +1,7 @@
 #  File src/library/graphics/R/datetime.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,13 +14,13 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 axis.POSIXct <- function(side, x, at, format, labels = TRUE, ...)
 {
-    mat <- missing(at) || is.null(at)
-    if(!mat) x <- as.POSIXct(at) else x <- as.POSIXct(x)
-    range <- par("usr")[if(side %%2) 1L:2L else 3L:4L]
+    has.at <- !missing(at) && !is.null(at)
+    x <- as.POSIXct(if(has.at) at else x)
+    range <- sort(par("usr")[if(side %% 2) 1L:2L else 3L:4L])
     ## find out the scale involved
     d <- range[2L] - range[1L]
     z <- c(range, x[is.finite(x)])
@@ -70,7 +72,7 @@ axis.POSIXct <- function(side, x, at, format, labels = TRUE, ...)
         z <- as.POSIXct(.POSIXlt(zz))
         if(missing(format)) format <- "%Y"
     }
-    if(!mat) z <- x[is.finite(x)] # override changes
+    if(has.at) z <- x[is.finite(x)] # override changes
     keep <- z >= range[1L] & z <= range[2L]
     z <- z[keep]
     if (!is.logical(labels)) labels <- labels[keep]
@@ -83,7 +85,7 @@ axis.POSIXct <- function(side, x, at, format, labels = TRUE, ...)
 
 hist.POSIXt <- function(x, breaks, ..., xlab = deparse(substitute(x)),
                         plot = TRUE, freq = FALSE,
-                        start.on.monday = TRUE, format)
+                        start.on.monday = TRUE, format, right = TRUE)
 {
     if(!inherits(x, "POSIXt")) stop("wrong method")
     xlab
@@ -113,6 +115,8 @@ hist.POSIXt <- function(x, breaks, ..., xlab = deparse(substitute(x)),
                          "months", "years", "quarters"))
             if(is.na(valid)) stop("invalid specification of 'breaks'")
             start <- as.POSIXlt(min(x, na.rm = TRUE))
+            ## may alter later
+            ## we need to invalidate isdst whenever we play with components
             incr <- 1
             if(valid > 1L) { start$sec <- 0; incr <- 59.99 }
             if(valid > 2L) { start$min <- 0L; incr <- 3600 - 1 }
@@ -128,8 +132,13 @@ hist.POSIXt <- function(x, breaks, ..., xlab = deparse(substitute(x)),
                 start$mday <- 1L
                 end <- as.POSIXlt(max(x, na.rm = TRUE))
                 end <- as.POSIXlt(end + (31 * 86400))
-                end$mday <- 1
-                breaks <- seq(start, end, "months") - 86400
+                end$mday <- 1L
+                end$isdst <- -1L
+                breaks <- seq(start, end, "months")
+                ind <- seq_along(breaks[-1L])
+                if (right)
+                    breaks[ind] <- breaks[ind] - 86400
+		if (missing(format)) format <- "%Y-%m-%d"
             } else if(valid == 7L) { # "years"
                 start$mon <- 0L
                 start$mday <- 1L
@@ -137,7 +146,12 @@ hist.POSIXt <- function(x, breaks, ..., xlab = deparse(substitute(x)),
                 end <- as.POSIXlt(end + (366 * 86400))
                 end$mon <- 0L
                 end$mday <- 1L
-                breaks <- seq(start, end, "years") - 86400
+                end$isdst <- -1L
+                breaks <- seq(start, end, "years")
+                ind <- seq_along(breaks[-1L])
+                if (right)
+                    breaks[ind] <- breaks[ind] - 86400
+		if (missing(format)) format <- "%Y-%m-%d"
             } else if(valid == 8L) { # "quarters"
                 qtr <- rep(c(0L, 3L, 6L, 9L), each = 3L)
                 start$mon <- qtr[start$mon + 1L]
@@ -146,8 +160,13 @@ hist.POSIXt <- function(x, breaks, ..., xlab = deparse(substitute(x)),
                 end <- as.POSIXlt(end + (93 * 86400))
                 end$mon <- qtr[end$mon + 1L]
                 end$mday <- 1L
-                breaks <- seq(start, end, "3 months") - 86400
-            } else { # "days" or "weeks"
+                end$isdst <- -1L
+                breaks <- seq(start, end, "3 months")
+                ind <- seq_along(breaks[-1L])
+                if (right)
+                    breaks[ind] <- breaks[ind] - 86400
+		if (missing(format)) format <- "%Y-%m-%d"
+           } else { # "days" or "weeks"
                 maxx <- max(x, na.rm = TRUE)
                 breaks <- seq(start, maxx + incr, breaks)
                 breaks <- breaks[seq_len(1L + max(which(breaks < maxx)))]
@@ -155,7 +174,8 @@ hist.POSIXt <- function(x, breaks, ..., xlab = deparse(substitute(x)),
         }
         else stop("invalid specification of 'breaks'")
     }
-    res <- hist.default(unclass(x), unclass(breaks), plot = FALSE, warn.unused=FALSE, ...)
+    res <- hist.default(unclass(x), unclass(breaks), plot = FALSE,
+                        warn.unused = FALSE, right = right, ...)
     res$equidist <- TRUE # years are of uneven lengths
     res$intensities <- res$intensities*incr
     res$xname <- xlab
@@ -186,9 +206,9 @@ hist.POSIXt <- function(x, breaks, ..., xlab = deparse(substitute(x)),
 
 axis.Date <- function(side, x, at, format, labels = TRUE, ...)
 {
-    mat <- missing(at) || is.null(at)
-    if(!mat) x <- as.Date(at) else x <- as.Date(x)
-    range <- par("usr")[if(side %%2) 1L:2L else 3:4L]
+    has.at <- !missing(at) && !is.null(at)
+    x <- as.Date(if(has.at) at else x)
+    range <- sort(par("usr")[if(side %% 2) 1L:2L else 3:4L])
     range[1L] <- ceiling(range[1L])
     range[2L] <- floor(range[2L])
     ## find out the scale involved
@@ -216,7 +236,7 @@ axis.Date <- function(side, x, at, format, labels = TRUE, ...)
         z <- as.Date(zz)
         if(missing(format)) format <- "%Y"
     }
-    if(!mat) z <- x[is.finite(x)] # override changes
+    if(has.at) z <- x[is.finite(x)] # override changes
     keep <- z >= range[1L] & z <= range[2L]
     z <- z[keep]
     z <- sort(unique(z)); class(z) <- "Date"
@@ -231,7 +251,7 @@ axis.Date <- function(side, x, at, format, labels = TRUE, ...)
 
 hist.Date <- function(x, breaks, ..., xlab = deparse(substitute(x)),
                       plot = TRUE, freq = FALSE,
-                      start.on.monday = TRUE, format)
+                      start.on.monday = TRUE, format, right = TRUE)
 {
     if(!inherits(x, "Date")) stop("wrong method")
     force(xlab)
@@ -270,7 +290,11 @@ hist.Date <- function(x, breaks, ..., xlab = deparse(substitute(x)),
                 end <- as.POSIXlt(max(x, na.rm = TRUE))
                 end <- as.POSIXlt(end + (31 * 86400))
                 end$mday <- 1
-                breaks <- as.Date(seq(start, end, "months")) - 1
+                end$isdst <- -1
+                breaks <- as.Date(seq(start, end, "months"))
+                if (right)
+                    breaks <- breaks - 1
+		if (missing(format)) format <- "%Y-%m-%d"
             } else if(valid == 4L) { ## "years"
                 start$mon <- 0L
                 start$mday <- 1L
@@ -278,7 +302,11 @@ hist.Date <- function(x, breaks, ..., xlab = deparse(substitute(x)),
                 end <- as.POSIXlt(end + (366 * 86400))
                 end$mon <- 0L
                 end$mday <- 1L
-                breaks <- as.Date(seq(start, end, "years")) - 1
+                end$isdst <- -1
+                breaks <- as.Date(seq(start, end, "years"))
+                if (right)
+                    breaks <- breaks - 1
+		if (missing(format)) format <- "%Y-%m-%d"
             } else if(valid == 5L) { ## "quarters"
                 qtr <- rep(c(0L, 3L, 6L, 9L), each = 3L)
                 start$mon <- qtr[start$mon + 1L]
@@ -287,7 +315,11 @@ hist.Date <- function(x, breaks, ..., xlab = deparse(substitute(x)),
                 end <- as.POSIXlt(end + (93 * 86400))
                 end$mon <- qtr[end$mon + 1L]
                 end$mday <- 1L
-                breaks <- as.Date(seq(start, end, "3 months")) - 1
+                end$isdst <- -1
+                breaks <- as.Date(seq(start, end, "3 months"))
+                if (right)
+                    breaks <- breaks - 1
+		if (missing(format)) format <- "%Y-%m-%d"
             } else { ## "days" (or "weeks")
                 start <- as.Date(start)
                 maxx <- max(x, na.rm = TRUE)
@@ -296,7 +328,7 @@ hist.Date <- function(x, breaks, ..., xlab = deparse(substitute(x)),
             }
         } else stop("invalid specification of 'breaks'")
     }
-    res <- hist.default(unclass(x), unclass(breaks), plot = FALSE, warn.unused = FALSE, ...)
+    res <- hist.default(unclass(x), unclass(breaks), plot = FALSE, warn.unused = FALSE, right = right, ...)
     res$equidist <- TRUE # years are of uneven lengths
     res$intensities <- res$intensities*incr
     res$xname <- xlab

@@ -148,6 +148,17 @@ public class Closure extends AbstractSEXP implements Function {
     return formals;
   }
 
+  public void unsafeSetFormals(PairList formals) {
+    this.formals = formals;
+  }
+
+  public void unsafeSetBody(SEXP body) {
+    this.body = body;
+  }
+
+  public void unsafeSetEnclosingEnvironment(Environment v) {
+    this.enclosingEnvironment = v;
+  }
 
   @Override
   public String toString() {
@@ -194,5 +205,6 @@ public class Closure extends AbstractSEXP implements Function {
     }
     return true;
   }
+
 
 }

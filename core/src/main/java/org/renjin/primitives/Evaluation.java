@@ -220,7 +220,7 @@ public class Evaluation {
       /* build a call
          f(dots[[1]][[4]],dots[[2]][[4]],dots[[3]][[4]],d=7)
       */
-      
+
       PairList.Builder args = new PairList.Builder();
       for(int j = 0; j!=varyingArgs.length();++ j) {
         SEXP arg = varyingArgs.getElementAsSEXP(j);
@@ -293,7 +293,13 @@ public class Evaluation {
 
       if(environment instanceof ListVector) {
         for(NamedValue namedValue : ((ListVector) environment).namedValues()) {
-          if(!StringVector.isNA(namedValue.getName())) {
+
+          // Skip elements with blank ("") names, but include NA names
+          // as symbol named "NA"
+
+          if(StringVector.isNA(namedValue.getName())) {
+            rho.setVariable(context, Symbol.get("NA"), namedValue.getValue());
+          } else if(namedValue.getName().length() > 0) {
             rho.setVariable(context, Symbol.get(namedValue.getName()), namedValue.getValue());
           }
         }
@@ -493,8 +499,8 @@ public class Evaluation {
   }
 
   @Builtin
-  public static int nargs(@Current Context context) {
-    return context.getArguments().length();
+  public static int nargs(@Current Context context, @Current Environment environment) {
+    return Contexts.findCallingContext(context, environment).getArguments().length();
   }
   
   @Builtin(".Primitive")
@@ -507,13 +513,25 @@ public class Evaluation {
   }
 
   @Internal
-  public static void remove(StringVector names, Environment envir, boolean inherits) {
-    if(inherits) {
-      throw new EvalException("remove(inherits=TRUE) is not yet implemented");
+  public static void remove(@Current Context context, StringVector names, Environment envir, boolean inherits) {
+    for (String name : names) {
+      remove(context, Symbol.get(name), envir, inherits);
     }
-    for(String name : names) {
-      envir.remove(Symbol.get(name));
+  }
+
+  private static void remove(Context context, Symbol name, Environment envir, boolean inherits) {
+    Environment e = envir;
+    while(e != Environment.EMPTY){
+      if(e.hasVariable(name)) {
+        e.remove(name);
+        return;
+      }
+      if(!inherits) {
+        break;
+      }
+      e = e.getParent();
     }
+    Warning.emitWarning(context, false,"object '" + name.getPrintName() + "' not found");
   }
 
 }

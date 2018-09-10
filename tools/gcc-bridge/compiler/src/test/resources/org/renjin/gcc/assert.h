@@ -11,6 +11,7 @@ extern "C" {
 
 #ifdef _RENJIN
 void assertTrue(const char * desc, int x);
+void assertStringsEqual(const char * actual, const char * expected);
 #else
 void assertTrue(const char * desc, int x) {
     if(x==0) {

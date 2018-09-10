@@ -20,7 +20,6 @@ package org.renjin.gcc.codegen;
 
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.logging.LogManager;
 import org.renjin.gcc.analysis.FunctionOracle;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.InvocationStrategy;
@@ -35,6 +34,7 @@ import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.statement.*;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
+import org.renjin.gcc.logging.LogManager;
 import org.renjin.gcc.peephole.PeepholeOptimizer;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.gcc.runtime.Stdlib;
@@ -153,7 +153,7 @@ public class FunctionGenerator implements InvocationStrategy {
       }
 
 
-      mv = new MethodGenerator(methodNode);
+      mv = new MethodGenerator(className, methodNode);
       this.exprFactory = new ExprFactory(typeOracle, this.localSymbolTable, mv, varArgsPtr);
 
       mv.visitCode();
@@ -256,7 +256,7 @@ public class FunctionGenerator implements InvocationStrategy {
         function.getSafeMangledName(),
         getFunctionDescriptor(), null, null);
 
-    mv = new MethodGenerator(methodNode);
+    mv = new MethodGenerator(className, methodNode);
     this.exprFactory = new ExprFactory(typeOracle, this.localSymbolTable, mv);
 
     mv.visitCode();

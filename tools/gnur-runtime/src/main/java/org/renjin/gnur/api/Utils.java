@@ -20,6 +20,7 @@
 package org.renjin.gnur.api;
 
 import org.renjin.eval.EvalException;
+import org.renjin.gcc.annotations.Noop;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
@@ -27,6 +28,8 @@ import org.renjin.gcc.runtime.Ptr;
 import org.renjin.primitives.files.Files;
 
 import java.nio.charset.StandardCharsets;
+
+import static org.renjin.gnur.Sort.rcmp;
 
 @SuppressWarnings("unused")
 public final class Utils {
@@ -45,8 +48,33 @@ public final class Utils {
 
   // void R_csort (Rcomplex *, int)
 
-  public static void rsort_with_index(DoublePtr p0, IntPtr p1, int p2) {
-    throw new UnimplementedGnuApiMethod("rsort_with_index");
+  public static void rsort_with_index(DoublePtr x, IntPtr indx, int n) {
+    double v;
+    int i, j, h, iv;
+
+    h = 1;
+    boolean loop = true;
+    while(loop) {
+      if (h <= n / 9) {
+        loop = false;
+      }
+      h = 3 * h + 1;
+    }
+
+    for (; h > 0; h /= 3) {
+      for (i = h; i < n; i++) {
+        v = x.getDouble(i);
+        iv = indx.getInt(i);
+        j = i;
+        while (j >= h && rcmp(x.getDouble(j - h), v, true) > 0) {
+          x.set(j, x.getDouble(j - h));
+          indx.setInt(j, indx.getInt(j - h));
+          j -= h;
+        }
+        x.set(j, v);
+        indx.setInt(j, iv);
+      }
+    }
   }
 
   public static void Rf_revsort(DoublePtr p0, IntPtr p1, int p2) {
@@ -129,10 +157,12 @@ public final class Utils {
     }
   }
 
+  @Noop
   public static void R_CheckStack() {
     // Noop: JVM will throw a StackOverflowError for us if need be
   }
 
+  @Noop
   public static void R_CheckStack2(/*size_t*/ int p0) {
     // Noop: JVM will throw a StackOverflowError for us if need be
   }

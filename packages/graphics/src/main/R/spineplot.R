@@ -1,5 +1,7 @@
 #  File src/library/graphics/R/spineplot.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,10 +14,9 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
-## Spine plots/Spinograms
-## written by Achim Zeileis <Achim.Zeileis@R-project.org>
+## Spine plots/Spinograms contributed by Achim Zeileis
 
 spineplot <- function(x, ...) {
     UseMethod("spineplot")
@@ -27,13 +28,13 @@ function(formula, data = NULL,
          col = NULL, main = "", xlab = NULL, ylab = NULL,
          xaxlabels = NULL, yaxlabels = NULL,
          xlim = NULL, ylim = c(0, 1), axes = TRUE, ...,
-         subset = NULL)
+         subset = NULL, drop.unused.levels = FALSE)
 {
     ## extract x, y from formula
     m <- match.call(expand.dots = FALSE)
-    m <- m[c(1L, match(c("formula", "data", "subset"), names(m), 0L))]
-    require(stats, quietly=TRUE)
-    m[[1L]] <- as.name("model.frame")
+    m <- m[c(1L, match(c("formula", "data", "subset", "drop.unused.levels"), names(m), 0L))]
+    ## need stats:: for non-standard evaluation
+    m[[1L]] <- quote(stats::model.frame)
     mf <- eval.parent(m)
     if(NCOL(mf) != 2L)
         stop("'formula' should specify exactly two variables")
@@ -49,11 +50,10 @@ function(formula, data = NULL,
     if(is.null(ylab)) ylab <- names(mf)[1L]
 
     ## call default interface
-    # spineplot(x, y, breaks = breaks, tol.ylab = tol.ylab, off = off, ylevels = NULL,
-    #           col = col, main = main, xlab = xlab, ylab = ylab,
-    #           xaxlabels = xaxlabels, yaxlabels = yaxlabels,
-    #           xlim = xlim, ylim = ylim, axes = axes, ...)
-    warning("graphics are not yet implemented (spineplot.formula).")
+    spineplot(x, y, breaks = breaks, tol.ylab = tol.ylab, off = off, ylevels = NULL,
+              col = col, main = main, xlab = xlab, ylab = ylab,
+              xaxlabels = xaxlabels, yaxlabels = yaxlabels,
+              xlim = xlim, ylim = ylim, axes = axes, ...)
 }
 
 spineplot.default <-
@@ -95,14 +95,14 @@ function(x, y = NULL,
 
     ## graphical parameters
     if(is.null(col)) col <- gray.colors(ny)
-    col <- rep(col, length.out = ny)
+    col <- rep_len(col, ny)
     off <- if(!x.categorical) 0 else if(is.null(off)) 0.02 else off/100
-    yaxlabels <- if(is.null(yaxlabels)) ynam else rep(yaxlabels, length.out = ny)
+    yaxlabels <- if(is.null(yaxlabels)) ynam else rep_len(yaxlabels, ny)
 
     if(x.categorical) {
         ## compute rectangle positions on x axis
         xat <- c(0, cumsum(prop.table(margin.table(tab, 1)) + off))
-        xaxlabels <- if(is.null(xaxlabels)) xnam else rep(xaxlabels, length.out = nx)
+        xaxlabels <- if(is.null(xaxlabels)) xnam else rep_len(xaxlabels, nx)
     } else {
         ## handle non-numeric x
 	if(!(xnumeric <- is.numeric(x))) {
@@ -121,20 +121,21 @@ function(x, y = NULL,
         breaks <- do.call("hist", breaks)$breaks
         ## categorize x
         x1 <- cut(x, breaks = breaks, include.lowest = TRUE)
-        ## compute rectangle positions on x axis
-        xat <- c(0, cumsum(prop.table(table(x1))))
         ## construct table
         tab <- table(x1, y)
+        ## compute rectangle positions on x axis
+        xat <- c(0, cumsum(prop.table(margin.table(tab, 1)))) # c(0, cumsum(prop.table(table(x1))))
         nx <- NROW(tab)
         xaxlabels <- if(is.null(xaxlabels)) {
 	  if(xnumeric) breaks else c(xorig[1L], xorig[c(diff(as.numeric(x1)) > 0, TRUE)])
 	} else {
-	    rep(xaxlabels, length.out = (nx + 1L))
+	    rep_len(xaxlabels, nx + 1L)
 	}
     }
 
     ## compute rectangle positions on y axis
     yat <- rbind(0, apply(prop.table(tab, 1), 1L, cumsum))
+    yat[is.na(yat)] <- 1
 
     if(is.null(xlim)) xlim <- c(0, 1 + off * (nx-1L))
     else if(any(xlim < 0) || any(xlim > 1)) {
@@ -149,9 +150,9 @@ function(x, y = NULL,
     }
 
     ## setup plot
-    # dev.hold(); on.exit(dev.flush())
-    # plot(0, 0, xlim = xlim, ylim = ylim, type = "n", axes = FALSE,
-    #      xaxs = "i", yaxs = "i", main = main, xlab = xlab, ylab = ylab)
+    dev.hold(); on.exit(dev.flush())
+    plot(0, 0, xlim = xlim, ylim = ylim, type = "n", axes = FALSE,
+         xaxs = "i", yaxs = "i", main = main, xlab = xlab, ylab = ylab)
 
     ## compute coordinates
     ybottom <- as.vector(yat[-(ny + 1L),])
@@ -161,33 +162,32 @@ function(x, y = NULL,
     col <- rep(col, nx)
 
     ## plot rectangles
-    # rect(xleft, ybottom, xright, ytop, col = col, ...)
+    rect(xleft, ybottom, xright, ytop, col = col, ...)
 
     ## axes
-    # if(axes) {
-    #     ## side --
-    #     ## 1: either numeric or level names
-    #     if(x.categorical)
-    #         axis(1, at = (xat[1L:nx] + xat[2L:(nx+1L)] - off)/2,
-    #              labels = xaxlabels, tick = FALSE)
-    #     else
-    #         axis(1, at = xat, labels = xaxlabels)
+    if(axes) {
+        ## side --
+        ## 1: either numeric or level names
+        if(x.categorical)
+            axis(1, at = (xat[1L:nx] + xat[2L:(nx+1L)] - off)/2,
+                 labels = xaxlabels, tick = FALSE)
+        else
+            axis(1, at = xat, labels = xaxlabels)
 
-    #     ## 2: axis with level names of y
-    #     yat <- yat[,1L]
-    #     equidist <- any(diff(yat) < tol.ylab)
-    #     yat <- if(equidist) seq.int(1/(2*ny), 1-1/(2*ny), by = 1/ny)
-    #     else (yat[-1L] + yat[-length(yat)])/2
-    #     axis(2, at = yat, labels = yaxlabels, tick = FALSE)
+        ## 2: axis with level names of y
+        yat <- yat[,1L]
+        equidist <- any(diff(yat) < tol.ylab)
+        yat <- if(equidist) seq.int(1/(2*ny), 1-1/(2*ny), by = 1/ny)
+        else (yat[-1L] + yat[-length(yat)])/2
+        axis(2, at = yat, labels = yaxlabels, tick = FALSE)
 
-    #     ## 3: none
-    #     ## 4: simple numeric
-    #     axis(4)
-    # }
-    # if(!x.categorical) box()
+        ## 3: none
+        ## 4: simple numeric
+        axis(4)
+    }
+    if(!x.categorical) box()
 
     ## return table visualized
-    warning("graphics are not yet implemented (spineplot.default).")
     names(dimnames(tab)) <- c(xlab, ylab)
     invisible(tab)
 }

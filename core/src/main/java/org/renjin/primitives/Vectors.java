@@ -26,11 +26,10 @@ import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.vector.ConvertingDoubleVector;
 import org.renjin.primitives.vector.ConvertingStringVector;
 import org.renjin.repackaged.guava.base.Charsets;
-import java.util.function.Predicate;
-import org.renjin.repackaged.guava.base.Predicates;
 import org.renjin.sexp.*;
 
 import java.util.Arrays;
+import java.util.function.Predicate;
 
 /**
  * Functions which operate on Vectors
@@ -43,7 +42,9 @@ public class Vectors {
     if(length < 0) {
       throw new EvalException("%d : invalid value", length);
     }
-    
+    if(source.length() == length) {
+      return source;
+    }
     // Strange but true... 
     // if source is null, then length(source) <- x is null for all x >= 0
     if(source == Null.INSTANCE) {
@@ -95,10 +96,10 @@ public class Vectors {
   public static StringVector asCharacter(@Current Context context, Vector source) {
     if(source instanceof StringVector) {
       return (StringVector) source.setAttributes(AttributeMap.EMPTY);
-    } else if(source.length() < 100) {
-      return convertToStringVector(context, new StringVector.Builder(), source);
-    } else {
+    } else if (source.length() > 100 || source.isDeferred()) {
       return new ConvertingStringVector(source);
+    } else {
+      return convertToStringVector(context, new StringVector.Builder(), source);
     }
   }
 
@@ -463,12 +464,18 @@ public class Vectors {
   }
 
   public static Predicate<SEXP> modePredicate(String mode) {
-    if(mode.equals("any")) {
-      return (x -> true);
-    } else if(mode.equals("function")){
-      return (x -> x instanceof Function);
-    } else {
-      throw new EvalException(" mode '%s' as a predicate is not implemented.", mode);
+    switch (mode) {
+      case "any":
+        return (x -> true);
+      case "function":
+        return (x -> x instanceof Function);
+      case "numeric":
+        return (x -> x instanceof IntVector || x instanceof DoubleVector);
+      case "symbol":
+      case "name":
+        return (x -> x instanceof Symbol);
+      default:
+        return (x -> x.getTypeName().equals(mode));
     }
   }
 

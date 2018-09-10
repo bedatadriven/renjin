@@ -1,5 +1,7 @@
 #  File src/library/base/R/interaction.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2013 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ### This is almost like the Primitive ":" for factors
 ### but with drop=TRUE, used in reshape
@@ -20,6 +22,8 @@ interaction <- function(..., drop = FALSE, sep = ".", lex.order = FALSE)
 {
     args <- list(...)
     narg <- length(args)
+    if (narg < 1L)
+	stop("No factors specified")
     if (narg == 1L && is.list(args[[1L]])) {
 	args <- args[[1L]]
 	narg <- length(args)
@@ -35,7 +39,7 @@ interaction <- function(..., drop = FALSE, sep = ".", lex.order = FALSE)
             if(lex.order) {
                 ll <- length(lvs)
                 ans <- ans + ll * if1
-                lvs <- paste(rep(l, each= ll), rep(lvs, length(l)), sep=sep)
+                lvs <- paste(rep(l, each = ll), rep(lvs, length(l)), sep=sep)
             } else {
                 ans <- ans * length(l) + if1
                 lvs <- paste(rep(l, length(lvs)),

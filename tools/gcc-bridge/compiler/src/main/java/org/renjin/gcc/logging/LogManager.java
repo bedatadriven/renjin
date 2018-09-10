@@ -18,14 +18,18 @@
  */
 package org.renjin.gcc.logging;
 
+import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.symbols.SymbolTable;
+import org.renjin.gcc.symbols.UnitSymbolTable;
 import org.renjin.repackaged.asm.tree.MethodNode;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.io.Files;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,7 +48,10 @@ public class LogManager {
 
   private final Map<String, Logger> openLoggers = new HashMap<>();
 
-  public LogManager() {
+  private final PrintStream warningStream;
+
+  public LogManager(PrintStream stream) {
+    warningStream = stream;
   }
 
   public File getLoggingDirectory() {
@@ -90,7 +97,7 @@ public class LogManager {
       return Logger.NULL;
     }
 
-    return getLogger(logFile(gimpleFunction, logName + ".log"));
+    return getLogger(logFile(gimpleFunction, logName + "log"));
   }
 
 
@@ -105,12 +112,12 @@ public class LogManager {
       return;
     }
 
-    File logFile = logFile(function, "." + logType);
+    File logFile = logFile(function, logType);
 
     try {
       Files.write(object.toString(), logFile, Charsets.UTF_8);
     } catch (IOException e) {
-      System.err.println("Exception dumping to " + logFile.getAbsolutePath());
+      warning("Exception dumping to " + logFile.getAbsolutePath());
     }
   }
 
@@ -127,7 +134,20 @@ public class LogManager {
       log(function, "html",
           new HtmlFunctionRenderer(symbolTable, function, methodNode).render());
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new InternalCompilerException(e);
+    }
+  }
+
+
+  public void logRecords(GimpleCompilationUnit unit, UnitSymbolTable symbolTable) {
+    if(!isEnabled()) {
+      return;
+    }
+    File logFile = logFile(unit.getSourceName(), "records", "html");
+    try {
+      Files.write(new HtmlRecordRenderer(symbolTable, unit).render(), logFile, Charsets.UTF_8);
+    } catch (Exception e) {
+      throw new InternalCompilerException(e);
     }
   }
 
@@ -157,5 +177,13 @@ public class LogManager {
       logger.close();
     }
     openLoggers.clear();
+  }
+
+  public void warning(String message) {
+    warningStream.println("WARNING: " + message);
+  }
+
+  public void note(String message) {
+    warningStream.print("NOTE: " + message);
   }
 }

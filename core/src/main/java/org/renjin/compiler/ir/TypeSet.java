@@ -170,6 +170,9 @@ public class TypeSet {
     } else if(type.equals(AtomicVector.class)) {
       return ANY_ATOMIC_VECTOR;
 
+    } else if(type.equals(Symbol.class)) {
+      return SYMBOL;
+
     } else if (type.equals(SEXP.class)) {
       return ANY_TYPE;
 

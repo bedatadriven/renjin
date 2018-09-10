@@ -18,43 +18,32 @@
  */
 package org.renjin.compiler.builtins;
 
-import org.renjin.compiler.ir.tac.RuntimeState;
-import org.renjin.invoke.model.JvmMethod;
-import org.renjin.primitives.Primitives;
-import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.ir.tac.IRArgument;
 
 import java.util.List;
 
-/**
- * Specializes the "[[" operator.
- */
-public class SingleSubsetSpecializer implements BuiltinSpecializer {
+public class SingleSubsetByIndexSpecialization implements Specialization {
 
 
-  private final AnnotationBasedSpecializer fallback;
-
-  public SingleSubsetSpecializer() {
-    fallback = new AnnotationBasedSpecializer(Primitives.getBuiltinEntry("[["));
-  }
-
-  @Override
-  public String getName() {
-    return "[[";
-  }
-
-  @Override
-  public String getGroup() {
+  public static SingleSubsetByIndexSpecialization trySpecialize(List<ArgumentBounds> arguments) {
     return null;
   }
 
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
+  public ValueBounds getResultBounds() {
+    throw new UnsupportedOperationException("TODO");
+  }
 
-    SingleSubsetByIndexSpecialization byIndex = SingleSubsetByIndexSpecialization.trySpecialize(arguments);
-    if(byIndex != null) {
-      return byIndex;
-    }
+  @Override
+  public boolean isPure() {
+    throw new UnsupportedOperationException("TODO");
+  }
 
-    return fallback.trySpecialize(runtimeState, arguments);
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+    throw new UnsupportedOperationException("TODO");
   }
 }

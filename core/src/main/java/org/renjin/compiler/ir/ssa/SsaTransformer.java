@@ -264,7 +264,7 @@ public class SsaTransformer {
 
   private int Top(Variable V) {
     Stack<Integer> stack = S.get(V);
-    if(stack.isEmpty()) {
+    if(stack == null || stack.isEmpty()) {
       throw new IllegalStateException("Variable " + V + " has not been assigned to before its use");
     }
     return stack.peek();

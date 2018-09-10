@@ -30,6 +30,7 @@ import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.Symbol;
@@ -57,7 +58,7 @@ public class ClosureCall implements Expression {
     this.runtimeState = runtimeState;
     this.call = call;
     this.closure = closure;
-    this.arguments = arguments;
+    this.arguments = Lists.newArrayList(arguments);
     this.argumentNames = IRArgument.names(arguments);
     this.debugName = closureDebugName;
     this.returnBounds = ValueBounds.UNBOUNDED;
@@ -109,7 +110,8 @@ public class ClosureCall implements Expression {
 
   @Override
   public void setChild(int childIndex, Expression child) {
-    arguments.get(childIndex).setExpression(child);
+    arguments.set(childIndex,
+        arguments.get(childIndex).withExpression(child));
   }
 
   @Override

@@ -28,6 +28,7 @@ import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.FunctionCall;
 
 import java.util.ArrayList;
@@ -52,14 +53,14 @@ public class BuiltinCall implements CallExpression {
     this.runtimeState = runtimeState;
     this.primitiveName = primitiveName;
     this.call = call;
-    this.arguments = arguments;
+    this.arguments = Lists.newArrayList(arguments);
     this.specializer = BuiltinSpecializers.INSTANCE.get(primitiveName);
   }
 
   public BuiltinCall(RuntimeState runtimeState, String primitiveName, Specializer specializer, List<IRArgument> arguments) {
     this.runtimeState = runtimeState;
     this.primitiveName = primitiveName;
-    this.arguments = arguments;
+    this.arguments = Lists.newArrayList(arguments);
     this.specializer = specializer;
   }
 
@@ -75,7 +76,8 @@ public class BuiltinCall implements CallExpression {
 
   @Override
   public void setChild(int childIndex, Expression child) {
-    arguments.get(childIndex).setExpression(child);
+    arguments.set(childIndex,
+        arguments.get(childIndex).withExpression(child));
   }
   
   @Override

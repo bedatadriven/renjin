@@ -65,8 +65,12 @@ public class IRArgument {
     return expression;
   }
 
-  public void setExpression(Expression expression) {
-    this.expression = expression;
+  public IRArgument withExpression(Expression expression) {
+    if(this.expression == expression) {
+      return this;
+    } else {
+      return new IRArgument(name, expression);
+    }
   }
 
   public static String[] names(List<IRArgument> arguments) {

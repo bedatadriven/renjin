@@ -14,21 +14,6 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-stop <- function(..., call. = TRUE, domain = NULL)
-{
-    args <- list(...)
-    if (length(args) == 1L && inherits(args[[1L]], "condition")) {
-        cond <- args[[1L]]
-        if(nargs() > 1L)
-            warning("additional arguments ignored in stop()")
-        message <- conditionMessage(cond)
-        call <- conditionCall(cond)
-        .Internal(.signalCondition(cond, message, call))
-        .Internal(.dfltStop(message, call))
-    } else
-        .Internal(stop(as.logical(call.), .makeMessage(..., domain = domain)))
-}
-
 stopifnot <- function(...)
 {
     n <- length(ll <- list(...))

@@ -48,19 +48,13 @@ public class UseMethodCall implements Expression {
   private final String generic;
   
   private final List<IRArgument> arguments;
-  
-  /**
-   * The object expression whose class is used to dispatch the call.
-   */
-  private Expression objectExpr;
-  
+
   private Specialization specialization = UnspecializedCall.INSTANCE;
   
   public UseMethodCall(RuntimeState runtimeState, FunctionCall call, String generic, List<IRArgument> arguments) {
     this.runtimeState = runtimeState;
     this.call = call;
     this.generic = generic;
-    this.objectExpr = arguments.get(0).getExpression();
     this.arguments = arguments;
   }
 
@@ -72,11 +66,17 @@ public class UseMethodCall implements Expression {
   @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
 
-    ValueBounds objectBounds = typeMap.get(objectExpr);
+    ValueBounds objectBounds = typeMap.get(getObjectExpr());
     
     // Maybe see if we can avoid re-specializing entirely?
-    this.specialization = S3Specialization.trySpecialize(generic, runtimeState, objectBounds, ArgumentBounds.create(arguments, typeMap));
+    this.specialization = S3Specialization.trySpecialize(generic, runtimeState, objectBounds,
+        ArgumentBounds.create(arguments, typeMap));
+
     return specialization.getResultBounds();
+  }
+
+  private Expression getObjectExpr() {
+    return arguments.get(0).getExpression();
   }
 
   @Override
@@ -101,29 +101,22 @@ public class UseMethodCall implements Expression {
 
   @Override
   public void setChild(int childIndex, Expression child) {
-    if(childIndex == 0) {
-      objectExpr = child;
-    } else {
-      arguments.get(childIndex - 1).setExpression(child);
-    }  
+    arguments.set(childIndex,
+        arguments.get(childIndex).withExpression(child));
   }
 
   @Override
   public int getChildCount() {
-    return 1 + arguments.size();
+    return arguments.size();
   }
 
   @Override
   public Expression childAt(int index) {
-    if(index == 0) {
-      return objectExpr;
-    } else {
-      return arguments.get(index - 1).getExpression();
-    }
+    return arguments.get(index).getExpression();
   }
 
   @Override
   public String toString() {
-    return "UseMethod(" + generic + ", " + objectExpr + ", " + Joiner.on(", ").join(arguments) + ")";
+    return "UseMethod(" + generic + ", " + Joiner.on(", ").join(arguments) + ")";
   }
 }

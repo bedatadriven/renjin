@@ -47,7 +47,7 @@ public class LoopBodyContext implements TranslationContext {
     }
     List<IRArgument> arguments = new ArrayList<>();
     for (int i = 0; i < ellipses.size(); i++) {
-      arguments.add(new IRArgument(ellipses.get(i).getName(), new EllipsesVar(i)));
+      arguments.add(new IRArgument(ellipses.get(i).getName(), new EllipsesVar(i + 1)));
     }
     return arguments;
   }

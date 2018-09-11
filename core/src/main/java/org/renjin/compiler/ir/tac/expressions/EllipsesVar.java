@@ -24,6 +24,10 @@ public class EllipsesVar extends Variable {
 
   public int index;
 
+  /**
+   *
+   * @param index one-based index of the variable
+   */
   public EllipsesVar(int index) {
     this.index = index;
   }
@@ -35,7 +39,7 @@ public class EllipsesVar extends Variable {
 
   @Override
   public String toString() {
-    return ".." + (index + 1);
+    return ".." + index;
   }
 
   @Override

@@ -747,7 +747,7 @@ public class S3 {
 
     private String[] groupsMethodVector() {
       GenericMethod previousMethod = resolver.previousContext.getState(GenericMethod.class);
-      String methodVector[] = previousMethod.methodVector.toArray();
+      String methodVector[] = previousMethod.methodVector.toStringArray();
 
       String methodName = this.methodVector.getElementAsString(0);
 

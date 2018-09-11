@@ -142,7 +142,7 @@ public class IRBodyBuilder {
 
     // Define temporary variables to hold extra arguments (...)
     List<IRArgument> ellipses = new ArrayList<>();
-    int extraArgumentIndex = 0;
+    int extraArgumentIndex = 1;
     for (int i = 0; i < argumentVars.length; i++) {
       if(argumentVars[i] == null) {
         EllipsesVar extraArg = new EllipsesVar(extraArgumentIndex++);
@@ -177,6 +177,7 @@ public class IRBodyBuilder {
           statements.add(new Assignment(new EnvironmentVariable(formal.getTag()), new Constant(formal.getValue())));
         }
       }
+      formalIndex++;
     }
 
     TranslationContext context = new InlinedContext(closure.getFormals(), matching, ellipses);
@@ -210,8 +211,8 @@ public class IRBodyBuilder {
     if(bodyContext.isEllipsesInitializationNeeded()) {
       List<ExtraArgument> extraArguments = runtimeContext.findEllipses();
       for (int i = 0; i < extraArguments.size(); i++) {
-        initializations.add(new Assignment(new EllipsesVar(i),
-            new ReadEllipses(i, extraArguments.get(i).getBounds())));
+        initializations.add(new Assignment(new EllipsesVar(i + 1),
+            new ReadEllipses(i + 1, extraArguments.get(i).getBounds())));
       }
     }
   }
@@ -232,10 +233,13 @@ public class IRBodyBuilder {
     if(exp instanceof ExpressionVector) {
       return translateExpressionList(context, (ExpressionVector)exp);
     } else if(exp instanceof Symbol) {
-      if(exp == Symbol.MISSING_ARG) {
+      Symbol symbol = (Symbol) exp;
+      if(symbol == Symbol.MISSING_ARG) {
         return new Constant(exp);
+      } else if(symbol.isVarArgReference()) {
+        return new EllipsesVar(symbol.getVarArgReferenceIndex());
       } else {
-        return getEnvironmentVariable((Symbol) exp);
+        return getEnvironmentVariable(symbol);
       }
     } else if(exp instanceof FunctionCall) {
       return translateCallExpression(context, (FunctionCall) exp);

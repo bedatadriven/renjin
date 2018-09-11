@@ -86,6 +86,9 @@ public class TypeSet {
     if (type.equals(int.class)) {
       return INT;
 
+    } else if(type.equals(void.class)) {
+      return NULL;
+
     } else if(type.equals(double.class)) {
       return DOUBLE;
 
@@ -234,7 +237,7 @@ public class TypeSet {
     }
 
     StringBuilder s = new StringBuilder();
-    appendType(s, "null", mask, NULL);
+    appendType(s, "NULL", mask, NULL);
     appendType(s, "logical", mask, LOGICAL);
     appendType(s, "raw", mask, RAW);
     appendType(s, "int", mask, INT);

@@ -24,6 +24,7 @@ import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.eval.Context;
 import org.renjin.packaging.SerializedPromise;
+import org.renjin.primitives.Evaluation;
 import org.renjin.primitives.S3;
 import org.renjin.primitives.sequence.DoubleSequence;
 import org.renjin.primitives.sequence.IntSequence;
@@ -66,6 +67,17 @@ public class RuntimeState {
   public RuntimeState(Context context, Environment rho) {
     this.context = context;
     this.rho = rho;
+  }
+
+  public int getNumArgs() {
+    int numArgs = Evaluation.nargs(context, rho);
+    assumptions.add(new RuntimeAssumption() {
+      @Override
+      public boolean test(Context context, Environment rho) {
+        return numArgs == Evaluation.nargs(context, rho);
+      }
+    });
+    return numArgs;
   }
 
   /**
@@ -243,7 +255,7 @@ public class RuntimeState {
     // These types of S-Expressions are unlikely to change across executions, and
     // have a huge impact on specialization.
 
-    if (length == 0 || TypeSet.isDefinitelyNotAtomicVector(type)) {
+    if (length == 0 || type == TypeSet.SYMBOL || type == TypeSet.NULL || type == TypeSet.FUNCTION) {
       return ValueBounds.constantValue(sexp);
     }
 
@@ -293,7 +305,6 @@ public class RuntimeState {
    * triggering any side affects.
    *
    * @param functionName the name of the function to lookup
-   * @return
    */
   public Function findFunction(Symbol functionName) {
 

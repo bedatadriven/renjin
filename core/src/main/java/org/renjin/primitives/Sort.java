@@ -47,7 +47,7 @@ public class Sort {
       throw new EvalException("sorting of vectors with names not yet implemented!");
     }
 
-    String sorted[] = x.toArray();
+    String sorted[] = x.toStringArray();
 
     if(decreasing) {
       Arrays.sort(sorted, Collections.reverseOrder());

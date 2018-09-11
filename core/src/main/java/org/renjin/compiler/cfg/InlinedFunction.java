@@ -63,7 +63,12 @@ public class InlinedFunction {
     this.functionName = functionName;
     this.closure = closure;
 
-    runtimeState = new RuntimeState(parentState, closure.getEnclosingEnvironment());
+    runtimeState = new RuntimeState(parentState, closure.getEnclosingEnvironment()) {
+      @Override
+      public int getNumArgs() {
+        return argumentNames.length;
+      }
+    };
     
     IRBodyBuilder builder = new IRBodyBuilder(runtimeState);
     IRBody body = builder.buildFunctionBody(closure, argumentNames);

@@ -62,7 +62,7 @@ public class ReadEllipses implements Expression {
       @Override
       public void loadSexp(EmitContext emitContext, InstructionAdapter mv) {
         mv.visitVarInsn(Opcodes.ALOAD, emitContext.getEnvironmentVarIndex());
-        mv.visitLdcInsn(index + 1);
+        mv.visitLdcInsn(index );
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(Environment.class), "findVarArg",
             Type.getMethodDescriptor(Type.getType(SEXP.class), Type.INT_TYPE), false);
         mv.visitVarInsn(Opcodes.ALOAD, emitContext.getContextVarIndex());
@@ -89,6 +89,6 @@ public class ReadEllipses implements Expression {
 
   @Override
   public String toString() {
-    return "readEllipses(" + (index+1) + " = " + valueBounds + ")";
+    return "readEllipses(" + index + " = " + valueBounds + ")";
   }
 }

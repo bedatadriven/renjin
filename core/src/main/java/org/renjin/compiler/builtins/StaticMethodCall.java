@@ -20,6 +20,7 @@ package org.renjin.compiler.builtins;
 
 import org.apache.commons.math.complex.Complex;
 import org.renjin.compiler.codegen.BytecodeTypes;
+import org.renjin.compiler.codegen.ConstantBytecode;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.ScalarExpr;
@@ -36,6 +37,7 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.Logical;
+import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
 
 import java.util.*;
@@ -71,6 +73,11 @@ public class StaticMethodCall implements Specialization {
 
     ValueBounds.Builder builder = new ValueBounds.Builder();
     builder.setTypeSet(TypeSet.of(returnType));
+
+    if(returnType.equals(void.class)) {
+      return builder.build();
+    }
+
     if(returnType.isPrimitive() ||
         returnType.equals(String.class) || returnType.equals(Logical.class) || returnType.equals(Complex.class)) {
       builder.addFlags(LENGTH_ONE);
@@ -106,8 +113,15 @@ public class StaticMethodCall implements Specialization {
   @Override
   public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
 
-
-    if(SEXP.class.isAssignableFrom(method.getReturnType())) {
+    if(method.getReturnType().equals(void.class)) {
+      return new SexpExpr() {
+        @Override
+        public void loadSexp(EmitContext context, InstructionAdapter mv) {
+          invoke(context, mv, arguments);
+          ConstantBytecode.pushConstant(mv, Null.INSTANCE);
+        }
+      };
+    } else if(SEXP.class.isAssignableFrom(method.getReturnType())) {
       return new SexpExpr() {
         @Override
         public void loadSexp(EmitContext context, InstructionAdapter mv) {
@@ -188,7 +202,7 @@ public class StaticMethodCall implements Specialization {
         if (flag == null) {
           mv.visitLdcInsn(formal.getDefaultValue() ? 1 : 0);
         } else {
-          throw new UnsupportedOperationException("TODO");
+          flag.getExpression().getCompiledExpr(emitContext).loadScalar(emitContext, mv, VectorType.INT);
         }
       } else {
 

@@ -52,7 +52,7 @@ public class InlinedContext implements TranslationContext {
   public boolean isMissing(Symbol name) {
     for (int formalIndex = 0; formalIndex < matched.getFormalCount(); formalIndex++) {
       if(matched.getFormalName(formalIndex) == name) {
-        return matched.isFormalMatched(formalIndex);
+        return !matched.isFormalMatched(formalIndex);
       }
     }
     throw new InvalidSyntaxException("'missing' can only used for arguments");

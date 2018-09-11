@@ -86,7 +86,7 @@ public class Files {
       FileObject file = context.resolveFile(pathExpand(name));
       result.add(checkAccess(file, mode));
     }
-    result.setAttribute(Symbols.NAMES, new StringArrayVector(names.toArray()));
+    result.setAttribute(Symbols.NAMES, new StringArrayVector(names.toStringArray()));
     return result.build();
   }
 

@@ -111,6 +111,15 @@ public abstract class AbstractAtomicVector extends AbstractVector implements Ato
   }
 
   @Override
+  public String[] toStringArray() {
+    String array[] = new String[length()];
+    for (int i = 0; i < length(); i++) {
+      array[i] = getElementAsString(i);
+    }
+    return array;
+  }
+
+  @Override
   public int[] toIntArray() {
     if(Profiler.ENABLED) {
       Profiler.memoryAllocated(Integer.SIZE, length());

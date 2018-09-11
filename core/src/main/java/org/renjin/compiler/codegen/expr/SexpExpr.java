@@ -55,6 +55,9 @@ public abstract class SexpExpr implements CompiledSexp {
       case DOUBLE:
         mv.invokeinterface(Type.getInternalName(AtomicVector.class), "toDoubleArray", "()[D");
         break;
+      case STRING:
+        mv.invokeinterface(Type.getInternalName(AtomicVector.class), "toStringArray", "()[Ljava/lang/String;");
+        break;
       default:
         throw new UnsupportedOperationException("TODO: " + vectorType);
     }

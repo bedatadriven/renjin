@@ -179,6 +179,14 @@ public class SexpCompilerTest extends EvalTestCase {
     assertThat(compileAndEvaluate("f(1,2,3)"), elementsIdenticalTo(c_i(3)));
   }
 
+  @Test
+  public void dataFrameSingleSubset() throws Exception {
+    eval("df <- data.frame(aa=1:3, b=4:6)");
+
+    assertThat(compileAndEvaluate("df[['aa']]"), elementsIdenticalTo(c_i(1, 2, 3)));
+
+  }
+
   private SEXP compileAndEvaluate(String source) throws Exception {
     return compile(source).evaluate(topLevelContext, topLevelContext.getGlobalEnvironment());
   }

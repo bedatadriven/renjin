@@ -106,7 +106,7 @@ public class Tables {
   }
 
   private static Vector buildFactor(StringVector vector, Set<String> naStrings) {
-    String[] strings = vector.toArray();
+    String[] strings = vector.toStringArray();
     String[] unique = Arrays.stream(strings).distinct().toArray(String[]::new);
     Arrays.sort(unique);
 

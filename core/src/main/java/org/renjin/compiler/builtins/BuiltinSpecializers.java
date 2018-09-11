@@ -56,6 +56,7 @@ public class BuiltinSpecializers {
     specializers.put("[<-", new GenericBuiltinGuard(new ReplaceSpecializer()));
     specializers.put("[", new GenericBuiltinGuard(new SubsetSpecializer()));
     specializers.put("[[", new GenericBuiltinGuard(new SingleSubsetSpecializer()));
+    specializers.put(".subset2", new SingleSubsetSpecializer());
     specializers.put("c", new GenericBuiltinGuard(new CombineSpecializer()));
     specializers.put("is.array", new GenericBuiltinGuard(new IsArraySpecializer()));
     specializers.put("attributes", new GetAttributesSpecializer());
@@ -65,7 +66,7 @@ public class BuiltinSpecializers {
     specializers.put("sum", new GenericBuiltinGuard(new SumSpecializer()));
     specializers.put("invisible", new InvisibleSpecializer());
     specializers.put("as.logical", new GenericBuiltinGuard(new AsVectorSpecializer("as.logical", TypeSet.LOGICAL)));
-
+    specializers.put("nargs", new NargsSpecializer());
 
     cache = CacheBuilder.newBuilder().build(new CacheLoader<String, Specializer>() {
       @Override

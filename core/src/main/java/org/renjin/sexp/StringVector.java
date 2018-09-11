@@ -244,14 +244,6 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
     }
   }
 
-  public String[] toArray() {
-    String[] array = new String[length()];
-    for(int i=0;i!=array.length;++i) {
-      array[i] = getElementAsString(i);
-    }
-    return array;
-  }
-
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);

@@ -88,14 +88,12 @@ public class StringArrayVector extends StringVector implements Iterable<String> 
     return true;
   }
 
-
-
   @Override
   protected StringArrayVector cloneWithNewAttributes(AttributeMap attributes) {
     return new StringArrayVector(values, attributes);
   }
 
-  public String[] toArray() {
+  public String[] toStringArray() {
     return values.clone();
   }
 

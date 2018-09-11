@@ -62,7 +62,6 @@ public class SsaVariable extends Variable {
     return emitContext.getVariable(this).getCompiledExpr();
   }
 
-
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();

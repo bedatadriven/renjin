@@ -144,7 +144,9 @@ public class SexpCompiler {
 
   private CompiledLoopBody compileForLoopBody() throws IllegalAccessException, InstantiationException {
 
-    System.out.println(cfg);
+    if(DEBUG) {
+      System.out.println(cfg);
+    }
 
     compileForBody();
 

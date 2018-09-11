@@ -27,3 +27,15 @@ f = function(x,y) {
 assertThat(f(), identicalTo("> > > 0"))
 assertThat(f(1), identicalTo("> > > 1"))
 assertThat(f(1,1), identicalTo("> > > 2"))
+
+
+g <- function(a, b = 3, ...) {nargs()}
+
+assertThat(g(), identicalTo(0L))
+assertThat(g(foo), identicalTo(1L))
+assertThat(g(c1, a2, rr3), identicalTo(3L))
+assertThat(g(1,,,3), identicalTo(4L))
+
+assertThat(nargs(), identicalTo(NA_integer_))
+
+

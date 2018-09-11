@@ -168,7 +168,7 @@ public class Generic {
     if(genericFunction != null) {
       SEXP signature = genericFunction.getAttribute(Symbol.get("signature"));
       if(signature instanceof StringArrayVector) {
-        return new HashSet<>(Arrays.asList(((StringArrayVector) signature).toArray()));
+        return new HashSet<>(Arrays.asList(((StringArrayVector) signature).toStringArray()));
       }
     }
     return new HashSet<>();

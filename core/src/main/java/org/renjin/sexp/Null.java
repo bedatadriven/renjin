@@ -340,6 +340,11 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
   }
 
   @Override
+  public String[] toStringArray() {
+    return new String[0];
+  }
+
+  @Override
   public int[] toIntArray() {
     return new int[0];
   }

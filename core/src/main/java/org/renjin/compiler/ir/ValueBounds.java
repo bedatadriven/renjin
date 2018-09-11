@@ -605,6 +605,9 @@ public class ValueBounds {
     }
 
     public ValueBounds build() {
+      if(bounds.typeSet == TypeSet.NULL) {
+        assert !bounds.isFlagSet(LENGTH_ONE) && !bounds.isFlagSet(LENGTH_NON_ZERO);
+      }
       return bounds;
     }
   }

@@ -101,7 +101,7 @@ public class PackageDescription {
     private String version;
 
     public Dependency(String spec) {
-      String[] parts = spec.split(":");
+      String[] parts = spec.trim().split(":");
       if(parts.length != 2 && parts.length != 3) {
         throw new IllegalArgumentException(
             "Expected dependency in the format {groupId}:{packageName} or {groupId}:{packageName}:{version}");

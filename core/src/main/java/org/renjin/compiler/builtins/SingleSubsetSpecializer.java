@@ -18,9 +18,10 @@
  */
 package org.renjin.compiler.builtins;
 
-import org.renjin.compiler.ir.TypeSet;
-import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
+import org.renjin.invoke.model.JvmMethod;
+import org.renjin.primitives.Primitives;
+import org.renjin.repackaged.guava.collect.Iterables;
 
 import java.util.List;
 
@@ -28,6 +29,13 @@ import java.util.List;
  * Specializes the "[[" operator.
  */
 public class SingleSubsetSpecializer implements BuiltinSpecializer {
+
+
+  private final AnnotationBasedSpecializer fallback;
+
+  public SingleSubsetSpecializer() {
+    fallback = new AnnotationBasedSpecializer(Primitives.getBuiltinEntry("[["));
+  }
 
   @Override
   public String getName() {
@@ -42,29 +50,11 @@ public class SingleSubsetSpecializer implements BuiltinSpecializer {
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
 
-
-    // Case of x[[i]]:
-    if(arguments.size() == 2) {
-
-      ValueBounds source = arguments.get(0).getBounds();
-      ValueBounds index = arguments.get(1).getBounds();
-
-      if(TypeSet.isDefinitelyNumeric(index) &&
-          index.isLengthConstant() &&
-          index.getLength() == 1) {
-
-        if(source.getTypeSet() == TypeSet.LIST) {
-          return new GetListElement(source, index);
-
-        } else if(TypeSet.isDefinitelyAtomic(source.getTypeSet())) {
-          return new GetAtomicElement(source, index);
-        }
-
-      }
-
-      throw new UnsupportedOperationException("TODO");
+    SingleSubsetByIndexSpecialization byIndex = SingleSubsetByIndexSpecialization.trySpecialize(arguments);
+    if(byIndex != null) {
+      return byIndex;
     }
 
-    return UnspecializedCall.INSTANCE;
+    return fallback.trySpecialize(runtimeState, arguments);
   }
 }

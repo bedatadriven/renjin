@@ -23,15 +23,15 @@ import org.renjin.compiler.builtins.S3Specialization;
 import org.renjin.compiler.builtins.Specialization;
 import org.renjin.compiler.builtins.UnspecializedCall;
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
-import org.renjin.repackaged.asm.Type;
+import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.sexp.FunctionCall;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -48,22 +48,14 @@ public class UseMethodCall implements Expression {
   private final String generic;
   
   private final List<IRArgument> arguments;
-  
-  /**
-   * The object expression whose class is used to dispatch the call.
-   */
-  private Expression objectExpr;
-  
+
   private Specialization specialization = UnspecializedCall.INSTANCE;
   
-  public UseMethodCall(RuntimeState runtimeState, FunctionCall call, String generic, Expression objectExpr) {
+  public UseMethodCall(RuntimeState runtimeState, FunctionCall call, String generic, List<IRArgument> arguments) {
     this.runtimeState = runtimeState;
     this.call = call;
     this.generic = generic;
-    this.objectExpr = objectExpr;
-    
-    // Cheating for now because we only support unary functions...
-    arguments = Collections.singletonList(new IRArgument(objectExpr));
+    this.arguments = arguments;
   }
 
   @Override
@@ -72,24 +64,19 @@ public class UseMethodCall implements Expression {
   }
 
   @Override
-  public int load(EmitContext emitContext, InstructionAdapter mv) {
-    specialization.load(emitContext, mv, arguments);
-    return 0;
-  }
-
-  @Override
-  public Type getType() {
-    return specialization.getType();
-  }
-
-  @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
 
-    ValueBounds objectBounds = typeMap.get(objectExpr);
+    ValueBounds objectBounds = typeMap.get(getObjectExpr());
     
     // Maybe see if we can avoid re-specializing entirely?
-    this.specialization = S3Specialization.trySpecialize(generic, runtimeState, objectBounds, ArgumentBounds.create(arguments, typeMap));
+    this.specialization = S3Specialization.trySpecialize(generic, runtimeState, objectBounds,
+        ArgumentBounds.create(arguments, typeMap));
+
     return specialization.getResultBounds();
+  }
+
+  private Expression getObjectExpr() {
+    return arguments.get(0).getExpression();
   }
 
   @Override
@@ -98,30 +85,38 @@ public class UseMethodCall implements Expression {
   }
 
   @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    return specialization.getCompiledExpr(emitContext, arguments);
+  }
+
+  @Override
+  public void emitAssignment(EmitContext emitContext, InstructionAdapter mv, Assignment statement) {
+    specialization.emitAssignment(emitContext, mv, statement, arguments);
+  }
+
+  @Override
+  public void emitExecute(EmitContext emitContext, InstructionAdapter mv) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public void setChild(int childIndex, Expression child) {
-    if(childIndex == 0) {
-      objectExpr = child;
-    } else {
-      arguments.get(childIndex - 1).setExpression(child);
-    }  
+    arguments.set(childIndex,
+        arguments.get(childIndex).withExpression(child));
   }
 
   @Override
   public int getChildCount() {
-    return 1 + arguments.size();
+    return arguments.size();
   }
 
   @Override
   public Expression childAt(int index) {
-    if(index == 0) {
-      return objectExpr;
-    } else {
-      return arguments.get(index - 1).getExpression();
-    }
+    return arguments.get(index).getExpression();
   }
 
   @Override
   public String toString() {
-    return "UseMethod(" + generic + ", " + objectExpr + ", " + Joiner.on(", ").join(arguments) + ")";
+    return "UseMethod(" + generic + ", " + Joiner.on(", ").join(arguments) + ")";
   }
 }

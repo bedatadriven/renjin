@@ -20,13 +20,13 @@ package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.cfg.InlinedFunction;
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.eval.MatchedArgumentPositions;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.Closure;
 
 import java.util.List;
@@ -60,20 +60,17 @@ public class S4Specialization implements Specialization {
   }
   
   private void updateTypeBounds(Closure function, List<ArgumentBounds> arguments) {
-    
-    
+
     // Otherwise, try to resolve the function
     if (inlinedMethod == null || inlinedMethod.getClosure() != function) {
-      matchedArguments = MatchedArgumentPositions.matchArgumentBounds(closure, arguments);
-      inlinedMethod = new InlinedFunction(runtimeState, closure, matchedArguments.getSuppliedFormals());
+      inlinedMethod = new InlinedFunction("g", runtimeState, closure, ArgumentBounds.names(arguments));
     }
-    
+
 //    if (matchedArguments.hasExtraArguments()) {
 //      throw new FailedToSpecializeException("Extra arguments not supported");
 //    }
-    
+
     returnBounds = inlinedMethod.updateBounds(arguments);
-    type = returnBounds.storageType();
   }
   
   public static Specialization trySpecialize(String generic, RuntimeState runtimeState, ValueBounds objectExpr, List<ArgumentBounds> arguments) {
@@ -81,30 +78,10 @@ public class S4Specialization implements Specialization {
     // TODO
     return UnspecializedCall.INSTANCE;
   }
-  
-  @Override
-  public Type getType() {
-    return type;
-  }
-  
+
   @Override
   public ValueBounds getResultBounds() {
     return returnBounds;
-  }
-  
-  @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-    
-    if (inlinedMethod == null) {
-      throw new FailedToSpecializeException("Could not resolve S4 method");
-    }
-    
-    if (matchedArguments.hasExtraArguments()) {
-      throw new FailedToSpecializeException("Extra arguments not supported");
-    }
-    
-    inlinedMethod.writeInline(emitContext, mv, matchedArguments, arguments);
-    
   }
 
   @Override
@@ -114,4 +91,10 @@ public class S4Specialization implements Specialization {
     }
     return inlinedMethod.isPure();
   }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
 }

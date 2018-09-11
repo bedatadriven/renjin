@@ -170,7 +170,7 @@ public class Primitives {
     add(new NextFunction());
     add(new ReturnFunction());
 
-    f("stop", Conditions.class, 11);
+    f("stop", Conditions.class, 1);
     f("warning", Warning.class, 111);
 
     f("gettext", Text.class, 11);
@@ -987,6 +987,8 @@ public class Primitives {
     f("La_dgecon", Lapack.class, 11);
     f("La_zgecon", Lapack.class, 11);
     f("La_ztrcon", Lapack.class, 11);
+    f("La_solve", Lapack.class, 11);
+    f("La_solve_cmplx", Lapack.class, 11);
     f("backsolve", Lapack.class, 11);
 
 

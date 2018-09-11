@@ -22,15 +22,18 @@ import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.builtins.ArgumentBounds;
 import org.renjin.compiler.cfg.InlinedFunction;
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.var.VariableStrategy;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
-import org.renjin.eval.MatchedArgumentPositions;
-import org.renjin.repackaged.asm.Type;
+import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.Symbol;
 
 import java.util.List;
 import java.util.Map;
@@ -41,26 +44,24 @@ public class ClosureCall implements Expression {
   private final RuntimeState runtimeState;
   private final FunctionCall call;
   private final List<IRArgument> arguments;
+  private final String[] argumentNames;
   private final Closure closure;
 
   private final String debugName;
 
-  private MatchedArgumentPositions matching;
   private InlinedFunction inlinedFunction;
   
   private ValueBounds returnBounds;
-  private Type type;
 
-  public ClosureCall(RuntimeState runtimeState, FunctionCall call, Closure closure, String closureDebugName, List<IRArgument> arguments) {
+  public ClosureCall(RuntimeState runtimeState, FunctionCall call, Closure closure, String closureDebugName,
+                     List<IRArgument> arguments) {
     this.runtimeState = runtimeState;
     this.call = call;
     this.closure = closure;
-    this.arguments = arguments;
+    this.arguments = Lists.newArrayList(arguments);
+    this.argumentNames = IRArgument.names(arguments);
     this.debugName = closureDebugName;
-
-    this.matching = MatchedArgumentPositions.matchIRArguments(closure, arguments);
     this.returnBounds = ValueBounds.UNBOUNDED;
-    this.type = returnBounds.storageType();
   }
 
 
@@ -73,29 +74,27 @@ public class ClosureCall implements Expression {
   }
 
   @Override
-  public Type getType() {
-    return type;
-  }
-
-  @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
 
     if(inlinedFunction == null) {
       try {
-        this.inlinedFunction = new InlinedFunction(runtimeState, closure, this.matching.getSuppliedFormals());
+        this.inlinedFunction = new InlinedFunction(functionName(), runtimeState, closure, argumentNames);
       } catch (NotCompilableException e) {
         throw new NotCompilableException(call, e);
       }
     }
-    
-    if(matching.hasExtraArguments()) {
-      throw new NotCompilableException(call, "Extra arguments not supported");
-    }
-   
+
     returnBounds = inlinedFunction.updateBounds(ArgumentBounds.create(arguments, typeMap));
-    type = returnBounds.storageType();
-    
+
     return returnBounds;
+  }
+
+  private String functionName() {
+    if(call.getFunction() instanceof Symbol) {
+      return ((Symbol) call.getFunction()).getPrintName();
+    } else {
+      return "f";
+    }
   }
 
   @Override
@@ -104,22 +103,15 @@ public class ClosureCall implements Expression {
   }
 
   @Override
-  public int load(EmitContext emitContext, InstructionAdapter mv) {
-
-
-    if(matching.hasExtraArguments()) {
-      throw new NotCompilableException(call, "Extra arguments not supported");
-    }
-    
-    inlinedFunction.writeInline(emitContext, mv, matching, arguments);
-    
-    return 0;
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    throw new UnsupportedOperationException("TODO");
   }
 
-  
+
   @Override
   public void setChild(int childIndex, Expression child) {
-    arguments.get(childIndex).setExpression(child);
+    arguments.set(childIndex,
+        arguments.get(childIndex).withExpression(child));
   }
 
   @Override
@@ -133,7 +125,19 @@ public class ClosureCall implements Expression {
   }
 
   @Override
+  public void emitAssignment(EmitContext emitContext, InstructionAdapter mv, Assignment statement) {
 
+    VariableStrategy lhs = emitContext.getVariable(statement.getLHS());
+    inlinedFunction.emitInline(emitContext, mv, arguments, lhs);
+
+  }
+
+  @Override
+  public void emitExecute(EmitContext emitContext, InstructionAdapter mv) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public String toString() {
     return debugName + "(" + Joiner.on(", ").join(arguments) + ")";
   }

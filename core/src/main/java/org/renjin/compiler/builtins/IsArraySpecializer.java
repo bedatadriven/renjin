@@ -24,6 +24,7 @@ import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Types;
 import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.sexp.LogicalVector;
 
 import java.util.List;
 
@@ -55,11 +56,16 @@ public class IsArraySpecializer implements BuiltinSpecializer {
     }
 
     ValueBounds argumentBounds = arguments.get(0).getBounds();
-    if(argumentBounds.isDimCountConstant()) {
-      return new ConstantCall(argumentBounds.getConstantDimCount() > 0);
-    }
 
-    return new StaticMethodCall(method);
+    if(argumentBounds.isFlagSet(ValueBounds.HAS_DIM1)) {
+      return new ConstantCall(LogicalVector.TRUE);
+
+    } else if(!argumentBounds.isFlagSet(ValueBounds.MAYBE_DIM)) {
+      return new ConstantCall(LogicalVector.FALSE);
+
+    } else {
+      return new StaticMethodCall(method);
+    }
   }
 
 }

@@ -19,38 +19,47 @@
 package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.ScalarExpr;
+import org.renjin.compiler.codegen.expr.VectorType;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.SEXP;
 
 import java.util.List;
 
 
 public class LengthCall implements Specialization {
-  @Override
-  public Type getType() {
-    return Type.INT_TYPE;
+
+  private final ValueBounds bounds;
+
+  public LengthCall(ValueBounds argumentBounds) {
+    bounds = ValueBounds.builder()
+        .setTypeSet(TypeSet.INT)
+        .addFlags(ValueBounds.FLAG_NO_NA | ValueBounds.LENGTH_ONE)
+        .addFlags(ValueBounds.FLAG_POSITIVE, argumentBounds.isFlagSet(ValueBounds.LENGTH_NON_ZERO))
+        .build();
   }
 
   public ValueBounds getResultBounds() {
-    return ValueBounds.INT_PRIMITIVE;
-  }
-
-  @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-    Expression argument = arguments.get(0).getExpression();
-    argument.load(emitContext, mv);
-    emitContext.convert(mv, argument.getType(), Type.getType(SEXP.class));
-    
-    mv.invokeinterface(Type.getInternalName(SEXP.class), "length", 
-        Type.getMethodDescriptor(Type.INT_TYPE, Type.getType(SEXP.class)));
+    return bounds;
   }
 
   @Override
   public boolean isPure() {
     return true;
   }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+    CompiledSexp vector = arguments.get(0).getExpression().getCompiledExpr(emitContext);
+    return new ScalarExpr(VectorType.INT) {
+      @Override
+      public void loadScalar(EmitContext context, InstructionAdapter mv) {
+        vector.loadLength(context, mv);
+      }
+    };
+  }
+
 }

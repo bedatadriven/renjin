@@ -103,11 +103,15 @@ public class ForLoopCompilerTest extends EvalTestCase {
   @Test
   public void loopWithClosureCubeCall() {
     eval(" myfn <- function(i, z) (i/length(z))^2 ");
-    eval(" s <- 0 ");
-    eval(" z <- 1:500 ");
-    evalAndAssertCompiled(" for(i in z) s <- s + myfn(i, z) ");
+    eval(" mysum <- function(z) { s <- 0; for(i in z) s <- s + myfn(i, z); s } ");
 
-    assertThat(eval("s"), closeTo(c(167.167), 0.1));
+    assertThat(evalAndAssertCompiled("mysum(1:500)"), closeTo(c(167.167), 0.1));
+    assertThat(evalAndAssertCompiled("mysum(1:10000)"), closeTo(c(3333.833), 0.1));
+
+    // Redefine myfn
+    eval(" myfn <- function(i, z) i*2 ");
+    assertThat(evalAndAssertCompiled("mysum(1:1000)"), closeTo(c(1001000), 0));
+
   }
 
   @Test
@@ -154,6 +158,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
     assertThat(eval("sum"), elementsIdenticalTo(c(120d)));
 
   }
+
 
   @Test
   public void activeBindingInEnvironment() {
@@ -212,9 +217,25 @@ public class ForLoopCompilerTest extends EvalTestCase {
     eval("s <- 0");
     evalAndAssertCompiled("for(i in as.numeric(1:1e6)) s <- s + f(i)");
     assertThat(eval("s"), elementsIdenticalTo(c(2e+06)));
-
   }
 
+  @Test
+  public void ellipsesInLoop() {
+    eval("f <- function(...) {" +
+        "   s <- 0; " +
+        "   for(i in 1:500) {" +
+            " s <- s + sum(i, ...) " +
+            "}\n" +
+            "s" +
+        "}");
+
+    assertThat(eval("f(4, 5, 6)"), elementsIdenticalTo(132750));
+
+    // Recompile should be triggered because environment no longer
+    // meets assumptions
+    assertThat(eval("f()"), elementsIdenticalTo(125250));
+
+  }
 
   @Test
   public void constantConditional() {
@@ -224,6 +245,33 @@ public class ForLoopCompilerTest extends EvalTestCase {
     evalAndAssertCompiled("for(i in 1:10000) s <- s + i");
 
     assertThat(eval("s"), elementsIdenticalTo(c(5.0005e7)));
+  }
+
+  @Test
+  public void nestedForLoop1() {
+    evalAndAssertCompiled(Joiner.on("\n").join(
+        "s <- 0",
+        "for(i in 1:300) {",
+        "  for(j in 1:20) {",
+        "    for(k in 1:3) {",
+        "       s <- s + (i * j) + k",
+        "    }",
+        "  }",
+        "}"));
+
+    assertThat(eval("i"), elementsIdenticalTo(c_i(300)));
+  }
+
+  @Ignore("wip")
+  @Test
+  public void nestedForLoop() {
+    evalAndAssertCompiled(Joiner.on("\n").join(
+        "m <- matrix(1:1200, nrow=300)",
+        "for(i in 1:nrow(m)) {",
+        "  for(j in 1:ncol(m)) {",
+        "    m[i,j] <- m[i,j]*2",
+        "  }",
+        "}"));
   }
 
 }

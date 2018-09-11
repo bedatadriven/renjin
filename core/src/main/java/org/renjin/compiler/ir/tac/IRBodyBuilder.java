@@ -24,6 +24,9 @@ import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.tac.expressions.*;
 import org.renjin.compiler.ir.tac.functions.*;
 import org.renjin.compiler.ir.tac.statements.*;
+import org.renjin.eval.ArgumentMatcher;
+import org.renjin.eval.MatchedArgumentPositions;
+import org.renjin.primitives.Primitives;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.*;
@@ -45,8 +48,9 @@ public class IRBodyBuilder {
   private int nextLabel = 0;
   
   private FunctionCallTranslators builders = new FunctionCallTranslators();
- 
-  private List<Statement> statements;
+
+  private List<Assignment> initializations = new ArrayList<>();
+  private List<Statement> statements = new ArrayList<>();
   private IRLabel currentLabel;
   private Map<IRLabel, Integer> labels;
   private Map<Symbol, EnvironmentVariable> variables = Maps.newHashMap();
@@ -66,29 +70,31 @@ public class IRBodyBuilder {
   
   public IRBody build(SEXP exp) {
     
-    statements = Lists.newArrayList();
     labels = Maps.newHashMap();
     
     TranslationContext context = new TopLevelContext();
-    Expression returnValue = translateExpression(context, exp);
+    Expression returnValue = translateSimpleExpression(context, exp);
     
     addStatement(new ReturnStatement(returnValue));
    
     removeRedundantJumps();
-    insertVariableInitializations();
-    updateVariableReturn();
-    
+
+    System.out.println(statements);
+
+    initializeEnvironmentVariables();
+    mergeInitializations();
+
     return new IRBody(statements, labels);
   }
   
-  public IRBody buildLoopBody(FunctionCall call, SEXP sequence) {
+  public IRBody buildLoopBody(FunctionCall call, ValueBounds sequenceBounds) {
     statements = Lists.newArrayList();
     labels = Maps.newHashMap();
 
     LocalVariable vector = newLocalVariable("elements");
     LocalVariable counter = newLocalVariable("i");
 
-    statements.add(new Assignment(vector, new ReadLoopVector(sequence)));
+    statements.add(new Assignment(vector, new ReadLoopVector(sequenceBounds)));
     statements.add(new Assignment(counter, new ReadLoopIt()));
 
     LoopBodyContext bodyContext = new LoopBodyContext(runtimeContext);
@@ -97,105 +103,125 @@ public class IRBodyBuilder {
 
     addStatement(new ReturnStatement(new Constant(Null.INSTANCE)));
     
-    removeRedundantJumps();
-    insertVariableInitializations();
-    updateVariableReturn();
-    
+//    removeRedundantJumps();
+    initializeEnvironmentVariables();
+    maybeInitializeEllipses(bodyContext);
+    mergeInitializations();
+
     return new IRBody(statements, labels);
   }
-  
-  public IRBody buildFunctionBody(Closure closure, Set<Symbol> suppliedArguments) {
+
+
+  public IRBody buildFunctionBody(Closure closure, String[] argumentNames) {
     
     statements = Lists.newArrayList();
     labels = Maps.newHashMap();
 
-
     for (PairList.Node node : closure.getFormals().nodes()) {
       paramSet.add(node.getTag());
     }
-    
-    // First define the parameters which will be supplied
-    List<ReadParam> params = Lists.newArrayList();
-    for (PairList.Node formal : closure.getFormals().nodes()) {
-      if (suppliedArguments.contains(formal.getTag())) {
-        ReadParam paramExpr = new ReadParam(formal.getTag());
-        statements.add(new Assignment(new EnvironmentVariable(formal.getTag()), paramExpr));
-        params.add(paramExpr);
+
+    // Map actual arguments to formals
+
+    ArgumentMatcher matcher = new ArgumentMatcher(closure);
+    MatchedArgumentPositions matching = matcher.match(argumentNames);
+
+    // Each of the provided arguments needs to be assigned to a variable
+    // in the function body, either a named formal, or to a temporary variable
+    // for extra arguments
+
+    Variable[] argumentVars = new Variable[argumentNames.length];
+
+    // First bind the formals
+    for (int formalIndex = 0; formalIndex < matching.getFormalCount(); formalIndex++) {
+      if(matching.isFormalMatched(formalIndex)) {
+        int argumentIndex = matching.getActualIndex(formalIndex);
+        argumentVars[argumentIndex] = new EnvironmentVariable(matching.getFormalName(formalIndex));
       }
     }
-    
-    // Now define  default values for formals that are not supplied
-    // These are not necessarily constants and are evaluated lazily, so some care is 
-    // required. 
+
+    // Define temporary variables to hold extra arguments (...)
+    List<IRArgument> ellipses = new ArrayList<>();
+    int extraArgumentIndex = 0;
+    for (int i = 0; i < argumentVars.length; i++) {
+      if(argumentVars[i] == null) {
+        EllipsesVar extraArg = new EllipsesVar(extraArgumentIndex++);
+        ellipses.add(new IRArgument(argumentNames[i], extraArg));
+        argumentVars[i] = extraArg;
+      }
+    }
+
+    // Now add assignment statements that map each provided argument to
+    // it's variable in the function body. The result will be a series of
+    // statements like:
+    //   x <- ReadParam(0)
+    //   y <- ReadParam(1)
+    //   ..1 <- ReadParam(2) (matched to ...)
+    //   ..2 <- ReadParam(3) (also matched to ...)
+
+    List<ReadParam> params = Lists.newArrayList();
+    for (int i = 0; i < argumentVars.length; i++) {
+      ReadParam rhs = new ReadParam(i);
+      params.add(rhs);
+      statements.add(new Assignment(argumentVars[i], rhs));
+    }
+
+    // Finally define default values for formals that are not supplied
+    // These are not necessarily constants and are evaluated lazily, so some care is
+    // required.
+    int formalIndex = 0;
     for (PairList.Node formal : closure.getFormals().nodes()) {
-      if(formal.getRawTag() != Symbols.ELLIPSES) {
-        if (!suppliedArguments.contains(formal.getTag())) {
-          SEXP defaultValue = formal.getValue();
-          if (defaultValue == Symbol.MISSING_ARG) {
-            throw new InvalidSyntaxException("argument '" + formal.getTag() + "' is missing, with no default");
-          } else {
-            if (!isConstant(defaultValue)) {
-              throw new NotCompilableException(defaultValue, "argument '" + formal.getName() + "' has not been provided" +
-                  " and has a default value with (potential) side effects.");
-            }
-            statements.add(new Assignment(new EnvironmentVariable(formal.getTag()), new Constant(formal.getValue())));
-          }
+      if(!matching.isFormalMatched(formalIndex)) {
+        SEXP defaultValue = formal.getValue();
+        if (defaultValue != Symbol.MISSING_ARG) {
+          statements.add(new Assignment(new EnvironmentVariable(formal.getTag()), new Constant(formal.getValue())));
         }
       }
     }
-    
-    TranslationContext context = new InlinedContext(closure.getFormals());
-    Expression returnValue = translateExpression(context, closure.getBody());
+
+    TranslationContext context = new InlinedContext(closure.getFormals(), matching, ellipses);
+    Expression returnValue = translateSimpleExpression(context, closure.getBody());
     addStatement(new ReturnStatement(returnValue));
 
     removeRedundantJumps();
-    insertVariableInitializations();
+    initializeEnvironmentVariables();
+    mergeInitializations();
 
     IRBody body = new IRBody(statements, labels);
     body.setParams(params);
     return body;
   }
 
-  private boolean isConstant(SEXP defaultValue) {
-    return ! ( defaultValue instanceof Symbol || 
-               defaultValue instanceof ExpressionVector ||
-               defaultValue instanceof FunctionCall);
-    
-  }
-
-  private void updateVariableReturn() {
-
-    for (Statement statement : statements) {
-      if(statement instanceof ReturnStatement) {
-        ((ReturnStatement) statement).addEnvironmentVariables(variables.values());
-      }
-    }
-  }
-
-
-  private void insertVariableInitializations() {
+  private void initializeEnvironmentVariables() {
     // For every variable that comes from the environment, 
     // declare it as a constant in the beginning of the block
-    
-    List<Assignment> initializations = new ArrayList<>();
-    
     for (EnvironmentVariable environmentVariable : variables.values()) {
       if(!paramSet.contains(environmentVariable.getName())) {
-        SEXP value = runtimeContext.findVariable(environmentVariable.getName());
-
-        if (value != Symbol.UNBOUND_VALUE) {
+        runtimeContext.findVariableBounds(environmentVariable.getName()).ifPresent(bounds -> {
           initializations.add(new Assignment(environmentVariable,
-              new ReadEnvironment(environmentVariable.getName(), ValueBounds.of(value))));
-        }
+              new ReadEnvironment(environmentVariable.getName(), bounds)));
+        });
       }
     }
-    
+  }
+
+
+  private void maybeInitializeEllipses(LoopBodyContext bodyContext) {
+    if(bodyContext.isEllipsesInitializationNeeded()) {
+      List<ExtraArgument> extraArguments = runtimeContext.findEllipses();
+      for (int i = 0; i < extraArguments.size(); i++) {
+        initializations.add(new Assignment(new EllipsesVar(i),
+            new ReadEllipses(i, extraArguments.get(i).getBounds())));
+      }
+    }
+  }
+
+  private void mergeInitializations() {
     // Update the labels to reflect the additional statements at the beginning
     statements.addAll(0, initializations);
     for (IRLabel label : labels.keySet()) {
       labels.put(label, labels.get(label) + initializations.size());
     }
-    
   }
 
   public void dump(SEXP exp) {
@@ -261,7 +287,12 @@ public class IRBodyBuilder {
     if( functionName instanceof PrimitiveFunction) {
       return (PrimitiveFunction) functionName;
     } else if (functionName instanceof Symbol) {
-      return runtimeContext.findFunction((Symbol) functionName);
+      Symbol symbol = (Symbol) functionName;
+      if(symbol.isReservedWord()) {
+        return Primitives.getReservedBuiltin(symbol);
+      } else {
+        return runtimeContext.findFunction(symbol);
+      }
     }
     throw new NotCompilableException(functionName);
   }
@@ -270,10 +301,7 @@ public class IRBodyBuilder {
     List<IRArgument> arguments = Lists.newArrayList();
     for(PairList.Node argNode : argumentSexps.nodes()) {
       if(argNode.getValue() == Symbols.ELLIPSES) {
-        for (PairList.Node extraArgument :  context.getEllipsesArguments().nodes()) {
-          SimpleExpression expression = simplify(translateExpression(context, extraArgument));
-          arguments.add( new IRArgument(extraArgument.getRawTag(), expression) );
-        }
+        arguments.addAll(context.getEllipsesArguments());
       } else {
         SimpleExpression argExpression = simplify(translateExpression(context, argNode.getValue()));
         arguments.add( new IRArgument(argNode.getRawTag(), argExpression) );
@@ -345,6 +373,7 @@ public class IRBodyBuilder {
   }
 
   public void addLabel(IRLabel label) {
+    assert label != null;
     labels.put(label, statements.size());
     currentLabel = label;
   }
@@ -389,8 +418,13 @@ public class IRBodyBuilder {
   private static class TopLevelContext implements TranslationContext {
 
     @Override
-    public PairList getEllipsesArguments() {
+    public List<IRArgument> getEllipsesArguments() {
       throw new InvalidSyntaxException("'...' used outside of a function");
+    }
+
+    @Override
+    public boolean isMissing(Symbol name) {
+      throw new InvalidSyntaxException("'missing' can only be used for arguments");
     }
   }
 }

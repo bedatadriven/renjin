@@ -19,6 +19,8 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ssa.SsaVariable;
 import org.renjin.repackaged.guava.collect.Maps;
 
@@ -35,5 +37,10 @@ public abstract class Variable extends LValue {
       versions.put(versionNumber, ssa);
     }
     return ssa;
+  }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    throw new UnsupportedOperationException("TODO");
   }
 }

@@ -20,10 +20,9 @@ package org.renjin.compiler.ir.tac.expressions;
 
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.primitives.special.DollarFunction;
-import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
@@ -52,11 +51,6 @@ public class NamedElementAccess implements Expression {
   }
 
   @Override
-  public int load(EmitContext emitContext, InstructionAdapter mv) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
     
     ValueBounds argumentBounds = typeMap.get(expression);
@@ -66,9 +60,9 @@ public class NamedElementAccess implements Expression {
       // the operation may have side-effects.
       SEXP object = argumentBounds.getConstantValue();
       if(object instanceof ListVector) {
-        valueBounds = ValueBounds.of(DollarFunction.fromList((ListVector) object, memberName));
+        valueBounds = ValueBounds.constantValue(DollarFunction.fromList((ListVector) object, memberName));
       } else if(object instanceof PairList) {
-        valueBounds = ValueBounds.of(DollarFunction.fromPairList((PairList) object, memberName));
+        valueBounds = ValueBounds.constantValue(DollarFunction.fromPairList((PairList) object, memberName));
       }
     }
     
@@ -76,13 +70,13 @@ public class NamedElementAccess implements Expression {
   }
 
   @Override
-  public Type getType() {
-    return valueBounds.storageType();
+  public ValueBounds getValueBounds() {
+    return valueBounds;
   }
 
   @Override
-  public ValueBounds getValueBounds() {
-    return valueBounds;
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    throw new UnsupportedOperationException("TODO");
   }
 
 

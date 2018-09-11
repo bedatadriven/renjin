@@ -23,10 +23,8 @@ import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.sexp.*;
 
-import static java.lang.Double.isInfinite;
-import static java.lang.Double.isNaN;
+import static java.lang.Double.*;
 import static java.lang.Math.copySign;
-import static org.renjin.sexp.DoubleVector.isFinite;
 
 
 /**
@@ -520,6 +518,9 @@ public class Ops  {
     if (b == 2) {
       return a * a;
     }
+    if (b == -1) {
+      return 1d/a;
+    }
     if (a == 1 || b == 0) {
       return 1;
     }
@@ -532,6 +533,15 @@ public class Ops  {
       }
       return b;  // NA or NaN
     }
+
+    double result = Math.pow(a, b);
+
+    if(Double.isNaN(result)) {
+      if(DoubleVector.isNA(a) || DoubleVector.isNA(b)) {
+        return DoubleVector.NA;
+      }
+    }
+
     if (isFinite(a) && isFinite(b)) {
       return Math.pow(a, b);
     }

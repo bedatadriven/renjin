@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.exception.InternalCompilerException;
 import org.renjin.primitives.Primitives;
 import org.renjin.repackaged.guava.cache.CacheBuilder;
@@ -57,9 +58,14 @@ public class BuiltinSpecializers {
     specializers.put("[[", new GenericBuiltinGuard(new SingleSubsetSpecializer()));
     specializers.put("c", new GenericBuiltinGuard(new CombineSpecializer()));
     specializers.put("is.array", new GenericBuiltinGuard(new IsArraySpecializer()));
+    specializers.put("attributes", new GetAttributesSpecializer());
+    specializers.put("attributes<-", new SetAttributesSpecializer());
     specializers.put("dim", new GenericBuiltinGuard(new DimSpecializer()));
     specializers.put("rep", new RepSpecializer());
+    specializers.put("sum", new GenericBuiltinGuard(new SumSpecializer()));
     specializers.put("invisible", new InvisibleSpecializer());
+    specializers.put("as.logical", new GenericBuiltinGuard(new AsVectorSpecializer("as.logical", TypeSet.LOGICAL)));
+
 
     cache = CacheBuilder.newBuilder().build(new CacheLoader<String, Specializer>() {
       @Override
@@ -70,7 +76,7 @@ public class BuiltinSpecializers {
           entry = Primitives.getInternalEntry(primitiveName);
         }
         if(entry == null) {
-          throw new IllegalStateException("No builtin entry for " + primitiveName);
+          throw new IllegalStateException("No builtin entry for '" + primitiveName + "'");
         }
         AnnotationBasedSpecializer specializer = new AnnotationBasedSpecializer(entry);
         if(specializer.isGeneric()) {

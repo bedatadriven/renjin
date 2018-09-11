@@ -49,6 +49,8 @@ public class DominanceTreeTest extends CompilerTestCase {
     assertThat(domTree.getImmediateDominator(bb2), equalTo(bb0));
     assertThat(domTree.getImmediateDominator(bb3), equalTo(bb0));
     assertThat(domTree.getImmediateDominator(cfg.getExit()), equalTo(cfg.getEntry()));
+
+    DominanceTree rdf = new DominanceTree(new ReverseControlFlowGraph(cfg));
   }
   
   @Test
@@ -58,7 +60,7 @@ public class DominanceTreeTest extends CompilerTestCase {
     cfg.dumpGraph();
 
 
-    List<BasicBlock> bb = cfg.getLiveBasicBlocks();
+    List<BasicBlock> bb = cfg.getBasicBlocks();
     DominanceTree dtree = new DominanceTree(cfg);
     dtree.dumpGraph();
 

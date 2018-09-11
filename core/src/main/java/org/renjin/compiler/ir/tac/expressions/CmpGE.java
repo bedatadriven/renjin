@@ -19,17 +19,28 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.ConditionalExpr;
+import org.renjin.compiler.codegen.expr.VectorType;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 import java.util.Map;
+
+import static org.renjin.repackaged.asm.Opcodes.IF_ICMPGE;
 
 /**
  * Checks whether op1 is greater than or equal to op2. 
  * Op1 and op2 must be integers. (Not sexps!)
  */
 public class CmpGE extends SpecializedCallExpression {
+
+  private static final ValueBounds BOUNDS = ValueBounds.builder()
+      .setTypeSet(TypeSet.LOGICAL)
+      .addFlags(ValueBounds.LENGTH_ONE | ValueBounds.FLAG_NO_NA)
+      .build();
 
   public CmpGE(Expression op1, Expression op2) {
     super(op1, op2);
@@ -51,22 +62,24 @@ public class CmpGE extends SpecializedCallExpression {
   }
 
   @Override
-  public int load(EmitContext emitContext, InstructionAdapter mv) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public Type getType() {
-    return Type.BOOLEAN_TYPE;
-  }
-
-  @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
     return getValueBounds();
   }
 
   @Override
   public ValueBounds getValueBounds() {
-    return ValueBounds.LOGICAL_PRIMITIVE;
+    return BOUNDS;
+  }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    return new ConditionalExpr() {
+      @Override
+      public void jumpIfTrue(EmitContext emitContext, InstructionAdapter mv, Label trueLabel) {
+        childAt(0).getCompiledExpr(emitContext).loadScalar(emitContext, mv, VectorType.INT);
+        childAt(1).getCompiledExpr(emitContext).loadScalar(emitContext, mv, VectorType.INT);
+        mv.visitJumpInsn(IF_ICMPGE, trueLabel);
+      }
+    };
   }
 }

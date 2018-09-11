@@ -27,8 +27,6 @@ import org.renjin.primitives.summary.DeferredMean;
 import org.renjin.primitives.summary.DeferredSum;
 import org.renjin.sexp.*;
 
-import java.io.IOException;
-
 
 /**
  * Summary group functions of vectors such as min, max, sum, etc.
@@ -39,6 +37,7 @@ public class Summary {
 
   @Builtin
   @GroupGeneric
+  @NoAttributes
   public static SEXP min(@ArgumentList ListVector arguments,
                          @NamedFlag("na.rm") boolean removeNA) {
 
@@ -50,6 +49,7 @@ public class Summary {
 
   @Builtin
   @GroupGeneric
+  @NoAttributes
   public static SEXP max(@ArgumentList ListVector arguments,
                          @NamedFlag("na.rm") boolean removeNA) {
 
@@ -70,6 +70,7 @@ public class Summary {
    */
   @Builtin
   @GroupGeneric
+  @NoAttributes
   public static Vector range(@ArgumentList ListVector arguments,
                              @NamedFlag("na.rm") boolean removeNA) {
 
@@ -388,6 +389,7 @@ public class Summary {
    */
   @Builtin
   @GroupGeneric
+  @NoAttributes
   public static AtomicVector prod(@ArgumentList ListVector arguments, @NamedFlag("na.rm") boolean removeNA) {
 
     double realProduct = realProduct(arguments, removeNA);
@@ -450,9 +452,10 @@ public class Summary {
   }
 
   @Builtin
+  @NoAttributes
   @GroupGeneric
   public static SEXP sum(@Current Context context, @ArgumentList ListVector arguments,
-                         @NamedFlag("na.rm") boolean removeNA) throws IOException {
+                         @NamedFlag("na.rm") boolean removeNA) {
 
 
     // Check the return type first
@@ -565,6 +568,22 @@ public class Summary {
   }
 
   /**
+   * Optimized version of sum() to be called by compiled R code.
+   */
+  @CompilerSpecialization
+  public static double sum(double[] array) {
+    double sum = 0;
+    for (int i = 0; i < array.length; i++) {
+      double x = array[i];
+      if(DoubleVector.isNA(x)) {
+        return DoubleVector.NA;
+      }
+      sum += x;
+    }
+    return sum;
+  }
+
+  /**
    * Given a set of logical vectors, is at least one of the values true?
    *
    * Coercion of types other than integer (raw, double, complex, character, list) gives a warning
@@ -638,6 +657,7 @@ public class Summary {
 
   @Deferrable
   @Internal
+  @NoAttributes
   public static DoubleVector mean(Vector x) {
 
     if(x.isDeferred() || x.length() > 100000) {

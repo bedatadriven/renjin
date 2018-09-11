@@ -339,7 +339,7 @@ public class MathGroup {
     if (Double.isNaN(x) || Double.isNaN(digits)) {
       return x + digits;
     }
-    if(!DoubleVector.isFinite(x)) {
+    if(!Double.isFinite(x)) {
       return x;
     }
 

@@ -57,6 +57,11 @@ public class RepIntVector extends IntVector {
   }
 
   @Override
+  public boolean anyNA() {
+    return source.anyNA();
+  }
+
+  @Override
   public int length() {
     return length;
   }

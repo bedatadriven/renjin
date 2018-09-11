@@ -18,14 +18,12 @@
  */
 package org.renjin.compiler.cfg;
 
-import org.renjin.compiler.TypeSolver;
+import org.renjin.compiler.SexpCompiler;
 import org.renjin.compiler.builtins.ArgumentBounds;
-import org.renjin.compiler.codegen.ByteCodeEmitter;
 import org.renjin.compiler.codegen.EmitContext;
-import org.renjin.compiler.codegen.InlineEmitContext;
-import org.renjin.compiler.codegen.InlineParamExpr;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.var.VariableStrategy;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.compiler.ir.ssa.SsaTransformer;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
@@ -33,51 +31,44 @@ import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.compiler.ir.tac.expressions.ReadParam;
 import org.renjin.compiler.ir.tac.statements.ReturnStatement;
 import org.renjin.compiler.ir.tac.statements.Statement;
-import org.renjin.eval.MatchedArgumentPositions;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Function;
-import org.renjin.sexp.Symbol;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 
 public class InlinedFunction {
 
   private final RuntimeState runtimeState;
 
-  private final SsaTransformer ssaTransformer;
-  private final DominanceTree dTree;
-  private final ControlFlowGraph cfg;
-  private final UseDefMap useDefMap;
-  private final TypeSolver types;
+  private final SexpCompiler compiler;
   private final List<ReadParam> params;
 
   private List<ReturnStatement> returnStatements = Lists.newArrayList();
+  private final String functionName;
   private Closure closure;
 
+
   /**
+   * @param functionName
    * @param closure the closure to inline
-   * @param arguments the names of the formals that will be supplied to this inline call
+   * @param argumentNames the names of the arguments supplied to the function call
    */
-  public InlinedFunction(RuntimeState parentState, Closure closure, Set<Symbol> arguments) {
+  public InlinedFunction(String functionName, RuntimeState parentState, Closure closure, String[] argumentNames) {
+
+    this.functionName = functionName;
     this.closure = closure;
 
     runtimeState = new RuntimeState(parentState, closure.getEnclosingEnvironment());
     
     IRBodyBuilder builder = new IRBodyBuilder(runtimeState);
-    IRBody body = builder.buildFunctionBody(closure, arguments);
+    IRBody body = builder.buildFunctionBody(closure, argumentNames);
 
-    cfg = new ControlFlowGraph(body);
-    dTree = new DominanceTree(cfg);
-    ssaTransformer = new SsaTransformer(cfg, dTree);
-    ssaTransformer.transform();
-    useDefMap = new UseDefMap(cfg);
-    types = new TypeSolver(cfg, useDefMap);
+    compiler = new SexpCompiler(runtimeState, body, false);
     params = body.getParams();
 
     for (Statement statement : body.getStatements()) {
@@ -85,15 +76,12 @@ public class InlinedFunction {
         returnStatements.add((ReturnStatement) statement);
       }
     }
-
+    System.out.println(compiler.getControlFlowGraph());
   }
 
-  public ControlFlowGraph getCfg() {
-    return cfg;
-  }
-
-  public SsaTransformer getSsaTransformer() {
-    return ssaTransformer;
+  @VisibleForTesting
+  ControlFlowGraph getCfg() {
+    return compiler.getControlFlowGraph();
   }
 
   public List<ReadParam> getParams() {
@@ -114,13 +102,15 @@ public class InlinedFunction {
   
   public ValueBounds computeBounds() {
     
-    types.execute();
+    compiler.updateTypes();
 
     List<ValueBounds> returnBounds = new ArrayList<>();
     for (ReturnStatement returnStatement : returnStatements) {
       returnBounds.add(returnStatement.getRHS().getValueBounds());
     }
-    return ValueBounds.union(returnBounds);
+    ValueBounds union = ValueBounds.union(returnBounds);
+
+    return union;
   }
 
   /**
@@ -128,42 +118,25 @@ public class InlinedFunction {
    * @return true if it can be proven that this inlined function has no side effects.
    */
   public boolean isPure() {
-    return types.isPure();
+    return compiler.isPure();
   }
   
-  public void writeInline(EmitContext emitContext, InstructionAdapter mv, MatchedArgumentPositions matching, List<IRArgument> arguments) {
- 
-    InlineEmitContext inlineContext = emitContext.inlineContext(cfg, types);
+  public void emitInline(EmitContext emitContext,
+                         InstructionAdapter mv,
+                         List<IRArgument> arguments,
+                         VariableStrategy returnVariable) {
 
-    for (Map.Entry<Symbol, Integer> formal : matching.getMatchedFormals().entrySet()) {
-      inlineContext.setInlineParameter(formal.getKey(),
-          new InlineParamExpr(emitContext, arguments.get(formal.getValue()).getExpression()));
+    List<CompiledSexp> parameters = new ArrayList<>();
+    for (IRArgument argument : arguments) {
+      parameters.add(argument.getExpression().getCompiledExpr(emitContext));
     }
-
-    // Last check for assumption violations
-    types.verifyFunctionAssumptions(runtimeState);
-
-    ByteCodeEmitter.writeBody(inlineContext, mv, cfg);
-  }
-
-
-  public void write(EmitContext emitContext, InstructionAdapter mv) {
-
-    // Last check for assumption violations
-    types.verifyFunctionAssumptions(runtimeState);
-
-    ByteCodeEmitter.writeBody(emitContext, mv, cfg);
-
+    compiler.compileInline(emitContext, mv, parameters, returnVariable);
   }
 
 
   @Override
   public String toString() {
-    return cfg.toString();
-  }
-
-  public TypeSolver getTypes() {
-    return types;
+    return compiler.getControlFlowGraph().toString();
   }
 
   public Function getClosure() {

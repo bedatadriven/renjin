@@ -24,7 +24,37 @@ import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 
 public interface CompiledLoopBody {
-  
+
+  /**
+   * The index of the local variable holding the evaluation context variable.
+   */
+  int CONTEXT_PARAM_INDEX = 1;
+
+  /**
+   * The index of the local variable holding the evaluation environment variable.
+   */
+  int ENV_PARAM_INDEX = 2;
+
+
+  /**
+   * The index of the local variable hodling the loop elements vector.
+   */
+  int LOOP_VECTOR_INDEX = 3;
+
+  /**
+   * The index of the local variable holding the loop iteration index.
+   */
+  int LOOP_ITERATION_INDEX = 4;
+
+
+  /**
+   * The number of local variable used by this and the arguments.
+   * (this + context + environment + sequence + iteration)
+   */
+  int PARAM_SIZE = 5;
+
+
+
   SEXP run(Context context, Environment rho, SEXP sequence, int iteration);
   
 }

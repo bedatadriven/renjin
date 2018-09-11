@@ -43,6 +43,16 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
   }
 
   @Override
+  public boolean anyNA() {
+    for (int i = 0; i < length(); i++) {
+      if(isElementNA(i)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
   public boolean isDeferred() {
     return false;
   }

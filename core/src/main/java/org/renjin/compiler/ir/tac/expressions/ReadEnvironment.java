@@ -19,6 +19,8 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.SexpExpr;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.eval.Context;
 import org.renjin.repackaged.asm.Opcodes;
@@ -45,26 +47,7 @@ public class ReadEnvironment implements Expression {
 
   @Override
   public boolean isPure() {
-    return false;
-  }
-
-  @Override
-  public int load(EmitContext emitContext, InstructionAdapter mv) {
-    mv.visitVarInsn(Opcodes.ALOAD, emitContext.getEnvironmentVarIndex());
-    mv.visitLdcInsn(name.getPrintName());
-    mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Symbol.class), "get", 
-        Type.getMethodDescriptor(Type.getType(Symbol.class), Type.getType(String.class)), false);
-    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(Environment.class), "findVariableUnsafe",
-        Type.getMethodDescriptor(Type.getType(SEXP.class), Type.getType(Symbol.class)), false);
-    mv.visitVarInsn(Opcodes.ALOAD, emitContext.getContextVarIndex());
-    mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getInternalName(SEXP.class), "force", 
-        Type.getMethodDescriptor(Type.getType(SEXP.class), Type.getType(Context.class)), true);
-    return 2;
-  }
-
-  @Override
-  public Type getType() {
-    return Type.getType(SEXP.class);
+    return true;
   }
 
   @Override
@@ -75,6 +58,24 @@ public class ReadEnvironment implements Expression {
   @Override
   public ValueBounds getValueBounds() {
     return valueBounds;
+  }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    return new SexpExpr() {
+      @Override
+      public void loadSexp(EmitContext emitContext, InstructionAdapter mv) {
+        mv.visitVarInsn(Opcodes.ALOAD, emitContext.getEnvironmentVarIndex());
+        mv.visitLdcInsn(name.getPrintName());
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Symbol.class), "get",
+            Type.getMethodDescriptor(Type.getType(Symbol.class), Type.getType(String.class)), false);
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(Environment.class), "findVariableUnsafe",
+            Type.getMethodDescriptor(Type.getType(SEXP.class), Type.getType(Symbol.class)), false);
+        mv.visitVarInsn(Opcodes.ALOAD, emitContext.getContextVarIndex());
+        mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getInternalName(SEXP.class), "force",
+            Type.getMethodDescriptor(Type.getType(SEXP.class), Type.getType(Context.class)), true);
+      }
+    };
   }
 
   @Override
@@ -94,6 +95,6 @@ public class ReadEnvironment implements Expression {
 
   @Override
   public String toString() {
-    return "read(" + name + " = " + valueBounds + ")";
+    return "readEnv(" + name + " = " + valueBounds + ")";
   }
 }

@@ -43,6 +43,14 @@ public class IntSequence extends IntVector {
     this.length = length;
   }
 
+  /**
+   *
+   * @return true if all elements of this sequence are positive
+   */
+  public boolean isPositive() {
+    return from > 0 && by > 0;
+  }
+
   public int getFrom() {
     return from;
   }
@@ -67,6 +75,11 @@ public class IntSequence extends IntVector {
 
   @Override
   public boolean isElementNA(int index) {
+    return false;
+  }
+
+  @Override
+  public boolean anyNA() {
     return false;
   }
 

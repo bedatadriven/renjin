@@ -89,6 +89,11 @@ public class RepDoubleVector extends DoubleVector implements DeferredComputation
   }
 
   @Override
+  public boolean anyNA() {
+    return source.anyNA();
+  }
+
+  @Override
   public Vector[] getOperands() {
     return new Vector[] { source, new IntArrayVector(length/each/source.length()), new IntArrayVector(each) };
   }

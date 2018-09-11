@@ -26,7 +26,6 @@ import org.renjin.EvalTestCase;
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.cfg.ControlFlowGraph;
-import org.renjin.compiler.cfg.DominanceTree;
 import org.renjin.compiler.cfg.UseDefMap;
 import org.renjin.compiler.ir.ssa.SsaTransformer;
 import org.renjin.eval.EvalException;
@@ -101,8 +100,7 @@ public class IRBodyBuilderTest extends EvalTestCase {
     IRBody loopBody = build(forLoop);
 
     ControlFlowGraph cfg = new ControlFlowGraph(loopBody);
-    DominanceTree dTree = new DominanceTree(cfg);
-    SsaTransformer transformer = new SsaTransformer(cfg, dTree);
+    SsaTransformer transformer = new SsaTransformer(cfg);
     transformer.transform();
 
     System.out.println(cfg);

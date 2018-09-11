@@ -23,20 +23,19 @@ import org.apache.commons.math.special.Gamma;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.repackaged.guava.collect.ImmutableList;
-import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.Logical;
 import org.renjin.sexp.Symbol;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.HashSet;
 import java.util.List;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Wraps a {@code java.lang.reflect.Method} and provides
@@ -115,6 +114,7 @@ public class JvmMethod implements Comparable<JvmMethod> {
 
         if (isPublic(method.getModifiers()) &&
             isStatic(method.getModifiers()) &&
+            method.getAnnotation(CompilerSpecialization.class) == null &&
             ( method.getName().equals(alias) ||
                 method.getName().equals(name) ||
                 alias(method).equals(name) ) )
@@ -146,6 +146,16 @@ public class JvmMethod implements Comparable<JvmMethod> {
       }
     }
     return false;
+  }
+
+  public Set<String> namedFlags() {
+    Set<String> namedFlags = new HashSet<>();
+    for (Argument formal : formals) {
+      if(formal.isNamedFlag()) {
+        namedFlags.add(formal.getName());
+      }
+    }
+    return namedFlags;
   }
 
   public boolean isDataParallel() {

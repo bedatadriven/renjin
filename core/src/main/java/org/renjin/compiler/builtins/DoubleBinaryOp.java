@@ -20,12 +20,13 @@ package org.renjin.compiler.builtins;
 
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.ScalarExpr;
+import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.repackaged.asm.Opcodes;
-import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 import java.util.List;
@@ -36,35 +37,19 @@ import java.util.List;
 public class DoubleBinaryOp implements Specialization {
   
   private int opcode;
-  private ValueBounds valueBounds;
+  private final ArgumentBounds x;
+  private final ArgumentBounds y;
+  private ValueBounds resultBounds;
   
-  public DoubleBinaryOp(int opcode, ValueBounds valueBounds) {
+  public DoubleBinaryOp(int opcode, ArgumentBounds x, ArgumentBounds y, ValueBounds resultBounds) {
     this.opcode = opcode;
-    this.valueBounds = valueBounds;
-  }
-
-  @Override
-  public Type getType() {
-    return Type.DOUBLE_TYPE;
+    this.x = x;
+    this.y = y;
+    this.resultBounds = resultBounds;
   }
 
   public ValueBounds getResultBounds() {
-    return valueBounds;
-  }
-
-  @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-    assert  arguments.size() == 2;
-    Expression x = arguments.get(0).getExpression();
-    Expression y = arguments.get(1).getExpression();
-
-    x.load(emitContext, mv);
-    emitContext.convert(mv, x.getType(), Type.DOUBLE_TYPE);
-
-    y.load(emitContext, mv);
-    emitContext.convert(mv, y.getType(), Type.DOUBLE_TYPE);
-    
-    mv.visitInsn(opcode);
+    return resultBounds;
   }
 
   @Override
@@ -72,21 +57,42 @@ public class DoubleBinaryOp implements Specialization {
     return true;
   }
 
-  public static DoubleBinaryOp trySpecialize(String name, JvmMethod overload, ValueBounds resultBounds) {
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+    return new ScalarExpr(VectorType.DOUBLE) {
+      @Override
+      public void loadScalar(EmitContext context, InstructionAdapter mv) {
+        assert  arguments.size() == 2;
+        CompiledSexp cx = x.getCompiledExpr(emitContext);
+        CompiledSexp cy = y.getCompiledExpr(emitContext);
+
+        cx.loadScalar(emitContext, mv, VectorType.DOUBLE);
+        cy.loadScalar(emitContext, mv, VectorType.DOUBLE);
+        mv.visitInsn(opcode);
+      }
+    };
+  }
+
+  public static DoubleBinaryOp trySpecialize(String name, JvmMethod overload, List<ArgumentBounds> arguments, ValueBounds resultBounds) {
+
     List<JvmMethod.Argument> formals = overload.getPositionalFormals();
     if(formals.size() == 2 &&
+        arguments.size() == 2 &&
         formals.get(0).getClazz().equals(double.class) &&
         formals.get(1).getClazz().equals(double.class)) {
 
+      ArgumentBounds x = arguments.get(0);
+      ArgumentBounds y = arguments.get(1);
+
       switch (name) {
         case "+":
-          return new DoubleBinaryOp(Opcodes.DADD, resultBounds);
+          return new DoubleBinaryOp(Opcodes.DADD, x, y, resultBounds);
         case "-":
-          return new DoubleBinaryOp(Opcodes.DSUB, resultBounds);
+          return new DoubleBinaryOp(Opcodes.DSUB, x, y, resultBounds);
         case "*":
-          return new DoubleBinaryOp(Opcodes.DMUL, resultBounds);
+          return new DoubleBinaryOp(Opcodes.DMUL, x, y, resultBounds);
         case "/":
-          return new DoubleBinaryOp(Opcodes.DDIV, resultBounds);
+          return new DoubleBinaryOp(Opcodes.DDIV, x, y, resultBounds);
       }
     }
     return null;

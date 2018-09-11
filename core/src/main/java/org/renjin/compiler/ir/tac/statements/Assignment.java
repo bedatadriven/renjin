@@ -19,19 +19,18 @@
 package org.renjin.compiler.ir.tac.statements;
 
 import org.renjin.compiler.codegen.EmitContext;
-import org.renjin.compiler.codegen.VariableStorage;
+import org.renjin.compiler.codegen.var.ConstantVar;
+import org.renjin.compiler.codegen.var.VariableStrategy;
 import org.renjin.compiler.ir.IRFormatting;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
-import org.renjin.repackaged.asm.Opcodes;
-import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 import java.util.Collections;
 
 
-public class Assignment implements Statement {
+public class Assignment extends Statement {
   private LValue lhs;
   private Expression rhs;
  
@@ -52,12 +51,6 @@ public class Assignment implements Statement {
   @Override
   public Iterable<IRLabel> possibleTargets() {
     return Collections.emptySet();
-  }
-  
-
-  @Override
-  public void setRHS(Expression newRHS) {
-    this.rhs = newRHS;
   }
 
   @Override
@@ -89,38 +82,22 @@ public class Assignment implements Statement {
   }
 
   @Override
-  public void accept(StatementVisitor visitor) {
-    visitor.visitAssignment(this);
-  }
-
-  @Override
-  public int emit(EmitContext emitContext, InstructionAdapter mv) {
+  public void emit(EmitContext emitContext, InstructionAdapter mv) {
 
 
-    VariableStorage storage = emitContext.getVariableStorage(lhs);
-    if(storage == null) {
-      // LHS never used.
-      return 0;
+    VariableStrategy lhsExpr = emitContext.getVariable(lhs);
+    if(lhsExpr == null || lhsExpr instanceof ConstantVar) {
+      // LHS never used or constant, no need to generate bytecode
+      return;
     }
 
-    Type rhsType;
-    if(rhs instanceof LValue) {
-      rhsType = emitContext.getVariableStorage((LValue) rhs).getType();
-    } else {
-      rhsType = rhs.getType();
-    }
-    
-    int stackIncrease = rhs.load(emitContext, mv);
-    emitContext.convert(mv, rhsType, storage.getType());
-    mv.visitVarInsn(storage.getType().getOpcode(Opcodes.ISTORE), storage.getSlotIndex());
-    return stackIncrease;
+    rhs.emitAssignment(emitContext, mv, this);
   }
 
   @Override
   public boolean isPure() {
     return rhs.isPure();
   }
-
 
   public void setLHS(LValue lhs) {
     this.lhs = lhs;

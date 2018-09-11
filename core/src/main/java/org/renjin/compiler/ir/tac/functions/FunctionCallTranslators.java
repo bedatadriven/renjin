@@ -43,7 +43,7 @@ public class FunctionCallTranslators {
     specials.put("while", new WhileTranslator());
     specials.put("next", new NextTranslator());
     specials.put("break", new BreakTranslator());
-    specials.put("function", new ClosureTranslator());
+    specials.put("function", new ClosureDefinitionTranslator());
     specials.put("$", new DollarTranslator());
     specials.put("$<-", new DollarAssignTranslator());
     specials.put(".Internal", new InternalCallTranslator());
@@ -55,6 +55,7 @@ public class FunctionCallTranslators {
     specials.put(":", new SequenceTranslator());
     specials.put("UseMethod", new UseMethodTranslator());
     specials.put("@", new SlotTranslator());
+    specials.put("missing", new MissingTranslator());
   }
   
   public FunctionCallTranslator get(Function function) {

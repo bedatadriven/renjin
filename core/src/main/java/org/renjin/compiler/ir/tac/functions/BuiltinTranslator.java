@@ -51,7 +51,7 @@ class BuiltinTranslator extends FunctionCallTranslator {
     String functionName = ((PrimitiveFunction) resolvedFunction).getName();
 
     List<IRArgument> arguments = builder.translateArgumentList(context, getterCall.getArguments());
-    arguments.add(new IRArgument("value", rhs));
+    arguments.add(new IRArgument("value", builder.simplify(rhs)));
 
     return new BuiltinCall(builder.getRuntimeState(), getterCall, functionName, arguments);
   }

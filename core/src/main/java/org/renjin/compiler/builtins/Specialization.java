@@ -20,24 +20,30 @@ package org.renjin.compiler.builtins;
 
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.var.VariableStrategy;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.repackaged.asm.Type;
+import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 import java.util.List;
 
 public interface Specialization {
-  
-  Type getType();
 
   ValueBounds getResultBounds();
-
-  void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments);
 
   /**
    *
    * @return true if the specialized operation is known to be free of side effects.
    */
   boolean isPure();
+
+  CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments);
+
+  default void emitAssignment(EmitContext emitContext, InstructionAdapter mv, Assignment statement, List<IRArgument> arguments) {
+    VariableStrategy lhs = emitContext.getVariable(statement.getLHS());
+    CompiledSexp rhs = getCompiledExpr(emitContext, arguments);
+    lhs.store(emitContext, mv, rhs);
+  }
 }

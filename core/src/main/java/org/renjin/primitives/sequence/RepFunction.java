@@ -18,14 +18,28 @@
  */
 package org.renjin.primitives.sequence;
 
-import org.renjin.eval.ClosureDispatcher;
+import org.renjin.eval.ArgumentMatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.MatchedArguments;
 import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.primitives.S3;
 import org.renjin.sexp.*;
 
 public class RepFunction extends SpecialFunction {
+
+  public static final ArgumentMatcher ARGUMENT_MATCHER =
+      new ArgumentMatcher("x", "times", "length.out", "each", "...");
+
+  public static final int FORMAL_X = 0;
+  public static final int FORMAL_TIMES = 1;
+  public static final int FORMAL_LENGTH_OUT = 2;
+  public static final int FORMAL_EACH = 3;
+
+  public static final IntArrayVector DEFAULT_TIMES_ARGUMENT = new IntArrayVector(1);
+  public static final int DEFAULT_LENGTH_OUT = IntVector.NA;
+  public static final int DEFAULT_EACH = IntVector.NA;
+
 
   public RepFunction() {
     super("rep");
@@ -65,26 +79,18 @@ public class RepFunction extends SpecialFunction {
       evaled.add(node.getRawTag(), context.evaluate( node.getValue(), rho));
     }
 
-    // declare formals
-    PairList.Builder formals = new PairList.Builder();
-    formals.add("x", Symbol.MISSING_ARG);
-    formals.add("times", Symbol.MISSING_ARG);
-    formals.add("length.out", Symbol.MISSING_ARG);
-    formals.add("each", Symbol.MISSING_ARG);
-    formals.add(Symbols.ELLIPSES, Symbol.MISSING_ARG);
+    MatchedArguments matched = ARGUMENT_MATCHER.match(evaled.build());
 
-    PairList matched = ClosureDispatcher.matchArguments(formals.build(), evaled.build(), true);
-
-    SEXP x = matched.findByTag(Symbol.get("x"));
-    SEXP times = matched.findByTag(Symbol.get("times"));
-    SEXP lengthOut = matched.findByTag(Symbol.get("length.out"));
-    SEXP each = matched.findByTag(Symbol.get("each"));
+    SEXP x = matched.getActualForFormal(FORMAL_X);
+    SEXP times = matched.getActualForFormal(FORMAL_TIMES, DEFAULT_TIMES_ARGUMENT);
+    SEXP lengthOut = matched.getActualForFormal(FORMAL_LENGTH_OUT, Symbol.MISSING_ARG);
+    SEXP each = matched.getActualForFormal(FORMAL_EACH, Symbol.MISSING_ARG);
 
     return rep(
         (Vector) x,
-        times == Symbol.MISSING_ARG ? new IntArrayVector(1) : (Vector) times,
-        lengthOut == Symbol.MISSING_ARG ? IntVector.NA : ((Vector) lengthOut).getElementAsInt(0),
-        each == Symbol.MISSING_ARG ? IntVector.NA : ((Vector) each).getElementAsInt(0));
+        (Vector) times,
+        lengthOut == Symbol.MISSING_ARG ? DEFAULT_LENGTH_OUT : ((Vector) lengthOut).getElementAsInt(0),
+        each == Symbol.MISSING_ARG ? DEFAULT_EACH : ((Vector) each).getElementAsInt(0));
   }
 
 

@@ -45,6 +45,6 @@ public final class Arith {
   }
 
   public static int R_finite(double p0) {
-    return DoubleVector.isFinite(p0) ? 1 : 0;
+    return Double.isFinite(p0) ? 1 : 0;
   }
 }

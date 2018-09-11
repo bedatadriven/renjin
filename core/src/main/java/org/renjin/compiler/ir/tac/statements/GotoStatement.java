@@ -21,14 +21,16 @@ package org.renjin.compiler.ir.tac.statements;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.compiler.ir.tac.expressions.NullExpression;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 
-public class GotoStatement implements Statement, BasicBlockEndingStatement {
+public class GotoStatement extends Statement implements BasicBlockEndingStatement {
 
   private final IRLabel target;
 
@@ -58,10 +60,8 @@ public class GotoStatement implements Statement, BasicBlockEndingStatement {
   }
 
   @Override
-  public void setRHS(Expression newRHS) {
-    if(newRHS != NullExpression.INSTANCE) {
-      throw new IllegalArgumentException();
-    }
+  public void forEachVariableUsed(Consumer<LValue> consumer) {
+    // NOOP: Nothing used
   }
 
 
@@ -81,18 +81,12 @@ public class GotoStatement implements Statement, BasicBlockEndingStatement {
   }
 
   @Override
-  public void accept(StatementVisitor visitor) {
-    visitor.visitGoto(this);
-  }
-
-  @Override
-  public int emit(EmitContext emitContext, InstructionAdapter mv) {
-    mv.visitJumpInsn(Opcodes.GOTO, emitContext.getAsmLabel(target));
-    return 0;
+  public void emit(EmitContext emitContext, InstructionAdapter mv) {
+    mv.visitJumpInsn(Opcodes.GOTO, emitContext.getBytecodeLabel(target));
   }
 
   @Override
   public boolean isPure() {
-    return true;
+    return false;
   }
 }

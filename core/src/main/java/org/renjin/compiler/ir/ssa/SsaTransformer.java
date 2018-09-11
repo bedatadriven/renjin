@@ -21,15 +21,14 @@ package org.renjin.compiler.ir.ssa;
 import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.cfg.*;
 import org.renjin.compiler.ir.tac.TreeNode;
-import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.LValue;
-import org.renjin.compiler.ir.tac.expressions.Variable;
+import org.renjin.compiler.ir.tac.expressions.*;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.repackaged.guava.collect.Sets;
+import org.renjin.sexp.Symbol;
 
 import java.util.*;
 
@@ -42,21 +41,72 @@ public class SsaTransformer {
 
   private ControlFlowGraph cfg;
   private DominanceTree dtree;
+  private final DominanceTree rdt;
 
   private Map<Variable, Integer> C = Maps.newHashMap();
   private Map<Variable, Stack<Integer>> S = Maps.newHashMap();
   private Set<Variable> allVariables;
 
-  public SsaTransformer(ControlFlowGraph cfg, DominanceTree dtree) {
+  public SsaTransformer(ControlFlowGraph cfg) {
     super();
     this.cfg = cfg;
-    this.dtree = dtree;
+    this.dtree = new DominanceTree(cfg);
+    this.rdt = new DominanceTree(new ReverseControlFlowGraph(cfg));
     this.allVariables = allVariables();
   }
 
   public void transform() {
     insertPhiFunctions();
     renameVariables();
+  }
+
+  public void insertEnvironmentUpdates() {
+    Collection<BasicBlock> returningBlocks = rdt.getChildren(cfg.getExit());
+    for (BasicBlock returningBlock : returningBlocks) {
+      if (returningBlock != cfg.getEntry()) {
+        insertEnvironmentUpdates(returningBlock, returningBlock, Collections.emptySet());
+      }
+    }
+  }
+
+  private void insertEnvironmentUpdates(BasicBlock target, BasicBlock block, Set<Symbol> alreadyInserted) {
+
+    Set<Symbol> inserted = Sets.newHashSet(alreadyInserted);
+
+    List<Statement> statements = block.getStatements();
+    List<Statement> updates = new ArrayList<>();
+
+    for (int i = statements.size() - 1; i >= 0; i--) {
+      Statement statement = statements.get(i);
+      if (statement instanceof Assignment) {
+        Assignment assignment = (Assignment) statement;
+        if (assignment.getLHS() instanceof EnvironmentVariable) {
+          EnvironmentVariable var = (EnvironmentVariable) assignment.getLHS();
+          if(!(assignment.getRHS() instanceof ReadEnvironment)) {
+            Symbol name = var.getName();
+            if (inserted.add(name)) {
+              updates.add(new UpdateEnvironment(name, var));
+            }
+          }
+        }
+      }
+    }
+
+    if(target.fallsThrough()) {
+      target.getStatements().addAll(updates);
+    } else {
+      target.getStatements().addAll(target.getStatements().size() - 1, updates);
+    }
+
+
+    Collection<BasicBlock> successors = rdt.getChildren(block);
+    for (BasicBlock successor : successors) {
+      if(successors.size() > 1) {
+        insertEnvironmentUpdates(successor, successor, inserted);
+      } else {
+        insertEnvironmentUpdates(target, successor, inserted);
+      }
+    }
   }
 
   /**
@@ -67,37 +117,46 @@ public class SsaTransformer {
     // See Figure 11
     // http://www.cs.utexas.edu/~pingali/CS380C/2010/papers/ssaCytron.pdf
 
-    int iterCount = 0;
 
-    Map<BasicBlock, Integer> hasAlready = Maps.newHashMap();
-    Map<BasicBlock, Integer> work = Maps.newHashMap();
+    // HasAlready(*) is an array of flags, one for each node, where HasAlready(X)
+    // indicates whether a Φ-function for V has already been inserted at X
 
-    for(BasicBlock X : cfg.getLiveBasicBlocks()) {
-      hasAlready.put(X, 0);
-      work.put(X, 0);
-    }
+    // Work(*) is an array of flags, one flag for each node, where Work(X)
+    // indicates whether X has ever been added to W during the current iteration
+    // of the outer loop.
+
+    // These two flags could have been implemented with just
+    // the values true and false, but this would require additional record keeping
+    // to reset any true flags between iterations, without the expense of looping
+    // over all the nodes. It is simpler to devote an integer to each flag and to test
+    // flags by comparing them with the current iteration count.
+
+    int hasAlready[] = new int[cfg.getBasicBlocks().size()];
+    int work[] = new int[cfg.getBasicBlocks().size()];
+
 
     Queue<BasicBlock> W = Lists.newLinkedList();
-    
+
+    int iterCount = 0;
     for(Variable V : allVariables) {
       iterCount = iterCount + 1;
 
-      for(BasicBlock X : Iterables.filter(cfg.getLiveBasicBlocks(), CfgPredicates.containsAssignmentTo(V))) {
-        work.put(X, iterCount);
+      for(BasicBlock X : Iterables.filter(cfg.getBasicBlocks(), CfgPredicates.containsAssignmentTo(V))) {
+        work[X.getIndex()] = iterCount;
         W.add(X);
       }
       while(!W.isEmpty()) {
         BasicBlock X = W.poll();
         for(BasicBlock Y : dtree.getFrontier(X)) {
-          if(X != cfg.getExit()) {
-            if(hasAlready.get(Y) < iterCount) {
-              Y.insertPhiFunction(V, Y.getIncoming());
-              // place (V <- phi(V,..., V)) at Y
-              hasAlready.put(Y, iterCount);
-              if(work.get(Y) < iterCount) {
-                work.put(Y, iterCount);
-                W.add(Y);
-              }
+          if(hasAlready[Y.getIndex()] < iterCount) {
+
+            // place (V <- phi(V,..., V)) at Y
+            Y.insertPhiFunction(V, Y.getIncoming());
+
+            hasAlready[Y.getIndex()] = iterCount;
+            if(work[Y.getIndex()] < iterCount) {
+              work[Y.getIndex()] = iterCount;
+              W.add(Y);
             }
           }
         }
@@ -205,7 +264,7 @@ public class SsaTransformer {
 
   private int Top(Variable V) {
     Stack<Integer> stack = S.get(V);
-    if(stack.isEmpty()) {
+    if(stack == null || stack.isEmpty()) {
       throw new IllegalStateException("Variable " + V + " has not been assigned to before its use");
     }
     return stack.peek();
@@ -227,6 +286,7 @@ public class SsaTransformer {
     }
     throw new IllegalArgumentException("X is not a predecessor of Y");
   }
+
 
   public void removePhiFunctions(TypeSolver types) {
     for(BasicBlock bb : cfg.getBasicBlocks()) {
@@ -255,13 +315,11 @@ public class SsaTransformer {
     for (int i = 0; i < phi.getArguments().size(); i++) {
       SsaVariable variable = (SsaVariable)phi.getArgument(i);
 
-      if(variable.getVersion() == 0) {
-        cfg.getEntry().addStatement(new Assignment(lhs, variable));
-      } else {
-        FlowEdge incoming = phi.getIncomingEdges().get(i);
-        BasicBlock definingBlock = incoming.getPredecessor();
-        definingBlock.addStatementBeforeJump(new Assignment(lhs, variable));
-      }
+      FlowEdge incoming = phi.getIncomingEdges().get(i);
+      BasicBlock definingBlock = incoming.getPredecessor();
+      definingBlock.addStatementBeforeJump(new Assignment(lhs, variable));
     }
   }
+
+
 }

@@ -98,7 +98,7 @@ public class ControlFlowGraphTest extends CompilerTestCase {
     System.out.println(block);
 
     ControlFlowGraph cfg = new ControlFlowGraph(block);
-    List<BasicBlock> bb = cfg.getLiveBasicBlocks();
+    List<BasicBlock> bb = cfg.getBasicBlocks();
 
     System.out.println(cfg);
     cfg.dumpGraph();

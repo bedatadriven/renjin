@@ -28,8 +28,8 @@ import java.util.*;
 import java.util.Map.Entry;
 
 public class IRBody {
-  
-  private Statement statements[];
+
+  private Statement[] statements;
   private int labels[];
   
   private List<ReadParam> params = Collections.emptyList();
@@ -58,11 +58,7 @@ public class IRBody {
     return Lists.newArrayList(statements);
   }
 
-  public int getLabelInstructionIndex(IRLabel label) {
-    return labels[label.getIndex()];
-  }
-  
-  public Set<IRLabel> getIntructionLabels(int instructionIndex) {
+  public Set<IRLabel> getInstructionLabels(int instructionIndex) {
     Set<IRLabel> set = Sets.newHashSet();
     for(int i=0;i!=labels.length;++i) {
       if(labels[i]==instructionIndex) {
@@ -82,7 +78,7 @@ public class IRBody {
   }
   
   private String labelAt(int instructionIndex) {
-    Set<IRLabel> labels = getIntructionLabels(instructionIndex);
+    Set<IRLabel> labels = getInstructionLabels(instructionIndex);
     
     return  labels.isEmpty() ? Strings.repeat(" ", 5) :
       Strings.padEnd(labels.iterator().next().toString(), 5, ' ');

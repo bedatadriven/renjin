@@ -20,11 +20,9 @@ package org.renjin.compiler.builtins;
 
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.SEXP;
 
 import java.util.List;
 
@@ -40,22 +38,18 @@ public class UnspecializedCall implements Specialization {
     this.pure = pure;
   }
 
-  @Override
-  public Type getType() {
-    return Type.getType(SEXP.class);
-  }
-
   public ValueBounds getResultBounds() {
     return ValueBounds.UNBOUNDED;
-  }
-
-  @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-    throw new FailedToSpecializeException("failed to specialize");
   }
 
   @Override
   public boolean isPure() {
     return false;
   }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+    throw new FailedToSpecializeException();
+  }
+
 }

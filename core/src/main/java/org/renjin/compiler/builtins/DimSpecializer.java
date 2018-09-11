@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.tac.RuntimeState;
@@ -54,11 +55,35 @@ public class DimSpecializer implements BuiltinSpecializer {
       throw new InvalidSyntaxException("dim() takes one argument.");
     }
     ValueBounds sexp = arguments.get(0).getBounds();
-    
-    if(sexp.isDimAttributeConstant()) {
-      return new ConstantCall(sexp.getConstantDimAttribute());
+
+    ValueBounds dim;
+    if(!sexp.isFlagSet(ValueBounds.MAYBE_DIM)) {
+
+      // Definitely NULL
+      dim = ValueBounds.builder()
+          .setTypeSet(TypeSet.NULL)
+          .addFlags(ValueBounds.FLAG_NO_NA)
+          .build();
+
+    } else if(sexp.isAnyFlagSet(ValueBounds.HAS_DIM)) {
+
+      // Definitely *not* null
+      dim = ValueBounds.builder()
+          .setTypeSet(TypeSet.INT)
+          .addFlags(ValueBounds.FLAG_NO_NA | ValueBounds.LENGTH_NON_ZERO)
+          .addFlags(ValueBounds.LENGTH_ONE, sexp.isFlagSet(ValueBounds.HAS_DIM1))
+          .build();
+
+    } else {
+
+      // Either NULL or int
+
+      dim = ValueBounds.builder()
+          .setTypeSet(TypeSet.NULL | TypeSet.INT)
+          .addFlags(ValueBounds.FLAG_NO_NA)
+          .build();
     }
-    
-    return new StaticMethodCall(method);
+
+    return new StaticMethodCall(method, dim);
   }
 }

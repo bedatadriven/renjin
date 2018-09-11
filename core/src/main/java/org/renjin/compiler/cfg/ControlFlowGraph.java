@@ -26,9 +26,16 @@ import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.util.DebugGraph;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-public class ControlFlowGraph {
+/**
+ * Representation, using graph notation, of all paths that might be traversed through a block of R code
+ * through its execution.
+ */
+public class ControlFlowGraph implements Graph {
 
   private final IRBody parent;
   private final List<BasicBlock> basicBlocks;
@@ -43,11 +50,16 @@ public class ControlFlowGraph {
     addBasicBlocks();
     linkBasicBlocks();
     removeDeadBlocks();
+
+    // renumber basic blocks
+    for (int i = 0; i < basicBlocks.size(); i++) {
+      BasicBlock basicBlock = basicBlocks.get(i);
+      basicBlock.index = i;
+    }
   }
 
   private void addBasicBlocks() {
-
-    entry = new BasicBlock(parent);
+    entry = new BasicBlock(0);
     entry.setDebugId("entry");
     basicBlocks.add(entry);
 
@@ -66,20 +78,18 @@ public class ControlFlowGraph {
       }
     }
 
-    exit = new BasicBlock(parent);
+    int exitBlockIndex = basicBlocks.size();
+    exit = new BasicBlock(exitBlockIndex);
     exit.setDebugId("exit");
     basicBlocks.add(exit);
 
     // Cytron adds an edge from entry to exit??
     addEdge(entry, exit);
   }
-  
-  public List<BasicBlock> getLiveBasicBlocks() {
-    return Collections.unmodifiableList(basicBlocks);
-  }
 
   private BasicBlock addNewBasicBlock(IRBody body, int i) {
-    BasicBlock bb = BasicBlock.createWithStartAt(body, i);
+    int newBlockIndex = basicBlocks.size();
+    BasicBlock bb = BasicBlock.createWithStartAt(newBlockIndex, body, i);
     bb.setDebugId(basicBlocks.size());
     basicBlocks.add(bb);
     for(IRLabel label : bb.getLabels()) {
@@ -128,7 +138,7 @@ public class ControlFlowGraph {
       changing=false;
 
       for (BasicBlock basicBlock : Lists.newArrayList(live)) {
-        if(live.addAll(basicBlock.getFlowSuccessors())) {
+        if(live.addAll(basicBlock.getSuccessors())) {
           changing = true;
         }
       }
@@ -175,17 +185,17 @@ public class ControlFlowGraph {
   }
 
   public List<BasicBlock> getSuccessors(BasicBlock x) {
-    return x.getFlowSuccessors();
+    return x.getSuccessors();
   }
 
   public List<BasicBlock> getPredecessors(BasicBlock x) {
-    return x.getFlowPredecessors();
+    return x.getPredecessors();
   }
 
   public void dumpGraph() {
     DebugGraph dump = new DebugGraph("compute");
     for (BasicBlock basicBlock : basicBlocks) {
-      for (BasicBlock successor : basicBlock.getFlowSuccessors()) {
+      for (BasicBlock successor : basicBlock.getSuccessors()) {
         dump.printEdge(basicBlock.getDebugId(), successor.getDebugId());
       }
     }
@@ -194,7 +204,7 @@ public class ControlFlowGraph {
 
   public void dumpEdges() {
     for (BasicBlock basicBlock : basicBlocks) {
-      for (BasicBlock block : basicBlock.getFlowSuccessors()) {
+      for (BasicBlock block : basicBlock.getSuccessors()) {
         System.out.println("edge[" + basicBlock.getDebugId() + ", " + block.getDebugId() + "]");
       }
     }

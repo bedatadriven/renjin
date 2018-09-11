@@ -19,7 +19,9 @@
 package org.renjin.compiler.ir;
 
 import org.junit.Test;
-import org.renjin.repackaged.asm.Type;
+import org.renjin.sexp.AttributeMap;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.StringVector;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -27,12 +29,18 @@ import static org.junit.Assert.assertThat;
 public class ValueBoundsTest {
 
   @Test
-  public void test() {
-    
-    assertThat(ValueBounds.INT_PRIMITIVE.storageType(), equalTo(Type.INT_TYPE));
-    
-    
+  public void unionClasses() {
+    ValueBounds x0 = ValueBounds.constantValue(DoubleVector.valueOf(1, AttributeMap.builder()
+        .set("foo", StringVector.valueOf("bar"))
+        .build()));
+
+    ValueBounds x = x0.withVaryingValues();
+    ValueBounds y = ValueBounds.builder().setTypeSet(TypeSet.DOUBLE).build();
+
+    ValueBounds u = x.union(y);
+
+    assertThat(u.isFlagSet(ValueBounds.MAYBE_OTHER_ATTR), equalTo(true));
+
   }
-  
-  
+
 }

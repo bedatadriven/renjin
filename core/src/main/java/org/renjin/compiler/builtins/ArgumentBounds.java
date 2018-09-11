@@ -18,6 +18,8 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.expressions.Constant;
@@ -29,10 +31,12 @@ import java.util.Map;
 
 public class ArgumentBounds {
   private String name;
+  private Expression expression;
   private ValueBounds bounds;
 
-  public ArgumentBounds(String name, ValueBounds bounds) {
+  public ArgumentBounds(String name, Expression expression, ValueBounds bounds) {
     this.name = name;
+    this.expression = expression;
     this.bounds = bounds;
   }
 
@@ -49,6 +53,14 @@ public class ArgumentBounds {
     return bounds;
   }
 
+  public Expression getExpression() {
+    return expression;
+  }
+
+  public CompiledSexp getCompiledExpr(EmitContext context) {
+    return expression.getCompiledExpr(context);
+  }
+
   /**
    * Combine a symbolic argument list with the current typeMap from the TypeSolver to get a list of
    * named arguments and their ValueBounds.
@@ -62,7 +74,7 @@ public class ArgumentBounds {
       Expression argumentExpr = symbolArgument.getExpression();
 
       // Lookup the value bounds of this symbolic expression in the typeMap,
-      // which tell us the bounds of this value at the *current* loop interation of the TypeSolver
+      // which tell us the bounds of this value at the *current* loop iteration of the TypeSolver
       ValueBounds argumentBounds;
       if(argumentExpr instanceof Constant) {
         argumentBounds = argumentExpr.getValueBounds();
@@ -71,7 +83,7 @@ public class ArgumentBounds {
       }
       assert argumentBounds != null : "No argument bounds for " + symbolArgument.getName();
 
-      result.add(new ArgumentBounds(symbolArgument.getName(), argumentBounds));
+      result.add(new ArgumentBounds(symbolArgument.getName(), argumentExpr, argumentBounds));
     }
     return result;
   }
@@ -82,5 +94,21 @@ public class ArgumentBounds {
       values.add(argumentBound.getBounds());
     }
     return values;
+  }
+
+  public int getTypeSet() {
+    return bounds.getTypeSet();
+  }
+
+  public int getFlags() {
+    return bounds.getFlags();
+  }
+
+  public static String[] names(List<ArgumentBounds> arguments) {
+    String[] names = new String[arguments.size()];
+    for (int i = 0; i < names.length; i++) {
+      names[i] = arguments.get(i).getName();
+    }
+    return names;
   }
 }

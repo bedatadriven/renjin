@@ -18,34 +18,61 @@
  */
 package org.renjin.compiler.ir.tac.statements;
 
+import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.TreeNode;
 import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
+import java.util.function.Consumer;
 
-public interface Statement extends TreeNode {
 
-  Iterable<IRLabel> possibleTargets();
+public abstract class Statement implements TreeNode {
 
-  Expression getRHS();
+  private BasicBlock basicBlock;
 
-  void setRHS(Expression newRHS);
+  public abstract Iterable<IRLabel> possibleTargets();
 
-  void accept(StatementVisitor visitor);
+  /**
+   *
+   * @return this statement's "right hand side" expression, or
+   * {@link org.renjin.compiler.ir.tac.expressions.NullExpression#INSTANCE} if this
+   * statement has no right hand side.
+   */
+  public abstract Expression getRHS();
+
+  public void forEachVariableUsed(Consumer<LValue> consumer) {
+    Expression rhs = getRHS();
+    if(rhs instanceof LValue) {
+      consumer.accept((LValue)rhs);
+    } else {
+      for (int i = 0; i < rhs.getChildCount(); i++) {
+        Expression child = rhs.childAt(i);
+        if(child instanceof LValue) {
+          consumer.accept((LValue) child);
+        }
+      }
+    }
+  }
 
   /**
    * Emits the bytecode for this instruction
-   * @param emitContext
-   * @param mv
-   * @return the required increase to the stack
    */
-  int emit(EmitContext emitContext, InstructionAdapter mv);
+  public abstract void emit(EmitContext emitContext, InstructionAdapter mv);
 
   /**
    *
    * @return true if this statement has no side effects.
    */
-  boolean isPure();
+  public abstract boolean isPure();
+
+  public final BasicBlock getBasicBlock() {
+    return basicBlock;
+  }
+
+  public final void setBasicBlock(BasicBlock basicBlock) {
+    this.basicBlock = basicBlock;
+  }
 }

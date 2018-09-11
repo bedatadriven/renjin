@@ -25,15 +25,18 @@ import org.renjin.sexp.*;
 public class TypeSet {
 
 
+  public static final int LOGICAL_BIT = 2;
+  public static final int LIST_BIT = 8;
+
   // Type Flags
-  public static final int LIST = (1 << 1);
-  public static final int NULL = (1 << 2);
-  public static final int LOGICAL = (1 << 3);
+  public static final int NULL = (1 << 1);
+  public static final int LOGICAL = (1 << LOGICAL_BIT);
+  public static final int RAW = (1 << 3);
   public static final int INT = (1 << 4);
   public static final int DOUBLE = (1 << 5);
-  public static final int STRING = (1 << 6);
-  public static final int COMPLEX = (1 << 7);
-  public static final int RAW = (1 << 8);
+  public static final int COMPLEX = (1 << 6);
+  public static final int STRING = (1 << 7);
+  public static final int LIST = (1 << LIST_BIT);
   public static final int SYMBOL = (1 << 9);
   public static final int FUNCTION = (1 << 10);
   public static final int ENVIRONMENT = (1 << 11);
@@ -44,6 +47,8 @@ public class TypeSet {
   public static final int ANY_TYPE = ANY_VECTOR | PAIRLIST | ENVIRONMENT | SYMBOL | FUNCTION;
 
   public static final int NUMERIC = INT | DOUBLE;
+
+
 
   public static int of(SEXP constant) {
     if(constant instanceof ListVector) {
@@ -93,15 +98,24 @@ public class TypeSet {
     } else if (type.equals(Complex.class)) {
       return COMPLEX;
 
-    } else if (type.equals(IntVector.class)) {
+    } else if (IntVector.class.isAssignableFrom(type)) {
       return INT;
 
-    } else if (type.equals(ListVector.class)) {
+    } else if (DoubleVector.class.isAssignableFrom(type)) {
+      return INT;
+
+    } else if (ListVector.class.isAssignableFrom(type)) {
       return LIST;
 
-    } else if (type.equals(AtomicVector.class)) {
+    } else if (LogicalVector.class.isAssignableFrom(type)) {
+      return LOGICAL;
+
+    } else if (AtomicVector.class.isAssignableFrom(type)) {
       return ANY_ATOMIC_VECTOR;
-      
+
+    } else if (Vector.class.isAssignableFrom(type)) {
+      return ANY_ATOMIC_VECTOR | LIST;
+
     } else if (type.equals(SEXP.class)) {
       return ANY_TYPE;
 
@@ -144,11 +158,20 @@ public class TypeSet {
     } else if(type.equals(RawVector.class)) {
       return RAW;
 
+    } else if(type.equals(ListVector.class)) {
+      return LIST;
+
+    } else if(type.equals(PairList.class)) {
+      return PAIRLIST | NULL;
+
     } else if(type.equals(Vector.class)) {
       return ANY_VECTOR;
 
     } else if(type.equals(AtomicVector.class)) {
       return ANY_ATOMIC_VECTOR;
+
+    } else if(type.equals(Symbol.class)) {
+      return SYMBOL;
 
     } else if (type.equals(SEXP.class)) {
       return ANY_TYPE;
@@ -211,14 +234,14 @@ public class TypeSet {
     }
 
     StringBuilder s = new StringBuilder();
-    appendType(s, "list", mask, LIST);
     appendType(s, "null", mask, NULL);
+    appendType(s, "logical", mask, LOGICAL);
+    appendType(s, "raw", mask, RAW);
     appendType(s, "int", mask, INT);
     appendType(s, "double", mask, DOUBLE);
-    appendType(s, "logical", mask, LOGICAL);
     appendType(s, "character", mask, STRING);
     appendType(s, "complex", mask, COMPLEX);
-    appendType(s, "raw", mask, RAW);
+    appendType(s, "list", mask, LIST);
     appendType(s, "symbol", mask, SYMBOL);
     appendType(s, "function", mask, FUNCTION);
     appendType(s, "environment", mask, ENVIRONMENT);
@@ -226,7 +249,7 @@ public class TypeSet {
     appendType(s, "S4", mask, S4);
     return s.toString();
   }
-  
+
   private static void appendType(StringBuilder sb, String name, int mask, int bit) {
     if( (mask & bit) != 0) {
       if(sb.length() > 1) {
@@ -236,18 +259,64 @@ public class TypeSet {
     }
   }
 
-
+  /**
+   * Return true if the type of the ValueBounds is definitely either double or integer
+   */
   public static boolean isDefinitelyNumeric(ValueBounds subscript) {
     return isDefinitelyNumeric(subscript.getTypeSet());
   }
 
+  /**
+   * Return true if the typeset is definitely either double or integer
+   */
   public static boolean isDefinitelyNumeric(int typeSet) {
     return (typeSet & NUMERIC) != 0 &&
         (typeSet & ~NUMERIC) == 0;
   }
 
+  /**
+   * Given two vectors with possible {@code TypeSet}s {@code x} and {@code y},
+   * find the TypeSet of the widest operator.
+   *
+   * For example, the widest of {character} and {double} is {character}, because
+   * {character} is always wider than {double}.
+   *
+   * But if you have widestVectorType({int, character}, {double}) then result will be
+   * {character,double}, because we don't know whether x is a
+   *
+   * @param x
+   * @param y
+   * @return
+   */
   public static int widestVectorType(int x, int y) {
-    return Math.max(x, y);
+    if(x == y) {
+      return x;
+    }
+    if(Integer.bitCount(x) == 1 && Integer.bitCount(y) == 1) {
+      return Math.max(x, y);
+    }
+
+    int result = 0;
+
+    // If either x or y are sets with multiple possible types, then
+    // we have to figure out the widest of all possible combinations.
+
+    for (int i = LOGICAL_BIT; i <= LIST_BIT; i++) {
+      for (int j = LOGICAL_BIT; j <= LIST_BIT; ++j) {
+        if(mightBe(x, 1 << i) && mightBe(y, 1 << j)) {
+          if(i < j) {
+            result |= (1 << j);
+          } else {
+            result |= (1 << i);
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  public static boolean mightBe(int typeSet, int type) {
+    return (typeSet & type) != 0;
   }
 
   public static int elementOf(int typeSet) {
@@ -262,8 +331,24 @@ public class TypeSet {
 
   }
 
+  /**
+   * Returns true if this typeSet is *definitely* an atomic vector, and it
+   * is known *which* atomic vector it is.
+   */
+  public static boolean isSpecificAtomic(int typeSet) {
+    return isDefinitelyAtomic(typeSet) && size(typeSet) == 1;
+  }
+
   public static boolean isDefinitelyAtomic(int typeSet) {
     return (typeSet & ANY_ATOMIC_VECTOR) != 0 &&
         (typeSet & ~ANY_ATOMIC_VECTOR) == 0;
+  }
+
+  public static boolean isDefinitelyNotAtomicVector(int typeSet) {
+    return (typeSet & ANY_ATOMIC_VECTOR) == 0;
+  }
+
+  public static int size(int typeSet) {
+    return Integer.bitCount(typeSet);
   }
 }

@@ -38,7 +38,7 @@ public class ReturnTranslator extends FunctionCallTranslator {
 
     Expression returnExpression;
     if(call.getArguments().length() == 1) {
-      returnExpression = builder.translateExpression(context, call.getArgument(0));
+      returnExpression = builder.translateSimpleExpression(context, call.getArgument(0));
     } else {
       returnExpression = Constant.NULL;
     }

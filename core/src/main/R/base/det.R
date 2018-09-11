@@ -1,5 +1,7 @@
 #  File src/library/base/R/det.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ## det now uses Lapack and an LU decomposition.  The method argument is
 ##     no longer used.
@@ -39,10 +41,9 @@ determinant.matrix <- function(x, logarithm = TRUE, ...)
 			      sign = 1L),
 			 class = "det"))
     if (is.complex(x))
-        stop("determinant not currently defined for complex matrices")
+        stop("'determinant' not currently defined for complex matrices")
     ## FIXME: should not be so hard to implement; see
     ##      moddet_ge_real() in ../../../modules/lapack/Lapack.c
     ## the 'sign' would have to be complex z, with |z|=1
-    storage.mode(x) <- "double"
-    .Call("det_ge_real", x, logarithm, PACKAGE = "base")
+    .Internal(det_ge_real(x, logarithm))
 }

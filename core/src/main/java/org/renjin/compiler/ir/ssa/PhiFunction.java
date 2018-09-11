@@ -20,11 +20,10 @@ package org.renjin.compiler.ir.ssa;
 
 import org.renjin.compiler.cfg.FlowEdge;
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.Variable;
-import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.Lists;
 
@@ -63,16 +62,6 @@ public class PhiFunction implements Expression {
   }
 
   @Override
-  public int load(EmitContext emitContext, InstructionAdapter mv) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public Type getType() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
     Iterator<Variable> it = arguments.iterator();
     ValueBounds bounds = it.next().updateTypeBounds(typeMap);
@@ -86,6 +75,11 @@ public class PhiFunction implements Expression {
   @Override
   public ValueBounds getValueBounds() {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    throw new UnsupportedOperationException("TODO");
   }
 
   public List<FlowEdge> getIncomingEdges() {

@@ -28,6 +28,7 @@ import org.renjin.primitives.vector.ConvertingStringVector;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.sexp.*;
 
+import java.lang.invoke.MethodHandle;
 import java.util.Arrays;
 import java.util.function.Predicate;
 
@@ -144,6 +145,7 @@ public class Vectors {
 
   @Generic
   @Builtin("as.logical")
+  @NoAttributes
   public static LogicalVector asLogical(ExternalPtr ptr) {
     Object instance = ptr.getInstance();
     Class clazz = instance.getClass();
@@ -160,6 +162,7 @@ public class Vectors {
 
   @Generic
   @Builtin("as.logical")
+  @NoAttributes
   public static LogicalVector asLogical(Vector vector) {
     checkForListThatCannotBeCoercedToAtomicVector(vector, "logical");
     return (LogicalVector) convertToAtomicVector(new LogicalArrayVector.Builder(), vector);
@@ -167,6 +170,7 @@ public class Vectors {
 
   @Generic
   @Builtin("as.logical")
+  @NoAttributes
   public static LogicalVector asLogical() {
     return LogicalArrayVector.EMPTY;
   }
@@ -174,12 +178,14 @@ public class Vectors {
 
   @Generic
   @Builtin("as.logical")
+  @NoAttributes
   public static LogicalVector asLogical(PairList.Node pairlist) {
     return asLogical(pairlist.toVector());
   }
 
   @Generic
   @Builtin("as.integer")
+  @NoAttributes
   public static IntVector asInteger(ExternalPtr ptr) {
     Object instance = ptr.getInstance();
     Class clazz = instance.getClass();
@@ -195,6 +201,7 @@ public class Vectors {
   }
 
   @Generic
+  @NoAttributes
   @Builtin("as.integer")
   public static IntVector asInteger(Vector source) {
     checkForListThatCannotBeCoercedToAtomicVector(source, "integer");
@@ -203,6 +210,7 @@ public class Vectors {
   }
 
   @Generic
+  @NoAttributes
   @Builtin("as.integer")
   public static IntVector asInteger() {
     return IntArrayVector.EMPTY;
@@ -210,6 +218,7 @@ public class Vectors {
 
 
   @Generic
+  @NoAttributes
   @Builtin("as.integer")
   public static IntVector asInteger(PairList.Node pairlist) {
     return asInteger(pairlist.toVector());
@@ -217,6 +226,7 @@ public class Vectors {
 
 
   @Generic
+  @NoAttributes
   @Builtin("as.double")
   public static DoubleVector asDouble(ExternalPtr ptr) {
     Object instance = ptr.getInstance();
@@ -233,6 +243,7 @@ public class Vectors {
   }
 
   @Generic
+  @NoAttributes
   @Builtin("as.double")
   public static DoubleVector asDouble(Vector source) {
     checkForListThatCannotBeCoercedToAtomicVector(source, "double");
@@ -249,12 +260,14 @@ public class Vectors {
   }
 
   @Generic
+  @NoAttributes
   @Builtin("as.double")
   public static DoubleVector asDouble(PairList.Node pairlist) {
     return asDouble(pairlist.toVector());
   }
 
   @Generic
+  @NoAttributes
   @Builtin("as.double")
   public static DoubleVector asDouble() {
     return DoubleArrayVector.EMPTY;
@@ -262,6 +275,7 @@ public class Vectors {
 
 
   @Generic
+  @NoAttributes
   @Builtin("as.raw")
   public static RawVector asRaw(Vector source) {
     /*
@@ -279,6 +293,7 @@ public class Vectors {
   }
 
   @Generic
+  @NoAttributes
   @Builtin("as.raw")
   public static RawVector asRaw(PairList.Node source) {
     return asRaw(source.toVector());
@@ -303,6 +318,7 @@ public class Vectors {
   }
 
   @Generic
+  @NoAttributes
   @Builtin("as.complex")
   public static ComplexVector asComplex(Vector vector) {
     
@@ -315,6 +331,7 @@ public class Vectors {
   }
 
   @Generic
+  @NoAttributes
   @Builtin("as.complex")
   public static ComplexVector asComplex() {
     return ComplexArrayVector.EMPTY;
@@ -322,6 +339,7 @@ public class Vectors {
 
 
   @Generic
+  @NoAttributes
   @Builtin("as.complex")
   public static ComplexVector asComplex(PairList.Node pairlist) {
     return asComplex(pairlist.toVector());
@@ -480,6 +498,7 @@ public class Vectors {
   }
 
   @Internal
+  @NoAttributes
   public static SEXP vector(String mode, int length) {
     if ("logical".equals(mode)) {
       return new LogicalArrayVector(new int[length]);
@@ -524,6 +543,7 @@ public class Vectors {
   }
 
   @Internal
+  @NoAttributes
   public static ComplexVector complex(int lengthOut, AtomicVector realVector, AtomicVector imaginaryVector) {
     if(realVector.length() > lengthOut) {
       lengthOut = realVector.length();
@@ -617,6 +637,7 @@ public class Vectors {
   }
   
   @Generic
+  @NoAttributes
   @Internal("as.vector")
   public static SEXP asVector(Symbol x, String mode) {
     if ("character".equals(mode)) {
@@ -691,6 +712,7 @@ public class Vectors {
   }
 
   @Internal
+  @NoAttributes
   public static StringVector rawToChar(RawVector vector, boolean multiple) {
     byte[] bytes = vector.toByteArray();
     if(multiple) {
@@ -706,6 +728,7 @@ public class Vectors {
   }
 
   @Internal
+  @NoAttributes
   public static RawVector rawToBits(RawVector vector) {
     RawVector.Builder bits = new RawVector.Builder();
     for(int i=0;i!=vector.length();++i) {
@@ -723,6 +746,7 @@ public class Vectors {
   }
 
   @Internal
+  @NoAttributes
   public static RawVector charToRaw(StringVector sv) {
     // the R lang docs inexplicably say that
     // this method converts a length-one character vector
@@ -779,5 +803,104 @@ public class Vectors {
     return bits.build();
   }
 
+  @CompilerSpecialization
+  public static double[] apply(MethodHandle method, double[] xa, double[] ya) throws Throwable {
+    if(xa.length == ya.length) {
+      int length = xa.length;
+      double[] result = new double[length];
+      for (int i = 0; i < length; i++) {
+        double x = xa[i];
+        double y = ya[i];
+        result[i] = (double)method.invokeExact(x, y);
+      }
+      return result;
+    } else {
+      throw new UnsupportedOperationException("TODO");
+    }
+  }
 
+  @CompilerSpecialization
+  public static double[] apply(MethodHandle method, double[] xa, double y) throws Throwable {
+    int length = xa.length;
+    double[] result = new double[length];
+    for (int i = 0; i < length; i++) {
+      double x = xa[i];
+      result[i] = (double)method.invokeExact(x, y);
+    }
+    return result;
+  }
+
+  @CompilerSpecialization
+  public static double apply(MethodHandle method, double x, double y) throws Throwable {
+    if(DoubleVector.isNA(x) || DoubleVector.isNA(y)) {
+      return DoubleVector.NA;
+    } else {
+      return (double) method.invokeExact(x, y);
+    }
+  }
+
+  @CompilerSpecialization
+  public static double applyDD(MethodHandle method, double x) throws Throwable {
+    if(DoubleVector.isNA(x)) {
+      return DoubleVector.NA;
+    } else {
+      return (double) method.invokeExact(x);
+    }
+  }
+
+  @CompilerSpecialization
+  public static int[] applyBI(MethodHandle method, int[] a) throws Throwable {
+    int n = a.length;
+    int[] result = new int[n];
+    for (int i = 0; i < n; i++) {
+      int x = a[i];
+      boolean b = (boolean) method.invoke(x);
+      result[i] = b ? 1 : 0;
+    }
+    return result;
+  }
+
+  @CompilerSpecialization
+  public static int[] applyBBNA(MethodHandle method, int[] a) throws Throwable {
+    int n = a.length;
+    int[] result = new int[n];
+    for (int i = 0; i < n; i++) {
+      int x = a[i];
+      if(x == IntVector.NA) {
+        result[i] = x;
+      } else {
+        boolean b = (boolean) method.invoke(x != 0);
+        result[i] = b ? 1 : 0;
+      }
+    }
+    return result;
+  }
+
+  @CompilerSpecialization
+  public static int toInt(double x) {
+    if(Double.isNaN(x)) {
+      return IntVector.NA;
+    } else {
+      return (int) x;
+    }
+  }
+
+  @CompilerSpecialization
+  public static double toDouble(int x) {
+    if(IntVector.isNA(x)) {
+      return DoubleVector.NA;
+    } else {
+      return x;
+    }
+  }
+
+  @CompilerSpecialization
+  public static int[] toIntArray(int x) {
+    return new int[] { x };
+  }
+
+  @CompilerSpecialization
+  public static double[] toDoubleArray(double x) {
+    return new double[] { x };
+  }
 }

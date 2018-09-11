@@ -152,6 +152,9 @@ public class Formatter {
             case '\\':
               sb.append('\\');
               break;
+            default:
+              sb.append('\\');
+              sb.append(c);
           }
         }
       } else {

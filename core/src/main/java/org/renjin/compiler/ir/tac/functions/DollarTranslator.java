@@ -18,15 +18,21 @@
  */
 package org.renjin.compiler.ir.tac.functions;
 
-import org.renjin.compiler.NotCompilableException;
+import org.renjin.compiler.ir.exception.InvalidSyntaxException;
+import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
+import org.renjin.compiler.ir.tac.expressions.BuiltinCall;
+import org.renjin.compiler.ir.tac.expressions.Constant;
 import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.NamedElementAccess;
 import org.renjin.compiler.ir.tac.statements.ExprStatement;
+import org.renjin.eval.EvalException;
+import org.renjin.primitives.special.DollarFunction;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.StringVector;
+
+import java.util.Arrays;
 
 
 public class DollarTranslator extends FunctionCallTranslator {
@@ -44,11 +50,15 @@ public class DollarTranslator extends FunctionCallTranslator {
     Expression object = builder.translateExpression(context, call.getArgument(0));
 
     SEXP nameArgument = call.getArgument(1);
-    if(!(nameArgument instanceof Symbol)) {
-      throw new NotCompilableException(call);
+    StringVector name;
+    try {
+      name = DollarFunction.parseNameArgument(nameArgument);
+    } catch (EvalException e) {
+      throw new InvalidSyntaxException(e.getMessage());
     }
-    String name = ((Symbol) nameArgument).getPrintName();
 
-    return new NamedElementAccess(object, name);
+    return new BuiltinCall(builder.getRuntimeState(), call, "$", Arrays.asList(
+        new IRArgument(object),
+        new IRArgument(new Constant(name))));
   }
 }

@@ -57,6 +57,7 @@ public class BuiltinSpecializers {
     specializers.put("[", new GenericBuiltinGuard(new SubsetSpecializer()));
     specializers.put("[[", new GenericBuiltinGuard(new SingleSubsetSpecializer()));
     specializers.put(".subset2", new SingleSubsetSpecializer());
+    specializers.put("$", new GenericBuiltinGuard(new DollarSpecializer()));
     specializers.put("c", new GenericBuiltinGuard(new CombineSpecializer()));
     specializers.put("is.array", new GenericBuiltinGuard(new IsArraySpecializer()));
     specializers.put("attributes", new GetAttributesSpecializer());

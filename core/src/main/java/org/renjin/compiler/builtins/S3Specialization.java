@@ -62,17 +62,26 @@ public class S3Specialization implements Specialization {
   
     returnBounds = inlinedMethod.updateBounds(arguments);
   }
-  
+
+  /**
+   * Tries to select a method based on the class of the {@code objectExpr}, or returns {@code null} if there is
+   * no method found.
+   */
   public static Specialization trySpecialize(String generic, RuntimeState runtimeState, ValueBounds objectExpr, List<ArgumentBounds> arguments) {
     StringVector objectClass = S3.computeDataClasses(objectExpr);
   
     if (objectClass == null) {
+      System.out.println("Call to generic builtin '" + generic + "' with unknown class, bailing...");
       // We can't determine the class on which to dispatch, so we have to give up
       return UnspecializedCall.INSTANCE;
     }
   
     // Otherwise, try to resolve the function
     Function function = runtimeState.findMethod(generic, null, objectClass);
+    if(function == null) {
+      return null;
+    }
+
     if(function instanceof Closure) {
       return new S3Specialization(generic, runtimeState, (Closure)function, arguments);
     }

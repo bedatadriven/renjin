@@ -144,6 +144,11 @@ public class ValueBounds {
    */
   private AtomicVector classAttribute;
 
+  /**
+   * The general shape of the list vector's elements, or null if not known
+   */
+  private ListShape shape = null;
+
 
   private ValueBounds() {}
   
@@ -471,6 +476,12 @@ public class ValueBounds {
       }
     }
 
+    if(shape != null) {
+      if(!shape.test(sexp)) {
+        return false;
+      }
+    }
+
     AttributeMap attributes = sexp.getAttributes();
     if(hasNoAttributes() && attributes.isEmpty()) {
       return true;
@@ -513,6 +524,10 @@ public class ValueBounds {
 
   public boolean hasNoAttributes() {
     return !isAnyFlagSet(MAYBE_ATTRIBUTES);
+  }
+
+  public ListShape getShape() {
+    return shape;
   }
 
 
@@ -584,7 +599,7 @@ public class ValueBounds {
       return this;
     }
 
-    public void setAttributes(AttributeMap attributes) {
+    public Builder setAttributes(AttributeMap attributes) {
       for (Symbol symbol : attributes.names()) {
         if(symbol == Symbols.DIM) {
           setDimCount((short)attributes.getDim().length());
@@ -602,6 +617,12 @@ public class ValueBounds {
           addFlags(ValueBounds.MAYBE_OTHER_ATTR);
         }
       }
+      return this;
+    }
+
+    public Builder setShape(ListShape shape) {
+      bounds.shape = shape;
+      return this;
     }
 
     public ValueBounds build() {

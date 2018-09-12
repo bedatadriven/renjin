@@ -47,7 +47,10 @@ public class GenericBuiltinGuard implements Specializer {
     // If the class attribute is not known to be NULL, we need to try to
     // do S3 dispatch
     if(object.isFlagSet(ValueBounds.MAYBE_CLASS)) {
-      return S3Specialization.trySpecialize(specializer.getName(), runtimeState, object, arguments);
+      Specialization method = S3Specialization.trySpecialize(specializer.getName(), runtimeState, object, arguments);
+      if(method != null) {
+        return method;
+      }
     }
 
     return specializer.trySpecialize(runtimeState, arguments);

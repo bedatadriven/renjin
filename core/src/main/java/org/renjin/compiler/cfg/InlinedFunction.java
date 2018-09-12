@@ -81,7 +81,6 @@ public class InlinedFunction {
         returnStatements.add((ReturnStatement) statement);
       }
     }
-    System.out.println(compiler.getControlFlowGraph());
   }
 
   @VisibleForTesting

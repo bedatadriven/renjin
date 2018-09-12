@@ -164,6 +164,9 @@ public class TypeSet {
     } else if(type.equals(ListVector.class)) {
       return LIST;
 
+    } else if(type.equals(PairList.Node.class)) {
+      return PAIRLIST;
+
     } else if(type.equals(PairList.class)) {
       return PAIRLIST | NULL;
 
@@ -175,6 +178,9 @@ public class TypeSet {
 
     } else if(type.equals(Symbol.class)) {
       return SYMBOL;
+
+    } else if(type.equals(Function.class)) {
+      return FUNCTION;
 
     } else if (type.equals(SEXP.class)) {
       return ANY_TYPE;

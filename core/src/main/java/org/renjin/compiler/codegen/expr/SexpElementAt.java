@@ -69,7 +69,13 @@ class SexpElementAt implements CompiledSexp {
 
   @Override
   public void loadArray(EmitContext context, InstructionAdapter mv, VectorType vectorType) {
-    throw new UnsupportedOperationException("TODO");
+    new SexpExpr() {
+
+      @Override
+      public void loadSexp(EmitContext context, InstructionAdapter mv) {
+        SexpElementAt.this.loadSexp(context, mv);
+      }
+    }.loadArray(context, mv, vectorType);
   }
 
   @Override

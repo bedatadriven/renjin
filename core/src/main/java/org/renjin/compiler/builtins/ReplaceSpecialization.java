@@ -101,6 +101,13 @@ public class ReplaceSpecialization implements Specialization {
             BytecodeTypes.SEXP_TYPE,
             BytecodeTypes.SEXP_TYPE,
             BytecodeTypes.SEXP_TYPE);
+      case 3:
+        return Type.getMethodDescriptor(BytecodeTypes.SEXP_TYPE, Type.getType(Context.class),
+            BytecodeTypes.SEXP_TYPE,
+            BytecodeTypes.SEXP_TYPE,
+            BytecodeTypes.SEXP_TYPE,
+            BytecodeTypes.SEXP_TYPE,
+            BytecodeTypes.SEXP_TYPE);
       default:
         throw new IllegalArgumentException("subscript count: " + subscripts.length);
     }

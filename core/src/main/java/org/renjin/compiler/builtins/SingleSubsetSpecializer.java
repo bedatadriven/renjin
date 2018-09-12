@@ -19,9 +19,7 @@
 package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.ir.tac.RuntimeState;
-import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Primitives;
-import org.renjin.repackaged.guava.collect.Iterables;
 
 import java.util.List;
 
@@ -50,7 +48,7 @@ public class SingleSubsetSpecializer implements BuiltinSpecializer {
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
 
-    SingleSubsetByIndexSpecialization byIndex = SingleSubsetByIndexSpecialization.trySpecialize(arguments);
+    SingleSubsetByIndex byIndex = SingleSubsetByIndex.trySpecialize(arguments);
     if(byIndex != null) {
       return byIndex;
     }

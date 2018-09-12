@@ -41,7 +41,7 @@ import static org.renjin.repackaged.asm.Type.getType;
 
 public class ClassGenerator<T> implements Opcodes {
 
-  private static final boolean DEBUG = true;
+  private static final boolean DEBUG = false;
 
   private static final AtomicLong CLASS_COUNTER = new AtomicLong(1);
 

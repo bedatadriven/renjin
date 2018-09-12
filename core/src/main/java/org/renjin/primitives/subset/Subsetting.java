@@ -333,7 +333,10 @@ public class Subsetting {
     return setSubset(context, source, (Vector) replacement, Arrays.asList(subscript1, subscript2));
   }
 
-
+  @CompilerSpecialization
+  public static SEXP setSubset(Context context, SEXP source, SEXP subscript1, SEXP subscript2, SEXP subscript3, SEXP replacement) {
+    return setSubset(context, source, (Vector) replacement, Arrays.asList(subscript1, subscript2, subscript3));
+  }
 
   private static SEXP setSubset(Context context, SEXP source, Vector replacement, List<SEXP> subscripts) {
     SelectionStrategy selection = Selections.parseSelection(source, subscripts);

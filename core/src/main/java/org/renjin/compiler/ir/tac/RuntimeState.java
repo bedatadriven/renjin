@@ -19,6 +19,7 @@
 package org.renjin.compiler.ir.tac;
 
 import org.renjin.compiler.NotCompilableException;
+import org.renjin.compiler.ir.ListShape;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
@@ -247,6 +248,23 @@ public class RuntimeState {
    *
    */
   private static ValueBounds reasonableBounds(SEXP sexp) {
+    return reasonableBounds(sexp, 0);
+  }
+
+  /**
+   * Now decide how much we want to assume about this value.
+   * <p>
+   * The more information we include in the value bounds, the more we will be
+   * able to specialize and the more efficient our result will be.
+   * <p>
+   * The more we surface as a value bounds, however, the less likely we will be able
+   * to reuse the compiled fragment.
+   * <p>
+   * So we need a series of heuristics to determine what is useful to assume
+   * and what we should leave open
+   *
+   */
+  private static ValueBounds reasonableBounds(SEXP sexp, int depth) {
 
     int length = sexp.length();
     int type = TypeSet.of(sexp);
@@ -267,37 +285,66 @@ public class RuntimeState {
       }
     }
 
-    // 3) Atomic vectors we want to assume their shape, and attributes
-    Vector vector = (Vector) sexp;
-    ValueBounds.Builder bounds = ValueBounds.builder().setTypeSet(type);
+    // 3) For vectors, the presence/absence of attributes are essential for specialization
 
-    if(length == 1 && vector.isElementNA(0)) {
-      return ValueBounds.constantValue(sexp);
+    ValueBounds.Builder bounds = ValueBounds.builder()
+        .setTypeSet(type)
+        .setAttributes(sexp.getAttributes());
+
+
+    // 3a) List vectors are used for many structured data types, record the general shape,
+    // with some limits to avoid going overboard
+
+    if(sexp instanceof ListVector) {
+      if(depth < 3) {
+        bounds.setShape(reasonableShape((ListVector) sexp, depth));
+      }
     }
 
-    /// Treat scalars specially, this is hugely important to specialization
-    if(length == 1) {
+    // 4) Atomic vectors we want to assume their type and some properties about their
+    //    values that are required (or useful) for specialization
+    if(sexp instanceof AtomicVector) {
+      Vector vector = (Vector) sexp;
 
-      if (vector.isElementNA(0)) {
-        // Scalar NAs assume constant
+      if (length == 1 && vector.isElementNA(0)) {
         return ValueBounds.constantValue(sexp);
-
-      } else {
-        bounds.addFlags(ValueBounds.FLAG_NO_NA | ValueBounds.LENGTH_ONE);
-        bounds.addFlags(ValueBounds.FLAG_POSITIVE, vector.getElementAsDouble(0) > 0);
       }
 
-    } else {
-      // We don't want to spend a lot of time checking for NAs, but if it is trivial to
-      // determine, then stel that vast.
-      bounds.addFlags(ValueBounds.FLAG_NO_NA,
-          vector instanceof IntSequence ||
-          vector instanceof DoubleSequence);
+      /// Treat scalars specially, this is hugely important to specialization
+      if (length == 1) {
+
+        if (vector.isElementNA(0)) {
+          // Scalar NAs assume constant
+          return ValueBounds.constantValue(sexp);
+
+        } else {
+          bounds.addFlags(ValueBounds.FLAG_NO_NA | ValueBounds.LENGTH_ONE);
+          bounds.addFlags(ValueBounds.FLAG_POSITIVE, vector.getElementAsDouble(0) > 0);
+        }
+
+      } else {
+        // We don't want to spend a lot of time checking for NAs, but if it is trivial to
+        // determine, then stel that vast.
+        bounds.addFlags(ValueBounds.FLAG_NO_NA,
+            vector instanceof IntSequence ||
+                vector instanceof DoubleSequence);
+      }
     }
 
-    bounds.setAttributes(vector.getAttributes());
 
     return bounds.build();
+  }
+
+  private static ListShape reasonableShape(ListVector list, int depth) {
+    int n = list.length();
+    if(n < 30) {
+      ValueBounds elements[] = new ValueBounds[n];
+      for (int i = 0; i < n; i++) {
+        elements[i] = reasonableBounds(list.getElementAsSEXP(i), depth + 1);
+      }
+      return new ListShape(list.getNames(), elements);
+    }
+    return null;
   }
 
   /**

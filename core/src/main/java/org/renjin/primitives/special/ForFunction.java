@@ -104,7 +104,10 @@ public class ForFunction extends SpecialFunction {
     if(call.cache instanceof CachedLoopBody) {
       CachedLoopBody cachedLoopBody = (CachedLoopBody) call.cache;
       if(cachedLoopBody.assumptionsStillMet(context, rho, sequence)) {
+        System.out.println("Reusing cached loop body...");
         compiledBody = cachedLoopBody.getCompiledBody();
+      } else {
+        System.out.println("Discarding cached loop body...");
       }
     }
 
@@ -128,11 +131,15 @@ public class ForFunction extends SpecialFunction {
         throw new EvalException(e.getMessage());
 
       } catch (Exception e) {
+        e.printStackTrace();
         throw new EvalException("Exception compiling loop: " + e.getMessage(), e);
       }
     }
 
     compiledBody.run(context, rho, sequence, i);
+
+    System.out.println("Compiled loop body executed.");
+
     return true;
   }
 

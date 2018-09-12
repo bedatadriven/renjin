@@ -25,10 +25,10 @@ import org.renjin.compiler.ir.tac.IRArgument;
 
 import java.util.List;
 
-public class SingleSubsetByIndexSpecialization implements Specialization {
+public class SingleSubsetByIndex implements Specialization {
 
 
-  public static SingleSubsetByIndexSpecialization trySpecialize(List<ArgumentBounds> arguments) {
+  public static SingleSubsetByIndex trySpecialize(List<ArgumentBounds> arguments) {
     return null;
   }
 

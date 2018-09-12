@@ -759,7 +759,7 @@ public class Primitives {
     f("lib.fixup", Types.class, 111);
     f("pos.to.env", /*pos2env*/ null, 1);
     f("eapply", /*eapply*/ null, 10);
-    f("lapply", Evaluation.class, 10);
+    add(new ListApplyFunction());
     f("vapply", Evaluation.class, 10);
     f("mapply", Evaluation.class, 10);
     f("rapply", Evaluation.class, 11);

@@ -14,18 +14,6 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-lapply <- function (X, FUN, ...)
-{
-    FUN <- match.fun(FUN)
-    ## internal code handles all vector types, including expressions
-    ## However, it would be OK to have attributes which is.vector
-    ## disallows.
-    if(!is.vector(X) || is.object(X)) X <- as.list(X)
-    ## Note ... is not passed down.  Rather the internal code
-    ## evaluates FUN(X[i], ...) in the frame of this function
-    .Internal(lapply(X, FUN))
-}
-
 rapply <-
     function(object, f, classes = "ANY", deflt = NULL,
              how = c("unlist", "replace", "list"), ...)

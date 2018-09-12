@@ -19,8 +19,10 @@
 package org.renjin.eval;
 
 import org.renjin.compiler.builtins.ArgumentBounds;
+import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.sexp.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -178,6 +180,30 @@ public class ArgumentMatcher {
     }
 
     return new MatchedArgumentPositions(formalNames, formalToActual, matchedActuals, formalEllipses);
+  }
+
+  public MatchedArguments expandAndMatch(Context context, Environment rho, PairList arguments) {
+    ArgumentIterator it = new ArgumentIterator(context, rho, arguments);
+    List<String> names = new ArrayList<>(10);
+    List<SEXP> values = new ArrayList<>(10);
+    List<SEXP> tags = new ArrayList<>(10);
+    while(it.hasNext()) {
+      PairList.Node node = it.nextNode();
+      if(node.hasName()) {
+        names.add(node.getName());
+      } else {
+        names.add(null);
+      }
+      tags.add(node.getRawTag());
+      values.add(node.getValue());
+    }
+
+    int nargs = names.size();
+    String[] nameArray = names.toArray(new String[nargs]);
+    SEXP[] valueArray = values.toArray(new SEXP[nargs]);
+    SEXP[] tagArray = tags.toArray(new SEXP[nargs]);
+
+    return new MatchedArguments(match(nameArray), tagArray, valueArray);
   }
 
   public MatchedArguments match(PairList actuals) {

@@ -27,7 +27,18 @@ alphaName <- function() {
     Alpha$execute()
 }
 
+dummy <- function() { }
+
 .onLoad <- function(libname, pkgname) {
+
+    # make an active binding
+    pkgenv <- environment(dummy)
+    makeActiveBinding(
+        "symbol",
+        function() { stats::runif(1) },
+        pkgenv
+      )
+
     # The following loads the 'protein' dataset and inserts
     # into this package's namespace.
 

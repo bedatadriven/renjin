@@ -57,3 +57,13 @@ test.packageRds <- function() {
     assertTrue(file.exists(path))
 
 }
+
+
+test.activebinding.onload <- function() {
+    x <- symbol
+    y <- symbol
+
+    assertTrue(is.numeric(x))
+    assertTrue(is.numeric(y))
+    assertTrue(x != y)
+}

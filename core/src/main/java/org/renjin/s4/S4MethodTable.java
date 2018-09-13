@@ -132,9 +132,9 @@ public class S4MethodTable {
 
     Environment table = (Environment) forcedTable;
 
-    for (NamedValue namedValue : table.namedValues()) {
-      String signature = namedValue.getName();
-      SEXP definition = namedValue.getValue();
+    for (Symbol symbol : table.getSymbolNames()) {
+      String signature = symbol.getPrintName();
+      SEXP definition = table.getVariable(context, symbol);
       Method method = new Method(generic, groupLevel, signature, definition);
 
       if(method.getSignatureLength() > maximumSignatureLength) {

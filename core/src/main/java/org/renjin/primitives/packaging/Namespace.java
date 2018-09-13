@@ -142,11 +142,15 @@ public class Namespace {
    */
   public void copyExportsTo(Context context, Environment packageEnv) {
     for(Symbol name : exports) {
-      SEXP exportValue = namespaceEnvironment.findVariableUnsafe(name);
-      if(exportValue == Symbol.UNBOUND_VALUE) {
-        context.warn(String.format("Symbol '%s' is not defined in package '%s'", name.getPrintName(), pkg.getName()));
+      if(namespaceEnvironment.isActiveBinding(name)) {
+        packageEnv.makeActiveBinding(name, namespaceEnvironment.getActiveBinding(name));
       } else {
-        packageEnv.setVariableUnsafe(name, exportValue);
+        SEXP exportValue = namespaceEnvironment.findVariableUnsafe(name);
+        if(exportValue == Symbol.UNBOUND_VALUE) {
+          context.warn(String.format("Symbol '%s' is not defined in package '%s'", name.getPrintName(), pkg.getName()));
+        } else {
+          packageEnv.setVariableUnsafe(name, exportValue);
+        }
       }
     }
   }

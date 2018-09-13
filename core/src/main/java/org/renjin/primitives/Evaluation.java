@@ -86,6 +86,10 @@ public class Evaluation {
   public static ListVector lapply(@Current Context context, @Current Environment rho, Vector vector,
       Function function) {
 
+    if(vector.length() > 20) {
+      java.lang.System.out.println("lapply " + vector.length() + " " + java.lang.System.identityHashCode(context.getCall()));
+    }
+
     ListVector.Builder builder = ListVector.newBuilder();
     for(int i=0;i!=vector.length();++i) {
       // For historical reasons, the calls created by lapply are unevaluated, and code has
@@ -500,7 +504,12 @@ public class Evaluation {
 
   @Builtin
   public static int nargs(@Current Context context, @Current Environment environment) {
-    return Contexts.findCallingContext(context, environment).getArguments().length();
+    Context callingContext = Contexts.findCallingContext(context, environment);
+    if(callingContext.getType() == Context.Type.FUNCTION) {
+      return callingContext.getArguments().length();
+    } else {
+      return IntVector.NA;
+    }
   }
   
   @Builtin(".Primitive")

@@ -19,7 +19,18 @@
 package org.renjin.sexp;
 
 public interface NamedValue {
+  /**
+   * @return true if this value has a name
+   */
   boolean hasName();
+
+  /**
+   * @return this value's name, or the empty string ("") if the value has no name
+   */
   String getName();
+
+  /**
+   * @return the value
+   */
   SEXP getValue();
 }

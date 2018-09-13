@@ -74,7 +74,10 @@ public interface AtomicVector extends Vector {
   /**
    * @return a copy of the vector as an array of doubles
    */
-  public double[] toDoubleArray();
+  double[] toDoubleArray();
+
+  String[] toStringArray();
+
 
   /**
    * @return a copy of the vector as an array of integers

@@ -18,14 +18,13 @@
  */
 package org.renjin.compiler.builtins;
 
-import org.renjin.compiler.codegen.ConstantBytecode;
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.reflection.converters.Converters;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.*;
 
 import java.util.HashMap;
@@ -46,32 +45,27 @@ public class ConstantCall implements Specialization {
 
     if (constantValue instanceof Integer) {
       type = Type.INT_TYPE;
-      valueBounds = ValueBounds.of(IntVector.valueOf((Integer) constantValue));
+      valueBounds = ValueBounds.constantValue(IntVector.valueOf((Integer) constantValue));
     
     } else if(constantValue instanceof Double) {
       type = Type.DOUBLE_TYPE;
-      valueBounds = ValueBounds.of(DoubleVector.valueOf((Double) constantValue));
+      valueBounds = ValueBounds.constantValue(DoubleVector.valueOf((Double) constantValue));
 
     } else if(constantValue instanceof Boolean) {
       type = Type.BOOLEAN_TYPE;
-      valueBounds = ValueBounds.of(LogicalVector.valueOf((Boolean) constantValue));
+      valueBounds = ValueBounds.constantValue(LogicalVector.valueOf((Boolean) constantValue));
 
     } else if(constantValue instanceof String) {
       type = Type.getType(String.class);
-      valueBounds = ValueBounds.of(StringVector.valueOf((String) constantValue));
+      valueBounds = ValueBounds.constantValue(StringVector.valueOf((String) constantValue));
 
     } else if(constantValue instanceof SEXP) {
       type = Type.getType(constantValue.getClass());
-      valueBounds = ValueBounds.of((SEXP)constantValue);
+      valueBounds = ValueBounds.constantValue((SEXP)constantValue);
       
     } else {
       throw new UnsupportedOperationException("constantValue: " + constantValue);
     }
-  }
-
-  @Override
-  public Type getType() {
-    return type;
   }
 
   public ValueBounds getResultBounds() {
@@ -79,27 +73,16 @@ public class ConstantCall implements Specialization {
   }
 
   @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-    if(constantValue instanceof Integer) {
-      mv.iconst((Integer) constantValue);
-    } else if(constantValue instanceof Double) {
-      mv.dconst((Double) constantValue);
-    } else if(constantValue instanceof Boolean) {
-      mv.iconst(constantValue == Boolean.TRUE ? 1 : 0);
-    } else if(constantValue instanceof SEXP) {
-      ConstantBytecode.pushConstant(mv, ((SEXP) constantValue));
-    } else {
-      throw new UnsupportedOperationException("constantValue: " + constantValue.getClass());
-    }
-  }
-
-  @Override
   public boolean isPure() {
     return true;
   }
 
-  public static ConstantCall evaluate(JvmMethod method, List<ValueBounds> arguments) {
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+    throw new UnsupportedOperationException("TODO");
+  }
 
+  public static ConstantCall evaluate(JvmMethod method, List<ValueBounds> arguments) {
 
     ListVector.Builder varArgs = null;
     Map<String, Object> namedFlags = null;

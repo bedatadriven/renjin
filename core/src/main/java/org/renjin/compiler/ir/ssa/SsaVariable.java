@@ -18,6 +18,8 @@
  */
 package org.renjin.compiler.ir.ssa;
 
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.IRFormatting;
 import org.renjin.compiler.ir.tac.expressions.Variable;
 
@@ -54,8 +56,12 @@ public class SsaVariable extends Variable {
       return true;
     }
   }
-  
-  
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    return emitContext.getVariable(this).getCompiledExpr();
+  }
+
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();

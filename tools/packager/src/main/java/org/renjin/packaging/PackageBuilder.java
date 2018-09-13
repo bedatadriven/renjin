@@ -19,6 +19,7 @@
 package org.renjin.packaging;
 
 
+import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.io.ByteStreams;
 import org.renjin.repackaged.guava.io.Files;
 
@@ -46,24 +47,37 @@ public class PackageBuilder {
   }
 
   public void build() throws IOException {
-    copyRootFiles();
+    copyDescriptionFile();
+    writePackageName();
     compileNativeSources();
     copyInstalledFiles();
     compileNamespace();
     compileDatasets();
   }
 
-
   /**
    * Copies files from the package root, including DESCRIPTION and NAMESPACE
    */
-  public void copyRootFiles() throws IOException {
+  public void copyDescriptionFile() throws IOException {
     packageSource.getDescription().writeTo(new File(context.getPackageOutputDir(), "DESCRIPTION"));
-    copyRootFile(packageSource.getNamespaceFile());
   }
 
-  private void copyRootFile(File file) throws IOException {
-    Files.copy(file, new File(context.getPackageOutputDir(), file.getName()));
+  /**
+   * Writes an entry to META-INF/org.renjin.package/{packageName} that contains the package's
+   * fully-qualified name. This allows loading the locating packages by unqualified name on the classpath.
+   */
+  private void writePackageName() throws IOException {
+    File metaInf = new File(context.getOutputDir(), "META-INF");
+    File packageDir = new File(metaInf, "org.renjin.package");
+
+    boolean success = packageDir.mkdirs();
+    if(!success) {
+      throw new IOException("Failed to create directory " + packageDir.getAbsolutePath());
+    }
+
+    File packageNameFile = new File(packageDir, packageSource.getPackageName());
+
+    Files.write(packageSource.getGroupId() + ":" + packageSource.getPackageName(), packageNameFile, Charsets.UTF_8);
   }
 
   private void compileNativeSources() {
@@ -155,7 +169,7 @@ public class PackageBuilder {
       JarEntry entry;
       while ((entry = in.getNextJarEntry()) != null) {
         if (!entry.isDirectory()) {
-          File outputFile = new File(context.getOutputDir().getAbsolutePath() + "/" + entry.getName());
+          File outputFile = new File(context.getPackageOutputDir().getAbsolutePath() + "/" + entry.getName());
           if(!outputFile.getParentFile().exists()) {
             boolean created = outputFile.getParentFile().mkdirs();
             if(!created) {

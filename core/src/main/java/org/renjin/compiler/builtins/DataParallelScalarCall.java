@@ -19,9 +19,11 @@
 package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.ScalarExpr;
+import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -35,22 +37,17 @@ import java.util.List;
 public class DataParallelScalarCall implements Specialization {
   
   private final JvmMethod method;
+  private final List<ArgumentBounds> argumentBounds;
   private final ValueBounds valueBounds;
-  private final boolean constant;
 
-  public DataParallelScalarCall(JvmMethod method, List<ValueBounds> argumentBounds, ValueBounds resultBounds) {
+  public DataParallelScalarCall(JvmMethod method, List<ArgumentBounds> argumentBounds, ValueBounds resultBounds) {
     this.method = method;
+    this.argumentBounds = argumentBounds;
     this.valueBounds = resultBounds;
-    this.constant = ValueBounds.allConstant(argumentBounds);
   }
   
   public Specialization trySpecializeFurther() {
     return this;
-  }
-
-  @Override
-  public Type getType() {
-    return Type.getType(method.getReturnType());
   }
 
   public ValueBounds getResultBounds() {
@@ -58,27 +55,44 @@ public class DataParallelScalarCall implements Specialization {
   }
 
   @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-    
-    Iterator<IRArgument> argumentIt = arguments.iterator();
-
-    for (JvmMethod.Argument formal : method.getAllArguments()) {
-      if(formal.isContextual()) {
-        throw new UnsupportedOperationException("TODO");
-        
-      } else if(formal.isRecycle()) {
-        Expression argument = argumentIt.next().getExpression();
-        argument.load(emitContext, mv);
-        emitContext.convert(mv, argument.getType(), Type.getType(formal.getClazz()));
-      }
-    }
-    
-    mv.invokestatic(Type.getInternalName(method.getDeclaringClass()), method.getName(), 
-        Type.getMethodDescriptor(method.getMethod()), false);
-  }
-
-  @Override
   public boolean isPure() {
     return method.isPure();
   }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext context, List<IRArgument> arguments) {
+    return new ScalarExpr(vectorTypeOf(method.getReturnType())) {
+      @Override
+      public void loadScalar(EmitContext context, InstructionAdapter mv) {
+        Iterator<ArgumentBounds> argumentIt = argumentBounds.iterator();
+
+        for (JvmMethod.Argument formal : method.getAllArguments()) {
+          if(formal.isContextual()) {
+            throw new UnsupportedOperationException("TODO");
+
+          } else if(formal.isRecycle()) {
+            CompiledSexp argument = argumentIt.next().getExpression().getCompiledExpr(context);
+            argument.loadAsArgument(context, mv, formal.getClazz());
+          }
+        }
+
+        mv.invokestatic(Type.getInternalName(method.getDeclaringClass()), method.getName(),
+            Type.getMethodDescriptor(method.getMethod()), false);
+      }
+    };
+  }
+
+  private VectorType vectorTypeOf(Class returnType) {
+    if(returnType.equals(int.class)) {
+      return VectorType.INT;
+    } else if(returnType.equals(double.class)) {
+      return VectorType.DOUBLE;
+    } else if(returnType.equals(byte.class)) {
+      return VectorType.BYTE;
+    } else if(returnType.equals(boolean.class)) {
+      return VectorType.LOGICAL;
+    }
+    throw new UnsupportedOperationException("TODO: " + returnType.getSimpleName());
+  }
+
 }

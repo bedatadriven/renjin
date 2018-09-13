@@ -20,6 +20,7 @@ package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.invoke.annotations.CompilerSpecialization;
 import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.sexp.*;
 
@@ -48,21 +49,28 @@ public class SwitchFunction extends SpecialFunction {
 
     SEXP expr = context.evaluate(exprNode.getValue(), rho);
 
-    if(expr.length() == 1) {
-      if (expr instanceof StringVector) {
-        return matchByName(context, rho, expr, argIt);
-      } else if (expr instanceof AtomicVector) {
-        return matchByPosition(context, rho, expr, argIt);
-      }
+    checkExprArgument(expr);
+
+    if (isBranchName(expr)) {
+      return matchByName(context, rho, expr, argIt);
+    } else {
+      return matchByPosition(context, rho, expr, argIt);
     }
-    throw new EvalException("EXPR must be a length 1 vector");
+  }
+
+  private static AtomicVector checkExprArgument(SEXP expr) {
+    if(expr.length() != 1 || !(expr instanceof AtomicVector)) {
+      throw new EvalException("EXPR must be a length 1 vector");
+    }
+    return (AtomicVector)expr;
+  }
+
+  private static boolean isBranchName(SEXP expr) {
+    return expr instanceof StringVector;
   }
 
   private static SEXP matchByName(Context context, Environment rho, SEXP expr, ArgumentIterator argIt) {
-    String name = expr.asString();
-    if(StringVector.isNA(name)) {
-      name = "NA";
-    }
+    String name = branchName(expr);
 
     while(argIt.hasNext()) {
       PairList.Node argNode = argIt.nextNode();
@@ -90,9 +98,10 @@ public class SwitchFunction extends SpecialFunction {
     return Null.INSTANCE;
   }
 
+
   private static SEXP matchByPosition(Context context, Environment rho, SEXP expr, ArgumentIterator argIt) {
 
-    int pos = ((AtomicVector) expr).getElementAsInt(0);
+    int pos = branchNumber((AtomicVector) expr);
 
     if(!IntVector.isNA(pos) && pos > 0) {
       int argIndex = 1;
@@ -108,11 +117,48 @@ public class SwitchFunction extends SpecialFunction {
     return Null.INSTANCE;
   }
 
-  public static SEXP matchAndApply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] arguments) {
-    PairList.Builder args = new PairList.Builder();
-    for(int i =0;i!=arguments.length;++i) {
-      args.add(argumentNames[i], arguments[i]);
+  public static String branchName(SEXP expr) {
+    String name = expr.asString();
+    if(StringVector.isNA(name)) {
+      name = "NA";
     }
-    return doApply(context, rho, call, args.build());
+    return name;
+  }
+
+  public static int branchNumber(AtomicVector expr) {
+    return expr.getElementAsInt(0);
+  }
+
+  @CompilerSpecialization
+  public static boolean testFinal(SEXP expr, int branchNumber) {
+    AtomicVector vector = checkExprArgument(expr);
+    if(isBranchName(vector)) {
+      // The last, unnamed argument in the switch() function matches
+      // any character
+      return true;
+    }
+
+    // If the EXPR argument is a branch number, then it still
+    // needs to match the branch number
+    return branchNumber(vector) == branchNumber;
+  }
+
+  @CompilerSpecialization
+  public static boolean test(SEXP expr, int branchNumber) {
+    AtomicVector vector = checkExprArgument(expr);
+    if(isBranchName(expr)) {
+      return false;
+    }
+    return branchNumber(vector) == branchNumber;
+  }
+
+  @CompilerSpecialization
+  public static boolean test(SEXP expr, int branchNumber, String branchName) {
+    AtomicVector vector = checkExprArgument(expr);
+    if(isBranchName(expr)) {
+      return branchName(expr).equals(branchName);
+    } else {
+      return branchNumber(vector) == branchNumber;
+    }
   }
 }

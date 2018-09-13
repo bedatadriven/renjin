@@ -173,7 +173,7 @@ public class NonlinearLeastSquares {
     }
     Vector response = (Vector)responseExpr;
     for(int i=0;i!=response.length();++i) {
-      if(!DoubleVector.isFinite(response.getElementAsDouble(i))) {
+      if(!Double.isFinite(response.getElementAsDouble(i))) {
         throw new EvalException("Missing value or an infinity produced when evaluating the model");
       }
     }
@@ -219,7 +219,7 @@ public class NonlinearLeastSquares {
         DoubleVector responseDelta = (DoubleVector) context.evaluate(modelExpr, rho);
 
         for (int k = 0; k < response.length(); k++) {
-          if (!DoubleVector.isFinite(responseDelta.getElementAsDouble(k))) {
+          if (!Double.isFinite(responseDelta.getElementAsDouble(k))) {
             throw new EvalException("Missing value or an infinity produced when evaluating the model");
           }
           double difference = responseDelta.getElementAsDouble(k) - response.getElementAsDouble(k);

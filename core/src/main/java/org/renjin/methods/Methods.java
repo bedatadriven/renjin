@@ -461,7 +461,7 @@ public class Methods {
       }
     }
 
-    Signature signature = new Signature(args.toArray());
+    Signature signature = new Signature(args.toStringArray());
 
     boolean[] inheritance = computeUseInheritance(args, useInherited, generic, methodTable);
 

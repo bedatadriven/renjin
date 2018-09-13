@@ -19,7 +19,6 @@
 package org.renjin.cli.build;
 
 import org.renjin.RenjinVersion;
-import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.io.Files;
 
 import java.io.File;
@@ -37,7 +36,7 @@ public class JarArchiver implements AutoCloseable {
   
   private static final Attributes.Name CREATED_BY = new Attributes.Name("Created-By");
   
-  public JarOutputStream output;
+  private JarOutputStream output;
 
   public JarArchiver(File jarFile) throws IOException {
     Manifest manifest = new Manifest();
@@ -71,17 +70,6 @@ public class JarArchiver implements AutoCloseable {
         }
       }
     }
-  }
-  
-  public void addFile(File source, String fileNameInJar) throws IOException {
-    Preconditions.checkArgument(source.isFile());
-    
-    JarEntry entry = new JarEntry(fileNameInJar);
-    entry.setTime(source.lastModified());
-
-    output.putNextEntry(entry);
-    
-    Files.copy(source, output);
   }
 
   private String relative(File relativeTo, File source) {

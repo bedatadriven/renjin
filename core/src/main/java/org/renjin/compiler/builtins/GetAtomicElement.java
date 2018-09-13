@@ -19,16 +19,14 @@
 package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.ScalarExpr;
+import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbols;
 
 import java.util.List;
 
@@ -37,79 +35,53 @@ import java.util.List;
  */
 public class GetAtomicElement implements Specialization {
 
-
+  private final ArgumentBounds source;
+  private final List<ArgumentBounds> subscripts;
   private final ValueBounds resultBounds;
-  private final Type type;
+  private final VectorType vectorType;
 
-  public static boolean accept(ValueBounds source, ValueBounds subscript) {
+  public static GetAtomicElement trySpecialize(ArgumentBounds source, List<ArgumentBounds> subscripts) {
 
-    if(!TypeSet.isDefinitelyAtomic(source.getTypeSet())) {
-      return false;
+    if(subscripts.size() != 1) {
+      return null;
     }
 
-    if (subscript.getLength() != 1) {
-      return false;
-    }
-    if (subscript.maybeNA()) {
-      return false;
+    ArgumentBounds subscript = subscripts.get(0);
+
+    if (!TypeSet.isSpecificAtomic(source.getTypeSet()) || source.getTypeSet() == TypeSet.NULL) {
+      return null;
     }
 
-    return true;
+    if (!subscript.getBounds().isFlagSet(ValueBounds.LENGTH_ONE)) {
+      return null;
+    }
+
+    // The subscript *must* not be NA, and *must* be known to be positive, otherwise
+    // we could end up with x[0] or x[-1] or x[NA], which does *not* produce a scalar
+    if (!subscript.getBounds().isFlagSet(ValueBounds.FLAG_NO_NA & ValueBounds.FLAG_POSITIVE)) {
+      return null;
+    }
+
+    // If the source *could* have a "names" attribute, then we can't
+    // represent it as a scalar
+    if(source.getBounds().isFlagSet(ValueBounds.MAYBE_NAMES)) {
+      return null;
+    }
+
+    ValueBounds resultBounds = new ValueBounds.Builder()
+        .setTypeSet(TypeSet.elementOf(source.getTypeSet()))
+        .addFlags(ValueBounds.LENGTH_ONE)
+        .addFlagsFrom(source.getBounds(), ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_POSITIVE)
+        .build();
+
+    return new GetAtomicElement(source, subscripts, resultBounds);
   }
 
-  public GetAtomicElement(ValueBounds source, ValueBounds subscript) {
-    assert accept(source, subscript);
-
-    ValueBounds.Builder resultBounds = new ValueBounds.Builder();
-    resultBounds.setTypeSet(TypeSet.elementOf(source.getTypeSet()));
-    resultBounds.setNA(source.getNA());
-    resultBounds.setAttributeSetOpen(false);
-    resultBounds.setLength(1);
-
-    SEXP resultNames = namesBounds(source);
-    if(resultNames != Null.INSTANCE) {
-      resultBounds.setAttribute(Symbols.NAMES, null);
-    }
-
-    this.resultBounds = resultBounds.build();
-    this.type = this.resultBounds.storageType();
-  }
-
-  private SEXP namesBounds(ValueBounds source) {
-
-    // Names attribute either comes from either:
-    // - the dimnames attribute of the source if length(dim(source)) == 1
-    // - the names attribute of the source otherwise
-
-
-    // So if both names and dimnames are null, then we're done.
-    SEXP names = source.getAttributeIfConstant(Symbols.NAMES);
-    SEXP dimnames = source.getAttributeIfConstant(Symbols.DIMNAMES);
-
-    if(names == Null.INSTANCE && dimnames == Null.INSTANCE) {
-      return Null.INSTANCE;
-    }
-
-    SEXP dim = source.getAttributeIfConstant(Symbols.DIM);
-    if(dim != null) {
-      if(dim.length() == 1) {
-        if(dimnames == Null.INSTANCE) {
-          return Null.INSTANCE;
-        }
-      } else {
-        if(names == Null.INSTANCE) {
-          return Null.INSTANCE;
-        }
-      }
-    }
-
-    // varying
-    return null;
-  }
-
-  @Override
-  public Type getType() {
-    return type;
+  private GetAtomicElement(ArgumentBounds source, List<ArgumentBounds> subscripts, ValueBounds resultBounds) {
+    this.source = source;
+    this.subscripts = subscripts;
+    this.resultBounds = resultBounds;
+    this.vectorType = VectorType.of(resultBounds.getTypeSet());
   }
 
   @Override
@@ -118,35 +90,30 @@ public class GetAtomicElement implements Specialization {
   }
 
   @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-    // Load the source
-    Expression sourceArgument = arguments.get(0).getExpression();
-    sourceArgument.load(emitContext, mv);
-    emitContext.convert(mv, sourceArgument.getType(), Type.getType(AtomicVector.class));
-
-    // Load the index
-    Expression indexArgument = arguments.get(0).getExpression();
-    indexArgument.load(emitContext, mv);
-    emitContext.convert(mv, indexArgument.getType(), Type.INT_TYPE);
-
-    switch (resultBounds.getTypeSet()) {
-      case TypeSet.INT:
-        mv.invokeinterface(Type.getInternalName(AtomicVector.class), "getElementAsInt",
-            Type.getMethodDescriptor(Type.INT_TYPE, Type.INT_TYPE));
-        break;
-      case TypeSet.DOUBLE:
-        mv.invokeinterface(Type.getInternalName(AtomicVector.class), "getElementAsDouble",
-            Type.getMethodDescriptor(Type.DOUBLE_TYPE, Type.INT_TYPE));
-        break;
-
-      default:
-        throw new UnsupportedOperationException("type: " + TypeSet.toString(resultBounds.getTypeSet()));
-
-    }
-  }
-
-  @Override
   public boolean isPure() {
     return true;
   }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+
+    CompiledSexp sourceEmitter = source.getCompiledExpr(emitContext);
+    if(subscripts.size() == 1) {
+      return sourceEmitter.elementAt(emitContext, zeroBasedIndex(subscripts.get(0)));
+    } else {
+      throw new UnsupportedOperationException("TODO");
+    }
+  }
+
+  private ScalarExpr zeroBasedIndex(ArgumentBounds subscript) {
+    return new ScalarExpr(VectorType.INT) {
+      @Override
+      public void loadScalar(EmitContext context, InstructionAdapter mv) {
+        subscript.getCompiledExpr(context).loadScalar(context, mv, VectorType.INT);
+        mv.visitInsn(Opcodes.ICONST_1);
+        mv.visitInsn(Opcodes.ISUB);
+      }
+    };
+  }
+
 }

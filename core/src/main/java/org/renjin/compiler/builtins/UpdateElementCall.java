@@ -18,41 +18,62 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.codegen.BytecodeTypes;
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.ArrayExpr;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.SexpExpr;
+import org.renjin.compiler.codegen.expr.VectorType;
+import org.renjin.compiler.codegen.var.VariableStrategy;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
+import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.statements.Assignment;
+import org.renjin.primitives.subset.Subsetting;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 import java.util.List;
 
 /**
- * Updates a single element in an atomic vector with a new scalar value.
+ * Updates a single element in an atomic vector of known type with a new scalar value.
  */
 public class UpdateElementCall implements Specialization {
-  
-  private ValueBounds inputVector;
-  private ValueBounds subscript;
-  private ValueBounds replacement;
 
-  public UpdateElementCall(ValueBounds inputVector, ValueBounds subscript, ValueBounds replacement) {
+  private ArgumentBounds inputVector;
+  private ArgumentBounds[] subscript;
+  private ArgumentBounds replacement;
+  private final VectorType resultVectorType;
+
+  public UpdateElementCall(ArgumentBounds inputVector, ArgumentBounds[] subscript, ArgumentBounds replacement) {
     this.inputVector = inputVector;
     this.subscript = subscript;
     this.replacement = replacement;
+    this.resultVectorType = VectorType.of(inputVector.getBounds().getTypeSet());
   }
 
-  @Override
-  public Type getType() {
-    return inputVector.storageType();
+  public static UpdateElementCall trySpecialize(ArgumentBounds inputVector, ArgumentBounds[] subscript, ArgumentBounds replacement) {
+    int inputTypeSet = inputVector.getTypeSet();
+    if(!TypeSet.isSpecificAtomic(inputTypeSet)) {
+      return null;
+    }
+    int resultTypeSet = TypeSet.widestVectorType(inputTypeSet, replacement.getTypeSet());
+    if(resultTypeSet != inputTypeSet) {
+      return null;
+    }
+    for (int i = 0; i < subscript.length; i++) {
+      ValueBounds subscriptBounds = subscript[i].getBounds();
+      if(!subscriptBounds.isFlagSet(ValueBounds.LENGTH_ONE) ||
+          !TypeSet.isDefinitelyNumeric(subscriptBounds.getTypeSet())) {
+        return null;
+      }
+    }
+    return new UpdateElementCall(inputVector, subscript, replacement);
   }
 
   public ValueBounds getResultBounds() {
-    return inputVector.withVaryingValues();
-  }
-
-  @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-    throw new FailedToSpecializeException("TODO");
+    return inputVector.getBounds().withVaryingValues();
   }
 
   @Override
@@ -60,5 +81,73 @@ public class UpdateElementCall implements Specialization {
     // Despite the name, values in R have copy-on-write semantics
     // so "update" operations have no side-effects, they return a new value.
     return true;
+  }
+
+  @Override
+  public void emitAssignment(EmitContext emitContext, InstructionAdapter mv, Assignment statement, List<IRArgument> arguments) {
+    Expression source = arguments.get(0).getExpression();
+    boolean mutableSource = emitContext.isSafelyMutable(statement, source);
+
+    VariableStrategy lhs = emitContext.getVariable(statement.getLHS());
+    CompiledSexp rhs = getCompiledExpr(emitContext, mutableSource);
+
+    lhs.store(emitContext, mv, rhs);
+  }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+    return getCompiledExpr(emitContext, false);
+  }
+
+  private CompiledSexp getCompiledExpr(EmitContext emitContext, boolean mutableSource) {
+    CompiledSexp compiledSource = inputVector.getCompiledExpr(emitContext);
+    CompiledSexp replacement = this.replacement.getCompiledExpr(emitContext);
+
+    final String methodName = mutableSource ? "setElementMutating" : "setElement";
+
+    if(compiledSource instanceof ArrayExpr) {
+
+      return new ArrayExpr(resultVectorType) {
+        @Override
+        public void loadArray(EmitContext context, InstructionAdapter mv, VectorType vectorType) {
+          compiledSource.loadArray(context, mv, resultVectorType);
+          for (int i = 0; i < subscript.length; i++) {
+            subscript[i].getCompiledExpr(emitContext).loadScalar(context, mv, VectorType.INT);
+          }
+          replacement.loadScalar(context, mv, resultVectorType);
+
+          mv.invokestatic(Type.getInternalName(Subsetting.class),
+              methodName,
+              signature(resultVectorType.getJvmArrayType(), resultVectorType), false);
+        }
+      };
+    } else {
+      return new SexpExpr() {
+        @Override
+        public void loadSexp(EmitContext context, InstructionAdapter mv) {
+          compiledSource.loadSexp(context, mv);
+          for (int i = 0; i < subscript.length; i++) {
+            subscript[i].getCompiledExpr(emitContext).loadScalar(context, mv, VectorType.INT);
+          }
+          replacement.loadScalar(context, mv, resultVectorType);
+
+          mv.invokestatic(Type.getInternalName(Subsetting.class),
+              methodName,
+              signature(BytecodeTypes.SEXP_TYPE, resultVectorType), false);
+        }
+      };
+    }
+  }
+
+  private String signature(Type inputType, VectorType vectorType) {
+
+    Type[] argumentTypes = new Type[1 + subscript.length + 1];
+    argumentTypes[0] = inputType;
+    for (int i = 0; i < subscript.length; i++) {
+      argumentTypes[i + 1] = Type.INT_TYPE;
+    }
+    argumentTypes[1 + subscript.length] = vectorType.getJvmType();
+
+    return Type.getMethodDescriptor(inputType, argumentTypes);
   }
 }

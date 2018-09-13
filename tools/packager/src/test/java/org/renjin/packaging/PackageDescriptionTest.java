@@ -21,6 +21,7 @@ package org.renjin.packaging;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.renjin.packaging.PackageDescription.parseFileList;
 
@@ -36,6 +37,14 @@ public class PackageDescriptionTest {
 
     // Double quotes
     assertThat(parseFileList("\"a file.R\" \"b.R\""), contains("a file.R", "b.R"));
+
+  }
+
+  @Test
+  public void renjinImportTest() {
+    PackageDescription.Dependency cranDependency = new PackageDescription.Dependency("org.renjin.cran:readxl");
+    assertThat(cranDependency.getName(), equalTo("readxl"));
+    assertThat(cranDependency.getGroupId(), equalTo("org.renjin.cran"));
 
   }
   

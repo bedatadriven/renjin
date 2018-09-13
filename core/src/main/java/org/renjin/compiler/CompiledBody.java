@@ -25,5 +25,12 @@ import org.renjin.sexp.SEXP;
 
 public interface CompiledBody {
 
+  /**
+   * The number of local variable used by this and the arguments.
+   * (this + context + environment)
+   */
+  int PARAM_SIZE = 3;
+
+
   SEXP evaluate(Context context, Environment rho);
 }

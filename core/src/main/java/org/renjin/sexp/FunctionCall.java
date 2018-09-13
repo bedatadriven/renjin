@@ -29,6 +29,8 @@ public class FunctionCall extends PairList.Node {
   public static final String TYPE_NAME = "language";
   public static final String IMPLICIT_CLASS = "call";
 
+  public Object cache;
+
   public FunctionCall(SEXP function, PairList arguments) {
     super(function, arguments);
   }

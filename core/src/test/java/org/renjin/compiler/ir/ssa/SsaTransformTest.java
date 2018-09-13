@@ -52,18 +52,18 @@ public class SsaTransformTest extends CompilerTestCase {
     assertThat(Iterables.size(assignmentsToK), equalTo(3));
 
     System.out.println("PREDECESSORS:");
-    for (BasicBlock basicBlock : cfg.getLiveBasicBlocks()) {
+    for (BasicBlock basicBlock : cfg.getBasicBlocks()) {
       System.out.println(basicBlock.getDebugId() + " => " + cfg.getPredecessors(basicBlock));
     }
     System.out.println("SUCESSORS:");
-    for (BasicBlock basicBlock : cfg.getLiveBasicBlocks()) {
+    for (BasicBlock basicBlock : cfg.getBasicBlocks()) {
       System.out.println(basicBlock.getDebugId() + " => " + cfg.getSuccessors(basicBlock));
     }
 
     DominanceTree dtree = new DominanceTree(cfg);
     System.out.println(dtree);
 
-    SsaTransformer transformer = new SsaTransformer(cfg, dtree);
+    SsaTransformer transformer = new SsaTransformer(cfg);
     transformer.transform();
 
 
@@ -99,7 +99,7 @@ public class SsaTransformTest extends CompilerTestCase {
     System.out.println("Dominance Tree:");  
     System.out.println(dtree);
     
-    SsaTransformer transformer = new SsaTransformer(cfg, dtree);
+    SsaTransformer transformer = new SsaTransformer(cfg);
     transformer.transform();
      
   }
@@ -110,7 +110,7 @@ public class SsaTransformTest extends CompilerTestCase {
 
     ControlFlowGraph cfg = new ControlFlowGraph(block);
     DominanceTree dtree = new DominanceTree(cfg);
-    SsaTransformer transformer = new SsaTransformer(cfg, dtree);
+    SsaTransformer transformer = new SsaTransformer(cfg);
     transformer.transform();
     
     System.out.println(cfg);
@@ -122,12 +122,12 @@ public class SsaTransformTest extends CompilerTestCase {
     IRBody block = buildBody("x <- 1; for(i in 1:2) { x<-x+1 }; x;");
     ControlFlowGraph cfg = new ControlFlowGraph(block);
     DominanceTree dtree = new DominanceTree(cfg);
-    SsaTransformer transformer = new SsaTransformer(cfg, dtree);
+    SsaTransformer transformer = new SsaTransformer(cfg);
     transformer.transform();
 
     System.out.println(cfg);
 
-    ReturnStatement stmt = (ReturnStatement) cfg.getBasicBlocks().get(5).getStatements().get(0);
+    ReturnStatement stmt = (ReturnStatement) cfg.getBasicBlocks().get(5).getTerminal();
     assertThat(stmt.getRHS(), instanceOf(SsaVariable.class));
   }
 }

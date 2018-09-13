@@ -46,7 +46,7 @@ public class DollarFunction extends SpecialFunction {
     }
 
     SEXP object = context.evaluate(args.getElementAsSEXP(0), rho);
-    StringVector nameArgument = evaluateName(args.getElementAsSEXP(1));
+    StringVector nameArgument = parseNameArgument(args.getElementAsSEXP(1));
 
     // For possible generic dispatch, repackage the name argument as character vector rather than
     // symbol
@@ -87,7 +87,7 @@ public class DollarFunction extends SpecialFunction {
     }
   }
 
-  static StringVector evaluateName(SEXP name) {
+  public static StringVector parseNameArgument(SEXP name) {
     if(name instanceof Symbol) {
       return new StringArrayVector(((Symbol) name).getPrintName());
     } else if(name instanceof StringVector) {
@@ -96,7 +96,8 @@ public class DollarFunction extends SpecialFunction {
       throw new EvalException("invalid subscript type '%s'", name.getTypeName());
     }
   }
-  
+
+
   public static SEXP fromPairList(PairList list, String name) {
     SEXP match = null;
     int matchCount = 0;

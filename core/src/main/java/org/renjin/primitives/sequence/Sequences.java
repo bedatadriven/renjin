@@ -54,12 +54,28 @@ public class Sequences {
     double n1 = s1.asReal();
     double n2 = s2.asReal();
 
+    return colonSequence(n1, n2);
+  }
+
+  public static AtomicVector colonSequence(double n1, double n2) {
     assertNotNa(n1);
     assertNotNa(n2);
 
     return new Range(n1, n2).vector();
   }
 
+  public static int[] colonSequence(int s1, int s2) {
+    int length = s2 - s1 + 1;
+    int[] array = new int[length];
+    if(s1 <= s2) {
+      for (int i = 0; i < length; i++) {
+        array[i] = i + s1;
+      }
+    } else {
+      throw new UnsupportedOperationException("TODO");
+    }
+    return array;
+  }
 
   private static void assertNotNa(double r1) {
     if(DoubleVector.isNaN(r1)) {

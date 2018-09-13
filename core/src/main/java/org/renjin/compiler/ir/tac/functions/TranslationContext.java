@@ -19,10 +19,14 @@
 package org.renjin.compiler.ir.tac.functions;
 
 
-import org.renjin.sexp.PairList;
+import org.renjin.compiler.ir.tac.IRArgument;
+import org.renjin.sexp.Symbol;
+
+import java.util.List;
 
 public interface TranslationContext {
   
-  PairList getEllipsesArguments();
+  List<IRArgument> getEllipsesArguments();
 
+  boolean isMissing(Symbol name);
 }

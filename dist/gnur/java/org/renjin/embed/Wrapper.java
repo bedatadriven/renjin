@@ -270,7 +270,7 @@ public class Wrapper {
             sexp.getAttributes());
     }
     if(sexp instanceof StringVector) {
-      return withUnwrapAttributes(engine.rniPutStringArray(((StringVector) sexp).toArray()), sexp.getAttributes());
+      return withUnwrapAttributes(engine.rniPutStringArray(((StringVector) sexp).toStringArray()), sexp.getAttributes());
     }
     if(sexp instanceof Symbol) {
       return withUnwrapAttributes(engine.rniInstallSymbol(((Symbol) sexp).getPrintName()), sexp.getAttributes());

@@ -18,19 +18,42 @@
  */
 package org.renjin.compiler.ir.tac.functions;
 
+import org.renjin.compiler.ir.tac.ExtraArgument;
+import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
-import org.renjin.sexp.PairList;
+import org.renjin.compiler.ir.tac.expressions.EllipsesVar;
+import org.renjin.sexp.Symbol;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class LoopBodyContext implements TranslationContext {
 
   private RuntimeState runtimeState;
+  private List<ExtraArgument> ellipses;
 
   public LoopBodyContext(RuntimeState runtimeState) {
     this.runtimeState = runtimeState;
   }
 
+  public boolean isEllipsesInitializationNeeded() {
+    return ellipses != null;
+  }
+
   @Override
-  public PairList getEllipsesArguments() {
-    return runtimeState.getEllipsesVariable();
+  public List<IRArgument> getEllipsesArguments() {
+    if(ellipses == null) {
+      ellipses = runtimeState.findEllipses();
+    }
+    List<IRArgument> arguments = new ArrayList<>();
+    for (int i = 0; i < ellipses.size(); i++) {
+      arguments.add(new IRArgument(ellipses.get(i).getName(), new EllipsesVar(i + 1)));
+    }
+    return arguments;
+  }
+
+  @Override
+  public boolean isMissing(Symbol name) {
+    return runtimeState.isMissing(name);
   }
 }

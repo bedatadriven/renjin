@@ -18,10 +18,19 @@
  */
 package org.renjin.cli.build;
 
-import org.renjin.packaging.BuildReporter;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.installation.InstallRequest;
+import org.eclipse.aether.installation.InstallationException;
+import org.eclipse.aether.util.artifact.SubArtifact;
+import org.renjin.aether.AetherFactory;
+import org.renjin.packaging.BuildException;
+import org.renjin.packaging.PackageBuilder;
 import org.renjin.packaging.PackageSource;
-import org.renjin.repackaged.guava.base.Strings;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -32,36 +41,60 @@ import java.util.List;
  */
 public class Builder {
 
+  private Builder() { }
+
   public static void execute(String action, String[] args) throws IOException {
-    BuildReporter reporter = new BuildReporter();
 
     List<String> packagePaths = Arrays.asList(args);
     for (String packagePath : packagePaths) {
       PackageSource source = new PackageSource.Builder(packagePath)
-          .setGroupId("org.renjin.cran")
+          .setDefaultGroupId("org.renjin.cran")
           .build();
-      
-      PackageBuild build = new PackageBuild(reporter, source, buildSuffix());
-      
+
+      PackageBuild build = new PackageBuild(source);
+
       if(action.equals("build") || action.equals("install")) {
-        build.build();
+        executeBuild(build);
       }
       if(action.equals("install")) {
-        build.install();
+        executeInstall(source, build);
       }
     }
   }
 
-  private static String buildSuffix() {
-    String envBuildNum = Strings.nullToEmpty(System.getProperty("BUILD_NUMBER"));
-    if(envBuildNum.isEmpty()) {
-      envBuildNum = Strings.nullToEmpty(System.getenv("BUILD_NUMBER"));
+  private static void executeBuild(PackageBuild build) throws IOException {
+    PackageBuilder builder = new PackageBuilder(build.getSource(), build);
+    builder.build();
+
+    PomBuilder pomBuilder = new PomBuilder(build, build.getSource().getVersion());
+    pomBuilder.writePomFile();
+    pomBuilder.writePomProperties();
+
+    try(JarArchiver archiver = new JarArchiver(build.getJarFile())) {
+      archiver.addDirectory(build.getOutputDir());
+    } catch (Exception e) {
+      throw new BuildException("Failed to create package jar", e);
     }
-    
-    if(envBuildNum.isEmpty()) {
-      return "";
-    } else {
-      return "-b" + envBuildNum;
+  }
+
+
+  private static void executeInstall(PackageSource source, PackageBuild build) {
+    RepositorySystem system = AetherFactory.newRepositorySystem();
+    RepositorySystemSession session = AetherFactory.newRepositorySystemSession(system);
+
+    Artifact jarArtifact = new DefaultArtifact( source.getGroupId(), source.getPackageName(), "jar", build.getBuildVersion());
+    jarArtifact = jarArtifact.setFile(build.getJarFile());
+
+    Artifact pomArtifact = new SubArtifact( jarArtifact, "", "pom" );
+    pomArtifact = pomArtifact.setFile( new File(build.getMavenMetaDir(), "pom.xml"));
+
+    InstallRequest installRequest = new InstallRequest();
+    installRequest.addArtifact( jarArtifact ).addArtifact( pomArtifact );
+
+    try {
+      system.install( session, installRequest );
+    } catch (InstallationException e) {
+      throw new BuildException("Exception installing artifact " + build.getJarFile().getAbsolutePath(), e);
     }
   }
 }

@@ -18,10 +18,14 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
-import org.renjin.sexp.Symbol;
+import org.renjin.invoke.model.JvmMethod;
+import org.renjin.primitives.Primitives;
+import org.renjin.repackaged.guava.collect.Iterables;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,6 +33,13 @@ import java.util.List;
  */
 public class SubsetSpecializer implements Specializer, BuiltinSpecializer {
 
+  private final JvmMethod method;
+  private final Primitives.Entry primitive;
+
+  public SubsetSpecializer() {
+    primitive = Primitives.getBuiltinEntry("[");
+    method = Iterables.getOnlyElement(JvmMethod.findOverloads(primitive.functionClass, primitive.name, primitive.methodName));
+  }
 
   @Override
   public String getName() {
@@ -43,60 +54,55 @@ public class SubsetSpecializer implements Specializer, BuiltinSpecializer {
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
 
-    ValueBounds source = arguments.get(0).getBounds();
-    List<ValueBounds> subscripts = ArgumentBounds.withoutNames(arguments.subList(1, arguments.size()));
-    
+    ArgumentBounds source = arguments.get(0);
+    ArgumentBounds drop = null;
+
+    List<ArgumentBounds> subscripts = new ArrayList<>();
+
+    for (int i = 1; i < arguments.size(); i++) {
+      ArgumentBounds argument = arguments.get(i);
+      if("drop".equals(argument.getName())) {
+        drop = argument;
+      } else {
+        subscripts.add(argument);
+      }
+    }
+
     if (subscripts.size() == 0) {
       return new CompleteSubset(source);
     }
 
-    // If more than one subscript is provided
-    // Such as x[i,j] or x[i,j,k], then treat this as a matrix selection
-    if (subscripts.size() > 1) {
-      //return new MatrixSubset(source, subscripts).tryFurtherSpecialize();
-      return UnspecializedCall.INSTANCE;
+    // If exactly two subscripts are provided
+    // Such as x[i,j] or x[i,], AND
+    // the source type is known, then treat this as a matrix selection
+    SingleRowOrColumn singleRowOrColumn = SingleRowOrColumn.trySpecialize(source, subscripts, drop);
+    if(singleRowOrColumn != null) {
+      return singleRowOrColumn;
     }
 
-    ValueBounds subscript = subscripts.get(0);
-
-    if(subscript.isConstant() && subscript.getConstantValue() == Symbol.MISSING_ARG) {
-      return new CompleteSubset(source);
+    GetAtomicElement singleElement = GetAtomicElement.trySpecialize(source, subscripts);
+    if(singleElement != null) {
+      return singleElement;
     }
 
-    if(GetAtomicElement.accept(source, subscript)) {
-      return new GetAtomicElement(source, subscript);
-    }
+    // Call the generic runtime version....
+    // Only dim, dimnames, names attributes *might* be preserved
 
-    return UnspecializedCall.INSTANCE;
-    
-//    // A single subscript can also contain a matrix in the form
-//    //    x1, y1  
-//    // [  x2, y2 ]
-//    //    x3, y3
-//    if(CoordinateMatrixSelection.isCoordinateMatrix(source, subscript)) {
-//      return new CoordinateMatrixSelection((AtomicVector) subscript);
-//    }
-//
-//    // Otherwise we treat it as an index into a vector  
-//    if (subscript instanceof LogicalVector) {
-//      return new LogicalSelection((LogicalVector) subscript);
-//
-//    } else if (subscript instanceof StringVector) {
-//      return new NamedSelection((StringVector) subscript);
-//
-//    } else if (subscript instanceof DoubleVector ||
-//        subscript instanceof IntVector) {
-//
-//      return new VectorIndexSelection((AtomicVector) subscript);
-//
-//    } else if(subscript == Null.INSTANCE) {
-//      return NullSelection.INSTANCE;
-//
-//    } else {
-//      throw new EvalException("invalid subscript type '%s'", subscript.getTypeName());
-//    }
-//    
-//    throw new UnsupportedOperationException();
+    ValueBounds bounds = ValueBounds.builder()
+        .setTypeSet(computeResultTypeSet(source))
+        .addFlagsFrom(source.getBounds(), ValueBounds.MAYBE_DIM | ValueBounds.MAYBE_DIMNAMES| ValueBounds.MAYBE_NAMES)
+        .build();
+
+    return new StaticMethodCall(method, bounds);
+  }
+
+  private int computeResultTypeSet(ArgumentBounds source) {
+    int set = source.getTypeSet();
+    if(TypeSet.mightBe(set, TypeSet.PAIRLIST)) {
+      set |= TypeSet.LIST;
+      set &= ~TypeSet.PAIRLIST;
+    }
+    return set;
   }
 
 }

@@ -161,76 +161,6 @@ public class Lapack {
   }
 
   /**
-   * Computes the solution to a real system of linear equations
-   *     A * X = B,
-   *  where A is an N-by-N matrix and X and B are N-by-NRHS matrices. 
-   *
-   * The LU decomposition with partial pivoting and row interchanges is
-   * used to factor A as
-   * A = P * L * U,
-   * where P is a permutation matrix, L is unit lower triangular, and U is
-   * upper triangular.  The factored form of A is then used to solve the 
-   * system of equations A * X = B.
-   */
-  public static SEXP dgesv(DoubleVector A, DoubleVector B, double tolerance) {
-    double anorm;
-    doubleW rcond = new doubleW(0);
-
-    if (!Types.isMatrix(A)) {
-      throw new EvalException("'a' must be a numeric matrix");
-    }
-    if (!Types.isMatrix(B)) {
-      throw new EvalException("'b' must be a numeric matrix");
-    }
-
-    Vector Adims = A.getAttributes().getDim();
-    Vector Bdims = B.getAttributes().getDim();
-
-    int n = Adims.getElementAsInt(0);
-    if (n == 0) {
-      throw new EvalException("'a' is 0-diml");
-    }
-    int p = Bdims.getElementAsInt(1);
-    if (p == 0) {
-      throw new EvalException("no right-hand side in 'b'");
-    }
-    if (Adims.getElementAsInt(1) != n) {
-      throw new EvalException("'a' (" + n + " x " + Adims.getElementAsInt(1) + ") must be square");
-    }
-    if (Bdims.getElementAsInt(0) != n) {
-      throw new EvalException("'b' (" + Bdims.getElementAsInt(0) + " x " + p + ") must be compatible with 'a' (" + n + " x " + n + ")");
-    }
-
-    int ipiv[] = new int[n];
-    double avals[] = A.toDoubleArray();
-
-    LAPACK lapack = LAPACK.getInstance();
-    intW info = new intW(0);
-
-    double[] result = B.toDoubleArray();
-
-    lapack.dgesv(n, p, avals, n, ipiv, result, n, info);
-
-    if (info.val < 0) {
-      throw new EvalException("argument -" + info.val + " of Lapack routine 'dgsv' had invalid value");
-    }
-    if (info.val > 0) {
-      throw new EvalException("Lapack routine dgesv: system is exactly singular");
-    }
-
-    anorm = lapack.dlange("1", n, n, A.toDoubleArray(), n, null);
-
-    double[] arrWork = new double[4 * n];
-    lapack.dgecon("1", n, avals, n, anorm, rcond, arrWork, ipiv, info);
-
-    if (rcond.val < tolerance) {
-      throw new EvalException("system is computationally singular: reciprocal condition number = " + rcond.val);
-    }
-    return DoubleArrayVector.unsafe(result, B.getAttributes());
-  }
-
-
-  /**
    * Ca
    * @param x
    * @param ov
@@ -758,6 +688,119 @@ public class Lapack {
 
   }
 
+
+  /**
+   * Computes the solution to a real system of linear equations
+   *     A * X = B,
+   *  where A is an N-by-N matrix and X and B are N-by-NRHS matrices.
+   *
+   * The LU decomposition with partial pivoting and row interchanges is
+   * used to factor A as
+   * A = P * L * U,
+   * where P is a permutation matrix, L is unit lower triangular, and U is
+   * upper triangular.  The factored form of A is then used to solve the
+   * system of equations A * X = B.
+   */
+  @Internal
+  public static DoubleVector La_solve(SEXP A, SEXP B, double tol) {
+    int p;
+
+    if (!(Types.isMatrix(A) &&
+        (A instanceof LogicalVector || A instanceof DoubleVector || A instanceof IntVector))) {
+      throw new EvalException("'a' must be a numeric matrix");
+    }
+
+    int Adims[] = A.getAttributes().getDimArray();
+    if(Adims[0] == 0) {
+      throw new EvalException("'a' is 0-diml");
+    }
+    if(Adims[0] != Adims[1]) {
+      throw new EvalException("'a' (%d x %d) must be square", Adims[0], Adims[1]);
+    }
+
+    int n = Adims[0];
+    Vector Adn = A.getAttributes().getDimNames();
+
+    AttributeMap.Builder resultAttributes = AttributeMap.builder();
+
+    if (Types.isMatrix(B)) {
+      int Bdims[] = B.getAttributes().getDimArray();
+      p = Bdims[1];
+      if(p == 0) {
+        throw new EvalException("no right-hand side in 'b'");
+      }
+      if(Bdims[1] != n) {
+        throw new EvalException(String.format("'b' (%d x %d) must be compatible with 'a' (%d x %d)",
+            Bdims[0], Bdims[1], n, n));
+      }
+
+      resultAttributes.setDim(n, p);
+
+      Vector Bindn =  B.getAttributes().getDimNames();
+
+      // This is somewhat odd, but Matrix relies on dropping NULL dimnames
+      if (!Types.isNull(Adn) || !Types.isNull(Bindn)) {
+        // rownames(ans) = colnames(A), colnames(ans) = colnames(Bin)
+        SEXP[] Bdn = new SEXP[2];
+        if (!Types.isNull(Adn)) {
+          Bdn[0] = Adn.getElementAsSEXP(1);
+        }
+        if (!Types.isNull(Bindn)) {
+          Bdn[1] = Bindn.getElementAsSEXP(1);
+        }
+        if (Bdn[0] != Null.INSTANCE || Bdn[1] != Null.INSTANCE) {
+          resultAttributes.setDimNames(new ListVector(Bdn));
+        }
+      }
+    } else {
+      p = 1;
+      if(B.length() != n) {
+        throw new EvalException("'b' (%d x %d) must be compatible with 'a' (%d x %d)", B.length(), p, n, n);
+      }
+      if(Types.isNull(Adn)) {
+        SEXP colNames = Adn.getElementAsSEXP(1);
+        if(colNames instanceof StringVector) {
+          resultAttributes.setNames(colNames);
+        }
+      }
+    }
+
+    double b[] = ((AtomicVector) B).toDoubleArray();
+
+    int ipiv[] = new int[n];
+
+    /* work on a copy of A */
+    double avals[] = ((AtomicVector) A).toDoubleArray();
+
+    intW info = new intW(0);
+    LAPACK.getInstance().dgesv(n, p, avals, n, ipiv, b, n, info);
+    if (info.val < 0) {
+      throw new EvalException("argument %d of Lapack routine %s had invalid value",
+          -info.val, "dgesv");
+    }
+    if (info.val > 0) {
+      throw new EvalException("Lapack routine %s: system is exactly singular: U[%d,%d] = 0",
+          "dgesv", info.val, info.val);
+    }
+    if(tol > 0) {
+      double anorm = LAPACK.getInstance().dlange("1", n, n, avals, n, null);
+      double work[] = new double[4 * n];
+
+      doubleW rcond = new doubleW(0);
+      LAPACK.getInstance().dgecon("1", n, avals, n, anorm, rcond, work, ipiv, info);
+      if (rcond.val < tol) {
+        throw new EvalException("system is computationally singular: reciprocal condition number = %g", rcond);
+      }
+    }
+
+    return DoubleArrayVector.unsafe(b, resultAttributes.build());
+  }
+
+  @Internal
+  public static SEXP La_solve_cmplx(SEXP A, SEXP Bin) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
   public static SEXP rg(SEXP x, boolean ov) {
 
     int lwork;
@@ -897,6 +940,69 @@ public class Lapack {
     }
     int n = xdims.getElementAsInt(0);
     return n;
+  }
+
+  @Internal
+  public static SEXP det_ge_real(AtomicVector Ain, boolean useLog) {
+    int sign = 1;
+    double modulus = 0.0; /* -Wall */
+
+    if (!Types.isMatrix(Ain)) {
+      throw new EvalException("'a' must be a numeric matrix");
+    }
+    double A[] = Ain.toDoubleArray();
+    int Adims[] = Ain.getAttributes().getDimArray();
+    int n = Adims[0];
+    if (Adims[1] != n) {
+      throw new EvalException("'a' must be a square matrix");
+    }
+    int jpvt[] = new int[n];
+
+    intW info = new intW(0);
+    LAPACK.getInstance().dgetrf(n, n, A, n, jpvt, info);
+
+    if (info.val < 0) {
+      throw new EvalException("error code %d from Lapack routine '%s'", info.val, "dgetrf");
+
+    } else if (info.val > 0) {
+      /* Singular matrix:  U[i,i] (i := info) is 0 */
+      /*warning("Lapack dgetrf(): singular matrix: U[%d,%d]=0", info,info);*/
+      modulus =  (useLog ? Double.NEGATIVE_INFINITY : 0d);
+
+    } else {
+      for (int i = 0; i < n; i++) {
+        if (jpvt[i] != (i + 1)) {
+          sign = -sign;
+        }
+      }
+      if (useLog) {
+        modulus = 0.0;
+        int N1 = n+1;
+        for (int i = 0; i < n; i++) {
+          double dii = A[i * N1]; /* ith diagonal element */
+          modulus += Math.log(dii < 0 ? -dii : dii);
+          if (dii < 0) {
+            sign = -sign;
+          }
+        }
+      } else {
+        modulus = 1.0;
+        int N1 = n+1;
+        for (int i = 0; i < n; i++) {
+          modulus *= A[i * N1];
+        }
+        if (modulus < 0) {
+          modulus = -modulus;
+          sign = -sign;
+        }
+      }
+    }
+    return ListVector.newNamedBuilder()
+        .add("modulus", modulus)
+        .add("sign", sign)
+        .setAttribute("logarithm", LogicalVector.valueOf(useLog))
+        .setAttribute(Symbols.CLASS, StringVector.valueOf("det"))
+        .build();
   }
 
 

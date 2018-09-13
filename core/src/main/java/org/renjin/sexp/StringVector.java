@@ -71,7 +71,7 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
     } else {
       String value = getElementAsString(index);
       double doubleValue = NumericLiterals.parseDouble(value, 0, value.length(), '.', true);
-      if(DoubleVector.isFinite(doubleValue)) {
+      if(Double.isFinite(doubleValue)) {
         return (int)doubleValue;
       } else {
         return IntVector.NA;
@@ -242,14 +242,6 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
       sb.append(")");
       return sb.toString();
     }
-  }
-
-  public String[] toArray() {
-    String[] array = new String[length()];
-    for(int i=0;i!=array.length;++i) {
-      array[i] = getElementAsString(i);
-    }
-    return array;
   }
 
   @Override

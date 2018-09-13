@@ -96,16 +96,19 @@ public class S3 {
    * be deduced.
    */
   public static StringVector computeDataClasses(ValueBounds valueBounds) {
+
     // If we don't know what the value's class attribute is, we can't make
     // any further assumptions
-    if(!valueBounds.isClassAttributeConstant()) {
+    if(valueBounds.hasUnknownClassAttribute()) {
       return null;
     }
 
-    AtomicVector classAttribute = valueBounds.getConstantClassAttribute();
-    if(classAttribute.length() > 0) {
-      // S3 class has been explicitly defined and is constant at compile time
-      return (StringVector) classAttribute;
+    if(valueBounds.isFlagSet(ValueBounds.MAYBE_CLASS)) {
+      AtomicVector classAttribute = valueBounds.getConstantClassAttribute();
+      if (classAttribute.length() > 0) {
+        // S3 class has been explicitly defined and is constant at compile time
+        return (StringVector) classAttribute;
+      }
     }
     
     // Otherwise we compute based on the type and dimensions
@@ -123,10 +126,9 @@ public class S3 {
     
     StringArrayVector.Builder dataClass = new StringArrayVector.Builder();
 
-    int dimCount = valueBounds.getConstantDimCount();
-    if(dimCount == 2) {
+    if(valueBounds.isFlagSet(ValueBounds.HAS_DIM2)) {
       dataClass.add("matrix");
-    } else if(dimCount > 0) {
+    } else if(valueBounds.isFlagSet(ValueBounds.HAS_DIM)) {
       dataClass.add("array");
     }
     
@@ -745,7 +747,7 @@ public class S3 {
 
     private String[] groupsMethodVector() {
       GenericMethod previousMethod = resolver.previousContext.getState(GenericMethod.class);
-      String methodVector[] = previousMethod.methodVector.toArray();
+      String methodVector[] = previousMethod.methodVector.toStringArray();
 
       String methodName = this.methodVector.getElementAsString(0);
 

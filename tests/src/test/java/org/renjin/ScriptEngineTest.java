@@ -65,7 +65,7 @@ public class ScriptEngineTest {
 
   @Test
   public void userPackage() throws ScriptException {
-    engine.eval("library('org.renjin.test.thirdparty')");
+    engine.eval("library('org.renjin.test:thirdparty')");
   }
   
   @Test

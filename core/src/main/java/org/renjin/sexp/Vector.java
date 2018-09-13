@@ -182,6 +182,11 @@ public interface Vector extends SEXP {
    */
   boolean isElementNaN(int index);
 
+  /**
+   *
+   * @return true if any element is NA
+   */
+  boolean anyNA();
 
 
   /**
@@ -224,6 +229,8 @@ public interface Vector extends SEXP {
    * @param length the number of elements from this vector to copy.
    */
   void copyTo(double[] array, int offset, int length);
+
+
 
 
   /**

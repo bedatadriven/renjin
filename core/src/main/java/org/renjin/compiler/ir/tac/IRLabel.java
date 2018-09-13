@@ -23,7 +23,7 @@ public class IRLabel {
   public static final IRLabel EXIT = new IRLabel(Integer.MAX_VALUE);
 
   private final int index;
-  
+
   public IRLabel(int index) {
     this.index = index;
   }

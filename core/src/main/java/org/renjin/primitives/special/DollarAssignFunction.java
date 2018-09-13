@@ -40,7 +40,8 @@ public class DollarAssignFunction extends SpecialFunction {
     }
 
     SEXP object = context.evaluate(args.getElementAsSEXP(0), rho);
-    StringVector nameArgument = DollarFunction.evaluateName(args.getElementAsSEXP(1));
+    StringVector nameArgument;
+    nameArgument = DollarFunction.parseNameArgument(args.getElementAsSEXP(1));
     SEXP value = context.evaluate(args.getElementAsSEXP(2), rho);
 
     // For possible generic dispatch, repackage the name argument as character vector rather than

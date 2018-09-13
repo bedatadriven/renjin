@@ -126,4 +126,7 @@ public final class FqPackageName {
     return toString(':');
   }
 
+  public static boolean isQualified(Symbol symbol) {
+    return symbol.getPrintName().contains(":");
+  }
 }

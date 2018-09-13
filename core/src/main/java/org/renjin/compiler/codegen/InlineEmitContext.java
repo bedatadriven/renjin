@@ -18,54 +18,79 @@
  */
 package org.renjin.compiler.codegen;
 
-import org.renjin.compiler.cfg.ControlFlowGraph;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.var.LocalVarAllocator;
+import org.renjin.compiler.codegen.var.VariableMap;
+import org.renjin.compiler.codegen.var.VariableStrategy;
+import org.renjin.compiler.ir.tac.IRLabel;
+import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.repackaged.asm.Label;
-import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.repackaged.guava.collect.Maps;
-import org.renjin.sexp.Symbol;
 
-import java.util.Map;
+import java.util.List;
 
-public class InlineEmitContext extends EmitContext {
+public class InlineEmitContext implements EmitContext {
 
-
-  private Map<Symbol, InlineParamExpr> inlinedParameters = Maps.newHashMap();
-
+  private final EmitContext parentContext;
+  private final List<CompiledSexp> parameters;
+  private final VariableMap variableMap;
+  private final VariableStrategy returnVariable;
+  private final LabelMap labelMap = new LabelMap();
   private final Label exitLabel;
 
-  public InlineEmitContext(ControlFlowGraph cfg, int paramCount, VariableSlots childSlots) {
-    super(cfg, paramCount, childSlots);
+  public InlineEmitContext(EmitContext parentContext,
+                           List<CompiledSexp> parameters,
+                           VariableMap variableMap,
+                           VariableStrategy returnVariable) {
+    this.parentContext = parentContext;
+    this.parameters = parameters;
+    this.variableMap = variableMap;
+    this.returnVariable = returnVariable;
     this.exitLabel = new Label();
   }
 
-  public InlineParamExpr getInlineParameter(Symbol param) {
-    InlineParamExpr paramExpr = inlinedParameters.get(param);
-    if(paramExpr == null) {
-      throw new IllegalStateException("No expression set for parameter " + param);
-    }
-    return paramExpr;
-  }
-
-
-  public void setInlineParameter(Symbol parameterName, InlineParamExpr value) {
-    inlinedParameters.put(parameterName, value);
+  /**
+   * @param parameterIndex the index of the parameter supplied to the function (NOT the index of the closure's formal!)
+   * @return the {@link CompiledSexp} for the given parameter
+   */
+  @Override
+  public CompiledSexp getParamExpr(int parameterIndex) {
+    return parameters.get(parameterIndex);
   }
 
   @Override
-  public void loadParam(InstructionAdapter mv, Symbol param) {
-    InlineParamExpr value = inlinedParameters.get(param);
-    value.load(mv);
+  public VariableStrategy getVariable(LValue lhs) {
+    return variableMap.getStorage(lhs);
   }
 
   @Override
-  public void writeReturn(InstructionAdapter mv, Type returnType) {
+  public int getContextVarIndex() {
+    return parentContext.getContextVarIndex();
+  }
+
+  @Override
+  public int getEnvironmentVarIndex() {
+    return parentContext.getEnvironmentVarIndex();
+  }
+
+  @Override
+  public LocalVarAllocator getLocalVarAllocator() {
+    return parentContext.getLocalVarAllocator();
+  }
+
+  @Override
+  public Label getBytecodeLabel(IRLabel label) {
+    return labelMap.getBytecodeLabel(label);
+  }
+
+  @Override
+  public void writeReturn(InstructionAdapter mv, CompiledSexp returnExpr) {
+    returnVariable.store(this, mv, returnExpr);
     mv.goTo(exitLabel);
   }
 
   @Override
   public void writeDone(InstructionAdapter mv) {
-    super.writeDone(mv);
     mv.mark(exitLabel);
   }
 }

@@ -24,8 +24,8 @@ import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.invoke.codegen.OverloadComparator;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Primitives;
+import org.renjin.repackaged.guava.collect.Iterables;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -46,7 +46,11 @@ public class AnnotationBasedSpecializer implements BuiltinSpecializer {
 
     this.genericGroup = findGenericGroup(methods);
 
-    Collections.sort( methods, new OverloadComparator());
+    methods.sort(new OverloadComparator());
+  }
+
+  public List<JvmMethod> getMethods() {
+    return methods;
   }
 
   @Override
@@ -76,27 +80,32 @@ public class AnnotationBasedSpecializer implements BuiltinSpecializer {
     }
     return false;
   }
-  
+
+  public static JvmMethod findMethod(String primitiveName) {
+    Primitives.Entry entry = Primitives.getBuiltinEntry(primitiveName);
+    return Iterables.getOnlyElement(JvmMethod.findOverloads(
+        entry.functionClass,
+        entry.name,
+        entry.methodName));
+  }
+
+
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> namedArguments) {
     List<ValueBounds> arguments = ArgumentBounds.withoutNames(namedArguments);
-    JvmMethod method = selectOverload(arguments);
+    JvmMethod method = selectOverload(namedArguments);
     if(method == null) {
-      return UnspecializedCall.INSTANCE;
+      return new WrapperApplyCall(primitive, namedArguments);
     }
     
     if(method.isDataParallel()) {
-      return new DataParallelCall(primitive, method, arguments).specializeFurther();
+      return new DataParallelCall(primitive, method, namedArguments).specialize();
     } else {
-      if(StaticMethodCall.isEligible(method)) {
-        return new StaticMethodCall(method).furtherSpecialize(arguments);
-      } else {
-        return UnspecializedCall.INSTANCE;
-      }
+      return new StaticMethodCall(method).furtherSpecialize(arguments);
     }
   }
 
-  private JvmMethod selectOverload(List<ValueBounds> argumentTypes) {
+  private JvmMethod selectOverload(List<ArgumentBounds> argumentTypes) {
     for (JvmMethod method : methods) {
       if(matches(method, argumentTypes)) {
         return method;
@@ -105,13 +114,13 @@ public class AnnotationBasedSpecializer implements BuiltinSpecializer {
     return null;
   }
 
-  private boolean matches(JvmMethod method, List<ValueBounds> argumentTypes) {
+  private boolean matches(JvmMethod method, List<ArgumentBounds> argumentTypes) {
     if(!arityMatches(method, argumentTypes)) {
       return false;
     }
     for (int i = 0; i < method.getPositionalFormals().size(); i++) {
       JvmMethod.Argument formal = method.getPositionalFormals().get(i);
-      ValueBounds actualType = argumentTypes.get(i);
+      ValueBounds actualType = argumentTypes.get(i).getBounds();
 
       if(!TypeSet.matches(formal.getClazz(), actualType.getTypeSet())) {
         return false;
@@ -120,7 +129,7 @@ public class AnnotationBasedSpecializer implements BuiltinSpecializer {
     return true;
   }
 
-  private boolean arityMatches(JvmMethod method, List<ValueBounds> argumentTypes) {
+  private boolean arityMatches(JvmMethod method, List<ArgumentBounds> argumentTypes) {
     int numPosArgs = method.getPositionalFormals().size();
     return (argumentTypes.size() == numPosArgs) ||
         (method.acceptsArgumentList() && (argumentTypes.size() >= numPosArgs));

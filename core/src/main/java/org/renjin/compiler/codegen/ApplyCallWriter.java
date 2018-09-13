@@ -25,7 +25,6 @@ import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.repackaged.asm.*;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.asm.util.TraceClassVisitor;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.DoubleVector;
@@ -153,20 +152,22 @@ public class ApplyCallWriter {
   }
 
   private void writeApplyImpl() {
-    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC | ACC_STATIC, "apply", applySignature(), null, null);
-    mv.visitCode();
-
-    VariableSlots slots = new VariableSlots(elementBounds.storageType().getSize(), function.getTypes());
-    ApplyMethodContext emitContext = new ApplyMethodContext(function.getCfg(), elementFormalName,  elementBounds.storageType(), slots);
-
-    function.write(emitContext, new InstructionAdapter(mv));
-
-    mv.visitMaxs(3, 1);
-    mv.visitEnd();
+    throw new UnsupportedOperationException("TODO");
+//    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC | ACC_STATIC, "apply", applySignature(), null, null);
+//    mv.visitCode();
+//
+//    VariableSlots slots = new VariableSlots(elementBounds.storageType().getSize(), function.getTypes());
+//    ApplyMethodContext emitContext = new ApplyMethodContext(function.getCfg(), elementFormalName,  elementBounds.storageType(), slots);
+//
+//    function.write(emitContext, new InstructionAdapter(mv));
+//
+//    mv.visitMaxs(3, 1);
+//    mv.visitEnd();
   }
 
   private String applySignature() {
-    return Type.getMethodDescriptor(resultBounds.storageType(), elementBounds.storageType());
+//    return Type.getMethodDescriptor(resultBounds.storageType(), elementBounds.storageType());
+    throw new UnsupportedOperationException("TODO");
   }
 
   private void writeGetElementImpl() {

@@ -93,15 +93,12 @@ public class ConstantBytecode {
       mv.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(Null.class), "INSTANCE", Type.getDescriptor(Null.class));
       return;
     }
-    if(value instanceof StringVector) {
-      if(value.length() == 1 && value.getAttributes().isEmpty()) {
-        mv.visitLdcInsn(((StringVector) value).getElementAsString(0));
-        mv.invokestatic(Type.getInternalName(StringVector.class), "valueOf",
-            Type.getMethodDescriptor(Type.getType(StringVector.class), Type.getType(String.class)), false);
-        return;
-      }
-    } else if(value instanceof DoubleVector) {
-      if(value.length() == 1) {
+    if(value == Symbol.MISSING_ARG) {
+      mv.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(Symbol.class), "MISSING_ARG", Type.getDescriptor(Symbol.class));
+      return;
+    }
+    if(value instanceof DoubleVector) {
+      if (value.length() == 1) {
         mv.anew(Type.getType(DoubleArrayVector.class));
         mv.dup();
         mv.dconst(((DoubleVector) value).getElementAsDouble(0));
@@ -110,6 +107,29 @@ public class ConstantBytecode {
         mv.invokespecial(Type.getInternalName(DoubleArrayVector.class), "<init>",
             Type.getMethodDescriptor(Type.VOID_TYPE, Type.DOUBLE_TYPE, Type.getType(AttributeMap.class)), false);
 
+        return;
+      }
+    } else if(value instanceof LogicalVector) {
+      if(value.length() == 1) {
+        mv.visitLdcInsn(((LogicalVector) value).getElementAsInt(0));
+        mv.invokestatic(Type.getInternalName(LogicalVector.class), "valueOf", "(I)Lorg/renjin/sexp/LogicalVector;", false);
+      } else {
+        throw new UnsupportedOperationException("TODO");
+      }
+      return;
+    } else if(value instanceof IntVector) {
+      if(value.length() == 1) {
+        mv.visitLdcInsn(((IntVector) value).getElementAsInt(0));
+        mv.invokestatic(Type.getInternalName(IntVector.class), "valueOf", "(I)Lorg/renjin/sexp/IntVector;", false);
+      } else {
+        throw new UnsupportedOperationException("TODO");
+      }
+      return;
+    } else if(value instanceof StringVector) {
+      if(value.length() == 1 && value.getAttributes().isEmpty()) {
+        mv.visitLdcInsn(((StringVector) value).getElementAsString(0));
+        mv.invokestatic(Type.getInternalName(StringVector.class), "valueOf",
+            Type.getMethodDescriptor(Type.getType(StringVector.class), Type.getType(String.class)), false);
         return;
       }
     }

@@ -658,15 +658,13 @@ data.frame <-
 {
     ## use in-line functions to refer to the 1st and 2nd ... arguments
     ## explicitly. Also will check for wrong number or empty args
-    na <- nargs() - !missing(exact)
-    if(!all(names(sys.call()) %in% c("", "exact")))
-        warning("named arguments other than 'exact' are discouraged")
+    nsubscripts <- nargs() - 1 - !missing(exact)
 
-    if(na < 3L)
-	(function(x, i, exact)
-	  if(is.matrix(i)) as.matrix(x)[[i]]
- 	  else .subset2(x, i, exact=exact))(x, ..., exact=exact)
-    else {
+    if(nsubscripts == 0) {
+        stop("subscript is missing")
+    } else if(nsubscripts == 1) {
+        .subset2(x, ..1, exact=exact)
+    } else {
         col <- .subset2(x, ..2, exact=exact)
         i <- if(is.character(..1))
             pmatch(..1, row.names(x), duplicates.ok = TRUE)

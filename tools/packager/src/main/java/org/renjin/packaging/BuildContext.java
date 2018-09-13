@@ -22,6 +22,7 @@ import org.renjin.primitives.packaging.PackageLoader;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Provides general access to the build environment, whether
@@ -82,10 +83,16 @@ public interface BuildContext {
 
   /**
    * 
-   * @return the nmaes of the packages that should be on the search path when the 
+   * @return the nmaes of the packages that should be on the search path when evaluating package sources.
    * 
    */
   List<String> getDefaultPackages();
 
   String getCompileClasspath();
+
+  /**
+   *
+   * @return a map from simple package name to its group id, for those known at build time.
+   */
+  Map<String, String> getPackageGroupMap();
 }

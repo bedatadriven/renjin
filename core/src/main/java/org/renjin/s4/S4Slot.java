@@ -22,7 +22,10 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.Attributes;
-import org.renjin.sexp.*;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbols;
 
 import java.util.*;
 
@@ -66,7 +69,7 @@ public class S4Slot {
           + "\") is not TRUE");
     }
 
-    if(Arrays.asList(valueSuperclasses.toArray()).contains(slotClass)) {
+    if(Arrays.asList(valueSuperclasses.toStringArray()).contains(slotClass)) {
       return;
     } else {
 
@@ -75,10 +78,10 @@ public class S4Slot {
         if(!"classRepresenation".equals(classDef2Class) && "ClassUnionRepresentation".equals(classDef2Class)) {
           List<String> allClasses = new ArrayList<>();
           allClasses.add(valueClass);
-          allClasses.addAll(Arrays.asList(valueSuperclasses.toArray()));
+          allClasses.addAll(Arrays.asList(valueSuperclasses.toStringArray()));
           StringVector slotSubclasses = Attributes.getSlotElementsNames(classDef2, S4.SUBCLASSES);
           if(slotSubclasses.length() > 0) {
-            allClasses.addAll(Arrays.asList(slotSubclasses.toArray()));
+            allClasses.addAll(Arrays.asList(slotSubclasses.toStringArray()));
           }
 
           if(hasDuplicate(allClasses)) {
@@ -91,7 +94,7 @@ public class S4Slot {
         if(slotclassContains != null) {
           StringVector slotclassNames = (StringVector) slotclassContains.getAttribute(Symbols.NAMES);
           if(slotclassNames != null) {
-            List<String> namesList = Arrays.asList(slotclassNames.toArray());
+            List<String> namesList = Arrays.asList(slotclassNames.toStringArray());
             if(namesList.contains(valueClass)) {
               return;
             }

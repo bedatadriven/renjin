@@ -170,7 +170,7 @@ public class Primitives {
     add(new NextFunction());
     add(new ReturnFunction());
 
-    f("stop", Conditions.class, 11);
+    f("stop", Conditions.class, 1);
     f("warning", Warning.class, 111);
 
     f("gettext", Text.class, 11);
@@ -759,7 +759,7 @@ public class Primitives {
     f("lib.fixup", Types.class, 111);
     f("pos.to.env", /*pos2env*/ null, 1);
     f("eapply", /*eapply*/ null, 10);
-    f("lapply", Evaluation.class, 10);
+    add(new ListApplyFunction());
     f("vapply", Evaluation.class, 10);
     f("mapply", Evaluation.class, 10);
     f("rapply", Evaluation.class, 11);
@@ -987,6 +987,8 @@ public class Primitives {
     f("La_dgecon", Lapack.class, 11);
     f("La_zgecon", Lapack.class, 11);
     f("La_ztrcon", Lapack.class, 11);
+    f("La_solve", Lapack.class, 11);
+    f("La_solve_cmplx", Lapack.class, 11);
     f("backsolve", Lapack.class, 11);
 
 

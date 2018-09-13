@@ -19,28 +19,20 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.Symbol;
 
 import java.util.Map;
 
 
 public class ReadParam implements Expression {
 
-  private final Symbol param;
+  private final int argumentIndex;
   private ValueBounds valueBounds;
-  private Type type;
 
-  public ReadParam(Symbol param) {
-    this.param = param;
+  public ReadParam(int argumentIndex) {
+    this.argumentIndex = argumentIndex;
     this.valueBounds = ValueBounds.UNBOUNDED;
-    this.type = valueBounds.storageType();
-  }
-
-  public Symbol getParam() {
-    return param;
   }
 
   @Override
@@ -48,20 +40,8 @@ public class ReadParam implements Expression {
     return true;
   }
 
-  @Override
-  public int load(EmitContext emitContext, InstructionAdapter mv) {
-    emitContext.loadParam(mv, param);
-    return 0;
-  }
-
-  @Override
-  public Type getType() {
-    return type.getReturnType();
-  }
-
   public void updateBounds(ValueBounds argumentBounds) {
     valueBounds = argumentBounds;
-    type = argumentBounds.storageType();
   }
   
   @Override
@@ -72,6 +52,11 @@ public class ReadParam implements Expression {
   @Override
   public ValueBounds getValueBounds() {
     return valueBounds;
+  }
+
+  @Override
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    return emitContext.getParamExpr(argumentIndex);
   }
 
   @Override
@@ -91,6 +76,6 @@ public class ReadParam implements Expression {
 
   @Override
   public String toString() {
-    return "param(" + param + ")";
+    return "param(" + argumentIndex + ")";
   }
 }

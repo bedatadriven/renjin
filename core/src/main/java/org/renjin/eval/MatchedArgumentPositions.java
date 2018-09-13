@@ -19,7 +19,6 @@
 package org.renjin.eval;
 
 import org.renjin.compiler.builtins.ArgumentBounds;
-import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Symbol;
 
@@ -54,14 +53,6 @@ public class MatchedArgumentPositions {
         extraArgumentCount++;
       }
     }
-  }
-
-  public static MatchedArgumentPositions matchIRArguments(Closure closure, List<IRArgument> arguments) {
-    String[] names  = new String[arguments.size()];
-    for (int i = 0; i < names.length; i++) {
-      names[i] = arguments.get(i).getName();
-    }
-    return new ArgumentMatcher(closure).match(names);
   }
 
   public static MatchedArgumentPositions matchArgumentBounds(Closure closure, List<ArgumentBounds> arguments) {
@@ -102,6 +93,9 @@ public class MatchedArgumentPositions {
     return extraArgumentCount;
   }
 
+  public int getActualArgumentCount() {
+    return matchedActuals.length;
+  }
 
   public boolean isExtraArgument(int actualIndex) {
     return !this.matchedActuals[actualIndex];
@@ -129,5 +123,9 @@ public class MatchedArgumentPositions {
       }
     }
     return true;
+  }
+
+  public boolean isFormalMatched(int formalIndex) {
+    return getActualIndex(formalIndex) != -1;
   }
 }

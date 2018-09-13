@@ -50,7 +50,7 @@ import java.util.function.Predicate;
  *  use of {@code NULL} as an environment is defunct.
  *
  */
-public class Environment extends AbstractSEXP implements Recursive, HasNamedValues {
+public class Environment extends AbstractSEXP implements Recursive {
 
 
   public static final String TYPE_NAME = "environment";
@@ -254,7 +254,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     });
     return ordered;
   }
-  
+
   @Override
   public StringVector getNames() {
     StringVector.Builder names = new StringVector.Builder();
@@ -525,7 +525,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    * @param varArgReferenceIndex index of varArg to return
    * @return
    */
-  private SEXP findVarArg(int varArgReferenceIndex) {
+  public SEXP findVarArg(int varArgReferenceIndex) {
     SEXP ellipses = findVariableUnsafe(Symbols.ELLIPSES);
     if(ellipses == Symbol.UNBOUND_VALUE) {
       throw new EvalException("..%d used in an incorrect context, no ... to look in", varArgReferenceIndex);
@@ -840,65 +840,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     }
   }
 
-  @Override
-  public Iterable<NamedValue> namedValues() {
-    return new NamedValues();
-  }
-  
-  private class NamedValues implements Iterable<NamedValue> {
-
-    @Override
-    public Iterator<NamedValue> iterator() {
-      return new NamedValueIterator();
-    }
-    
-  }
-
-  private class NamedValueIterator extends UnmodifiableIterator<NamedValue> {
-
-    private Iterator<Symbol> names;
-    
-    private NamedValueIterator() {
-      this.names = getSymbolNames().iterator();
-    }
-    
-    @Override
-    public boolean hasNext() {
-      return names.hasNext();
-    }
-
-    @Override
-    public NamedValue next() {
-      BoundValue boundValue = new BoundValue();
-      Symbol name = names.next();
-      boundValue.name = name;
-      boundValue.value = getVariableUnsafe(name);
-      return boundValue;
-    }
-    
-  }
-  
-  private static class BoundValue implements NamedValue {
-
-    private Symbol name;
-    private SEXP value;
-    
-    @Override
-    public boolean hasName() {
-      return true;
-    }
-
-    @Override
-    public String getName() {
-      return name.getPrintName();
-    }
-
-    @Override
-    public SEXP getValue() {
-      return value;
-    } 
-    
-  }
 
   /**
    *

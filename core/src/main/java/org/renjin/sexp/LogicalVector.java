@@ -30,9 +30,9 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
   public static final Type VECTOR_TYPE = new LogicalType();
   public static final LogicalVector EMPTY = new LogicalArrayVector(new int[0]);
   public static int NA = IntVector.NA;
-  public static LogicalVector TRUE = new LogicalArrayVector(1);
-  public static LogicalVector FALSE = new LogicalArrayVector(0);
-  public static LogicalVector NA_VECTOR = new LogicalArrayVector(NA);
+  public static final LogicalVector TRUE = new LogicalArrayVector(1);
+  public static final LogicalVector FALSE = new LogicalArrayVector(0);
+  public static final LogicalVector NA_VECTOR = new LogicalArrayVector(NA);
 
 
   public static SEXP valueOf(boolean value) {
@@ -50,6 +50,10 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
       default:
         throw new IllegalArgumentException("value: " + value);
     }
+  }
+
+  public static LogicalVector valueOf(int value) {
+    return new LogicalArrayVector(value);
   }
   
   public LogicalVector(AttributeMap attributes) {

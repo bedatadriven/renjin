@@ -73,6 +73,19 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     this(values, AttributeMap.EMPTY);
   }
 
+
+  public static ListVector of(SEXP x) {
+    return new ListVector(x);
+  }
+
+  public static ListVector of(SEXP x, SEXP y) {
+    return new ListVector(x, y);
+  }
+
+  public static ListVector of(SEXP... elements) {
+    return new ListVector(elements);
+  }
+
   @Override
   public String getTypeName() {
     return TYPE_NAME;
@@ -425,6 +438,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     return new ListVector(values, attributes);
   }
+
 
   public static class Builder extends AbstractVector.AbstractBuilder<SEXP> {
     protected final List<SEXP> values;

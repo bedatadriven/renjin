@@ -82,18 +82,21 @@ public class Vectors {
 
   @Generic
   @Builtin("as.character")
+  @NoAttributes
   public static StringVector asCharacter(PairList.Node source) {
     return (StringVector) convertToStringVector(null, new StringVector.Builder(), source.toVector());
   }
   
   @Generic
   @Builtin("as.character")
+  @NoAttributes
   public static StringVector asCharacter() {
     return StringArrayVector.EMPTY;
   }
 
   @Generic
   @Builtin("as.character")
+  @NoAttributes
   public static StringVector asCharacter(@Current Context context, Vector source) {
     if(source instanceof StringVector) {
       return (StringVector) source.setAttributes(AttributeMap.EMPTY);
@@ -124,12 +127,14 @@ public class Vectors {
 
   @Generic
   @Builtin("as.character")
+  @NoAttributes
   public static StringVector asCharacter(Symbol symbol) {
     return StringVector.valueOf(symbol.getPrintName());
   }
 
   @Generic
   @Builtin("as.character")
+  @NoAttributes
   public static StringVector asCharacter(ExternalPtr<?> ptr) {
     Object instance = ptr.getInstance();
     if (StringConverter.accept(instance.getClass())) {

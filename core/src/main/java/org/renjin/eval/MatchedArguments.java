@@ -75,6 +75,10 @@ public class MatchedArguments {
     return matchedPositions.getActualIndex(formalIndex);
   }
 
+  public int getActualCount() {
+    return actualValues.length;
+  }
+
   public SEXP getActualValue(int actualIndex) {
     return actualValues[actualIndex];
   }
@@ -98,5 +102,17 @@ public class MatchedArguments {
       throw new EvalException("Argument \"" + getFormalName(formalIndex).getPrintName() + "\" is missing, with no default");
     }
     return actualValues[actualIndex];
+  }
+
+  public int getExtraArgumentCount() {
+    return matchedPositions.getExtraArgumentCount();
+  }
+
+  public boolean isExtraArgument(int actualIndex) {
+    return matchedPositions.isExtraArgument(actualIndex);
+  }
+
+  public SEXP getActualTag(int i) {
+    return actualTags[i];
   }
 }

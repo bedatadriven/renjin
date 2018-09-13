@@ -16,35 +16,22 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.compiler.builtins;
+package org.renjin.compiler.ir.tac.functions;
 
-import org.renjin.compiler.ir.exception.InvalidSyntaxException;
-import org.renjin.compiler.ir.tac.RuntimeState;
+import org.renjin.compiler.NotCompilableException;
+import org.renjin.compiler.ir.tac.IRBodyBuilder;
+import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.sexp.Function;
+import org.renjin.sexp.FunctionCall;
 
-import java.util.List;
-
-public class DollarSpecializer implements BuiltinSpecializer {
+public class ListApplyTranslator extends FunctionCallTranslator {
   @Override
-  public String getName() {
-    return "$";
+  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
+    throw new NotCompilableException(call);
   }
 
   @Override
-  public String getGroup() {
-    return null;
-  }
-
-  @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
-    if(arguments.size() != 2) {
-      throw new InvalidSyntaxException("$ operator takes two arguments");
-    }
-
-    Specialization listElement = ListElement.trySpecialize(arguments.get(0), arguments.get(1));
-    if(listElement != null) {
-      return listElement;
-    }
-
-    return new SingleSubsetByName(arguments.get(0), arguments.get(1));
+  public void addStatement(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
+    throw new NotCompilableException(call);
   }
 }

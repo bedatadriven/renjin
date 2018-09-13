@@ -41,7 +41,8 @@ public class TypeSet {
   public static final int FUNCTION = (1 << 10);
   public static final int ENVIRONMENT = (1 << 11);
   public static final int PAIRLIST = (1 << 12);
-  public static final int S4 = (1 << 13);
+  public static final int LANGUAGE = (1 << 13);
+  public static final int S4 = (1 << 14);
   public static final int ANY_ATOMIC_VECTOR = NULL | RAW | INT | LOGICAL | DOUBLE | COMPLEX | STRING;
   public static final int ANY_VECTOR = LIST | ANY_ATOMIC_VECTOR;
   public static final int ANY_TYPE = ANY_VECTOR | PAIRLIST | ENVIRONMENT | SYMBOL | FUNCTION;
@@ -110,6 +111,9 @@ public class TypeSet {
     } else if (ListVector.class.isAssignableFrom(type)) {
       return LIST;
 
+    } else if (StringVector.class.isAssignableFrom(type)) {
+      return STRING;
+
     } else if (LogicalVector.class.isAssignableFrom(type)) {
       return LOGICAL;
 
@@ -163,6 +167,9 @@ public class TypeSet {
 
     } else if(type.equals(ListVector.class)) {
       return LIST;
+
+    } else if(type.equals(FunctionCall.class)) {
+      return LANGUAGE;
 
     } else if(type.equals(PairList.Node.class)) {
       return PAIRLIST;

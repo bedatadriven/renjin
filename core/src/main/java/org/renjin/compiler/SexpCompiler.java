@@ -38,14 +38,13 @@ import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.RuntimeState;
+import org.renjin.compiler.ir.tac.statements.ReturnStatement;
 import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.eval.Context;
 import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.SEXP;
+import org.renjin.sexp.*;
 
 import java.util.List;
 
@@ -82,6 +81,78 @@ public class SexpCompiler {
     useDefMap = new UseDefMap(cfg);
 
     types = new TypeSolver(cfg, useDefMap);
+  }
+
+
+  public static void compileApplyCall(Context context, Environment rho, Vector vector, Function function) {
+    RuntimeState runtimeState = new RuntimeState(context, rho);
+    ValueBounds elementBounds = elementBounds(vector);
+
+    IRBodyBuilder builder = new IRBodyBuilder(runtimeState);
+    IRBody body = builder.buildApplyCall(function, elementBounds);
+
+    SexpCompiler compiler = new SexpCompiler(runtimeState, body, false);
+    compiler.compileApplyCall();
+
+  }
+
+  private static ValueBounds elementBounds(Vector vector) {
+    if(vector instanceof AtomicVector) {
+      return ValueBounds.builder()
+          .addFlags(ValueBounds.LENGTH_ONE)
+          .setTypeSet(TypeSet.of(vector))
+          .build();
+    } else if(vector instanceof ListVector) {
+      ListVector list = (ListVector) vector;
+      return listElementBounds(list);
+    } else {
+      throw new NotCompilableException(vector);
+    }
+  }
+
+  private static ValueBounds listElementBounds(ListVector list) {
+    int type = TypeSet.of(list.getElementAsSEXP(0));
+    int attributeFlags = 0;
+    boolean lengthOne = true;
+    boolean lengthNonZero = true;
+
+    for (SEXP sexp : list) {
+      if(TypeSet.of(sexp) != type) {
+        throw new NotCompilableException(list);
+      }
+      int length = sexp.length();
+      if(length != 1) {
+        lengthOne = false;
+      }
+      if(length == 0) {
+        lengthNonZero = false;
+      }
+      AttributeMap attributes = sexp.getAttributes();
+      if(attributes != AttributeMap.EMPTY) {
+        if(attributes.hasNames()) {
+          attributeFlags |= ValueBounds.MAYBE_NAMES;
+        }
+        if(attributes.hasDim()) {
+          attributeFlags |= ValueBounds.MAYBE_DIM;
+        }
+        if(attributes.hasClass()) {
+          attributeFlags |= ValueBounds.MAYBE_CLASS;
+        }
+        if(attributes.hasDimNames()) {
+          attributeFlags |= ValueBounds.MAYBE_DIMNAMES;
+        }
+        if(attributes.hasOther()) {
+          attributeFlags |= ValueBounds.MAYBE_OTHER_ATTR;
+        }
+      }
+    }
+
+    return ValueBounds.builder()
+        .setTypeSet(type)
+        .addFlags(attributeFlags)
+        .addFlags(ValueBounds.LENGTH_ONE, lengthOne)
+        .addFlags(ValueBounds.LENGTH_NON_ZERO, lengthNonZero)
+        .build();
   }
 
   public static CachedLoopBody compileForLoop(Context context, Environment rho, FunctionCall call, SEXP sequence) throws InstantiationException, IllegalAccessException {
@@ -184,6 +255,17 @@ public class SexpCompiler {
     });
 
     return classGenerator.finishAndLoad().newInstance();
+  }
+
+  private void compileApplyCall() {
+
+    compileForBody();
+
+    ReturnStatement returnStatement = (ReturnStatement) cfg.getBasicBlocks().get(1).getTerminal();
+    ValueBounds resultBounds = types.getVariables().get(returnStatement.getReturnValue());
+
+    System.out.println("LAPPLY RESULT => " + resultBounds);
+
   }
 
   public void compileInline(EmitContext emitContext,

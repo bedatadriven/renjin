@@ -78,7 +78,10 @@ public class StaticMethodCall implements Specialization {
       return builder.build();
     }
 
-    if(returnType.isPrimitive() ||
+    if(returnType.equals(boolean.class)) {
+      builder.addFlags(LENGTH_ONE | ValueBounds.FLAG_NO_NA);
+
+    } else if(returnType.isPrimitive() ||
         returnType.equals(String.class) || returnType.equals(Logical.class) || returnType.equals(Complex.class)) {
       builder.addFlags(LENGTH_ONE);
     }

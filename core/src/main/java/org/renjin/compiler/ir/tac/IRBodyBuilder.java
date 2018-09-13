@@ -111,6 +111,32 @@ public class IRBodyBuilder {
     return new IRBody(statements, labels);
   }
 
+  public IRBody buildApplyCall(Function function, ValueBounds elementBounds) {
+    statements = Lists.newArrayList();
+    labels = Maps.newHashMap();
+
+    LocalVariable element = newLocalVariable("element");
+    Temp returnValue = newTemp();
+
+    statements.add(new Assignment(element, new ReadElementParam(elementBounds)));
+
+    FunctionCall call = FunctionCall.newCall(function, Symbol.get("x"));
+    List<IRArgument> arguments = Collections.singletonList(new IRArgument(element));
+
+    Expression callExpression;
+    if(function instanceof Closure) {
+      callExpression = new ClosureCall(runtimeContext, call, (Closure)function, "FUN", arguments);
+    } else if(function instanceof BuiltinFunction) {
+      callExpression = new BuiltinCall(runtimeContext, call, ((BuiltinFunction) function).getName(), arguments);
+    } else {
+      throw new NotCompilableException(call, "apply() not supported when is.special(FUN)");
+    }
+
+    statements.add(new Assignment(returnValue, callExpression));
+    statements.add(new ReturnStatement(returnValue));
+
+    return new IRBody(statements, labels);
+  }
 
   public IRBody buildFunctionBody(Closure closure, String[] argumentNames) {
     
@@ -287,7 +313,7 @@ public class IRBodyBuilder {
     return translator.translateToExpression(this, context, function, call);
   }
 
-  private Function resolveFunction(SEXP functionName) {
+  public Function resolveFunction(SEXP functionName) {
     if( functionName instanceof PrimitiveFunction) {
       return (PrimitiveFunction) functionName;
     } else if (functionName instanceof Symbol) {
@@ -418,7 +444,8 @@ public class IRBodyBuilder {
     }
     return null;
   }
-  
+
+
   private static class TopLevelContext implements TranslationContext {
 
     @Override

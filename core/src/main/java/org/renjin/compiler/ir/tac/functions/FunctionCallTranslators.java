@@ -56,6 +56,7 @@ public class FunctionCallTranslators {
     specials.put("UseMethod", new UseMethodTranslator());
     specials.put("@", new SlotTranslator());
     specials.put("missing", new MissingTranslator());
+    specials.put("lapply", new ListApplyTranslator());
   }
   
   public FunctionCallTranslator get(Function function) {

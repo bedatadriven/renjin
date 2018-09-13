@@ -16,35 +16,7 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.compiler.builtins;
+package org.renjin.compiler.ir;
 
-import org.renjin.compiler.ir.exception.InvalidSyntaxException;
-import org.renjin.compiler.ir.tac.RuntimeState;
-
-import java.util.List;
-
-public class DollarSpecializer implements BuiltinSpecializer {
-  @Override
-  public String getName() {
-    return "$";
-  }
-
-  @Override
-  public String getGroup() {
-    return null;
-  }
-
-  @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
-    if(arguments.size() != 2) {
-      throw new InvalidSyntaxException("$ operator takes two arguments");
-    }
-
-    Specialization listElement = ListElement.trySpecialize(arguments.get(0), arguments.get(1));
-    if(listElement != null) {
-      return listElement;
-    }
-
-    return new SingleSubsetByName(arguments.get(0), arguments.get(1));
-  }
+public class CachedApplyCall {
 }

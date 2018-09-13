@@ -195,10 +195,17 @@ public class AttributeMap {
     return map != null || classes != null|| dim != null || dimNames != null || names != null;
   }
 
-  private boolean hasDim() {
+  public boolean hasDim() {
     return dim != null;
   }
 
+  public boolean hasDimNames() {
+    return dimNames != null;
+  }
+
+  public boolean hasOther() {
+    return map != null;
+  }
 
   public Iterable<PairList.Node> nodes() {
     return asPairList().nodes();
@@ -403,6 +410,8 @@ public class AttributeMap {
   public static Builder newBuilder() {
     return new Builder();
   }
+
+
 
 
   public static class Builder {

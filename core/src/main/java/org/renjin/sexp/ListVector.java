@@ -492,6 +492,14 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     }
 
     @Override
+    public Vector.Builder addNA(int count) {
+      for (int i = 0; i < count; i++) {
+        addNA();
+      }
+      return this;
+    }
+
+    @Override
     public Builder setFrom(int destinationIndex, SEXP source, int sourceIndex) {
       return this.set(destinationIndex, source.getElementAsSEXP(sourceIndex));
     }

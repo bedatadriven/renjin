@@ -252,6 +252,13 @@ public interface Vector extends SEXP {
     Builder addNA();
 
     /**
+     * Adds {@code count} NA elements to the end of the vector under construction
+     * @param count the number of NA elements to add
+     * @return this Builder, for method chaining
+     */
+    Builder addNA(int count);
+
+    /**
      * Reads the element at {@code sourceIndex} from the {@code source} expression and
      * adds a new {@code NA} element to the end of the vector under construction.
      *

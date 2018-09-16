@@ -186,6 +186,11 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
   }
 
   @Override
+  public int elementHash(int index) {
+    return Byte.hashCode(getElementAsByte(index));
+  }
+
+  @Override
   public Iterator<Byte> iterator() {
     return new ValueIterator();
   }

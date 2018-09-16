@@ -58,11 +58,16 @@ merge.data.frame <-
         unique(by)
     }
 
-    nx <- nrow(x <- as.data.frame(x)); ny <- nrow(y <- as.data.frame(y))
+    nx <- nrow(x <- as.data.frame(x))
+    ny <- nrow(y <- as.data.frame(y))
+
     by.x <- fix.by(by.x, x)
     by.y <- fix.by(by.y, y)
-    if((l.b <- length(by.x)) != length(by.y))
+
+    if((l.b <- length(by.x)) != length(by.y)) {
         stop("'by.x' and 'by.y' specify different numbers of columns")
+    }
+
     if(l.b == 0L) {
         ## was: stop("no columns to match on")
         ## return the cartesian product of x and y, fixing up common names
@@ -82,6 +87,11 @@ merge.data.frame <-
         }
     }
     else {
+        fastres <- .Internal(merge(x, y, by.x, by.y, all.x, all.y, sort))
+        if(!is.null(fastres)) {
+            return(fastres);
+        }
+
         if(any(by.x == 0L)) {
             x <- cbind(Row.names = I(row.names(x)), x)
             by.x <- by.x + 1L
@@ -168,4 +178,131 @@ merge.data.frame <-
     ## row.names(res) <- NULL
     attr(res, "row.names") <- .set_row_names(nrow(res))
     res
+}
+
+
+
+
+.sort.then.merge <- function(x, y, by.x, by.y, all.x, all.y) {
+
+  # Create a set of index vectors that will be used to order the two
+    # data.frames
+
+    key.vector <- function(i, x) {
+      if(i == 0) {
+        row.names(x)
+      } else {
+        k <- x[[i]]
+        if(is.factor(k)) {
+          k <- as.character(k)
+        }
+        k
+      }
+    }
+
+    # Create a list of key vectors for x and y
+    nk <- length(by.x)
+    kx <- lapply(by.x, key.vector, x)
+    ky <- lapply(by.y, key.vector, y)
+
+    # Order these key vectors so that we can walk the
+    # rows in order
+    kxi <- do.call(order, kx)
+    kyi <- do.call(order, ky)
+
+
+    # Allocate an array to hold the indices in the
+    # original table for each row in the result table
+    resix <- rep(NA_integer_, length.out = nrow(x) + nrow(y))
+    resiy <- rep(NA_integer_, length.out = nrow(x) + nrow(y))
+
+    # If we keep all.y, then we need to keep track of which
+    # rows come from the right
+    right <- rep(FALSE, length.out = nrow(x) + nrow(y))
+
+    # Now both sets of keys are sorted, so we can walk
+    # the rows in order
+
+    rx <- 1L
+    ry <- 1L
+    ro <- 1L
+
+    while(rx <= nrow(x) && ry <= nrow(y)) {
+
+      # Compare the keys at the current position
+      cmp <- 0L
+      for(k in 1:nk) {
+        kxv <- kx[[k]][kxi[rx]]
+        kyv <- ky[[k]][kyi[ry]]
+        if(kxv < kyv) {
+          cmp <- -1L
+          break;
+        } else if(kxv > kyv) {
+          cmp <- 1L
+          break;
+        }
+      }
+
+      if(cmp < 0L) {
+
+        # Keys on the left are earlier in the ordering
+        # that those on the right.
+
+        # If all.x, then emit the left index, but the
+        # right will stay NA
+
+        if(all.x) {
+          resix[ro] <- kxi[rx]
+          ro <- ro + 1L
+        }
+        rx <- rx + 1L
+
+      } else if(cmp > 0L) {
+
+        # Keys are on the right are earlier in the ordering
+        # than those on the left
+
+        # if all.y, then emit the right index, but the
+        # left will stay NA
+
+        if(all.y) {
+          resix[ro] <- kyi[ry]
+          right[ro] <- TRUE
+          ro <- ro + 1L
+        }
+        ry <- ry + 1L
+
+      } else {
+
+        # Keys at this point are equal,
+
+        resix[ro] <- kxi[rx]
+        resiy[ro] <- kyi[ry]
+        rx <- rx + 1L
+        ry <- ry + 1L
+        ro <- ro + 1L
+      }
+    }
+
+    # If there any all x keys left, add them to the output
+    if(all.x) {
+      while(rx <= nrow(x)) {
+        resix[ro] <- kxi[rx]
+        ro <- ro + 1L
+        rx <- rx + 1L
+      }
+    }
+    if(all.y) {
+      while(ry <= nrow(y)) {
+        resiy[ro] <- kyi[ry]
+        right[ro] <- TRUE
+        ro <- ro + 1L
+        ry <- ry + 1L
+      }
+    }
+
+    nout <- ro - 1
+
+    stop("TODO")
+
 }

@@ -219,6 +219,13 @@ public class IntArrayVector extends IntVector {
     }
 
     @Override
+    public Vector.Builder addNA(int count) {
+      size += count;
+      ensureCapacity(size);
+      return this;
+    }
+
+    @Override
     public IntVector build() {
       if(Profiler.ENABLED) {
         Profiler.memoryAllocated(Integer.SIZE, values.length);

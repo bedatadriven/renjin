@@ -777,7 +777,7 @@ public class Primitives {
     f("object.size", /*objectsize*/ null, 11);
     f("inspect", /*inspect*/ null, 111);
     f("mem.limits", /*memlimits*/ null, 11);
- // Internal merge function is replaced with pure R code //  f("merge", /*merge*/ null, 11);
+    f("merge", Merge.class, 11);
     f("capabilities", System.class, 11);
     f("capabilitiesX11", /*capabilitiesX11*/ null, 11);
     f("new.env", Environments.class, 11);

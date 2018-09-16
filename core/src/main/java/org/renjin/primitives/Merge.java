@@ -20,7 +20,6 @@ package org.renjin.primitives;
 
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.vector.RowNamesVector;
-import org.renjin.repackaged.guava.cache.CacheBuilder;
 import org.renjin.sexp.*;
 
 import java.lang.System;
@@ -39,49 +38,6 @@ public class Merge {
     int hashCode(int rowIndex);
   }
 
-  private static class KeySet {
-    private final AtomicVector[] keys;
-
-    public KeySet(AtomicVector[] keys) {
-      this.keys = keys;
-    }
-
-    @Override
-    public int hashCode() {
-      int result = 1;
-      for (int i = 0; i < keys.length; i++) {
-        result = 31 * result + System.identityHashCode(keys[i]);
-      }
-      return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      if(!(obj instanceof KeySet)) {
-        return false;
-      }
-      KeySet other = (KeySet) obj;
-      if(other.keys.length != this.keys.length) {
-        return false;
-      }
-      for (int i = 0; i < this.keys.length; i++) {
-        if(this.keys[i] != other.keys[i]) {
-          return false;
-        }
-      }
-      return false;
-    }
-  }
-
-  private static class KeyCache {
-    /**
-     * The number of times against which this keyset has been merged
-     */
-    private int count = 1;
-
-
-  }
-
   @Internal
   public static SEXP merge(ListVector left, ListVector right, IntVector byLeft, IntVector byRight,
                            boolean allLeft, boolean allRight, boolean sort) {
@@ -97,30 +53,52 @@ public class Merge {
 
 
     if(!sort) {
-      if (!allRight && nright > nleft) {
-        System.out.println("[hash merge]");
+      if (nright > nleft) {
         return hashAndMerge(left, byLeft, right, byRight, allLeft, allRight);
+      } else {
+        return hashAndMerge(right, byRight, left, byLeft, allRight, allLeft);
       }
     }
 
     return Null.INSTANCE;
   }
 
-  private static AtomicVector[] keyArray(ListVector table, IntVector keyNumbers) {
+  /**
+   *
+   * @param dataFrame a data frame list
+   * @param keyNumbers integers indicating the position of the key in the table. key number 0 refers to the
+   *                   table's row names, all others are 1-based column indices
+   * @return an array of {@code AtomicVectors} containing the selected keys
+   */
+  private static AtomicVector[] keyArray(ListVector dataFrame, IntVector keyNumbers) {
     int nkeys = keyNumbers.length();
     AtomicVector keys[] = new AtomicVector[nkeys];
     for (int i = 0; i < nkeys; i++) {
       int keyNumber = keyNumbers.getElementAsInt(i);
       if(keyNumber == 0) {
-        keys[i] = (AtomicVector) table.getAttribute(Symbols.ROW_NAMES);
+        keys[i] = (AtomicVector) dataFrame.getAttribute(Symbols.ROW_NAMES);
       } else {
-        keys[i] = (AtomicVector) table.getElementAsSEXP(keyNumber - 1);
+        keys[i] = (AtomicVector) dataFrame.getElementAsSEXP(keyNumber - 1);
       }
     }
     return keys;
   }
 
-  private static SEXP hashAndMerge(
+  /**
+   * Merges the two data.frames by first constructing a hash table of the smaller data.frame and then
+   * scanning the larger data.frame.
+   *
+   * @param left the left (and smaller) table
+   * @param byLeft the key numbers of the left table
+   * @param right the right (and larger) table
+   * @param byRight the key numbers of the right table
+   * @param allLeft true if all rows from the left-handed data.frame should be included, even those not matching
+   *                any rows in the right-handed table.
+   * @param allRight true if all rows from the right-handed data.frame should be included, even those not matching
+   *                 any rows in the left-handed table.
+   * @return the merged data frames.
+   */
+  private static ListVector hashAndMerge(
       ListVector left, IntVector byLeft,
       ListVector right, IntVector byRight,
       boolean allLeft,
@@ -138,6 +116,11 @@ public class Merge {
 
     IntArrayVector.Builder leftRows = new IntArrayVector.Builder();
     IntArrayVector.Builder rightRows = new IntArrayVector.Builder();
+    IntArrayVector.Builder rightOnlyRows = new IntArrayVector.Builder();
+
+    if(allRight) {
+      rightOnlyRows = new IntArrayVector.Builder();
+    }
 
     int[][] leftHashTable = hashRows(leftKeys);
     int leftTableSize = leftHashTable.length;
@@ -155,6 +138,7 @@ public class Merge {
       int rowHash = rightHashFunction.hashCode(rightRowIndex);
       int bucketIndex = bucketIndex(leftTableSize, rowHash);
       int[] bucket = leftHashTable[bucketIndex];
+      boolean matched = false;
       if(bucket != null) {
         for(int slotIndex = 0; slotIndex < bucket.length; ++slotIndex) {
           int leftRowIndex = bucket[slotIndex];
@@ -162,6 +146,7 @@ public class Merge {
             break;
           }
           if(rowPredicate.equal(leftRowIndex, rightRowIndex)) {
+            matched = true;
             rightRows.add(rightRowIndex);
             leftRows.add(leftRowIndex);
             if (leftMatched != null) {
@@ -169,6 +154,9 @@ public class Merge {
             }
           }
         }
+      }
+      if(allRight && !matched) {
+        rightOnlyRows.add(right);
       }
     }
 
@@ -181,12 +169,25 @@ public class Merge {
       }
     }
 
-    return merge(left, byLeft, leftRows.build(), right, byRight, rightRows.build());
+    return merge(left, byLeft, leftRows.build(), right, byRight, rightRows.build(), rightOnlyRows.build());
   }
 
-  private static SEXP merge(
+  /**
+   * @param left the left-handed table
+   * @param leftKeyNumbers the key numbers of the left-handed table
+   * @param leftRows the 0-based indices of the selected rows from the left hand table,
+   * @param right the right-handed table
+   * @param rightKeyNumbers the key numbers of the right-handed table
+   * @param rightRows the 0-based indices of the selected rows from the right handed table, with NAs for rows that
+   *                  correspond to unmatched left-handed rows that should be left blank
+   * @param rightOnlyRows 0-based indices of rows from the right-handed table that do not match any rows
+   *                      in the left-handed table.
+   *
+   * @return the merged data.frame
+   */
+  private static ListVector merge(
       ListVector left, IntVector leftKeyNumbers, IntVector leftRows,
-      ListVector right, IntVector rightKeyNumbers, IntVector rightRows) {
+      ListVector right, IntVector rightKeyNumbers, IntVector rightRows, IntVector rightOnlyRows) {
 
     ListVector.NamedBuilder list = new ListVector.NamedBuilder();
 
@@ -200,7 +201,8 @@ public class Merge {
         throw new UnsupportedOperationException("TODO");
       } else {
         String name = leftNames.getElementAsString(keyNumber - 1);
-        Vector column = select((Vector) left.getElementAsSEXP(keyNumber - 1), leftRows);
+        Vector column = selectKey((Vector) left.getElementAsSEXP(keyNumber - 1), leftRows,
+                                  (Vector) right.getElementAsSEXP(keyNumber - 1), rightOnlyRows );
         list.add(name, column);
       }
     }
@@ -209,7 +211,7 @@ public class Merge {
     for (int i = 0; i < left.length(); i++) {
       if(!isKey(i, leftKeyNumbers)) {
         String name = leftNames.getElementAsString(i);
-        Vector column = select((Vector)left.getElementAsSEXP(i), leftRows);
+        Vector column = selectLeft((Vector)left.getElementAsSEXP(i), leftRows, rightOnlyRows);
         list.add(name, column);
       }
     }
@@ -218,7 +220,7 @@ public class Merge {
     for (int i = 0; i < right.length(); i++) {
       if(!isKey(i, rightKeyNumbers)) {
         String name = rightNames.getElementAsString(i);
-        Vector column = select((Vector)right.getElementAsSEXP(i), rightRows);
+        Vector column = selectRight((Vector)right.getElementAsSEXP(i), rightRows, rightOnlyRows);
         list.add(name, column);
       }
     }
@@ -229,31 +231,69 @@ public class Merge {
     return list.build();
   }
 
-  private static boolean isKey(int rowIndex, IntVector keyNumbers) {
+
+  /**
+   *
+   * @param columnIndex 0-based column index
+   * @return true if the given column index is included as a merge key
+   */
+  private static boolean isKey(int columnIndex, IntVector keyNumbers) {
     for (int i = 0; i < keyNumbers.length(); i++) {
-      if(rowIndex + 1 == keyNumbers.getElementAsInt(i)) {
+      if(columnIndex + 1 == keyNumbers.getElementAsInt(i)) {
         return true;
       }
     }
     return false;
   }
 
-  private static Vector select(Vector vector, IntVector rowIndices) {
-    Vector.Builder builder = vector.newBuilderWithInitialCapacity(rowIndices.length());
+
+  /**
+   * Constructs a result vector for a key column
+   */
+  private static Vector selectKey(Vector leftKey, IntVector leftRows, Vector rightKey, IntVector rightOnlyRows) {
+    Vector.Builder builder = leftKey.newBuilderWithInitialCapacity(leftKey.length() + rightOnlyRows.length());
+
+    addRows(builder, leftKey, leftRows);
+    addRows(builder, rightKey, rightOnlyRows);
+
+    return builder.build();
+  }
+
+  private static Vector selectLeft(Vector leftColumn, IntVector leftRows, IntVector rightOnlyRows) {
+    Vector.Builder builder = leftColumn.newBuilderWithInitialCapacity(leftRows.length() + rightOnlyRows.length());
+
+    addRows(builder, leftColumn, leftRows);
+    builder.addNA(rightOnlyRows.length());
+
+    return builder.build();
+  }
+
+  private static Vector selectRight(Vector rightColumn, IntVector rightRows, IntVector rightOnlyRows) {
+
+    Vector.Builder builder = rightColumn.newBuilderWithInitialCapacity(rightRows.length() + rightOnlyRows.length());
+
+    addRows(builder, rightColumn, rightRows);
+    addRows(builder, rightColumn, rightOnlyRows);
+
+    return builder.build();
+  }
+
+
+  private static void addRows(Vector.Builder builder, Vector column, IntVector rowIndices) {
     for (int i = 0; i < rowIndices.length(); i++) {
       int rowIndex = rowIndices.getElementAsInt(i);
       if(IntVector.isNA(rowIndex)) {
         builder.addNA();
       } else {
-        builder.addFrom(vector, rowIndex);
+        builder.addFrom(column, rowIndex);
       }
     }
-    return builder.build();
   }
 
 
   /**
-   * Build a hash table of the smaller data.frame
+   * Build a hash table of the smaller data.frame.
+   *
    */
   private static int[][] hashRows(AtomicVector[] keys) {
     int nrows = keys[0].length();
@@ -295,11 +335,17 @@ public class Merge {
     return table;
   }
 
+  /**
+   * Compute a bucket index from the row hash and the number of buckets in our hash table.
+   */
   private static int bucketIndex(int nbuckets, int rowHash) {
     int spreadHashCode = rowHash ^ (rowHash >>> 16);
     return (nbuckets - 1) & spreadHashCode;
   }
 
+  /**
+   * Construct a hash function from an array of key vectors.
+   */
   private static RowHashFunction hashFunction(AtomicVector[] keyColumns) {
     if(keyColumns.length == 1) {
       AtomicVector key = keyColumns[0];
@@ -322,6 +368,9 @@ public class Merge {
     }
   }
 
+  /**
+   * Construct a function which tests equality between the keys of two rows.
+   */
   private static RowPredicate rowPredicate(AtomicVector[] leftKeys, AtomicVector[] rightKeys) {
     int nkeys = leftKeys.length;
     RowPredicate[] keyPredicates = new RowPredicate[nkeys];

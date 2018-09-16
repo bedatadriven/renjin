@@ -70,14 +70,21 @@ public interface AtomicVector extends Vector {
    */
   int compare(int index1, int index2);
 
+  /**
+   * @return a hash code for the element at index {@code index}
+   */
+  int elementHash(int index);
 
   /**
    * @return a copy of the vector as an array of doubles
    */
   double[] toDoubleArray();
 
+  /**
+   *
+   * @return a copy of the vector as an array of Strings
+   */
   String[] toStringArray();
-
 
   /**
    * @return a copy of the vector as an array of integers

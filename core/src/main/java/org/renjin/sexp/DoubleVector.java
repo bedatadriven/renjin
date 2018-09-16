@@ -218,6 +218,11 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
   }
 
   @Override
+  public int elementHash(int index) {
+    return Double.hashCode(getElementAsDouble(index));
+  }
+
+  @Override
   public abstract int length();
 
   @Override

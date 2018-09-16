@@ -275,29 +275,29 @@ public class Profiler {
     Collections.sort(profiles, Ordering.natural().onResultOf(new org.renjin.repackaged.guava.base.Function<FunctionProfile, Long>() {
       @Override
       public Long apply(FunctionProfile input) {
-        return input.ownTime;
+        return input.time;
       }
       }).reverse());
 
 
     out.println();
-    out.println("FUNCTION CALLS BY OWN TIME");
+    out.println("FUNCTION CALLS BY (TOTAL) TIME");
     out.println("==========================");
     out.println();
-    out.println(String.format("  %-25s%10s%10s%10s%4s%10s", "Function", "Count", "Time", "Own Time", "%", "kb Alloc"));
+    out.println(String.format("  %-30s%10s%10s%10s%4s%10s", "Function", "Count", "Time", "Own Time", "%", "kb Alloc"));
 
     printProfiles(out, totalRunningTime, profiles);
   }
 
   private static void printProfiles(PrintStream out, double totalRunningTime, Iterable<FunctionProfile> profiles) {
     for (FunctionProfile profile : profiles) {
-      out.println(String.format("%c %-25s%10d%10d%10d%3.0f%%%10s",
+      out.println(String.format("%c %-30s%10d%10d%10d%3.0f%%%10s",
           profile.type,
           profile.symbol.getPrintName(),
           profile.count,
           TimeUnit.NANOSECONDS.toMillis(profile.time),
           TimeUnit.NANOSECONDS.toMillis(profile.ownTime),
-          ((double)profile.ownTime) / totalRunningTime * 100d,
+          ((double)profile.time) / totalRunningTime * 100d,
           formatAlloc(profile.bytesAllocated)));
     }
   }

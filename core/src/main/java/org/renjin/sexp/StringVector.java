@@ -189,6 +189,16 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
     return getElementAsString(index1).compareTo(getElementAsString(index2));
   }
 
+  @Override
+  public int elementHash(int index) {
+    String s = getElementAsString(index);
+    if(s == null) {
+      return 0;
+    } else {
+      return s.hashCode();
+    }
+  }
+
   private int indexOf(String value, int startIndex) {
     for(int i=startIndex;i<length();++i) {
       String value_i = getElementAsString(i);

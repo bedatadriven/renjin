@@ -139,6 +139,11 @@ public abstract class IntVector extends AbstractAtomicVector implements Iterable
   }
 
   @Override
+  public int elementHash(int index) {
+    return Integer.hashCode(getElementAsInt(index));
+  }
+
+  @Override
   public IntArrayVector.Builder newBuilderWithInitialSize(int initialSize) {
     return new IntArrayVector.Builder(initialSize, initialSize);
   }

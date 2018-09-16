@@ -104,6 +104,11 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
   }
 
   @Override
+  public int elementHash(int index) {
+    return Integer.hashCode(getElementAsRawLogical(index));
+  }
+
+  @Override
   public Boolean getElementAsObject(int index) {
     int value = getElementAsInt(index);
     if(IntVector.isNA(value)) {

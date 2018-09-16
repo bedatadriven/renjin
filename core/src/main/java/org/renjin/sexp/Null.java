@@ -325,6 +325,11 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
   }
 
   @Override
+  public int elementHash(int index) {
+    return 0;
+  }
+
+  @Override
   public Type getVectorType() {
     return VECTOR_TYPE;
   }
@@ -399,6 +404,11 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
 
     @Override
     public Vector.Builder addNA() {
+      throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
+    }
+
+    @Override
+    public Vector.Builder addNA(int count) {
       throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
     }
 

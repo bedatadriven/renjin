@@ -174,6 +174,12 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
   }
 
   @Override
+  public int elementHash(int index) {
+    return Double.hashCode(getElementAsDouble(index)) * 31 +
+           Double.hashCode(getElementAsComplexIm(index));
+  }
+
+  @Override
   public int indexOf(AtomicVector vector, int vectorIndex, int startIndex) {
     Complex value = vector.getElementAsComplex(vectorIndex);
 

@@ -18,6 +18,8 @@
  */
 package org.renjin.sexp;
 
+import org.renjin.compiler.ir.TypeSet;
+
 public abstract class PrimitiveFunction extends AbstractSEXP implements Function {
 
   public abstract String getName();
@@ -28,6 +30,11 @@ public abstract class PrimitiveFunction extends AbstractSEXP implements Function
 
   public PrimitiveFunction(AttributeMap attributes) {
     super(attributes);
+  }
+
+  @Override
+  public int getTypeSet() {
+    return TypeSet.FUNCTION;
   }
 
   @Override

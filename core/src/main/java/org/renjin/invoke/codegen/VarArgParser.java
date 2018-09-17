@@ -26,6 +26,7 @@ import org.renjin.invoke.model.JvmMethod;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.Environment;
+import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.ListVector;
 
 import java.util.List;
@@ -119,6 +120,8 @@ public class VarArgParser {
       return methodContext.getContext();
     } else if(formal.getClazz().equals(Environment.class)) {
       return methodContext.getEnvironment();
+    } else if(formal.getClazz().equals(FunctionCall.class)) {
+      return methodContext.getCall();
     } else if(formal.getClazz().equals(Session.class)) {
       return methodContext.getContext().invoke("getSession");
     } else {

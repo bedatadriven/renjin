@@ -30,6 +30,7 @@ import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.eval.Context;
+import org.renjin.invoke.annotations.MaybeNames;
 import org.renjin.invoke.annotations.NoAttributes;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.repackaged.asm.Opcodes;
@@ -42,8 +43,7 @@ import org.renjin.sexp.SEXP;
 
 import java.util.*;
 
-import static org.renjin.compiler.ir.ValueBounds.LENGTH_ONE;
-import static org.renjin.compiler.ir.ValueBounds.MAYBE_ATTRIBUTES;
+import static org.renjin.compiler.ir.ValueBounds.*;
 
 
 /**
@@ -87,9 +87,18 @@ public class StaticMethodCall implements Specialization {
     }
 
     if(SEXP.class.isAssignableFrom(returnType)) {
+      boolean attributes = true;
+
       if(method.isAnnotatedWith(NoAttributes.class)) {
         // Nothing! nice.
-      } else {
+        attributes = false;
+
+      } else if(method.isAnnotatedWith(MaybeNames.class)) {
+        builder.addFlags(MAYBE_NAMES);
+        attributes = false;
+      }
+
+      if(attributes) {
         builder.addFlags(MAYBE_ATTRIBUTES);
       }
     }
@@ -267,6 +276,7 @@ public class StaticMethodCall implements Specialization {
       }
       CompiledSexp compiledArg = arguments.get(positionalArgument).getExpression().getCompiledExpr(emitContext);
       compiledArg.loadAsArgument(emitContext, mv, argument.getClazz());
+      positionalArgument++;
     }
 
     invokeMethod(mv);

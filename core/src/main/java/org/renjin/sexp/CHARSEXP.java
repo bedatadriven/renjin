@@ -18,6 +18,8 @@
  */
 package org.renjin.sexp;
 
+import org.renjin.compiler.ir.TypeSet;
+
 /**
  * This was the internal storage format for Strings in the
  * C-implementation; it doesn't appear that these are visible
@@ -36,6 +38,11 @@ public class CHARSEXP extends AbstractSEXP {
   @Override
   public String getTypeName() {
     return TYPE_NAME;
+  }
+
+  @Override
+  public int getTypeSet() {
+    return TypeSet.CHARSEXP;
   }
 
   @Override

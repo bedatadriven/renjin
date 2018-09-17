@@ -18,6 +18,7 @@
  */
 package org.renjin.sexp;
 
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.eval.EvalException;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -230,6 +231,11 @@ public final class Symbol extends AbstractSEXP {
   @Override
   public String getTypeName() {
     return TYPE_NAME;
+  }
+
+  @Override
+  public final int getTypeSet() {
+    return TypeSet.SYMBOL;
   }
 
   @Override

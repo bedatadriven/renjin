@@ -19,6 +19,7 @@
 package org.renjin.sexp;
 
 import org.apache.commons.math.complex.Complex;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.parser.NumericLiterals;
 import org.renjin.primitives.vector.ConvertingComplexVector;
 import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
@@ -79,6 +80,11 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
   @Override
   public String getTypeName() {
     return TYPE_NAME;
+  }
+
+  @Override
+  public final int getTypeSet() {
+    return TypeSet.COMPLEX;
   }
 
   @Override

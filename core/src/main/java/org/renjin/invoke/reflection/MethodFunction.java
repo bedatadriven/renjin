@@ -18,6 +18,7 @@
  */
 package org.renjin.invoke.reflection;
 
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.eval.Context;
 import org.renjin.sexp.*;
 
@@ -45,6 +46,11 @@ public class MethodFunction extends AbstractSEXP implements Function {
   @Override
   public String getTypeName() {
     return "method";
+  }
+
+  @Override
+  public int getTypeSet() {
+    return TypeSet.FUNCTION;
   }
 
   @Override

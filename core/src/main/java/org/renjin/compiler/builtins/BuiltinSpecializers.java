@@ -68,6 +68,10 @@ public class BuiltinSpecializers {
     specializers.put("invisible", new InvisibleSpecializer());
     specializers.put("as.logical", new GenericBuiltinGuard(new AsVectorSpecializer("as.logical", TypeSet.LOGICAL)));
     specializers.put("nargs", new NargsSpecializer());
+    specializers.put("cbind", new BindSpecializer("cbind"));
+    specializers.put("rbind", new BindSpecializer("rbind"));
+    specializers.put("list", new ListSpecializer());
+    specializers.put("stopifnot", new StopIfNotSpecializer());
 
     cache = CacheBuilder.newBuilder().build(new CacheLoader<String, Specializer>() {
       @Override

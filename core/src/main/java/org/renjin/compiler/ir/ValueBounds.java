@@ -147,7 +147,7 @@ public class ValueBounds {
   /**
    * The general shape of the list vector's elements, or null if not known
    */
-  private ListShape shape = null;
+  private Shape shape = null;
 
 
   private ValueBounds() {}
@@ -526,7 +526,7 @@ public class ValueBounds {
     return !isAnyFlagSet(MAYBE_ATTRIBUTES);
   }
 
-  public ListShape getShape() {
+  public Shape getShape() {
     return shape;
   }
 
@@ -553,6 +553,11 @@ public class ValueBounds {
     
     public Builder setTypeSet(int typeSet) {
       bounds.typeSet = typeSet;
+      return this;
+    }
+
+    public Builder addTypes(int typeSet) {
+      bounds.typeSet |= typeSet;
       return this;
     }
 
@@ -620,7 +625,7 @@ public class ValueBounds {
       return this;
     }
 
-    public Builder setShape(ListShape shape) {
+    public Builder setShape(Shape shape) {
       bounds.shape = shape;
       return this;
     }

@@ -18,6 +18,8 @@
  */
 package org.renjin.sexp;
 
+import org.renjin.compiler.ir.TypeSet;
+
 public class S4Object extends AbstractSEXP {
 
   public S4Object() {
@@ -31,6 +33,11 @@ public class S4Object extends AbstractSEXP {
   @Override
   public String getTypeName() {
     return "S4";
+  }
+
+  @Override
+  public final int getTypeSet() {
+    return TypeSet.S4;
   }
 
   @Override

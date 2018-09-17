@@ -30,6 +30,7 @@ import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.var.LocalVarAllocator;
 import org.renjin.compiler.codegen.var.VariableMap;
 import org.renjin.compiler.codegen.var.VariableStrategy;
+import org.renjin.compiler.ir.HomogeneousList;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InternalCompilerException;
@@ -38,7 +39,6 @@ import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.RuntimeState;
-import org.renjin.compiler.ir.tac.statements.ReturnStatement;
 import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.eval.Context;
 import org.renjin.primitives.sequence.IntSequence;
@@ -84,74 +84,43 @@ public class SexpCompiler {
   }
 
 
-  public static void compileApplyCall(Context context, Environment rho, Vector vector, Function function) {
+  public static CachedApplyCall compileApplyCall(Context context, Environment rho, Vector vector, Function function) throws InstantiationException, IllegalAccessException {
     RuntimeState runtimeState = new RuntimeState(context, rho);
-    ValueBounds elementBounds = elementBounds(vector);
-
-    IRBodyBuilder builder = new IRBodyBuilder(runtimeState);
-    IRBody body = builder.buildApplyCall(function, elementBounds);
-
-    SexpCompiler compiler = new SexpCompiler(runtimeState, body, false);
-    compiler.compileApplyCall();
-
-  }
-
-  private static ValueBounds elementBounds(Vector vector) {
+    ValueBounds vectorBounds;
     if(vector instanceof AtomicVector) {
-      return ValueBounds.builder()
-          .addFlags(ValueBounds.LENGTH_ONE)
+      vectorBounds = ValueBounds.builder()
           .setTypeSet(TypeSet.of(vector))
+          .addFlags(sequenceFlags(vector))
           .build();
     } else if(vector instanceof ListVector) {
-      ListVector list = (ListVector) vector;
-      return listElementBounds(list);
+      vectorBounds = listBounds((ListVector) vector);
     } else {
-      throw new NotCompilableException(vector);
+      throw new IllegalArgumentException();
     }
+
+    IRBodyBuilder builder = new IRBodyBuilder(runtimeState);
+    IRBody body = builder.buildApplyCall(function, vectorBounds);
+
+    SexpCompiler compiler = new SexpCompiler(runtimeState, body, false);
+
+    return new CachedApplyCall(vectorBounds, runtimeState.getAssumptions(), compiler.compileApplyCall());
   }
 
-  private static ValueBounds listElementBounds(ListVector list) {
-    int type = TypeSet.of(list.getElementAsSEXP(0));
-    int attributeFlags = 0;
-    boolean lengthOne = true;
-    boolean lengthNonZero = true;
-
-    for (SEXP sexp : list) {
-      if(TypeSet.of(sexp) != type) {
-        throw new NotCompilableException(list);
-      }
-      int length = sexp.length();
-      if(length != 1) {
-        lengthOne = false;
-      }
-      if(length == 0) {
-        lengthNonZero = false;
-      }
+  private static ValueBounds listBounds(ListVector vector) {
+    ValueBounds.Builder builder = ValueBounds.builder();
+    builder.setTypeSet(0);
+    for (SEXP sexp : vector) {
+      builder.addTypes(sexp.getTypeSet());
       AttributeMap attributes = sexp.getAttributes();
-      if(attributes != AttributeMap.EMPTY) {
-        if(attributes.hasNames()) {
-          attributeFlags |= ValueBounds.MAYBE_NAMES;
-        }
-        if(attributes.hasDim()) {
-          attributeFlags |= ValueBounds.MAYBE_DIM;
-        }
-        if(attributes.hasClass()) {
-          attributeFlags |= ValueBounds.MAYBE_CLASS;
-        }
-        if(attributes.hasDimNames()) {
-          attributeFlags |= ValueBounds.MAYBE_DIMNAMES;
-        }
-        if(attributes.hasOther()) {
-          attributeFlags |= ValueBounds.MAYBE_OTHER_ATTR;
-        }
+      if(!attributes.isEmpty()) {
+        builder.setAttributes(attributes);
       }
     }
 
     return ValueBounds.builder()
-        .setTypeSet(type)
-        .addFlags(attributeFlags)
-        .addFlags(ValueBounds.LENGTH_ONE, lengthOne)
-        .addFlags(ValueBounds.LENGTH_NON_ZERO, lengthNonZero)
+        .setShape(new HomogeneousList(builder.build()))
+        .addFlags(ValueBounds.MAYBE_ATTRIBUTES)
+        .setTypeSet(TypeSet.LIST)
         .build();
   }
 
@@ -257,15 +226,24 @@ public class SexpCompiler {
     return classGenerator.finishAndLoad().newInstance();
   }
 
-  private void compileApplyCall() {
+  private CompiledApplyCall compileApplyCall() throws IllegalAccessException, InstantiationException {
 
     compileForBody();
 
-    ReturnStatement returnStatement = (ReturnStatement) cfg.getBasicBlocks().get(1).getTerminal();
-    ValueBounds resultBounds = types.getVariables().get(returnStatement.getReturnValue());
+    LocalVarAllocator localVars = new LocalVarAllocator(CompiledApplyCall.PARAM_SIZE);
+    VariableMap variableMap = new VariableMap(cfg, localVars, types, useDefMap);
+    LoopBodyEmitContext emitContext = new LoopBodyEmitContext(localVars, variableMap);
 
-    System.out.println("LAPPLY RESULT => " + resultBounds);
+    ClassGenerator<CompiledApplyCall> classGenerator = new ClassGenerator<>(CompiledApplyCall.class);
+    classGenerator.addMethod("apply",
+        "(Lorg/renjin/eval/Context;Lorg/renjin/sexp/Environment;Lorg/renjin/sexp/Vector;)Lorg/renjin/sexp/Vector;", mv -> {
+          mv.visitCode();
+          emitBody(emitContext, mv);
+          mv.visitMaxs(0, localVars.getCount());
+          mv.visitEnd();
+        });
 
+    return classGenerator.finishAndLoad().newInstance();
   }
 
   public void compileInline(EmitContext emitContext,

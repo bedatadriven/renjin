@@ -148,4 +148,9 @@ public abstract class ApplyMethodBuilder implements ApplyMethodContext {
     return environment;
   }
 
+  @Override
+  public JExpression getCall() {
+    return call;
+  }
+
 }

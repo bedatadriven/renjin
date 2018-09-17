@@ -99,21 +99,22 @@ public class ClassGenerator<T> implements Opcodes {
 
   public void addLoopBodyMethod(Consumer<InstructionAdapter> writer) {
 
-    addMethod(writer, "run", getMethodDescriptor(Type.getType(SEXP.class),
+    addMethod("run", getMethodDescriptor(Type.getType(SEXP.class),
         getType(Context.class),
         getType(Environment.class),
         getType(SEXP.class),
-        Type.INT_TYPE));
+        Type.INT_TYPE), writer);
   }
 
 
   public void addBodyMethod(Consumer<InstructionAdapter> writer) {
-    addMethod(writer, "evaluate", getMethodDescriptor(Type.getType(SEXP.class),
+    addMethod("evaluate", getMethodDescriptor(Type.getType(SEXP.class),
         getType(Context.class),
-        getType(Environment.class)));
+        getType(Environment.class)), writer);
   }
 
-  private void addMethod(Consumer<InstructionAdapter> writer, String methodName, String descriptor) {
+
+  public void addMethod(String methodName, String descriptor, Consumer<InstructionAdapter> writer) {
     if(DEBUG) {
       MethodNode methodNode = new MethodNode(ACC_PUBLIC, methodName, descriptor,null, null);
 

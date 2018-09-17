@@ -18,6 +18,8 @@
  */
 package org.renjin.sexp;
 
+import org.renjin.compiler.ir.TypeSet;
+
 /**
  * Expression representing a call to an R function, consisting of
  * a function reference and a list of arguments.
@@ -43,6 +45,12 @@ public class FunctionCall extends PairList.Node {
   public String getTypeName() {
     return TYPE_NAME;
   }
+
+  @Override
+  public final int getTypeSet() {
+    return TypeSet.LANGUAGE;
+  }
+
   public static SEXP fromListExp(PairList.Node listExp) {
     return new FunctionCall(listExp.value, listExp.nextNode);
   }

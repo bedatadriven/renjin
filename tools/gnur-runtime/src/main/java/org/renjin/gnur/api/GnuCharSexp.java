@@ -18,6 +18,7 @@
  */
 package org.renjin.gnur.api;
 
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.gcc.runtime.Stdlib;
@@ -64,6 +65,11 @@ public class GnuCharSexp extends AbstractSEXP {
   @Override
   public String getTypeName() {
     return "char";
+  }
+
+  @Override
+  public int getTypeSet() {
+    return TypeSet.CHARSEXP;
   }
 
   @Override

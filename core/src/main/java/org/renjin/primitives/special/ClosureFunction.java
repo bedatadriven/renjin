@@ -34,15 +34,19 @@ public class ClosureFunction extends SpecialFunction {
 
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+    return apply(rho, args);
+  }
+
+  public static Closure apply(Environment rho, PairList args) {
     if(args.length() < 2) {
       throw new EvalException("incorrect number of arguments to \"function\"");
     }
-    SEXP formals = call.getArgument(0);
+    SEXP formals = args.getElementAsSEXP(0);
     if(!(formals instanceof PairList) || formals instanceof FunctionCall) {
       throw new EvalException("invalid formal argument list for \"function\"");
     }
 
-    SEXP body = call.getArgument(1);
+    SEXP body = args.getElementAsSEXP(1);
 
     return new Closure(rho, (PairList) formals, body);
   }

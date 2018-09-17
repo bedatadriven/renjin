@@ -16,19 +16,19 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.invoke.codegen;
+package org.renjin.primitives.special;
 
-import com.sun.codemodel.JClass;
-import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JExpression;
+import org.junit.Test;
+import org.renjin.EvalTestCase;
 
-public interface ApplyMethodContext {
+public class ListApplyFunctionTest extends EvalTestCase {
 
-  JExpression getContext();
-  JExpression getEnvironment();
-  JExpression getCall();
+  @Test
+  public void testCompile() {
 
-  JClass classRef(Class<?> clazz);
+    evaluate("print(lapply(1:122, function(x) x * 2))");
 
-  JCodeModel getCodeModel();
+  }
+
+
 }

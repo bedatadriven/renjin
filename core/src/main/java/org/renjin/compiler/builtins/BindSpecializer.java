@@ -16,19 +16,31 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.invoke.codegen;
+package org.renjin.compiler.builtins;
 
-import com.sun.codemodel.JClass;
-import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JExpression;
+import org.renjin.compiler.ir.tac.RuntimeState;
 
-public interface ApplyMethodContext {
+import java.util.List;
 
-  JExpression getContext();
-  JExpression getEnvironment();
-  JExpression getCall();
+public class BindSpecializer implements BuiltinSpecializer {
+  private final String name;
 
-  JClass classRef(Class<?> clazz);
+  public BindSpecializer(String name) {
+    this.name = name;
+  }
 
-  JCodeModel getCodeModel();
+  @Override
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  public String getGroup() {
+    return null;
+  }
+
+  @Override
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
+    return UnspecializedCall.INSTANCE;
+  }
 }

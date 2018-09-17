@@ -60,6 +60,8 @@ public interface CompiledSexp {
       loadSexp(emitContext, mv);
     } else if(argumentClass.equals(int.class)) {
       loadScalar(emitContext, mv, VectorType.INT);
+    } else if(argumentClass.equals(boolean.class)) {
+      loadScalar(emitContext, mv, VectorType.LOGICAL);
     } else if(argumentClass.equals(double.class)) {
       loadScalar(emitContext, mv, VectorType.DOUBLE);
     } else if(argumentClass.equals(String.class)) {

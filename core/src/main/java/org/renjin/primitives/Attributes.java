@@ -302,6 +302,7 @@ public class Attributes {
   }
 
   @Internal
+  @NoAttributes
   public static SEXP inherits(@Current Context context, SEXP exp, StringVector what, boolean which) {
 
     StringVector classes = getClass(exp);

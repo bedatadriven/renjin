@@ -19,6 +19,7 @@
 package org.renjin.compiler.ir.tac;
 
 import org.renjin.compiler.NotCompilableException;
+import org.renjin.compiler.cfg.InlinedFunction;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.tac.expressions.*;
@@ -111,28 +112,21 @@ public class IRBodyBuilder {
     return new IRBody(statements, labels);
   }
 
-  public IRBody buildApplyCall(Function function, ValueBounds elementBounds) {
+  public IRBody buildApplyCall(Function function, ValueBounds vectorBounds) {
     statements = Lists.newArrayList();
     labels = Maps.newHashMap();
 
-    LocalVariable element = newLocalVariable("element");
+    LocalVariable vector = newLocalVariable("vector");
     Temp returnValue = newTemp();
 
-    statements.add(new Assignment(element, new ReadElementParam(elementBounds)));
+    statements.add(new Assignment(vector, new ReadLoopVector(vectorBounds)));
 
-    FunctionCall call = FunctionCall.newCall(function, Symbol.get("x"));
-    List<IRArgument> arguments = Collections.singletonList(new IRArgument(element));
-
-    Expression callExpression;
-    if(function instanceof Closure) {
-      callExpression = new ClosureCall(runtimeContext, call, (Closure)function, "FUN", arguments);
-    } else if(function instanceof BuiltinFunction) {
-      callExpression = new BuiltinCall(runtimeContext, call, ((BuiltinFunction) function).getName(), arguments);
-    } else {
-      throw new NotCompilableException(call, "apply() not supported when is.special(FUN)");
+    if(!(function instanceof Closure)) {
+      throw new NotCompilableException(function);
     }
 
-    statements.add(new Assignment(returnValue, callExpression));
+    InlinedFunction fun = new InlinedFunction("FUN", runtimeContext, ((Closure) function), new String[1]);
+    statements.add(new Assignment(returnValue, new ApplyExpression(vector, fun)));
     statements.add(new ReturnStatement(returnValue));
 
     return new IRBody(statements, labels);

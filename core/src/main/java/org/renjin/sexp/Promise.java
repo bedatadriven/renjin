@@ -18,6 +18,7 @@
  */
 package org.renjin.sexp;
 
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.eval.Context;
 
 /**
@@ -100,6 +101,11 @@ public class Promise extends AbstractSEXP implements Recursive {
   @Override
   public String getTypeName() {
     return TYPE_NAME;
+  }
+
+  @Override
+  public int getTypeSet() {
+    return TypeSet.ANY_TYPE;
   }
 
   @Override

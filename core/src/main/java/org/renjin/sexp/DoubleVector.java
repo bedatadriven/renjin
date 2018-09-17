@@ -19,6 +19,7 @@
 package org.renjin.sexp;
 
 import org.apache.commons.math.complex.Complex;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.parser.NumericLiterals;
 import org.renjin.primitives.vector.ConvertingDoubleVector;
 import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
@@ -98,6 +99,11 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
   @Override
   public String getTypeName() {
     return TYPE_NAME;
+  }
+
+  @Override
+  public final int getTypeSet() {
+    return TypeSet.DOUBLE;
   }
 
   @Override

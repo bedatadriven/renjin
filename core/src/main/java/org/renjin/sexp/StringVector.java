@@ -19,6 +19,7 @@
 package org.renjin.sexp;
 
 import org.apache.commons.math.complex.Complex;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.parser.NumericLiterals;
 import org.renjin.primitives.vector.ConvertingStringVector;
 import org.renjin.repackaged.guava.collect.Iterables;
@@ -216,6 +217,11 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
   @Override
   public String getTypeName() {
     return TYPE_NAME;
+  }
+
+  @Override
+  public final int getTypeSet() {
+    return TypeSet.STRING;
   }
 
 

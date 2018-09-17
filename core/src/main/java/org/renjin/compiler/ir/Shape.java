@@ -16,19 +16,14 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.invoke.codegen;
+package org.renjin.compiler.ir;
 
-import com.sun.codemodel.JClass;
-import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JExpression;
+import org.renjin.sexp.SEXP;
 
-public interface ApplyMethodContext {
+public interface Shape {
 
-  JExpression getContext();
-  JExpression getEnvironment();
-  JExpression getCall();
+  boolean test(SEXP sexp);
 
-  JClass classRef(Class<?> clazz);
+  ValueBounds getElementBounds();
 
-  JCodeModel getCodeModel();
 }

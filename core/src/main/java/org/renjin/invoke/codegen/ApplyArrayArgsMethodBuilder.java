@@ -145,6 +145,11 @@ public class ApplyArrayArgsMethodBuilder implements ApplyMethodContext{
   }
 
   @Override
+  public JExpression getCall() {
+    return call;
+  }
+
+  @Override
   public JClass classRef(Class<?> clazz) {
     return codeModel.ref(clazz);
   }

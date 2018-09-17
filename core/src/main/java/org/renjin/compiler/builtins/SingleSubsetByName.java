@@ -22,7 +22,7 @@ import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.SexpExpr;
 import org.renjin.compiler.codegen.expr.VectorType;
-import org.renjin.compiler.ir.ListShape;
+import org.renjin.compiler.ir.Shape;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
@@ -47,7 +47,7 @@ public class SingleSubsetByName implements Specialization {
     this.name = name;
 
     if(object.getTypeSet() == TypeSet.LIST && object.getBounds().getShape() != null) {
-      ListShape shape = object.getBounds().getShape();
+      Shape shape = object.getBounds().getShape();
 
     }
 

@@ -21,14 +21,15 @@ package org.renjin.compiler.ir;
 import org.renjin.sexp.*;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
-public class ListShape {
+public class NamedShape implements Shape {
 
   private final ValueBounds[] elements;
   private final String[] names;
 
-  public ListShape(AtomicVector names, ValueBounds[] elements) {
+  public NamedShape(AtomicVector names, ValueBounds[] elements) {
     this.elements = elements;
     if(names instanceof StringVector) {
       this.names = names.toStringArray();
@@ -37,9 +38,14 @@ public class ListShape {
     }
   }
 
+  public NamedShape(AtomicVector names, List<ValueBounds> elements) {
+    this(names, elements.toArray(new ValueBounds[elements.size()]));
+  }
+
   /**
    * @return true if the given {@code sexp} conforms to this shape.
    */
+  @Override
   public boolean test(SEXP sexp) {
     if (!(sexp instanceof ListVector)) {
       return false;
@@ -86,5 +92,14 @@ public class ListShape {
 
   public ValueBounds getElementBounds(int elementIndex) {
     return elements[elementIndex];
+  }
+
+  @Override
+  public ValueBounds getElementBounds() {
+    return ValueBounds.union(Arrays.asList(elements));
+  }
+
+  public int getLength() {
+    return elements.length;
   }
 }

@@ -16,19 +16,34 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.invoke.codegen;
+package org.renjin.compiler.ir;
 
-import com.sun.codemodel.JClass;
-import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JExpression;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.SEXP;
 
-public interface ApplyMethodContext {
+public class HomogeneousList implements Shape {
 
-  JExpression getContext();
-  JExpression getEnvironment();
-  JExpression getCall();
+  private final ValueBounds elementBounds;
 
-  JClass classRef(Class<?> clazz);
+  public HomogeneousList(ValueBounds elementBounds) {
+    this.elementBounds = elementBounds;
+  }
 
-  JCodeModel getCodeModel();
+  @Override
+  public boolean test(SEXP sexp) {
+    if(sexp instanceof ListVector) {
+      ListVector list = (ListVector) sexp;
+      for (SEXP element : list) {
+        if (!elementBounds.test(element)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  @Override
+  public ValueBounds getElementBounds() {
+    return elementBounds;
+  }
 }

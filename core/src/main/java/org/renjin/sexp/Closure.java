@@ -18,6 +18,7 @@
  */
 package org.renjin.sexp;
 
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 
@@ -59,7 +60,11 @@ public class Closure extends AbstractSEXP implements Function {
   public String getTypeName() {
     return TYPE_NAME;
   }
-  
+
+  @Override
+  public final int getTypeSet() {
+    return TypeSet.FUNCTION;
+  }
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap newAttributes) {

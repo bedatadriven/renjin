@@ -351,6 +351,7 @@ public class Vectors {
   }
 
   @Generic
+  @MaybeNames
   @Internal("as.vector")
   public static SEXP asVector(Vector x, String mode) {
 
@@ -830,6 +831,17 @@ public class Vectors {
     double[] result = new double[length];
     for (int i = 0; i < length; i++) {
       double x = xa[i];
+      result[i] = (double)method.invokeExact(x, y);
+    }
+    return result;
+  }
+
+  @CompilerSpecialization
+  public static double[] apply(MethodHandle method, double x, double ya[]) throws Throwable {
+    int length = ya.length;
+    double[] result = new double[length];
+    for (int i = 0; i < length; i++) {
+      double y = ya[i];
       result[i] = (double)method.invokeExact(x, y);
     }
     return result;

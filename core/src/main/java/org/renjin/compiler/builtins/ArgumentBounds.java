@@ -111,4 +111,8 @@ public class ArgumentBounds {
     }
     return names;
   }
+
+  public boolean hasName() {
+    return name != null;
+  }
 }

@@ -18,6 +18,7 @@
  */
 package org.renjin.sexp;
 
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.ClassBinding;
 import org.renjin.invoke.ClassBindings;
@@ -51,6 +52,11 @@ public final class ExternalPtr<T> extends AbstractSEXP {
   @Override
   public String getTypeName() {
     return "externalptr";
+  }
+
+  @Override
+  public final int getTypeSet() {
+    return TypeSet.EXTERNAL_PTR;
   }
 
   private MemberBinding getMemberBinding(Symbol name) {

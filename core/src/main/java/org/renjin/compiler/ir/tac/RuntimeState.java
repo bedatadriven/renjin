@@ -19,7 +19,8 @@
 package org.renjin.compiler.ir.tac;
 
 import org.renjin.compiler.NotCompilableException;
-import org.renjin.compiler.ir.ListShape;
+import org.renjin.compiler.ir.NamedShape;
+import org.renjin.compiler.ir.Shape;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
@@ -247,7 +248,7 @@ public class RuntimeState {
    * and what we should leave open
    *
    */
-  private static ValueBounds reasonableBounds(SEXP sexp) {
+  public static ValueBounds reasonableBounds(SEXP sexp) {
     return reasonableBounds(sexp, 0);
   }
 
@@ -335,14 +336,14 @@ public class RuntimeState {
     return bounds.build();
   }
 
-  private static ListShape reasonableShape(ListVector list, int depth) {
+  private static Shape reasonableShape(ListVector list, int depth) {
     int n = list.length();
     if(n < 30) {
       ValueBounds elements[] = new ValueBounds[n];
       for (int i = 0; i < n; i++) {
         elements[i] = reasonableBounds(list.getElementAsSEXP(i), depth + 1);
       }
-      return new ListShape(list.getNames(), elements);
+      return new NamedShape(list.getNames(), elements);
     }
     return null;
   }

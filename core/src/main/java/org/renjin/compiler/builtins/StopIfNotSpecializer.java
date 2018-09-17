@@ -18,21 +18,24 @@
  */
 package org.renjin.compiler.builtins;
 
-import org.renjin.compiler.ir.NamedShape;
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.compiler.ir.exception.InvalidSyntaxException;
+import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
-import org.renjin.sexp.IntVector;
 
 import java.util.List;
 
+public class StopIfNotSpecializer implements BuiltinSpecializer {
 
-public class LengthSpecializer implements Specializer, BuiltinSpecializer {
-
+  private static final ValueBounds BOUNDS = ValueBounds.builder()
+      .setTypeSet(TypeSet.NULL)
+      .build();
 
   @Override
   public String getName() {
-    return "length";
+    return "stopifnot";
   }
 
   @Override
@@ -42,24 +45,21 @@ public class LengthSpecializer implements Specializer, BuiltinSpecializer {
 
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
-    if(arguments.size() != 1) {
-      throw new InvalidSyntaxException("length() takes one argument.");
-    }
-    ValueBounds argumentBounds = arguments.get(0).getBounds();
+    return new Specialization() {
+      @Override
+      public ValueBounds getResultBounds() {
+        return BOUNDS;
+      }
 
-    if(argumentBounds.isConstant()) {
-      return new ConstantCall(IntVector.valueOf(argumentBounds.getConstantValue().length()));
-    }
+      @Override
+      public boolean isPure() {
+        return false;
+      }
 
-    if(argumentBounds.isFlagSet(ValueBounds.LENGTH_ONE)) {
-      return new ConstantCall(IntVector.valueOf(1));
-    }
-
-    if(argumentBounds.getShape() instanceof NamedShape) {
-      return new ConstantCall(IntVector.valueOf(((NamedShape) argumentBounds.getShape()).getLength()));
-    }
-    
-    return new LengthCall(argumentBounds);
+      @Override
+      public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+        throw new UnsupportedOperationException("TODO");
+      }
+    };
   }
-
 }

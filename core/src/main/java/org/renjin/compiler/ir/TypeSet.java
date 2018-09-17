@@ -43,44 +43,19 @@ public class TypeSet {
   public static final int PAIRLIST = (1 << 12);
   public static final int LANGUAGE = (1 << 13);
   public static final int S4 = (1 << 14);
+  public static final int EXTERNAL_PTR = (1 << 15);
+  public static final int CHARSEXP = (1 << 16);
+
   public static final int ANY_ATOMIC_VECTOR = NULL | RAW | INT | LOGICAL | DOUBLE | COMPLEX | STRING;
   public static final int ANY_VECTOR = LIST | ANY_ATOMIC_VECTOR;
-  public static final int ANY_TYPE = ANY_VECTOR | PAIRLIST | ENVIRONMENT | SYMBOL | FUNCTION;
+  public static final int ANY_TYPE = ANY_VECTOR |
+      LANGUAGE | PAIRLIST | ENVIRONMENT | SYMBOL | FUNCTION | S4 | EXTERNAL_PTR | CHARSEXP;
 
   public static final int NUMERIC = INT | DOUBLE;
 
 
-
   public static int of(SEXP constant) {
-    if(constant instanceof ListVector) {
-      return LIST;
-    } else if(constant instanceof Null) {
-      return NULL;
-    } else if(constant instanceof LogicalVector) {
-      return LOGICAL;
-    } else if(constant instanceof RawVector) {
-      return  RAW;
-    } else if(constant instanceof IntVector) {
-      return INT;
-    } else if(constant instanceof DoubleVector) {
-      return DOUBLE;
-    } else if(constant instanceof ComplexVector) {
-      return COMPLEX;
-    } else if(constant instanceof StringVector) {
-      return STRING;
-    } else if(constant instanceof Symbol) {
-      return SYMBOL;
-    } else if(constant instanceof Environment) {
-      return ENVIRONMENT;
-    } else if(constant instanceof PairList) {
-      return PAIRLIST;
-    } else if(constant instanceof Function) {
-      return FUNCTION;
-    } else if(constant instanceof S4Object) {
-      return S4;
-    } else {
-      throw new UnsupportedOperationException("TODO: " + constant.getClass().getName());
-    }
+    return constant.getTypeSet();
   }
 
   public static int of(Class type) {

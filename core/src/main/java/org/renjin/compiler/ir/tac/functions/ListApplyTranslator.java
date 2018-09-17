@@ -49,7 +49,7 @@ public class ListApplyTranslator extends FunctionCallTranslator {
     throw new NotCompilableException(call);
   }
 
-  private boolean isClosureDefinition(SEXP function) {
+  public static boolean isClosureDefinition(SEXP function) {
     if(function instanceof FunctionCall) {
       FunctionCall call = (FunctionCall) function;
       if(call.getFunction() instanceof Symbol) {

@@ -19,6 +19,7 @@
 package org.renjin.sexp;
 
 import org.apache.commons.math.complex.Complex;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.primitives.vector.ConvertingIntVector;
 import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
 
@@ -53,6 +54,11 @@ public abstract class IntVector extends AbstractAtomicVector implements Iterable
   @Override
   public String getTypeName() {
     return TYPE_NAME;
+  }
+
+  @Override
+  public final int getTypeSet() {
+    return TypeSet.INT;
   }
 
   @Override

@@ -28,4 +28,10 @@ public class InvalidSyntaxException extends RuntimeException {
     super(message);
   }
 
+  public static void checkInternalArity(String functionName, int expectedArguments, int providedArguments) {
+    if(expectedArguments != providedArguments) {
+      throw new InvalidSyntaxException("Internal function '" + functionName + " expects " + expectedArguments + " argument(s), " +
+          "received " + providedArguments + " arguments");
+    }
+  }
 }

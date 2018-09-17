@@ -22,7 +22,7 @@ import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.ScalarExpr;
 import org.renjin.compiler.codegen.expr.VectorType;
-import org.renjin.compiler.ir.ListShape;
+import org.renjin.compiler.ir.NamedShape;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
@@ -49,10 +49,7 @@ public class ListElement implements Specialization {
     if(object.getTypeSet() != TypeSet.LIST) {
       return null;
     }
-    ListShape shape = object.getBounds().getShape();
-    if(shape == null) {
-      return null;
-    }
+
     if(!name.getBounds().isConstant()) {
       return null;
     }
@@ -60,8 +57,13 @@ public class ListElement implements Specialization {
     if (!(constantName instanceof StringVector)) {
       return null;
     }
-
     String elementName = ((StringVector) constantName).getElementAsString(0);
+
+    if(!(object.getBounds().getShape() instanceof NamedShape)) {
+      return null;
+    }
+
+    NamedShape shape = (NamedShape) object.getBounds().getShape();
     int elementIndex = shape.getElementIndex(elementName);
     if(elementIndex == -1) {
       return new ConstantCall(Null.INSTANCE);

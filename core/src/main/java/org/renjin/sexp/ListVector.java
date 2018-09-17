@@ -19,6 +19,7 @@
 package org.renjin.sexp;
 
 import org.apache.commons.math.complex.Complex;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Deparse;
 import org.renjin.repackaged.guava.base.Strings;
@@ -89,6 +90,11 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   @Override
   public String getTypeName() {
     return TYPE_NAME;
+  }
+
+  @Override
+  public final int getTypeSet() {
+    return TypeSet.LIST;
   }
 
   @Override

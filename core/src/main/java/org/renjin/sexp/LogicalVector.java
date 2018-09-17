@@ -19,6 +19,7 @@
 package org.renjin.sexp;
 
 import org.apache.commons.math.complex.Complex;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.primitives.vector.ConvertingLogicalVector;
 import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
 
@@ -64,8 +65,13 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
   }
 
   @Override
-  public String getTypeName() {
+  public final String getTypeName() {
     return TYPE_NAME;
+  }
+
+  @Override
+  public final int getTypeSet() {
+    return TypeSet.LOGICAL;
   }
 
   @Override

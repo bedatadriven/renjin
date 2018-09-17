@@ -271,7 +271,37 @@ public class Conditions {
 
     throw new EvalException(message.toString());
   }
-  
+
+  @Builtin
+  public static void stopifnot(@Current Context context, @Current FunctionCall call, @ArgumentList ListVector arguments) {
+    for (int i = 0; i < arguments.length(); i++) {
+      SEXP sexp = arguments.get(i);
+      if(!allTrue(sexp)) {
+
+        String ch = Deparse.deparseExp(context, call.getArgument(i));
+
+        if(sexp.length() > 1) {
+          throw new EvalException(ch + " is not all TRUE");
+        } else {
+          throw new EvalException(ch + " is not TRUE");
+        }
+      }
+    }
+  }
+
+  private static boolean allTrue(SEXP sexp) {
+    if(!(sexp instanceof LogicalVector)) {
+      return false;
+    }
+    LogicalVector vector = (LogicalVector) sexp;
+    for (int i = 0; i < vector.length(); i++) {
+      if(vector.isElementNA(i) || vector.getElementAsRawLogical(i) == 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   @Internal
   public static String geterrmessage(@Current Context context) {
     ErrorMessage errorMessage = context.getSession().getSingleton(ErrorMessage.class);

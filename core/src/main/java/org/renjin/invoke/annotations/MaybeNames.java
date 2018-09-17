@@ -16,7 +16,12 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.compiler.ir;
+package org.renjin.invoke.annotations;
 
-public class CachedApplyCall {
+import java.lang.annotation.*;
+
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface MaybeNames {
 }

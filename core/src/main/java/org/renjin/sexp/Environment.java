@@ -19,6 +19,7 @@
 package org.renjin.sexp;
 
 import org.renjin.base.BaseFrame;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.repackaged.guava.collect.Sets;
@@ -228,8 +229,13 @@ public class Environment extends AbstractSEXP implements Recursive {
   }
 
   @Override
-  public String getTypeName() {
+  public final String getTypeName() {
     return TYPE_NAME;
+  }
+
+  @Override
+  public final int getTypeSet() {
+    return TypeSet.ENVIRONMENT;
   }
 
   public Collection<Symbol> getSymbolNames() {

@@ -18,6 +18,7 @@
  */
 package org.renjin.invoke.reflection;
 
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.eval.Context;
 import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -39,6 +40,11 @@ public class ConstructorFunction extends AbstractSEXP implements Function {
   @Override
   public String getTypeName() {
     return "constructor";
+  }
+
+  @Override
+  public final int getTypeSet() {
+    return TypeSet.FUNCTION;
   }
 
   @Override

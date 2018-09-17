@@ -19,20 +19,19 @@
 package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.ir.NamedShape;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.tac.RuntimeState;
-import org.renjin.sexp.IntVector;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.StringArrayVector;
 
 import java.util.List;
 
-
-public class LengthSpecializer implements Specializer, BuiltinSpecializer {
-
-
+public class ListSpecializer implements BuiltinSpecializer {
   @Override
   public String getName() {
-    return "length";
+    return "list";
   }
 
   @Override
@@ -42,24 +41,36 @@ public class LengthSpecializer implements Specializer, BuiltinSpecializer {
 
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
-    if(arguments.size() != 1) {
-      throw new InvalidSyntaxException("length() takes one argument.");
-    }
-    ValueBounds argumentBounds = arguments.get(0).getBounds();
 
-    if(argumentBounds.isConstant()) {
-      return new ConstantCall(IntVector.valueOf(argumentBounds.getConstantValue().length()));
-    }
+    AtomicVector names = namesFromArguments(arguments);
+    List<ValueBounds> valueBounds = ArgumentBounds.withoutNames(arguments);
 
-    if(argumentBounds.isFlagSet(ValueBounds.LENGTH_ONE)) {
-      return new ConstantCall(IntVector.valueOf(1));
-    }
+    ValueBounds listBounds = ValueBounds.builder()
+        .setTypeSet(TypeSet.LIST)
+        .addFlags(ValueBounds.LENGTH_NON_ZERO, arguments.size() > 0)
+        .addFlags(ValueBounds.LENGTH_ONE, arguments.size() == 1)
+        .addFlags(ValueBounds.MAYBE_NAMES, names != Null.INSTANCE)
+        .setShape(new NamedShape(names, valueBounds))
+        .build();
 
-    if(argumentBounds.getShape() instanceof NamedShape) {
-      return new ConstantCall(IntVector.valueOf(((NamedShape) argumentBounds.getShape()).getLength()));
-    }
-    
-    return new LengthCall(argumentBounds);
+    return new ListCall(arguments, names, listBounds);
+
   }
 
+  private AtomicVector namesFromArguments(List<ArgumentBounds> arguments) {
+    String[] names = new String[arguments.size()];
+    boolean hasNames = false;
+    for (int i = 0; i < arguments.size(); i++) {
+      ArgumentBounds argument = arguments.get(i);
+      if(argument.hasName()) {
+        names[i] = argument.getName();
+        hasNames = true;
+      }
+    }
+    if(hasNames) {
+      return new StringArrayVector(names);
+    } else {
+      return Null.INSTANCE;
+    }
+  }
 }

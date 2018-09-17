@@ -18,7 +18,7 @@
  */
 package org.renjin.sexp;
 
-import java.util.function.Predicate;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Iterators;
 import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 /**
  * Pairlists (LISTSXP, the name going back to the origins of R as a Scheme-like language) are
@@ -117,6 +118,11 @@ public interface PairList extends SEXP {
     @Override
     public String getTypeName() {
       return TYPE_NAME;
+    }
+
+    @Override
+    public int getTypeSet() {
+      return TypeSet.PAIRLIST;
     }
 
     /**

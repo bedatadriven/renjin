@@ -260,6 +260,11 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
   }
 
   @Override
+  public JExpression getCall() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public JClass classRef(Class<?> clazz) {
     return codeModel.ref(clazz);
   }

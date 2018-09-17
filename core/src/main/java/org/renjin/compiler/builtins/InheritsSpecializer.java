@@ -18,21 +18,27 @@
  */
 package org.renjin.compiler.builtins;
 
-import org.renjin.compiler.ir.NamedShape;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.tac.RuntimeState;
-import org.renjin.sexp.IntVector;
+import org.renjin.invoke.model.JvmMethod;
+import org.renjin.primitives.Attributes;
+import org.renjin.repackaged.guava.collect.Iterables;
 
 import java.util.List;
 
+public class InheritsSpecializer implements BuiltinSpecializer {
 
-public class LengthSpecializer implements Specializer, BuiltinSpecializer {
+  private final JvmMethod fallback;
 
+  public InheritsSpecializer() {
+    fallback = Iterables.getOnlyElement(JvmMethod.findOverloads(Attributes.class, "inherits", "inherits"));
+  }
 
   @Override
   public String getName() {
-    return "length";
+    return "inherits";
   }
 
   @Override
@@ -42,24 +48,19 @@ public class LengthSpecializer implements Specializer, BuiltinSpecializer {
 
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
-    if(arguments.size() != 1) {
-      throw new InvalidSyntaxException("length() takes one argument.");
-    }
-    ValueBounds argumentBounds = arguments.get(0).getBounds();
+    InvalidSyntaxException.checkInternalArity(getName(), 3, arguments.size());
+    ArgumentBounds x = arguments.get(0);
+    ArgumentBounds what = arguments.get(1);
+    ArgumentBounds which = arguments.get(2);
 
-    if(argumentBounds.isConstant()) {
-      return new ConstantCall(IntVector.valueOf(argumentBounds.getConstantValue().length()));
-    }
+    // The 'which' flag determines whether we return an integer array (TRUE) or a boolean flag (FALSE)
+    if(which.getBounds().isConstantFlagEqualTo(true)) {
 
-    if(argumentBounds.isFlagSet(ValueBounds.LENGTH_ONE)) {
-      return new ConstantCall(IntVector.valueOf(1));
     }
 
-    if(argumentBounds.getShape() instanceof NamedShape) {
-      return new ConstantCall(IntVector.valueOf(((NamedShape) argumentBounds.getShape()).getLength()));
-    }
-    
-    return new LengthCall(argumentBounds);
+
+    return new StaticMethodCall(fallback, ValueBounds.builder()
+      .setTypeSet(TypeSet.INT | TypeSet.LOGICAL)
+      .build());
   }
-
 }

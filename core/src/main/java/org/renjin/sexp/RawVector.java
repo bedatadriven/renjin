@@ -18,6 +18,7 @@
  */
 package org.renjin.sexp;
 
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
 import org.renjin.repackaged.guava.primitives.UnsignedBytes;
 
@@ -67,6 +68,11 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
   @Override
   public String getTypeName() {
     return ("raw");
+  }
+
+  @Override
+  public final int getTypeSet() {
+    return TypeSet.RAW;
   }
 
   @Override

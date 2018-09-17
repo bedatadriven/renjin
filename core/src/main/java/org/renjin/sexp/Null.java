@@ -19,6 +19,7 @@
 package org.renjin.sexp;
 
 import org.apache.commons.math.complex.Complex;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.eval.EvalException;
 
 import java.util.Collections;
@@ -52,6 +53,11 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
   @Override
   public String getTypeName() {
     return TYPE_NAME;
+  }
+
+  @Override
+  public int getTypeSet() {
+    return TypeSet.NULL;
   }
 
   @Override

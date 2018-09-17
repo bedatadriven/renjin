@@ -43,7 +43,7 @@ public class ListApplyTranslator extends FunctionCallTranslator {
       String[] argumentNames = {null};
       InlinedFunction inlinedClosure = new InlinedFunction("FUN", builder.getRuntimeState(), closure, argumentNames);
 
-      return new ApplyExpression(builder.translateSimpleExpression(context, vector), inlinedClosure);
+      return new ApplyExpression(builder.translateSimpleExpression(context, vector), inlinedClosure, false);
     }
 
     throw new NotCompilableException(call);

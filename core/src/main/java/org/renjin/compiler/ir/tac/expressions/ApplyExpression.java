@@ -33,6 +33,7 @@ import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.Vector;
 
 import java.util.Map;
 
@@ -42,11 +43,14 @@ public class ApplyExpression implements Expression {
 
   private Expression vector;
   private InlinedFunction function;
+  private final boolean simplify;
+  private final boolean useNames = true;
   private ValueBounds resultBounds;
 
-  public ApplyExpression(Expression vector, InlinedFunction function) {
+  public ApplyExpression(Expression vector, InlinedFunction function, boolean simplify) {
     this.vector = vector;
     this.function = function;
+    this.simplify = simplify;
     this.resultBounds = ValueBounds.builder()
         .setTypeSet(TypeSet.LIST)
         .build();
@@ -79,12 +83,33 @@ public class ApplyExpression implements Expression {
 
     ValueBounds functionResultBounds = function.updateBounds(singletonList(new ArgumentBounds(elementBounds)));
 
-    resultBounds = ValueBounds.builder()
+    resultBounds = maybeSimplify(vectorBounds, functionResultBounds);
+
+    return resultBounds;
+  }
+
+  private ValueBounds maybeSimplify(ValueBounds vectorBounds, ValueBounds functionBounds) {
+
+    if(simplify) {
+      if(canBeSimplified(functionBounds)) {
+
+        return ValueBounds.builder()
+            .setTypeSet(functionBounds.getTypeSet())
+            .addFlagsFrom(vectorBounds, ValueBounds.LENGTH_NON_ZERO)
+            .build();
+      }
+    }
+
+    return ValueBounds.builder()
         .setTypeSet(TypeSet.LIST)
         .addFlagsFrom(vectorBounds, ValueBounds.LENGTH_NON_ZERO)
         .build();
+  }
 
-    return resultBounds;
+  private boolean canBeSimplified(ValueBounds functionBounds) {
+    return functionBounds.isFlagSet(ValueBounds.LENGTH_ONE) &&
+        TypeSet.isDefinitelyAtomic(functionBounds.getTypeSet()) &&
+        !TypeSet.mightBe(functionBounds.getTypeSet(), TypeSet.NULL);
   }
 
   @Override
@@ -98,6 +123,17 @@ public class ApplyExpression implements Expression {
       @Override
       public void loadSexp(EmitContext context, InstructionAdapter mv) {
 
+        // If this is an sapply() call, and we know that all results will
+        // yield scalars, then we don't have to box the individual results and
+        // can store them directly to a primitive array.
+
+        final VectorType scalarType;
+        if(TypeSet.isSpecificAtomic(resultBounds.getTypeSet())) {
+          scalarType = VectorType.of(resultBounds.getTypeSet());
+        } else {
+          scalarType = null;
+        }
+
         CompiledSexp vectorEmitter = vector.getCompiledExpr(context);
 
         // Temp to hold length
@@ -107,11 +143,17 @@ public class ApplyExpression implements Expression {
         mv.visitVarInsn(Opcodes.ISTORE, lengthVar);
 
         // Start by creating an array to hold the results
-        int resultVar = context.getLocalVarAllocator().reserve(Type.getType("[Lorg/renjin/sexp/SEXP;"));
         // Length still on stack from above call to dup
-        mv.newarray(BytecodeTypes.SEXP_TYPE);
-        mv.visitVarInsn(Opcodes.ASTORE, resultVar);
+        int resultVar;
+        if(scalarType == null) {
+          resultVar = context.getLocalVarAllocator().reserve(Type.getType("[Lorg/renjin/sexp/SEXP;"));
+          mv.newarray(BytecodeTypes.SEXP_TYPE);
+        } else {
+          resultVar = context.getLocalVarAllocator().reserve(scalarType.getJvmArrayType());
+          mv.newarray(scalarType.getJvmType());
+        }
 
+        mv.visitVarInsn(Opcodes.ASTORE, resultVar);
 
         // Define a variable to hold the loop counter
         int counterVar = context.getLocalVarAllocator().reserve(Type.INT_TYPE);
@@ -145,8 +187,13 @@ public class ApplyExpression implements Expression {
           public void store(EmitContext emitContext, InstructionAdapter mv, CompiledSexp compiledSexp) {
             mv.visitVarInsn(Opcodes.ALOAD, resultVar);
             mv.visitVarInsn(Opcodes.ILOAD, counterVar);
-            compiledSexp.loadSexp(emitContext, mv);
-            mv.visitInsn(Opcodes.AASTORE);
+            if(scalarType == null) {
+              compiledSexp.loadSexp(emitContext, mv);
+              mv.visitInsn(Opcodes.AASTORE);
+            } else {
+              compiledSexp.loadScalar(context, mv, scalarType);
+              mv.astore(scalarType.getJvmType());
+            }
           }
         };
 
@@ -158,9 +205,27 @@ public class ApplyExpression implements Expression {
         mv.visitLabel(exitLabel);
 
         // Store the result as an SEXP expression
-        mv.visitVarInsn(Opcodes.ALOAD, resultVar);
-        mv.invokestatic("org/renjin/sexp/ListVector", "of",
-            "([Lorg/renjin/sexp/SEXP;)Lorg/renjin/sexp/ListVector;", false);
+        if(scalarType == null) {
+          vectorEmitter.loadSexp(context, mv);
+          mv.visitVarInsn(Opcodes.ALOAD, resultVar);
+          mv.visitLdcInsn(simplify ? 1 : 0);
+          mv.visitLdcInsn(useNames ? 1 : 0);
+          mv.invokestatic("org/renjin/primitives/special/ApplyFunction", "build",
+              Type.getMethodDescriptor(Type.getType(Vector.class),
+                  BytecodeTypes.SEXP_TYPE,
+                  Type.getType("[Lorg/renjin/sexp/SEXP;"),
+                  Type.BOOLEAN_TYPE,
+                  Type.BOOLEAN_TYPE), false);
+        } else {
+          vectorEmitter.loadSexp(context, mv);
+          mv.visitVarInsn(Opcodes.ALOAD, resultVar);
+          mv.visitLdcInsn(useNames ? 1 : 0);
+          mv.invokestatic("org/renjin/primitives/special/ApplyFunction", "build",
+              Type.getMethodDescriptor(Type.getType(Vector.class),
+                  BytecodeTypes.SEXP_TYPE,
+                  scalarType.getJvmArrayType(),
+                  Type.BOOLEAN_TYPE), false);
+        }
       }
     };
   }

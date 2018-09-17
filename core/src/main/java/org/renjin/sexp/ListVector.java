@@ -45,7 +45,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   private final SEXP[] values;
 
   public ListVector(List<? extends SEXP> values,  AttributeMap attributes) {
-    super(Null.INSTANCE, attributes);
+    super(attributes);
     this.values = toArray(values);
   }
   
@@ -57,18 +57,17 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     this(values, AttributeMap.EMPTY);
   }
 
-  public ListVector(SEXP[] values, SEXP tag, AttributeMap attributes) {
-    super(tag, attributes);
-    this.values = Arrays.copyOf(values, values.length);
-
-    assert checkDims() : "dim do not match length of object";
-  }
-
   public ListVector(SEXP[] values, AttributeMap attributes) {
-    this(values, Null.INSTANCE, attributes);
+    this(values, attributes, true);
+  }
+
+  private ListVector(SEXP[] values, AttributeMap attributes, boolean copyArray) {
+    super(attributes);
+    this.values = copyArray ? Arrays.copyOf(values, values.length) : values;
 
     assert checkDims() : "dim do not match length of object";
   }
+
 
   public ListVector(SEXP... values) {
     this(values, AttributeMap.EMPTY);
@@ -445,6 +444,9 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     return new ListVector(values, attributes);
   }
 
+  public static ListVector unsafe(SEXP[] values, AttributeMap attributeMap) {
+    return new ListVector(values, attributeMap, false);
+  }
 
   public static class Builder extends AbstractVector.AbstractBuilder<SEXP> {
     protected final List<SEXP> values;

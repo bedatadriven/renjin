@@ -20,10 +20,6 @@ package org.renjin.sexp;
 
 abstract class AbstractVector extends AbstractSEXP implements Vector {
 
-  protected AbstractVector(SEXP tag, AttributeMap attributes) {
-    super(attributes);
-  }
-
   protected AbstractVector(AttributeMap attributes) {
     super(attributes);
   }

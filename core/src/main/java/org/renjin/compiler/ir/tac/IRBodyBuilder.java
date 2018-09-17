@@ -44,7 +44,8 @@ import java.util.*;
  * AST interpreter.
  */
 public class IRBodyBuilder {
-  
+
+  public static final Symbol NAMESPACE_ACCESSOR = Symbol.get("::");
   private int nextTemp = 0;
   private int nextLabel = 0;
   
@@ -112,7 +113,7 @@ public class IRBodyBuilder {
     return new IRBody(statements, labels);
   }
 
-  public IRBody buildApplyCall(Function function, ValueBounds vectorBounds) {
+  public IRBody buildApplyCall(Function function, ValueBounds vectorBounds, boolean simplify) {
     statements = Lists.newArrayList();
     labels = Maps.newHashMap();
 
@@ -126,7 +127,7 @@ public class IRBodyBuilder {
     }
 
     InlinedFunction fun = new InlinedFunction("FUN", runtimeContext, ((Closure) function), new String[1]);
-    statements.add(new Assignment(returnValue, new ApplyExpression(vector, fun)));
+    statements.add(new Assignment(returnValue, new ApplyExpression(vector, fun, simplify)));
     statements.add(new ReturnStatement(returnValue));
 
     return new IRBody(statements, labels);
@@ -316,6 +317,13 @@ public class IRBodyBuilder {
         return Primitives.getReservedBuiltin(symbol);
       } else {
         return runtimeContext.findFunction(symbol);
+      }
+    } else if (functionName instanceof FunctionCall) {
+      FunctionCall call = (FunctionCall) functionName;
+      if(call.getFunction() == NAMESPACE_ACCESSOR) {
+        Symbol namespace = call.getArgument(0);
+        Symbol export = call.getArgument(1);
+        return runtimeContext.findNamespaceExport(namespace, export);
       }
     }
     throw new NotCompilableException(functionName);

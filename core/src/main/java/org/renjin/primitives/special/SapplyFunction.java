@@ -23,7 +23,6 @@ import org.renjin.eval.Context;
 import org.renjin.eval.MatchedArguments;
 import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.primitives.Identical;
-import org.renjin.primitives.combine.Combine;
 import org.renjin.sexp.*;
 
 public class SapplyFunction extends ApplyFunction {
@@ -39,12 +38,21 @@ public class SapplyFunction extends ApplyFunction {
 
     MatchedArguments matched = MATCHER.match(args);
     SEXP vector = context.evaluate(matched.getActualForFormal(0), rho);
-    SEXP function = matchFunction(context, rho, matched.getActualForFormal(1));
-    PairList extraArguments = promiseExtraArguments(rho, matched);
+    SEXP functionArgument = matched.getActualForFormal(1);
+    SEXP function = matchFunction(context, rho, functionArgument);
     SEXP simplifyArgument = context.evaluate(matched.getActualForFormal(3, LogicalVector.TRUE));
-    boolean simplify = (Identical.identical(simplifyArgument, LogicalVector.TRUE));
+    boolean simplify = !(Identical.identical(simplifyArgument, LogicalVector.FALSE));
     boolean useNames = WrapperRuntime.convertToBooleanPrimitive(
         context.evaluate(matched.getActualForFormal(4, LogicalVector.TRUE)));
+
+    if(vector.length() >= 120 && vector instanceof Vector)  {
+      SEXP result = tryCompileAndEval(context, rho, call, (Vector) vector, functionArgument, function, simplify);
+      if(result != null) {
+        return result;
+      }
+    }
+
+    PairList extraArguments = promiseExtraArguments(rho, matched);
 
     ListVector list = applyList(context, rho, vector, function, extraArguments);
 
@@ -62,36 +70,4 @@ public class SapplyFunction extends ApplyFunction {
     return result;
   }
 
-  private static Vector simplifyToArray(ListVector list, boolean higher) {
-
-    if(list.length() == 0) {
-      return list;
-    }
-
-    int commonLength = commonLength(list);
-    if(commonLength == -1) {
-      return list;
-    }
-
-    if(commonLength == 1) {
-      return (Vector) Combine.unlist(list, false, true);
-
-    } else if(commonLength > 1) {
-      throw new UnsupportedOperationException("TODO");
-    } else {
-      return list;
-    }
-  }
-
-  private static int commonLength(ListVector list) {
-    int i = 0;
-    int length = list.getElementAsSEXP(i).length();
-    for(i = 1; i < list.length(); ++i) {
-      int elementLength = list.getElementAsSEXP(i).length();
-      if (elementLength != length) {
-        return -1;
-      }
-    }
-    return length;
-  }
 }

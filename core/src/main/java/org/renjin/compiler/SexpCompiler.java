@@ -84,7 +84,12 @@ public class SexpCompiler {
   }
 
 
-  public static CachedApplyCall compileApplyCall(Context context, Environment rho, Vector vector, Function function) throws InstantiationException, IllegalAccessException {
+  public static CachedApplyCall compileApplyCall(Context context,
+                                                 Environment rho,
+                                                 Vector vector,
+                                                 Function function,
+                                                 boolean simplify) throws InstantiationException, IllegalAccessException {
+
     RuntimeState runtimeState = new RuntimeState(context, rho);
     ValueBounds vectorBounds;
     if(vector instanceof AtomicVector) {
@@ -99,7 +104,7 @@ public class SexpCompiler {
     }
 
     IRBodyBuilder builder = new IRBodyBuilder(runtimeState);
-    IRBody body = builder.buildApplyCall(function, vectorBounds);
+    IRBody body = builder.buildApplyCall(function, vectorBounds, simplify);
 
     SexpCompiler compiler = new SexpCompiler(runtimeState, body, false);
 

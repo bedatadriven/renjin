@@ -18,16 +18,56 @@
  */
 package org.renjin.primitives.special;
 
+import org.renjin.compiler.CachedApplyCall;
+import org.renjin.compiler.CompiledApplyCall;
+import org.renjin.compiler.NotCompilableException;
+import org.renjin.compiler.SexpCompiler;
+import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.MatchedArguments;
+import org.renjin.invoke.annotations.CompilerSpecialization;
 import org.renjin.primitives.Types;
+import org.renjin.primitives.combine.Combine;
 import org.renjin.sexp.*;
 
 public abstract class ApplyFunction extends SpecialFunction {
 
   public ApplyFunction(String name) {
     super(name);
+  }
+
+  protected static Vector simplifyToArray(ListVector list, boolean higher) {
+
+    if(list.length() == 0) {
+      return list;
+    }
+
+    int commonLength = commonLength(list);
+    if(commonLength == -1) {
+      return list;
+    }
+
+    if(commonLength == 1) {
+      return (Vector) Combine.unlist(list, false, true);
+
+    } else if(commonLength > 1) {
+      throw new UnsupportedOperationException("TODO");
+    } else {
+      return list;
+    }
+  }
+
+  private static int commonLength(ListVector list) {
+    int i = 0;
+    int length = list.getElementAsSEXP(i).length();
+    for(i = 1; i < list.length(); ++i) {
+      int elementLength = list.getElementAsSEXP(i).length();
+      if (elementLength != length) {
+        return -1;
+      }
+    }
+    return length;
   }
 
   protected final PairList promiseExtraArguments(Environment rho, MatchedArguments matched) {
@@ -93,4 +133,104 @@ public abstract class ApplyFunction extends SpecialFunction {
 
     return function;
   }
+
+  protected SEXP tryCompileAndEval(Context context, Environment rho, FunctionCall call,
+                                   Vector vector,
+                                   SEXP functionArgument,
+                                   SEXP function, boolean simplify) {
+
+    String applyfn = (simplify ? "S" : "L") + "APPLY";
+    System.out.println(applyfn + " " + vector.length() + " @" + Integer.toHexString(System.identityHashCode(call)));
+
+    if(call.cache == Failed.COMPILATION) {
+      return null;
+    }
+
+    if(call.cache instanceof CachedApplyCall) {
+      CachedApplyCall cached = (CachedApplyCall) call.cache;
+      if(cached.assumptionsStillMet(context, rho, vector)) {
+        System.out.println("Reusing cached " + applyfn + "()");
+        return cached.getCompiledCall().apply(context, rho, vector);
+      } else {
+        System.out.println("Invalidated " + applyfn + "(), recompiling...");
+      }
+    }
+
+    if (!(function instanceof Closure)) {
+      return null;
+    }
+
+    Closure closure = (Closure) function;
+
+    CompiledApplyCall compiledCall;
+
+    try {
+
+      CachedApplyCall compiled = SexpCompiler.compileApplyCall(context, rho, vector, closure, simplify);
+
+      // Cache for subsequent evaluations...
+      call.cache = compiled;
+      compiledCall = compiled.getCompiledCall();
+
+    } catch (NotCompilableException e) {
+      if (ForFunction.FAIL_ON_COMPILATION_ERROR) {
+        throw new AssertionError(applyfn + "() compilation failed: " + e.toString(context));
+      }
+      System.out.println("Could not compile " + applyfn + "() because: " + e.toString(context));
+
+      if(call.cache == null) {
+        call.cache = Failed.COMPILATION;
+      }
+      return null;
+
+    } catch (InvalidSyntaxException e) {
+      throw new EvalException(e.getMessage());
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw new EvalException("Exception compiling loop: " + e.getMessage(), e);
+    }
+
+    if(compiledCall != null) {
+      System.out.println("Running compiled " + applyfn + "()");
+      return compiledCall.apply(context, rho, vector);
+    }
+
+    return null;
+  }
+
+  private enum Failed {
+    COMPILATION;
+  }
+
+  @CompilerSpecialization
+  public static Vector build(SEXP vector, SEXP[] array, boolean simplify, boolean useNames) {
+
+    ListVector list = ListVector.unsafe(array, buildAttributes(vector, useNames));
+
+    if(simplify) {
+      return simplifyToArray(list, false);
+    } else {
+      return list;
+    }
+  }
+
+  public static Vector build(SEXP vector, double[] array, boolean useNames) {
+    return DoubleArrayVector.unsafe(array, buildAttributes(vector, useNames));
+  }
+
+  private static AttributeMap buildAttributes(SEXP vector, boolean useNames) {
+    AtomicVector names = vector.getAttributes().getNamesOrNull();
+    if(names == Null.INSTANCE && vector instanceof StringVector && useNames) {
+      names = (AtomicVector) vector;
+    }
+    AttributeMap attributes;
+    if(names == Null.INSTANCE) {
+      attributes = AttributeMap.EMPTY;
+    } else {
+      attributes = AttributeMap.builder().setNames(names).build();
+    }
+    return attributes;
+  }
+
 }

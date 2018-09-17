@@ -25,9 +25,12 @@ public class ListApplyFunctionTest extends EvalTestCase {
 
   @Test
   public void testCompile() {
-
     evaluate("print(lapply(1:122, function(x) x * 2))");
+  }
 
+  @Test
+  public void testCompileSimplfied() {
+    evaluate("print(sapply(1:122, function(x) x * 2))");
   }
 
 

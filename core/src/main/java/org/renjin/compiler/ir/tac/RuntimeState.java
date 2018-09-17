@@ -364,6 +364,15 @@ public class RuntimeState {
     throw new NotCompilableException(functionName, "Could not find function " + functionName);
   }
 
+  public Function findNamespaceExport(Symbol namespace, Symbol export) {
+    SEXP value = context.getNamespaceRegistry().getNamespace(context, namespace).getEntry(export).force(context);
+    if(value instanceof Function) {
+      return (Function) value;
+    }
+    // TODO: Record assumption
+    throw new NotCompilableException(FunctionCall.newCall(Symbol.get("::"), namespace, export), "Not a function");
+  }
+
   private Function findFunctionIfExists(Symbol functionName) {
     if(resolvedFunctions.containsKey(functionName)) {
       return resolvedFunctions.get(functionName);
@@ -450,6 +459,7 @@ public class RuntimeState {
   public boolean isMissing(Symbol name) {
     throw new UnsupportedOperationException("TODO");
   }
+
 
 
   /**

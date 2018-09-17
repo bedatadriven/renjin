@@ -184,6 +184,15 @@ public class SexpCompilerTest extends EvalTestCase {
     eval("df <- data.frame(aa=1:3, b=4:6)");
 
     assertThat(compileAndEvaluate("df[['aa']]"), elementsIdenticalTo(c_i(1, 2, 3)));
+  }
+
+  @Test
+  public void lapplyWithClosure() throws Exception {
+    eval("a <- 1");
+    eval("b <- 2");
+
+    assertThat(compileAndEvaluate("lapply(1:3, function(x) x + a + b)"), elementsIdenticalTo(list(4d, 5d, 6d)));
+
 
   }
 

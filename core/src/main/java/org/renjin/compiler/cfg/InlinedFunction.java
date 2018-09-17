@@ -35,6 +35,7 @@ import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.Closure;
+import org.renjin.sexp.Environment;
 import org.renjin.sexp.Function;
 
 import java.util.ArrayList;
@@ -63,12 +64,16 @@ public class InlinedFunction {
     this.functionName = functionName;
     this.closure = closure;
 
-    runtimeState = new RuntimeState(parentState, closure.getEnclosingEnvironment()) {
-      @Override
-      public int getNumArgs() {
-        return argumentNames.length;
-      }
-    };
+    if(closure.getEnclosingEnvironment() == Environment.EMPTY) {
+      runtimeState = parentState;
+    } else {
+      runtimeState = new RuntimeState(parentState, closure.getEnclosingEnvironment()) {
+        @Override
+        public int getNumArgs() {
+          return argumentNames.length;
+        }
+      };
+    }
     
     IRBodyBuilder builder = new IRBodyBuilder(runtimeState);
     IRBody body = builder.buildFunctionBody(closure, argumentNames);
@@ -81,6 +86,8 @@ public class InlinedFunction {
         returnStatements.add((ReturnStatement) statement);
       }
     }
+
+    System.out.println(compiler.getControlFlowGraph());
   }
 
   @VisibleForTesting
@@ -125,15 +132,19 @@ public class InlinedFunction {
     return compiler.isPure();
   }
   
-  public void emitInline(EmitContext emitContext,
-                         InstructionAdapter mv,
-                         List<IRArgument> arguments,
-                         VariableStrategy returnVariable) {
+  public void emitArgsInline(EmitContext emitContext,
+                             InstructionAdapter mv,
+                             List<IRArgument> arguments,
+                             VariableStrategy returnVariable) {
 
     List<CompiledSexp> parameters = new ArrayList<>();
     for (IRArgument argument : arguments) {
       parameters.add(argument.getExpression().getCompiledExpr(emitContext));
     }
+    emitInline(emitContext, mv, parameters, returnVariable);
+  }
+
+  public void emitInline(EmitContext emitContext, InstructionAdapter mv, List<CompiledSexp> parameters, VariableStrategy returnVariable) {
     compiler.compileInline(emitContext, mv, parameters, returnVariable);
   }
 

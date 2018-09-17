@@ -128,7 +128,7 @@ public class ClosureCall implements Expression {
   public void emitAssignment(EmitContext emitContext, InstructionAdapter mv, Assignment statement) {
 
     VariableStrategy lhs = emitContext.getVariable(statement.getLHS());
-    inlinedFunction.emitInline(emitContext, mv, arguments, lhs);
+    inlinedFunction.emitArgsInline(emitContext, mv, arguments, lhs);
 
   }
 

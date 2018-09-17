@@ -25,7 +25,7 @@ import org.renjin.sexp.*;
 
 public class ListApplyFunction extends ApplyFunction {
 
-  private static final ArgumentMatcher MATCHER = new ArgumentMatcher("X", "FUN", "...");
+  public static final ArgumentMatcher MATCHER = new ArgumentMatcher("X", "FUN", "...");
 
   public ListApplyFunction() {
     super("lapply");

@@ -116,6 +116,6 @@ public class S3Specialization implements Specialization {
 
     VariableStrategy lhs = emitContext.getVariable(statement.getLHS());
 
-    inlinedMethod.emitInline(emitContext, mv, arguments, lhs);
+    inlinedMethod.emitArgsInline(emitContext, mv, arguments, lhs);
   }
 }

@@ -19,15 +19,47 @@
 package org.renjin.compiler.ir.tac.functions;
 
 import org.renjin.compiler.NotCompilableException;
+import org.renjin.compiler.cfg.InlinedFunction;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
+import org.renjin.compiler.ir.tac.expressions.ApplyExpression;
 import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.FunctionCall;
+import org.renjin.eval.MatchedArguments;
+import org.renjin.primitives.special.ListApplyFunction;
+import org.renjin.sexp.*;
 
 public class ListApplyTranslator extends FunctionCallTranslator {
   @Override
   public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
+
+    MatchedArguments matched = ListApplyFunction.MATCHER.match(call.getArguments());
+    SEXP vector = matched.getActualForFormal(0);
+    SEXP function = matched.getActualForFormal(1);
+
+    if(isClosureDefinition(function)) {
+      FunctionCall closureDef = (FunctionCall) function;
+      PairList formals = closureDef.getArgument(0);
+      SEXP body = closureDef.getArgument(1);
+      Closure closure = new Closure(Environment.EMPTY, formals, body);
+      String[] argumentNames = {null};
+      InlinedFunction inlinedClosure = new InlinedFunction("FUN", builder.getRuntimeState(), closure, argumentNames);
+
+      return new ApplyExpression(builder.translateSimpleExpression(context, vector), inlinedClosure);
+    }
+
     throw new NotCompilableException(call);
+  }
+
+  private boolean isClosureDefinition(SEXP function) {
+    if(function instanceof FunctionCall) {
+      FunctionCall call = (FunctionCall) function;
+      if(call.getFunction() instanceof Symbol) {
+        Symbol name = (Symbol) call.getFunction();
+        if(name.getPrintName().equals("function")) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   @Override

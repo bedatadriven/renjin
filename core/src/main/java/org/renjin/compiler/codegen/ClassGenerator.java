@@ -73,9 +73,9 @@ public class ClassGenerator<T> implements Opcodes {
   public Class<T> finishAndLoad() {
     writeClassEnd();
 
-    if(DEBUG) {
+    if(true) {
       try {
-        File file = new File("/tmp/jit.class");
+        File file = new File("/tmp/" + className + ".class");
         org.renjin.repackaged.guava.io.Files.write(cw.toByteArray(), file);
 
         System.out.println("Class file: " + file.getAbsolutePath());

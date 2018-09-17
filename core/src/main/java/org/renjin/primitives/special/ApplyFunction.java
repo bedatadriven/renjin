@@ -40,7 +40,7 @@ public abstract class ApplyFunction extends SpecialFunction {
     return extra.build();
   }
 
-  protected ListVector.Builder applyList(Context context, Environment rho, SEXP vector, SEXP function, PairList extraArguments) {
+  protected ListVector applyList(Context context, Environment rho, SEXP vector, SEXP function, PairList extraArguments) {
 
     if(!Types.isVector(vector, "any") || Types.isObject(vector)) {
       FunctionCall asListCall = FunctionCall.newCall(Symbol.get("as.list"), Promise.repromise(vector));
@@ -48,6 +48,8 @@ public abstract class ApplyFunction extends SpecialFunction {
     }
 
     ListVector.Builder builder = ListVector.newBuilder();
+    builder.setAttribute(Symbols.NAMES, vector.getAttributes().getNamesOrNull());
+
     for(int i=0;i!=vector.length();++i) {
       // For historical reasons, the calls created by lapply are unevaluated, and code has
       // been written (e.g. bquote) that relies on this.
@@ -55,7 +57,7 @@ public abstract class ApplyFunction extends SpecialFunction {
       FunctionCall applyFunctionCall = new FunctionCall(function, new PairList.Node(getElementCall, extraArguments));
       builder.add( context.evaluate(applyFunctionCall, rho) );
     }
-    return builder;
+    return builder.build();
   }
 
   protected final Function matchFunction(Context context, Environment rho, SEXP functionArgument) {

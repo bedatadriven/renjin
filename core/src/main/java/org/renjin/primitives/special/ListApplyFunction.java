@@ -59,19 +59,16 @@ public class ListApplyFunction extends ApplyFunction {
 
     PairList extraArguments = promiseExtraArguments(rho, matched);
 
-    return applyList(context, rho, vector, function, extraArguments)
-        .setAttribute(Symbols.NAMES, vector.getAttributes().getNamesOrNull())
-        .build();
+    return applyList(context, rho, vector, function, extraArguments);
   }
 
   private SEXP tryCompileAndEval(Context context, Environment rho, FunctionCall call, Vector vector, SEXP functionArgument) {
 
-
     if (!ListApplyTranslator.isClosureDefinition(functionArgument)) {
       return null;
     }
-    System.out.println("LAPPLY " + vector.length() + " @" + Integer.toHexString(System.identityHashCode(call)));
 
+    System.out.println("LAPPLY " + vector.length() + " @" + Integer.toHexString(System.identityHashCode(call)));
 
     if(call.cache == Failed.COMPILATION) {
       return null;

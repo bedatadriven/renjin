@@ -22,10 +22,9 @@ import org.renjin.eval.ArgumentMatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.MatchedArguments;
 import org.renjin.invoke.codegen.WrapperRuntime;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
+import org.renjin.primitives.Identical;
+import org.renjin.primitives.combine.Combine;
+import org.renjin.sexp.*;
 
 public class SapplyFunction extends ApplyFunction {
 
@@ -37,13 +36,62 @@ public class SapplyFunction extends ApplyFunction {
 
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+
     MatchedArguments matched = MATCHER.match(args);
     SEXP vector = context.evaluate(matched.getActualForFormal(0), rho);
     SEXP function = matchFunction(context, rho, matched.getActualForFormal(1));
     PairList extraArguments = promiseExtraArguments(rho, matched);
-    boolean simplify = WrapperRuntime.convertToBooleanPrimitive(context.evaluate(matched.getActualForFormal(3)));
-    boolean useNames = WrapperRuntime.convertToBooleanPrimitive(context.evaluate(matched.getActualForFormal(4)));
+    SEXP simplifyArgument = context.evaluate(matched.getActualForFormal(3, LogicalVector.TRUE));
+    boolean simplify = (Identical.identical(simplifyArgument, LogicalVector.TRUE));
+    boolean useNames = WrapperRuntime.convertToBooleanPrimitive(
+        context.evaluate(matched.getActualForFormal(4, LogicalVector.TRUE)));
 
-    throw new UnsupportedOperationException("TODO");
+    ListVector list = applyList(context, rho, vector, function, extraArguments);
+
+    Vector result;
+    if(simplify) {
+      result = simplifyToArray(list, true);
+    } else {
+      result = list;
+    }
+
+    if(useNames && vector instanceof StringVector && !result.getAttributes().hasNames()) {
+      result = (Vector) result.setAttribute(Symbols.NAMES, vector);
+    }
+
+    return result;
+  }
+
+  private static Vector simplifyToArray(ListVector list, boolean higher) {
+
+    if(list.length() == 0) {
+      return list;
+    }
+
+    int commonLength = commonLength(list);
+    if(commonLength == -1) {
+      return list;
+    }
+
+    if(commonLength == 1) {
+      return (Vector) Combine.unlist(list, false, true);
+
+    } else if(commonLength > 1) {
+      throw new UnsupportedOperationException("TODO");
+    } else {
+      return list;
+    }
+  }
+
+  private static int commonLength(ListVector list) {
+    int i = 0;
+    int length = list.getElementAsSEXP(i).length();
+    for(i = 1; i < list.length(); ++i) {
+      int elementLength = list.getElementAsSEXP(i).length();
+      if (elementLength != length) {
+        return -1;
+      }
+    }
+    return length;
   }
 }

@@ -348,7 +348,8 @@ public class BasePackageTest extends EvalTestCase {
     assertThat(eval("sapply(attr(~1,'vars'), deparse, width.cutoff = 500)[-1L]"), elementsIdenticalTo(list()));
   }
 
-  @Test @Ignore("not working yet")
+  @Test
+  @Ignore("not working yet")
   public void lzmaDecompression() throws IOException {
     eval("data(USArrests)");
     eval("names(USArrests)");

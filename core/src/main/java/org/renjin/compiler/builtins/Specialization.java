@@ -46,4 +46,8 @@ public interface Specialization {
     CompiledSexp rhs = getCompiledExpr(emitContext);
     lhs.store(emitContext, mv, rhs);
   }
+
+  default void emitExecution(EmitContext emitContext, InstructionAdapter mv) {
+    getCompiledExpr(emitContext).loadAndPop(emitContext, mv);
+  }
 }

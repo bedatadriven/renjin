@@ -192,8 +192,6 @@ public class SexpCompilerTest extends EvalTestCase {
     eval("b <- 2");
 
     assertThat(compileAndEvaluate("lapply(1:3, function(x) x + a + b)"), elementsIdenticalTo(list(4d, 5d, 6d)));
-
-
   }
 
   private SEXP compileAndEvaluate(String source) throws Exception {

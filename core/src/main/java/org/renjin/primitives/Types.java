@@ -19,6 +19,7 @@
 package org.renjin.primitives;
 
 import org.apache.commons.math.complex.Complex;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Options;
@@ -32,46 +33,55 @@ import org.renjin.sexp.*;
 public class Types {
 
   @Builtin("is.null")
+  @TypePredicate(TypeSet.NULL)
   public static boolean isNull(SEXP exp) {
     return exp == Null.INSTANCE;
   }
 
   @Builtin("is.logical")
+  @TypePredicate(TypeSet.LOGICAL)
   public static boolean isLogical(SEXP exp) {
     return exp instanceof LogicalVector;
   }
 
   @Builtin("is.integer")
+  @TypePredicate(TypeSet.INT)
   public static boolean isInteger(SEXP exp) {
     return exp instanceof IntVector;
   }
 
   @Builtin("is.real")
+  @TypePredicate(TypeSet.DOUBLE)
   public static boolean isReal(SEXP exp) {
     return exp instanceof DoubleVector;
   }
 
   @Builtin("is.double")
+  @TypePredicate(TypeSet.DOUBLE)
   public static boolean isDouble(SEXP exp) {
     return exp instanceof DoubleVector;
   }
 
   @Builtin("is.complex")
+  @TypePredicate(TypeSet.COMPLEX)
   public static boolean isComplex(SEXP exp) {
     return exp instanceof ComplexVector;
   }
 
   @Builtin("is.character")
+  @TypePredicate(TypeSet.STRING)
   public static boolean isCharacter(SEXP exp) {
     return exp instanceof StringVector;
   }
 
   @Builtin("is.symbol")
+  @TypePredicate(TypeSet.SYMBOL)
   public static boolean isSymbol(SEXP exp) {
     return unwrapS4Object(exp) instanceof Symbol;
   } 
 
   @Builtin("is.environment")
+  @TypePredicate(TypeSet.ENVIRONMENT)
   public static boolean isEnvironment(SEXP exp) {
     return unwrapS4Object(exp) instanceof Environment;
   }
@@ -92,16 +102,19 @@ public class Types {
   }
 
   @Builtin("is.expression")
+  @TypePredicate(TypeSet.EXPRESSION)
   public static boolean isExpression(SEXP exp) {
     return exp instanceof Environment;
   }
 
   @Builtin("is.list")
+  @TypePredicate(TypeSet.LIST | TypeSet.PAIRLIST)
   public static boolean isList(SEXP exp) {
     return exp instanceof ListVector || exp.getClass() == PairList.Node.class;
   }
 
   @Builtin("is.pairlist")
+  @TypePredicate(TypeSet.PAIRLIST | TypeSet.CALL)
   public static boolean isPairList(SEXP exp) {
     // strange, but true: 
     return exp instanceof PairList &&
@@ -109,6 +122,7 @@ public class Types {
   }
 
   @Builtin("is.atomic")
+  @TypePredicate(TypeSet.ANY_ATOMIC_VECTOR)
   public static boolean isAtomic(SEXP exp) {
     return exp instanceof AtomicVector;
   }
@@ -171,11 +185,13 @@ public class Types {
   }
 
   @Builtin("is.call")
+  @TypePredicate(TypeSet.CALL)
   public static boolean isCall(SEXP exp) {
     return exp instanceof FunctionCall;
   }
 
   @Builtin("is.language")
+  @TypePredicate(TypeSet.CALL | TypeSet.SYMBOL | TypeSet.EXPRESSION)
   public static boolean isLanguage(SEXP exp) {
     return exp instanceof Symbol || exp instanceof FunctionCall
         || exp instanceof ExpressionVector;
@@ -183,6 +199,7 @@ public class Types {
   }
 
   @Builtin("is.function")
+  @TypePredicate(TypeSet.FUNCTION)
   public static boolean isFunction(SEXP exp) {
     return exp instanceof Function;
   }
@@ -354,6 +371,7 @@ public class Types {
   }
 
   @Builtin("is.raw")
+  @TypePredicate(TypeSet.RAW)
   public static boolean isRaw(SEXP sexp) {
     return sexp instanceof RawVector;
   }
@@ -406,7 +424,6 @@ public class Types {
   public static SEXP body(Closure closure) {
     return closure.getBody();
   }
-
 
   @Internal
   public static String typeof(SEXP exp) {

@@ -41,16 +41,17 @@ public class TypeSet {
   public static final int FUNCTION = (1 << 10);
   public static final int ENVIRONMENT = (1 << 11);
   public static final int PAIRLIST = (1 << 12);
-  public static final int LANGUAGE = (1 << 13);
+  public static final int CALL = (1 << 13);
   public static final int S4 = (1 << 14);
   public static final int EXTERNAL_PTR = (1 << 15);
   public static final int CHARSEXP = (1 << 16);
+  public static final int EXPRESSION = (1 << 17);
 
   public static final int ANY_NON_NULL_ATOMIC_VECTOR = RAW | INT | LOGICAL | DOUBLE | COMPLEX | STRING;
   public static final int ANY_ATOMIC_VECTOR = NULL | ANY_NON_NULL_ATOMIC_VECTOR;
   public static final int ANY_VECTOR = LIST | ANY_ATOMIC_VECTOR;
   public static final int ANY_TYPE = ANY_VECTOR |
-      LANGUAGE | PAIRLIST | ENVIRONMENT | SYMBOL | FUNCTION | S4 | EXTERNAL_PTR | CHARSEXP;
+      CALL | EXPRESSION | PAIRLIST | ENVIRONMENT | SYMBOL | FUNCTION | S4 | EXTERNAL_PTR | CHARSEXP;
 
   public static final int NUMERIC = INT | DOUBLE;
 
@@ -82,7 +83,7 @@ public class TypeSet {
       return INT;
 
     } else if (DoubleVector.class.isAssignableFrom(type)) {
-      return INT;
+      return DOUBLE;
 
     } else if (ListVector.class.isAssignableFrom(type)) {
       return LIST;
@@ -145,7 +146,7 @@ public class TypeSet {
       return LIST;
 
     } else if(type.equals(FunctionCall.class)) {
-      return LANGUAGE;
+      return CALL;
 
     } else if(type.equals(PairList.Node.class)) {
       return PAIRLIST;
@@ -162,8 +163,17 @@ public class TypeSet {
     } else if(type.equals(Symbol.class)) {
       return SYMBOL;
 
+    } else if(type.equals(Closure.class)) {
+      return FUNCTION;
+
     } else if(type.equals(Function.class)) {
       return FUNCTION;
+
+    } else if(type.equals(PrimitiveFunction.class)) {
+      return FUNCTION;
+
+    } else if(type.equals(ExternalPtr.class)) {
+      return EXTERNAL_PTR;
 
     } else if (type.equals(SEXP.class)) {
       return ANY_TYPE;

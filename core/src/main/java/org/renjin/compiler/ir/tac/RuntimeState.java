@@ -28,6 +28,8 @@ import org.renjin.eval.Context;
 import org.renjin.packaging.SerializedPromise;
 import org.renjin.primitives.Evaluation;
 import org.renjin.primitives.S3;
+import org.renjin.primitives.packaging.Namespace;
+import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.primitives.sequence.DoubleSequence;
 import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.repackaged.guava.collect.Maps;
@@ -364,13 +366,21 @@ public class RuntimeState {
     throw new NotCompilableException(functionName, "Could not find function " + functionName);
   }
 
-  public Function findNamespaceExport(Symbol namespace, Symbol export) {
-    SEXP value = context.getNamespaceRegistry().getNamespace(context, namespace).getEntry(export).force(context);
-    if(value instanceof Function) {
-      return (Function) value;
+  public Function findNamespaceExport(FunctionCall call, Symbol namespace, Symbol export) {
+    NamespaceRegistry registry = context.getNamespaceRegistry();
+    Optional<Namespace> maybeNamespace = registry.getNamespaceIfPresent(namespace);
+    if(!maybeNamespace.isPresent()) {
+      throw new NotCompilableException(call, "Namespace '" + namespace + "' not loaded.");
+    }
+    SEXP value = maybeNamespace.get().getExportIfExists(export).force(context);
+    if(value == Symbol.UNBOUND_VALUE) {
+      throw new NotCompilableException(call, "Namespace '" + namespace + "' has no export '" + export + "'");
+    }
+    if(!(value instanceof Function)) {
+      throw new NotCompilableException(call, "Symbol '" + export + "' from namespace '" + namespace + "' is not a function");
     }
     // TODO: Record assumption
-    throw new NotCompilableException(FunctionCall.newCall(Symbol.get("::"), namespace, export), "Not a function");
+    return (Function) value;
   }
 
   private Function findFunctionIfExists(Symbol functionName) {

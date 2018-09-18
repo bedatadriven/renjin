@@ -41,18 +41,33 @@ public class ListApplyTranslator extends FunctionCallTranslator {
   }
 
   static InlinedFunction resolveApplyFunction(IRBodyBuilder builder, FunctionCall call, SEXP function) {
-    InlinedFunction inlinedClosure;
+
+    String[] argumentNames = {null};
+
     if(isClosureDefinition(function)) {
       FunctionCall closureDef = (FunctionCall) function;
       PairList formals = closureDef.getArgument(0);
       SEXP body = closureDef.getArgument(1);
       Closure closure = new Closure(Environment.EMPTY, formals, body);
-      String[] argumentNames = {null};
-      inlinedClosure = new InlinedFunction("FUN", builder.getRuntimeState(), closure, argumentNames);
-    } else {
-      throw new NotCompilableException(call);
+      return new InlinedFunction("FUN", builder.getRuntimeState(), closure, argumentNames);
+
+    } else if(function instanceof Symbol) {
+      Function resolvedFunction = builder.resolveFunction(function);
+      if(resolvedFunction instanceof Closure) {
+
+        Closure closure = (Closure) resolvedFunction;
+        return new InlinedFunction(((Symbol) function).getPrintName(), builder.getRuntimeState(), closure, argumentNames);
+
+      } else if(resolvedFunction instanceof PrimitiveFunction) {
+        Symbol formal = Symbol.get("x");
+
+        PairList formals = new PairList.Node(formal, Symbol.MISSING_ARG, Null.INSTANCE);
+        FunctionCall body = FunctionCall.newCall(resolvedFunction, formal);
+        Closure closure = new Closure(Environment.EMPTY, formals, body);
+        return new InlinedFunction(((PrimitiveFunction) resolvedFunction).getName(), builder.getRuntimeState(), closure, argumentNames);
+      }
     }
-    return inlinedClosure;
+    throw new NotCompilableException(call);
   }
 
   public static boolean isClosureDefinition(SEXP function) {

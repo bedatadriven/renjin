@@ -92,7 +92,6 @@ public class AnnotationBasedSpecializer implements BuiltinSpecializer {
 
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> namedArguments) {
-    List<ValueBounds> arguments = ArgumentBounds.withoutNames(namedArguments);
     JvmMethod method = selectOverload(namedArguments);
     if(method == null) {
       return new WrapperApplyCall(primitive, namedArguments);

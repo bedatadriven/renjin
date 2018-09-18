@@ -113,12 +113,20 @@ public class InlinedFunction {
     
     compiler.updateTypes();
 
-    List<ValueBounds> returnBounds = new ArrayList<>();
-    for (ReturnStatement returnStatement : returnStatements) {
-      returnBounds.add(returnStatement.getRHS().getValueBounds());
+    ValueBounds union = null;
+    for (BasicBlock basicBlock : compiler.getControlFlowGraph().getBasicBlocks()) {
+      if(basicBlock.isLive() && basicBlock.getStatements().size() > 0) {
+        Statement terminal = basicBlock.getTerminal();
+        if(terminal instanceof ReturnStatement) {
+          ValueBounds returnBounds = terminal.getRHS().getValueBounds();
+          if(union == null) {
+            union = returnBounds;
+          } else {
+            union = union.union(returnBounds);
+          }
+        }
+      }
     }
-    ValueBounds union = ValueBounds.union(returnBounds);
-
     return union;
   }
 

@@ -330,7 +330,7 @@ public class IRBodyBuilder {
       if(call.getFunction() == NAMESPACE_ACCESSOR) {
         Symbol namespace = call.getArgument(0);
         Symbol export = call.getArgument(1);
-        return runtimeContext.findNamespaceExport(namespace, export);
+        return runtimeContext.findNamespaceExport(call, namespace, export);
       }
     }
     throw new NotCompilableException(functionName);

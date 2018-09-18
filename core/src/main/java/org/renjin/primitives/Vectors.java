@@ -857,6 +857,18 @@ public class Vectors {
   }
 
   @CompilerSpecialization
+  public static int[] applyBD(MethodHandle method, double[] x) throws Throwable {
+    int n = x.length;
+    int[] result = new int[n];
+    for (int i = 0; i < n; i++) {
+      boolean b = (boolean) method.invokeExact(x[i]);
+      result[i] = b ? 1 : 0;
+    }
+    return result;
+  }
+
+
+  @CompilerSpecialization
   public static double applyDD(MethodHandle method, double x) throws Throwable {
     if(DoubleVector.isNA(x)) {
       return DoubleVector.NA;
@@ -875,6 +887,12 @@ public class Vectors {
       result[i] = b ? 1 : 0;
     }
     return result;
+  }
+
+  @CompilerSpecialization
+  public static int applyBI(MethodHandle method, int x) throws Throwable {
+    boolean b = (boolean) method.invokeExact(x);
+    return b ? 1 : 0;
   }
 
   @CompilerSpecialization

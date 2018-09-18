@@ -125,6 +125,10 @@ public class SequenceExpression extends SpecializedCallExpression {
       public CompiledSexp elementAt(EmitContext context, CompiledSexp indexExpr) {
         throw new UnsupportedOperationException("TODO");
       }
+
+      @Override
+      public void loadAndPop(EmitContext emitContext, InstructionAdapter mv) {
+      }
     };
   }
 

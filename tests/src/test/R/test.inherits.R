@@ -37,5 +37,8 @@ assertThat(inherits(c,  c("A", "B")), identicalTo(FALSE))
 assertThat(inherits(a,  c("A", "B"), which = TRUE), identicalTo(c(1L, 0L)))
 assertThat(inherits(ab, c("A", "B"), which = TRUE), identicalTo(c(1L, 2L)))
 
+assertThat(inherits(1L, "numeric"), identicalTo(FALSE))
+assertThat(inherits(42, "numeric"), identicalTo(TRUE))
 
+assertThat(inherits(array((1:12)*1.5,dim=c(12,1,1,1)), "numeric"), identicalTo(FALSE))
 

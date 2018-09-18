@@ -73,7 +73,7 @@ public class ClassGenerator<T> implements Opcodes {
   public Class<T> finishAndLoad() {
     writeClassEnd();
 
-    if(true) {
+    if(DEBUG) {
       try {
         File file = new File("/tmp/" + className + ".class");
         org.renjin.repackaged.guava.io.Files.write(cw.toByteArray(), file);

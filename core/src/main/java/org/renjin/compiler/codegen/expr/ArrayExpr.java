@@ -111,4 +111,10 @@ public abstract class ArrayExpr implements CompiledSexp {
   public CompiledSexp elementAt(EmitContext context, CompiledSexp indexExpr) {
     return new ArrayElementAt(this, indexExpr);
   }
+
+  @Override
+  public void loadAndPop(EmitContext emitContext, InstructionAdapter mv) {
+    loadArray(emitContext, mv, vectorType);
+    mv.visitInsn(Opcodes.POP);
+  }
 }

@@ -19,10 +19,7 @@
 package org.renjin.primitives;
 
 import org.renjin.eval.*;
-import org.renjin.invoke.annotations.ArgumentList;
-import org.renjin.invoke.annotations.Builtin;
-import org.renjin.invoke.annotations.Current;
-import org.renjin.invoke.annotations.Internal;
+import org.renjin.invoke.annotations.*;
 import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.sexp.*;
 
@@ -289,7 +286,25 @@ public class Conditions {
     }
   }
 
-  private static boolean allTrue(SEXP sexp) {
+  @CompilerSpecialization
+  public static void stopifnot(SEXP x, String deparsedExpresson) {
+    if(!allTrue(x)) {
+      if(x.length() > 1) {
+        throw new EvalException(deparsedExpresson + " is not TRUE");
+      } else {
+        throw new EvalException(deparsedExpresson + " is not all TRUE");
+      }
+    }
+  }
+
+  @CompilerSpecialization
+  public static void stopifnot(boolean x, String deparsedExpression) {
+    if(!x) {
+      throw new EvalException(deparsedExpression + " is not TRUE");
+    }
+  }
+
+  public static boolean allTrue(SEXP sexp) {
     if(!(sexp instanceof LogicalVector)) {
       return false;
     }

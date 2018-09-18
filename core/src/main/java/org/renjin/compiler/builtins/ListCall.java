@@ -54,7 +54,13 @@ public class ListCall implements Specialization {
     return new SexpExpr() {
       @Override
       public void loadSexp(EmitContext context, InstructionAdapter mv) {
-        throw new UnsupportedOperationException("TODO");
+        if(arguments.size() == 2 && !arguments.get(0).isNamed() && !arguments.get(1).isNamed()) {
+          arguments.get(0).getCompiledExpr(context).loadSexp(context, mv);
+          arguments.get(1).getCompiledExpr(context).loadSexp(context, mv);
+          mv.invokestatic("org/renjin/sexp/ListVector", "of", "(Lorg/renjin/sexp/SEXP;Lorg/renjin/sexp/SEXP;)Lorg/renjin/sexp/ListVector;", false);
+        } else {
+          throw new UnsupportedOperationException("TODO");
+        }
       }
     };
   }

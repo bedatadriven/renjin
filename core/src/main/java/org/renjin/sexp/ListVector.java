@@ -92,7 +92,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   }
 
   @Override
-  public final int getTypeSet() {
+  public int getTypeSet() {
     return TypeSet.LIST;
   }
 

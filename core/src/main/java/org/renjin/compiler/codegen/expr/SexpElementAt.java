@@ -88,4 +88,10 @@ class SexpElementAt implements CompiledSexp {
   public CompiledSexp elementAt(EmitContext context, CompiledSexp indexExpr) {
     return new SexpElementAt(this, indexExpr);
   }
+
+  @Override
+  public void loadAndPop(EmitContext emitContext, InstructionAdapter mv) {
+    loadSexp(emitContext, mv);
+    mv.visitInsn(Opcodes.POP);
+  }
 }

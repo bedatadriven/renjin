@@ -18,6 +18,7 @@
  */
 package org.renjin.sexp;
 
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.repackaged.guava.base.Joiner;
 
 import java.util.List;
@@ -66,6 +67,11 @@ public class ExpressionVector extends ListVector {
   @Override
   public String getTypeName() {
     return TYPE_NAME;
+  }
+
+  @Override
+  public int getTypeSet() {
+    return TypeSet.EXPRESSION;
   }
 
   @Override

@@ -20,6 +20,9 @@ package org.renjin.invoke.annotations;
 
 import java.lang.annotation.*;
 
+/**
+ * Indicates that this method's result <em>may</em> have a 'names' attribute
+ */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

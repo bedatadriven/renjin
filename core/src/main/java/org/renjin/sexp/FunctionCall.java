@@ -48,7 +48,7 @@ public class FunctionCall extends PairList.Node {
 
   @Override
   public final int getTypeSet() {
-    return TypeSet.LANGUAGE;
+    return TypeSet.CALL;
   }
 
   public static SEXP fromListExp(PairList.Node listExp) {

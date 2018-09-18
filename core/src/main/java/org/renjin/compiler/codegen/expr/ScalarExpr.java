@@ -41,6 +41,10 @@ public abstract class ScalarExpr implements CompiledSexp {
     this.attributes = null;
   }
 
+  public VectorType getType() {
+    return type;
+  }
+
   @Override
   public final void loadScalar(EmitContext context, InstructionAdapter mv, VectorType vectorType) {
     loadScalar(context, mv);
@@ -139,5 +143,15 @@ public abstract class ScalarExpr implements CompiledSexp {
   @Override
   public CompiledSexp elementAt(EmitContext context, CompiledSexp indexExpr) {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void loadAndPop(EmitContext emitContext, InstructionAdapter mv) {
+    loadScalar(emitContext, mv);
+    if(type.getJvmType().getSize() == 1) {
+      mv.visitInsn(Opcodes.DUP);
+    } else {
+      mv.visitInsn(Opcodes.DUP2);
+    }
   }
 }

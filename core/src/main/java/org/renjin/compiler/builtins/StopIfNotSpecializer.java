@@ -18,12 +18,21 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.codegen.ConstantBytecode;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.ScalarExpr;
+import org.renjin.compiler.codegen.expr.SexpExpr;
+import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
+import org.renjin.primitives.Conditions;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.Null;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class StopIfNotSpecializer implements BuiltinSpecializer {
@@ -44,6 +53,14 @@ public class StopIfNotSpecializer implements BuiltinSpecializer {
 
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
+
+    List<ArgumentBounds> toCheck = new ArrayList<>();
+    for (ArgumentBounds argument : arguments) {
+      if(!argument.getBounds().isConstant() || !Conditions.allTrue(argument.getBounds().getConstantValue())) {
+        toCheck.add(argument);
+      }
+    }
+
     return new Specialization() {
       @Override
       public ValueBounds getResultBounds() {
@@ -52,13 +69,40 @@ public class StopIfNotSpecializer implements BuiltinSpecializer {
 
       @Override
       public boolean isPure() {
-        return false;
+        return toCheck.isEmpty();
       }
 
       @Override
       public CompiledSexp getCompiledExpr(EmitContext emitContext) {
-        throw new UnsupportedOperationException("TODO");
+
+        return new SexpExpr() {
+          @Override
+          public void loadSexp(EmitContext context, InstructionAdapter mv) {
+            invoke(emitContext, mv, toCheck);
+            ConstantBytecode.pushConstant(mv, Null.INSTANCE);
+          }
+        };
+      }
+
+      @Override
+      public void emitExecution(EmitContext emitContext, InstructionAdapter mv) {
+        invoke(emitContext, mv, toCheck);
       }
     };
+  }
+
+  private void invoke(EmitContext emitContext, InstructionAdapter mv, List<ArgumentBounds> arguments) {
+    for (ArgumentBounds argument : arguments) {
+      CompiledSexp compiledArg = argument.getCompiledExpr(emitContext);
+      if(compiledArg instanceof ScalarExpr && ((ScalarExpr) compiledArg).getType() == VectorType.LOGICAL) {
+        compiledArg.loadScalar(emitContext, mv, VectorType.LOGICAL);
+        mv.visitLdcInsn("expr");
+        mv.invokestatic(Type.getInternalName(Conditions.class), "stopifnot", "(ZLjava/lang/String;)V", false);
+      } else {
+        compiledArg.loadSexp(emitContext, mv);
+        mv.visitLdcInsn("expr");
+        mv.invokestatic(Type.getInternalName(Conditions.class), "stopifnot", "(Lorg/renjin/sexp/SEXP;Ljava/lang/String;)V", false);
+      }
+    }
   }
 }

@@ -19,6 +19,7 @@
 package org.renjin.primitives;
 
 import org.apache.commons.math.complex.Complex;
+import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
@@ -68,6 +69,7 @@ public class Summary {
    * @param removeNA indicating if NA's should be omitted.
    * @return a vector containing the minimum and maximum of all the given arguments.
    */
+
   @Builtin
   @GroupGeneric
   @NoAttributes
@@ -87,6 +89,23 @@ public class Summary {
             .setRecursive(true)
             .addList(arguments)
             .getRange();
+  }
+
+  @CompilerSpecialization
+  public static double[] range(DoubleVector x) {
+    double min = Double.POSITIVE_INFINITY;
+    double max = Double.NEGATIVE_INFINITY;
+    int n = x.length();
+    for (int i = 0; i < n; i++) {
+      double xi = x.getElementAsDouble(i);
+      if(xi < min) {
+        min = xi;
+      }
+      if(xi > max) {
+        max = xi;
+      }
+    }
+    return new double[] { min, max };
   }
 
   private static class RangeCalculator {
@@ -658,6 +677,7 @@ public class Summary {
   @Deferrable
   @Internal
   @NoAttributes
+  @ResultBounds(flags = ValueBounds.LENGTH_ONE)
   public static DoubleVector mean(Vector x) {
 
     if(x.isDeferred() || x.length() > 100000) {

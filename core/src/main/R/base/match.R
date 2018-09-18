@@ -18,26 +18,8 @@
 
 
 
-.compile.loops <- FALSE
-
 match <- function(x, table, nomatch = NA_integer_, incomparables = NULL) {
- 
-    if(!.compile.loops) {
-        return(.Internal(match(x, table, nomatch, incomparables)))
-    } 
-
-    # Special case, exit early if x is empty
-    if(length(x) == 0) {
-        return(integer(0))
-    }   
-
-    # For historical reasons, FALSE is treated the same as NULL
-    if(identical(incomparables, FALSE)) {
-        incomparables <- NULL
-    }   
-
-    
-
+    return(.Internal(match(x, table, nomatch, incomparables)))
 }
 
 

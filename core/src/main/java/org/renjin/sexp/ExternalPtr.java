@@ -29,6 +29,7 @@ import org.renjin.invoke.reflection.MemberBinding;
  */
 public final class ExternalPtr<T> extends AbstractSEXP {
 
+  public static final String TYPE_NAME = "externalptr";
   private T instance;
   private ClassBinding binding;
   private SEXP tag;
@@ -51,7 +52,7 @@ public final class ExternalPtr<T> extends AbstractSEXP {
 
   @Override
   public String getTypeName() {
-    return "externalptr";
+    return TYPE_NAME;
   }
 
   @Override

@@ -52,7 +52,8 @@ public class Match {
    */
   @Internal
   public static IntVector match(Vector search, Vector table, int noMatch, AtomicVector incomparables) {
-    //For historical reasons, FALSE is equivalent to NULL.
+
+    // For historical reasons, FALSE is equivalent to NULL.
     if(incomparables.equals( LogicalVector.FALSE ) ) {
       incomparables = Null.INSTANCE;
     }

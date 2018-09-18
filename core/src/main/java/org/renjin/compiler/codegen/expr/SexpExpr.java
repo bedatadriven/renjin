@@ -69,6 +69,11 @@ public abstract class SexpExpr implements CompiledSexp {
     mv.invokeinterface(Type.getInternalName(SEXP.class), "length", "()I");
   }
 
+  @Override
+  public void loadAndPop(EmitContext emitContext, InstructionAdapter mv) {
+    loadSexp(emitContext, mv);
+    mv.visitInsn(Opcodes.POP);
+  }
 
   @Override
   public final void loadScalar(EmitContext context, InstructionAdapter mv, VectorType vectorType) {

@@ -18,6 +18,7 @@
  */
 package org.renjin.primitives.special;
 
+import org.renjin.compiler.CachedApplyCall;
 import org.renjin.eval.ArgumentMatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.MatchedArguments;
@@ -34,19 +35,20 @@ public class ListApplyFunction extends ApplyFunction {
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     MatchedArguments matched = MATCHER.expandAndMatch(context, rho, args);
-    SEXP vector = context.evaluate(matched.getActualForFormal(0), rho);
+    SEXP vectorSymbol = matched.getActualForFormal(0);
+    SEXP vector = context.evaluate(vectorSymbol, rho);
     SEXP functionArgument = matched.getActualForFormal(1);
     Function function = matchFunction(context, rho, functionArgument);
     PairList extraArguments = promiseExtraArguments(rho, matched);
 
-    if(vector.length() >= 100 && vector instanceof Vector && extraArguments == Null.INSTANCE)  {
+    if(extraArguments == Null.INSTANCE && vector instanceof Vector &&
+        (vector.length() >= 50 || call.cache instanceof CachedApplyCall))  {
+      System.out.println("lapply(" + vectorSymbol + ")");
       SEXP result = tryCompileAndEval(context, rho, call, (Vector) vector, functionArgument, function, false);
       if(result != null) {
         return result;
       }
     }
-
-
 
     return applyList(context, rho, vector, function, extraArguments);
   }

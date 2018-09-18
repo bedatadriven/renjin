@@ -86,4 +86,5 @@ public interface CompiledSexp {
   CompiledSexp elementAt(EmitContext context, CompiledSexp indexExpr);
 
 
+  void loadAndPop(EmitContext emitContext, InstructionAdapter mv);
 }

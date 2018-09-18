@@ -18,8 +18,13 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.NotCompilableException;
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.TypeSet;
+import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InternalCompilerException;
+import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.primitives.Primitives;
 import org.renjin.repackaged.guava.cache.CacheBuilder;
 import org.renjin.repackaged.guava.cache.CacheLoader;
@@ -27,6 +32,7 @@ import org.renjin.repackaged.guava.cache.LoadingCache;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.Symbol;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -72,6 +78,9 @@ public class BuiltinSpecializers {
     specializers.put("rbind", new BindSpecializer("rbind"));
     specializers.put("list", new ListSpecializer());
     specializers.put("stopifnot", new StopIfNotSpecializer());
+    specializers.put("inherits", new InheritsSpecializer());
+    specializers.put("is.numeric", new IsNumericSpecializer());
+    specializers.put("range", new GenericBuiltinGuard(new RangeSpecializer()));
 
     cache = CacheBuilder.newBuilder().build(new CacheLoader<String, Specializer>() {
       @Override
@@ -82,7 +91,27 @@ public class BuiltinSpecializers {
           entry = Primitives.getInternalEntry(primitiveName);
         }
         if(entry == null) {
-          throw new IllegalStateException("No builtin entry for '" + primitiveName + "'");
+          return new Specializer() {
+            @Override
+            public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
+              return new Specialization() {
+                @Override
+                public ValueBounds getResultBounds() {
+                  return ValueBounds.UNBOUNDED;
+                }
+
+                @Override
+                public boolean isPure() {
+                  return false;
+                }
+
+                @Override
+                public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+                  throw new NotCompilableException(primitiveName);
+                }
+              };
+            }
+          };
         }
         AnnotationBasedSpecializer specializer = new AnnotationBasedSpecializer(entry);
         if(specializer.isGeneric()) {

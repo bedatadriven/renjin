@@ -31,14 +31,13 @@ import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.MaybeNames;
 import org.renjin.invoke.annotations.NoAttributes;
+import org.renjin.invoke.annotations.ResultBounds;
+import org.renjin.invoke.annotations.TypePredicate;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
+import org.renjin.sexp.*;
 
 import java.util.*;
 
@@ -87,6 +86,13 @@ public class StaticMethodCall implements Specialization {
       builder.addFlags(LENGTH_ONE);
     }
 
+    ResultBounds resultBounds = method.getMethod().getAnnotation(ResultBounds.class);
+    if(resultBounds != null) {
+      if (resultBounds.flags() != 0) {
+        builder.addFlags(resultBounds.flags());
+      }
+    }
+
     if(SEXP.class.isAssignableFrom(returnType)) {
       boolean attributes = true;
 
@@ -111,6 +117,22 @@ public class StaticMethodCall implements Specialization {
     if (pure && ValueBounds.allConstantArguments(arguments)) {
       return ConstantCall.evaluate(method, arguments);
     }
+
+    if(method.isAnnotatedWith(TypePredicate.class)) {
+      TypePredicate predicate = method.getMethod().getAnnotation(TypePredicate.class);
+
+      if(arguments.size() == 1) {
+        int argumentType = arguments.get(0).getTypeSet();
+        boolean possiblyTrue = ((argumentType & predicate.value()) != 0);
+        boolean possiblyFalse = ((argumentType & ~predicate.value()) != 0);
+        if(possiblyTrue && !possiblyFalse) {
+          return new ConstantCall(LogicalVector.TRUE);
+        } else if(!possiblyTrue && possiblyFalse) {
+          return new ConstantCall(LogicalVector.FALSE);
+        }
+      }
+    }
+
     return this;
   }
 

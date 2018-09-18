@@ -49,5 +49,10 @@ public abstract class ConditionalExpr implements CompiledSexp {
   }
 
   @Override
+  public void loadAndPop(EmitContext emitContext, InstructionAdapter mv) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public abstract void jumpIfTrue(EmitContext emitContext, InstructionAdapter mv, Label trueLabel);
 }

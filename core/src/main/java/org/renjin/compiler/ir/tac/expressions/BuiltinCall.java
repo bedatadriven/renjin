@@ -120,7 +120,7 @@ public class BuiltinCall implements CallExpression {
 
   @Override
   public void emitExecute(EmitContext emitContext, InstructionAdapter mv) {
-    throw new UnsupportedOperationException("TODO");
+    specialization.emitExecution(emitContext, mv);
   }
 
   @Override

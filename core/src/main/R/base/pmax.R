@@ -21,7 +21,8 @@ pmax <- function (..., na.rm = FALSE)
 {
     elts <- list(...)
     if(length(elts) == 0L) stop("no arguments")
-    if(all(vapply(elts, function(x) is.atomic(x) && !is.object(x), NA))) {
+    # TODO(alex): change back to vapply once supported by compiler
+    if(all(sapply(elts, function(x) is.atomic(x) && !is.object(x)))) {
         ## NB: NULL passes is.atomic
         mmm <- .Internal(pmax(na.rm, ...))
     } else {

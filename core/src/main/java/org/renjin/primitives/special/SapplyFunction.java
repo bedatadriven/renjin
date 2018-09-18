@@ -27,7 +27,7 @@ import org.renjin.sexp.*;
 
 public class SapplyFunction extends ApplyFunction {
 
-  private static final ArgumentMatcher MATCHER = new ArgumentMatcher("X", "FUN", "...", "simplify", "USE.NAMES");
+  public static final ArgumentMatcher MATCHER = new ArgumentMatcher("X", "FUN", "...", "simplify", "USE.NAMES");
 
   public SapplyFunction() {
     super("sapply");
@@ -39,20 +39,21 @@ public class SapplyFunction extends ApplyFunction {
     MatchedArguments matched = MATCHER.match(args);
     SEXP vector = context.evaluate(matched.getActualForFormal(0), rho);
     SEXP functionArgument = matched.getActualForFormal(1);
-    SEXP function = matchFunction(context, rho, functionArgument);
+    Function function = matchFunction(context, rho, functionArgument);
     SEXP simplifyArgument = context.evaluate(matched.getActualForFormal(3, LogicalVector.TRUE));
     boolean simplify = !(Identical.identical(simplifyArgument, LogicalVector.FALSE));
     boolean useNames = WrapperRuntime.convertToBooleanPrimitive(
         context.evaluate(matched.getActualForFormal(4, LogicalVector.TRUE)));
 
-    if(vector.length() >= 120 && vector instanceof Vector)  {
+    PairList extraArguments = promiseExtraArguments(rho, matched);
+
+    if(vector.length() >= 120 && vector instanceof Vector && extraArguments == Null.INSTANCE)  {
       SEXP result = tryCompileAndEval(context, rho, call, (Vector) vector, functionArgument, function, simplify);
       if(result != null) {
         return result;
       }
     }
 
-    PairList extraArguments = promiseExtraArguments(rho, matched);
 
     ListVector list = applyList(context, rho, vector, function, extraArguments);
 

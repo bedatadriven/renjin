@@ -18,58 +18,38 @@
  */
 package org.renjin.compiler.ir.tac.functions;
 
-import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.cfg.InlinedFunction;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.expressions.ApplyExpression;
 import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.expressions.SimpleExpression;
 import org.renjin.eval.MatchedArguments;
-import org.renjin.primitives.special.ListApplyFunction;
-import org.renjin.sexp.*;
+import org.renjin.primitives.special.SapplyFunction;
+import org.renjin.sexp.Function;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.SEXP;
 
-public class ListApplyTranslator extends FunctionCallTranslator {
+public class SapplyTranslator extends FunctionCallTranslator {
   @Override
   public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
 
-    MatchedArguments matched = ListApplyFunction.MATCHER.match(call.getArguments());
+    MatchedArguments matched = SapplyFunction.MATCHER.match(call.getArguments());
     SEXP vector = matched.getActualForFormal(0);
     SEXP function = matched.getActualForFormal(1);
+    InlinedFunction inlinedFunction = ListApplyTranslator.resolveApplyFunction(builder, call, function);
 
-    InlinedFunction inlinedClosure = resolveApplyFunction(builder, call, function);
+    SimpleExpression simplify = builder.translateSimpleExpression(context,
+        matched.getActualForFormal(3, LogicalVector.TRUE));
 
-    return new ApplyExpression(builder.translateSimpleExpression(context, vector), inlinedClosure);
-  }
+    SimpleExpression useNames = builder.translateSimpleExpression(context,
+        matched.getActualForFormal(4, LogicalVector.TRUE));
 
-  static InlinedFunction resolveApplyFunction(IRBodyBuilder builder, FunctionCall call, SEXP function) {
-    InlinedFunction inlinedClosure;
-    if(isClosureDefinition(function)) {
-      FunctionCall closureDef = (FunctionCall) function;
-      PairList formals = closureDef.getArgument(0);
-      SEXP body = closureDef.getArgument(1);
-      Closure closure = new Closure(Environment.EMPTY, formals, body);
-      String[] argumentNames = {null};
-      inlinedClosure = new InlinedFunction("FUN", builder.getRuntimeState(), closure, argumentNames);
-    } else {
-      throw new NotCompilableException(call);
-    }
-    return inlinedClosure;
-  }
-
-  public static boolean isClosureDefinition(SEXP function) {
-    if(function instanceof FunctionCall) {
-      FunctionCall call = (FunctionCall) function;
-      if(call.getFunction() instanceof Symbol) {
-        Symbol name = (Symbol) call.getFunction();
-        if(name.getPrintName().equals("function")) {
-          return true;
-        }
-      }
-    }
-    return false;
+    return new ApplyExpression(builder.translateSimpleExpression(context, vector), inlinedFunction, simplify, useNames);
   }
 
   @Override
   public void addStatement(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
-    throw new NotCompilableException(call);
+    throw new UnsupportedOperationException("TODO");
   }
 }

@@ -37,8 +37,9 @@ public class ListApplyFunction extends ApplyFunction {
     SEXP vector = context.evaluate(matched.getActualForFormal(0), rho);
     SEXP functionArgument = matched.getActualForFormal(1);
     Function function = matchFunction(context, rho, functionArgument);
+    PairList extraArguments = promiseExtraArguments(rho, matched);
 
-    if(vector.length() >= 120 && vector instanceof Vector)  {
+    if(vector.length() >= 100 && vector instanceof Vector && extraArguments == Null.INSTANCE)  {
       SEXP result = tryCompileAndEval(context, rho, call, (Vector) vector, functionArgument, function, false);
       if(result != null) {
         return result;
@@ -46,7 +47,6 @@ public class ListApplyFunction extends ApplyFunction {
     }
 
 
-    PairList extraArguments = promiseExtraArguments(rho, matched);
 
     return applyList(context, rho, vector, function, extraArguments);
   }

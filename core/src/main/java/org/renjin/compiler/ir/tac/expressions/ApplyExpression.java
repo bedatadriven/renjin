@@ -33,6 +33,7 @@ import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.LogicalVector;
 import org.renjin.sexp.Vector;
 
 import java.util.Map;
@@ -43,18 +44,61 @@ public class ApplyExpression implements Expression {
 
   private Expression vector;
   private InlinedFunction function;
-  private final boolean simplify;
-  private final boolean useNames = true;
+  private Expression simplify;
+  private Expression useNames;
   private ValueBounds resultBounds;
 
-  public ApplyExpression(Expression vector, InlinedFunction function, boolean simplify) {
+
+  public ApplyExpression(Expression vector, InlinedFunction function) {
+    this(vector, function, new Constant(LogicalVector.FALSE), new Constant(LogicalVector.FALSE));
+  }
+
+  public ApplyExpression(Expression vector, InlinedFunction function, Expression simplify, Expression useNames) {
     this.vector = vector;
     this.function = function;
     this.simplify = simplify;
+    this.useNames = useNames;
     this.resultBounds = ValueBounds.builder()
         .setTypeSet(TypeSet.LIST)
         .build();
   }
+
+  @Override
+  public int getChildCount() {
+    return 3;
+  }
+
+  @Override
+  public Expression childAt(int index) {
+    switch (index) {
+      case 0:
+        return vector;
+      case 1:
+        return simplify;
+      case 2:
+        return useNames;
+      default:
+        throw new IllegalArgumentException("index: " + index);
+    }
+  }
+
+  @Override
+  public void setChild(int index, Expression child) {
+    switch (index) {
+      case 0:
+        this.vector = child;
+        break;
+      case 1:
+        this.simplify = child;
+        break;
+      case 2:
+        this.useNames = child;
+        break;
+      default:
+        throw new IllegalArgumentException("index: " + index);
+    }
+  }
+
 
   @Override
   public boolean isPure() {
@@ -64,7 +108,8 @@ public class ApplyExpression implements Expression {
   @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
 
-    ValueBounds vectorBounds = typeMap.get(vector);
+    ValueBounds vectorBounds = vector.updateTypeBounds(typeMap);
+    ValueBounds simplifyBounds = simplify.updateTypeBounds(typeMap);
     ValueBounds elementBounds;
 
     if(TypeSet.isDefinitelyAtomic(vectorBounds.getTypeSet())) {
@@ -83,30 +128,40 @@ public class ApplyExpression implements Expression {
 
     ValueBounds functionResultBounds = function.updateBounds(singletonList(new ArgumentBounds(elementBounds)));
 
-    resultBounds = maybeSimplify(vectorBounds, functionResultBounds);
+    resultBounds = maybeSimplify(vectorBounds, functionResultBounds, simplifyBounds);
 
     return resultBounds;
   }
 
-  private ValueBounds maybeSimplify(ValueBounds vectorBounds, ValueBounds functionBounds) {
+  private ValueBounds maybeSimplify(ValueBounds vectorBounds, ValueBounds functionBounds, ValueBounds simplify) {
 
-    if(simplify) {
-      if(canBeSimplified(functionBounds)) {
+    ValueBounds.Builder bounds = ValueBounds.builder();
+    bounds.addFlagsFrom(vectorBounds, ValueBounds.LENGTH_NON_ZERO | ValueBounds.LENGTH_ONE);
 
-        return ValueBounds.builder()
-            .setTypeSet(functionBounds.getTypeSet())
-            .addFlagsFrom(vectorBounds, ValueBounds.LENGTH_NON_ZERO)
-            .build();
+    // TODO: dims??
+
+    if(simplify.isConstantFlagEqualTo(true)) {
+      if(definitelyCanBeSimplified(functionBounds)) {
+        bounds.addTypes(functionBounds.getTypeSet());
+      } else {
+        bounds.addTypes(functionBounds.getTypeSet() | TypeSet.LIST);
       }
+
+    } else if(simplify.isConstantFlagEqualTo(false)) {
+      bounds.addTypes(TypeSet.LIST);
+
+    } else {
+
+      // Value of simplify not known at compile time: could be either atomic vector
+      // or a list
+      bounds.addTypes(TypeSet.LIST);
+      bounds.addTypes(functionBounds.getTypeSet() & TypeSet.ANY_NON_NULL_ATOMIC_VECTOR);
     }
 
-    return ValueBounds.builder()
-        .setTypeSet(TypeSet.LIST)
-        .addFlagsFrom(vectorBounds, ValueBounds.LENGTH_NON_ZERO)
-        .build();
+    return bounds.build();
   }
 
-  private boolean canBeSimplified(ValueBounds functionBounds) {
+  private boolean definitelyCanBeSimplified(ValueBounds functionBounds) {
     return functionBounds.isFlagSet(ValueBounds.LENGTH_ONE) &&
         TypeSet.isDefinitelyAtomic(functionBounds.getTypeSet()) &&
         !TypeSet.mightBe(functionBounds.getTypeSet(), TypeSet.NULL);
@@ -208,8 +263,8 @@ public class ApplyExpression implements Expression {
         if(scalarType == null) {
           vectorEmitter.loadSexp(context, mv);
           mv.visitVarInsn(Opcodes.ALOAD, resultVar);
-          mv.visitLdcInsn(simplify ? 1 : 0);
-          mv.visitLdcInsn(useNames ? 1 : 0);
+          simplify.getCompiledExpr(emitContext).loadScalar(context, mv, VectorType.INT);
+          useNames.getCompiledExpr(emitContext).loadScalar(context, mv, VectorType.INT);
           mv.invokestatic("org/renjin/primitives/special/ApplyFunction", "build",
               Type.getMethodDescriptor(Type.getType(Vector.class),
                   BytecodeTypes.SEXP_TYPE,
@@ -219,7 +274,7 @@ public class ApplyExpression implements Expression {
         } else {
           vectorEmitter.loadSexp(context, mv);
           mv.visitVarInsn(Opcodes.ALOAD, resultVar);
-          mv.visitLdcInsn(useNames ? 1 : 0);
+          useNames.getCompiledExpr(emitContext).loadScalar(context, mv, VectorType.INT);
           mv.invokestatic("org/renjin/primitives/special/ApplyFunction", "build",
               Type.getMethodDescriptor(Type.getType(Vector.class),
                   BytecodeTypes.SEXP_TYPE,
@@ -231,30 +286,7 @@ public class ApplyExpression implements Expression {
   }
 
   @Override
-  public int getChildCount() {
-    return 1;
-  }
-
-  @Override
-  public Expression childAt(int index) {
-    if(index == 0) {
-      return vector;
-    } else {
-      throw new IllegalArgumentException();
-    }
-  }
-
-  @Override
-  public void setChild(int childIndex, Expression child) {
-    if(childIndex == 0) {
-      vector = child;
-    } else {
-      throw new IllegalArgumentException();
-    }
-  }
-
-  @Override
   public String toString() {
-    return "lapply(" + vector + ", fun())";
+    return String.format("lapply(%s, fun(), SIMPLIFY = %s, USE.NAMES = %s)", vector, simplify, useNames);
   }
 }

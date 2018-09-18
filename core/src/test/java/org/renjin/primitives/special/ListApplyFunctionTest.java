@@ -33,5 +33,12 @@ public class ListApplyFunctionTest extends EvalTestCase {
     evaluate("print(sapply(1:122, function(x) x * 2))");
   }
 
+  @Test
+  public void testCompileSimplifiedBuiltin() {
+    evaluate("x <- rep(list(1:3, 1:99,1:100), length.out=300)");
+
+    evaluate("print(sapply(x, length))");
+
+  }
 
 }

@@ -404,7 +404,7 @@ public class Context {
       Profiler.functionStart((Symbol)fn, functionExpr);
     }
     try {
-        return functionExpr.apply(this, rho, call, call.getArguments());
+      return functionExpr.apply(this, rho, call, call.getArguments());
     } catch (EvalException | ControlFlowException | ConditionException | Error e) {
       throw e;
 

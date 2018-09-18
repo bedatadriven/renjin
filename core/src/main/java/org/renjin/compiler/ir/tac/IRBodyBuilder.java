@@ -113,7 +113,7 @@ public class IRBodyBuilder {
     return new IRBody(statements, labels);
   }
 
-  public IRBody buildApplyCall(Function function, ValueBounds vectorBounds, boolean simplify) {
+  public IRBody buildApplyCall(Function function, ValueBounds vectorBounds, boolean simplify, boolean useNames) {
     statements = Lists.newArrayList();
     labels = Maps.newHashMap();
 
@@ -122,12 +122,19 @@ public class IRBodyBuilder {
 
     statements.add(new Assignment(vector, new ReadLoopVector(vectorBounds)));
 
-    if(!(function instanceof Closure)) {
-      throw new NotCompilableException(function);
+    Closure closure;
+    if(function instanceof Closure) {
+      closure = (Closure) function;
+    } else {
+      Symbol formal = Symbol.get("x");
+      PairList formals = new PairList.Node(formal, Symbol.MISSING_ARG, Null.INSTANCE);
+      closure = new Closure(Environment.EMPTY, formals, FunctionCall.newCall(function, formal));
     }
 
-    InlinedFunction fun = new InlinedFunction("FUN", runtimeContext, ((Closure) function), new String[1]);
-    statements.add(new Assignment(returnValue, new ApplyExpression(vector, fun, simplify)));
+    String args[] = new String[1];
+    InlinedFunction inlinedFun = new InlinedFunction("FUN", runtimeContext, closure, args);
+
+    statements.add(new Assignment(returnValue, new ApplyExpression(vector, inlinedFun, new Constant(simplify), new Constant(useNames))));
     statements.add(new ReturnStatement(returnValue));
 
     return new IRBody(statements, labels);

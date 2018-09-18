@@ -137,12 +137,13 @@ public abstract class ApplyFunction extends SpecialFunction {
   protected SEXP tryCompileAndEval(Context context, Environment rho, FunctionCall call,
                                    Vector vector,
                                    SEXP functionArgument,
-                                   SEXP function, boolean simplify) {
+                                   Function function, boolean simplify) {
 
     String applyfn = (simplify ? "S" : "L") + "APPLY";
     System.out.println(applyfn + " " + vector.length() + " @" + Integer.toHexString(System.identityHashCode(call)));
 
     if(call.cache == Failed.COMPILATION) {
+      System.out.println("(previously failed)");
       return null;
     }
 
@@ -156,17 +157,13 @@ public abstract class ApplyFunction extends SpecialFunction {
       }
     }
 
-    if (!(function instanceof Closure)) {
-      return null;
-    }
-
-    Closure closure = (Closure) function;
+    // TODO: record assumptions about function resolution
 
     CompiledApplyCall compiledCall;
 
     try {
 
-      CachedApplyCall compiled = SexpCompiler.compileApplyCall(context, rho, vector, closure, simplify);
+      CachedApplyCall compiled = SexpCompiler.compileApplyCall(context, rho, vector, function, simplify);
 
       // Cache for subsequent evaluations...
       call.cache = compiled;

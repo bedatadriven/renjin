@@ -95,7 +95,7 @@ public class UpdateElementCall implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
     return getCompiledExpr(emitContext, false);
   }
 

@@ -91,9 +91,9 @@ public class SumSpecializer implements BuiltinSpecializer {
         .build();
 
     if(summandCount == 1 && arguments.size() == 1 && resultType == TypeSet.DOUBLE) {
-      return new SumSpecialization(resultBounds);
+      return new SumSpecialization(arguments.get(0), resultBounds);
     }
 
-    return new StaticMethodCall(fallback, resultBounds);
+    return new StaticMethodCall(fallback, arguments, resultBounds);
   }
 }

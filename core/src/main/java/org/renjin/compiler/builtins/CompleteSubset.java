@@ -21,9 +21,6 @@ package org.renjin.compiler.builtins;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.compiler.ir.tac.IRArgument;
-
-import java.util.List;
 
 public class CompleteSubset implements Specialization {
 
@@ -43,7 +40,7 @@ public class CompleteSubset implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
     throw new UnsupportedOperationException("TODO");
   }
 

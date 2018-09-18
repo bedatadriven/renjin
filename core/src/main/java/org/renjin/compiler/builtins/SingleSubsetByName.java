@@ -25,13 +25,10 @@ import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.Shape;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.primitives.special.DollarFunction;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-
-import java.util.List;
 
 /**
  * Specialization for {@code x$a} and {@code x[[a]]} where a is a single character string.
@@ -83,7 +80,7 @@ public class SingleSubsetByName implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
     return new SexpExpr() {
       @Override
       public void loadSexp(EmitContext context, InstructionAdapter mv) {

@@ -24,26 +24,25 @@ import org.renjin.compiler.codegen.expr.ScalarExpr;
 import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-
-import java.util.List;
 
 
 public class LengthCall implements Specialization {
 
-  private final ValueBounds bounds;
+  private final ArgumentBounds argument;
+  private final ValueBounds result;
 
-  public LengthCall(ValueBounds argumentBounds) {
-    bounds = ValueBounds.builder()
+  public LengthCall(ArgumentBounds argumentBounds) {
+    this.argument = argumentBounds;
+    this.result = ValueBounds.builder()
         .setTypeSet(TypeSet.INT)
         .addFlags(ValueBounds.FLAG_NO_NA | ValueBounds.LENGTH_ONE)
-        .addFlags(ValueBounds.FLAG_POSITIVE, argumentBounds.isFlagSet(ValueBounds.LENGTH_NON_ZERO))
+        .addFlags(ValueBounds.FLAG_POSITIVE, argumentBounds.getBounds().isFlagSet(ValueBounds.LENGTH_NON_ZERO))
         .build();
   }
 
   public ValueBounds getResultBounds() {
-    return bounds;
+    return result;
   }
 
   @Override
@@ -52,8 +51,8 @@ public class LengthCall implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
-    CompiledSexp vector = arguments.get(0).getExpression().getCompiledExpr(emitContext);
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    CompiledSexp vector = argument.getCompiledExpr(emitContext);
     return new ScalarExpr(VectorType.INT) {
       @Override
       public void loadScalar(EmitContext context, InstructionAdapter mv) {

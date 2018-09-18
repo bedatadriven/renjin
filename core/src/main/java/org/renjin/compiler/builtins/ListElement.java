@@ -25,13 +25,10 @@ import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.NamedShape;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringVector;
-
-import java.util.List;
 
 public class ListElement implements Specialization {
 
@@ -83,7 +80,7 @@ public class ListElement implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
     return object.getCompiledExpr(emitContext).elementAt(emitContext, new ScalarExpr(VectorType.INT) {
       @Override
       public void loadScalar(EmitContext context, InstructionAdapter mv) {

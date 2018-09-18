@@ -101,7 +101,7 @@ public class AnnotationBasedSpecializer implements BuiltinSpecializer {
     if(method.isDataParallel()) {
       return new DataParallelCall(primitive, method, namedArguments).specialize();
     } else {
-      return new StaticMethodCall(method).furtherSpecialize(arguments);
+      return new StaticMethodCall(method, namedArguments).furtherSpecialize();
     }
   }
 

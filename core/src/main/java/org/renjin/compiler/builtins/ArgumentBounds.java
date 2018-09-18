@@ -112,7 +112,7 @@ public class ArgumentBounds {
     return names;
   }
 
-  public boolean hasName() {
+  public boolean isNamed() {
     return name != null;
   }
 }

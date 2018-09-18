@@ -93,7 +93,7 @@ public class SubsetSpecializer implements Specializer, BuiltinSpecializer {
         .addFlagsFrom(source.getBounds(), ValueBounds.MAYBE_DIM | ValueBounds.MAYBE_DIMNAMES| ValueBounds.MAYBE_NAMES)
         .build();
 
-    return new StaticMethodCall(method, bounds);
+    return new StaticMethodCall(method, arguments, bounds);
   }
 
   private int computeResultTypeSet(ArgumentBounds source) {

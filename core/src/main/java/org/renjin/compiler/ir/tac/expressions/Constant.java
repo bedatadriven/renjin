@@ -44,6 +44,10 @@ public final class Constant implements SimpleExpression {
     this.value = value;
     this.valueBounds = ValueBounds.constantValue(value);
   }
+
+  public Constant(boolean value) {
+    this(LogicalVector.valueOf(value));
+  }
   
   public Constant(int value) {
     this(IntVector.valueOf(value));

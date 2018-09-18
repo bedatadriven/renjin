@@ -46,7 +46,8 @@ public class TypeSet {
   public static final int EXTERNAL_PTR = (1 << 15);
   public static final int CHARSEXP = (1 << 16);
 
-  public static final int ANY_ATOMIC_VECTOR = NULL | RAW | INT | LOGICAL | DOUBLE | COMPLEX | STRING;
+  public static final int ANY_NON_NULL_ATOMIC_VECTOR = RAW | INT | LOGICAL | DOUBLE | COMPLEX | STRING;
+  public static final int ANY_ATOMIC_VECTOR = NULL | ANY_NON_NULL_ATOMIC_VECTOR;
   public static final int ANY_VECTOR = LIST | ANY_ATOMIC_VECTOR;
   public static final int ANY_TYPE = ANY_VECTOR |
       LANGUAGE | PAIRLIST | ENVIRONMENT | SYMBOL | FUNCTION | S4 | EXTERNAL_PTR | CHARSEXP;

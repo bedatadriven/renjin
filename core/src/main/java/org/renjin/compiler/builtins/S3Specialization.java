@@ -103,7 +103,7 @@ public class S3Specialization implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
     throw new UnsupportedOperationException("TODO");
   }
 

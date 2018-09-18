@@ -39,11 +39,11 @@ public interface Specialization {
    */
   boolean isPure();
 
-  CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments);
+  CompiledSexp getCompiledExpr(EmitContext emitContext);
 
   default void emitAssignment(EmitContext emitContext, InstructionAdapter mv, Assignment statement, List<IRArgument> arguments) {
     VariableStrategy lhs = emitContext.getVariable(statement.getLHS());
-    CompiledSexp rhs = getCompiledExpr(emitContext, arguments);
+    CompiledSexp rhs = getCompiledExpr(emitContext);
     lhs.store(emitContext, mv, rhs);
   }
 }

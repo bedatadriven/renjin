@@ -21,10 +21,7 @@ package org.renjin.compiler.builtins;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.expressions.Expression;
-
-import java.util.List;
 
 public class IdentityCall implements Specialization {
 
@@ -47,7 +44,7 @@ public class IdentityCall implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
     return expression.getCompiledExpr(emitContext);
   }
 }

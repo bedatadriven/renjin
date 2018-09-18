@@ -84,6 +84,6 @@ public class DimSpecializer implements BuiltinSpecializer {
           .build();
     }
 
-    return new StaticMethodCall(method, dim);
+    return new StaticMethodCall(method, arguments, dim);
   }
 }

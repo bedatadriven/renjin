@@ -23,7 +23,6 @@ import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.SexpExpr;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.eval.Context;
 import org.renjin.invoke.codegen.WrapperGenerator2;
 import org.renjin.primitives.Primitives;
@@ -61,7 +60,7 @@ public class WrapperApplyCall implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
     return new SexpExpr() {
       @Override
       public void loadSexp(EmitContext context, InstructionAdapter mv) {
@@ -71,7 +70,7 @@ public class WrapperApplyCall implements Specialization {
         mv.visitVarInsn(Opcodes.ALOAD, context.getContextVarIndex());
         mv.visitVarInsn(Opcodes.ALOAD, context.getEnvironmentVarIndex());
 
-        for (IRArgument argument : arguments) {
+        for (ArgumentBounds argument : arguments) {
           argument.getExpression().getCompiledExpr(context).loadSexp(context, mv);
         }
 
@@ -85,7 +84,7 @@ public class WrapperApplyCall implements Specialization {
     return "org/renjin/primitives/" + WrapperGenerator2.toJavaName(primitive.name);
   }
 
-  private String getWrapperApplySignature(List<IRArgument> arguments) {
+  private String getWrapperApplySignature(List<ArgumentBounds> arguments) {
     String sexpDescriptor = "L" + BytecodeTypes.SEXP_INTERNAL_NAME + ";";
     StringBuilder signature = new StringBuilder();
     signature.append('(');

@@ -62,7 +62,7 @@ public class ListSpecializer implements BuiltinSpecializer {
     boolean hasNames = false;
     for (int i = 0; i < arguments.size(); i++) {
       ArgumentBounds argument = arguments.get(i);
-      if(argument.hasName()) {
+      if(argument.isNamed()) {
         names[i] = argument.getName();
         hasNames = true;
       }

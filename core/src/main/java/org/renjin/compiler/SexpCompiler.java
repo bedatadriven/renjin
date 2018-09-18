@@ -104,7 +104,7 @@ public class SexpCompiler {
     }
 
     IRBodyBuilder builder = new IRBodyBuilder(runtimeState);
-    IRBody body = builder.buildApplyCall(function, vectorBounds, simplify);
+    IRBody body = builder.buildApplyCall(function, vectorBounds, simplify, false);
 
     SexpCompiler compiler = new SexpCompiler(runtimeState, body, false);
 

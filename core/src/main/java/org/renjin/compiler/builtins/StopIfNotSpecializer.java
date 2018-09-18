@@ -22,7 +22,6 @@ import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
 
 import java.util.List;
@@ -57,7 +56,7 @@ public class StopIfNotSpecializer implements BuiltinSpecializer {
       }
 
       @Override
-      public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+      public CompiledSexp getCompiledExpr(EmitContext emitContext) {
         throw new UnsupportedOperationException("TODO");
       }
     };

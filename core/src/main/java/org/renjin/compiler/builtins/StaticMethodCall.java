@@ -28,7 +28,6 @@ import org.renjin.compiler.codegen.expr.SexpExpr;
 import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.MaybeNames;
 import org.renjin.invoke.annotations.NoAttributes;
@@ -55,13 +54,15 @@ public class StaticMethodCall implements Specialization {
   private final ValueBounds resultBounds;
   private final boolean pure;
   private final boolean varArgs;
+  private final List<ArgumentBounds> arguments;
 
-  public StaticMethodCall(JvmMethod method) {
-    this(method, boundsOf(method));
+  public StaticMethodCall(JvmMethod method, List<ArgumentBounds> arguments) {
+    this(method, arguments, boundsOf(method));
   }
 
-  public StaticMethodCall(JvmMethod method, ValueBounds bounds) {
+  public StaticMethodCall(JvmMethod method, List<ArgumentBounds> arguments, ValueBounds bounds) {
     this.method = method;
+    this.arguments = arguments;
     this.pure = method.isPure();
     this.resultBounds = bounds;
     this.varArgs = method.acceptsArgumentList();
@@ -106,9 +107,9 @@ public class StaticMethodCall implements Specialization {
     return builder.build();
   }
 
-  public Specialization furtherSpecialize(List<ValueBounds> argumentBounds) {
-    if (pure && ValueBounds.allConstant(argumentBounds)) {
-      return ConstantCall.evaluate(method, argumentBounds);
+  public Specialization furtherSpecialize() {
+    if (pure && ValueBounds.allConstantArguments(arguments)) {
+      return ConstantCall.evaluate(method, arguments);
     }
     return this;
   }
@@ -123,7 +124,7 @@ public class StaticMethodCall implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
 
     if(method.getReturnType().equals(void.class)) {
       return new SexpExpr() {
@@ -161,7 +162,7 @@ public class StaticMethodCall implements Specialization {
     }
   }
 
-  private void invoke(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
+  private void invoke(EmitContext emitContext, InstructionAdapter mv, List<ArgumentBounds> arguments) {
 
     if(varArgs) {
       invokeVarArgs(emitContext, mv, arguments);
@@ -170,13 +171,13 @@ public class StaticMethodCall implements Specialization {
     }
   }
 
-  private void invokeVarArgs(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
+  private void invokeVarArgs(EmitContext emitContext, InstructionAdapter mv, List<ArgumentBounds> arguments) {
 
     Set<String> namedFlags = method.namedFlags();
 
-    Map<String, IRArgument> flags = new HashMap<>();
+    Map<String, ArgumentBounds> flags = new HashMap<>();
 
-    Iterator<IRArgument> actualIt = arguments.iterator();
+    Iterator<ArgumentBounds> actualIt = arguments.iterator();
     Iterator<JvmMethod.Argument> formalIt = method.getAllArguments().iterator();
 
     JvmMethod.Argument formal;
@@ -195,10 +196,10 @@ public class StaticMethodCall implements Specialization {
         // If we've reached the @ArgumentList parameter, then collect the rest of the
         // arguments into an argument list and zero or more named flags
 
-        List<IRArgument> argumentList = new ArrayList<>();
+        List<ArgumentBounds> argumentList = new ArrayList<>();
 
         while (actualIt.hasNext()) {
-          IRArgument argument = actualIt.next();
+          ArgumentBounds argument = actualIt.next();
           if (argument.isNamed() && namedFlags.contains(argument.getName())) {
             flags.put(argument.getName(), argument);
           } else {
@@ -210,7 +211,7 @@ public class StaticMethodCall implements Specialization {
 
       } else if (formal.isNamedFlag()) {
 
-        IRArgument flag = flags.get(formal.getName());
+        ArgumentBounds flag = flags.get(formal.getName());
         if (flag == null) {
           mv.visitLdcInsn(formal.getDefaultValue() ? 1 : 0);
         } else {
@@ -220,7 +221,7 @@ public class StaticMethodCall implements Specialization {
 
         // Normal positional argument
 
-        IRArgument argument = actualIt.next();
+        ArgumentBounds argument = actualIt.next();
         argument.getExpression().getCompiledExpr(emitContext).loadAsArgument(emitContext, mv, formal.getClazz());
 
       }
@@ -237,7 +238,7 @@ public class StaticMethodCall implements Specialization {
     }
   }
 
-  private void loadArgumentList(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> argumentList) {
+  private void loadArgumentList(EmitContext emitContext, InstructionAdapter mv, List<ArgumentBounds> argumentList) {
     if(argumentList.isEmpty()) {
       mv.getstatic(Type.getInternalName(ListVector.class), "EMPTY", Type.getDescriptor(ListVector.class));
 
@@ -268,7 +269,7 @@ public class StaticMethodCall implements Specialization {
     }
   }
 
-  private void invokeSimple(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
+  private void invokeSimple(EmitContext emitContext, InstructionAdapter mv, List<ArgumentBounds> arguments) {
     int positionalArgument = 0;
     for (JvmMethod.Argument argument : method.getAllArguments()) {
       if (argument.isContextual() || argument.isNamedFlag() || argument.isVarArg()) {

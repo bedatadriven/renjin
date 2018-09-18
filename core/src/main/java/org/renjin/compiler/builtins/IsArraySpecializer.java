@@ -64,7 +64,7 @@ public class IsArraySpecializer implements BuiltinSpecializer {
       return new ConstantCall(LogicalVector.FALSE);
 
     } else {
-      return new StaticMethodCall(method);
+      return new StaticMethodCall(method, arguments);
     }
   }
 

@@ -21,7 +21,6 @@ package org.renjin.compiler.builtins;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.reflection.converters.Converters;
 import org.renjin.repackaged.asm.Type;
@@ -78,11 +77,11 @@ public class ConstantCall implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
     throw new UnsupportedOperationException("TODO");
   }
 
-  public static ConstantCall evaluate(JvmMethod method, List<ValueBounds> arguments) {
+  public static ConstantCall evaluate(JvmMethod method, List<ArgumentBounds> arguments) {
 
     ListVector.Builder varArgs = null;
     Map<String, Object> namedFlags = null;
@@ -95,14 +94,14 @@ public class ConstantCall implements Specialization {
           namedFlags.put(formal.getName(), formal.getDefaultValue());
         }
       }
-      for (ValueBounds argument : arguments) {
-        varArgs.add(argument.getConstantValue());
+      for (ArgumentBounds argument : arguments) {
+        varArgs.add(argument.getBounds().getConstantValue());
       }
     }
     
     List<JvmMethod.Argument> formals = method.getAllArguments();
     Object[] args = new Object[formals.size()];
-    Iterator<ValueBounds> it = arguments.iterator();
+    Iterator<ArgumentBounds> it = arguments.iterator();
     int argI = 0;
     for (JvmMethod.Argument formal : formals) {
       if(formal.isVarArg()) {
@@ -112,9 +111,9 @@ public class ConstantCall implements Specialization {
       } else if(formal.isContextual()) {
         throw new UnsupportedOperationException("in " + method +  ", " + "formal: " + formal);
       } else {
-        ValueBounds argument = it.next();
+        ArgumentBounds argument = it.next();
         Class formalType = formal.getClazz();
-        args[argI++] = convert(argument.getConstantValue(), formalType);
+        args[argI++] = convert(argument.getBounds().getConstantValue(), formalType);
       }
     }
 

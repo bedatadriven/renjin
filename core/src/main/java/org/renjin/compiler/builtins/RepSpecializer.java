@@ -25,7 +25,6 @@ import org.renjin.compiler.codegen.expr.SexpExpr;
 import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
-import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.eval.MatchedArgumentPositions;
 import org.renjin.primitives.sequence.RepFunction;
@@ -76,7 +75,7 @@ public class RepSpecializer implements Specializer {
       }
 
       @Override
-      public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+      public CompiledSexp getCompiledExpr(EmitContext emitContext) {
 
         return new SexpExpr() {
           @Override

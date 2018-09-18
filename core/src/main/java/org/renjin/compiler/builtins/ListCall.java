@@ -22,7 +22,6 @@ import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.SexpExpr;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.AtomicVector;
 
@@ -51,7 +50,7 @@ public class ListCall implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
     return new SexpExpr() {
       @Override
       public void loadSexp(EmitContext context, InstructionAdapter mv) {

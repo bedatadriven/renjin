@@ -23,21 +23,20 @@ import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.ScalarExpr;
 import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.primitives.Summary;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-
-import java.util.List;
 
 /**
  * Specializes sum when called with a single argument known to be of type double
  */
 public class SumSpecialization implements Specialization {
 
+  private final ArgumentBounds summand;
   private final ValueBounds resultBounds;
 
-  public SumSpecialization(ValueBounds resultBounds) {
+  public SumSpecialization(ArgumentBounds summand, ValueBounds resultBounds) {
+    this.summand = summand;
     this.resultBounds = resultBounds;
   }
 
@@ -52,9 +51,9 @@ public class SumSpecialization implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
 
-    CompiledSexp argument = arguments.get(0).getExpression().getCompiledExpr(emitContext);
+    CompiledSexp argument = summand.getExpression().getCompiledExpr(emitContext);
 
     return new ScalarExpr(VectorType.DOUBLE) {
       @Override

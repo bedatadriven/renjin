@@ -25,8 +25,6 @@ import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.primitives.subset.Subsetting;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -43,10 +41,14 @@ public class SingleRowOrColumn implements Specialization {
   private static final int COLUMN = 0;
 
 
+  private final ArgumentBounds source;
+  private final List<ArgumentBounds> subscripts;
   private final ValueBounds result;
   private final int dimension;
 
-  public SingleRowOrColumn(int i, ValueBounds resultBounds, int dimension) {
+  public SingleRowOrColumn(int dimension, ArgumentBounds source, List<ArgumentBounds> subscripts, ValueBounds resultBounds) {
+    this.source = source;
+    this.subscripts = subscripts;
     this.result = resultBounds;
     this.dimension = dimension;
   }
@@ -89,10 +91,10 @@ public class SingleRowOrColumn implements Specialization {
       return null;
     }
 
-    return new SingleRowOrColumn(dimension, ValueBounds.builder()
+    return new SingleRowOrColumn(dimension, source, subscripts, ValueBounds.builder()
       .setTypeSet(source.getTypeSet())
       .addFlagsFrom(source.getBounds(), ValueBounds.FLAG_NO_NA | ValueBounds.FLAG_POSITIVE)
-      .build(), dimension);
+      .build());
   }
 
   public ValueBounds getResultBounds() {
@@ -105,17 +107,7 @@ public class SingleRowOrColumn implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
-
-    // Match subscripts
-    Expression[] subscripts = new Expression[2];
-    int d = 0;
-    for (int i = 1; i < arguments.size(); i++) {
-      IRArgument argument = arguments.get(i);
-      if(!"drop".equals(argument.getName())) {
-        subscripts[d++] = argument.getExpression();
-      }
-    }
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
 
     // Method name
     String methodName;
@@ -126,8 +118,8 @@ public class SingleRowOrColumn implements Specialization {
     }
 
     // Get compiled expressions
-    CompiledSexp matrix = arguments.get(0).getExpression().getCompiledExpr(emitContext);
-    CompiledSexp index = subscripts[dimension].getCompiledExpr(emitContext);
+    CompiledSexp matrix = source.getExpression().getCompiledExpr(emitContext);
+    CompiledSexp index = subscripts.get(dimension).getCompiledExpr(emitContext);
 
     VectorType vectorType = VectorType.of(result.getTypeSet());
 

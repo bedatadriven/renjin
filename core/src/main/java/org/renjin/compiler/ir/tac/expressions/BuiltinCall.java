@@ -106,7 +106,7 @@ public class BuiltinCall implements CallExpression {
 
   @Override
   public CompiledSexp getCompiledExpr(EmitContext emitContext) {
-    return specialization.getCompiledExpr(emitContext, arguments);
+    return specialization.getCompiledExpr(emitContext);
   }
 
   @Override

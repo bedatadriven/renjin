@@ -172,7 +172,7 @@ public class Primitives {
 
     f("stop", Conditions.class, 1);
     f("stopifnot", Conditions.class, 1);
-    f("warning", Warning.class, 111);
+    f("warning", Warning.class, 1);
 
     f("gettext", Text.class, 11);
     f("ngettext", Text.class, 11);

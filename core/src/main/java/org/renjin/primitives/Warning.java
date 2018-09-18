@@ -20,8 +20,11 @@ package org.renjin.primitives;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.Options;
+import org.renjin.invoke.annotations.ArgumentList;
+import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
+import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -40,11 +43,40 @@ public class Warning {
     emitWarning(context, call, false, String.format(message, args));
   }
 
-  @Internal
-  public static void warning(@Current Context context, boolean call, boolean immediate, String message) throws IOException {
+
+  @Builtin
+  public static void warning(@Current Context context, @ArgumentList ListVector arguments) throws IOException {
+
+    // TODO: Handle conditions as arguments
+    if(arguments.length() == 1 && arguments.get(0).inherits("condition")) {
+      throw new UnsupportedOperationException("TODO");
+    }
+
+    StringBuilder message = new StringBuilder();
+    boolean call = true;
+    boolean immediate = false;
+
+
+    for (NamedValue namedValue : arguments.namedValues()) {
+      if("call.".equals(namedValue.getName())) {
+        call = WrapperRuntime.convertToBooleanPrimitive(namedValue.getValue());
+      } else if ("immediate.".equals(namedValue.getName())) {
+        immediate = WrapperRuntime.convertToBooleanPrimitive(namedValue.getValue());
+      } else if("domain".equals(namedValue.getName())) {
+        // ignored
+      } else {
+        message.append(WrapperRuntime.convertToString(namedValue.getValue()));
+      }
+    }
+
+    warning(context, call, immediate, message.toString());
+  }
+
+
+  private static void warning(@Current Context context, boolean call, boolean immediate, String message) throws IOException {
 
     if(call || !immediate) {
-      FunctionCall currentCall = findCurrentCall(context, 1);
+      FunctionCall currentCall = findCurrentCall(context, 0);
 
       emitWarning(context, currentCall, immediate, message);
 

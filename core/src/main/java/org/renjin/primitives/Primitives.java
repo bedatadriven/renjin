@@ -563,13 +563,16 @@ public class Primitives {
 
 /* Type coercion */
 
-    f("as.character", Vectors.class, "asCharacter", 1);
+    f("as.character", Vectors.class, "asCharacter", 111);
     f("as.integer", Vectors.class, "asInteger", 1);
     f("as.double", Vectors.class, "asDouble", 1);
     f("as.complex", Vectors.class, 1);
     f("as.logical", Vectors.class, 1);
+    f("as.symbol", Vectors.class,111);
     f("as.raw", Vectors.class, 1);
-    f("as.vector", Vectors.class, 11);
+    f("as.pairlist", Vectors.class, 111);
+    f("as.expression", Vectors.class, 111);
+    f("as.list", Vectors.class, 111);
     f("paste", Text.class, 11);
     f("format", Text.class, 11);
     f("format.info", /*formatinfo*/ null, 11);

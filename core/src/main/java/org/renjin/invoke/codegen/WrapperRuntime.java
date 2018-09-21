@@ -97,7 +97,7 @@ public class WrapperRuntime {
     } else if(exp instanceof Symbol) {
       return new StringArrayVector( ((Symbol) exp).getPrintName() );
     } else if(exp instanceof FunctionCall) {
-      return new StringArrayVector( Deparse.deparseExp(null, exp) );
+      return new StringArrayVector( Deparse.deparseExp(exp) );
     } else {
       throw new ArgumentException("expected vector");
     }
@@ -177,7 +177,7 @@ public class WrapperRuntime {
     if(vector instanceof Symbol) {
       return StringVector.valueOf(((Symbol)vector).getPrintName());
     } else if(vector instanceof FunctionCall) {
-      return StringVector.valueOf(Deparse.deparseExp(context, vector));
+      return StringVector.valueOf(Deparse.deparseExp(vector));
     }
     return vector;
   }

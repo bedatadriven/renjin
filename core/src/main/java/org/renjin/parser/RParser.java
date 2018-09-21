@@ -18,6 +18,7 @@
  */
 package org.renjin.parser;
 
+import org.renjin.invoke.annotations.CompilerSpecialization;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.io.CharSource;
 import org.renjin.repackaged.guava.io.CharStreams;
@@ -118,6 +119,10 @@ public class RParser {
      return parseSource(source, new CHARSEXP(srcFile));
   }
 
+  @CompilerSpecialization
+  public static SEXP parseConstant(String source) throws IOException {
+    return parseAllSource(new StringReader(source)).getElementAsSEXP(0);
+  }
 
   public static ExpressionVector parseInlineSource(String source) {
      return parseSource(source, new CHARSEXP("<text>"));

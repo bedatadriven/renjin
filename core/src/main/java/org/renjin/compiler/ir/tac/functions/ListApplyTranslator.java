@@ -19,6 +19,7 @@
 package org.renjin.compiler.ir.tac.functions;
 
 import org.renjin.compiler.NotCompilableException;
+import org.renjin.compiler.cfg.InlineArgument;
 import org.renjin.compiler.cfg.InlinedFunction;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.expressions.ApplyExpression;
@@ -26,6 +27,9 @@ import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.eval.MatchedArguments;
 import org.renjin.primitives.special.ListApplyFunction;
 import org.renjin.sexp.*;
+
+import java.util.Collections;
+import java.util.List;
 
 public class ListApplyTranslator extends FunctionCallTranslator {
   @Override
@@ -42,21 +46,21 @@ public class ListApplyTranslator extends FunctionCallTranslator {
 
   static InlinedFunction resolveApplyFunction(IRBodyBuilder builder, FunctionCall call, SEXP function) {
 
-    String[] argumentNames = {null};
+    List<InlineArgument> applyArguments = Collections.singletonList(new InlineArgument(Symbol.get("x")));
 
     if(isClosureDefinition(function)) {
       FunctionCall closureDef = (FunctionCall) function;
       PairList formals = closureDef.getArgument(0);
       SEXP body = closureDef.getArgument(1);
       Closure closure = new Closure(Environment.EMPTY, formals, body);
-      return new InlinedFunction("FUN", builder.getRuntimeState(), closure, argumentNames);
+      return new InlinedFunction("FUN", builder.getRuntimeState(), closure, applyArguments);
 
     } else if(function instanceof Symbol) {
       Function resolvedFunction = builder.resolveFunction(function);
       if(resolvedFunction instanceof Closure) {
 
         Closure closure = (Closure) resolvedFunction;
-        return new InlinedFunction(((Symbol) function).getPrintName(), builder.getRuntimeState(), closure, argumentNames);
+        return new InlinedFunction(((Symbol) function).getPrintName(), builder.getRuntimeState(), closure, applyArguments);
 
       } else if(resolvedFunction instanceof PrimitiveFunction) {
         Symbol formal = Symbol.get("x");
@@ -64,7 +68,7 @@ public class ListApplyTranslator extends FunctionCallTranslator {
         PairList formals = new PairList.Node(formal, Symbol.MISSING_ARG, Null.INSTANCE);
         FunctionCall body = FunctionCall.newCall(resolvedFunction, formal);
         Closure closure = new Closure(Environment.EMPTY, formals, body);
-        return new InlinedFunction(((PrimitiveFunction) resolvedFunction).getName(), builder.getRuntimeState(), closure, argumentNames);
+        return new InlinedFunction(((PrimitiveFunction) resolvedFunction).getName(), builder.getRuntimeState(), closure, applyArguments);
       }
     }
     throw new NotCompilableException(call);

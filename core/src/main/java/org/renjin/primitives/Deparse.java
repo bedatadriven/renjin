@@ -81,25 +81,23 @@ public class Deparse {
 
   @Internal
   public static String deparse(@Current Context context, SEXP exp, int widthCutoff, boolean backTick, int options, int nlines) {
-    return new DeparsingVisitor(context, options, exp).getResult();
+    return new DeparsingVisitor(options, exp).getResult();
   }
   
-  public static String deparseExp(Context context, SEXP exp) {
-    return new DeparsingVisitor(context, 0, exp).getResult();
+  public static String deparseExp(SEXP exp) {
+    return new DeparsingVisitor(0, exp).getResult();
   }
 
   public static String deparseExpWithAttributes(Context context, SEXP sexp) {
-    return new DeparsingVisitor(context, SHOW_ATTRIBUTES, sexp).getResult();
+    return new DeparsingVisitor(SHOW_ATTRIBUTES, sexp).getResult();
   }
 
   private static class DeparsingVisitor extends SexpVisitor<String> {
 
     private StringBuilder deparsed = new StringBuilder();
-    private Context context;
     private boolean keepAttributes;
 
-    public DeparsingVisitor(Context context, int options, SEXP exp) {
-      this.context = context;
+    public DeparsingVisitor(int options, SEXP exp) {
       this.keepAttributes = (options & SHOW_ATTRIBUTES) != 0;
       deparse(exp);
     }
@@ -295,7 +293,7 @@ public class Deparse {
           needsComma = true;
         }
         maybeAppendArgumentName(namedValue, "`NA`");
-        DeparsingVisitor elementVisitor = new DeparsingVisitor(context, 0, namedValue.getValue());
+        DeparsingVisitor elementVisitor = new DeparsingVisitor(0, namedValue.getValue());
         deparsed.append(elementVisitor.getResult());
       }
       deparsed.append(")");

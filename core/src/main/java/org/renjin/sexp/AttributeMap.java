@@ -44,6 +44,7 @@ import java.util.Objects;
  * are stored in this structure as direct pointers, others in a HashMap.
  */
 public class AttributeMap {
+  public static final int[] EMPTY_DIM_ARRAY = new int[0];
   private StringVector classes = null;
   private SEXP names = null;
   private SEXP dim = null;
@@ -213,7 +214,7 @@ public class AttributeMap {
 
   public int[] getDimArray() {
     if(dim == null) {
-      return new int[0];
+      return EMPTY_DIM_ARRAY;
     }
     return ((IntVector) dim).toIntArray();
   }

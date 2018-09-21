@@ -54,21 +54,25 @@ public class SapplyFunction extends ApplyFunction {
       }
     }
 
-
     ListVector list = applyList(context, rho, vector, function, extraArguments);
+
+    if(useNames && vector instanceof StringVector && !list.getAttributes().hasNames()) {
+      list = (ListVector) list.setAttribute(Symbols.NAMES, vector);
+    }
 
     Vector result;
     if(simplify) {
-      result = simplifyToArray(list, true);
+      result = simplifyToArray(list, isHigher(simplifyArgument));
     } else {
       result = list;
     }
-
-    if(useNames && vector instanceof StringVector && !result.getAttributes().hasNames()) {
-      result = (Vector) result.setAttribute(Symbols.NAMES, vector);
-    }
-
     return result;
+  }
+
+  private boolean isHigher(SEXP simplifyArgument) {
+    return simplifyArgument instanceof StringVector &&
+           simplifyArgument.length() >= 1 &&
+           ((StringVector) simplifyArgument).getElementAsString(0).equals("array");
   }
 
 }

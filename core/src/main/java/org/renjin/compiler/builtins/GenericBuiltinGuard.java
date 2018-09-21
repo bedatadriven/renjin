@@ -41,7 +41,7 @@ public class GenericBuiltinGuard implements Specializer {
     ValueBounds object = arguments.get(0).getBounds();
 
     if(object.getTypeSet() == TypeSet.S4) {
-      return S4Specialization.trySpecialize(specializer.getName(), runtimeState, object, arguments);
+      throw new UnsupportedOperationException("TODO");
     }
       
     // If the class attribute is not known to be NULL, we need to try to

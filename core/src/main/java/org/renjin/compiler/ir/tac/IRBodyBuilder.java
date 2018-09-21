@@ -19,6 +19,7 @@
 package org.renjin.compiler.ir.tac;
 
 import org.renjin.compiler.NotCompilableException;
+import org.renjin.compiler.cfg.InlineArgument;
 import org.renjin.compiler.cfg.InlinedFunction;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
@@ -123,15 +124,18 @@ public class IRBodyBuilder {
     statements.add(new Assignment(vector, new ReadLoopVector(vectorBounds)));
 
     Closure closure;
+    Symbol formalArgument = Symbol.get("x");
+
     if(function instanceof Closure) {
       closure = (Closure) function;
     } else {
-      Symbol formal = Symbol.get("x");
-      PairList formals = new PairList.Node(formal, Symbol.MISSING_ARG, Null.INSTANCE);
-      closure = new Closure(Environment.EMPTY, formals, FunctionCall.newCall(function, formal));
+      PairList formals = new PairList.Node(formalArgument, Symbol.MISSING_ARG, Null.INSTANCE);
+      closure = new Closure(Environment.EMPTY, formals, FunctionCall.newCall(function, formalArgument));
     }
 
-    String args[] = new String[1];
+    SEXP dummyArgument = Symbol.get("x");
+    List<InlineArgument> args = Collections.singletonList(new InlineArgument(dummyArgument));
+
     InlinedFunction inlinedFun = new InlinedFunction("FUN", runtimeContext, closure, args);
 
     statements.add(new Assignment(returnValue, new ApplyExpression(vector, inlinedFun, new Constant(simplify), new Constant(useNames))));
@@ -140,7 +144,7 @@ public class IRBodyBuilder {
     return new IRBody(statements, labels);
   }
 
-  public IRBody buildFunctionBody(Closure closure, String[] argumentNames) {
+  public IRBody buildFunctionBody(Closure closure, List<InlineArgument> arguments) {
     
     statements = Lists.newArrayList();
     labels = Maps.newHashMap();
@@ -152,13 +156,14 @@ public class IRBodyBuilder {
     // Map actual arguments to formals
 
     ArgumentMatcher matcher = new ArgumentMatcher(closure);
-    MatchedArgumentPositions matching = matcher.match(argumentNames);
+
+    MatchedArgumentPositions matching = matcher.match(arguments);
 
     // Each of the provided arguments needs to be assigned to a variable
     // in the function body, either a named formal, or to a temporary variable
     // for extra arguments
 
-    Variable[] argumentVars = new Variable[argumentNames.length];
+    Variable[] argumentVars = new Variable[arguments.size()];
 
     // First bind the formals
     for (int formalIndex = 0; formalIndex < matching.getFormalCount(); formalIndex++) {
@@ -174,7 +179,7 @@ public class IRBodyBuilder {
     for (int i = 0; i < argumentVars.length; i++) {
       if(argumentVars[i] == null) {
         EllipsesVar extraArg = new EllipsesVar(extraArgumentIndex++);
-        ellipses.add(new IRArgument(argumentNames[i], extraArg));
+        ellipses.add(new IRArgument(arguments.get(i).getName(), arguments.get(i).getSexp(), extraArg));
         argumentVars[i] = extraArg;
       }
     }
@@ -338,14 +343,18 @@ public class IRBodyBuilder {
 
   public List<IRArgument> translateArgumentList(TranslationContext context, PairList argumentSexps) {
     List<IRArgument> arguments = Lists.newArrayList();
+
     for(PairList.Node argNode : argumentSexps.nodes()) {
+
       if(argNode.getValue() == Symbols.ELLIPSES) {
         arguments.addAll(context.getEllipsesArguments());
+
       } else {
         SimpleExpression argExpression = simplify(translateExpression(context, argNode.getValue()));
-        arguments.add( new IRArgument(argNode.getRawTag(), argExpression) );
+        arguments.add( new IRArgument(argNode.getRawTag(), argNode.getValue(), argExpression) );
       }
     }
+
     return arguments;
   }
 

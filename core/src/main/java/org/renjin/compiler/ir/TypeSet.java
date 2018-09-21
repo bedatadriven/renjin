@@ -109,7 +109,11 @@ public class TypeSet {
   }
 
   public static int accepts(Class type) {
-    if (type.equals(int.class)) {
+
+    if (type.equals(Null.class)) {
+      return NULL;
+
+    } else if (type.equals(int.class)) {
       return INT | LOGICAL;
 
     } else if(type.equals(double.class)) {

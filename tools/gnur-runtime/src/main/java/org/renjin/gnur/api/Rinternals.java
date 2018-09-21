@@ -1181,7 +1181,7 @@ public final class Rinternals {
       case SexpType.CPLXSXP:
         return Vectors.asComplex((Vector)p0).setAttributes(p0.getAttributes());
       case SexpType.STRSXP:
-        return Vectors.asCharacter(Native.currentContext(), (Vector)p0).setAttributes(p0.getAttributes());
+        return Vectors.asCharacter((Vector)p0).setAttributes(p0.getAttributes());
       case SexpType.EXPRSXP:
         return toExpressionList(p0);
     }
@@ -1189,13 +1189,7 @@ public final class Rinternals {
   }
 
   private static SEXP toExpressionList(SEXP sexp) {
-    if(sexp instanceof Vector) {
-      return Vectors.asVector(((Vector) sexp), "expression");
-    } else if(sexp instanceof PairList) {
-      return toExpressionList(((PairList) sexp).toVector());
-    } else {
-      throw new UnsupportedOperationException("Rf_coerceVector: from: " + sexp.getTypeName() + " to EXPRSXP");
-    }
+    return Vectors.asExpression(sexp);
   }
 
   public static SEXP Rf_PairToVectorList(SEXP x) {

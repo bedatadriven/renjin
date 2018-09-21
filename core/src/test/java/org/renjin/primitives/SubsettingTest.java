@@ -935,7 +935,7 @@ public class SubsettingTest extends EvalTestCase {
 
   @Test
   public void pairListNotConverted() {
-    eval(" p <- .Internal(as.vector(list(a=1, b=2, 3, 4), 'pairlist'))");
+    eval(" p <- .Internal(as.pairlist(list(a=1, b=2, 3, 4)))");
     assertThat( eval("p[1:2]"), elementsIdenticalTo(list(1d,2d)));
     assertThat(eval("names(p[TRUE])"), elementsIdenticalTo(c("a", "b", "", "")));
     assertThat(eval("p[['b']]"), elementsIdenticalTo(c(2)));
@@ -948,7 +948,7 @@ public class SubsettingTest extends EvalTestCase {
 
   @Test
   public void pairListSingleByName() {
-    eval(" p <- .Internal(as.vector(list(hello=1, b=2, 3, 4), 'pairlist'))");
+    eval(" p <- .Internal(as.pairlist(list(hello=1, b=2, 3, 4)))");
 
     assertThat(eval("p[['h']]"), identicalTo(NULL));
     assertThat(eval("p[['hello']]"), elementsIdenticalTo(c(1)));
@@ -957,7 +957,7 @@ public class SubsettingTest extends EvalTestCase {
   
   @Test
   public void pairListReplaceByName() {
-    eval(" x <- .Internal(as.vector(list(a=1, z=4), 'pairlist'))");
+    eval(" x <- .Internal(as.pairlist(list(a=1, z=4)))");
     eval(" x$b<-2");
     eval(" x$a<-4");
     eval(" x$z<-NULL");
@@ -1008,7 +1008,7 @@ public class SubsettingTest extends EvalTestCase {
   
   @Test
   public void pairListElipses() {
-    eval(" x <- .Internal(as.vector(list(a=1, z=4), 'pairlist'))");
+    eval(" x <- as.vector(list(a=1, z=4), 'pairlist')");
     eval(" x$... <- 4");
     assertThat( eval("x$..."), elementsIdenticalTo(c(4)));
   }

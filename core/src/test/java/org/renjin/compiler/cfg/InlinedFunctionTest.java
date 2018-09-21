@@ -24,6 +24,8 @@ import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.sexp.Closure;
 
+import java.util.Collections;
+
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -55,7 +57,7 @@ public class InlinedFunctionTest extends EvalTestCase {
   private InlinedFunction compileFunction(String functionDecl) {
     Closure closure = (Closure) eval(functionDecl);
     return new InlinedFunction("f", new RuntimeState(topLevelContext, topLevelContext.getGlobalEnvironment()),
-        closure, new String[0]);
+        closure, Collections.emptyList());
   }
 
 

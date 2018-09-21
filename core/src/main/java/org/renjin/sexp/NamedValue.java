@@ -18,7 +18,9 @@
  */
 package org.renjin.sexp;
 
-public interface NamedValue {
+import org.renjin.eval.HasName;
+
+public interface NamedValue extends HasName {
   /**
    * @return true if this value has a name
    */

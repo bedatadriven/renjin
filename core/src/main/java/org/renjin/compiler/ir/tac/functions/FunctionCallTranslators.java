@@ -58,6 +58,7 @@ public class FunctionCallTranslators {
     specials.put("missing", new MissingTranslator());
     specials.put("lapply", new ListApplyTranslator());
     specials.put("sapply", new SapplyTranslator());
+    specials.put("substitute", new SubstituteTranslator());
   }
   
   public FunctionCallTranslator get(Function function) {

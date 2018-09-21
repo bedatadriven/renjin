@@ -18,24 +18,19 @@
  */
 package org.renjin.compiler;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
-import org.renjin.compiler.builtins.ArgumentBounds;
-import org.renjin.compiler.cfg.InlinedFunction;
-import org.renjin.compiler.ir.TypeSet;
-import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.parser.RParser;
 import org.renjin.repackaged.guava.base.Joiner;
-import org.renjin.sexp.Closure;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -152,28 +147,6 @@ public class SexpCompilerTest extends EvalTestCase {
   }
 
   @Test
-  public void kld() {
-    eval("kld = function(p, q) sum(ifelse(p == 0 | q == 0, 0, log(p / q) * p))");
-
-    RuntimeState parentState = new RuntimeState(topLevelContext, topLevelContext.getGlobalEnvironment());
-    String[] params = new String[] { "p", "q" };
-    SEXP closure = eval("kld");
-
-    ValueBounds p = ValueBounds.builder()
-        .setTypeSet(TypeSet.DOUBLE)
-        .build();
-
-    ValueBounds q = ValueBounds.builder()
-        .setTypeSet(TypeSet.DOUBLE)
-        .build();
-
-    InlinedFunction inlinedFunction = new InlinedFunction("f", parentState, (Closure) closure, params);
-    ValueBounds functionBounds = inlinedFunction.updateBounds(Arrays.asList(new ArgumentBounds(p), new ArgumentBounds(q)));
-
-    System.out.println(functionBounds);
-  }
-
-  @Test
   public void variadicFunctions() throws Exception {
     eval("f <- function(...) length(list(...))");
     assertThat(compileAndEvaluate("f(1,2,3)"), elementsIdenticalTo(c_i(3)));
@@ -192,6 +165,15 @@ public class SexpCompilerTest extends EvalTestCase {
     eval("b <- 2");
 
     assertThat(compileAndEvaluate("lapply(1:3, function(x) x + a + b)"), elementsIdenticalTo(list(4d, 5d, 6d)));
+  }
+
+  @Ignore("wip")
+  @Test
+  public void substituteEllipses() throws Exception {
+    eval("f <- function(...) deparse(as.list(substitute(list(...)))[[2]])");
+    eval("x <- 1");
+    assertThat(compileAndEvaluate("f(x)"), elementsIdenticalTo(c("x")));
+
   }
 
   private SEXP compileAndEvaluate(String source) throws Exception {

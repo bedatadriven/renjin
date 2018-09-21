@@ -428,7 +428,7 @@ public final class Defn {
   public static SEXP Rf_deparse1line(SEXP call, boolean abbrev) {
     // if abbrev is set to true, return a single character string of length 13 which
     // is oftern used in plots, otherwise, deparse to a single line string.
-    String line = Deparse.deparseExp(Native.currentContext(), call);
+    String line = Deparse.deparseExp(call);
     if(abbrev && line.length() > 12) {
       return StringVector.valueOf(line.substring(12));
     } else {

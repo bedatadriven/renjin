@@ -183,7 +183,7 @@ public class Evaluation {
           ((Vector)x).getVectorType().isWiderThan(funValue)) {
         throw new EvalException("values must be type '%s',\n but %s result is type '%s'",
             funValue.getTypeName(),
-            Deparse.deparseExp(context, call),
+            Deparse.deparseExp(call),
             x.getTypeName());
             
       }

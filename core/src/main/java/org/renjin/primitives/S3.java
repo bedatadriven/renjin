@@ -97,6 +97,10 @@ public class S3 {
    */
   public static StringVector computeDataClasses(ValueBounds valueBounds) {
 
+    if(valueBounds.isConstant()) {
+      return computeDataClasses(valueBounds.getConstantValue());
+    }
+
     // If we don't know what the value's class attribute is, we can't make
     // any further assumptions
     if(valueBounds.hasUnknownClassAttribute()) {
@@ -152,6 +156,10 @@ public class S3 {
      */
     exp = exp.force(context);
 
+    return computeDataClasses(exp);
+  }
+
+  private static StringVector computeDataClasses(SEXP exp) {
     SEXP classAttribute = exp.getAttribute(Symbols.CLASS);
 
     if(classAttribute.length() > 0) {

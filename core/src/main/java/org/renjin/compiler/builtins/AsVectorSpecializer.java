@@ -47,6 +47,11 @@ public class AsVectorSpecializer implements BuiltinSpecializer {
 
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
+
+    // as.logical(x) or
+    // as.character(x) or
+    // as.numeric(x) ... etc
+
     if(arguments.size() == 1) {
       ArgumentBounds argument = arguments.get(0);
       if(argument.getBounds().getTypeSet() == typeSet && argument.getBounds().hasNoAttributes()) {

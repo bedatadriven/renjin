@@ -20,6 +20,7 @@ package org.renjin.compiler.ir.tac;
 
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.SimpleExpression;
+import org.renjin.eval.HasName;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
@@ -27,9 +28,10 @@ import org.renjin.sexp.Symbol;
 import java.util.List;
 
 
-public class IRArgument {
+public class IRArgument implements HasName {
 
   private String name;
+  private SEXP sexp;
   private Expression expression;
 
   public IRArgument(String name, Expression expression) {
@@ -37,7 +39,19 @@ public class IRArgument {
     this.expression = expression;
   }
 
-  public IRArgument(SEXP name, SimpleExpression expression) {
+  public IRArgument(String name, SEXP sexp, Expression expression) {
+    this.name = name;
+    this.sexp = sexp;
+    this.expression = expression;
+  }
+
+  /**
+   *
+   * @param name the tag of the argument
+   * @param sexp the original, unevaluated S-Expression of the argument
+   * @param expression the compiled IR expression
+   */
+  public IRArgument(SEXP name, SEXP sexp, SimpleExpression expression) {
     if(name == Null.INSTANCE) {
       this.name = null;
     } else if(name instanceof Symbol) {
@@ -45,6 +59,14 @@ public class IRArgument {
     } else {
       throw new IllegalArgumentException("name: " + name);
     }
+    this.sexp = sexp;
+    this.expression = expression;
+  }
+
+
+  public IRArgument(SEXP sexp, Expression expression) {
+    this.name = null;
+    this.sexp = sexp;
     this.expression = expression;
   }
 
@@ -61,6 +83,10 @@ public class IRArgument {
     return name;
   }
 
+  public SEXP getSexp() {
+    return sexp;
+  }
+
   public Expression getExpression() {
     return expression;
   }
@@ -69,7 +95,7 @@ public class IRArgument {
     if(this.expression == expression) {
       return this;
     } else {
-      return new IRArgument(name, expression);
+      return new IRArgument(name, sexp, expression);
     }
   }
 

@@ -211,6 +211,12 @@ public class Types {
 
   @Generic
   @Builtin("is.na")
+  public static LogicalVector isNA(Null nil) {
+    return LogicalVector.EMPTY;
+  }
+
+  @Generic
+  @Builtin("is.na")
   public static LogicalVector isNA(final ListVector vector) {
     return isListNA(vector);
   }

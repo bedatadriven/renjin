@@ -22,31 +22,29 @@ import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.compiler.ir.tac.expressions.Constant;
 import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.eval.HasName;
+import org.renjin.sexp.SEXP;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class ArgumentBounds {
-  private String name;
-  private Expression expression;
+public class ArgumentBounds implements HasName {
+  private IRArgument argument;
   private ValueBounds bounds;
 
-  public ArgumentBounds(String name, Expression expression, ValueBounds bounds) {
-    this.name = name;
-    this.expression = expression;
+  public ArgumentBounds(IRArgument argument, ValueBounds bounds) {
+    this.argument = argument;
     this.bounds = bounds;
   }
 
   public ArgumentBounds(ValueBounds valueBounds) {
-    this.name = null;
     this.bounds = valueBounds;
   }
 
   public String getName() {
-    return name;
+    return argument.getName();
   }
 
   public ValueBounds getBounds() {
@@ -54,11 +52,11 @@ public class ArgumentBounds {
   }
 
   public Expression getExpression() {
-    return expression;
+    return argument.getExpression();
   }
 
   public CompiledSexp getCompiledExpr(EmitContext context) {
-    return expression.getCompiledExpr(context);
+    return argument.getExpression().getCompiledExpr(context);
   }
 
   /**
@@ -75,15 +73,10 @@ public class ArgumentBounds {
 
       // Lookup the value bounds of this symbolic expression in the typeMap,
       // which tell us the bounds of this value at the *current* loop iteration of the TypeSolver
-      ValueBounds argumentBounds;
-      if(argumentExpr instanceof Constant) {
-        argumentBounds = argumentExpr.getValueBounds();
-      } else {
-        argumentBounds = typeMap.get(argumentExpr);
-      }
+      ValueBounds argumentBounds = argumentExpr.updateTypeBounds(typeMap);
       assert argumentBounds != null : "No argument bounds for " + symbolArgument.getName();
 
-      result.add(new ArgumentBounds(symbolArgument.getName(), argumentExpr, argumentBounds));
+      result.add(new ArgumentBounds(symbolArgument, argumentBounds));
     }
     return result;
   }
@@ -113,6 +106,10 @@ public class ArgumentBounds {
   }
 
   public boolean isNamed() {
-    return name != null;
+    return argument.isNamed();
+  }
+
+  public SEXP getSexp() {
+    return argument.getSexp();
   }
 }

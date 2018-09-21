@@ -44,7 +44,9 @@ public class BuiltinCallTest {
     Expression y = new EnvironmentVariable("y");
 
     BuiltinCall call = new BuiltinCall(null, functionCall, "+",
-        Arrays.asList( new IRArgument(x), new IRArgument(y)));
+        Arrays.asList(
+            new IRArgument(Symbol.get("x"), x),
+            new IRArgument(Symbol.get("y"), y)));
 
     Map<Expression, ValueBounds> typeMap = new HashMap<>();
     typeMap.put(x, scalar(TypeSet.DOUBLE));
@@ -61,16 +63,16 @@ public class BuiltinCallTest {
   @Test
   public void testDoublePlusInt() {
 
-
     FunctionCall functionCall = FunctionCall.newCall(
         Symbol.get("+"), Symbol.get("x"), Symbol.get("y"));
 
-    
     Expression x = new EnvironmentVariable("x");
     Expression y = new EnvironmentVariable("y");
 
     BuiltinCall call = new BuiltinCall(null, functionCall, "+",
-        Arrays.asList( new IRArgument(x), new IRArgument(y) ));
+        Arrays.asList(
+            new IRArgument(Symbol.get("x"), x),
+            new IRArgument(Symbol.get("y"), y)));
 
     Map<Expression, ValueBounds> typeMap = new HashMap<>();
     typeMap.put(x, scalar(TypeSet.DOUBLE));

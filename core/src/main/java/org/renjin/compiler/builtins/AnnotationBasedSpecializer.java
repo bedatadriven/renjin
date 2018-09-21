@@ -104,7 +104,7 @@ public class AnnotationBasedSpecializer implements BuiltinSpecializer {
     }
   }
 
-  private JvmMethod selectOverload(List<ArgumentBounds> argumentTypes) {
+  public JvmMethod selectOverload(List<ArgumentBounds> argumentTypes) {
     for (JvmMethod method : methods) {
       if(matches(method, argumentTypes)) {
         return method;

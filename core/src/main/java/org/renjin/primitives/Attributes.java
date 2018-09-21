@@ -21,6 +21,7 @@ package org.renjin.primitives;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
+import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.s4.S4;
 import org.renjin.sexp.*;
 
@@ -201,8 +202,13 @@ public class Attributes {
       Symbol name = Symbol.get(attribute.getName());
       builder.set(name, attribute.getValue());
     }
+
     if(exp == Null.INSTANCE) {
-      return ListVector.EMPTY.setAttributes(builder);
+      if(Iterables.isEmpty(attributes)) {
+        return Null.INSTANCE;
+      } else {
+        return ListVector.EMPTY.setAttributes(builder);
+      }
     } else {
       return exp.setAttributes(builder);
     }

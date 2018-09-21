@@ -126,7 +126,7 @@ public class ApplyExpression implements Expression {
       elementBounds = ValueBounds.UNBOUNDED;
     }
 
-    ValueBounds functionResultBounds = function.updateBounds(singletonList(new ArgumentBounds(elementBounds)));
+    ValueBounds functionResultBounds = function.updateArguments(singletonList(new ArgumentBounds(elementBounds)));
 
     resultBounds = maybeSimplify(vectorBounds, functionResultBounds, simplifyBounds);
 

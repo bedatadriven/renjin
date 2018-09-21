@@ -20,6 +20,7 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.builtins.ArgumentBounds;
+import org.renjin.compiler.cfg.InlineArgument;
 import org.renjin.compiler.cfg.InlinedFunction;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
@@ -44,7 +45,6 @@ public class ClosureCall implements Expression {
   private final RuntimeState runtimeState;
   private final FunctionCall call;
   private final List<IRArgument> arguments;
-  private final String[] argumentNames;
   private final Closure closure;
 
   private final String debugName;
@@ -59,7 +59,6 @@ public class ClosureCall implements Expression {
     this.call = call;
     this.closure = closure;
     this.arguments = Lists.newArrayList(arguments);
-    this.argumentNames = IRArgument.names(arguments);
     this.debugName = closureDebugName;
     this.returnBounds = ValueBounds.UNBOUNDED;
   }
@@ -78,13 +77,13 @@ public class ClosureCall implements Expression {
 
     if(inlinedFunction == null) {
       try {
-        this.inlinedFunction = new InlinedFunction(functionName(), runtimeState, closure, argumentNames);
+        this.inlinedFunction = new InlinedFunction(functionName(), runtimeState, closure, InlineArgument.from(arguments));
       } catch (NotCompilableException e) {
         throw new NotCompilableException(call, e);
       }
     }
 
-    returnBounds = inlinedFunction.updateBounds(ArgumentBounds.create(arguments, typeMap));
+    returnBounds = inlinedFunction.updateArguments(ArgumentBounds.create(arguments, typeMap));
 
     return returnBounds;
   }

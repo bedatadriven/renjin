@@ -14,7 +14,7 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-as.pairlist <- function(x) .Internal(as.vector(x, "pairlist"))
+as.pairlist <- function(x) as.vector(x, "pairlist")
 pairlist <- function(...) as.pairlist(list(...))
 ## This is now .Primitive:
 ##is.pairlist <- function(x) typeof(x) == "pairlist"

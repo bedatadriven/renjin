@@ -95,17 +95,17 @@ public class NamespaceBuilder2 {
     CharSource namespaceSource = Files.asCharSource(source.getNamespaceFile(), Charsets.UTF_8);
     ExpressionVector namespaceSexp = NamespaceQualifier.qualify(buildContext, NamespaceFile.parseSexp(namespaceSource));
 
-    writeTransformedNamespace(context, namespaceSexp);
+    writeTransformedNamespace(namespaceSexp);
 
     NamespaceFile namespaceFile = NamespaceFile.parseFile(context, namespaceSexp);
     namespace.initImports(context, context.getNamespaceRegistry(), namespaceFile);
   }
 
-  private void writeTransformedNamespace(Context context, ExpressionVector namespace) throws IOException {
+  private void writeTransformedNamespace(ExpressionVector namespace) throws IOException {
     try(PrintWriter writer = new PrintWriter(new File(buildContext.getPackageOutputDir(), "NAMESPACE"))) {
       writer.println("# Transformed by Renjin " + RenjinVersion.getVersionName());
       for (SEXP statement : namespace) {
-        writer.println(Deparse.deparseExp(context, statement));
+        writer.println(Deparse.deparseExp(statement));
       }
     }
   }

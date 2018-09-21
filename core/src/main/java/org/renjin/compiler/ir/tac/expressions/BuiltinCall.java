@@ -89,9 +89,7 @@ public class BuiltinCall implements CallExpression {
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
     List<ArgumentBounds> argumentTypes = new ArrayList<>();
     for (IRArgument argument : arguments) {
-      argumentTypes.add(new ArgumentBounds(
-          argument.getName(),
-          argument.getExpression(),
+      argumentTypes.add(new ArgumentBounds(argument,
           argument.getExpression().updateTypeBounds(typeMap)));
     }
     specialization = specializer.trySpecialize(runtimeState, argumentTypes);

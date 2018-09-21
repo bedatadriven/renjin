@@ -16,20 +16,21 @@
 
 as.single <- function(x,...) UseMethod("as.single")
 as.single.default <- function(x,...)
-    structure(.Internal(as.vector(x,"double")), Csingle=TRUE)
+    structure(.Internal(as.numeric(x)), Csingle=TRUE)
 
 # as.character is now internal.  The default method remains here to
 # preserve the semantics that for a call with an object argument
 # dispatching is done first on as.character and then on as.vector.
-as.character.default <- function(x,...) .Internal(as.vector(x, "character"))
+as.character.default <- function(x,...) as.vector(x, "character")
+as.character <- function(x, ...) UseMethod("as.character")
 
 as.expression <- function(x,...) UseMethod("as.expression")
-as.expression.default <- function(x,...) .Internal(as.vector(x, "expression"))
+as.expression.default <- function(x,...) .Internal(as.expression(x))
 
 as.list <- function(x,...) UseMethod("as.list")
 ## This if() avoid dispatch on methods for as.vector.
 as.list.default <- function (x, ...)
-    if (typeof(x) == "list") x else .Internal(as.vector(x, "list"))
+    if (typeof(x) == "list") x else as.vector(x, "list")
 
 as.list.function <- function (x, ...) c(formals(x), list(body(x)))
 
@@ -43,10 +44,39 @@ as.list.data.frame <- function(x,...) {
 as.list.environment <- function(x, all.names=FALSE, ...)
     .Internal(env2list(x, all.names))
 
-## NB: as.vector is used for several other as.xxxx, including
-## as.expression, as.list, as.pairlist, as.single, as.symbol.
-## as.vector dispatches internally so no need for a generic
-as.vector <- function(x, mode = "any") .Internal(as.vector(x, mode))
+as.vector <- function(x, mode) {
+    UseMethod("as.vector")
+}
+
+as.vector.default <- function(x, mode = "any") {
+
+    if(mode == "any") {
+        if(is.atomic(x)) {
+            attributes(x) <- NULL
+            return(x)
+        } else if(is.list(x) || is.pairlist(x) || is.call(x)) {
+            return(x)
+        } else {
+            stop(sprintf("cannot coerce type '%s' to vector of type 'any'", typeof(x)))
+        }
+    }
+
+    switch(mode,
+        logical = as.logical(x),
+        raw = as.raw(x),
+        integer = as.integer(x),
+        double = as.numeric(x),
+        numeric = as.numeric(x),
+        character = .Internal(as.character(x)),
+        complex = as.complex(x),
+        expression = .Internal(as.expression(x)),
+        list = .Internal(as.list(x)),
+        pairlist = .Internal(as.pairlist(x)),
+        name = .Internal(as.symbol(x)),
+        symbol = .Internal(as.symbol(x)),
+        stop(sprintf("Invalid 'mode' argument: %s", mode)))
+}
+
 
 as.matrix <- function(x, ...) UseMethod("as.matrix")
 as.matrix.default <- function(x, ...) {
@@ -72,9 +102,8 @@ as.array.default <- function(x, ...)
     return(x)
 }
 
-as.symbol <- function(x) .Internal(as.vector(x, "symbol"))
+as.symbol <- function(x) as.vector(x, "symbol")
 as.name <- as.symbol
-## would work too: as.name <- function(x) .Internal(as.vector(x, "name"))
 
 ## as.call <- function(x) stop("type call cannot be assigned")
 as.qr <- function(x) stop("you cannot be serious")

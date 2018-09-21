@@ -58,7 +58,7 @@ public class NotCompilableException extends RuntimeException {
         s.append(" > ");
       }
       if(e.getSexp() != null) {
-        s.append(Deparse.deparseExp(context, e.getSexp()));
+        s.append(Deparse.deparseExp(e.getSexp()));
       }
       if(e.getMessage() != null) {
         s.append(": ").append(e.getMessage());

@@ -147,7 +147,7 @@ public class Print {
     
     @Override
     public void visit(FunctionCall call) {
-      out.append(Deparse.deparseExp(context, call));
+      out.append(Deparse.deparseExp(call));
       out.append("\n");
     }
 

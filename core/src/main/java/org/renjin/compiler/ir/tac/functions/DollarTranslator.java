@@ -47,18 +47,20 @@ public class DollarTranslator extends FunctionCallTranslator {
   @Override
   public Expression translateToExpression(IRBodyBuilder builder,
                                           TranslationContext context, Function resolvedFunction, FunctionCall call) {
-    Expression object = builder.translateExpression(context, call.getArgument(0));
+    SEXP objectSexp = call.getArgument(0);
+    SEXP nameSexp = call.getArgument(1);
 
-    SEXP nameArgument = call.getArgument(1);
+    Expression object = builder.translateExpression(context, objectSexp);
+
     StringVector name;
     try {
-      name = DollarFunction.parseNameArgument(nameArgument);
+      name = DollarFunction.parseNameArgument(nameSexp);
     } catch (EvalException e) {
       throw new InvalidSyntaxException(e.getMessage());
     }
 
     return new BuiltinCall(builder.getRuntimeState(), call, "$", Arrays.asList(
-        new IRArgument(object),
-        new IRArgument(new Constant(name))));
+        new IRArgument(objectSexp, object),
+        new IRArgument(nameSexp, new Constant(name))));
   }
 }

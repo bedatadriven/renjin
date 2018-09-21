@@ -53,13 +53,12 @@ public class InlinedFunction {
   private final String functionName;
   private Closure closure;
 
-
   /**
    * @param functionName
    * @param closure the closure to inline
-   * @param argumentNames the names of the arguments supplied to the function call
+   * @param arguments the names of the arguments supplied to the function call
    */
-  public InlinedFunction(String functionName, RuntimeState parentState, Closure closure, String[] argumentNames) {
+  public InlinedFunction(String functionName, RuntimeState parentState, Closure closure, List<InlineArgument> arguments) {
 
     this.functionName = functionName;
     this.closure = closure;
@@ -70,13 +69,13 @@ public class InlinedFunction {
       runtimeState = new RuntimeState(parentState, closure.getEnclosingEnvironment()) {
         @Override
         public int getNumArgs() {
-          return argumentNames.length;
+          return arguments.size();
         }
       };
     }
     
     IRBodyBuilder builder = new IRBodyBuilder(runtimeState);
-    IRBody body = builder.buildFunctionBody(closure, argumentNames);
+    IRBody body = builder.buildFunctionBody(closure, arguments);
 
     compiler = new SexpCompiler(runtimeState, body, false);
     params = body.getParams();
@@ -102,7 +101,7 @@ public class InlinedFunction {
     params.get(i).updateBounds(argumentBounds);
   }
 
-  public ValueBounds updateBounds(List<ArgumentBounds> arguments) {
+  public ValueBounds updateArguments(List<ArgumentBounds> arguments) {
     for (int i = 0; i < arguments.size(); i++) {
       updateParam(i, arguments.get(i).getBounds());
     }

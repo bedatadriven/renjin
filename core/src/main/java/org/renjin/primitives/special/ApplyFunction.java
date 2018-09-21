@@ -31,31 +31,98 @@ import org.renjin.primitives.Types;
 import org.renjin.primitives.combine.Combine;
 import org.renjin.sexp.*;
 
+import java.util.Arrays;
+import java.util.Iterator;
+
 public abstract class ApplyFunction extends SpecialFunction {
 
   public ApplyFunction(String name) {
     super(name);
   }
 
-  protected static Vector simplifyToArray(ListVector list, boolean higher) {
+  /**
+   * Simplify the given list to an array, if possible.
+   *
+   * <p>This is a Java version of the R function simplify2array that can be called
+   * by the compiler.</p>
+   */
+  protected static Vector simplifyToArray(ListVector x, boolean higher) {
 
-    if(list.length() == 0) {
-      return list;
+    int n = x.length();
+    if(n == 0) {
+      return x;
     }
 
-    int commonLength = commonLength(list);
+    int commonLength = commonLength(x);
     if(commonLength == -1) {
-      return list;
+      return x;
     }
 
     if(commonLength == 1) {
-      return (Vector) Combine.unlist(list, false, true);
+
+      // The result is a list of scalars
+      // Simplify to an atomic vector
+
+      return (Vector) Combine.unlist(x, false, true);
 
     } else if(commonLength > 1) {
-      throw new UnsupportedOperationException("TODO");
-    } else {
-      return list;
+
+      // The result is a list of vectors, with a common length
+      // For example,
+      // [[1]]
+      // [1] 1 1
+      //
+      // [[2]]
+      // [1] 1 2
+      //
+      // [[3]]
+      // [1] 1 3
+
+      Vector r = (Vector) Combine.unlist(x, false, false);
+
+      // If simplify == "higher" AND each of the elements have a common dim attribute as well as
+      // a common length, then create a higher-dimensional array
+
+      if(higher) {
+        int commonDim[] = commonDimension(x);
+        if (commonDim != null) {
+          if (prod(commonDim) * n == r.length()) {
+            return (Vector) r.setAttribute(Symbols.DIM, new IntArrayVector(c(commonDim, n)));
+          }
+        }
+      }
+
+      // Otherwise return a matrix with elements in columns
+      //
+      //       [,1] [,2] [,3]
+      // [1,]    1    1    1
+      // [2,]    1    2    3
+
+      AttributeMap.Builder attributes = AttributeMap.builder()
+          .setDim(commonLength, n);
+
+      AtomicVector names = x.getElementAsSEXP(0).getNames();
+      if(names != Null.INSTANCE) {
+        attributes.setDimNames(new ListVector(names, Null.INSTANCE));
+      }
+
+      return (Vector) r.setAttributes(attributes);
     }
+    return x;
+  }
+
+  private static int[] c(int[] dim, int n) {
+    dim = Arrays.copyOf(dim, dim.length + 1);
+    dim[dim.length - 1] = n;
+    return dim;
+  }
+
+  private static int prod(int[] dim) {
+    int length = 1;
+    for (int i = 0; i < dim.length; i++) {
+      length *= dim[i];
+    }
+    return length;
   }
 
   private static int commonLength(ListVector list) {
@@ -68,6 +135,24 @@ public abstract class ApplyFunction extends SpecialFunction {
       }
     }
     return length;
+  }
+
+  private static int[] commonDimension(ListVector list) {
+    Iterator<SEXP> it = list.iterator();
+    if(!it.hasNext()) {
+      return null;
+    }
+    int[] dim = it.next().getAttributes().getDimArray();
+    if(dim.length == 0) {
+      return null;
+    }
+    while(it.hasNext()) {
+      int[] otherDim = it.next().getAttributes().getDimArray();
+      if(!Arrays.equals(dim, otherDim)) {
+        return null;
+      }
+    }
+    return dim;
   }
 
   protected final PairList promiseExtraArguments(Environment rho, MatchedArguments matched) {

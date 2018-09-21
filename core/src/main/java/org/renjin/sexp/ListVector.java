@@ -222,7 +222,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     if(value.length() == 1 && value instanceof AtomicVector) {
       return ((AtomicVector) value).getElementAsString(0);
     }
-    return Deparse.deparseExp(null, value);
+    return Deparse.deparseExp(value);
   }
 
   @Override

@@ -18,7 +18,6 @@
  */
 package org.renjin.primitives;
 
-import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.invoke.reflection.converters.*;
@@ -80,41 +79,53 @@ public class Vectors {
     return exp.length();
   }
 
-  @Generic
-  @Builtin("as.character")
   @NoAttributes
+  @Builtin("as.character")
   public static StringVector asCharacter(PairList.Node source) {
-    return (StringVector) convertToStringVector(null, new StringVector.Builder(), source.toVector());
+    return (StringVector) convertToStringVector(new StringVector.Builder(), source.toVector());
   }
-  
-  @Generic
-  @Builtin("as.character")
+
   @NoAttributes
+  @Builtin("as.character")
   public static StringVector asCharacter() {
     return StringArrayVector.EMPTY;
   }
 
-  @Generic
+  @Internal("as.symbol")
+  public static Symbol asSymbol(SEXP sexp) {
+    if(sexp instanceof Symbol) {
+      return (Symbol)sexp;
+    } else if(sexp instanceof AtomicVector) {
+      String string = ((AtomicVector) sexp).getElementAsString(0);
+      if(StringVector.isNA(string)) {
+        string = "NA";
+      }
+      return Symbol.get(string);
+    } else {
+      throw new EvalException("Cannot coerce type '" + sexp.getTypeName() + "' to symbol");
+    }
+  }
+
   @Builtin("as.character")
   @NoAttributes
-  public static StringVector asCharacter(@Current Context context, Vector source) {
+  public static StringVector asCharacter(Vector source) {
     if(source instanceof StringVector) {
       return (StringVector) source.setAttributes(AttributeMap.EMPTY);
     } else if (source.length() > 100 || source.isDeferred()) {
       return new ConvertingStringVector(source);
     } else {
-      return convertToStringVector(context, new StringVector.Builder(), source);
+      return convertToStringVector(new StringVector.Builder(), source);
     }
   }
 
-  private static StringVector convertToStringVector(Context context, StringVector.Builder builder, Vector source) {
+  private static StringVector convertToStringVector(StringVector.Builder builder, Vector source) {
     if(source instanceof ListVector) {
       for (int i = 0; i != source.length(); ++i) {
         SEXP value = ((ListVector) source).getElementAsSEXP(i);
         if(value instanceof AtomicVector && value.length() == 1) {
           builder.addFrom((AtomicVector)value, 0);
         } else {
-          builder.add(Deparse.deparseExp(context, value));
+          builder.add(Deparse.deparseExp(value));
         }
       }
     } else {
@@ -125,14 +136,12 @@ public class Vectors {
     return builder.build();
   }
 
-  @Generic
   @Builtin("as.character")
   @NoAttributes
   public static StringVector asCharacter(Symbol symbol) {
     return StringVector.valueOf(symbol.getPrintName());
   }
 
-  @Generic
   @Builtin("as.character")
   @NoAttributes
   public static StringVector asCharacter(ExternalPtr<?> ptr) {
@@ -350,92 +359,39 @@ public class Vectors {
     return asComplex(pairlist.toVector());
   }
 
-  @Generic
+
   @MaybeNames
-  @Internal("as.vector")
-  public static SEXP asVector(Vector x, String mode) {
+  @Internal("as.list")
+  public static ListVector asList(SEXP sexp) {
 
-    // Annoyingly, this function behaves a bit erraticaly
-    // When "mode" 
-    
-    if(mode.equals("any")) {
-      //  if the result is atomic all attributes are removed.
-      if(x instanceof AtomicVector) {
-        return x.setAttributes(AttributeMap.EMPTY);
-      } else {
-        return x;
-      }
+    if(sexp instanceof PairList.Node) {
+      return ((PairList.Node) sexp).toVector();
     }
 
-    Vector.Builder result;
-    if ("character".equals(mode)) {
-      result = new StringVector.Builder();
-      
-    } else if ("logical".equals(mode)) {
-      result = new LogicalArrayVector.Builder(x.length());
-      checkForListThatCannotBeCoercedToAtomicVector(x, mode);
+    // Preserve only NAMES
+    ListVector.Builder result = new ListVector.Builder(sexp.length());
+    result.setAttribute(Symbols.NAMES, sexp.getNames());
+    for (int i = 0; i < sexp.length(); i++) {
+      result.set(i, sexp.getElementAsSEXP(i));
+    }
+    return result.build();
+  }
 
-    } else if ("integer".equals(mode)) {
-      result = new IntArrayVector.Builder(x.length());
-      checkForListThatCannotBeCoercedToAtomicVector(x, mode);
 
-    } else if ("raw".equals(mode)) {
-      result = new RawVector.Builder();
-      checkForListThatCannotBeCoercedToAtomicVector(x, mode);
+  @MaybeNames
+  @Internal("as.expression")
+  public static ExpressionVector asExpression(SEXP sexp) {
 
-    } else if ("numeric".equals(mode) || "double".equals(mode)) {
-      result = new DoubleArrayVector.Builder(x.length());
-      checkForListThatCannotBeCoercedToAtomicVector(x, mode);
-
-    } else if ("complex".equals(mode)) {
-      
-      // Special case: double -> complex treats NaNs as NA
-      if(x instanceof DoubleVector) {
-        return doubleToComplex((DoubleVector) x);
-      }
-      
-      result = new ComplexArrayVector.Builder(x.length());
-      checkForListThatCannotBeCoercedToAtomicVector(x, mode);
-      
-    } else if ("list".equals(mode)) {
-      // Special case: preserve names with mode = 'list'
-      result = new ListVector.Builder();
-      result.setAttribute(Symbols.NAMES, x.getNames());
-
-    } else if("expression".equals(mode)) {
-      result = new ExpressionVector.Builder();
-      
-      // Special case
-      if(x == Null.INSTANCE) {
-        return new ExpressionVector(Null.INSTANCE);
-      
-      } else if(x instanceof ListVector) {
-        // Exception, for list -> expression, copy attributes
-        return new ExpressionVector(((ListVector) x).toArrayUnsafe(), x.getAttributes());
-      }
-      
-    } else if ("pairlist".equals(mode)) {
-      // a pairlist is actually not a vector, so bail from here
-      // as a special case
-      return asPairList(x);
-      
-    } else if ("symbol".equals(mode)) {
-      // weird but seen in the base package
-      if (x.length() == 0) {
-        throw new EvalException(
-            "invalid type/length (symbol/0) in vector allocation");
-      }
-      if (x instanceof ListVector) {
-        throw new EvalException("vector of type 'list' cannot be coerced to symbol");
-      }
-      return Symbol.get(x.getElementAsString(0));
-
-    } else {
-      throw new EvalException("invalid 'mode' argument: " + mode);
+    if(sexp instanceof PairList) {
+      return new ExpressionVector(sexp);
     }
 
-    for (int i = 0; i != x.length(); ++i) {
-      result.setFrom(i, x, i);
+    ExpressionVector.Builder result = new ExpressionVector.Builder();
+    if(sexp instanceof ListVector) {
+      result.setAttributes(sexp.getAttributes());
+    }
+    for (int i = 0; i < sexp.length(); i++) {
+      result.add((SEXP)sexp.getElementAsSEXP(i));
     }
     return result.build();
   }
@@ -469,8 +425,10 @@ public class Vectors {
       }
     }
   }
-
-  private static PairList asPairList(Vector x) {
+  @Generic
+  @NoAttributes
+  @Internal("as.pairlist")
+  public static PairList asPairList(Vector x) {
     PairList.Builder builder = new PairList.Builder();
     for (int i = 0; i != x.length(); ++i) {
       builder.add(x.getName(i), x.getElementAsSEXP(i));
@@ -665,7 +623,7 @@ public class Vectors {
 
   @Generic
   @Internal("as.vector")
-  public static SEXP asVector(@Current Context context, PairList x, String mode) {
+  public static SEXP asVector(PairList x, String mode) {
     
     // Exceptionally, as.vector(x, 'pairlist') 
     // preserves *all* attributes
@@ -708,7 +666,7 @@ public class Vectors {
         result.add(node.getValue());
       } else {
         if(result instanceof StringArrayVector.Builder) {
-          ((StringVector.Builder) result).add(Deparse.deparseExp(context, node.getValue()));
+          ((StringVector.Builder) result).add(Deparse.deparseExp(node.getValue()));
         } else {
           throw new EvalException("'%s' cannot be coerced to type '%s'", x.getTypeName(), mode);
         }

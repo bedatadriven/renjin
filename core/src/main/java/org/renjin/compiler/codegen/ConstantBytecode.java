@@ -18,6 +18,8 @@
  */
 package org.renjin.compiler.codegen;
 
+import org.renjin.parser.RParser;
+import org.renjin.primitives.Deparse;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -132,6 +134,11 @@ public class ConstantBytecode {
             Type.getMethodDescriptor(Type.getType(StringVector.class), Type.getType(String.class)), false);
         return;
       }
+    } else if(value instanceof FunctionCall) {
+      String string = Deparse.deparseExp(value);
+      mv.visitLdcInsn(string);
+      mv.invokestatic(Type.getInternalName(RParser.class), "parseConstant", "(Ljava/lang/String;)Lorg/renjin/sexp/SEXP;", false);
+      return;
     }
 
     throw new UnsupportedOperationException("TODO: constant = " + value);

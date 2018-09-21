@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.cfg.InlineArgument;
 import org.renjin.compiler.cfg.InlinedFunction;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
@@ -57,10 +58,10 @@ public class S3Specialization implements Specialization {
   
     // Otherwise, try to resolve the function
     if(inlinedMethod == null || inlinedMethod.getClosure() != function) {
-      inlinedMethod = new InlinedFunction(generic, runtimeState, closure, ArgumentBounds.names(arguments));
+      inlinedMethod = new InlinedFunction(generic, runtimeState, closure, InlineArgument.fromBounds(arguments));
     }
   
-    returnBounds = inlinedMethod.updateBounds(arguments);
+    returnBounds = inlinedMethod.updateArguments(arguments);
   }
 
   /**

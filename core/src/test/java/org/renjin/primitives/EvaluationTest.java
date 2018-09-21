@@ -633,7 +633,7 @@ public class EvaluationTest extends EvalTestCase {
 
   @Test
   public void lapplyWithFunctionCalls() throws IOException {
-    eval("g<-function(x) .Internal(as.vector(x, 'list'))");
+    eval("g<-function(x) as.vector(x, 'list')");
     eval("f<-function(x) g(substitute(x))");
     eval("z<-f(~(0+births))");
       

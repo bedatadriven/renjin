@@ -275,7 +275,7 @@ public class Conditions {
       SEXP sexp = arguments.get(i);
       if(!allTrue(sexp)) {
 
-        String ch = Deparse.deparseExp(context, call.getArgument(i));
+        String ch = Deparse.deparseExp(call.getArgument(i));
 
         if(sexp.length() > 1) {
           throw new EvalException(ch + " is not all TRUE");

@@ -412,6 +412,23 @@ public class ValueBounds {
     return constantValue;
   }
 
+  /**
+   * @return the value of this constant string vector of length 1, or {@code null} if it is not constant,
+   * not a string, or not of length 1
+   */
+  public String getConstantString() {
+    if(!(constantValue instanceof StringVector)) {
+      return null;
+    }
+    StringVector constantVector = (StringVector) constantValue;
+    if(constantVector.length() != 1) {
+      return null;
+    }
+
+    return constantVector.getElementAsString(0);
+
+  }
+
   public static boolean allConstantArguments(Iterable<ArgumentBounds> argumentTypes) {
     for (ArgumentBounds argumentType : argumentTypes) {
       if(!argumentType.getBounds().isConstant()) {

@@ -18,7 +18,6 @@
  */
 package org.renjin.eval;
 
-import org.renjin.compiler.builtins.ArgumentBounds;
 import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.sexp.*;
 
@@ -88,7 +87,7 @@ public class ArgumentMatcher {
     }
   }
 
-  public MatchedArgumentPositions match(List<ArgumentBounds> arguments) {
+  public MatchedArgumentPositions match(List<? extends HasName> arguments) {
     String[] actualNames = new String[arguments.size()];
     for (int i = 0; i < arguments.size(); i++) {
       actualNames[i] = arguments.get(i).getName();

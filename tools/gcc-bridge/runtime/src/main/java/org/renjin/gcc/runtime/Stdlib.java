@@ -596,7 +596,7 @@ public class Stdlib {
     return time;
   }
 
-  private static final DateFormat CTIME_FORMAT = new SimpleDateFormat("E MMM d HH:mm:ss YYYY");
+  private static final DateFormat CTIME_FORMAT = new SimpleDateFormat("E MMM d HH:mm:ss yyyy");
 
   /**
    * Interprets the value pointed by timer as a calendar time and converts it to a C-string containing a human-readable

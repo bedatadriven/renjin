@@ -37,9 +37,17 @@ public class RLexerReader {
   private int prevlines[] = new int[PUSHBACK_BUFSIZE];
   private int prevcols[] = new int[PUSHBACK_BUFSIZE];
 
-  private int columnNumber = 0;
-  private int lineNumber = 1;
+
   private int charIndex = -1;
+
+
+
+  private int columnNumber = -1;
+
+
+  private int lineNumber = 0;
+
+  private boolean endOfLine = false;
 
   public RLexerReader(Reader reader) {
     super();
@@ -63,10 +71,15 @@ public class RLexerReader {
     prevcols[prevpos] = columnNumber;
     prevlines[prevpos] = lineNumber;
 
-    if (c == '\n') {
+    if(endOfLine) {
       lineNumber += 1;
       columnNumber = 0;
+      endOfLine = false;
+
     } else {
+      if (c == '\n') {
+        endOfLine = true;
+      }
       columnNumber++;
     }
 
@@ -96,14 +109,24 @@ public class RLexerReader {
     return c;
   }
 
+  /**
+   * @return The zero-based line number of the character we just read. The newline character
+   * is considered to be the last character of the line it terminates.
+   */
   public int getLineNumber() {
     return lineNumber;
   }
 
+  /**
+   * @return The zero-based index of the character we just read within the current line.
+   */
   public int getColumnNumber() {
     return columnNumber;
   }
 
+  /**
+   * @return The zero-based index of the character we just read within the whole character stream.
+   */
   public int getCharacterIndex() {
     return charIndex;
   }

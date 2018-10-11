@@ -29,6 +29,7 @@ import java.io.Reader;
 import java.io.StringReader;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.renjin.ExpMatchers.symbolNamed;
 import static org.renjin.parser.RParser.*;
@@ -222,6 +223,28 @@ public class RLexerTest {
         '(',
         SYMBOL,
         ')');
+  }
+
+  @Test
+  public void positionInformation() {
+
+    String input = "foobar+3";
+    RLexer lexer = new RLexer(ParseOptions.defaults(), new ParseState(), new StringReader(input));
+
+    int token = lexer.yylex();
+    assertThat(token, equalTo(SYMBOL));
+    assertThat(lexer.getStartPos().line, equalTo(0));
+    assertThat(lexer.getStartPos().column, equalTo(0));
+    assertThat(lexer.getEndPos().line, equalTo(0));
+    assertThat(lexer.getEndPos().column, equalTo(5));
+
+    token = lexer.yylex();
+    assertThat(token, equalTo((int)'+'));
+    assertThat(lexer.getStartPos().line, equalTo(0));
+    assertThat(lexer.getStartPos().column, equalTo(6));
+    assertThat(lexer.getEndPos().line, equalTo(0));
+    assertThat(lexer.getEndPos().column, equalTo(6));
+
   }
 
 

@@ -247,6 +247,42 @@ public class RLexerTest {
 
   }
 
+  @Test
+  public void positionInformation2() {
+
+    String input = "foobar+3\n";
+    RLexer lexer = new RLexer(ParseOptions.defaults(), new ParseState(), new StringReader(input));
+
+    int token = lexer.yylex();
+    assertThat(token, equalTo(SYMBOL));
+    assertThat(lexer.getStartPos().line, equalTo(0));
+    assertThat(lexer.getStartPos().column, equalTo(0));
+    assertThat(lexer.getEndPos().line, equalTo(0));
+    assertThat(lexer.getEndPos().column, equalTo(5));
+
+    token = lexer.yylex();
+    assertThat(token, equalTo((int)'+'));
+    assertThat(lexer.getStartPos().line, equalTo(0));
+    assertThat(lexer.getStartPos().column, equalTo(6));
+    assertThat(lexer.getEndPos().line, equalTo(0));
+    assertThat(lexer.getEndPos().column, equalTo(6));
+
+    token = lexer.yylex();
+    assertThat(token, equalTo(NUM_CONST));
+    assertThat(lexer.getStartPos().line, equalTo(0));
+    assertThat(lexer.getStartPos().column, equalTo(7));
+    assertThat(lexer.getEndPos().line, equalTo(0));
+    assertThat(lexer.getEndPos().column, equalTo(7));
+
+    token = lexer.yylex();
+    assertThat(token, equalTo((int)'\n'));
+    assertThat(lexer.getStartPos().line, equalTo(0));
+//    assertThat(lexer.getStartPos().column, equalTo(8));
+//    assertThat(lexer.getEndPos().line, equalTo(0));
+//    assertThat(lexer.getEndPos().column, equalTo(8));
+
+  }
+
 
   private static class LexExpectation {
     public int expectedToken;

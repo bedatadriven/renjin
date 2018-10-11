@@ -59,7 +59,7 @@ public class RLexerReaderTest {
   @Test
   public void newLine() throws IOException {
 
-    RLexerReader reader = new RLexerReader(new StringReader("1\n2"));
+    RLexerReader reader = new RLexerReader(new StringReader("1\n2\n"));
 
     assertThat(reader.read(), equalTo((int)'1'));
     assertThat(reader.getCharacterIndex(), equalTo(0));
@@ -75,5 +75,10 @@ public class RLexerReaderTest {
     assertThat(reader.getCharacterIndex(), equalTo(2));
     assertThat(reader.getLineNumber(), equalTo(1));
     assertThat(reader.getColumnNumber(), equalTo(0));
+
+    assertThat(reader.read(), equalTo((int)'\n'));
+    assertThat(reader.getCharacterIndex(), equalTo(3));
+    assertThat(reader.getLineNumber(), equalTo(1));
+    assertThat(reader.getColumnNumber(), equalTo(1));
   }
 }

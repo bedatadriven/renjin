@@ -422,6 +422,7 @@ public class RParser {
 
   private Location yylloc(YYStack rhs, int n) {
     if (n > 0) {
+      // new location begin is from current step whereas the end comes the steps before?
       return new Location(rhs.locationAt(1).begin, rhs.locationAt(n).end);
     } else {
       return new Location(rhs.locationAt(0).end);

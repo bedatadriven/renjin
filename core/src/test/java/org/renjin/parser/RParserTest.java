@@ -32,6 +32,9 @@ import java.io.StringReader;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 import static org.renjin.ExpMatchers.*;
+import org.renjin.EvalTestCase;
+
+import static org.junit.Assert.assertThat;
 
 
 public class RParserTest {
@@ -255,5 +258,21 @@ public class RParserTest {
    FunctionCall call = (FunctionCall)result.getElementAsSEXP(0);
    Symbol function = (Symbol) call.getFunction();
    assertThat(function.getPrintName(), equalTo("%*%")); 
+  }
+
+  @Test
+  public void testParserLineInformation() throws IOException {
+    ExpressionVector result = RParser.parseSource(new StringReader("x"));
+    ListVector srcref = (ListVector) ((Vector) result).getAttribute(Symbol.get("srcref"));
+    int[] ones = new int[]{1,1,1,1,1,1};
+    assertThat(((IntArrayVector) srcref.getElementAsSEXP(0)).toIntArrayUnsafe(), equalTo(ones));
+  }
+
+  @Ignore
+  public void testParserLineInformation2() throws IOException {
+    ExpressionVector result = RParser.parseSource(new StringReader("xy"));
+    ListVector srcref = (ListVector) ((Vector) result).getAttribute(Symbol.get("srcref"));
+    int[] ones = new int[]{1,1,1,8,1,8};
+    assertThat(((IntArrayVector) srcref.getElementAsSEXP(0)).toIntArrayUnsafe(), equalTo(ones));
   }
 }

@@ -2502,12 +2502,12 @@ public class RParser {
   static SEXP makeSrcref(Location lloc, SEXP srcfile) {
 
     int values[] = new int[6];
-    values[0] = lloc.begin.line;
-    values[1] = lloc.begin.charIndex;
-    values[2] = lloc.end.line;
-    values[3] = lloc.end.charIndex;
-    values[4] = lloc.begin.column;
-    values[5] = lloc.end.column;
+    values[0] = lloc.begin.line + 1;
+    values[1] = lloc.begin.charIndex + 1;
+    values[2] = lloc.end.line + 1;
+    values[3] = lloc.end.charIndex + 1;
+    values[4] = lloc.begin.column + 1;
+    values[5] = lloc.end.column + 1;
 
     if (srcfile==null) {
         srcfile=Null.INSTANCE;
@@ -2525,27 +2525,28 @@ public class RParser {
 // Disbabling for the moment
 // The format really doesn't seem to match GNU R and causes regressions 
 // in some packages.
-//    SEXP t;
-//    Vector.Builder srval;
-//    int n;
-//
-//    PROTECT(val);
-//    t = CDR(srcRefs);
-//    int tlen = length(t);
-//    srval = allocVector(VECSXP, tlen);
-//    for (n = 0 ; n < tlen; n++, t = CDR(t)) {
+    SEXP t;
+    Vector.Builder srval;
+    int n;
+
+    PROTECT(val);
+    t = CDR(srcRefs);
+    int tlen = length(t);
+    srval = allocVector(VECSXP, tlen);
+    for (n = 0 ; n < tlen; n++, t = CDR(t)) {
+      srval.set(n, CAR(t));
 //       SET_VECTOR_ELT(srval, n, CAR(t));
-//    }
-//    //setAttrib(val, R_SrcrefSymbol, srval);
-//    //setAttrib(val, R_SrcfileSymbol, srcfile);
-//    val.unsafeSetAttributes(
-//        AttributeMap.newBuilder().
-//            set(R_SrcrefSymbol, srval.build()).
-//            set(R_SrcfileSymbol, srcfile).
-//            build()
-//    );
-//    UNPROTECT(1);
-//    srcRefs = NewList();
+    }
+//    setAttrib(val, R_SrcrefSymbol, srval);
+//    setAttrib(val, R_SrcfileSymbol, srcfile);
+    val.unsafeSetAttributes(
+        AttributeMap.newBuilder().
+            set(R_SrcrefSymbol, srval.build()).
+            set(R_SrcfileSymbol, srcfile).
+            build()
+    );
+    UNPROTECT(1);
+    srcRefs = NewList();
     return val;
   }
 

@@ -208,15 +208,10 @@ public class RParser {
    * and ending positions.
    */
   public class Location {
-    /**
-     * The first, inclusive, position in the range.
-     */
-    public Position begin;
 
-    /**
-     * The first position beyond the range.
-     */
-    public Position end;
+    private Position begin;
+
+    private Position end;
 
     /**
      * Create a <code>Location</code> denoting an empty range located at
@@ -225,7 +220,7 @@ public class RParser {
      * @param loc The position at which the range is anchored.
      */
     public Location(Position loc) {
-      this.begin = this.end = loc;
+      this.begin = loc; this.end = loc;
     }
 
     /**
@@ -246,15 +241,35 @@ public class RParser {
      * method.
      */
     public String toString() {
-      if (begin == null && end == null || (begin != null && begin.equals(end))) {
-        return "" + toString(begin);
+      if (getBegin() == null && getEnd() == null) {
+        return "" + toString(getBegin());
       } else {
-        return "" + toString(begin) + "-" + toString(end);
+        return "" +
+            (getBegin().getLine() + 1)      + " " +
+            (getBegin().getCharIndex() + 1) + " " +
+            (getEnd().getLine() + 1)        + " " +
+            (getEnd().getCharIndex() + 1)   + " " +
+            (getBegin().getColumn() + 1)    + " " +
+            (getEnd().getColumn() + 1);
       }
     }
 
     private String toString(Position p) {
       return p == null ? "NULL" : p.toString();
+    }
+
+    /**
+     * The first, inclusive, position in the range.
+     */
+    public Position getBegin() {
+      return begin;
+    }
+
+    /**
+     * The first position beyond the range.
+     */
+    public Position getEnd() {
+      return end;
     }
 
   }
@@ -422,10 +437,9 @@ public class RParser {
 
   private Location yylloc(YYStack rhs, int n) {
     if (n > 0) {
-      // new location begin is from current step whereas the end comes the steps before?
-      return new Location(rhs.locationAt(1).begin, rhs.locationAt(n).end);
+      return new Location(rhs.locationAt(1).getBegin(), rhs.locationAt(n).getEnd());
     } else {
-      return new Location(rhs.locationAt(0).end);
+      return new Location(rhs.locationAt(0).getEnd());
     }
   }
 
@@ -2503,12 +2517,12 @@ public class RParser {
   static SEXP makeSrcref(Location lloc, SEXP srcfile) {
 
     int values[] = new int[6];
-    values[0] = lloc.begin.line + 1;
-    values[1] = lloc.begin.charIndex + 1;
-    values[2] = lloc.end.line + 1;
-    values[3] = lloc.end.charIndex + 1;
-    values[4] = lloc.begin.column + 1;
-    values[5] = lloc.end.column + 1;
+    values[0] = lloc.getBegin().getLine() + 1;
+    values[1] = lloc.getBegin().getCharIndex() + 1;
+    values[2] = lloc.getEnd().getLine() + 1;
+    values[3] = lloc.getEnd().getCharIndex() + 1;
+    values[4] = lloc.getBegin().getColumn() + 1;
+    values[5] = lloc.getEnd().getColumn() + 1;
 
     if (srcfile==null) {
         srcfile=Null.INSTANCE;
@@ -3002,7 +3016,7 @@ public class RParser {
     if(tag instanceof Symbol || tag instanceof Null) {
         return lang2(arg, tag);
     } else {
-        error(_("incorrect tag type at line %d"), lloc.begin.line);
+        error(_("incorrect tag type at line %d"), lloc.getBegin().getLine());
         return R_NilValue/* -Wall */;
     }
   }
@@ -3074,7 +3088,7 @@ public class RParser {
     while (formlist != R_NilValue) {
       if (TAG(formlist) == _new) {
         error(_("Repeated formal argument '%s' on line %d"), CHAR(PRINTNAME(_new)),
-            lloc.begin.line);
+            lloc.getBegin().getLine());
       }
       formlist = CDR(formlist);
     }

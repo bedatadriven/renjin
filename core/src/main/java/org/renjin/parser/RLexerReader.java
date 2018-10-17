@@ -54,6 +54,10 @@ public class RLexerReader {
     this.reader = new PushbackReader(reader);
   }
 
+  public Position getPosition() {
+    return new Position(lineNumber, columnNumber, charIndex);
+  }
+
   public int read() throws IOException {
     int c;
 

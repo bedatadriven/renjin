@@ -36,18 +36,11 @@ public class RLexerReader {
   private int prevpos = 0;
   private int prevlines[] = new int[PUSHBACK_BUFSIZE];
   private int prevcols[] = new int[PUSHBACK_BUFSIZE];
-
-
-  private int charIndex = -1;
-
-
-
-  private int columnNumber = -1;
-
+  private int prevbytes[] = new int[PUSHBACK_BUFSIZE];
 
   private int lineNumber = 0;
-
-  private boolean endOfLine = false;
+  private int charIndex = -1;
+  private int columnNumber = -1;
 
   public RLexerReader(Reader reader) {
     super();
@@ -74,23 +67,20 @@ public class RLexerReader {
     prevpos = (prevpos + 1) % PUSHBACK_BUFSIZE;
     prevcols[prevpos] = columnNumber;
     prevlines[prevpos] = lineNumber;
+    prevbytes[prevpos] = charIndex;
 
-    if(endOfLine) {
-      lineNumber += 1;
-      columnNumber = 0;
-      endOfLine = false;
-
+    if(c == '\n') {
+      lineNumber++;
+      columnNumber = -1;
+      charIndex = -1;
     } else {
-      if (c == '\n') {
-        endOfLine = true;
-      }
       columnNumber++;
+      charIndex++;
     }
 
     if (c == '\t') { 
       columnNumber = ((columnNumber + 7) & ~7);
     }
-    charIndex++;
 
     return c;
   }
@@ -98,11 +88,11 @@ public class RLexerReader {
   public int unread(int c) {
     lineNumber = prevlines[prevpos];
     columnNumber = prevcols[prevpos];
+    charIndex = prevbytes[prevpos];
     prevpos = (prevpos + PUSHBACK_BUFSIZE - 1) % PUSHBACK_BUFSIZE;
 
     // if ( KeepSource && GenerateCode && FunctionLevel > 0 )
     // SourcePtr--;
-    charIndex--;
     //R_ParseContext[R_ParseContextLast] = '\0';
     /* precaution as to how % is implemented for < 0 numbers */
     //  R_ParseContextLast = (R_ParseContextLast + PARSE_CONTEXT_SIZE -1) % PARSE_CONTEXT_SIZE;

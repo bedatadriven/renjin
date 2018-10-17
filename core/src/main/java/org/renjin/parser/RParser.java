@@ -2574,6 +2574,7 @@ public class RParser {
          SEXP srcRef = makeSrcref(lloc, state.srcFile);
          REPROTECT(srcRefs = GrowList(srcRefs, srcRef), srindex);
        }
+       v.setAttribute("srcref", srcRefs);
        UNPROTECT_PTR(v);
     }
     this.result = v;

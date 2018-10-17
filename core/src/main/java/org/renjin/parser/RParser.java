@@ -2574,6 +2574,10 @@ public class RParser {
          SEXP srcRef = makeSrcref(lloc, state.srcFile);
          REPROTECT(srcRefs = GrowList(srcRefs, srcRef), srindex);
        }
+       if (v == Null.INSTANCE) {
+         StringArrayVector.Builder sexp = new StringArrayVector.Builder();
+         v = sexp.build();
+       }
        v.setAttribute("srcref", srcRefs);
        UNPROTECT_PTR(v);
     }

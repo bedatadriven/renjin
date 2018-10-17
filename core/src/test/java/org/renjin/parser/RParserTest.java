@@ -397,4 +397,14 @@ public class RParserTest {
     assertThat(((IntArrayVector) srcref.getElementAsSEXP(1)).toIntArrayUnsafe(), equalTo(expr2));
     assertThat(((IntArrayVector) srcref.getElementAsSEXP(2)).toIntArrayUnsafe(), equalTo(expr3));
   }
+
+  @Test
+  public void testParserLineInformation17() throws IOException {
+    ExpressionVector result = RParser.parseSource(new StringReader("NULL\nNULL"));
+    ListVector srcref = (ListVector) ((Vector) result).getAttribute(Symbol.get("srcref"));
+    int[] expr1 = new int[]{1,1,1,4,1,4};
+    int[] expr2 = new int[]{2,1,2,4,1,4};
+    assertThat(((IntArrayVector) srcref.getElementAsSEXP(0)).toIntArrayUnsafe(), equalTo(expr1));
+    assertThat(((IntArrayVector) srcref.getElementAsSEXP(1)).toIntArrayUnsafe(), equalTo(expr2));
+  }
 }

@@ -39,12 +39,25 @@ public class FileSystemUtils {
    * @return  the path to the R home directory as packaged within
    * the renjin-core.jar archive. This will be a layered URI in the form
    * jar:file:///path/to/renjin-core.jar!/org/renjin/library
+   * @param fileSystemManager
    */
-  public static String homeDirectoryInCoreJar() {
+  public static String homeDirectoryInCoreJar(FileSystemManager fileSystemManager) {
     // hardcode to the R home location to the classpath location
     // where this class is found.
 
-    return embeddedRHomeFromSEXPClassURL(org.renjin.primitives.System.class.getResource("/org/renjin/sexp/SEXP.class").toString());
+    try {
+      String resourceName = "res:org/renjin/sexp/SEXP.class";
+      FileObject fileObject = fileSystemManager.resolveFile(resourceName);
+      if(!fileObject.exists()) {
+        throw new IllegalStateException("Cannot locate resource '" + resourceName + "' in provided virtual file system," +
+            " make sure that you are including a ResourceFileProvider with scheme res:");
+      }
+
+      return fileObject.getParent().getParent().getURL().toString();
+
+    } catch (FileSystemException e) {
+      throw new IllegalStateException("Failed to locate R.home: ", e);
+    }
   }
 
   public static String homeDirectoryInLocalFs() {

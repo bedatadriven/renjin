@@ -66,7 +66,7 @@ public class S3Test extends EvalTestCase {
         .add(Symbol.get("drop"), Null.INSTANCE)
         .build();
 
-    Environment env = Environment.createGlobalEnvironment(Environment.createBaseEnvironment());
+    Environment env = Environment.createGlobalEnvironment(Environment.createBaseEnvironment(topLevelContext.getSession()));
     SEXP ni = new IntArrayVector(3);
     env.setVariable(topLevelContext, "i", ni);
     env.setVariable(topLevelContext, "x", x);

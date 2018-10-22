@@ -276,10 +276,10 @@ public class RLexerTest {
 
     token = lexer.yylex();
     assertThat(token, equalTo((int)'\n'));
-//    assertThat(lexer.getStartPos().line, equalTo(0));
-//    assertThat(lexer.getStartPos().column, equalTo(8));
-//    assertThat(lexer.getEndPos().line, equalTo(0));
-//    assertThat(lexer.getEndPos().column, equalTo(8));
+    assertThat(lexer.getStartPos().getLine(), equalTo(1));
+    assertThat(lexer.getStartPos().getColumn(), equalTo(-1));
+    assertThat(lexer.getEndPos().getLine(), equalTo(1));
+    assertThat(lexer.getEndPos().getColumn(), equalTo(-1));
 
   }
 

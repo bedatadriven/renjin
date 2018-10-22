@@ -332,7 +332,16 @@ public final class Defn {
   }
 
   public static void Rf_checkArityCall(SEXP p0, SEXP p1, SEXP p2) {
-    throw new UnimplementedGnuApiMethod("Rf_checkArityCall");
+    if(!(p0 instanceof Null)) {
+      int count = ((FunctionCall) p0).getArguments().length();
+      int expectedArguments = ((Vector) p1).getElementAsInt(0);
+      int optional = ((Vector) p2).getElementAsInt(0);
+      EvalException.check(count <= expectedArguments &&
+              count >= (expectedArguments-optional),
+          "invalid number of arguments");
+    } else {
+      throw new EvalException("invalid argument type to 'Rf_checkArityCall'");
+    }
   }
 
   public static void Rf_CheckFormals(SEXP p0) {

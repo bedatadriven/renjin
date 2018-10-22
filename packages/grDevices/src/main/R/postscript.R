@@ -364,12 +364,11 @@ pdf <- function(file = if(onefile) "Rplots.pdf" else "Rplot%03d.pdf",
     onefile <- old$onefile # needed to set 'file'
     if(!checkIntFormat(file))
         stop(gettextf("invalid 'file' argument '%s'", file), domain = NA)
-    .External(C_PDF,
-              file, old$paper, old$family, old$encoding, old$bg, old$fg,
-              old$width, old$height, old$pointsize, onefile, old$pagecentre,
-              old$title, old$fonts, version[1L], version[2L],
-              old$colormodel, old$useDingbats, old$useKerning,
-              old$fillOddEven, old$compress)
+
+    file <- sub("(.*)(\\.pdf{1})$", "\\1.png", file, ignore.case = TRUE)
+
+    png(filename = file, width = old$width, height = old$height,
+                       pointsize = old$pointsize, bg = old$bg)
     invisible()
 }
 

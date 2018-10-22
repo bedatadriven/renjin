@@ -84,7 +84,13 @@ public class AppEngineResourceProvider extends AbstractFileProvider {
       return "jar:file:" + externalForm.substring(jarPrefix.length());
     }
 
+    // Or it could be in the form
+    // file:<context root>/WEB-INF/classes/<resourceName>
 
+    String classPrefix = "file:" + contextRoot.getAbsolutePath();
+    if(externalForm.startsWith(classPrefix)) {
+      return "file:" + externalForm.substring(classPrefix.length());
+    }
 
     // Otherwise we cannot map this to a resource within the servlet
     throw new FileSystemException("Resource '" + externalForm + "' is not located within the servlet context");

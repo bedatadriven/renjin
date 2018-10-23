@@ -72,6 +72,7 @@ public class ClasspathPackage extends FileBasedPackage {
     String qualifiedName = qualifyResourceName("environment");
     String uri = "res:" + qualifiedName;
 
+
     FileObject environmentFileObject;
     try {
       environmentFileObject = fileSystemManager.resolveFile(uri);

@@ -24,7 +24,6 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.impl.DefaultFileReplicator;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.local.DefaultLocalFileProvider;
-import org.apache.commons.vfs2.provider.res.ResourceFileProvider;
 import org.apache.commons.vfs2.provider.url.UrlFileProvider;
 import org.renjin.eval.vfs.FastJarFileProvider;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
@@ -156,13 +155,13 @@ public class FileSystemUtils {
     }
   }
 
-  public static FileSystemManager getMinimalFileSystemManager() throws FileSystemException {
+  public static FileSystemManager getMinimalFileSystemManager(ClassLoader classLoader) throws FileSystemException {
     DefaultFileSystemManager fsm = new DefaultFileSystemManager();
     fsm.setReplicator(new DefaultFileReplicator());
     fsm.setDefaultProvider(new UrlFileProvider());
     fsm.addProvider("file", new DefaultLocalFileProvider());
     fsm.addProvider("jar", new FastJarFileProvider());
-    fsm.addProvider("res", new ResourceFileProvider());
+    fsm.addProvider("res", new ClasspathFileProvider(classLoader));
     fsm.init();
     return fsm;
   }

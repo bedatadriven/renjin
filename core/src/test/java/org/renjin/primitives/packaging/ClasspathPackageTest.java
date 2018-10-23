@@ -30,7 +30,7 @@ public class ClasspathPackageTest {
   @Test
   public void resolvePackageRootTest() throws FileSystemException {
 
-    FileSystemManager fileSystemManager = FileSystemUtils.getMinimalFileSystemManager();
+    FileSystemManager fileSystemManager = FileSystemUtils.getMinimalFileSystemManager(getClass().getClassLoader());
     ClasspathPackage classpathPackage = new ClasspathPackage(new FqPackageName("org.renjin", "base"));
 
     FileObject fileObject = classpathPackage.resolvePackageRoot(fileSystemManager);

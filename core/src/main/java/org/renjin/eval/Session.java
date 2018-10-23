@@ -140,10 +140,10 @@ public class Session {
           ExecutorService executorService, Frame globalFrame) {
     this.fileSystemManager = fileSystemManager;
     this.classLoader = classLoader;
-    this.homeDirectory = FileSystemUtils.homeDirectoryInCoreJar();
+    this.homeDirectory = FileSystemUtils.homeDirectoryInCoreJar(fileSystemManager);
     this.workingDirectory = FileSystemUtils.workingDirectory(fileSystemManager);
     this.systemEnvironment = Maps.newHashMap(System.getenv()); //load system environment variables
-    this.baseEnvironment = Environment.createBaseEnvironment();
+    this.baseEnvironment = Environment.createBaseEnvironment(this);
     this.globalEnvironment = Environment.createGlobalEnvironment(baseEnvironment, globalFrame);
     this.baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment, baseEnvironment).build();
     this.topLevelContext = new Context(this);

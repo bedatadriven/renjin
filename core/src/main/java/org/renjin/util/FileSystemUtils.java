@@ -24,7 +24,6 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.impl.DefaultFileReplicator;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.local.DefaultLocalFileProvider;
-import org.apache.commons.vfs2.provider.res.ResourceFileProvider;
 import org.apache.commons.vfs2.provider.url.UrlFileProvider;
 import org.renjin.eval.vfs.FastJarFileProvider;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
@@ -39,12 +38,25 @@ public class FileSystemUtils {
    * @return  the path to the R home directory as packaged within
    * the renjin-core.jar archive. This will be a layered URI in the form
    * jar:file:///path/to/renjin-core.jar!/org/renjin/library
+   * @param fileSystemManager
    */
-  public static String homeDirectoryInCoreJar() {
+  public static String homeDirectoryInCoreJar(FileSystemManager fileSystemManager) {
     // hardcode to the R home location to the classpath location
     // where this class is found.
 
-    return embeddedRHomeFromSEXPClassURL(org.renjin.primitives.System.class.getResource("/org/renjin/sexp/SEXP.class").toString());
+    try {
+      String resourceName = "res:org/renjin/sexp/SEXP.class";
+      FileObject fileObject = fileSystemManager.resolveFile(resourceName);
+      if(!fileObject.exists()) {
+        throw new IllegalStateException("Cannot locate resource '" + resourceName + "' in provided virtual file system," +
+            " make sure that you are including a ResourceFileProvider with scheme res:");
+      }
+
+      return fileObject.getParent().getParent().getURL().toString();
+
+    } catch (FileSystemException e) {
+      throw new IllegalStateException("Failed to locate R.home: ", e);
+    }
   }
 
   public static String homeDirectoryInLocalFs() {
@@ -143,13 +155,13 @@ public class FileSystemUtils {
     }
   }
 
-  public static FileSystemManager getMinimalFileSystemManager() throws FileSystemException {
+  public static FileSystemManager getMinimalFileSystemManager(ClassLoader classLoader) throws FileSystemException {
     DefaultFileSystemManager fsm = new DefaultFileSystemManager();
     fsm.setReplicator(new DefaultFileReplicator());
     fsm.setDefaultProvider(new UrlFileProvider());
     fsm.addProvider("file", new DefaultLocalFileProvider());
     fsm.addProvider("jar", new FastJarFileProvider());
-    fsm.addProvider("res", new ResourceFileProvider());
+    fsm.addProvider("res", new ClasspathFileProvider(classLoader));
     fsm.init();
     return fsm;
   }

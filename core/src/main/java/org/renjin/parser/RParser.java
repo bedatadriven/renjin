@@ -59,13 +59,14 @@ import static org.renjin.util.CDefines.*;
  */
 public class RParser {
 
-  public static ExpressionVector parseSource(Reader reader, SEXP srcFile) throws IOException {
+  public static ExpressionVector parseSource(Reader reader, SEXP srcFile, boolean keepSource) throws IOException {
     ParseState parseState = new ParseState();
     parseState.srcFile = srcFile;
     ParseOptions parseOptions = ParseOptions.defaults();
+    parseOptions.setKeepSource(keepSource);
     RLexer lexer = new RLexer(parseOptions, parseState, reader);
     RParser parser = new RParser(parseOptions, parseState, lexer);
-    return parser.parseAll();
+    return parser.parseAll(keepSource);
   }
 
   /**
@@ -74,16 +75,16 @@ public class RParser {
    * @return
    * @throws IOException
    */
-  public static ExpressionVector parseAllSource(Reader reader, SEXP srcFile) throws IOException {
+  public static ExpressionVector parseAllSource(Reader reader, SEXP srcFile, boolean keepSource) throws IOException {
     String source = CharStreams.toString(reader);
     if(!source.endsWith("\n")) {
       source = source + "\n";
     }
-    return parseSource(source, srcFile);
+    return parseSource(source, srcFile, keepSource);
   }
   
   public static ExpressionVector parseAllSource(Reader reader) throws IOException {
-    return parseAllSource(reader, new CHARSEXP("<text>"));
+    return parseAllSource(reader, new CHARSEXP("<text>"), false);
   }
 
 
@@ -92,9 +93,14 @@ public class RParser {
   }
 
 
+  public static ExpressionVector parseSource(Reader reader, boolean keepSource) throws IOException {
+    return parseAllSource(reader, new CHARSEXP("<text>"), keepSource);
+  }
+
+
   public static ExpressionVector parseSource(CharSource source, SEXP srcFile) throws IOException {
     try(Reader reader = source.openStream()) {
-      return parseAllSource(reader, srcFile);
+      return parseAllSource(reader, srcFile, false);
     }
   }
   
@@ -106,31 +112,31 @@ public class RParser {
     }
   }
   
-  public static ExpressionVector parseSource(String source, SEXP srcFile) {
+  public static ExpressionVector parseSource(String source, SEXP srcFile, boolean keepSource) {
     try {
-      return parseSource(new StringReader(source), srcFile);
+      return parseSource(new StringReader(source), srcFile, keepSource);
     } catch (IOException e) {
       throw new RuntimeException(e); // shouldn't happen when reading from a string.
     }
   }
 
   public static ExpressionVector parseSource(String source, String srcFile) {
-     return parseSource(source, new CHARSEXP(srcFile));
+     return parseSource(source, new CHARSEXP(srcFile), false);
   }
 
 
   public static ExpressionVector parseInlineSource(String source) {
-     return parseSource(source, new CHARSEXP("<text>"));
+     return parseSource(source, new CHARSEXP("<text>"), false);
   }
 
-  private ExpressionVector parseAll() throws IOException {
+  private ExpressionVector parseAll(boolean keep) throws IOException {
     List<SEXP> exprList = Lists.newArrayList();
 
     while (true) {
       
       // check to see if we are at the end of the file
       if(yylexer.isEof()) {
-        return attachSrcrefs(new ExpressionVector(exprList), state.srcFile);
+        return attachSrcrefs(new ExpressionVector(exprList), state.srcFile, keep);
       }
 
       if (!parse()) {
@@ -152,7 +158,7 @@ public class RParser {
       case ERROR:
         throw new ParseException(getResultStatus().toString());
       case EOF:
-        return attachSrcrefs(new ExpressionVector(exprList), state.srcFile);
+        return attachSrcrefs(new ExpressionVector(exprList), state.srcFile, keep);
       }
     }
   }
@@ -844,7 +850,7 @@ public class RParser {
 
 /* Line 354 of lalr1.java  */
 /* Line 267 of "gram.y"  */ {
-          yyval = xxexprlist(((yystack.valueAt(3 - (1)))), yystack.locationAt(3 - (1)), ((yystack.valueAt(3 - (2)))));
+          yyval = xxexprlist(((yystack.valueAt(3 - (1)))), yystack.locationAt(3 - (1)), ((yystack.valueAt(3 - (2)))), options.isKeepSource());
         }
         ;
         break;
@@ -2536,32 +2542,34 @@ public class RParser {
     return new IntArrayVector(values, AttributeMap.fromPairList(attributes));
   }
 
-  <T extends AbstractSEXP> T attachSrcrefs(T val, SEXP srcfile) {
+  <T extends AbstractSEXP> T attachSrcrefs(T val, SEXP srcfile, boolean keep) {
 // Disbabling for the moment
 // The format really doesn't seem to match GNU R and causes regressions 
 // in some packages.
-    SEXP t;
-    Vector.Builder srval;
-    int n;
+    if (keep) {
+      SEXP t;
+      Vector.Builder srval;
+      int n;
 
-    PROTECT(val);
-    t = CDR(srcRefs);
-    int tlen = length(t);
-    srval = allocVector(VECSXP, tlen);
-    for (n = 0 ; n < tlen; n++, t = CDR(t)) {
-      srval.set(n, CAR(t));
+      PROTECT(val);
+      t = CDR(srcRefs);
+      int tlen = length(t);
+      srval = allocVector(VECSXP, tlen);
+      for (n = 0 ; n < tlen; n++, t = CDR(t)) {
+        srval.set(n, CAR(t));
 //       SET_VECTOR_ELT(srval, n, CAR(t));
-    }
+      }
 //    setAttrib(val, R_SrcrefSymbol, srval);
 //    setAttrib(val, R_SrcfileSymbol, srcfile);
-    val.unsafeSetAttributes(
-        AttributeMap.newBuilder().
-            set(R_SrcrefSymbol, srval.build()).
-            set(R_SrcfileSymbol, srcfile).
-            build()
-    );
-    UNPROTECT(1);
-    srcRefs = NewList();
+      val.unsafeSetAttributes(
+          AttributeMap.newBuilder().
+              set(R_SrcrefSymbol, srval.build()).
+              set(R_SrcfileSymbol, srcfile).
+              build()
+      );
+      UNPROTECT(1);
+      srcRefs = NewList();
+    }
     return val;
   }
 
@@ -2977,7 +2985,7 @@ public class RParser {
     return ans;
   }
 
-  private SEXP xxexprlist(SEXP a1, Location lloc, SEXP a2) {
+  private SEXP xxexprlist(SEXP a1, Location lloc, SEXP a2, boolean keep) {
     SEXP ans;
     SEXP prevSrcrefs;
 
@@ -2989,7 +2997,7 @@ public class RParser {
       if (state.keepSrcRefs) {
         PROTECT(prevSrcrefs = getAttrib(prevA2, R_SrcrefSymbol));
         REPROTECT(srcRefs = Insert(srcRefs, makeSrcref(lloc, state.srcFile)), srindex);
-        PROTECT(ans = attachSrcrefs((PairList.Node)a2, state.srcFile));
+        PROTECT(ans = attachSrcrefs((PairList.Node)a2, state.srcFile, keep));
         if (isNull(prevSrcrefs)) {
            prevSrcrefs = NewList();
         }

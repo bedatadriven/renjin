@@ -256,7 +256,7 @@ public class RParser {
      */
     public String toString() {
       if (getBegin() == null && getEnd() == null) {
-        return "" + toString(getBegin());
+        return toString(getBegin());
       } else {
         return "" +
             (getBegin().getLine() + 1)      + " " +

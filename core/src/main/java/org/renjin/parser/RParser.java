@@ -84,9 +84,6 @@ public class RParser {
 
   /**
    * Parses the source and adds a terminator of the stream if it does not exist.
-   * @param reader
-   * @return
-   * @throws IOException
    */
   public static ExpressionVector parseAllSource(Reader reader, SEXP srcFile) throws IOException {
     String source = CharStreams.toString(reader);

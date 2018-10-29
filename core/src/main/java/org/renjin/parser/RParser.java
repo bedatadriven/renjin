@@ -144,7 +144,7 @@ public class RParser {
       
       // check to see if we are at the end of the file
       if(yylexer.isEof()) {
-        return attachSrcrefs(new ExpressionVector(exprList), state.srcFile, state.keepSrcRefs);
+        return attachSrcrefs(new ExpressionVector(exprList), state.srcFile);
       }
 
       if (!parse()) {
@@ -166,7 +166,7 @@ public class RParser {
       case ERROR:
         throw new ParseException(getResultStatus().toString());
       case EOF:
-        return attachSrcrefs(new ExpressionVector(exprList), state.srcFile, state.keepSrcRefs);
+        return attachSrcrefs(new ExpressionVector(exprList), state.srcFile);
       }
     }
   }
@@ -858,7 +858,7 @@ public class RParser {
 
 /* Line 354 of lalr1.java  */
 /* Line 267 of "gram.y"  */ {
-          yyval = xxexprlist(((yystack.valueAt(3 - (1)))), yystack.locationAt(3 - (1)), ((yystack.valueAt(3 - (2)))), options.isKeepSource());
+          yyval = xxexprlist(((yystack.valueAt(3 - (1)))), yystack.locationAt(3 - (1)), ((yystack.valueAt(3 - (2)))));
         }
         ;
         break;
@@ -2550,7 +2550,7 @@ public class RParser {
     return new IntArrayVector(values, AttributeMap.fromPairList(attributes));
   }
 
-  <T extends AbstractSEXP> T attachSrcrefs(T val, SEXP srcfile, boolean keep) {
+  <T extends AbstractSEXP> T attachSrcrefs(T val, SEXP srcfile) {
 // Disbabling for the moment
 // The format really doesn't seem to match GNU R and causes regressions 
 // in some packages.
@@ -2993,7 +2993,7 @@ public class RParser {
     return ans;
   }
 
-  private SEXP xxexprlist(SEXP a1, Location lloc, SEXP a2, boolean keep) {
+  private SEXP xxexprlist(SEXP a1, Location lloc, SEXP a2) {
     SEXP ans;
     SEXP prevSrcrefs;
 
@@ -3005,7 +3005,7 @@ public class RParser {
       if (state.keepSrcRefs) {
         PROTECT(prevSrcrefs = getAttrib(prevA2, R_SrcrefSymbol));
         REPROTECT(srcRefs = Insert(srcRefs, makeSrcref(lloc, state.srcFile)), srindex);
-        PROTECT(ans = attachSrcrefs((PairList.Node)a2, state.srcFile, keep));
+        PROTECT(ans = attachSrcrefs((PairList.Node)a2, state.srcFile));
         if (isNull(prevSrcrefs)) {
            prevSrcrefs = NewList();
         }

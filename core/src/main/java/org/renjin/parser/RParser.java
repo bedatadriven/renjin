@@ -59,14 +59,27 @@ import static org.renjin.util.CDefines.*;
  */
 public class RParser {
 
-  public static ExpressionVector parseSource(Reader reader, SEXP srcFile, boolean keepSource) throws IOException {
+  public static ExpressionVector parseSource(Reader reader, SEXP srcFile) throws IOException {
     ParseState parseState = new ParseState();
     parseState.srcFile = srcFile;
+    parseState.setKeepSrcRefs(srcFile instanceof Environment);
     ParseOptions parseOptions = ParseOptions.defaults();
-    parseOptions.setKeepSource(keepSource);
     RLexer lexer = new RLexer(parseOptions, parseState, reader);
     RParser parser = new RParser(parseOptions, parseState, lexer);
-    return parser.parseAll(keepSource);
+    return parser.parseAll();
+  }
+
+  public static ExpressionVector parseWithSrcref(String source) throws IOException {
+    if(!source.endsWith("\n")) {
+      source = source + "\n";
+    }
+    Reader reader = new StringReader(source);
+    ParseState parseState = new ParseState();
+    ParseOptions parseOptions = ParseOptions.defaults();
+    parseState.setKeepSrcRefs(true);
+    RLexer lexer = new RLexer(parseOptions, parseState, reader);
+    RParser parser = new RParser(parseOptions, parseState, lexer);
+    return parser.parseAll();
   }
 
   /**
@@ -75,16 +88,16 @@ public class RParser {
    * @return
    * @throws IOException
    */
-  public static ExpressionVector parseAllSource(Reader reader, SEXP srcFile, boolean keepSource) throws IOException {
+  public static ExpressionVector parseAllSource(Reader reader, SEXP srcFile) throws IOException {
     String source = CharStreams.toString(reader);
     if(!source.endsWith("\n")) {
       source = source + "\n";
     }
-    return parseSource(source, srcFile, keepSource);
+    return parseSource(source, srcFile);
   }
   
   public static ExpressionVector parseAllSource(Reader reader) throws IOException {
-    return parseAllSource(reader, new CHARSEXP("<text>"), false);
+    return parseAllSource(reader, new CHARSEXP("<text>"));
   }
 
 
@@ -93,14 +106,9 @@ public class RParser {
   }
 
 
-  public static ExpressionVector parseSource(Reader reader, boolean keepSource) throws IOException {
-    return parseAllSource(reader, new CHARSEXP("<text>"), keepSource);
-  }
-
-
   public static ExpressionVector parseSource(CharSource source, SEXP srcFile) throws IOException {
     try(Reader reader = source.openStream()) {
-      return parseAllSource(reader, srcFile, false);
+      return parseAllSource(reader, srcFile);
     }
   }
   
@@ -112,31 +120,31 @@ public class RParser {
     }
   }
   
-  public static ExpressionVector parseSource(String source, SEXP srcFile, boolean keepSource) {
+  public static ExpressionVector parseSource(String source, SEXP srcFile) {
     try {
-      return parseSource(new StringReader(source), srcFile, keepSource);
+      return parseSource(new StringReader(source), srcFile);
     } catch (IOException e) {
       throw new RuntimeException(e); // shouldn't happen when reading from a string.
     }
   }
 
   public static ExpressionVector parseSource(String source, String srcFile) {
-     return parseSource(source, new CHARSEXP(srcFile), false);
+     return parseSource(source, new CHARSEXP(srcFile));
   }
 
 
   public static ExpressionVector parseInlineSource(String source) {
-     return parseSource(source, new CHARSEXP("<text>"), false);
+     return parseSource(source, new CHARSEXP("<text>"));
   }
 
-  private ExpressionVector parseAll(boolean keep) throws IOException {
+  private ExpressionVector parseAll() throws IOException {
     List<SEXP> exprList = Lists.newArrayList();
 
     while (true) {
       
       // check to see if we are at the end of the file
       if(yylexer.isEof()) {
-        return attachSrcrefs(new ExpressionVector(exprList), state.srcFile, keep);
+        return attachSrcrefs(new ExpressionVector(exprList), state.srcFile, state.keepSrcRefs);
       }
 
       if (!parse()) {
@@ -158,7 +166,7 @@ public class RParser {
       case ERROR:
         throw new ParseException(getResultStatus().toString());
       case EOF:
-        return attachSrcrefs(new ExpressionVector(exprList), state.srcFile, keep);
+        return attachSrcrefs(new ExpressionVector(exprList), state.srcFile, state.keepSrcRefs);
       }
     }
   }
@@ -2546,7 +2554,7 @@ public class RParser {
 // Disbabling for the moment
 // The format really doesn't seem to match GNU R and causes regressions 
 // in some packages.
-    if (keep) {
+    if (state.keepSrcRefs) {
       SEXP t;
       Vector.Builder srval;
       int n;
@@ -2575,19 +2583,19 @@ public class RParser {
 
   private int xxvalue(SEXP v, StatusResult result, Location lloc) {
     if (result != StatusResult.EMPTY && result != StatusResult.OK) {
-       if (state.keepSrcRefs) {
-         if (lloc == null) {
-            lloc = new Location(yylexer.getStartPos(),yylexer.getEndPos());
-         }
-         SEXP srcRef = makeSrcref(lloc, state.srcFile);
-         REPROTECT(srcRefs = GrowList(srcRefs, srcRef), srindex);
-       }
-       if (v == Null.INSTANCE) {
-         StringArrayVector.Builder sexp = new StringArrayVector.Builder();
-         v = sexp.build();
-       }
-       v.setAttribute("srcref", srcRefs);
-       UNPROTECT_PTR(v);
+      if (state.keepSrcRefs) {
+        if (v == Null.INSTANCE) {
+          StringArrayVector.Builder sexp = new StringArrayVector.Builder();
+          v = sexp.build();
+        }
+        if (lloc == null) {
+          lloc = new Location(yylexer.getStartPos(), yylexer.getEndPos());
+        }
+        SEXP srcRef = makeSrcref(lloc, state.srcFile);
+        REPROTECT(srcRefs = GrowList(srcRefs, srcRef), srindex);
+        v.setAttribute("srcref", srcRefs);
+        UNPROTECT_PTR(v);
+      }
     }
     this.result = v;
     this.extendedParseResult = result;

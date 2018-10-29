@@ -53,8 +53,7 @@ public class RParserTest {
   public void error() throws IOException {
     parseSingle("switch(x, 1= 2= 'foo')");
   }
-  
-  @Ignore
+
   @Test
   public void parseWithoutSourceRefs() throws IOException {
     ExpressionVector sexps = RParser.parseAllSource(new StringReader("x+1\nx+y\n"));
@@ -150,7 +149,7 @@ public class RParserTest {
 
   @Test
   public void commentsAndLeadingNewLines() throws IOException {
-    ExpressionVector s = parseAll("# this is a comment\n\n3.145;");
+    ExpressionVector s = RParser.parseSource("# this is a comment\n\n3.145;");
 
     assertThat(s.length(), equalTo(1));
     assertThat(s.get(0), realVectorEqualTo(3.145));
@@ -172,19 +171,19 @@ public class RParserTest {
 
   @Test
   public void precededByNewLine() throws IOException {
-    ExpressionVector exprList = parseAll("\n1;");
+    ExpressionVector exprList = RParser.parseSource("\n1;");
 
     assertThat(exprList.length(), equalTo(1));
   }
   
   @Test
   public void crOnlyLineEndings() throws IOException {
-    parseAll("f <- function(x) {\rc(x)\r}\r");
+    RParser.parseSource("f <- function(x) {\rc(x)\r}\r");
   }
 
   @Test
   public void crlfLineEndings() throws IOException {
-    parseAll("f <- function(x) {\r\nc(x)\r\n}\r\n");
+    RParser.parseSource("f <- function(x) {\r\nc(x)\r\n}\r\n");
   }
 
 
@@ -197,14 +196,14 @@ public class RParserTest {
 
   @Test
   public void parseMultiline() throws IOException {
-    ExpressionVector result = parseAll("1\n2\n3\n");
+    ExpressionVector result = RParser.parseSource("1\n2\n3\n");
 
     assertThat(result.length(), equalTo(3));
   }
 
   @Test
   public void parseWithCommentsPreceding() throws IOException {
-    ExpressionVector result = parseAll(
+    ExpressionVector result = RParser.parseSource(
         "# file header\r\n" +
         "\r\n" +
         "x<-function (y) {\r\n" +
@@ -216,7 +215,7 @@ public class RParserTest {
   
   @Test
   public void parseElseWithNewline() throws IOException {
-    ExpressionVector result = parseAll("if(TRUE) 1 else\n2\n");
+    ExpressionVector result = RParser.parseSource("if(TRUE) 1 else\n2\n");
     
     assertThat(result.length(), equalTo(1));
   }
@@ -234,11 +233,6 @@ public class RParserTest {
     ExpressionVector result = (ExpressionVector) parseResource("add.ps.R");
 
   }
-  
-
-  private ExpressionVector parseAll(String source) throws IOException {
-    return RParser.parseSource(new StringReader(source));
-  }
 
   private SEXP parseSingle(String source) throws IOException {
     ExpressionVector exp = RParser.parseSource(source);
@@ -253,8 +247,8 @@ public class RParserTest {
   }
   
   @Test
-  public void matrixProduct() throws IOException{ 
-   ExpressionVector result = RParser.parseSource(new StringReader("c(1,2,3) %*% c(7,8,7)\n"), true);
+  public void matrixProduct() throws IOException{
+   ExpressionVector result = RParser.parseWithSrcref("c(1,2,3) %*% c(7,8,7)\n");
    FunctionCall call = (FunctionCall)result.getElementAsSEXP(0);
    Symbol function = (Symbol) call.getFunction();
    assertThat(function.getPrintName(), equalTo("%*%")); 
@@ -262,7 +256,7 @@ public class RParserTest {
 
   @Test
   public void testParserLineInformation01() throws IOException {
-    ExpressionVector result = RParser.parseSource(new StringReader("x"), true);
+    ExpressionVector result = RParser.parseWithSrcref("x");
     ListVector srcref = (ListVector) ((Vector) result).getAttribute(Symbol.get("srcref"));
     int[] ones = new int[]{1,1,1,1,1,1};
     assertThat(((IntArrayVector) srcref.getElementAsSEXP(0)).toIntArrayUnsafe(), equalTo(ones));
@@ -270,7 +264,7 @@ public class RParserTest {
 
   @Test
   public void testParserLineInformation02() throws IOException {
-    ExpressionVector result = RParser.parseSource(new StringReader("xy"), true);
+    ExpressionVector result = RParser.parseWithSrcref("xy");
     ListVector srcref = (ListVector) ((Vector) result).getAttribute(Symbol.get("srcref"));
     int[] ones = new int[]{1,1,1,2,1,2};
     assertThat(((IntArrayVector) srcref.getElementAsSEXP(0)).toIntArrayUnsafe(), equalTo(ones));
@@ -278,7 +272,7 @@ public class RParserTest {
 
   @Test
   public void testParserLineInformation03() throws IOException {
-    ExpressionVector result = RParser.parseSource(new StringReader("foobar"), true);
+    ExpressionVector result = RParser.parseWithSrcref("foobar");
     ListVector srcref = (ListVector) ((Vector) result).getAttribute(Symbol.get("srcref"));
     int[] ones = new int[]{1,1,1,6,1,6};
     assertThat(((IntArrayVector) srcref.getElementAsSEXP(0)).toIntArrayUnsafe(), equalTo(ones));
@@ -286,7 +280,7 @@ public class RParserTest {
 
   @Test
   public void testParserLineInformation04() throws IOException {
-    ExpressionVector result = RParser.parseSource(new StringReader("foobar\nguu"), true);
+    ExpressionVector result = RParser.parseWithSrcref("foobar\nguu");
     ListVector srcref = (ListVector) ((Vector) result).getAttribute(Symbol.get("srcref"));
     int[] expr1 = new int[]{1,1,1,6,1,6};
     int[] expr2 = new int[]{2,1,2,3,1,3};
@@ -296,7 +290,7 @@ public class RParserTest {
 
   @Test
   public void testParserLineInformation05() throws IOException {
-    ExpressionVector result = RParser.parseSource(new StringReader("foobar\n\n\nguu"), true);
+    ExpressionVector result = RParser.parseWithSrcref("foobar\n\n\nguu");
     ListVector srcref = (ListVector) ((Vector) result).getAttribute(Symbol.get("srcref"));
     int[] expr1 = new int[]{1,1,1,6,1,6};
     int[] expr2 = new int[]{4,1,4,3,1,3};
@@ -306,7 +300,7 @@ public class RParserTest {
 
   @Test
   public void testParserLineInformation06() throws IOException {
-    ExpressionVector result = RParser.parseSource(new StringReader("foobar\n\n\nx=1"), true);
+    ExpressionVector result = RParser.parseWithSrcref("foobar\n\n\nx=1");
     ListVector srcref = (ListVector) ((Vector) result).getAttribute(Symbol.get("srcref"));
     int[] expr1 = new int[]{1,1,1,6,1,6};
     int[] expr2 = new int[]{4,1,4,3,1,3};
@@ -316,7 +310,7 @@ public class RParserTest {
 
   @Test
   public void testParserLineInformation07() throws IOException {
-    ExpressionVector result = RParser.parseSource(new StringReader("foo=\n234"), true);
+    ExpressionVector result = RParser.parseWithSrcref("foo=\n234");
     ListVector srcref = (ListVector) ((Vector) result).getAttribute(Symbol.get("srcref"));
     int[] expr1 = new int[]{1,1,2,3,1,3};
     assertThat(((IntArrayVector) srcref.getElementAsSEXP(0)).toIntArrayUnsafe(), equalTo(expr1));
@@ -324,7 +318,7 @@ public class RParserTest {
 
   @Test
   public void testParserLineInformation08() throws IOException {
-    ExpressionVector result = RParser.parseSource(new StringReader("foo|\n234"), true);
+    ExpressionVector result = RParser.parseWithSrcref("foo|\n234");
     ListVector srcref = (ListVector) ((Vector) result).getAttribute(Symbol.get("srcref"));
     int[] expr1 = new int[]{1,1,2,3,1,3};
     assertThat(((IntArrayVector) srcref.getElementAsSEXP(0)).toIntArrayUnsafe(), equalTo(expr1));
@@ -332,7 +326,7 @@ public class RParserTest {
 
   @Test
   public void testParserLineInformation09() throws IOException {
-    ExpressionVector result = RParser.parseSource(new StringReader("foo<-\n234"), true);
+    ExpressionVector result = RParser.parseWithSrcref("foo<-\n234");
     ListVector srcref = (ListVector) ((Vector) result).getAttribute(Symbol.get("srcref"));
     int[] expr1 = new int[]{1,1,2,3,1,3};
     assertThat(((IntArrayVector) srcref.getElementAsSEXP(0)).toIntArrayUnsafe(), equalTo(expr1));
@@ -340,7 +334,7 @@ public class RParserTest {
 
   @Test
   public void testParserLineInformation10() throws IOException {
-    ExpressionVector result = RParser.parseSource(new StringReader("foo||\n234"), true);
+    ExpressionVector result = RParser.parseWithSrcref("foo||\n234");
     ListVector srcref = (ListVector) ((Vector) result).getAttribute(Symbol.get("srcref"));
     int[] expr1 = new int[]{1,1,2,3,1,3};
     assertThat(((IntArrayVector) srcref.getElementAsSEXP(0)).toIntArrayUnsafe(), equalTo(expr1));
@@ -348,7 +342,7 @@ public class RParserTest {
 
   @Test
   public void testParserLineInformation11() throws IOException {
-    ExpressionVector result = RParser.parseSource(new StringReader("foo==\n234"), true);
+    ExpressionVector result = RParser.parseWithSrcref("foo==\n234");
     ListVector srcref = (ListVector) ((Vector) result).getAttribute(Symbol.get("srcref"));
     int[] expr1 = new int[]{1,1,2,3,1,3};
     assertThat(((IntArrayVector) srcref.getElementAsSEXP(0)).toIntArrayUnsafe(), equalTo(expr1));
@@ -356,7 +350,7 @@ public class RParserTest {
 
   @Test
   public void testParserLineInformation12() throws IOException {
-    ExpressionVector result = RParser.parseSource(new StringReader("foo=x+\n234"), true);
+    ExpressionVector result = RParser.parseWithSrcref("foo=x+\n234");
     ListVector srcref = (ListVector) ((Vector) result).getAttribute(Symbol.get("srcref"));
     int[] expr1 = new int[]{1,1,2,3,1,3};
     assertThat(((IntArrayVector) srcref.getElementAsSEXP(0)).toIntArrayUnsafe(), equalTo(expr1));
@@ -364,7 +358,7 @@ public class RParserTest {
 
   @Test
   public void testParserLineInformation13() throws IOException {
-    ExpressionVector result = RParser.parseSource(new StringReader("xyz+\n234"), true);
+    ExpressionVector result = RParser.parseWithSrcref("xyz+\n234");
     ListVector srcref = (ListVector) ((Vector) result).getAttribute(Symbol.get("srcref"));
     int[] expr1 = new int[]{1,1,2,3,1,3};
     assertThat(((IntArrayVector) srcref.getElementAsSEXP(0)).toIntArrayUnsafe(), equalTo(expr1));
@@ -372,7 +366,7 @@ public class RParserTest {
 
   @Test
   public void testParserLineInformation14() throws IOException {
-    ExpressionVector result = RParser.parseSource(new StringReader("foo=x+\n\n\n234"), true);
+    ExpressionVector result = RParser.parseWithSrcref("foo=x+\n\n\n234");
     ListVector srcref = (ListVector) ((Vector) result).getAttribute(Symbol.get("srcref"));
     int[] expr1 = new int[]{1,1,4,3,1,3};
     assertThat(((IntArrayVector) srcref.getElementAsSEXP(0)).toIntArrayUnsafe(), equalTo(expr1));
@@ -380,7 +374,7 @@ public class RParserTest {
 
   @Test
   public void testParserLineInformation15() throws IOException {
-    ExpressionVector result = RParser.parseSource(new StringReader("foo = x + \n 234"), true);
+    ExpressionVector result = RParser.parseWithSrcref("foo = x + \n 234");
     ListVector srcref = (ListVector) ((Vector) result).getAttribute(Symbol.get("srcref"));
     int[] expr1 = new int[]{1,1,2,4,1,4};
     assertThat(((IntArrayVector) srcref.getElementAsSEXP(0)).toIntArrayUnsafe(), equalTo(expr1));
@@ -388,7 +382,7 @@ public class RParserTest {
 
   @Test
   public void testParserLineInformation16() throws IOException {
-    ExpressionVector result = RParser.parseSource(new StringReader("foobar=function(x){#comm1\n  x+3\n}\n#comm2\ny=3\nz=y+\nfoobar(y#comm3\n)\n"), true);
+    ExpressionVector result = RParser.parseWithSrcref("foobar=function(x){#comm1\n  x+3\n}\n#comm2\ny=3\nz=y+\nfoobar(y#comm3\n)\n");
     ListVector srcref = (ListVector) ((Vector) result).getAttribute(Symbol.get("srcref"));
     int[] expr1 = new int[]{1,1,3,1,1,1};
     int[] expr2 = new int[]{5,1,5,3,1,3};
@@ -400,7 +394,7 @@ public class RParserTest {
 
   @Test
   public void testParserLineInformation17() throws IOException {
-    ExpressionVector result = RParser.parseSource(new StringReader("NULL\nNULL"), true);
+    ExpressionVector result = RParser.parseWithSrcref("NULL\nNULL");
     ListVector srcref = (ListVector) ((Vector) result).getAttribute(Symbol.get("srcref"));
     int[] expr1 = new int[]{1,1,1,4,1,4};
     int[] expr2 = new int[]{2,1,2,4,1,4};

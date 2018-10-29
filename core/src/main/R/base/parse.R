@@ -53,5 +53,5 @@ parse <- function(file = "", n = NULL, text = NULL, prompt = "?",
 	    }
 	}
     }
-    .Internal(parse(file, n, text, prompt, srcfile, encoding, keep.source))
+    .Internal(parse(file, n, text, prompt, srcfile, encoding))
 }

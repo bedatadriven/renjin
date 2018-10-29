@@ -20,7 +20,7 @@ package org.renjin.parser;
 
 public class ParseOptions {
   private boolean generateCode = true;
-  private boolean keepSource = false;
+  private boolean keepSource = true;
   private boolean warnEscapes = true;
 
   public ParseOptions() {

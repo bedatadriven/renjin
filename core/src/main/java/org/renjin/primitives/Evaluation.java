@@ -471,7 +471,7 @@ public class Evaluation {
 
   @Internal
   public static ExpressionVector parse(@Current Context context, SEXP file, SEXP maxExpressions, Vector text,
-                                       String prompt, SEXP sourceFile, String encoding, boolean keepSource) throws IOException {
+                                       String prompt, SEXP sourceFile, String encoding) throws IOException {
     try {
       if(text != Null.INSTANCE) {
         List<CharSource> lines = Lists.newArrayList();
@@ -480,11 +480,11 @@ public class Evaluation {
           lines.add(CharSource.wrap(text.getElementAsString(i)));
           lines.add(newLine);
         }
-        return RParser.parseAllSource(CharSource.concat(lines).openStream(), sourceFile, keepSource);
+        return RParser.parseAllSource(CharSource.concat(lines).openStream(), sourceFile);
             
       } else if(file.inherits("connection")) {
         Connection conn = Connections.getConnection(context, file);
-        return RParser.parseAllSource(conn.getReader(), sourceFile, keepSource);
+        return RParser.parseAllSource(conn.getReader(), sourceFile);
       
       } else {
         throw new EvalException("unsupported parsing source");

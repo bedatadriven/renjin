@@ -210,4 +210,21 @@ public class FilesTest extends EvalTestCase {
         identicalTo((SEXP) LogicalVector.EMPTY));
   }
 
+  @Test
+  public void testSrcrefcopy() {
+    eval("current.dir <- getwd()");
+    eval("mtime <- \"2018-10-08 09:50:54 CEST\"");
+    eval("text <- \"x <- 1 + 1\ny <- 2 + 2\"");
+    eval("filename <- \"<text>\"");
+    eval("srcfile <- srcfilecopy(filename, text, mtime)");
+
+    assertThat(eval("srcfile[[\"Enc\"]]"), identicalTo(c("unknown")));
+    assertThat(eval("srcfile[[\"filename\"]]"), identicalTo(c("<text>")));
+    assertThat(eval("srcfile[[\"lines\"]]"), identicalTo(c("x <- 1 + 1", "y <- 2 + 2")));
+    assertThat(eval("srcfile[[\"timestamp\"]]"), identicalTo(c("2018-10-08 09:50:54 CEST")));
+    assertThat(eval("srcfile[[\"wd\"]]"), identicalTo(eval("current.dir")));
+    assertThat(eval("srcfile[[\"fixedNewlines\"]]"), identicalTo(LogicalVector.TRUE));
+    assertThat(eval("srcfile[[\"isFile\"]]"), identicalTo(LogicalVector.FALSE));
+  }
+
 }

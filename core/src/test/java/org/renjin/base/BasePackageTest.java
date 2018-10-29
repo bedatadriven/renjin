@@ -322,14 +322,67 @@ public class BasePackageTest extends EvalTestCase {
   }
 
 
-  @Ignore
+
   @Test
   public void parse() throws IOException {
     loadBasePackage();
 
+    SEXP mtime = eval("mtime <- \"2018-10-08 09:50:54 CEST\"");
+    SEXP cdir = eval("getwd()");
+    eval("text <- \"x <- 1 + 1\n" +
+        "    y <- 2 + 2\"");
+    eval("filename <- \"<text>\"");
+    eval("srcfile <- srcfilecopy(filename, text, mtime)");
+    eval("parsed <- parse(text = text, keep.source = TRUE, srcfile = srcfile)");
+
+    assertThat(
+        eval("attr(parsed, \"srcfile\")[[\"timestamp\"]]"),
+        identicalTo(mtime)
+    );
+
+//    assertThat(
+//        eval("names(attributes(parsed))"),
+//        identicalTo(c("srcref", "srcfile", "wholeSrcref"))
+//    );
+//
+//    // validate wholeSrcref attribute
+//    eval("parsed.wsr <- attr(parsed, \"wholeSrcref\")");
+//
+//    assertThat(
+//        eval("names(attributes(parsed.wsr))"),
+//        identicalTo(c("srcfile", "class"))
+//    );
+//
+//
+//    eval("sf.env <- attr(parsed.wsr, \"srcfile\")");
+//
+//    assertThat(eval("ls(all.names=TRUE, sf.env)"), identicalTo(c("Enc", "filename", "fixedNewlines",
+//        "isFile", "lines", "parseData",  "timestamp", "wd")));
+//
+//    assertThat(eval("sf.env[[\"Enc\"]]"), identicalTo(c("unknown")));
+//    assertThat(eval("sf.env[[\"filename\"]]"), identicalTo(c("<text>")));
+//    assertThat(eval("sf.env[[\"fixedNewlines\"]]"), identicalTo(LogicalVector.TRUE));
+//    assertThat(eval("sf.env[[\"isFile\"]]"), identicalTo(LogicalVector.FALSE));
+//    assertThat(eval("sf.env[[\"lines\"]]"), identicalTo(c("x <- 1 + 1", "y <- 2 + 2")));
+//    assertThat(eval("sf.env[[\"timestamp\"]]"), identicalTo(mtime));
+//    assertThat(eval("sf.env[[\"wd\"]]"), identicalTo(cdir));
+//
+//    eval("sf.pd <- as.env[[\"parseData\"]]");
+//
+//
+//    assertThat(eval("attr(sf.pd, \".Dim\")"), identicalTo(c_i(8, 20)));
+//    assertThat(eval("attr(sf.pd, \"tokens\")"), identicalTo(c("SYMBOL", "LEFT_ASSIGN", "expr",
+//        "NUM_CONST", "expr", "'+'", "NUM_CONST", "expr", "expr", "expr", "SYMBOL", "LEFT_ASSIGN", "expr", "NUM_CONST",
+//        "expr", "'+'", "NUM_CONST", "expr", "expr", "expr")));
+//    assertThat(eval("attr(sf.pd, \"text\")"), identicalTo(c("x", "<-", "", "1", "", "+", "1", "", "",
+//        "", "y", "<-", "", "2", "", "+", "2", "", "", "")));
+//    assertThat(eval("attr(sf.pd, \"class\")"), identicalTo(c("parseData")));
+
+
+
     SEXP sexp = eval(" parse(text='1', keep.source=TRUE) ");
 
-    assertThat(sexp, identicalTo(expression(1d)));
+//    assertThat(sexp, identicalTo(expression(1d)));
 
     SEXP srcref = sexp.getAttribute(Symbols.SRC_REF).getElementAsSEXP(0);
     assertThat(srcref.getS3Class(), elementsIdenticalTo(c("srcref")));

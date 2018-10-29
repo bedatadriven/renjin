@@ -29,6 +29,7 @@ import java.io.Reader;
 import java.io.StringReader;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.renjin.ExpMatchers.symbolNamed;
 import static org.renjin.parser.RParser.*;
@@ -222,6 +223,64 @@ public class RLexerTest {
         '(',
         SYMBOL,
         ')');
+  }
+
+  @Test
+  public void positionInformation() {
+
+    String input = "foobar+3";
+    RLexer lexer = new RLexer(ParseOptions.defaults(), new ParseState(), new StringReader(input));
+
+    int token = lexer.yylex();
+    assertThat(token, equalTo(SYMBOL));
+    assertThat(lexer.getStartPos().getLine(), equalTo(0));
+    assertThat(lexer.getStartPos().getColumn(), equalTo(0));
+    assertThat(lexer.getEndPos().getLine(), equalTo(0));
+    assertThat(lexer.getEndPos().getColumn(), equalTo(5));
+
+    token = lexer.yylex();
+    assertThat(token, equalTo((int)'+'));
+    assertThat(lexer.getStartPos().getLine(), equalTo(0));
+    assertThat(lexer.getStartPos().getColumn(), equalTo(6));
+    assertThat(lexer.getEndPos().getLine(), equalTo(0));
+    assertThat(lexer.getEndPos().getColumn(), equalTo(6));
+
+  }
+
+  @Test
+  public void positionInformation2() {
+
+    String input = "foobar+3\n";
+    RLexer lexer = new RLexer(ParseOptions.defaults(), new ParseState(), new StringReader(input));
+
+    int token = lexer.yylex();
+    assertThat(token, equalTo(SYMBOL));
+    assertThat(lexer.getStartPos().getLine(), equalTo(0));
+    assertThat(lexer.getStartPos().getColumn(), equalTo(0));
+    assertThat(lexer.getEndPos().getLine(), equalTo(0));
+    assertThat(lexer.getEndPos().getColumn(), equalTo(5));
+
+    token = lexer.yylex();
+    assertThat(token, equalTo((int)'+'));
+    assertThat(lexer.getStartPos().getLine(), equalTo(0));
+    assertThat(lexer.getStartPos().getColumn(), equalTo(6));
+    assertThat(lexer.getEndPos().getLine(), equalTo(0));
+    assertThat(lexer.getEndPos().getColumn(), equalTo(6));
+
+    token = lexer.yylex();
+    assertThat(token, equalTo(NUM_CONST));
+    assertThat(lexer.getStartPos().getLine(), equalTo(0));
+    assertThat(lexer.getStartPos().getColumn(), equalTo(7));
+    assertThat(lexer.getEndPos().getLine(), equalTo(0));
+    assertThat(lexer.getEndPos().getColumn(), equalTo(7));
+
+    token = lexer.yylex();
+    assertThat(token, equalTo((int)'\n'));
+    assertThat(lexer.getStartPos().getLine(), equalTo(1));
+    assertThat(lexer.getStartPos().getColumn(), equalTo(-1));
+    assertThat(lexer.getEndPos().getLine(), equalTo(1));
+    assertThat(lexer.getEndPos().getColumn(), equalTo(-1));
+
   }
 
 

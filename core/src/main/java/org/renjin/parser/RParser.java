@@ -62,7 +62,21 @@ public class RParser {
   public static ExpressionVector parseSource(Reader reader, SEXP srcFile) throws IOException {
     ParseState parseState = new ParseState();
     parseState.srcFile = srcFile;
+    parseState.setKeepSrcRefs(srcFile instanceof Environment);
     ParseOptions parseOptions = ParseOptions.defaults();
+    RLexer lexer = new RLexer(parseOptions, parseState, reader);
+    RParser parser = new RParser(parseOptions, parseState, lexer);
+    return parser.parseAll();
+  }
+
+  public static ExpressionVector parseWithSrcref(String source) throws IOException {
+    if(!source.endsWith("\n")) {
+      source = source + "\n";
+    }
+    Reader reader = new StringReader(source);
+    ParseState parseState = new ParseState();
+    ParseOptions parseOptions = ParseOptions.defaults();
+    parseState.setKeepSrcRefs(true);
     RLexer lexer = new RLexer(parseOptions, parseState, reader);
     RParser parser = new RParser(parseOptions, parseState, lexer);
     return parser.parseAll();
@@ -130,7 +144,7 @@ public class RParser {
       
       // check to see if we are at the end of the file
       if(yylexer.isEof()) {
-        return attachSrcrefs(new ExpressionVector(exprList), state.srcFile);
+        return attachSrcrefs(new ExpressionVector(exprList), state.srcFile, state.keepSrcRefs);
       }
 
       if (!parse()) {
@@ -152,7 +166,7 @@ public class RParser {
       case ERROR:
         throw new ParseException(getResultStatus().toString());
       case EOF:
-        return attachSrcrefs(new ExpressionVector(exprList), state.srcFile);
+        return attachSrcrefs(new ExpressionVector(exprList), state.srcFile, state.keepSrcRefs);
       }
     }
   }
@@ -208,15 +222,10 @@ public class RParser {
    * and ending positions.
    */
   public class Location {
-    /**
-     * The first, inclusive, position in the range.
-     */
-    public Position begin;
 
-    /**
-     * The first position beyond the range.
-     */
-    public Position end;
+    private Position begin;
+
+    private Position end;
 
     /**
      * Create a <code>Location</code> denoting an empty range located at
@@ -225,7 +234,7 @@ public class RParser {
      * @param loc The position at which the range is anchored.
      */
     public Location(Position loc) {
-      this.begin = this.end = loc;
+      this.begin = loc; this.end = loc;
     }
 
     /**
@@ -246,15 +255,35 @@ public class RParser {
      * method.
      */
     public String toString() {
-      if (begin == null && end == null || (begin != null && begin.equals(end))) {
-        return "" + toString(begin);
+      if (getBegin() == null && getEnd() == null) {
+        return "" + toString(getBegin());
       } else {
-        return "" + toString(begin) + "-" + toString(end);
+        return "" +
+            (getBegin().getLine() + 1)      + " " +
+            (getBegin().getCharIndex() + 1) + " " +
+            (getEnd().getLine() + 1)        + " " +
+            (getEnd().getCharIndex() + 1)   + " " +
+            (getBegin().getColumn() + 1)    + " " +
+            (getEnd().getColumn() + 1);
       }
     }
 
     private String toString(Position p) {
       return p == null ? "NULL" : p.toString();
+    }
+
+    /**
+     * The first, inclusive, position in the range.
+     */
+    public Position getBegin() {
+      return begin;
+    }
+
+    /**
+     * The first position beyond the range.
+     */
+    public Position getEnd() {
+      return end;
     }
 
   }
@@ -422,9 +451,9 @@ public class RParser {
 
   private Location yylloc(YYStack rhs, int n) {
     if (n > 0) {
-      return new Location(rhs.locationAt(1).begin, rhs.locationAt(n).end);
+      return new Location(rhs.locationAt(n-1).getBegin(), rhs.locationAt(0).getEnd());
     } else {
-      return new Location(rhs.locationAt(0).end);
+      return new Location(rhs.locationAt(0).getEnd());
     }
   }
 
@@ -829,7 +858,7 @@ public class RParser {
 
 /* Line 354 of lalr1.java  */
 /* Line 267 of "gram.y"  */ {
-          yyval = xxexprlist(((yystack.valueAt(3 - (1)))), yystack.locationAt(3 - (1)), ((yystack.valueAt(3 - (2)))));
+          yyval = xxexprlist(((yystack.valueAt(3 - (1)))), yystack.locationAt(3 - (1)), ((yystack.valueAt(3 - (2)))), options.isKeepSource());
         }
         ;
         break;
@@ -2502,12 +2531,12 @@ public class RParser {
   static SEXP makeSrcref(Location lloc, SEXP srcfile) {
 
     int values[] = new int[6];
-    values[0] = lloc.begin.line;
-    values[1] = lloc.begin.charIndex;
-    values[2] = lloc.end.line;
-    values[3] = lloc.end.charIndex;
-    values[4] = lloc.begin.column;
-    values[5] = lloc.end.column;
+    values[0] = lloc.getBegin().getLine() + 1;
+    values[1] = lloc.getBegin().getCharIndex() + 1;
+    values[2] = lloc.getEnd().getLine() + 1;
+    values[3] = lloc.getEnd().getCharIndex() + 1;
+    values[4] = lloc.getBegin().getColumn() + 1;
+    values[5] = lloc.getEnd().getColumn() + 1;
 
     if (srcfile==null) {
         srcfile=Null.INSTANCE;
@@ -2521,44 +2550,52 @@ public class RParser {
     return new IntArrayVector(values, AttributeMap.fromPairList(attributes));
   }
 
-  <T extends AbstractSEXP> T attachSrcrefs(T val, SEXP srcfile) {
+  <T extends AbstractSEXP> T attachSrcrefs(T val, SEXP srcfile, boolean keep) {
 // Disbabling for the moment
 // The format really doesn't seem to match GNU R and causes regressions 
 // in some packages.
-//    SEXP t;
-//    Vector.Builder srval;
-//    int n;
-//
-//    PROTECT(val);
-//    t = CDR(srcRefs);
-//    int tlen = length(t);
-//    srval = allocVector(VECSXP, tlen);
-//    for (n = 0 ; n < tlen; n++, t = CDR(t)) {
+    if (state.keepSrcRefs) {
+      SEXP t;
+      Vector.Builder srval;
+      int n;
+
+      PROTECT(val);
+      t = CDR(srcRefs);
+      int tlen = length(t);
+      srval = allocVector(VECSXP, tlen);
+      for (n = 0 ; n < tlen; n++, t = CDR(t)) {
+        srval.set(n, CAR(t));
 //       SET_VECTOR_ELT(srval, n, CAR(t));
-//    }
-//    //setAttrib(val, R_SrcrefSymbol, srval);
-//    //setAttrib(val, R_SrcfileSymbol, srcfile);
-//    val.unsafeSetAttributes(
-//        AttributeMap.newBuilder().
-//            set(R_SrcrefSymbol, srval.build()).
-//            set(R_SrcfileSymbol, srcfile).
-//            build()
-//    );
-//    UNPROTECT(1);
-//    srcRefs = NewList();
+      }
+//    setAttrib(val, R_SrcrefSymbol, srval);
+//    setAttrib(val, R_SrcfileSymbol, srcfile);
+      val.unsafeSetAttributes(
+          AttributeMap.newBuilder().
+              set(R_SrcrefSymbol, srval.build()).
+              set(R_SrcfileSymbol, srcfile).
+              build()
+      );
+      UNPROTECT(1);
+      srcRefs = NewList();
+    }
     return val;
   }
 
   private int xxvalue(SEXP v, StatusResult result, Location lloc) {
     if (result != StatusResult.EMPTY && result != StatusResult.OK) {
-       if (state.keepSrcRefs) {
-         if (lloc == null) {
-            lloc = new Location(yylexer.getStartPos(),yylexer.getEndPos());
-         }
-         SEXP srcRef = makeSrcref(lloc, state.srcFile);
-         REPROTECT(srcRefs = GrowList(srcRefs, srcRef), srindex);
-       }
-       UNPROTECT_PTR(v);
+      if (state.keepSrcRefs) {
+        if (v == Null.INSTANCE) {
+          StringArrayVector.Builder sexp = new StringArrayVector.Builder();
+          v = sexp.build();
+        }
+        if (lloc == null) {
+          lloc = new Location(yylexer.getStartPos(), yylexer.getEndPos());
+        }
+        SEXP srcRef = makeSrcref(lloc, state.srcFile);
+        REPROTECT(srcRefs = GrowList(srcRefs, srcRef), srindex);
+        v.setAttribute("srcref", srcRefs);
+        UNPROTECT_PTR(v);
+      }
     }
     this.result = v;
     this.extendedParseResult = result;
@@ -2956,7 +2993,7 @@ public class RParser {
     return ans;
   }
 
-  private SEXP xxexprlist(SEXP a1, Location lloc, SEXP a2) {
+  private SEXP xxexprlist(SEXP a1, Location lloc, SEXP a2, boolean keep) {
     SEXP ans;
     SEXP prevSrcrefs;
 
@@ -2968,7 +3005,7 @@ public class RParser {
       if (state.keepSrcRefs) {
         PROTECT(prevSrcrefs = getAttrib(prevA2, R_SrcrefSymbol));
         REPROTECT(srcRefs = Insert(srcRefs, makeSrcref(lloc, state.srcFile)), srindex);
-        PROTECT(ans = attachSrcrefs((PairList.Node)a2, state.srcFile));
+        PROTECT(ans = attachSrcrefs((PairList.Node)a2, state.srcFile, keep));
         if (isNull(prevSrcrefs)) {
            prevSrcrefs = NewList();
         }
@@ -3000,7 +3037,7 @@ public class RParser {
     if(tag instanceof Symbol || tag instanceof Null) {
         return lang2(arg, tag);
     } else {
-        error(_("incorrect tag type at line %d"), lloc.begin.line);
+        error(_("incorrect tag type at line %d"), lloc.getBegin().getLine());
         return R_NilValue/* -Wall */;
     }
   }
@@ -3072,7 +3109,7 @@ public class RParser {
     while (formlist != R_NilValue) {
       if (TAG(formlist) == _new) {
         error(_("Repeated formal argument '%s' on line %d"), CHAR(PRINTNAME(_new)),
-            lloc.begin.line);
+            lloc.getBegin().getLine());
       }
       formlist = CDR(formlist);
     }

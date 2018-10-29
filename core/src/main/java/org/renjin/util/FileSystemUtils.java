@@ -18,6 +18,7 @@
  */
 package org.renjin.util;
 
+import org.apache.commons.logging.impl.Jdk14Logger;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
@@ -29,6 +30,7 @@ import org.renjin.eval.vfs.FastJarFileProvider;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 
 import java.io.File;
+import java.util.logging.Level;
 
 public class FileSystemUtils {
   
@@ -156,7 +158,12 @@ public class FileSystemUtils {
   }
 
   public static FileSystemManager getMinimalFileSystemManager(ClassLoader classLoader) throws FileSystemException {
+
+    Jdk14Logger logger = new Jdk14Logger("org.renjin.vfs2");
+    logger.getLogger().setLevel(Level.SEVERE);
+
     DefaultFileSystemManager fsm = new DefaultFileSystemManager();
+    fsm.setLogger(logger);
     fsm.setReplicator(new DefaultFileReplicator());
     fsm.setDefaultProvider(new UrlFileProvider());
     fsm.addProvider("file", new DefaultLocalFileProvider());

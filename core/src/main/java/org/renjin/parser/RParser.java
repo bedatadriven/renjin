@@ -133,10 +133,6 @@ public class RParser {
   }
 
 
-  public static ExpressionVector parseInlineSource(String source) {
-     return parseSource(source, new CHARSEXP("<text>"));
-  }
-
   private ExpressionVector parseAll() throws IOException {
     List<SEXP> exprList = Lists.newArrayList();
 

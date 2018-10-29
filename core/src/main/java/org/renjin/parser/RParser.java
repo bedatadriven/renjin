@@ -62,21 +62,7 @@ public class RParser {
   public static ExpressionVector parseSource(Reader reader, SEXP srcFile) throws IOException {
     ParseState parseState = new ParseState();
     parseState.srcFile = srcFile;
-    parseState.setKeepSrcRefs(srcFile instanceof Environment);
     ParseOptions parseOptions = ParseOptions.defaults();
-    RLexer lexer = new RLexer(parseOptions, parseState, reader);
-    RParser parser = new RParser(parseOptions, parseState, lexer);
-    return parser.parseAll();
-  }
-
-  public static ExpressionVector parseWithSrcref(String source) throws IOException {
-    if(!source.endsWith("\n")) {
-      source = source + "\n";
-    }
-    Reader reader = new StringReader(source);
-    ParseState parseState = new ParseState();
-    ParseOptions parseOptions = ParseOptions.defaults();
-    parseState.setKeepSrcRefs(true);
     RLexer lexer = new RLexer(parseOptions, parseState, reader);
     RParser parser = new RParser(parseOptions, parseState, lexer);
     return parser.parseAll();
@@ -84,6 +70,9 @@ public class RParser {
 
   /**
    * Parses the source and adds a terminator of the stream if it does not exist.
+   * @param reader
+   * @return
+   * @throws IOException
    */
   public static ExpressionVector parseAllSource(Reader reader, SEXP srcFile) throws IOException {
     String source = CharStreams.toString(reader);
@@ -130,6 +119,10 @@ public class RParser {
   }
 
 
+  public static ExpressionVector parseInlineSource(String source) {
+     return parseSource(source, new CHARSEXP("<text>"));
+  }
+
   private ExpressionVector parseAll() throws IOException {
     List<SEXP> exprList = Lists.newArrayList();
 
@@ -163,7 +156,6 @@ public class RParser {
       }
     }
   }
-  
 
   public enum StatusResult {
     EMPTY,
@@ -216,10 +208,15 @@ public class RParser {
    * and ending positions.
    */
   public class Location {
+    /**
+     * The first, inclusive, position in the range.
+     */
+    public Position begin;
 
-    private Position begin;
-
-    private Position end;
+    /**
+     * The first position beyond the range.
+     */
+    public Position end;
 
     /**
      * Create a <code>Location</code> denoting an empty range located at
@@ -228,7 +225,7 @@ public class RParser {
      * @param loc The position at which the range is anchored.
      */
     public Location(Position loc) {
-      this.begin = loc; this.end = loc;
+      this.begin = this.end = loc;
     }
 
     /**
@@ -249,35 +246,15 @@ public class RParser {
      * method.
      */
     public String toString() {
-      if (getBegin() == null && getEnd() == null) {
-        return toString(getBegin());
+      if (begin == null && end == null || (begin != null && begin.equals(end))) {
+        return "" + toString(begin);
       } else {
-        return "" +
-            (getBegin().getLine() + 1)      + " " +
-            (getBegin().getCharIndex() + 1) + " " +
-            (getEnd().getLine() + 1)        + " " +
-            (getEnd().getCharIndex() + 1)   + " " +
-            (getBegin().getColumn() + 1)    + " " +
-            (getEnd().getColumn() + 1);
+        return "" + toString(begin) + "-" + toString(end);
       }
     }
 
     private String toString(Position p) {
       return p == null ? "NULL" : p.toString();
-    }
-
-    /**
-     * The first, inclusive, position in the range.
-     */
-    public Position getBegin() {
-      return begin;
-    }
-
-    /**
-     * The first position beyond the range.
-     */
-    public Position getEnd() {
-      return end;
     }
 
   }
@@ -445,9 +422,9 @@ public class RParser {
 
   private Location yylloc(YYStack rhs, int n) {
     if (n > 0) {
-      return new Location(rhs.locationAt(n-1).getBegin(), rhs.locationAt(0).getEnd());
+      return new Location(rhs.locationAt(1).begin, rhs.locationAt(n).end);
     } else {
-      return new Location(rhs.locationAt(0).getEnd());
+      return new Location(rhs.locationAt(0).end);
     }
   }
 
@@ -2525,12 +2502,12 @@ public class RParser {
   static SEXP makeSrcref(Location lloc, SEXP srcfile) {
 
     int values[] = new int[6];
-    values[0] = lloc.getBegin().getLine() + 1;
-    values[1] = lloc.getBegin().getCharIndex() + 1;
-    values[2] = lloc.getEnd().getLine() + 1;
-    values[3] = lloc.getEnd().getCharIndex() + 1;
-    values[4] = lloc.getBegin().getColumn() + 1;
-    values[5] = lloc.getEnd().getColumn() + 1;
+    values[0] = lloc.begin.line;
+    values[1] = lloc.begin.charIndex;
+    values[2] = lloc.end.line;
+    values[3] = lloc.end.charIndex;
+    values[4] = lloc.begin.column;
+    values[5] = lloc.end.column;
 
     if (srcfile==null) {
         srcfile=Null.INSTANCE;
@@ -2548,48 +2525,40 @@ public class RParser {
 // Disbabling for the moment
 // The format really doesn't seem to match GNU R and causes regressions 
 // in some packages.
-    if (state.keepSrcRefs) {
-      SEXP t;
-      Vector.Builder srval;
-      int n;
-
-      PROTECT(val);
-      t = CDR(srcRefs);
-      int tlen = length(t);
-      srval = allocVector(VECSXP, tlen);
-      for (n = 0 ; n < tlen; n++, t = CDR(t)) {
-        srval.set(n, CAR(t));
+//    SEXP t;
+//    Vector.Builder srval;
+//    int n;
+//
+//    PROTECT(val);
+//    t = CDR(srcRefs);
+//    int tlen = length(t);
+//    srval = allocVector(VECSXP, tlen);
+//    for (n = 0 ; n < tlen; n++, t = CDR(t)) {
 //       SET_VECTOR_ELT(srval, n, CAR(t));
-      }
-//    setAttrib(val, R_SrcrefSymbol, srval);
-//    setAttrib(val, R_SrcfileSymbol, srcfile);
-      val.unsafeSetAttributes(
-          AttributeMap.newBuilder().
-              set(R_SrcrefSymbol, srval.build()).
-              set(R_SrcfileSymbol, srcfile).
-              build()
-      );
-      UNPROTECT(1);
-      srcRefs = NewList();
-    }
+//    }
+//    //setAttrib(val, R_SrcrefSymbol, srval);
+//    //setAttrib(val, R_SrcfileSymbol, srcfile);
+//    val.unsafeSetAttributes(
+//        AttributeMap.newBuilder().
+//            set(R_SrcrefSymbol, srval.build()).
+//            set(R_SrcfileSymbol, srcfile).
+//            build()
+//    );
+//    UNPROTECT(1);
+//    srcRefs = NewList();
     return val;
   }
 
   private int xxvalue(SEXP v, StatusResult result, Location lloc) {
     if (result != StatusResult.EMPTY && result != StatusResult.OK) {
-      if (state.keepSrcRefs) {
-        if (v == Null.INSTANCE) {
-          StringArrayVector.Builder sexp = new StringArrayVector.Builder();
-          v = sexp.build();
-        }
-        if (lloc == null) {
-          lloc = new Location(yylexer.getStartPos(), yylexer.getEndPos());
-        }
-        SEXP srcRef = makeSrcref(lloc, state.srcFile);
-        REPROTECT(srcRefs = GrowList(srcRefs, srcRef), srindex);
-        v.setAttribute("srcref", srcRefs);
-        UNPROTECT_PTR(v);
-      }
+       if (state.keepSrcRefs) {
+         if (lloc == null) {
+            lloc = new Location(yylexer.getStartPos(),yylexer.getEndPos());
+         }
+         SEXP srcRef = makeSrcref(lloc, state.srcFile);
+         REPROTECT(srcRefs = GrowList(srcRefs, srcRef), srindex);
+       }
+       UNPROTECT_PTR(v);
     }
     this.result = v;
     this.extendedParseResult = result;
@@ -3031,7 +3000,7 @@ public class RParser {
     if(tag instanceof Symbol || tag instanceof Null) {
         return lang2(arg, tag);
     } else {
-        error(_("incorrect tag type at line %d"), lloc.getBegin().getLine());
+        error(_("incorrect tag type at line %d"), lloc.begin.line);
         return R_NilValue/* -Wall */;
     }
   }
@@ -3103,7 +3072,7 @@ public class RParser {
     while (formlist != R_NilValue) {
       if (TAG(formlist) == _new) {
         error(_("Repeated formal argument '%s' on line %d"), CHAR(PRINTNAME(_new)),
-            lloc.getBegin().getLine());
+            lloc.begin.line);
       }
       formlist = CDR(formlist);
     }

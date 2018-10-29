@@ -80,7 +80,7 @@ public class SessionBuilder {
   /**
    * Sets the {@link FileSystemManager} used to implement calls to R's builtin functions.
    *
-   * <p>By default, the new {@code Session} will use {@link FileSystemUtils#getMinimalFileSystemManager()},
+   * <p>By default, the new {@code Session} will use {@link FileSystemUtils#getMinimalFileSystemManager(ClassLoader)},
    * but a custom {@code FileSystemManager} can be provided to limit or customize the access of R scripts
    * to the filesystem.</p>
    *
@@ -160,12 +160,12 @@ public class SessionBuilder {
   public Session build() {
     try {
 
-      if(fileSystemManager == null) {
-        fileSystemManager = FileSystemUtils.getMinimalFileSystemManager();
-      }
-
       if(classLoader == null) {
         classLoader = getClass().getClassLoader();
+      }
+
+      if(fileSystemManager == null) {
+        fileSystemManager = FileSystemUtils.getMinimalFileSystemManager(classLoader);
       }
 
       if(packageLoader == null) {

@@ -21,7 +21,6 @@
 package org.renjin.grDevices;
 
 import org.apache.commons.vfs2.FileObject;
-import org.apache.pdfbox.util.Charsets;
 import org.jfree.graphics2d.svg.SVGGraphics2D;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
@@ -34,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 
 public class SvgContainer implements GDContainer {
 
@@ -123,7 +123,7 @@ public class SvgContainer implements GDContainer {
       String filename = String.format(filenameFormat, pageNumber++);
       FileObject fileObject = session.getFileSystemManager().resolveFile(filename);
 
-      try(Writer writer = new OutputStreamWriter(fileObject.getContent().getOutputStream(), Charsets.UTF_8)) {
+      try(Writer writer = new OutputStreamWriter(fileObject.getContent().getOutputStream(), StandardCharsets.UTF_8)) {
         writer.write(svg);
       }
     } catch (IOException e) {
@@ -132,7 +132,7 @@ public class SvgContainer implements GDContainer {
   }
 
   private void flushCiObject(String svg) throws IOException {
-    String hashCode = Hashing.sha256().hashString(svg, Charsets.UTF_8).toString();
+    String hashCode = Hashing.sha256().hashString(svg, StandardCharsets.UTF_8).toString();
 
     File plotDir = new File(RENJINCI_PLOT_DIR);
     if(!plotDir.exists()) {
@@ -144,7 +144,7 @@ public class SvgContainer implements GDContainer {
 
     File plotFile = new File(plotDir, hashCode + ".svg");
 
-    Files.write(svg, plotFile, Charsets.UTF_8);
+    Files.write(svg, plotFile, StandardCharsets.UTF_8);
 
     session.getStdOut().println("<<<<plot:" + hashCode + ".svg>>>>");
     session.getStdOut().flush();

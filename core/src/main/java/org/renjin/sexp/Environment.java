@@ -21,6 +21,7 @@ package org.renjin.sexp;
 import org.renjin.base.BaseFrame;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.Session;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
 
@@ -123,8 +124,8 @@ public class Environment extends AbstractSEXP implements Recursive {
     return createGlobalEnvironment(baseEnvironment, new HashFrame());
   }
 
-  public static Environment createBaseEnvironment() {
-    Environment base = new Environment(new BaseFrame());
+  public static Environment createBaseEnvironment(Session session) {
+    Environment base = new Environment(new BaseFrame(session));
     base.name = "base";
     base.parent = EMPTY;
     return base;

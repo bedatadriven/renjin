@@ -120,7 +120,7 @@ public class Context {
    * renjin-core jar as the R_HOME directory.
    *
    * @see org.apache.commons.vfs2.VFS#getManager()
-   * @see org.renjin.util.FileSystemUtils#homeDirectoryInCoreJar()
+   * @see org.renjin.util.FileSystemUtils#homeDirectoryInCoreJar(FileSystemManager)
    */
   public static Context newTopLevelContext() {
     return SessionBuilder.buildDefault().getTopLevelContext();

@@ -230,6 +230,7 @@ public class DatasetsBuilder2 {
     FunctionCall call = new FunctionCall(readTable, args.build());
 
     Session session = new SessionBuilder()
+        .setClassLoader(buildContext.getClassLoader())
         .setPackageLoader(buildContext.getPackageLoader())
         .build();
     SEXP dataFrame = session.getTopLevelContext().evaluate(call);
@@ -284,6 +285,7 @@ public class DatasetsBuilder2 {
     debug(scriptFile, "evaluating as script.");
 
     SessionBuilder builder = new SessionBuilder()
+        .setClassLoader(buildContext.getClassLoader())
         .setPackageLoader(buildContext.getPackageLoader());
 
     // Do not load default packages when building the "datasets" package,

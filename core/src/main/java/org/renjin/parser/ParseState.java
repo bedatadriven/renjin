@@ -35,7 +35,7 @@ public class ParseState {
   /**
    * Whether to attach srcrefs to objects as they are parsed
    */
-  boolean keepSrcRefs = true;
+  boolean keepSrcRefs = false;
 
   /**
    * The srcfile object currently being parsed
@@ -67,5 +67,9 @@ public class ParseState {
 
   public void setSrcFile(SEXP srcFile) { 
     this.srcFile = srcFile; 
+  }
+
+  public void setKeepSrcRefs(boolean keepSrcRefs) {
+    this.keepSrcRefs = keepSrcRefs;
   }
 }

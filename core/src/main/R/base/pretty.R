@@ -65,7 +65,7 @@ pretty.default <-
       cell = max(abs(lo), abs(up))
       
       # U = upper bound on cell/unit
-      U <- if (1 + (u5.bias >= 1.5 * high.u.bias + .5)) {
+      U <- 1 + if (u5.bias >= 1.5 * high.u.bias + .5) {
         1 / (1 + high.u.bias)
       } else {
         1.5 / (1 + u5.bias)

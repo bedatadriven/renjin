@@ -38,7 +38,7 @@ png <- function(filename = "Rplot%03d.png",
     if(!missing(antialias)) {
         new$antialias <- match.arg(antialias, aa.cairo)
     }
-    invisible(.Call(C_newJavaGD, filename, width, height, pointsize,
+    invisible(.Call(C_newJavaGD, filename, g$width, g$height, pointsize,
         "org.renjin.grDevices.FileDevice",
         list(filename = filename,
              format = "png",

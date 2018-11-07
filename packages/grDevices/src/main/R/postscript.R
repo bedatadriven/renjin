@@ -296,6 +296,8 @@ pdf <- function(file = if(onefile) "Rplots.pdf" else "Rplot%03d.pdf",
                 paper, encoding, bg, fg, pointsize, pagecentre, colormodel,
                 useDingbats, useKerning, fillOddEven, compress)
 {
+    if (is.null(file) ||  missing(file))
+        file <- if (!missing(onefile) && onefile) "Rplots.pdf" else "Rplot%03d.pdf"
     ## do initialization if needed
     initPSandPDFfonts()
 
@@ -366,9 +368,11 @@ pdf <- function(file = if(onefile) "Rplots.pdf" else "Rplot%03d.pdf",
         stop(gettextf("invalid 'file' argument '%s'", file), domain = NA)
 
     file <- sub("(.*)(\\.pdf{1})$", "\\1.png", file, ignore.case = TRUE)
-
-    png(filename = file, width = old$width, height = old$height,
-                       pointsize = old$pointsize, bg = old$bg)
+    png(filename = file, units = "in", res = 100,
+            width = if(!is.null(old$width)) old$width,
+            height = if(!is.null(old$height)) old$height,
+            pointsize = if(!is.null(old$pointsize)) old$pointsize,
+            bg = if(!is.null(old$bg)) old$bg)
     invisible()
 }
 

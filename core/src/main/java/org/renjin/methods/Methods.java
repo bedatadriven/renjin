@@ -561,7 +561,9 @@ public class Methods {
 
     PairList coercedArgs = coerce(context, arguments, selectedMethod);
 
-    FunctionCall call = new FunctionCall(function, coercedArgs);
+    // Create a synthetic function call S-expression that is visible to the callee and includes
+    // the original arguments passed to the caller of standardGeneric()
+    FunctionCall call = new FunctionCall(function, context.getCall().getArguments());
 
     return ClosureDispatcher.apply(context, context.getCallingEnvironment(), call, function, coercedArgs, metadata);
   }
@@ -592,9 +594,7 @@ public class Methods {
         }
         step += 1;
       } else {
-        if(value != Symbol.MISSING_ARG) {
-          coercedArgs.add(tag, value);
-        }
+        coercedArgs.add(tag, value);
       }
     }
     return coercedArgs.build();

@@ -42,6 +42,8 @@ public class Namespace {
 
   private final List<Symbol> exports = Lists.newArrayList();
 
+  private boolean exportsInitialized = false;
+
   protected final List<DllInfo> libraries = new ArrayList<>(0);
 
   /**
@@ -102,12 +104,19 @@ public class Namespace {
   }
   
   public SEXP getExportIfExists(Symbol entry) {
+
     // the base package's namespace is treated specially for historical reasons:
     // all symbols are considered to be exported.
     if(FqPackageName.BASE.equals(pkg.getName())) {
       return namespaceEnvironment.getVariableUnsafe(entry);
-
     }
+
+    // If there is an attempt to access exports before the exports have actually been initialized,
+    // for example, while the namespace's sources are being evaluated, then just pass the request through.
+    if(!exportsInitialized) {
+      return namespaceEnvironment.findVariableUnsafe(entry);
+    }
+
     if(exports.contains(entry)) {
       return this.namespaceEnvironment.findVariableUnsafe(entry);
     }
@@ -430,6 +439,8 @@ public class Namespace {
         exports.add(Symbol.get(objectName));
       }
     }
+
+    exportsInitialized = true;
   }
 
   /**

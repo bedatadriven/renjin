@@ -17,20 +17,17 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
+
 library(hamcrest)
-library(methods)
 
-f = function(x,y) {
-  paste(">", ">", ">", nargs())
-}
+g.default <- function(x,...) list(n=nargs(), call=sys.call())
+g.foo <- function(x,i,j) NextMethod()
+g <- function(x,i,j) UseMethod('g')
+x<-1
+class(x) <- 'foo'
 
-assertThat(f(), identicalTo("> > > 0"))
-assertThat(f(1), identicalTo("> > > 1"))
-assertThat(f(1,1), identicalTo("> > > 2"))
+assertThat(g(x,1)$n, identicalTo(2L))
+assertThat(g(x,1)$call, deparsesTo("g.default(x, 1)"))
 
-
-g <- function(i,j=3,...) nargs()
-
-assertThat(g(), identicalTo(0L))
-assertThat(g(i=1), identicalTo(1L))
-assertThat(g(x=9,y=10,z=11), identicalTo(3L))
+assertThat(g(x,1,2)$n, identicalTo(3L))
+assertThat(g(x,1,2)$call, deparsesTo("g.default(x, 1, 2)"))

@@ -91,7 +91,7 @@ public class Context {
   private int evaluationDepth;
   private Type type;
   private Environment environment;
-  private Session session; 
+  private Session session;
   private FunctionCall call;
   private SEXP function;
 
@@ -475,6 +475,14 @@ public class Context {
     return function;
   }
 
+  /**
+   * The effective arguments to this function call, promised in the calling environment.
+   *
+   * Important: in the course of S3 or S4 calls, these arguments may be transformed and can be substantially
+   * different than the {@code context.getCall().getArguments()}
+   *
+   * @return a pairlist containing the arguments to this function context, promised in the calling environment.
+   */
   public PairList getArguments() {
     if(type != Type.FUNCTION) {
       throw new IllegalStateException("Only Contexts of type FUNCTION contain a FunctionCall");
@@ -486,6 +494,10 @@ public class Context {
     return call.getFunction();
   }
 
+  /**
+   *
+   * @return the symbol call S-expression that initiated this function call context.
+   */
   public FunctionCall getCall() {
     return call;
   }

@@ -25,6 +25,7 @@ import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Recycle;
 import org.renjin.invoke.reflection.converters.StringArrayConverter;
+import org.renjin.primitives.Deparse;
 import org.renjin.primitives.Identical;
 import org.renjin.primitives.io.connections.Connection.Type;
 import org.renjin.primitives.text.RCharsets;
@@ -418,5 +419,13 @@ public class Connections {
       conn.open(new OpenSpec(open));
     }
     return context.getSession().getConnectionTable().newConnection(conn);
+  }
+
+  @Internal
+  public static boolean isIncomplete(@Current Context context, SEXP conn) throws IOException {
+
+    Connection con = Connections.getConnection(context, conn);
+
+    return con.isIncomplete();
   }
 }

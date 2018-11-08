@@ -500,7 +500,7 @@ public class Evaluation {
 
   @Builtin
   public static int nargs(@Current Context context, @Current Environment environment) {
-    return Contexts.findCallingContext(context, environment).getArguments().length();
+    return Contexts.findCallingContext(context, environment).getCall().getArguments().length();
   }
   
   @Builtin(".Primitive")

@@ -20,17 +20,23 @@
 library(hamcrest)
 library(methods)
 
-f = function(x,y) {
-  paste(">", ">", ">", nargs())
+setClass("aa", slots = c(x = 'numeric'))
+a1 = new("aa", x = 0)
+
+setMethod("[<-", signature(x = "aa", i = "missing", j = "ANY", value = "ANY"),
+    function(x, i, j, value) {
+        res <- fun1(x, i, j, value)
+        return(res)
+    })
+
+setMethod("[<-", signature(x = "aa", i = "missing", j = "ANY", value = "character"),
+    function(x, i, j, value) "aa[missing, ANY] <- character")
+
+"fun1" <- function(x, i, j, value) {
+    list(x@x, j, value)
 }
 
-assertThat(f(), identicalTo("> > > 0"))
-assertThat(f(1), identicalTo("> > > 1"))
-assertThat(f(1,1), identicalTo("> > > 2"))
-
-
-g <- function(i,j=3,...) nargs()
-
-assertThat(g(), identicalTo(0L))
-assertThat(g(i=1), identicalTo(1L))
-assertThat(g(x=9,y=10,z=11), identicalTo(3L))
+test.missing.1 = function() {
+    a1[ , 1] <- 2
+    assertThat(deparse(a1), identicalTo("list(0, 1, 2)"))
+}

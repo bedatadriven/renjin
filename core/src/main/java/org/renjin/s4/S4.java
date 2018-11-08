@@ -94,7 +94,7 @@ public class S4 {
 
     PairList coercedArgs = Methods.coerce(context, arguments, selectedMethod);
 
-    FunctionCall call = new FunctionCall(function, arguments.getPromisedArgs());
+    FunctionCall call = new FunctionCall(function, args);
 
     if (dispatchWithoutMeta(opName, source, selectedMethod)) {
       return context.evaluate(call);

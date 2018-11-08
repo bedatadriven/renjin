@@ -29,6 +29,7 @@ public class WriteTextConnection implements Connection {
   private Symbol objectName;
   private Environment environment;
   private boolean open = true;
+  private StringBuilder buffer = new StringBuilder();
 
   private PrintWriter printWriter;
 
@@ -38,7 +39,6 @@ public class WriteTextConnection implements Connection {
     this.printWriter = new PrintWriter(new Writer() {
 
       private List<String> lines = new ArrayList<>();
-      private StringBuilder buffer = new StringBuilder();
 
       @Override
       public void write(char[] cbuf, int off, int len) throws IOException {
@@ -111,6 +111,11 @@ public class WriteTextConnection implements Connection {
   @Override
   public OutputStream getOutputStream() throws IOException {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public boolean isIncomplete() {
+    return buffer.length() > 0;
   }
 
   @Override

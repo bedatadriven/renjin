@@ -22,6 +22,7 @@ import org.apache.commons.vfs2.*;
 import org.apache.commons.vfs2.impl.DefaultFileSystemConfigBuilder;
 import org.apache.commons.vfs2.provider.AbstractFileProvider;
 import org.apache.commons.vfs2.provider.UriParser;
+import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.ImmutableList;
 
@@ -30,7 +31,7 @@ import java.util.Collection;
 
 /**
  * An alternative version of {@link org.apache.commons.vfs2.provider.res.ResourceFileProvider} that
- * accepts a {@link ClassLoader} as a constructor parameter.
+ * accepts a {@link ClassLoader} as a constructor parameter, and handles jars nested in jars.
  *
  */
 public class ClasspathFileProvider extends AbstractFileProvider {
@@ -68,8 +69,52 @@ public class ClasspathFileProvider extends AbstractFileProvider {
       throw new FileSystemException("vfs.provider.url/badly-formed-uri.error", uri);
     }
 
-    return getContext().getFileSystemManager().resolveFile(url.toExternalForm());
+    String normalizeUri = normalizeNestedJarUris(url.toExternalForm());
+
+    return getContext().getFileSystemManager().resolveFile(normalizeUri);
   }
+
+
+  /**
+   * Some ClassLoaders, which apparently includes Spring Boot, generate URLs for nested jar that look like:
+   * <pre>
+   *   jar:file:/path/to/web.jar!/BOOT-INF/lib/renjin.jar!/org/renjin/sexp/SEXP.class
+   * </pre>
+   *
+   * Instead of the form that VFS expects, which would be:
+   * <pre>
+   *   jar:jar:file:/path/to/web.jar!/BOOT-INF/lib/renjin.jar!/org/renjin/sexp/SEXP.class
+   * </pre>
+   *
+   * This function normalizes urls with a single "jar:file" to the form expected by Apache VFS.
+   *
+   */
+  @VisibleForTesting
+  public static String normalizeNestedJarUris(String uri) {
+
+    if(!uri.startsWith("jar:file:")) {
+      return uri;
+    }
+
+    String[] parts = uri.split("!");
+
+    StringBuilder normalized = new StringBuilder();
+    normalized.append(parts[0]);
+    normalized.append("!");
+
+    for (int i = 1; i < parts.length - 1; i++) {
+      normalized.insert(0, "jar:");
+      normalized.append(parts[i]);
+      normalized.append("!");
+    }
+
+    if(parts.length > 1) {
+      normalized.append(parts[parts.length - 1]);
+    }
+
+    return normalized.toString();
+  }
+
 
   @Override
   public FileSystemConfigBuilder getConfigBuilder() {

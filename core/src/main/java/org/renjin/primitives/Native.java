@@ -22,7 +22,10 @@ import org.renjin.base.Base;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Profiler;
-import org.renjin.gcc.runtime.*;
+import org.renjin.gcc.runtime.BytePtr;
+import org.renjin.gcc.runtime.DoublePtr;
+import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.gcc.runtime.PointerPtr;
 import org.renjin.invoke.annotations.*;
 import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.invoke.reflection.FunctionBinding;
@@ -206,7 +209,7 @@ public class Native {
       }
       builder.add(callArguments.getName(i), sexpFromPointer(
           nativeArguments[i],
-          callArguments.get(i).getAttributes()));
+          callArguments.get(i)));
     }
     return builder.build();
   }
@@ -229,15 +232,15 @@ public class Native {
     return new PointerPtr(strings, 0);
   }
 
-  private static SEXP sexpFromPointer(Object ptr, AttributeMap attributes) {
+  private static SEXP sexpFromPointer(Object ptr, SEXP inputArgument) {
     // We are trusting the C code not to modify the arrays after the call
     // returns. 
     if(ptr instanceof DoublePtr) {
-      return DoubleArrayVector.unsafe(((DoublePtr) ptr).array, attributes);
+      return DoubleArrayVector.unsafe(((DoublePtr) ptr).array, inputArgument.getAttributes());
     } else if(ptr instanceof IntPtr) {
-      return new IntArrayVector(((IntPtr) ptr).array, attributes);
-    } else if(ptr instanceof ObjectPtr) {
-      return new NativeStringVector((ObjectPtr)ptr, attributes);
+      return new IntArrayVector(((IntPtr) ptr).array, inputArgument.getAttributes());
+    } else if(ptr instanceof PointerPtr) {
+      return new NativeStringVector((PointerPtr) ptr, inputArgument.getAttributes());
     } else {
       throw new UnsupportedOperationException(ptr.toString());
     }

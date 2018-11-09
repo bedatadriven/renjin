@@ -339,8 +339,6 @@ public final class Defn {
       EvalException.check(count <= expectedArguments &&
               count >= (expectedArguments-optional),
           "invalid number of arguments");
-    } else {
-      throw new EvalException("invalid argument type to 'Rf_checkArityCall'");
     }
   }
 

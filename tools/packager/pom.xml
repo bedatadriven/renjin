@@ -28,6 +28,11 @@
             <artifactId>renjin-soot</artifactId>
             <version>2.9.198</version>
         </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20180130</version>
+        </dependency>
     </dependencies>
     
 </project>

@@ -146,6 +146,10 @@ public class PackageBuild implements BuildContext {
     return new File(buildDir, source.getPackageName() + "-" + getBuildVersion() + ".jar");
   }
 
+  public File getZipFile() {
+    return new File(buildDir, source.getPackageName() + "-" + getBuildVersion() + ".zip");
+  }
+
   @Override
   public File getCompileLogDir() {
     throw new UnsupportedOperationException("TODO");

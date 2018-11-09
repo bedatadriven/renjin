@@ -29,11 +29,16 @@ import org.renjin.aether.AetherFactory;
 import org.renjin.packaging.BuildException;
 import org.renjin.packaging.PackageBuilder;
 import org.renjin.packaging.PackageSource;
+import org.renjin.primitives.packaging.Package;
+import org.renjin.primitives.packaging.Packages;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 
 /**
@@ -53,11 +58,14 @@ public class Builder {
 
       PackageBuild build = new PackageBuild(source);
 
-      if(action.equals("build") || action.equals("install")) {
+      if(action.equals("build") || action.equals("install") || action.equals("zip")) {
         executeBuild(build);
       }
       if(action.equals("install")) {
         executeInstall(source, build);
+      }
+      if(action.equals("zip")) {
+        executeZip(source, build);
       }
     }
   }
@@ -96,5 +104,13 @@ public class Builder {
     } catch (InstallationException e) {
       throw new BuildException("Exception installing artifact " + build.getJarFile().getAbsolutePath(), e);
     }
+  }
+
+  private static void executeZip(PackageSource source, PackageBuild build) throws IOException {
+
+    ZipOutputStream output = new ZipOutputStream(new FileOutputStream(build.getZipFile()));
+
+
+
   }
 }

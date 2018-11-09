@@ -19,6 +19,8 @@
 package org.renjin.packaging;
 
 import org.apache.commons.vfs2.FileSystemException;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.renjin.RenjinVersion;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -75,7 +77,9 @@ public class NamespaceBuilder2 {
     writeTransformedNamespace();
     writeRequires();
     writePackageRds();
+    writeExecuteMetadata(namespace);
   }
+
 
   /**
    * Load packages in the Depends field onto the global search path
@@ -255,6 +259,14 @@ public class NamespaceBuilder2 {
 
   }
 
+  private void writeExecuteMetadata(Namespace namespace) {
+      SEXP execute = namespace.getNamespaceEnvironment().getVariableUnsafe(Symbol.get("execute"));
+      if(execute instanceof Closure) {
+        JSONObject metadata = ExecuteMetadata.composeMetadata(((Closure) execute));
+        File metaInfDir = new File(buildContext.getOutputDir(), "META-INF");
+
+      }
+  }
 
 
   private void writeRequires() {

@@ -122,4 +122,11 @@ public interface Connection {
    * @return the type of Connection: either {@link Type#BINARY} or {@link Type#TEXT}
    */
   Type getType();
+
+  /**
+   * @return true if connection type is {@link Type#TEXT} and buffer is empty and false otherwise.
+   */
+  default boolean isIncomplete() {
+    return false;
+  };
 }

@@ -92,6 +92,15 @@ public class Primitives {
     return getPrimitive(INSTANCE.internalEntries, INSTANCE.internals, symbol);
   }
 
+
+  public static PrimitiveFunction getPrimitive(Symbol symbol) {
+    if(INSTANCE.internalEntries.containsKey(symbol)) {
+      return getInternal(symbol);
+    } else {
+      return getBuiltin(symbol);
+    }
+  }
+
   public static boolean isBuiltin(String opName) {
     Symbol symbol = Symbol.get(opName);
     return INSTANCE.builtinEntries.containsKey(symbol);
@@ -1039,6 +1048,7 @@ public class Primitives {
     e.eval = eval;
     add(e);
   }
+
 
 
   public static class Entry {

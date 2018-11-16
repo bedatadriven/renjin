@@ -59,3 +59,25 @@ SEXP attribute_hidden do_Externalgr(SEXP call, SEXP op, SEXP args, SEXP env)
     UNPROTECT(1);
     return retval;
 }
+
+
+SEXP attribute_hidden do_dotcallgr(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    // Since we are being invoked by .Call, skip the first argument
+    // which is our function name
+    args = CDR(args);
+
+    SEXP retval;
+    pGEDevDesc dd = GEcurrentDevice();
+    Rboolean record = dd->recordGraphics;
+    dd->recordGraphics = FALSE;
+    PROTECT(retval = do_dotcall(call, op, args, env));
+    dd->recordGraphics = record;
+    if (GErecording(call, dd)) {
+	if (!GEcheckState(dd))
+	    errorcall(call, _("invalid graphics state"));
+	GErecordGraphicOperation(op, args, dd);
+    }
+    UNPROTECT(1);
+    return retval;
+}

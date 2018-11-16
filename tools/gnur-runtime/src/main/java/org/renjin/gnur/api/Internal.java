@@ -409,11 +409,7 @@ public final class Internal {
   }
 
   public static SEXP do_dotcall(SEXP call, SEXP op, SEXP args, SEXP env) {
-    throw new UnimplementedGnuApiMethod("do_dotcall");
-  }
-
-  public static SEXP do_dotcallgr(SEXP call, SEXP op, SEXP args, SEXP env) {
-    throw new UnimplementedGnuApiMethod("do_dotcallgr");
+    return invokeInternal(".Call", call, op, args, env);
   }
 
   public static SEXP do_dotCode(SEXP call, SEXP op, SEXP args, SEXP env) {

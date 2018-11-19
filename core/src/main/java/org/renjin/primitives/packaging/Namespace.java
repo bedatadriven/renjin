@@ -156,7 +156,7 @@ public class Namespace {
       } else {
         SEXP exportValue = namespaceEnvironment.findVariableUnsafe(name);
         if(exportValue == Symbol.UNBOUND_VALUE) {
-          context.warn(String.format("Symbol '%s' is not defined in package '%s'", name.getPrintName(), pkg.getName()));
+//          context.warn(String.format("Symbol '%s' is not defined in package '%s'", name.getPrintName(), pkg.getName()));
         } else {
           packageEnv.setVariableUnsafe(name, exportValue);
         }
@@ -215,9 +215,9 @@ public class Namespace {
         for (Symbol symbol : entry.getSymbols()) {
           SEXP export = importedNamespace.getExportIfExists(symbol);
           if(export == Symbol.UNBOUND_VALUE) {
-            context.warn(String.format("Symbol '%s' not exported from namespace '%s'", 
-                symbol.getPrintName(), 
-                importedNamespace.getName()));
+//            context.warn(String.format("Symbol '%s' not exported from namespace '%s'",
+//                symbol.getPrintName(),
+//                importedNamespace.getName()));
           } else {
             importsEnvironment.setVariableUnsafe(symbol, export);
           }

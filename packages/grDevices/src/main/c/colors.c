@@ -1562,7 +1562,7 @@ SEXP colors(void)
 }
 
 /* Used to push/pop palette when replaying display list */
-static void savePalette(Rboolean save)
+static void savePaletteImpl(Rboolean save)
 {
     if (save)
 	for (int i = 0; i < PaletteSize; i++)
@@ -1578,10 +1578,13 @@ typedef const char * (*F2)(unsigned int col);
 typedef unsigned int (*F3)(const char *s);
 typedef void (*F4)(Rboolean save);
 
+static F4 ptr_savePalette;
+
 void Rg_set_col_ptrs(F1 f1, F2 f2, F3 f3, F4 f4);
 
 void initPalette(void)
 {
+    ptr_savePalette = &savePaletteImpl;
     //Rg_set_col_ptrs(&inRGBpar3, &incol2name, &inR_GE_str2col, &savePalette);
 
     /* Initialize the Color Database: we now pre-compute this
@@ -1596,3 +1599,10 @@ void initPalette(void)
     */
 }
 
+/* used in baseEngine.c */
+attribute_hidden
+void savePalette(Rboolean save)
+{
+    if (!ptr_savePalette) error("package grDevices must be loaded");
+    (ptr_savePalette)(save);
+}

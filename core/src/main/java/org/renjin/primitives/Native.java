@@ -462,7 +462,7 @@ public class Native {
 
     SEXP call = context.getCall();
     SEXP op = Null.INSTANCE;
-    SEXP args = new PairList.Node(StringVector.valueOf(symbol.getName()), PairList.Node.fromVector(callArguments));
+    SEXP args = new PairList.Node(methodExp, PairList.Node.fromVector(callArguments));
     SEXP rho = context.getEnvironment();
 
     if(Profiler.ENABLED) {

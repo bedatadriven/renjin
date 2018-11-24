@@ -23,7 +23,10 @@ import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.io.ByteStreams;
 import org.renjin.sexp.*;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class BinaryReader {
 
@@ -174,5 +177,18 @@ public class BinaryReader {
       vector.add(buffer.toString(Charsets.UTF_8.name()));
     }
     return vector.build();
+  }
+
+  public Vector readRaw(int n, int size) throws IOException {
+    int byteCount = n;
+    byte[] buffer = new byte[byteCount];
+
+    int offset = 0;
+    while(byteCount > 0) {
+      int bytesRead = in.read(buffer, offset, byteCount);
+      byteCount -= bytesRead;
+      offset += bytesRead;
+    }
+    return RawVector.unsafe(buffer);
   }
 }

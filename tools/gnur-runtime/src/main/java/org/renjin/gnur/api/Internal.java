@@ -19,6 +19,7 @@
 // Initial template generated from Internal.h from R 3.2.2
 package org.renjin.gnur.api;
 
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.Native;
 import org.renjin.primitives.Primitives;
 import org.renjin.sexp.*;
@@ -34,6 +35,26 @@ public final class Internal {
 
   private static SEXP invokeInternal(String name, SEXP call, SEXP op, SEXP args, SEXP env) {
     return Primitives.getPrimitive(Symbol.get(name)).apply(Native.currentContext(), (Environment)env, (FunctionCall)call, (PairList)args);
+  }
+
+  public static SEXP invokePrimitive(SEXP callSexp, SEXP op, SEXP args, SEXP env) {
+    Environment rho;
+    if(env == Null.INSTANCE) {
+      rho = Environment.EMPTY;
+    } else {
+      rho = (Environment) env;
+    }
+    FunctionCall call;
+    if(callSexp instanceof FunctionCall) {
+      call = (FunctionCall) callSexp;
+    } else if(callSexp == Null.INSTANCE) {
+      call = new FunctionCall(op, (PairList) args);
+    } else {
+      throw new EvalException("typeof(call) = " + callSexp.getTypeName());
+    }
+
+    PrimitiveFunction function = (PrimitiveFunction) op;
+    return function.apply(Native.currentContext(), rho, call, (PairList) args);
   }
 
   public static SEXP do_X11(SEXP call, SEXP op, SEXP args, SEXP env) {

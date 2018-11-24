@@ -25,6 +25,7 @@ import org.renjin.gnur.api.annotations.Allocator;
 import org.renjin.parser.NumericLiterals;
 import org.renjin.primitives.Deparse;
 import org.renjin.primitives.Native;
+import org.renjin.primitives.Primitives;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.sexp.*;
 import org.renjin.util.CDefines;
@@ -331,15 +332,10 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("Rf_check1arg");
   }
 
-  public static void Rf_checkArityCall(SEXP p0, SEXP p1, SEXP p2) {
-    if(!(p0 instanceof Null)) {
-      int count = ((FunctionCall) p0).getArguments().length();
-      int expectedArguments = ((Vector) p1).getElementAsInt(0);
-      int optional = ((Vector) p2).getElementAsInt(0);
-      EvalException.check(count <= expectedArguments &&
-              count >= (expectedArguments-optional),
-          "invalid number of arguments");
-    }
+  public static void Rf_checkArityCall(SEXP op, SEXP args, SEXP call) {
+    // Noop for now
+    // Calling an internal with the wrong number of arguments will generate
+    // a suitable EvalException anyway, rather than a potential segfault as with GNU Rs
   }
 
   public static void Rf_CheckFormals(SEXP p0) {
@@ -831,8 +827,13 @@ public final class Defn {
 
   // FILE* R_OpenLibraryFile (const char *)
 
+  @Deprecated
   public static SEXP R_Primitive(BytePtr p0) {
-    throw new UnimplementedGnuApiMethod("R_Primitive");
+    return R_Primitive((Ptr)p0);
+  }
+
+  public static SEXP R_Primitive(Ptr name) {
+    return Primitives.getPrimitive(Symbol.get(Stdlib.nullTerminatedString(name)));
   }
 
   public static void R_RestoreGlobalEnv() {

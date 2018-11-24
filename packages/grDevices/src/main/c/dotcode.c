@@ -44,6 +44,7 @@ SEXP attribute_hidden do_Externalgr(SEXP call, SEXP op, SEXP args, SEXP env)
     // Since we are being invoked by .External2, skip the first argument
     // which is our function name
     args = CDR(args);
+    op = R_Primitive(".External");
 
     SEXP retval;
     pGEDevDesc dd = GEcurrentDevice();
@@ -66,6 +67,7 @@ SEXP attribute_hidden do_dotcallgr(SEXP call, SEXP op, SEXP args, SEXP env)
     // Since we are being invoked by .Call, skip the first argument
     // which is our function name
     args = CDR(args);
+    op = R_Primitive(".Call");
 
     SEXP retval;
     pGEDevDesc dd = GEcurrentDevice();

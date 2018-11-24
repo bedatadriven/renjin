@@ -367,7 +367,8 @@ typedef struct {
     PPinfo gram;     /* pretty-print info */
 } FUNTAB;
 
-#ifdef USE_RINTERNALS
+#ifdef USE_RINTERNALS_NEVER_NOOIT
+
 /* There is much more in Rinternals.h, including function versions
  * of the Promise and Hashing groups.
  */
@@ -443,7 +444,13 @@ typedef struct VECREC *VECP;
 int (PRIMOFFSET)(SEXP x);
 void (SET_PRIMOFFSET)(SEXP x, int v);
 
-#define PRIMFUN(x)	(R_FunTab[PRIMOFFSET(x)].cfun)
+// The 'op' value is actually an instance of PrimitiveFunction,
+// so we just need a wrapper function to invoke it
+// 'invokePrimitive' is implemented in Internal.java
+
+SEXP invokePrimitive(SEXP, SEXP, SEXP, SEXP);
+#define PRIMFUN(x) invokePrimitive
+
 #define PRIMNAME(x)	(R_FunTab[PRIMOFFSET(x)].name)
 #define PRIMVAL(x)	(R_FunTab[PRIMOFFSET(x)].code)
 #define PRIMARITY(x)	(R_FunTab[PRIMOFFSET(x)].arity)

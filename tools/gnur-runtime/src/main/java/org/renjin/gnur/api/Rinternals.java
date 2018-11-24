@@ -2986,8 +2986,13 @@ public final class Rinternals {
     return FunctionCall.newCall(p0, p1, p2, p3, p4, p5);
   }
 
-  public static SEXP Rf_lastElt(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_lastElt");
+  public static SEXP Rf_lastElt(SEXP list) {
+    SEXP result = Null.INSTANCE;
+    while (list != Null.INSTANCE) {
+      result = list;
+      list = CDR(list);
+    }
+    return result;
   }
 
   /**

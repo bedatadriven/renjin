@@ -76,7 +76,15 @@ public class ClosureDispatcher {
         }
       }
 
-      return closure.doApply(functionContext);
+      try {
+        return closure.doApply(functionContext);
+      } catch (EvalException e) {
+        // Associate this EvalException with this function call context if it's not already.
+        // N.B. initContext() also searches for condition handlers and may rethrow this
+        // EvalException as a ConditionException if found.
+        e.initContext(functionContext);
+        throw e;
+      }
 
     } catch(ReturnException e) {
       if (e.getEnvironment() != functionEnvironment) {
@@ -98,13 +106,6 @@ public class ClosureDispatcher {
       } else {
         throw e;
       }
-
-    } catch(EvalException e) {
-      // Associate this EvalException with this function call context if it's not already.
-      // N.B. initContext() also searches for condition handlers and may rethrow this
-      // EvalException as a ConditionException if found.
-      e.initContext(functionContext);
-      throw e;
 
     } finally {
       functionContext.exit();

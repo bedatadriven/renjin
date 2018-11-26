@@ -559,7 +559,11 @@ public class Context {
 
 
   public void warn(String message) {
-    Warning.emitWarning(this, false, message);
+    Warning.warning(this, Null.INSTANCE, false, message);
+  }
+
+  public void warn(FunctionCall call, String message) {
+    Warning.warning(this, call, false, message);
   }
   
   /**

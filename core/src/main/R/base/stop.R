@@ -57,7 +57,7 @@ warning <- function(..., call. = TRUE, immediate. = FALSE, domain = NULL)
         call <- conditionCall(cond)
         withRestarts({
                 .Internal(.signalCondition(cond, message, call))
-                .Internal(.dfltWarn(message, call))
+                .Internal(.dfltWarn(message, call, FALSE))
             }, muffleWarning = function() NULL) #**** allow simpler form??
         invisible(message)
     } else

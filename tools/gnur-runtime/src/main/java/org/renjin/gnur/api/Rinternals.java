@@ -2520,16 +2520,13 @@ public final class Rinternals {
     throw new EvalException(errorMessage);
   }
 
-  public static void Rf_warningcall (SEXP callSexp, Ptr format, Object... args) {
-    String message = Stdlib.format(format, new FormatArrayInput(args));
-    FunctionCall call = null;
-    if(callSexp instanceof FunctionCall) {
-      call = (FunctionCall) callSexp;
-    }
-    Warning.emitWarning(Native.currentContext(), call, false, message);
+  public static void Rf_warningcall (SEXP call, Ptr format, Object... args) {
+    Warning.warning(Native.currentContext(), call, false, Stdlib.format(format, new FormatArrayInput(args)));
   }
 
-  // void Rf_warningcall_immediate (SEXP, const char *,...)
+  public static void Rf_warningcall_immediate(SEXP call, Ptr format, Object... args) {
+    Warning.warning(Native.currentContext(), call, true, Stdlib.format(format, new FormatArrayInput(args)));
+  }
 
   public static void R_XDREncodeDouble(double d, Object buf) {
     throw new UnimplementedGnuApiMethod("R_XDREncodeDouble");

@@ -531,7 +531,7 @@ public class Evaluation {
       }
       e = e.getParent();
     }
-    Warning.emitWarning(context, false,"object '" + name.getPrintName() + "' not found");
+    context.warn("object '" + name.getPrintName() + "' not found");
   }
 
 }

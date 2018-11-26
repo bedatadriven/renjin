@@ -20,7 +20,6 @@ package org.renjin.sexp;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.Warning;
 
 
 public abstract class SpecialFunction extends PrimitiveFunction {
@@ -54,7 +53,7 @@ public abstract class SpecialFunction extends PrimitiveFunction {
       throw new EvalException("argument is of length zero");
     }
     if (s.length() > 1) {
-      Warning.invokeWarning(context, call, "the condition has length > 1 and only the first element will be used");
+      context.warn(call, "the condition has length > 1 and only the first element will be used");
     }
 
     s = context.materialize(s);

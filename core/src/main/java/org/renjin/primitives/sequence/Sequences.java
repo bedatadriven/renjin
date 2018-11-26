@@ -23,7 +23,6 @@ import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
-import org.renjin.primitives.Warning;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.sexp.*;
 
@@ -71,7 +70,7 @@ public class Sequences {
     if(exp.length() == 0) {
       throw new EvalException("argument of length 0");
     } else if(exp.length() > 1) {
-      Warning.invokeWarning(context, "numerical expression has %d elements: only the first used", exp.length());
+      context.warn(String.format("numerical expression has %d elements: only the first used", exp.length()));
     }
   }
 

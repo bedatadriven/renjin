@@ -78,6 +78,18 @@ test.rethrow <- function() {
     # skip silently terminate code
     skip =  function(e) {}
     )
+}
 
+test.errors <- function() {
 
+    errorHandlerCalled <- FALSE
+    flowResumed <- FALSE
+
+    ev <- try(withCallingHandlers({
+            stop('foo')
+            flowResumed <<- TRUE
+        }, error = function(e) { errorHandlerCalled <<- TRUE }), silent=TRUE)
+
+    assertThat(class(ev), identicalTo("try-error"))
+    assertTrue(errorHandlerCalled)
 }

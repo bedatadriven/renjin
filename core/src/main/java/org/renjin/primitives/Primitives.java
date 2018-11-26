@@ -190,7 +190,7 @@ public class Primitives {
     f(".resetCondHands", /*resetCondHands*/ null, 111);
     f(".signalCondition", Conditions.class, 11);
     f(".dfltStop", Conditions.class, 11);
-    f(".dfltWarn", /*dfltWarn*/ null, 11);
+    f(".dfltWarn", Warning.class, 11);
     f(".addRestart", Conditions.class, 11);
     f(".getRestart", Conditions.class, 11);
     f(".invokeRestart", Conditions.class, 11);

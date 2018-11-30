@@ -60,8 +60,7 @@ public class AppEngineLocalFilesSystemProviderTest {
     File basePath = new File(getClass().getResource("/jarfiletest.jar").getFile())
                       .getParentFile();
 
-    FileSystemManager dfsm = AppEngineContextFactory.createFileSystemManager(
-        new AppEngineLocalFilesSystemProvider(basePath));
+    FileSystemManager dfsm = AppEngineContextFactory.createFileSystemManager(basePath);
 
     FileObject jarFile = dfsm.resolveFile("/jarfiletest.jar");
     assertThat(jarFile.getName().getURI(), equalTo("file:///jarfiletest.jar"));

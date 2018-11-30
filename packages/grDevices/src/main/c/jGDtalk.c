@@ -159,7 +159,7 @@ static int  newJavaGD_HoldFlush(NewDevDesc *dd, int level)
     int ol;
     newJavaGDDesc *xd = (newJavaGDDesc *) dd->deviceSpecific;
 
-    if (!xd) {
+    if (!xd->buffered) {
         return 0;
     }
 

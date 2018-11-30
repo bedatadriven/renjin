@@ -47,7 +47,7 @@ public class System {
   private static final double MILLISECONDS_PER_SECOND = 1000d;
   
 
-  @Internal
+  @Internal("R.home")
   public static String getRHome(@Current Context context) throws URISyntaxException {
     return context.getSession().getHomeDirectory();
   }

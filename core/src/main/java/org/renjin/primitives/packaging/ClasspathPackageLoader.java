@@ -41,6 +41,10 @@ public class ClasspathPackageLoader implements PackageLoader {
     this.classLoader = loader;
   }
 
+  public ClassLoader getClassLoader() {
+    return classLoader;
+  }
+
   @Override
   public Optional<Package> load(FqPackageName name) {
     ClasspathPackage pkg = new ClasspathPackage(classLoader, name);

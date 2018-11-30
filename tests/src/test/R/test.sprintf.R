@@ -62,3 +62,6 @@ test.recycling <- function() {
          c("a1x9", "b2y10", "c3z11", "a4x12", "b5y9", "c6z10")))
 }
 
+test.extra.escapes <- function() {
+    assertThat(sprintf("^z\\d{3}|^%s$", "lb1"), identicalTo("^z\\d{3}|^lb1$"))
+}

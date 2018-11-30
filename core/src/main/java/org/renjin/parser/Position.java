@@ -26,9 +26,9 @@ package org.renjin.parser;
  */
 public class Position {
 
-  public int line;
-  public int column;
-  public int charIndex;
+  private int line;
+  private int column;
+  private int charIndex;
 
   public Position() {
   }
@@ -41,7 +41,7 @@ public class Position {
 
   @Override
   public Position clone() {
-    return new Position(line, column, charIndex);
+    return new Position(getLine(), getColumn(), getCharIndex());
   }
 
   @Override
@@ -55,13 +55,13 @@ public class Position {
 
     Position position = (Position) o;
 
-    if (charIndex != position.charIndex) {
+    if (getCharIndex() != position.getCharIndex()) {
       return false;
     }
-    if (column != position.column) {
+    if (getColumn() != position.getColumn()) {
       return false;
     }
-    if (line != position.line) {
+    if (getLine() != position.getLine()) {
       return false;
     }
 
@@ -70,14 +70,27 @@ public class Position {
 
   @Override
   public int hashCode() {
-    int result = line;
-    result = 31 * result + column;
-    result = 31 * result + charIndex;
+    int result = getLine();
+    result = 31 * result + getColumn();
+    result = 31 * result + getCharIndex();
     return result;
   }
 
   @Override
   public String toString() {
-    return "line " + (line + 1) + " char " + column;
+    return "line " + (getLine() + 1) + " byte " + (getCharIndex() + 1) + " col " + (getColumn() + 1);
   }
+
+  public int getLine() {
+    return line;
+  }
+
+  public int getColumn() {
+    return column;
+  }
+
+  public int getCharIndex() {
+    return charIndex;
+  }
+
 }

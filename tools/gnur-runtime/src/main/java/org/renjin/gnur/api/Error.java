@@ -22,6 +22,7 @@ package org.renjin.gnur.api;
 import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.Stdlib;
+import org.renjin.primitives.Native;
 
 import static org.renjin.gnur.api.Utils.R_CheckUserInterrupt;
 
@@ -40,7 +41,7 @@ public final class Error {
   }
 
   public static void Rf_warning(BytePtr text, Object... formatArgs) {
-    Stdlib.printf(text, formatArgs);
+    Native.currentContext().warn(Stdlib.format(text, formatArgs));
   }
 
   public static void Rf_error(BytePtr text, Object... formatArguments) {
@@ -58,15 +59,12 @@ public final class Error {
     throw new UnimplementedGnuApiMethod("WrongArgCount");
   }
 
-  // void Rf_warning (const char *,...)
-
   public static void R_ShowMessage(BytePtr s) {
     throw new UnimplementedGnuApiMethod("R_ShowMessage");
   }
 
   public static void rwarn_(BytePtr message, int messageLen) {
-    // TODO: hook into warnings
-    System.err.println(message.toString(messageLen));
+    Native.currentContext().warn(message.toString(messageLen));
   }
 
   public static void rexit_(BytePtr message, int messageLen) {

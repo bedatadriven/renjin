@@ -21,7 +21,6 @@ package org.renjin.eval;
 import org.renjin.primitives.special.ReturnException;
 import org.renjin.sexp.*;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
@@ -77,7 +76,15 @@ public class ClosureDispatcher {
         }
       }
 
-      return closure.doApply(functionContext);
+      try {
+        return closure.doApply(functionContext);
+      } catch (EvalException e) {
+        // Associate this EvalException with this function call context if it's not already.
+        // N.B. initContext() also searches for condition handlers and may rethrow this
+        // EvalException as a ConditionException if found.
+        e.initContext(functionContext);
+        throw e;
+      }
 
     } catch(ReturnException e) {
       if (e.getEnvironment() != functionEnvironment) {
@@ -100,33 +107,9 @@ public class ClosureDispatcher {
         throw e;
       }
 
-    } catch(EvalException e) {
-
-      e.initContext(functionContext);
-      SEXP handler = findHandler(functionContext, Arrays.asList("simpleError", "error", "condition"));
-      if(handler != null) {
-        // the R code in conditions.R expects this format (condition, message, handler).
-        // I think is the kind of thing that should be moved entirely into java to avoid
-        // these complicated relationships between R and Java/C code but i don't want
-        // to mess with the R code too much at this point.
-
-        return new ListVector(e.getCondition(), Null.INSTANCE, handler);
-      } else {
-        throw e;
-      }
     } finally {
       functionContext.exit();
     }
-  }
-  
-  private static SEXP findHandler(Context context, Iterable<String> conditionClasses) {
-    for(String conditionClass : conditionClasses) {
-      ConditionHandler handler = context.getConditionHandler(conditionClass);
-      if(handler != null) {
-        return handler.getFunction();
-      }
-    }
-    return null;
   }
 
 

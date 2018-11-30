@@ -70,9 +70,23 @@ public class ClasspathPackage extends FileBasedPackage {
   public FileObject resolvePackageRoot(FileSystemManager fileSystemManager) throws FileSystemException {
     // Find the URL where the package is located
     String qualifiedName = qualifyResourceName("environment");
-    URL url = classLoader.getResource(qualifiedName);
-    
-    return fileSystemManager.resolveFile(url.toString()).getParent();
+    String uri = "res:" + qualifiedName;
+
+
+    FileObject environmentFileObject;
+    try {
+      environmentFileObject = fileSystemManager.resolveFile(uri);
+    } catch (FileSystemException e) {
+      throw new FileSystemException("Exception locating package resource '" + uri + "' using the provided VirtualFileSystem, " +
+          "check your Renjin Session configuration.", e);
+    }
+
+    if(!environmentFileObject.exists()) {
+      throw new FileSystemException("Could not locate resource '" + uri + "' using the provided VirtualFileSystem, " +
+          "check your Renjin Session configuration.");
+    }
+
+    return environmentFileObject.getParent();
   }
 
 

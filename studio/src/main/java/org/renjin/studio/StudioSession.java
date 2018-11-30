@@ -37,8 +37,10 @@ public class StudioSession {
     super();
     threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
+    AetherPackageLoader packageLoader = new AetherPackageLoader();
     this.session = new SessionBuilder()
-        .setPackageLoader(new AetherPackageLoader())
+        .setPackageLoader(packageLoader)
+        .setClassLoader(packageLoader.getClassLoader())
         .setExecutorService(threadPool)
         .withDefaultPackages().build();
   }

@@ -1,5 +1,10 @@
 
 
-.Call.graphics <- .Call
+.Call.graphics <- function (...) {
+    .External2(C_do_dotcallgr, ...)
+}
 
-.External.graphics <- .External
+.External.graphics <- function (...) {
+    .External2(C_do_Externalgr, ...)
+}
+

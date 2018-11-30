@@ -1,5 +1,8 @@
 #  File src/library/base/R/ifelse.R
-#  Part of the R package, http://www.R-project.org
+#  File src/library/base/R/ifelse.R
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2014 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,18 +15,42 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
-ifelse <-
-    function (test, yes, no)
+ifelse <- function (test, yes, no)
 {
-    storage.mode(test) <- "logical"
+    if(is.atomic(test)) { # do not lose attributes
+        if (typeof(test) != "logical")
+            storage.mode(test) <- "logical"
+        ## quick return for cases where 'ifelse(a, x, y)' is used
+        ## instead of 'if (a) x else y'
+        if (length(test) == 1 && is.null(attributes(test))) {
+            if (is.na(test)) return(NA)
+            else if (test) {
+                if (length(yes) == 1) {
+                    yat <- attributes(yes)
+                    if (is.null(yat) || (is.function(yes) &&
+                                         identical(names(yat), "srcref")))
+                        return(yes)
+                }
+            }
+            else if (length(no) == 1) {
+                nat <- attributes(no)
+                if (is.null(nat) || (is.function(no) &&
+                                     identical(names(nat), "srcref")))
+                    return(no)
+            }
+        }
+    }
+    else ## typically a "class"; storage.mode<-() typically fails
+	test <- if(isS4(test)) methods::as(test, "logical") else as.logical(test)
     ans <- test
-    nas <- is.na(test)
-    if (any(test[!nas]))
-        ans[test & !nas] <- rep(yes, length.out = length(ans))[test & !nas]
-    if (any(!test[!nas]))
-        ans[!test & !nas] <- rep(no, length.out = length(ans))[!test & !nas]
+    ok <- !(nas <- is.na(test))
+    if (any(test[ok]))
+	ans[test & ok] <- rep(yes, length.out = length(ans))[test & ok]
+    if (any(!test[ok]))
+	ans[!test & ok] <- rep(no, length.out = length(ans))[!test & ok]
     ans[nas] <- NA
     ans
 }
+

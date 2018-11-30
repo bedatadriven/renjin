@@ -132,6 +132,10 @@ Rf_setNewJavaGDDeviceData(NewDevDesc *dd, double gamma_fac, newJavaGDDesc *xd)
     dd->startfont = 1;
     dd->startgamma = gamma_fac;
 
+
+    dd->displayListOn = FALSE;
+
+    xd->buffered = 0;
     dd->deviceSpecific = (void *) xd;
 
     dd->displayListOn = TRUE;

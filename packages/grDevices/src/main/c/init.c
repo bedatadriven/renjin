@@ -31,6 +31,8 @@
 #include <R_ext/Visibility.h>
 
 SEXP newJavaGD(SEXP name, SEXP sw, SEXP sh, SEXP sps);
+SEXP do_Externalgr(SEXP call, SEXP op, SEXP args, SEXP rho);
+SEXP do_dotcallgr(SEXP call, SEXP op, SEXP args, SEXP rho);
 
 
 #ifndef _WIN32
@@ -112,6 +114,8 @@ static const R_ExternalMethodDef ExtEntries[] = {
     EXTDEF(getGraphicsEventEnv, 1),
     EXTDEF(setGraphicsEventEnv, 2),
     EXTDEF(devAskNewPage, 1),
+    EXTDEF(do_Externalgr, -1),
+    EXTDEF(do_dotcallgr, -1),
 
 #ifdef _WIN32
     EXTDEF(savePlot, 4),

@@ -42,6 +42,8 @@ public class Namespace {
 
   private final List<Symbol> exports = Lists.newArrayList();
 
+  private boolean exportsInitialized = false;
+
   protected final List<DllInfo> libraries = new ArrayList<>(0);
 
   /**
@@ -102,12 +104,19 @@ public class Namespace {
   }
   
   public SEXP getExportIfExists(Symbol entry) {
+
     // the base package's namespace is treated specially for historical reasons:
     // all symbols are considered to be exported.
     if(FqPackageName.BASE.equals(pkg.getName())) {
       return namespaceEnvironment.getVariableUnsafe(entry);
-
     }
+
+    // If there is an attempt to access exports before the exports have actually been initialized,
+    // for example, while the namespace's sources are being evaluated, then just pass the request through.
+    if(!exportsInitialized) {
+      return namespaceEnvironment.findVariableUnsafe(entry);
+    }
+
     if(exports.contains(entry)) {
       return this.namespaceEnvironment.findVariableUnsafe(entry);
     }
@@ -142,11 +151,15 @@ public class Namespace {
    */
   public void copyExportsTo(Context context, Environment packageEnv) {
     for(Symbol name : exports) {
-      SEXP exportValue = namespaceEnvironment.findVariableUnsafe(name);
-      if(exportValue == Symbol.UNBOUND_VALUE) {
-        context.warn(String.format("Symbol '%s' is not defined in package '%s'", name.getPrintName(), pkg.getName()));
+      if(namespaceEnvironment.isActiveBinding(name)) {
+        packageEnv.makeActiveBinding(name, namespaceEnvironment.getActiveBinding(name));
       } else {
-        packageEnv.setVariableUnsafe(name, exportValue);
+        SEXP exportValue = namespaceEnvironment.findVariableUnsafe(name);
+        if(exportValue == Symbol.UNBOUND_VALUE) {
+//          context.warn(String.format("Symbol '%s' is not defined in package '%s'", name.getPrintName(), pkg.getName()));
+        } else {
+          packageEnv.setVariableUnsafe(name, exportValue);
+        }
       }
     }
   }
@@ -202,9 +215,9 @@ public class Namespace {
         for (Symbol symbol : entry.getSymbols()) {
           SEXP export = importedNamespace.getExportIfExists(symbol);
           if(export == Symbol.UNBOUND_VALUE) {
-            context.warn(String.format("Symbol '%s' not exported from namespace '%s'", 
-                symbol.getPrintName(), 
-                importedNamespace.getName()));
+//            context.warn(String.format("Symbol '%s' not exported from namespace '%s'",
+//                symbol.getPrintName(),
+//                importedNamespace.getName()));
           } else {
             importsEnvironment.setVariableUnsafe(symbol, export);
           }
@@ -426,6 +439,8 @@ public class Namespace {
         exports.add(Symbol.get(objectName));
       }
     }
+
+    exportsInitialized = true;
   }
 
   /**

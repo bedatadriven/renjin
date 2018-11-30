@@ -95,4 +95,14 @@ public interface BuildContext {
    * @return a map from simple package name to its group id, for those known at build time.
    */
   Map<String, String> getPackageGroupMap();
+
+  default File getExecuteMetadataFile() {
+    File metaInfDir = new File(getOutputDir(), "META-INF");
+    return new File(metaInfDir, "org.renjin.execute");
+  }
+
+  default File getExecuteNamespaceFile() {
+    File metaInfDir = new File(getOutputDir(), "META-INF");
+    return new File(metaInfDir, "org.renjin.execute.namespace");
+  }
 }

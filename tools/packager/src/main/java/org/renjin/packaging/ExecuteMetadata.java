@@ -20,49 +20,49 @@
 
 package org.renjin.packaging;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
-import org.renjin.sexp.*;
+import org.json.JSONTokener;
+import org.renjin.repackaged.guava.io.CharSource;
+
+import java.io.IOException;
+import java.io.Reader;
 
 public class ExecuteMetadata {
 
+  private final JSONObject object;
 
-  public static JSONObject composeMetadata(Closure executeFunction) {
-    JSONArray parameterArray = new JSONArray();
-    for (PairList.Node formal : executeFunction.getFormals().nodes()) {
-      parameterArray.put(composeParameterMetadata(formal));
-    }
-
-    JSONObject metadata = new JSONObject();
-    metadata.put("parameters", parameterArray);
-
-    return metadata;
+  private ExecuteMetadata(JSONObject object) {
+    this.object = object;
   }
 
-  private static JSONObject composeParameterMetadata(PairList.Node formal) {
-    JSONObject parameterObject = new JSONObject();
-    parameterObject.put("name", formal.getTag().getPrintName());
-    if(formal.getValue() instanceof FunctionCall) {
-      FunctionCall parameterType = (FunctionCall) formal.getValue();
-      if(parameterType.getFunction() instanceof Symbol) {
-        parameterObject.put("type", ((Symbol) parameterType.getFunction()).getPrintName());
-      }
-      for (PairList.Node typeArgument : parameterType.getArguments().nodes()) {
-        if(typeArgument.hasName()) {
-          parameterObject.put(typeArgument.getName(), toParameterTypeArgument(typeArgument.getValue()));
-        }
-      }
-    }
-    return parameterObject;
+  public String getName() {
+    return object.getString("name");
   }
 
-  private static Object toParameterTypeArgument(SEXP value) {
-    if(value instanceof StringVector && value.length() > 0) {
-      return ((StringVector) value).getElementAsString(0);
-    } else if((value instanceof IntVector || value instanceof DoubleVector) && value.length() > 0) {
-      return ((AtomicVector) value).getElementAsDouble(0);
-    } else {
-      return null;
-    }
+  public String getGroupId() {
+    return object.getString("groupId");
   }
+
+  public String getVersion() {
+    return object.getString("version");
+  }
+
+  public int getParameterCount() {
+    return object.getJSONArray("parameters").length();
+  }
+
+  public String getParameterType(int index) {
+    return object.getJSONArray("parameters").getString(index);
+  }
+
+  public ExecuteMetadata read(CharSource charSource) throws IOException {
+    JSONObject object;
+    try(Reader reader = charSource.openStream()) {
+      JSONTokener tokener = new JSONTokener(reader);
+      object = new JSONObject(tokener);
+    }
+    
+    return new ExecuteMetadata(object);    
+  }
+  
 }

@@ -1,5 +1,6 @@
 
 Usage: renjin [options] [< infile] [> outfile]
+   or: renjin build [install|fat-jar] [options] <packageDir>
 
 Start Renjin, a system for statistical computation, with the
 specified options.
@@ -17,3 +18,10 @@ Execution flags:
                         
   --compile-loops       Enable JIT compilation of loops (EXPERIMENTAL)
                         This is a work in progress and may still have bugs. 
+
+
+Build commands:
+
+    renjin build ./mypackage            Builds mypackage as a jar file
+    renjin build install ./mypackage    Builds mypackage and installs it in the local Maven repository
+    renjin build fat-jar ./mypackage    Builds mypackage and assembles it into a fat jar with all dependencies

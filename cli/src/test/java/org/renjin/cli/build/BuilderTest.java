@@ -36,7 +36,7 @@ public class BuilderTest {
 
     File sourceRoot = findTestPackageRoot("square");
 
-    Builder.execute("build", new String[] { sourceRoot.getAbsolutePath() });
+    Builder.execute("build", sourceRoot.getAbsolutePath());
 
     Session session = sessionWithTestPackage("square");
     session.getTopLevelContext().evaluate(RParser.parseSource("library('org.renjin.cran:square')"));
@@ -47,7 +47,7 @@ public class BuilderTest {
   public void withDependencies() throws Exception {
     File sourceRoot = findTestPackageRoot("pkgwithdeps");
 
-    Builder.execute("build", new String[] { sourceRoot.getAbsolutePath() });
+    Builder.execute("build", sourceRoot.getAbsolutePath() );
   }
 
   /**

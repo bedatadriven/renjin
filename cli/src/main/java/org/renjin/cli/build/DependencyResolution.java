@@ -41,6 +41,7 @@ import org.renjin.primitives.packaging.ClasspathPackageLoader;
 import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.primitives.packaging.PackageLoader;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -59,8 +60,9 @@ public class DependencyResolution {
   private final PackageLoader packageLoader;
   private DependencyNode node;
   private List<Dependency> dependencies;
+  private List<File> artifacts;
 
-  public DependencyResolution(CliBuildLogger logger, PackageDescription description) {
+  public DependencyResolution(CliBuildLogger logger, PackageDescription description, Optional<String> renjinVersion) {
 
     logger.info("Resolving dependencies...");
 
@@ -83,6 +85,11 @@ public class DependencyResolution {
       collectRequest.addDependency(dependency);
     }
 
+    renjinVersion.ifPresent(version -> {
+      collectRequest.addDependency(new Dependency(
+            new DefaultArtifact("org.renjin", "renjin-script-engine", "jar", version), "compile"));
+    });
+
     logger.info("Downloading dependencies...");
 
     try {
@@ -103,9 +110,12 @@ public class DependencyResolution {
     }
 
     List<URL> urls = new ArrayList<>();
+    artifacts = new ArrayList<>();
     for (ArtifactResult result : dependencyResult.getArtifactResults()) {
       try {
-        urls.add(result.getArtifact().getFile().toURI().toURL());
+        File artifactFile = result.getArtifact().getFile();
+        artifacts.add(artifactFile);
+        urls.add(artifactFile.toURI().toURL());
       } catch (MalformedURLException e) {
         throw new BuildException("Malformed artifact URL", e);
       }
@@ -127,6 +137,10 @@ public class DependencyResolution {
       dependencies.add(new Dependency(artifact, "compile"));
     }
     return dependencies;
+  }
+
+  public List<File> getArtifacts() {
+    return artifacts;
   }
 
   private List<Dependency> resolveUnqualifiedDependencies(PackageDescription description) {

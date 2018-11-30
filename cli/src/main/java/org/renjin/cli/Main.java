@@ -32,7 +32,6 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -49,8 +48,8 @@ public class Main {
 
   public static void main(String[] args) throws Exception {
 
-    if(args.length >= 1 && (args[0].equals("build") || args[0].equals("install")) ) {
-      Builder.execute(args[0], Arrays.copyOfRange(args, 1, args.length));
+    if(args.length >= 1 && (args[0].equals("build"))) {
+      new Builder(args).execute();
       return;
     }
     

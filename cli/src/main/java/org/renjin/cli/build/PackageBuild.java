@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class PackageBuild implements BuildContext {
 
@@ -63,7 +64,7 @@ public class PackageBuild implements BuildContext {
 
     mkdirs(mavenMetaDir);
 
-    this.dependencyResolution = new DependencyResolution(logger, source.getDescription());
+    this.dependencyResolution = new DependencyResolution(logger, source.getDescription(), Optional.of("1.0.0-SNAPSHOT"));
   }
 
   public DependencyResolution getDependencyResolution() {
@@ -150,6 +151,10 @@ public class PackageBuild implements BuildContext {
     return new File(buildDir, source.getPackageName() + "-" + getBuildVersion() + ".zip");
   }
 
+  public File getFatJarFile() {
+    return new File(buildDir, source.getPackageName() + "-" + getBuildVersion() + "-fat.jar");
+  }
+
   @Override
   public File getCompileLogDir() {
     throw new UnsupportedOperationException("TODO");
@@ -179,4 +184,6 @@ public class PackageBuild implements BuildContext {
   public Map<String, String> getPackageGroupMap() {
     return dependencyResolution.getPackageGroupMap();
   }
+
+
 }

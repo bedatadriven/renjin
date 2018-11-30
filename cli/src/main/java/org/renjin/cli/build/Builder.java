@@ -26,19 +26,18 @@ import org.eclipse.aether.installation.InstallRequest;
 import org.eclipse.aether.installation.InstallationException;
 import org.eclipse.aether.util.artifact.SubArtifact;
 import org.renjin.aether.AetherFactory;
+import org.renjin.cli.OptionException;
 import org.renjin.packaging.BuildException;
 import org.renjin.packaging.PackageBuilder;
 import org.renjin.packaging.PackageSource;
-import org.renjin.primitives.packaging.Package;
-import org.renjin.primitives.packaging.Packages;
+import org.renjin.repackaged.guava.collect.Iterators;
+import org.renjin.repackaged.guava.collect.PeekingIterator;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipOutputStream;
+import java.util.Optional;
+
 
 
 /**
@@ -46,42 +45,105 @@ import java.util.zip.ZipOutputStream;
  */
 public class Builder {
 
-  private Builder() { }
+  /**
+   * True to install to local maven repository
+   */
+  private boolean install;
 
-  public static void execute(String action, String[] args) throws IOException {
+  private boolean buildJar;
 
-    List<String> packagePaths = Arrays.asList(args);
-    for (String packagePath : packagePaths) {
-      PackageSource source = new PackageSource.Builder(packagePath)
-          .setDefaultGroupId("org.renjin.cran")
-          .build();
+  private boolean buildFatJar;
 
-      PackageBuild build = new PackageBuild(source);
+  private String packagePath;
 
-      if(action.equals("build") || action.equals("install") || action.equals("zip")) {
-        executeBuild(build);
-      }
-      if(action.equals("install")) {
-        executeInstall(source, build);
-      }
-      if(action.equals("zip")) {
-        executeZip(source, build);
-      }
+  public Builder(String[] args) {
+
+    PeekingIterator<String> argIt = Iterators.peekingIterator(Arrays.asList(args).iterator());
+
+    // First argument is "build"...
+    if(!argIt.next().equals("build")) {
+      throw new IllegalStateException();
     }
+
+    // Now look for actions
+    if(argIt.hasNext() && argIt.peek().equals("install")) {
+      argIt.next();
+      buildJar = true;
+      install = true;
+    }
+    if(argIt.hasNext() && argIt.peek().equals("fat-jar")) {
+      argIt.next();
+      buildFatJar = true;
+    }
+
+    // Now find the package name
+    if(!argIt.hasNext()) {
+      throw new OptionException("No package directory provided.");
+    }
+
+    packagePath = argIt.next();
+
   }
 
-  private static void executeBuild(PackageBuild build) throws IOException {
+  public void execute() throws IOException {
+
+    PackageSource source = new PackageSource.Builder(packagePath)
+        .setDefaultGroupId("org.renjin.cran")
+        .build();
+
+    PackageBuild build = new PackageBuild(source);
+
     PackageBuilder builder = new PackageBuilder(build.getSource(), build);
     builder.build();
 
+    writePomFile(build);
+
+    if(buildJar) {
+      buildJar(build);
+    }
+    if(install) {
+      executeInstall(source, build);
+    }
+    if(buildFatJar) {
+      buildFatJar(build);
+    }
+  }
+
+  private static void writePomFile(PackageBuild build) {
     PomBuilder pomBuilder = new PomBuilder(build, build.getSource().getVersion());
     pomBuilder.writePomFile();
     pomBuilder.writePomProperties();
+  }
 
-    try(JarArchiver archiver = new JarArchiver(build.getJarFile())) {
+  private static void buildJar(PackageBuild build) throws IOException {
+
+    try(JarArchiver archiver = new JarArchiver(build.getJarFile(), Optional.empty())) {
       archiver.addDirectory(build.getOutputDir());
+
     } catch (Exception e) {
       throw new BuildException("Failed to create package jar", e);
+    }
+  }
+
+  private static void buildFatJar(PackageBuild build) throws IOException {
+
+    try(JarArchiver archiver = new JarArchiver(build.getFatJarFile(), executableNamespace(build))) {
+      archiver.addDirectory(build.getOutputDir());
+
+      for (File file : build.getDependencyResolution().getArtifacts()) {
+        archiver.addClassesFromJar(file);
+      }
+    } catch (Exception e) {
+      throw new BuildException("Failed to create package jar", e);
+    }
+  }
+
+
+  private static Optional<String> executableNamespace(PackageBuild build) {
+    if(build.getExecuteMetadataFile().exists()) {
+      return Optional.of(build.getSource().getFqName().toString());
+    } else {
+      return Optional.empty();
     }
   }
 
@@ -106,11 +168,7 @@ public class Builder {
     }
   }
 
-  private static void executeZip(PackageSource source, PackageBuild build) throws IOException {
-
-    ZipOutputStream output = new ZipOutputStream(new FileOutputStream(build.getZipFile()));
-
-
-
+  public static void execute(String... arguments) throws IOException {
+    new Builder(arguments).execute();
   }
 }

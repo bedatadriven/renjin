@@ -20,7 +20,7 @@
 
 package org.renjin.packaging;
 
-import org.json.JSONObject;
+import org.json.JSONArray;
 import org.junit.Test;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
@@ -29,9 +29,7 @@ import org.renjin.sexp.Closure;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
-import static org.junit.Assert.*;
-
-public class ExecuteMetadataTest {
+public class ExecuteMetadataBuilderTest {
 
   @Test
   public void testMetadata() {
@@ -42,7 +40,7 @@ public class ExecuteMetadataTest {
 
     SEXP execute = session.getGlobalEnvironment().getVariableUnsafe(Symbol.get("execute"));
 
-    JSONObject metadata = ExecuteMetadata.composeMetadata((Closure) execute);
+    JSONArray metadata = ExecuteMetadataBuilder.composeParameterMetadata( (Closure) execute);
 
     System.out.println(metadata.toString(4));
   }

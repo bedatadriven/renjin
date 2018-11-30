@@ -19,7 +19,6 @@
 package org.renjin.packaging;
 
 import org.apache.commons.vfs2.FileSystemException;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.renjin.RenjinVersion;
 import org.renjin.eval.Context;
@@ -259,13 +258,20 @@ public class NamespaceBuilder2 {
 
   }
 
-  private void writeExecuteMetadata(Namespace namespace) {
-      SEXP execute = namespace.getNamespaceEnvironment().getVariableUnsafe(Symbol.get("execute"));
-      if(execute instanceof Closure) {
-        JSONObject metadata = ExecuteMetadata.composeMetadata(((Closure) execute));
-        File metaInfDir = new File(buildContext.getOutputDir(), "META-INF");
+  private void writeExecuteMetadata(Namespace namespace) throws IOException {
+    SEXP execute = namespace.getNamespaceEnvironment().getVariableUnsafe(Symbol.get("execute"));
+    if(execute instanceof Closure) {
 
-      }
+      // Write a JSON metadata file that can be used by consumers to get information
+      // on this job's parameters
+
+      JSONObject metadata = ExecuteMetadataBuilder.composeMetadata(source, (Closure) execute);
+      File metadataFile = buildContext.getExecuteMetadataFile();
+      Files.write(metadata.toString(2), metadataFile, Charsets.UTF_8);
+
+      // Write a simple text file with the name of the namespace that contains the execute function
+      Files.write(source.getFqName().toString(), buildContext.getExecuteNamespaceFile(), Charsets.UTF_8);
+    }
   }
 
 

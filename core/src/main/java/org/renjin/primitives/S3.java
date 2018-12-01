@@ -623,9 +623,14 @@ public class S3 {
         return next;
       }
 
-      // Look up the .default method in the calling environment
-      // and the original *definition environment*, *NOT* the methods table.
+      // Look up the .default method first in the definition environment
       GenericMethod function = findNext(definitionEnvironment, genericMethodName, "default");
+      if(function != null) {
+        return function;
+      }
+
+      // Otherwise see if *another* package has defined a default method
+      function = findNext(getMethodTable(), genericMethodName, "default");
       if(function != null) {
         return function;
       }

@@ -18,18 +18,20 @@
  */
 package org.renjin.primitives;
 
-import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.ObjectPtr;
+import org.renjin.gcc.runtime.PointerPtr;
+import org.renjin.gcc.runtime.Ptr;
+import org.renjin.gcc.runtime.Stdlib;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.StringVector;
 
 public class NativeStringVector extends StringVector {
   
-  private BytePtr[] array;
+  private Ptr[] array;
   private int offset;
   private int length;
 
-  public NativeStringVector(BytePtr[] array, int offset, int length, AttributeMap attributes) {
+  public NativeStringVector(Ptr[] array, int offset, int length, AttributeMap attributes) {
     super(attributes);
     this.array = array;
     this.offset = offset;
@@ -38,9 +40,16 @@ public class NativeStringVector extends StringVector {
 
   public NativeStringVector(ObjectPtr ptr, AttributeMap attributes) {
     super(attributes);
-    this.array = (BytePtr[])ptr.array;
+    this.array = (Ptr[])ptr.array;
     this.offset = ptr.offset;
     this.length = ptr.array.length;
+  }
+
+  public NativeStringVector(PointerPtr ptr, AttributeMap attributes) {
+    super(attributes);
+    this.array = (Ptr[]) ptr.getArray();
+    this.offset = 0;
+    this.length = this.array.length;
   }
 
   @Override
@@ -55,11 +64,11 @@ public class NativeStringVector extends StringVector {
 
   @Override
   public String getElementAsString(int index) {
-    BytePtr string = array[offset + index];
+    Ptr string = array[offset + index];
     if(string == null) {
       return null;
     } else {
-      return string.nullTerminatedString();
+      return Stdlib.nullTerminatedString(string);
     }
   }
 

@@ -284,7 +284,7 @@ public class Vectors {
     return asRaw(source.toVector());
   }
 
-  static Vector convertToAtomicVector(Vector.Builder builder, Vector source) {
+  public static Vector convertToAtomicVector(Vector.Builder builder, Vector source) {
     if(source instanceof ListVector) {
       for (int i = 0; i != source.length(); ++i) {
         SEXP value = ((ListVector) source).getElementAsSEXP(i);
@@ -434,7 +434,7 @@ public class Vectors {
    * @param x
    * @param mode
    */
-  private static void checkForListThatCannotBeCoercedToAtomicVector(Vector x, String mode) {
+  public static void checkForListThatCannotBeCoercedToAtomicVector(Vector x, String mode) {
     if(x instanceof ListVector) {
       ListVector list = (ListVector) x;
       for (int i = 0; i < list.length(); i++) {

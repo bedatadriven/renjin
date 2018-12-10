@@ -36,7 +36,7 @@ public class BuilderTest {
 
     File sourceRoot = findTestPackageRoot("square");
 
-    Builder.execute("build", sourceRoot.getAbsolutePath());
+    Builder.execute("package", "build", sourceRoot.getAbsolutePath());
 
     Session session = sessionWithTestPackage("square");
     session.getTopLevelContext().evaluate(RParser.parseSource("library('org.renjin.cran:square')"));
@@ -47,7 +47,7 @@ public class BuilderTest {
   public void withDependencies() throws Exception {
     File sourceRoot = findTestPackageRoot("pkgwithdeps");
 
-    Builder.execute("build", sourceRoot.getAbsolutePath() );
+    Builder.execute("package", "build", sourceRoot.getAbsolutePath() );
   }
 
   /**
@@ -58,7 +58,12 @@ public class BuilderTest {
   }
 
   private Session sessionWithTestPackage(final String name) {
-    URL jarUrl = getClass().getResource("/" + name + "/build/" + name + "-0.1.jar");
+    String jarName = "/" + name + "/build/" + name + "-0.1.jar";
+    URL jarUrl = getClass().getResource(jarName);
+
+    if(jarUrl == null) {
+      throw new AssertionError("Jar " + jarName + " does not exist");
+    }
 
     URLClassLoader classLoader = new URLClassLoader(new URL[] {jarUrl}, getClass().getClassLoader());
     ClasspathPackageLoader packageLoader = new ClasspathPackageLoader(classLoader);

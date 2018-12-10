@@ -48,8 +48,8 @@ public class Main {
 
   public static void main(String[] args) throws Exception {
 
-    if(args.length >= 1 && (args[0].equals("build"))) {
-      new Builder(args).execute();
+    if(args.length >= 1 && (args[0].equals("package") || args[0].equals("batch-job") || args[0].equals("help"))) {
+      Builder.execute(args);
       return;
     }
     

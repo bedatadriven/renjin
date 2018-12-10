@@ -34,6 +34,7 @@ import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.repackaged.guava.io.Files;
 
 import java.io.*;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
@@ -49,26 +50,31 @@ public class PomBuilder {
   private final PackageSource source;
   private String buildVersion;
   private final PackageDescription description;
+  private boolean includeBuild = false;
 
-  public PomBuilder(PackageBuild build, String buildVersion) {
+  public PomBuilder(PackageBuild build) {
     this.build = build;
     this.source = build.getSource();
-    this.buildVersion = buildVersion;
+    this.buildVersion = build.getBuildVersion();
     this.description = build.getSource().getDescription();
   }
+
 
   public File writePomFile() {
 
     File pomFile = new File(build.getMavenMetaDir(), "pom.xml");
 
-    PomBuilder builder = new PomBuilder(build, buildVersion);
+    writePomFile(pomFile);
+
+    return pomFile;
+  }
+
+  public void writePomFile(File pomFile) {
     try {
-      Files.write(builder.getXml(), pomFile, Charsets.UTF_8);
+      Files.write(getXml(), pomFile, Charsets.UTF_8);
     } catch (IOException e) {
       throw new BuildException("Exception writing "   + pomFile.getAbsolutePath());
     }
-
-    return pomFile;
   }
 
   public File writePomProperties() {
@@ -90,6 +96,9 @@ public class PomBuilder {
     return propertiesFile;
   }
 
+  public void setIncludeBuild(boolean includeBuild) {
+    this.includeBuild = includeBuild;
+  }
 
   private Model buildPom() {
 
@@ -136,6 +145,30 @@ public class PomBuilder {
 
     model.setDistributionManagement(distributionManagement);
     model.setRepositories(Lists.newArrayList(bddRepo));
+
+    if(includeBuild) {
+
+      Plugin renjinPlugin = new Plugin();
+      renjinPlugin.setGroupId("org.renjin");
+      renjinPlugin.setArtifactId("renjin-maven-plugin");
+      renjinPlugin.setVersion(RenjinVersion.getVersionName());
+
+      PluginExecution buildExecution = new PluginExecution();
+      buildExecution.setId("build-package");
+      buildExecution.setGoals(Collections.singletonList("gnur-compile"));
+      buildExecution.setPhase("compile");
+      renjinPlugin.addExecution(buildExecution);
+
+      PluginExecution testExecution = new PluginExecution();
+      testExecution.setId("test-package");
+      testExecution.setGoals(Collections.singletonList("test"));
+      testExecution.setPhase("test");
+      renjinPlugin.addExecution(testExecution);
+
+      Build build = new Build();
+      build.addPlugin(renjinPlugin);
+      model.setBuild(build);
+    }
 
     return model;
   }

@@ -18,24 +18,12 @@
  */
 package org.renjin.cli.build;
 
-import org.eclipse.aether.RepositorySystem;
-import org.eclipse.aether.RepositorySystemSession;
-import org.eclipse.aether.artifact.Artifact;
-import org.eclipse.aether.artifact.DefaultArtifact;
-import org.eclipse.aether.installation.InstallRequest;
-import org.eclipse.aether.installation.InstallationException;
-import org.eclipse.aether.util.artifact.SubArtifact;
-import org.renjin.aether.AetherFactory;
-import org.renjin.cli.OptionException;
+import io.airlift.airline.Cli;
+import io.airlift.airline.Help;
 import org.renjin.packaging.BuildException;
 import org.renjin.packaging.PackageBuilder;
-import org.renjin.packaging.PackageSource;
-import org.renjin.repackaged.guava.collect.Iterators;
-import org.renjin.repackaged.guava.collect.PeekingIterator;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Optional;
 
 
@@ -45,77 +33,36 @@ import java.util.Optional;
  */
 public class Builder {
 
-  /**
-   * True to install to local maven repository
-   */
-  private boolean install;
+  public static void execute(String... args) throws IOException {
 
-  private boolean buildJar;
+    Cli.CliBuilder<Runnable> builder = Cli.<Runnable>builder("renjin")
+        .withDefaultCommand(Help.class)
+        .withCommand(Help.class);
 
-  private boolean buildFatJar;
+    builder.withGroup("package")
+        .withDescription("Build an R package JAR from source")
+        .withDefaultCommand(PackageBuildCommand.class)
+        .withCommands(PackageInstallCommand.class, PackageMavenizeCommand.class);
 
-  private String packagePath;
+    builder.withGroup("batch-job")
+        .withDescription("Build and deploy batch jobs to Renjin Batch Server")
+        .withDefaultCommand(Help.class)
+        .withCommand(BuildBatchJobCommand.class);
 
-  public Builder(String[] args) {
+    Cli<Runnable> cli = builder.build();
 
-    PeekingIterator<String> argIt = Iterators.peekingIterator(Arrays.asList(args).iterator());
-
-    // First argument is "build"...
-    if(!argIt.next().equals("build")) {
-      throw new IllegalStateException();
-    }
-
-    // Now look for actions
-    if(argIt.hasNext() && argIt.peek().equals("install")) {
-      argIt.next();
-      buildJar = true;
-      install = true;
-    }
-    if(argIt.hasNext() && argIt.peek().equals("fat-jar")) {
-      argIt.next();
-      buildFatJar = true;
-    }
-
-    // Now find the package name
-    if(!argIt.hasNext()) {
-      throw new OptionException("No package directory provided.");
-    }
-
-    packagePath = argIt.next();
+    cli.parse(args).run();
 
   }
 
-  public void execute() throws IOException {
-
-    PackageSource source = new PackageSource.Builder(packagePath)
-        .setDefaultGroupId("org.renjin.cran")
-        .build();
-
-    PackageBuild build = new PackageBuild(source);
-
+  static void buildPackage(PackageBuild build) throws IOException {
     PackageBuilder builder = new PackageBuilder(build.getSource(), build);
     builder.build();
+  }
+
+  static void buildJar(PackageBuild build) throws IOException {
 
     writePomFile(build);
-
-    if(buildJar) {
-      buildJar(build);
-    }
-    if(install) {
-      executeInstall(source, build);
-    }
-    if(buildFatJar) {
-      buildFatJar(build);
-    }
-  }
-
-  private static void writePomFile(PackageBuild build) {
-    PomBuilder pomBuilder = new PomBuilder(build, build.getSource().getVersion());
-    pomBuilder.writePomFile();
-    pomBuilder.writePomProperties();
-  }
-
-  private static void buildJar(PackageBuild build) throws IOException {
 
     try(JarArchiver archiver = new JarArchiver(build.getJarFile(), Optional.empty())) {
       archiver.addDirectory(build.getOutputDir());
@@ -125,50 +72,12 @@ public class Builder {
     }
   }
 
-  private static void buildFatJar(PackageBuild build) throws IOException {
-
-    try(JarArchiver archiver = new JarArchiver(build.getFatJarFile(), executableNamespace(build))) {
-      archiver.addDirectory(build.getOutputDir());
-
-      for (File file : build.getDependencyResolution().getArtifacts()) {
-        archiver.addClassesFromJar(file);
-      }
-    } catch (Exception e) {
-      throw new BuildException("Failed to create package jar", e);
-    }
+  static void writePomFile(PackageBuild build) {
+    PomBuilder pomBuilder = new PomBuilder(build);
+    pomBuilder.writePomFile();
+    pomBuilder.writePomProperties();
   }
 
 
-  private static Optional<String> executableNamespace(PackageBuild build) {
-    if(build.getExecuteMetadataFile().exists()) {
-      return Optional.of(build.getSource().getFqName().toString());
-    } else {
-      return Optional.empty();
-    }
-  }
 
-
-  private static void executeInstall(PackageSource source, PackageBuild build) {
-    RepositorySystem system = AetherFactory.newRepositorySystem();
-    RepositorySystemSession session = AetherFactory.newRepositorySystemSession(system);
-
-    Artifact jarArtifact = new DefaultArtifact( source.getGroupId(), source.getPackageName(), "jar", build.getBuildVersion());
-    jarArtifact = jarArtifact.setFile(build.getJarFile());
-
-    Artifact pomArtifact = new SubArtifact( jarArtifact, "", "pom" );
-    pomArtifact = pomArtifact.setFile( new File(build.getMavenMetaDir(), "pom.xml"));
-
-    InstallRequest installRequest = new InstallRequest();
-    installRequest.addArtifact( jarArtifact ).addArtifact( pomArtifact );
-
-    try {
-      system.install( session, installRequest );
-    } catch (InstallationException e) {
-      throw new BuildException("Exception installing artifact " + build.getJarFile().getAbsolutePath(), e);
-    }
-  }
-
-  public static void execute(String... arguments) throws IOException {
-    new Builder(arguments).execute();
-  }
 }

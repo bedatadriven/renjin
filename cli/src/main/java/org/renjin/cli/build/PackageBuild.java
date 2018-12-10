@@ -44,7 +44,7 @@ public class PackageBuild implements BuildContext {
   private final File mavenMetaDir;
 
 
-  public PackageBuild(PackageSource source) {
+  public PackageBuild(PackageSource source, Optional<String> renjinVersion) {
     this.buildDir = createCleanBuildDir(source.getPackageDir());
     this.source = source;
     this.outputDir = new File(buildDir, "classes");
@@ -64,7 +64,7 @@ public class PackageBuild implements BuildContext {
 
     mkdirs(mavenMetaDir);
 
-    this.dependencyResolution = new DependencyResolution(logger, source.getDescription(), Optional.of("1.0.0-SNAPSHOT"));
+    this.dependencyResolution = new DependencyResolution(logger, source.getDescription(), renjinVersion);
   }
 
   public DependencyResolution getDependencyResolution() {
@@ -184,6 +184,7 @@ public class PackageBuild implements BuildContext {
   public Map<String, String> getPackageGroupMap() {
     return dependencyResolution.getPackageGroupMap();
   }
+
 
 
 }

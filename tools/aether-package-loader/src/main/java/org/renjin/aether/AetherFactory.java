@@ -154,11 +154,17 @@ public class AetherFactory {
     return settings;
   }
 
-  static RemoteRepository mavenCentral() {
+  /**
+   * @return a {@link RemoteRepository} object for the Maven central repository
+   */
+  public static RemoteRepository mavenCentral() {
     return new RemoteRepository.Builder("central", "default", "https://repo1.maven.org/maven2/").build();
   }
 
-  static RemoteRepository renjinRepo() {
+  /**
+   * @return a {@link RemoteRepository} object for Renjin's primary public repository
+   */
+  public static RemoteRepository renjinRepo() {
     return new RemoteRepository.Builder("renjin", "default", "https://nexus.bedatadriven.com/content/groups/public/").build();
   }
 }

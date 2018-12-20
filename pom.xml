@@ -57,6 +57,7 @@
     <module>dist/deb</module>
     <module>dist/gnur</module>
     <module>math</module>
+    <module>demos</module>
   </modules>
 
   <properties>

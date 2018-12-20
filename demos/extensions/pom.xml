@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>demos</artifactId>
+    <groupId>org.renjin</groupId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.mycompany</groupId>
+  <artifactId>extensionsdemo</artifactId>
+  <packaging>jar</packaging>
+
+  <!-- general information about your package -->
+  <name>Renjin demos - extensions</name>
+  <description>Two extensions as described in the docs on creating extensions</description>
+  <url>http://docs.renjin.org/en/latest/writing-renjin-extensions.html</url>
+  <licenses>
+    <!-- add one or more licenses under which the package is released -->
+    <license>
+      <name>MIT License</name>
+      <url>https://opensource.org/licenses/MIT</url>
+    </license>
+  </licenses>
+
+  <properties>
+    <renjin.version>0.9.2716</renjin.version>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
+
+  <dependencies>
+    <!-- the script engine is convenient even if you do not use it explicitly -->
+    <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>renjin-script-engine</artifactId>
+      <version>${renjin.version}</version>
+    </dependency>
+    <!-- the hamcrest package is only required if you use it for unit tests -->
+    <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>hamcrest</artifactId>
+      <version>${renjin.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <repositories>
+    <repository>
+      <id>bedatadriven</id>
+      <name>bedatadriven public repo</name>
+      <url>https://nexus.bedatadriven.com/content/groups/public/</url>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>bedatadriven</id>
+      <name>bedatadriven public repo</name>
+      <url>https://nexus.bedatadriven.com/content/groups/public/</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.renjin</groupId>
+        <artifactId>renjin-maven-plugin</artifactId>
+        <version>${renjin.version}</version>
+        <executions>
+          <execution>
+            <id>build</id>
+            <goals>
+              <goal>namespace-compile</goal>
+            </goals>
+            <phase>process-classes</phase>
+          </execution>
+          <execution>
+            <id>test</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <phase>test</phase>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

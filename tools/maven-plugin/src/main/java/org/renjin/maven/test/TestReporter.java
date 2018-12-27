@@ -122,7 +122,7 @@ public class TestReporter {
   }
   
   public void testCaseFailed() {
-    testCaseFailed(null);
+    testCaseFailed("");
   }
 
   public void testCaseFailed(String message)  {

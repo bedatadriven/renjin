@@ -188,7 +188,7 @@ public class ForkedTestController {
 
     } catch (Exception e) {
       log.debug("ForkedTestController received exception while waiting for results.", e);
-      reporter.testCaseFailed();
+      reporter.testCaseFailed(e.getMessage());
       return false;
     }
   }

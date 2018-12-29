@@ -24,7 +24,7 @@ download.file <-
                getOption("download.file.method"),
                "auto")
     else
-        match.arg(method, c("auto", "internal", "wget", "curl", "lynx"))
+        match.arg(method, c("auto", "internal", "wget", "curl", "lynx", "libcurl"))
 
     if(missing(mode) & length(grep("\\.(gz|bz2|xz|tgz|zip|rda|RData)$", url))) mode <- "wb"
     if(method == "auto") {
@@ -42,7 +42,7 @@ download.file <-
         else
             stop("no download method found")
     }
-    if(method == "internal")
+    if(method == "internal" || method == "libcurl")
         status <- .Internal(download(url, destfile, quiet, mode, cacheOK))
     else if(method == "wget") {
         if(quiet) extra <- c(extra, "--quiet")

@@ -201,34 +201,34 @@ public class System {
    * @return
    */
   @Internal
-  public static LogicalVector capabilities(StringVector what) {
+  public static LogicalVector capabilities(@Current Context context, StringVector what) {
     LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
     StringVector.Builder names = new StringVector.Builder();
 
-    for(String capability : what) {
-      if(Capabilities.NAMES.contains(capability)) {
-        names.add(capability);
-        result.add(false);
-      }
+    for(String capabilityName : what) {
+      Capability.forName(capabilityName).ifPresent(capability -> {
+        names.add(capability.getCapabilityName());
+        result.add(capability.evaluate(context.getSession()));
+      });
     }
     result.setAttribute(Symbols.NAMES, names.build());
     return result.build();
   }
 
   @Internal
-  public static LogicalVector capabilities() {
+  public static LogicalVector capabilities(@Current Context context) {
 
     LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
     StringVector.Builder names = new StringVector.Builder();
 
-    for(String capability : Capabilities.NAMES) {
-      names.add(capability);
-      result.add(false);
+    for(Capability capability : Capability.values()) {
+      names.add(capability.getCapabilityName());
+      result.add(capability.evaluate(context.getSession()));
     }
     result.setAttribute(Symbols.NAMES, names.build());
     return result.build();
   }
-  
+
   @Internal
   public static StringVector date() {
     // R Style Date Format

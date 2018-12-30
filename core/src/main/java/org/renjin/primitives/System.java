@@ -196,25 +196,7 @@ public class System {
 
   /**
    * Report on the optional features which have been compiled into this build of R.
-   *
-   * @param what
-   * @return
    */
-  @Internal
-  public static LogicalVector capabilities(@Current Context context, StringVector what) {
-    LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
-    StringVector.Builder names = new StringVector.Builder();
-
-    for(String capabilityName : what) {
-      Capability.forName(capabilityName).ifPresent(capability -> {
-        names.add(capability.getCapabilityName());
-        result.add(capability.evaluate(context.getSession()));
-      });
-    }
-    result.setAttribute(Symbols.NAMES, names.build());
-    return result.build();
-  }
-
   @Internal
   public static LogicalVector capabilities(@Current Context context) {
 

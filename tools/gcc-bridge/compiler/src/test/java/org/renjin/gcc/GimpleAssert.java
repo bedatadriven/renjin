@@ -36,7 +36,14 @@ public class GimpleAssert {
 
   public static void assertTrue(BytePtr message, int x) {
     if(x == 0) {
-      throw new AssertionError(message.nullTerminatedString());
+      String messageString;
+      if(message == null || message.isNull()) {
+        messageString = "<null>";
+      } else {
+        messageString = message.nullTerminatedString();
+      }
+      System.err.println("TEST ERROR: " + messageString);
+      throw new RuntimeException(messageString);
     }
   }
 

@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -111,8 +111,8 @@ public class Repl implements Runnable {
     PrintStream out = console.getOut();
     out.print("Renjin " + RenjinVersion.getVersionName() + "\n");
 
-    out.print("Copyright (C) 2018 The R Foundation for Statistical Computing\n");
-    out.print("Copyright (C) 2018 BeDataDriven\n");
+    out.print("Copyright (C) 2019 The R Foundation for Statistical Computing\n");
+    out.print("Copyright (C) 2019 BeDataDriven\n");
 
   }
 

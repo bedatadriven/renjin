@@ -47,6 +47,10 @@ public class SessionController {
     return false;
   }
 
+  public boolean isCommandLineEditingAvailable() {
+    return isInteractive();
+  }
+
   public int menu(StringVector choices) throws IOException {
     throw new EvalException("menu() is not available");
   }

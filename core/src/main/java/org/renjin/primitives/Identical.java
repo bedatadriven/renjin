@@ -80,7 +80,11 @@ public class Identical {
 
     } else if(x instanceof FunctionCall) {
       return identicalAttributes(x, y) &&
-          identicalElements((PairList)x, (PairList)y);
+          identicalElements((PairList) x, (PairList) y);
+
+    } else if(x instanceof Closure) {
+      return identicalAttributes(x, y) &&
+          identicalElements((Closure)x, (Closure)y);
 
     } else if(x instanceof PairList.Node) {
       return identicalAttributes(x, y) &&
@@ -215,6 +219,19 @@ public class Identical {
           !identical(xni.getValue(), yni.getValue(), false, false)) {
         return false;
       }
+    }
+    return true;
+  }
+
+  private static boolean identicalElements(Closure x, Closure y) {
+    if(x.getEnclosingEnvironment() != y.getEnclosingEnvironment()) {
+      return false;
+    }
+    if(!identical(x.getBody(), y.getBody())) {
+      return false;
+    }
+    if(!identical(x.getFormals(), y.getFormals())) {
+      return false;
     }
     return true;
   }

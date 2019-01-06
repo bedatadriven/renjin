@@ -26,7 +26,9 @@ import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.ImmutableList;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.Collection;
 
 /**
@@ -69,7 +71,15 @@ public class ClasspathFileProvider extends AbstractFileProvider {
       throw new FileSystemException("vfs.provider.url/badly-formed-uri.error", uri);
     }
 
-    String normalizeUri = normalizeNestedJarUris(url.toExternalForm());
+    // Remove URL encoding
+    String decodedUri;
+    try {
+      decodedUri = URLDecoder.decode(url.toString(), "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      throw new IllegalStateException("JVM does not support UTF-8 Encoding");
+    }
+
+    String normalizeUri = normalizeNestedJarUris(decodedUri);
 
     return getContext().getFileSystemManager().resolveFile(normalizeUri);
   }

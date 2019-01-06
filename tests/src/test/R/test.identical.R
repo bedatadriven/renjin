@@ -25,5 +25,12 @@ test.infinite.identical <- function() {
     assertTrue (identical(-Inf, -Inf))
     assertFalse(identical( Inf,  NaN))
     assertFalse(identical( Inf,  NA_real_))
+}
+
+test.functions.identical <- function() {
+    f <- function(x) x * 2
+    g <- function(x) x * 2
+
+    assertTrue(identical(f, g))
 
 }

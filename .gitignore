@@ -16,3 +16,4 @@ atlassian-ide-plugin.xml
 *.o
 *.gimple
 .Rproj.user
+.gradle

@@ -25,7 +25,7 @@ import java.util.Arrays;
  */
 public class PointerPtr extends AbstractPtr {
 
-  private static final int BYTES = 4;
+  public static final int BYTES = 4;
 
   public static final PointerPtr NULL = new PointerPtr(null, 0);
 

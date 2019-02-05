@@ -19,10 +19,14 @@
 package org.renjin.gnur;
 
 import org.renjin.gcc.codegen.GlobalVarTransformer;
+import org.renjin.gcc.codegen.expr.ConstantValue;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
+import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.gcc.gimple.expr.GimpleConstant;
+import org.renjin.gcc.gimple.expr.GimplePrimitiveConstant;
 import org.renjin.repackaged.asm.Type;
 
 import java.util.ArrayList;
@@ -36,14 +40,14 @@ public class GlobalVarRewriter implements GlobalVarTransformer {
 
   private final ContextVarAllocator allocator;
 
-  private List<GimpleVarDecl> contextVars = new ArrayList<>();
+  private List<GimpleVarDecl> globalVariables = new ArrayList<>();
 
   public GlobalVarRewriter(Type contextClass) {
     allocator = new ContextVarAllocator(contextClass);
   }
 
   @Override
-  public boolean accept(GimpleVarDecl decl) {
+  public boolean acceptGlobalVar(GimpleVarDecl decl) {
 
     // Do not include C++ run-time type information in the per-thread context.
     // It does not change after initialization.
@@ -56,18 +60,40 @@ public class GlobalVarRewriter implements GlobalVarTransformer {
   }
 
   @Override
+  public boolean acceptLocalStaticVar(GimpleVarDecl decl) {
+    return true;
+  }
+
+  @Override
   public GExpr generator(TypeOracle typeOracle, GimpleCompilationUnit unit, GimpleVarDecl decl) {
 
-    contextVars.add(decl);
+    globalVariables.add(decl);
 
     return typeOracle.forType(decl.getType()).variable(decl, allocator.forUnit(unit));
+  }
+
+  @Override
+  public GExpr generator(TypeOracle typeOracle, GimpleFunction function, GimpleVarDecl decl) {
+    if(!hasSafeInitialValue(decl)) {
+      throw new UnsupportedOperationException(String.format("TODO: %s in %s in %s has initial value %s",
+          decl.getName(),
+          function.getName(),
+          function.getUnit().getSourceName(),
+          decl.getValue().toString()));
+    }
+    globalVariables.add(decl);
+    return typeOracle.forType(decl.getType()).variable(decl, allocator.forFunction(function));
+  }
+
+  private boolean hasSafeInitialValue(GimpleVarDecl decl) {
+    return decl.getValue() == null || decl.getValue() instanceof GimpleConstant;
   }
 
   public List<ContextField> getContextFields() {
     return allocator.getContextFields();
   }
 
-  public List<GimpleVarDecl> getContextVars() {
-    return contextVars;
+  public List<GimpleVarDecl> getGlobalVariables() {
+    return globalVariables;
   }
 }

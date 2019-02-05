@@ -22,6 +22,7 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
+import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.repackaged.asm.Type;
 
 import java.util.ArrayList;
@@ -42,34 +43,39 @@ public class ContextVarAllocator {
     this.contextClass = contextClass;
   }
 
+  public List<ContextField> getContextFields() {
+    return fields;
+  }
 
-  public JLValue reserve(GimpleCompilationUnit unit, String name, Type type, Optional<JExpr> initialValue) {
-
-    String varName = VarAllocator.toJavaSafeName(unit.getName()) + "$" + VarAllocator.toJavaSafeName(name);
-    ContextField var = new ContextField(contextClass, varName, type, initialValue);
-
+  private JLValue reserve(String prefix, String varName, Type type, Optional<JExpr> initialValue) {
+    String qualifiedName = prefix + "$" + VarAllocator.toJavaSafeName(varName);
+    ContextField var = new ContextField(contextClass, qualifiedName, type, initialValue);
     fields.add(var);
-
     return var.jvalue();
   }
 
-
   public VarAllocator forUnit(GimpleCompilationUnit unit) {
+    return forPrefix(VarAllocator.toJavaSafeName(unit.getName()));
+  }
+
+  public VarAllocator forFunction(GimpleFunction function) {
+    return forPrefix(VarAllocator.toJavaSafeName(function.getUnit().getName()) + "$" +
+                     VarAllocator.toJavaSafeName(function.getMangledName()));
+  }
+
+  private VarAllocator forPrefix(String prefix) {
     return new VarAllocator() {
       @Override
       public JLValue reserve(String name, Type type) {
-        return ContextVarAllocator.this.reserve(unit, name, type, Optional.empty());
+        return ContextVarAllocator.this.reserve(prefix, name, type, Optional.empty());
       }
 
       @Override
       public JLValue reserve(String name, Type type, JExpr initialValue) {
-        return ContextVarAllocator.this.reserve(unit, name, type, Optional.of(initialValue));
-
+        return ContextVarAllocator.this.reserve(prefix, name, type, Optional.of(initialValue));
       }
     };
   }
 
-  public List<ContextField> getContextFields() {
-    return fields;
-  }
+
 }

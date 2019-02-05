@@ -567,13 +567,17 @@ public final class Rinternals {
 
   public static Object DATAPTR(SEXP x) {
     if (x instanceof IntVector || x instanceof LogicalVector) {
-      return INTEGER(x);
+      return Rinternals2.INTEGER(x);
     } else if(x instanceof DoubleVector) {
-      return REAL(x);
+      return Rinternals2.REAL(x);
     } else if(x instanceof ComplexVector) {
       return COMPLEX(x);
     } else if(x instanceof RawVector) {
       return RAW(x);
+//    } else if(x instanceof GnuStringVector) {
+//      throw new UnsupportedOperationException("TODO");
+    } else if(x instanceof StringVector) {
+      return new StringVectorPtr((StringVector) x, 0);
     } else {
       throw new UnsupportedOperationException("DATAPTR on type " + x.getClass().getName());
     }

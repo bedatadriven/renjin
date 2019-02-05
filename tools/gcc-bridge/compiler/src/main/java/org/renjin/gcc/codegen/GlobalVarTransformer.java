@@ -21,10 +21,17 @@ package org.renjin.gcc.codegen;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
+import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 
 public interface GlobalVarTransformer {
-  boolean accept(GimpleVarDecl decl);
+
+  boolean acceptGlobalVar(GimpleVarDecl decl);
+
+  boolean acceptLocalStaticVar(GimpleVarDecl decl);
 
   GExpr generator(TypeOracle typeOracle, GimpleCompilationUnit unit, GimpleVarDecl decl);
+
+  GExpr generator(TypeOracle typeOracle, GimpleFunction function, GimpleVarDecl decl);
+
 }

@@ -18,6 +18,7 @@
  */
 package org.renjin.gnur.api;
 
+import org.renjin.gcc.runtime.PointerPtr;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.StringVector;
 
@@ -92,4 +93,5 @@ public class GnuStringVector extends StringVector {
   public GnuCharSexp getElementAsCharSexp(int index) {
     return values[index];
   }
+
 }

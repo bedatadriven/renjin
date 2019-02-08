@@ -42,7 +42,7 @@ public class Builder {
     builder.withGroup("package")
         .withDescription("Build an R package JAR from source")
         .withDefaultCommand(PackageBuildCommand.class)
-        .withCommands(PackageInstallCommand.class, PackageMavenizeCommand.class);
+        .withCommands(PackageInstallCommand.class, PackageBuildCommand.class, PackageMavenizeCommand.class);
 
     builder.withGroup("batch-job")
         .withDescription("Build and deploy batch jobs to Renjin Batch Server")

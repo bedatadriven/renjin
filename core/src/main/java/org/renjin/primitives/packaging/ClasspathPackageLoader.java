@@ -18,6 +18,12 @@
  */
 package org.renjin.primitives.packaging;
 
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.io.Resources;
+
+import java.io.IOException;
+import java.net.URL;
 import java.util.Optional;
 
 /**
@@ -47,6 +53,46 @@ public class ClasspathPackageLoader implements PackageLoader {
     } else {
       return Optional.empty();
     }
+  }
+
+  @Override
+  public Optional<Package> load(String packageName) {
+
+    // Check for a pointer located in /META-INF/org.renjin.package/{packageName}
+    Optional<Package> pkg = tryLoadFromMetaInf(packageName);
+    if(pkg.isPresent()) {
+      return pkg;
+    }
+
+    // Otherwise try CRAN and bioconductor
+    pkg = load(new FqPackageName("org.renjin.cran", packageName));
+    if(pkg.isPresent()) {
+      return pkg;
+    }
+    pkg = load(new FqPackageName("org.renjin.bioconductor", packageName));
+    if(pkg.isPresent()) {
+      return pkg;
+    }
+
+    return Optional.empty();
+  }
+
+  private Optional<Package> tryLoadFromMetaInf(String packageName) {
+    URL resource = classLoader.getResource("/META-INF/org.renjin.package/" + packageName);
+    if (resource != null) {
+      try {
+        String fullyQualifiedName = Resources.toString(resource, Charsets.UTF_8);
+        if(!Strings.isNullOrEmpty(fullyQualifiedName)) {
+          String[] lines = fullyQualifiedName.split("\n");
+          String[] parts = lines[0].split(":");
+          if(parts.length == 2) {
+            return load(new FqPackageName(parts[0], parts[1]));
+          }
+        }
+      } catch (IOException ignored) {
+      }
+    }
+    return Optional.empty();
   }
 
 }

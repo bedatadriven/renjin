@@ -1,0 +1,9 @@
+Package: pkgwithdeps
+GroupId: com.acme
+Title: An R package with CRAN dependencies
+Version: 0.1
+Description: Verifies that our package builder resolves dependencies from CRAN.
+Depends: R (>= 3.1.0)
+License: What license is it under?
+LazyData: true
+Imports: stats, bootstrap (2017.2)

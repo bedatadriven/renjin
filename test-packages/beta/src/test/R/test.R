@@ -18,7 +18,7 @@
 #
 
 
-library(org.renjin.test.beta)
+library('org.renjin.test:beta')
 library(hamcrest)
 
 

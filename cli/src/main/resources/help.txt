@@ -1,5 +1,6 @@
 
 Usage: renjin [options] [< infile] [> outfile]
+   or: renjin <command> [<args>]
 
 Start Renjin, a system for statistical computation, with the
 specified options.
@@ -17,3 +18,11 @@ Execution flags:
                         
   --compile-loops       Enable JIT compilation of loops (EXPERIMENTAL)
                         This is a work in progress and may still have bugs. 
+
+
+The most commonly used renjin commands are:
+    help        Display help information
+    package     Build an R package JAR from source
+    batch-job   Build and deploy batch jobs to Renjin Batch Server
+
+See 'renjin help <command>' for more information on a specific command.

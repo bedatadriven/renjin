@@ -20,4 +20,4 @@
 library(hamcrest)
 library(utils)
 
-data(protein, package = "org.renjin.test.dataTest")
+data(protein, package = "org.renjin.test:dataTest")

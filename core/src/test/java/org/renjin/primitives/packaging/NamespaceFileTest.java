@@ -54,7 +54,7 @@ public class NamespaceFileTest {
     String NAMESPACE = 
         "importClass(org.renjin.stats.dist.Distance)\n";
     
-    NamespaceFile file = NamespaceFile.parse(context, CharSource.wrap(NAMESPACE));
+    NamespaceFile file = NamespaceFile.parseFile(context, CharSource.wrap(NAMESPACE));
     
     NamespaceFile.JvmClassImportEntry entry = Iterables.getOnlyElement(file.getJvmImports());
     assertThat(entry.isClassImported(), equalTo(true));
@@ -69,7 +69,7 @@ public class NamespaceFileTest {
         "    kmeans_MacQueen,\n" +
         "    kmns = kmns_)\n";
       
-    NamespaceFile file = NamespaceFile.parse(context, CharSource.wrap(NAMESPACE));
+    NamespaceFile file = NamespaceFile.parseFile(context, CharSource.wrap(NAMESPACE));
 
     NamespaceFile.DynLibEntry dynLib = Iterables.getOnlyElement(file.getDynLibEntries());
     assertThat(dynLib.getPrefix(), equalTo("C_"));
@@ -85,7 +85,7 @@ public class NamespaceFileTest {
     String NAMESPACE = 
         "exportPattern(cell_effect_mult_or,cell_effect_or,Cloglin,Cloglin_mult,exp_par,exp_par_mult)\n";
 
-    NamespaceFile file = NamespaceFile.parse(context, CharSource.wrap(NAMESPACE));
+    NamespaceFile file = NamespaceFile.parseFile(context, CharSource.wrap(NAMESPACE));
 
     assertThat(file.getExportedPatterns(), hasItems(
         "cell_effect_mult_or",
@@ -105,7 +105,7 @@ public class NamespaceFileTest {
         "    export(nobs)\n" +
         "}\n";
 
-    NamespaceFile file = NamespaceFile.parse(context, CharSource.wrap(NAMESPACE));
+    NamespaceFile file = NamespaceFile.parseFile(context, CharSource.wrap(NAMESPACE));
 
     assertThat(file.getPackageImports().size(), equalTo(1));
     NamespaceFile.PackageImportEntry statsImport = Iterables.getOnlyElement(file.getPackageImports());
@@ -122,7 +122,7 @@ public class NamespaceFileTest {
         "    export(nobs)\n" +
         "}\n";
 
-    NamespaceFile file = NamespaceFile.parse(context, CharSource.wrap(NAMESPACE));
+    NamespaceFile file = NamespaceFile.parseFile(context, CharSource.wrap(NAMESPACE));
 
     assertThat(file.getExportedSymbols(), hasItem(Symbol.get("nobs")));
   }
@@ -134,7 +134,7 @@ public class NamespaceFileTest {
             "    export(\".M.classEnv\")\n";
 
 
-    NamespaceFile file = NamespaceFile.parse(context, CharSource.wrap(NAMESPACE));
+    NamespaceFile file = NamespaceFile.parseFile(context, CharSource.wrap(NAMESPACE));
 
     assertThat(file.getExportedSymbols(), Matchers.hasItem(Symbol.get(".M.classEnv")));
   }
@@ -148,7 +148,7 @@ public class NamespaceFileTest {
     String NAMESPACE = 
         "importFrom(survival)\n";
 
-    NamespaceFile file = NamespaceFile.parse(context, CharSource.wrap(NAMESPACE));
+    NamespaceFile file = NamespaceFile.parseFile(context, CharSource.wrap(NAMESPACE));
 
     NamespaceFile.PackageImportEntry entry = Iterables.getOnlyElement(file.getPackageImports());
     assertThat(entry.getPackageName(), equalTo("survival"));

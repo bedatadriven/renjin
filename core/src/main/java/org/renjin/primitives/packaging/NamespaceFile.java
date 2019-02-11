@@ -226,14 +226,23 @@ public class NamespaceFile {
   private Set<String> exportedClasses = Sets.newHashSet();
   private Set<String> exportedClassPatterns = Sets.newHashSet();
 
-  public static NamespaceFile parse(Context context, CharSource charSource) throws IOException {
+  public static NamespaceFile parseFile(Context context, CharSource charSource) throws IOException {
+    ExpressionVector source = parseSexp(charSource);
+    return parseFile(context, source);
+  }
+
+  public static NamespaceFile parseFile(Context context, ExpressionVector source) {
     NamespaceFile file = new NamespaceFile();
+    file.parse(context, source);
+    return file;
+  }
+
+  public static ExpressionVector parseSexp(CharSource charSource) throws IOException {
     ExpressionVector source;
     try(Reader reader = charSource.openStream()) {
       source = RParser.parseAllSource(reader);
     }
-    file.parse(context, source);
-    return file;
+    return source;
   }
 
   private NamespaceFile() {

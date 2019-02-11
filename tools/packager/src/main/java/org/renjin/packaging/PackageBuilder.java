@@ -146,13 +146,13 @@ public class PackageBuilder {
 
 
   public void compileNamespace() throws IOException {
-    NamespaceBuilder2 builder = new NamespaceBuilder2(packageSource, context);
+    NamespaceBuilder builder = new NamespaceBuilder(packageSource, context);
     builder.compile();
   }
 
 
   public void compileDatasets() throws IOException {
-    DatasetsBuilder2 build = new DatasetsBuilder2(packageSource, context);
+    DatasetsBuilder build = new DatasetsBuilder(packageSource, context);
     build.build();
   }
 

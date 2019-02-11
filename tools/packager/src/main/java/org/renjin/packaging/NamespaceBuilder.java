@@ -45,13 +45,13 @@ import java.time.ZonedDateTime;
 /**
  * Evaluates a package's sources
  */
-public class NamespaceBuilder2 {
+public class NamespaceBuilder {
 
   private PackageSource source;
   private BuildContext buildContext;
   private final File environmentFile;
 
-  public NamespaceBuilder2(PackageSource source, BuildContext buildContext) {
+  public NamespaceBuilder(PackageSource source, BuildContext buildContext) {
     this.source = source;
     this.buildContext = buildContext;
     environmentFile = new File(buildContext.getPackageOutputDir(), "environment");

@@ -53,7 +53,7 @@ import java.util.zip.GZIPInputStream;
  * file, and then write a "datasets" index file that maps logical datasets to the 
  * named R objects.
  */
-public class DatasetsBuilder2 {
+public class DatasetsBuilder {
 
   private final PackageSource source;
   private final BuildContext buildContext;
@@ -64,7 +64,7 @@ public class DatasetsBuilder2 {
    */
   private final Multimap<String, String> indexMap = HashMultimap.create();
 
-  public DatasetsBuilder2(PackageSource source, BuildContext buildContext) {
+  public DatasetsBuilder(PackageSource source, BuildContext buildContext) {
     this.source = source;
     this.buildContext = buildContext;
     this.dataObjectDirectory = new File(buildContext.getPackageOutputDir(), "data");
@@ -172,7 +172,7 @@ public class DatasetsBuilder2 {
    */
   private void processRDataFile(File dataFile) throws IOException {
     SEXP exp;
-    try(RDataReader reader = new RDataReader(DatasetsBuilder2.decompress(dataFile))) {
+    try(RDataReader reader = new RDataReader(DatasetsBuilder.decompress(dataFile))) {
       exp = reader.readFile();
     }
         

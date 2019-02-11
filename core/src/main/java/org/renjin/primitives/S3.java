@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -623,9 +623,14 @@ public class S3 {
         return next;
       }
 
-      // Look up the .default method in the calling environment
-      // and the original *definition environment*, *NOT* the methods table.
+      // Look up the .default method first in the definition environment
       GenericMethod function = findNext(definitionEnvironment, genericMethodName, "default");
+      if(function != null) {
+        return function;
+      }
+
+      // Otherwise see if *another* package has defined a default method
+      function = findNext(getMethodTable(), genericMethodName, "default");
       if(function != null) {
         return function;
       }

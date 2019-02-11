@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -94,7 +94,7 @@ public class RParser {
   }
   
   public static ExpressionVector parseAllSource(Reader reader) throws IOException {
-    return parseAllSource(reader, new CHARSEXP("<text>"));
+    return parseAllSource(reader, Null.INSTANCE);
   }
 
 
@@ -2579,8 +2579,6 @@ public class RParser {
         }
         SEXP srcRef = makeSrcref(lloc, state.srcFile);
         REPROTECT(srcRefs = GrowList(srcRefs, srcRef), srindex);
-        v.setAttribute("srcref", srcRefs);
-        UNPROTECT_PTR(v);
       }
     }
     this.result = v;

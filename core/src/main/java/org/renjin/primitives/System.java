@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -196,39 +196,21 @@ public class System {
 
   /**
    * Report on the optional features which have been compiled into this build of R.
-   *
-   * @param what
-   * @return
    */
   @Internal
-  public static LogicalVector capabilities(StringVector what) {
+  public static LogicalVector capabilities(@Current Context context) {
+
     LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
     StringVector.Builder names = new StringVector.Builder();
 
-    for(String capability : what) {
-      if(Capabilities.NAMES.contains(capability)) {
-        names.add(capability);
-        result.add(false);
-      }
+    for(Capability capability : Capability.values()) {
+      names.add(capability.getCapabilityName());
+      result.add(capability.evaluate(context.getSession()));
     }
     result.setAttribute(Symbols.NAMES, names.build());
     return result.build();
   }
 
-  @Internal
-  public static LogicalVector capabilities() {
-
-    LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
-    StringVector.Builder names = new StringVector.Builder();
-
-    for(String capability : Capabilities.NAMES) {
-      names.add(capability);
-      result.add(false);
-    }
-    result.setAttribute(Symbols.NAMES, names.build());
-    return result.build();
-  }
-  
   @Internal
   public static StringVector date() {
     // R Style Date Format

@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1175,9 +1175,9 @@ public final class Rinternals {
       case SexpType.LGLSXP:
         return Vectors.asLogical(((Vector) p0)).setAttributes(p0.getAttributes());
       case SexpType.INTSXP:
-        return new IntArrayVector((AtomicVector)p0);
+        return asIntArrayVector((Vector)p0);
       case SexpType.REALSXP:
-        return new DoubleArrayVector((AtomicVector) p0);
+        return asDoubleArrayVector((Vector) p0);
       case SexpType.CPLXSXP:
         return Vectors.asComplex((Vector)p0).setAttributes(p0.getAttributes());
       case SexpType.STRSXP:
@@ -1186,6 +1186,22 @@ public final class Rinternals {
         return toExpressionList(p0);
     }
     throw new UnimplementedGnuApiMethod("Rf_coerceVector: " + type);
+  }
+
+  private static SEXP asIntArrayVector(Vector vector) {
+    Vectors.checkForListThatCannotBeCoercedToAtomicVector(vector, "integer");
+
+    IntArrayVector.Builder builder = new IntArrayVector.Builder(0, vector.length());
+    Vector integerVector = Vectors.convertToAtomicVector(builder, vector);
+    return integerVector.setAttributes(vector.getAttributes());
+  }
+
+  private static SEXP asDoubleArrayVector(Vector vector) {
+    Vectors.checkForListThatCannotBeCoercedToAtomicVector(vector, "double");
+
+    DoubleArrayVector.Builder builder = new DoubleArrayVector.Builder(0, vector.length());
+    Vector integerVector = Vectors.convertToAtomicVector(builder, vector);
+    return integerVector.setAttributes(vector.getAttributes());
   }
 
   private static SEXP toExpressionList(SEXP sexp) {

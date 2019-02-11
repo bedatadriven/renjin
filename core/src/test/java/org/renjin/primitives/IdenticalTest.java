@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ public class IdenticalTest extends EvalTestCase {
     assertThat(eval("identical(NULL, NULL)"), elementsIdenticalTo(c(true)));
     assertThat(eval("identical(NULL, 1)"), elementsIdenticalTo(c(false)));
     assertThat(eval("identical(list(x=1,y='foo',NA), list(x=1,y='foo',NA))"), elementsIdenticalTo(c(true)));
-    assertThat(eval("identical(function(x) x, function(x) x)"), elementsIdenticalTo(c(false)));
+    assertThat(eval("identical(function(x) x, function(x) x)"), elementsIdenticalTo(c(true)));
     assertThat(eval("identical(1+3i, 1+4i)"), elementsIdenticalTo(c(false)));
     assertThat(eval("identical(1+3i, 2+3i)"), elementsIdenticalTo(c(false)));
     assertThat(eval("identical(1+3i, 1+3i)"), elementsIdenticalTo(c(true)));

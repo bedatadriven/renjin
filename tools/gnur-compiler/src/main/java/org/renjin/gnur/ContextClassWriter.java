@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,12 +43,9 @@ import static org.renjin.repackaged.asm.Opcodes.*;
 
 public class ContextClassWriter {
 
-  public static final String THREAD_LOCAL_FIELD_NAME = "CURRENT";
-  public static final String THREAD_LOCAL_DESCRIPTOR = Type.getDescriptor(ThreadLocal.class);
-  public static final String ENTER_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(Object.class));
-
   private final Type contextClass;
-  private ClassWriter cv;
+  private final String currentMethodDescriptor;
+  private final ClassWriter cv;
 
   public ContextClassWriter(Type contextClass) {
     this.contextClass = contextClass;
@@ -56,82 +53,37 @@ public class ContextClassWriter {
     cv.visit(V1_8, ACC_PUBLIC + ACC_SUPER, contextClass.getInternalName(), null,
         Type.getInternalName(Object.class), new String[0]);
 
-    threadLocalHolder();
-    staticInitializer();
-    enterMethod();
+    currentMethodDescriptor = Type.getMethodDescriptor(contextClass);
+
+    writeCurrentMethod();
   }
 
-  /**
-   * Declares a field of type {@code ThreadLocal<PackageContext>} that will hold the instance of the PackageContext
-   * associated with the current thread. This is set by the {@code enter()} method called by the trampoline class.
-   */
-  private void threadLocalHolder() {
-    cv.visitField(ACC_PUBLIC | ACC_STATIC, THREAD_LOCAL_FIELD_NAME, THREAD_LOCAL_DESCRIPTOR, null, null);
-  }
 
   /**
-   * Writes a static initializer that initialize our ThreadLocal static variable with a new instance.
-   */
-  private void staticInitializer() {
-    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC | ACC_STATIC, "<clinit>", "()V", null, null);
-    mv.visitCode();
-    mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(ThreadLocal.class));
-    mv.visitInsn(Opcodes.DUP);
-    mv.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(ThreadLocal.class), "<init>", "()V", false);
-    mv.visitFieldInsn(Opcodes.PUTSTATIC, contextClass.getInternalName(), THREAD_LOCAL_FIELD_NAME, THREAD_LOCAL_DESCRIPTOR);
-    mv.visitInsn(Opcodes.RETURN);
-    mv.visitMaxs(1,1);
-    mv.visitEnd();
-  }
-
-  /**
-   * Writes a static enter() method that initializes the PackageState from this thread by calling
+   * Writes a static current() method that retrieves the PackageState from this thread by calling
    * {@code Native.currentContext().getSingleton(org.renjin.cran.mypackage.Context.class)}
    */
-  private void enterMethod() {
-    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC | ACC_STATIC, "enter", ENTER_METHOD_DESCRIPTOR, null, null);
+  private void writeCurrentMethod() {
+    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC | ACC_STATIC, "current", currentMethodDescriptor,
+        null, null);
     mv.visitCode();
-
-    mv.visitFieldInsn(Opcodes.GETSTATIC, contextClass.getInternalName(), THREAD_LOCAL_FIELD_NAME, THREAD_LOCAL_DESCRIPTOR);
-
-    // Stack: ThreadLocal
-
-    mv.visitInsn(Opcodes.DUP);
-
-    // Stack: ThreadLocal, ThreadLocal
-
-    // Retrieve the current value and store it a local variable
-
-    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(ThreadLocal.class), "get",
-        Type.getMethodDescriptor(Type.getType(Object.class)), false);
-
-    mv.visitVarInsn(Opcodes.ASTORE, 0);
-
-    // Stack: ThreadLocal
 
     mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Native.class), "currentContext",
         Type.getMethodDescriptor(Type.getType(Context.class)), false);
 
-    // Stack: ThreadLocal, org.renjin.eval.Context
+    // Stack: org.renjin.eval.Context
 
     mv.visitLdcInsn(contextClass);
 
-    // Stack: ThreadLocal, org.renjin.eval.Context, org.renjin.cran.mypackage.Context
+    // Stack: org.renjin.eval.Context, org.renjin.cran.mypackage.Context.class
 
     // Call context.getSingleton(org.renjin.cran.mypackage.Context.class)
 
     mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(Context.class), "getSingleton",
         Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(Class.class)), false);
 
-    // Stack: ThreadLocal, org.renjin.cran.mypackage.Context
+    mv.visitTypeInsn(CHECKCAST, contextClass.getInternalName());
 
-    // Update the ThreadLocal field (already on the stack)
-    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(ThreadLocal.class), "set",
-        Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class)), false);
-
-    // Now return the previous value
-
-    mv.visitVarInsn(Opcodes.ALOAD, 0);
     mv.visitInsn(Opcodes.ARETURN);
     mv.visitMaxs(1,1);
     mv.visitEnd();
@@ -190,11 +142,7 @@ public class ContextClassWriter {
 
   private void writeLoadCurrentContext(MethodVisitor mv) {
     // Retrieve the current ThreadLocal instance
-    mv.visitFieldInsn(Opcodes.GETSTATIC, contextClass.getInternalName(), THREAD_LOCAL_FIELD_NAME, Type.getDescriptor(ThreadLocal.class));
-    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(ThreadLocal.class), "get", Type.getMethodDescriptor(Type.getType(Object.class)), false);
-
-    // Cast to our context class
-    mv.visitTypeInsn(Opcodes.CHECKCAST, contextClass.getInternalName());
+    mv.visitMethodInsn(INVOKESTATIC, contextClass.getInternalName(), "current", currentMethodDescriptor, false);
   }
 
 
@@ -231,7 +179,6 @@ public class ContextClassWriter {
     for (GimpleVarDecl globalVar : globalVars) {
       writeGlobalVarInit(generationContext, methodGenerator, globalVar);
     }
-
 
     mv.visitInsn(RETURN);
     mv.visitMaxs(1, 1);

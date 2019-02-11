@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -80,7 +80,11 @@ public class Identical {
 
     } else if(x instanceof FunctionCall) {
       return identicalAttributes(x, y) &&
-          identicalElements((PairList)x, (PairList)y);
+          identicalElements((PairList) x, (PairList) y);
+
+    } else if(x instanceof Closure) {
+      return identicalAttributes(x, y) &&
+          identicalElements((Closure)x, (Closure)y);
 
     } else if(x instanceof PairList.Node) {
       return identicalAttributes(x, y) &&
@@ -215,6 +219,19 @@ public class Identical {
           !identical(xni.getValue(), yni.getValue(), false, false)) {
         return false;
       }
+    }
+    return true;
+  }
+
+  private static boolean identicalElements(Closure x, Closure y) {
+    if(x.getEnclosingEnvironment() != y.getEnclosingEnvironment()) {
+      return false;
+    }
+    if(!identical(x.getBody(), y.getBody())) {
+      return false;
+    }
+    if(!identical(x.getFormals(), y.getFormals())) {
+      return false;
     }
     return true;
   }

@@ -1,4 +1,4 @@
-# renjin <a href='http://www.renjin.org/'><img src='http://www.renjin.org/assets/img/logo.svg' align="right" width="180" height="180"/></a>
+# renjin <a href='http://www.renjin.org/'><img src='http://www.renjin.org/assets/img/logo.svg' align="right" width="180"/></a>
 
 [![Build Status](http://build.renjin.org/buildStatus/icon?job=renjin)](http://build.renjin.org) 
 

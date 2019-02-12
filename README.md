@@ -65,7 +65,7 @@ You can add Renjin to your Maven project by adding the following to your `pom.xm
 
 ## Compiling from Source
 
-At this time, building Renjin completely is only supported on Ubuntu 14.04.
+At this time, building Renjin completely is only supported on Ubuntu 16.04.
 The resulting Java builds are fully platform-independent.
 
 See [BUILDING](BUILDING.md) for more information.

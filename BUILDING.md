@@ -25,7 +25,8 @@ will help you quickly setup a Virtual Box with all the tools needed
 for Renjin's C/Fortran compile step.
 
 Install Vagrant from https://www.vagrantup.com and then run the following
-from the root of the Renjin git repository:
+from the root of the Renjin git repository that calls the
+[Vagrantfile](Vagrantfile):
 
     vagrant up
     vagrant ssh -c "cd /home/ubuntu/renjin && mvn clean install"

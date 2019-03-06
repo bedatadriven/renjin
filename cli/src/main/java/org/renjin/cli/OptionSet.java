@@ -69,6 +69,11 @@ public class OptionSet {
           this.helpRequested = true;
           break;
 
+				case "-v":
+				case "--version":
+					// TODO
+					break;
+
         case PROFILE:
         case COMPILE_LOOPS:
           flags.add(option);

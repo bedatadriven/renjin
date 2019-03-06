@@ -28,7 +28,7 @@ Install Vagrant from https://www.vagrantup.com and then run the following
 from the root of the Renjin git repository:
 
     vagrant up
-    vagrant ssh -c "cd renjin && mvn clean install"
+    vagrant ssh -c "cd /home/ubuntu/renjin && mvn clean install"
 
 Vagrant configures a shared directory on the VirtualBox guest machine
 that includes the Renjin repository, so once the initial build

@@ -44,7 +44,7 @@ Once you have run the build through Vagrant, then you should be able to
 make iterative changes to the Java sources and debug via your IDE 
 as normal.
 
-### Ubuntu 14.04+
+### Ubuntu 16.04+
 
 You can install the required tools through the APT package manager. 
 A 64-bit architecture is required.

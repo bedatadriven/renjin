@@ -69,10 +69,10 @@ public class OptionSet {
           this.helpRequested = true;
           break;
 
-				case "-v":
-				case "--version":
-					// TODO
-					break;
+	case "-v":
+	case "--version":
+		System.out.println("versie");
+	break;
 
         case PROFILE:
         case COMPILE_LOOPS:

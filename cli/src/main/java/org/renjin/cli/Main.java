@@ -67,6 +67,11 @@ public class Main {
       OptionSet.printHelp(System.out);
       System.exit(0);
     }
+
+    if(optionSet.isVersionRequested()) {
+      OptionSet.printVersion(System.out);
+      System.exit(0);
+    }
     
     // Set process-wide flags
     if(optionSet.isFlagSet(OptionSet.COMPILE_LOOPS)) {

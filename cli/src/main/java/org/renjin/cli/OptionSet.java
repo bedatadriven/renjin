@@ -21,6 +21,8 @@ package org.renjin.cli;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.io.Resources;
 
+import org.renjin.RenjinVersion;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
@@ -38,6 +40,7 @@ public class OptionSet {
   private String file;
   
   private boolean helpRequested;
+  private boolean versionRequested;
 
   private String[] args;
   
@@ -71,7 +74,7 @@ public class OptionSet {
 
         case "-v":
         case "--version":
-          System.out.println("versie");
+          this.versionRequested = true;
           break;
 
         case PROFILE:
@@ -87,6 +90,10 @@ public class OptionSet {
 
   public boolean isHelpRequested() {
     return helpRequested;
+  }
+
+  public boolean isVersionRequested() {
+    return versionRequested;
   }
 
   /**
@@ -106,6 +113,11 @@ public class OptionSet {
   public static void printHelp(PrintStream out) throws IOException {
     String helpText = Resources.toString(Resources.getResource("help.txt"), Charsets.UTF_8);
     out.println(helpText);
+  }
+
+  public static void printVersion(PrintStream out) {
+    String versionText = RenjinVersion.getVersionName();
+    out.println("Renjin " + versionText);
   }
 
   public boolean hasExpression() {

@@ -7,7 +7,7 @@ specified options.
 
 Options:
   -h, --help            Print short help message and exit
-  -v, --version 				Show program version and exit
+  -v, --version         Show program version and exit
   --args                Skip the rest of the command line
   -f FILE, --file=FILE  Take input from 'FILE'
   -e EXPR               Execute 'EXPR' and exit

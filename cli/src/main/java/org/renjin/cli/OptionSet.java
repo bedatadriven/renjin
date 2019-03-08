@@ -117,7 +117,7 @@ public class OptionSet {
 
   public static void printVersion(PrintStream out) {
     String versionText = RenjinVersion.getVersionName();
-    out.println("Renjin " + versionText);
+    out.println("renjin version " + versionText);
   }
 
   public boolean hasExpression() {

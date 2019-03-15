@@ -19,7 +19,7 @@
 
 library(hamcrest)
 library(utils)
-library(org.renjin.test.dataTest)
+library('org.renjin.test:dataTest')
 
 data(colors)
 print(colors)

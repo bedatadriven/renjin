@@ -231,6 +231,11 @@ public class MavenBuildContext implements BuildContext {
     return classpath.toString();
   }
 
+  @Override
+  public Map<String, String> getPackageGroupMap() {
+    return Collections.emptyMap();
+  }
+
   public void setDefaultPackagesIfDependencies() {
     List<String> defaultPackages = new ArrayList<>();
     for (String packageName : DefaultPackages.DEFAULT_PACKAGES) {

@@ -29,7 +29,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -60,7 +59,6 @@ public class PackageSource {
   public String getGroupId() {
     return groupId;
   }
-  
 
   public FqPackageName getFqName() {
     return new FqPackageName(getGroupId(), getPackageName());
@@ -104,13 +102,7 @@ public class PackageSource {
 
   public boolean isCXX11() {
     String systemRequirements = Strings.nullToEmpty(description.getFirstProperty("SystemRequirements")).trim();
-    boolean isCXX11 = "C++11".equals(systemRequirements);
-    if(isCXX11) {
-      System.out.println("Checking whether in DESCRIPTION 'SystemRequirements' is set to 'C++11'... yes");
-    } else {
-      System.out.println("Checking whether in DESCRIPTION 'SystemRequirements' is set to 'C++11'... no");
-    }
-    return isCXX11;
+    return "C++11".equals(systemRequirements);
   }
 
   public PackageDescription getDescription() {
@@ -134,6 +126,7 @@ public class PackageSource {
   }
   
   public static class Builder {
+    private String defaultGroupId;
     private PackageSource source = new PackageSource();
     
     private List<String> sourceFiles = null;
@@ -149,8 +142,8 @@ public class PackageSource {
       this(new File(packagePath));
     }
 
-    public Builder setGroupId(String groupId) {
-      source.groupId = groupId;
+    public Builder setDefaultGroupId(String groupId) {
+      defaultGroupId = groupId;
       return this;
     }
 
@@ -195,12 +188,18 @@ public class PackageSource {
       checkExists("Package directory", source.packageDir);
       checkExists("NAMESPACE file", source.namespaceFile);
 
-      check(!Strings.isNullOrEmpty(source.groupId), "GroupId must be set.");
-
       if(source.description == null) {
         source.description = readDescription();
       }
-      
+
+      if(source.description.hasProperty("GroupId")) {
+        source.groupId = source.description.getFirstProperty("GroupId");
+      } else {
+        source.groupId = defaultGroupId;
+      }
+
+      check(!Strings.isNullOrEmpty(source.groupId), "GroupId must be set.");
+
       if(source.packageName == null) {
         if(source.description != null) {
           source.packageName = source.description.getPackage();
@@ -285,13 +284,10 @@ public class PackageSource {
 
       // Sort by filename, IGNORING extension
       // AND using platform-independent BYTE for BYTE sort order
-      Collections.sort(list, new Comparator<File>() {
-        @Override
-        public int compare(File file1, File file2) {
-          byte[] name1 = Files.getNameWithoutExtension(file1.getName()).getBytes();
-          byte[] name2 = Files.getNameWithoutExtension(file2.getName()).getBytes();
-          return UnsignedBytes.lexicographicalComparator().compare(name1, name2);
-        }
+      Collections.sort(list, (file1, file2) -> {
+        byte[] name1 = Files.getNameWithoutExtension(file1.getName()).getBytes();
+        byte[] name2 = Files.getNameWithoutExtension(file2.getName()).getBytes();
+        return UnsignedBytes.lexicographicalComparator().compare(name1, name2);
       });
 
       return list;

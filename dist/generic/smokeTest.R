@@ -37,7 +37,7 @@ stopifnot( abs(m$coefficients["x"]-2) < 0.0001 )
 # Also ensure that we can dynamically load packages 
 # and their dependencies
 
-library(org.renjin.test.alpha)
+library('org.renjin.test:alpha')
 stopifnot(identical(alphaName(), "Alpha"))
 
 # Verify that parsing multi-line statements works...

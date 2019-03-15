@@ -30,7 +30,7 @@ public class AlphaTest {
   public void scriptEngineTest() throws ScriptException {
     ScriptEngineManager sem = new ScriptEngineManager();
     ScriptEngine renjin = sem.getEngineByName("Renjin");
-    renjin.eval("library(org.renjin.test.alpha)");
+    renjin.eval("library('org.renjin.test:alpha')");
     renjin.eval("stopifnot(alphaName() == 'Alpha')");
   }
 }

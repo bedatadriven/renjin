@@ -19,16 +19,17 @@
 package org.renjin.cli.build;
 
 import org.renjin.RenjinVersion;
-import org.renjin.repackaged.guava.base.Preconditions;
+import org.renjin.repackaged.guava.io.ByteStreams;
 import org.renjin.repackaged.guava.io.Files;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.jar.Attributes;
-import java.util.jar.JarEntry;
-import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.jar.*;
 
 /**
  * Creates a JAR from the package
@@ -37,12 +38,18 @@ public class JarArchiver implements AutoCloseable {
   
   private static final Attributes.Name CREATED_BY = new Attributes.Name("Created-By");
   
-  public JarOutputStream output;
+  private JarOutputStream output;
 
-  public JarArchiver(File jarFile) throws IOException {
+  private Set<String> entries = new HashSet<>();
+
+  public JarArchiver(File jarFile, Optional<String> executableNamespace) throws IOException {
     Manifest manifest = new Manifest();
     manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
     manifest.getMainAttributes().put(CREATED_BY, "Renjin " + RenjinVersion.getVersionName());
+
+    executableNamespace.ifPresent(namespace -> {
+      manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, "org.renjin.script.Execute");
+    });
 
     this.output = new JarOutputStream(new FileOutputStream(jarFile), manifest);
   }
@@ -54,7 +61,9 @@ public class JarArchiver implements AutoCloseable {
   private void add(File relativeTo, File source) throws IOException {
     JarEntry entry = new JarEntry(relative(relativeTo, source));
     entry.setTime(source.lastModified());
-    
+
+    entries.add(entry.getName());
+
     output.putNextEntry(entry);
 
     if(source.isFile()) {
@@ -72,16 +81,44 @@ public class JarArchiver implements AutoCloseable {
       }
     }
   }
-  
-  public void addFile(File source, String fileNameInJar) throws IOException {
-    Preconditions.checkArgument(source.isFile());
-    
-    JarEntry entry = new JarEntry(fileNameInJar);
-    entry.setTime(source.lastModified());
 
-    output.putNextEntry(entry);
-    
-    Files.copy(source, output);
+
+  public void addClassesFromJar(File nestedJarFile) throws IOException {
+    try(JarInputStream jarIn = new JarInputStream(new FileInputStream(nestedJarFile))) {
+      JarEntry entryIn;
+      while((entryIn = jarIn.getNextJarEntry()) != null) {
+        if(!excludedFromDependencyJars(entryIn)) {
+
+          if(entries.contains(entryIn.getName())) {
+            if(!entryIn.isDirectory()) {
+              System.err.println("WARNING: Excluding duplicate resource '" + entryIn.getName() + " from " + nestedJarFile.getName());
+            }
+          } else {
+            JarEntry entry = new JarEntry(entryIn);
+            output.putNextEntry(entry);
+
+            ByteStreams.copy(jarIn, output);
+
+            output.closeEntry();
+            entries.add(entryIn.getName());
+          }
+        }
+      }
+    }
+
+  }
+
+  private boolean excludedFromDependencyJars(JarEntry entryIn) {
+    if(entryIn.getName().equals("META-INF/MANIFEST.MF")) {
+      return true;
+    }
+    if(entryIn.getName().startsWith("META-INF/org.renjin.execute")) {
+      return true;
+    }
+    if(entryIn.getName().startsWith("META-INF/maven")) {
+      return true;
+    }
+    return false;
   }
 
   private String relative(File relativeTo, File source) {
@@ -104,4 +141,5 @@ public class JarArchiver implements AutoCloseable {
   public void close() throws IOException {
     output.close();
   }
+
 }

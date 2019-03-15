@@ -56,7 +56,7 @@ public class GnurBuildMojo extends AbstractMojo {
 
     try {
       PackageSource packageSource = new PackageSource.Builder(project.getBasedir())
-          .setGroupId(project.getGroupId())
+          .setDefaultGroupId(project.getGroupId())
           .setPackageName(project.getArtifactId())
           .build();
       

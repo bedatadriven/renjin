@@ -453,7 +453,6 @@ public class Native {
                               @NamedFlag("PACKAGE") String packageName,
                               @NamedFlag("CLASS") String className) throws ClassNotFoundException {
 
-
     DllSymbol symbol = findMethod(context, methodExp, packageName, className, DllSymbol.Convention.EXTERNAL);
 
     MethodHandle methodHandle = symbol.getMethodHandle();

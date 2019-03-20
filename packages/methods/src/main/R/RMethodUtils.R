@@ -497,7 +497,7 @@ getGeneric <-
             message("Empty function name in .getGeneric")
             dput(sys.calls())
         }
-        value <- .Call("R_getGeneric", f, FALSE, as.environment(where), package, PACKAGE = "methods")
+        value <- .Call(C_R_getGeneric, f, FALSE, as.environment(where), package)
         ## cache public generics (usually these will have been cached already
         ## and we get to this code for non-exported generics)
         if(!is.null(value) && !is.null(vv <- .GlobalEnv[[f]]) &&
@@ -796,7 +796,7 @@ getGenerics <- function(where, searchForm = FALSE)
     else if(is.environment(where)) where <- list(where)
     these <- unlist(lapply(where, objects, all.names=TRUE), use.names=FALSE)
     these <- unique(these)
-    these <- these[substr(these, 1L, 6L) == ".__T__"]
+    these <- these[startsWith(these, ".__T__")]
     if(length(these) == 0L)
         return(character())
     funNames <- gsub("^.__T__(.*):([^:]+)", "\\1", these)
@@ -936,12 +936,12 @@ cacheGenericsMetaData <- function(f, fdef, attach = TRUE,
 
 setPrimitiveMethods <-
   function(f, fdef, code, generic, mlist = get(".Methods", envir = environment(generic)))
-    .Call("R_M_setPrimitiveMethods", f, fdef, code, generic, mlist, PACKAGE="methods")
+    .Call(C_R_M_setPrimitiveMethods, f, fdef, code, generic, mlist)
 
 ### utility to turn ALL primitive methods on or off (to avoid possible inf. recursion)
 .allowPrimitiveMethods <- function(onOff) {
     code <- if(onOff) "SET" else "CLEAR"
-    .Call("R_M_setPrimitiveMethods", "", NULL, code, NULL, NULL, PACKAGE="methods")
+    .Call(C_R_M_setPrimitiveMethods, "", NULL, code, NULL, NULL)
 }
 
 
@@ -1287,7 +1287,7 @@ metaNameUndo <- function(strings, prefix, searchForm = FALSE)
         vlist[[i]] <- do.call("substitute", list(vlist[[i]], slist))
     dnames <- names(dlist)
     whereNames <- match(old, dnames)
-    if(any(is.na(whereNames)))
+    if(anyNA(whereNames))
 	stop(gettextf("in changing formal arguments in %s, some of the old names are not in fact arguments: %s",
 		      msg, paste0("\"", old[is.na(match(old, names(dlist)))], "\"", collapse=", ")),
 	     domain = NA)
@@ -1411,8 +1411,16 @@ metaNameUndo <- function(strings, prefix, searchForm = FALSE)
 
 .identC <- function(c1 = NULL, c2 = NULL)
 {
-    ## are the two objects identical class or genric function string names?
-    .Call("R_identC", c1, c2, PACKAGE="methods")
+  ## are the two objects identical class or genric function string names?
+  .Call("R_identC", c1, c2, PACKAGE="methods")
+#  if(class(c1) == "character" & class(c2) == "character" & length(c1) == 1 && length(c2) == 1) {
+#    if(!is.na(c1)) {
+#      return(c1 == c2)
+#    } else {
+#      return(FALSE)
+#    }
+#  }
+#  FALSE
 }
 
 ## match default exprs in the method to those in the generic
@@ -1496,7 +1504,7 @@ getGroupMembers <- function(group, recursive = FALSE, character = TRUE)
 {
     ## the primitive name is 'as.double', but S4 methods are
     ## traditionally set on 'as.numeric'
-    f <- .Call("R_get_primname", object, PACKAGE="methods")
+    f <- .Call(C_R_get_primname, object)
     if(f == "as.double") "as.numeric" else f
 }
 
@@ -1560,10 +1568,14 @@ getGroupMembers <- function(group, recursive = FALSE, character = TRUE)
     value
 }
 
-
-.hasS4MetaData <- function(env)
-  (length(objects(env, all.names = TRUE,
-                          pattern = "^[.]__[CTA]_")))
+## is this really right?
+## cf .methodsPackageMetaNamePattern <- "^[.]__[A-Z]+__"
+.hasS4MetaData <- function(env) {
+    nms <- names(env)
+    any(startsWith(nms, ".__C__")) ||
+    any(startsWith(nms, ".__T__")) ||
+    any(startsWith(nms, ".__A__"))
+}
 
 ## turn ordinary generic into one that dispatches on "..."
 ## currently only called in one place from setGeneric()
@@ -1932,6 +1944,7 @@ evalqOnLoad <- function(expr, where = topenv(parent.frame()), aname = "")
     else
         0L
 }
+
 
 ## test whether this function could be an S3 generic, either
 ## a primitive or a function calling UseMethod()

@@ -2044,7 +2044,7 @@ public final class Rinternals {
    *          set, or R_NilValue.  In the latter case the
    *          attribute (if present) is removed.
    *
-   * @return Refer to source code.  (Sometimes vec, sometimes 
+   * @return Refer to source code.  (Sometimes vec, sometimes
    * val, sometime R_NilValue ...)
    */
   public static SEXP Rf_setAttrib(@Mutee SEXP vec, SEXP name, SEXP val) {

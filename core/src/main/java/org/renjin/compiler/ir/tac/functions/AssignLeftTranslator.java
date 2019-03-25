@@ -26,13 +26,16 @@ import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.compiler.ir.tac.expressions.Temp;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.eval.EvalException;
-import org.renjin.sexp.*;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
 
 
 public class AssignLeftTranslator extends FunctionCallTranslator {
 
   @Override
-  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
+  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
 
 
     Expression rhs = builder.translateExpression(context, call.getArgument(1));
@@ -51,7 +54,7 @@ public class AssignLeftTranslator extends FunctionCallTranslator {
   }
   
   @Override
-  public void addStatement(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall assignment) {
+  public void addStatement(IRBodyBuilder builder, TranslationContext context, FunctionCall assignment) {
     Expression rhs = builder.translateExpression(context, assignment.getArgument(1));
 
     addAssignment(builder, context, assignment, rhs);

@@ -47,6 +47,9 @@ public interface EmitContext {
 
   void writeReturn(InstructionAdapter mv, CompiledSexp returnExpr);
 
+  /**
+   * Writes any additional instructions required at the end of this function. Or nothing if nothing is required.
+   */
   void writeDone(InstructionAdapter mv);
 
   CompiledSexp getParamExpr(int parameterIndex);

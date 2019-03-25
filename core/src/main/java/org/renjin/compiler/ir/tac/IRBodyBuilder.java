@@ -67,8 +67,12 @@ public class IRBodyBuilder {
   public RuntimeState getRuntimeState() {
     return runtimeContext;
   }
-  
+
   public IRBody build(SEXP exp) {
+    return build(exp, true);
+  }
+
+  public IRBody build(SEXP exp, boolean ensureInitialized) {
     
     labels = Maps.newHashMap();
     
@@ -81,7 +85,9 @@ public class IRBodyBuilder {
 
     System.out.println(statements);
 
-    initializeEnvironmentVariables();
+    if(ensureInitialized) {
+      initializeEnvironmentVariables();
+    }
     mergeInitializations();
 
     return new IRBody(statements, labels);
@@ -257,8 +263,8 @@ public class IRBodyBuilder {
   public void translateStatements(TranslationContext context, SEXP sexp) {
     if(sexp instanceof FunctionCall) {
       FunctionCall call = (FunctionCall)sexp;
-      Function function = resolveFunction(call.getFunction());
-      builders.get( function ).addStatement(this, context, function, call);
+      Optional<Function> function = resolveFunction(call.getFunction());
+      builders.get(function).addStatement(this, context, call);
     } else {
       Expression expr = translateExpression(context, sexp);
       if(!(expr instanceof Constant)) {
@@ -269,32 +275,36 @@ public class IRBodyBuilder {
 
   public Expression translateSetterCall(TranslationContext context, FunctionCall getterCall, Expression rhs) {
     Symbol getter = (Symbol) getterCall.getFunction();
-    Function setter = resolveFunction(Symbol.get(getter.getPrintName() + "<-"));
+    Optional<Function> setter = resolveFunction(Symbol.get(getter.getPrintName() + "<-"));
 
     FunctionCallTranslator translator = builders.get(setter);
-    return translator.translateToSetterExpression(this, context, setter, getterCall, rhs);
+    return translator.translateToSetterExpression(this, context, getterCall, rhs);
   }
 
   public Expression translateCallExpression(TranslationContext context, FunctionCall call) {
     SEXP functionName = call.getFunction();
-    Function function = resolveFunction(functionName);
+    Optional<Function> function = resolveFunction(functionName);
 
     FunctionCallTranslator translator = builders.get(function);
-    return translator.translateToExpression(this, context, function, call);
+    return translator.translateToExpression(this, context, call);
   }
 
-  private Function resolveFunction(SEXP functionName) {
+  private Optional<Function> resolveFunction(SEXP functionName) {
     if( functionName instanceof PrimitiveFunction) {
-      return (PrimitiveFunction) functionName;
+      return Optional.of((PrimitiveFunction) functionName);
     } else if (functionName instanceof Symbol) {
       Symbol symbol = (Symbol) functionName;
       if(symbol.isReservedWord()) {
-        return Primitives.getReservedBuiltin(symbol);
+        return Optional.of(Primitives.getReservedBuiltin(symbol));
       } else {
-        return runtimeContext.findFunction(symbol);
+        try {
+          return Optional.of(runtimeContext.findFunction(symbol));
+        } catch (NotCompilableException e) {
+          return Optional.empty();
+        }
       }
     }
-    throw new NotCompilableException(functionName);
+    return Optional.empty();
   }
 
   public List<IRArgument> translateArgumentList(TranslationContext context, PairList argumentSexps) {

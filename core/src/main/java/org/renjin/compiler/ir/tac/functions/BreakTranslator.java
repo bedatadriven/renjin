@@ -23,7 +23,6 @@ import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.expressions.Constant;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.statements.GotoStatement;
-import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
 
 
@@ -31,15 +30,15 @@ public class BreakTranslator extends FunctionCallTranslator {
 
   @Override
   public Expression translateToExpression(IRBodyBuilder builder,
-                                          TranslationContext context, Function resolvedFunction, FunctionCall call) {
+                                          TranslationContext context, FunctionCall call) {
 
-    addStatement(builder, context, resolvedFunction, call);
+    addStatement(builder, context, call);
     return Constant.NULL;
   }
 
   @Override
   public void addStatement(IRBodyBuilder builder, TranslationContext context,
-                           Function resolvedFunction, FunctionCall call) {
+                           FunctionCall call) {
 
     if(!(context instanceof LoopContext)) {
       throw new InvalidSyntaxException("`break` cannot be used outside of a loop");

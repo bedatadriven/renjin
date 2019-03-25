@@ -27,7 +27,7 @@ import org.renjin.sexp.*;
 
 public class MissingTranslator extends FunctionCallTranslator {
   @Override
-  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
+  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
 
     Symbol argumentName = parseArgumentName(call);
     return new Constant(Logical.valueOf(context.isMissing(argumentName)));
@@ -50,7 +50,7 @@ public class MissingTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public void addStatement(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
+  public void addStatement(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
     // NOOP
   }
 }

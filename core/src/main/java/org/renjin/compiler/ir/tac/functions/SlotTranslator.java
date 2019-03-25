@@ -23,7 +23,6 @@ import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.NamedSlotAccess;
 import org.renjin.compiler.ir.tac.statements.ExprStatement;
-import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
@@ -33,19 +32,19 @@ public class SlotTranslator extends FunctionCallTranslator {
 
   @Override
   public void addStatement(IRBodyBuilder builder, TranslationContext context,
-                           Function resolvedFunction, FunctionCall call) {
+                           FunctionCall call) {
 
-    builder.addStatement(new ExprStatement(translateToExpression(builder, context, resolvedFunction, call)));
+    builder.addStatement(new ExprStatement(translateToExpression(builder, context, call)));
   }
   
   @Override
-  public Expression translateToSetterExpression(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall getterCall, Expression rhs) {
+  public Expression translateToSetterExpression(IRBodyBuilder builder, TranslationContext context, FunctionCall getterCall, Expression rhs) {
     throw new UnsupportedOperationException("TODO ");
   }
   
   @Override
   public Expression translateToExpression(IRBodyBuilder builder,
-                                          TranslationContext context, Function resolvedFunction, FunctionCall call) {
+                                          TranslationContext context, FunctionCall call) {
     Expression object = builder.translateExpression(context, call.getArgument(0));
 
     SEXP nameArgument = call.getArgument(1);

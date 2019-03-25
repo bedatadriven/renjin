@@ -28,7 +28,6 @@ import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.ExprStatement;
 import org.renjin.compiler.ir.tac.statements.GotoStatement;
 import org.renjin.compiler.ir.tac.statements.IfStatement;
-import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
 
 
@@ -37,7 +36,7 @@ public class OrTranslator extends FunctionCallTranslator {
 
   @Override
   public Expression translateToExpression(IRBodyBuilder builder,
-                                          TranslationContext context, Function resolvedFunction, FunctionCall call) {
+                                          TranslationContext context, FunctionCall call) {
 
     Temp result = builder.newTemp();
     IRLabel firstFalse = builder.newLabel(); /* first is false, need to check second */
@@ -87,7 +86,7 @@ public class OrTranslator extends FunctionCallTranslator {
 
   @Override
   public void addStatement(IRBodyBuilder builder, TranslationContext context,
-                           Function resolvedFunction, FunctionCall call) {
+                           FunctionCall call) {
     
     IRLabel test2Label = builder.newLabel();
     IRLabel finishLabel = builder.newLabel();

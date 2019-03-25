@@ -24,7 +24,6 @@ import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.expressions.BuiltinCall;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.statements.ExprStatement;
-import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.PrimitiveFunction;
 
@@ -32,32 +31,32 @@ import java.util.List;
 
 class BuiltinTranslator extends FunctionCallTranslator {
 
-  public static final BuiltinTranslator INSTANCE = new BuiltinTranslator();
+  private final PrimitiveFunction builtin;
+
+  public BuiltinTranslator(PrimitiveFunction function) {
+    this.builtin = function;
+  }
 
   @Override
-  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
-    String functionName = ((PrimitiveFunction) resolvedFunction).getName();
-
+  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
     List<IRArgument> arguments = builder.translateArgumentList(context, call.getArguments());
     
-    return new BuiltinCall(builder.getRuntimeState(), call, functionName, arguments);
+    return new BuiltinCall(builder.getRuntimeState(), call, builtin.getName(), arguments);
   }
 
   @Override
   public Expression translateToSetterExpression(IRBodyBuilder builder, TranslationContext context,
-                                                Function resolvedFunction, FunctionCall getterCall,
+                                                FunctionCall getterCall,
                                                 Expression rhs) {
-
-    String functionName = ((PrimitiveFunction) resolvedFunction).getName();
 
     List<IRArgument> arguments = builder.translateArgumentList(context, getterCall.getArguments());
     arguments.add(new IRArgument("value", builder.simplify(rhs)));
 
-    return new BuiltinCall(builder.getRuntimeState(), getterCall, functionName, arguments);
+    return new BuiltinCall(builder.getRuntimeState(), getterCall, builtin.getName(), arguments);
   }
 
   @Override
-  public void addStatement(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
-    builder.addStatement(new ExprStatement(translateToExpression(builder, context, resolvedFunction, call)));
+  public void addStatement(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
+    builder.addStatement(new ExprStatement(translateToExpression(builder, context, call)));
   }
 }

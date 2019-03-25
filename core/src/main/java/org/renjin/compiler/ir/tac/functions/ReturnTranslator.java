@@ -22,19 +22,18 @@ import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.expressions.Constant;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.statements.ReturnStatement;
-import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
 
 public class ReturnTranslator extends FunctionCallTranslator {
   @Override
-  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
-    addStatement(builder, context, resolvedFunction, call);
+  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
+    addStatement(builder, context, call);
     return Constant.NULL;
   }
 
   @Override
   public void addStatement(IRBodyBuilder builder, TranslationContext context,
-                           Function resolvedFunction, FunctionCall call) {
+                           FunctionCall call) {
 
     Expression returnExpression;
     if(call.getArguments().length() == 1) {

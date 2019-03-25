@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * Provides access to the runtime environment at the moment of compilation,
@@ -57,6 +58,8 @@ public class RuntimeState {
   private Map<Symbol, Function> resolvedFunctions = Maps.newHashMap();
   private List<ExtraArgument> extraArguments;
 
+  private Predicate<Environment> environmentPredicate = rho -> true;
+
 
   /**
    * Creates a new {@code RuntimeState} for an arbitrary execution environment.
@@ -66,6 +69,12 @@ public class RuntimeState {
   public RuntimeState(Context context, Environment rho) {
     this.context = context;
     this.rho = rho;
+  }
+
+  public RuntimeState(Context context, Environment rho, Predicate<Environment> environmentPredicate) {
+    this.context = context;
+    this.rho = rho;
+    this.environmentPredicate = environmentPredicate;
   }
 
   /**
@@ -143,12 +152,17 @@ public class RuntimeState {
    * @return the value of the binding, or {@code Symbol.UNBOUND_VALUE} if it could not be found.
    * @throws NotCompilableException if an active binding or unevaluated promise was encountered in the search path.
    */
-  private static SEXP findVariableWithoutSideEffects(Context context, Environment rho, Symbol name, boolean findFunction) {
+  private SEXP findVariableWithoutSideEffects(Context context, Environment rho, Symbol name, boolean findFunction) {
 
     SEXP value;
     Environment environment = rho;
 
     do {
+
+      if (!environmentPredicate.test(environment)) {
+        throw new NotCompilableException(name, "Dynamic environment encountered");
+      }
+
       if (environment.isActiveBinding(name)) {
         throw new NotCompilableException(name, "Active Binding encountered");
       }
@@ -185,7 +199,7 @@ public class RuntimeState {
     return value;
   }
 
-  private static SEXP forceWithoutSideEffects(Context context, boolean findFunction, SEXP value) {
+  private SEXP forceWithoutSideEffects(Context context, boolean findFunction, SEXP value) {
     while(value instanceof Promise) {
       Promise promisedValue = (Promise) value;
 
@@ -397,7 +411,7 @@ public class RuntimeState {
    * Assumes that the variable in the expression's immediate environment
    * matches the ValueBounds used to compile the fragment
    */
-  public static class AssumeVariableBounds implements RuntimeAssumption {
+  public class AssumeVariableBounds implements RuntimeAssumption {
     private final Symbol name;
     private final ValueBounds bounds;
 
@@ -426,7 +440,7 @@ public class RuntimeState {
     }
   }
 
-  public static class AssumeFunctionDefinition implements RuntimeAssumption {
+  public class AssumeFunctionDefinition implements RuntimeAssumption {
     private final Symbol name;
     private final Function function;
 

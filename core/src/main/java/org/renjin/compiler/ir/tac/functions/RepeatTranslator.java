@@ -23,7 +23,6 @@ import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Constant;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.statements.GotoStatement;
-import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
 
 
@@ -32,13 +31,13 @@ public class RepeatTranslator extends FunctionCallTranslator {
   @Override
   public Expression translateToExpression(IRBodyBuilder builder,
                                           TranslationContext context,
-                                          Function resolvedFunction, FunctionCall call) {
-    addStatement(builder, context, resolvedFunction, call);
+                                          FunctionCall call) {
+    addStatement(builder, context, call);
     return Constant.NULL;
   }
 
   @Override
-  public void addStatement(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
+  public void addStatement(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
     IRLabel beginLabel = builder.addLabel();
     IRLabel exitLabel = builder.newLabel();
     

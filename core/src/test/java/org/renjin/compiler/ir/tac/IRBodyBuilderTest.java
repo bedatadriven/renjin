@@ -220,10 +220,18 @@ public class IRBodyBuilderTest extends EvalTestCase {
     assertThat(evalIR("1 || NA"), elementsIdenticalTo(c(true)));
     assertThat(evalIR("1 || stop(); NULL "), identicalTo(NULL));
   }
+
+  @Test
+  public void scale() {
+    Closure closure = (Closure) topLevelContext.evaluate(Symbol.get("scale.default"));
+
+    IRBodyBuilder factory = newBodyBuilder();
+    IRBody ir = factory.build(closure.getBody());
+
+    System.out.println(ir.toString());
+  }
   
-  
- 
-  
+
   @Test
   public void assignmentInThunk() {
     assertThat(evalIR("length(x <- 42); x;"), elementsIdenticalTo(c(42)));

@@ -18,18 +18,25 @@
  */
 package org.renjin.compiler.ir.tac.expressions;
 
-import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.builtins.*;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.SexpExpr;
+import org.renjin.compiler.codegen.var.VariableStrategy;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.compiler.ir.tac.statements.Assignment;
+import org.renjin.eval.Context;
+import org.renjin.invoke.codegen.WrapperGenerator2;
+import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.sexp.Environment;
 import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.SEXP;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +69,10 @@ public class BuiltinCall implements CallExpression {
     this.primitiveName = primitiveName;
     this.arguments = Lists.newArrayList(arguments);
     this.specializer = specializer;
+  }
+
+  public String getPrimitiveName() {
+    return primitiveName;
   }
 
   @Override
@@ -114,8 +125,21 @@ public class BuiltinCall implements CallExpression {
     try {
       specialization.emitAssignment(emitContext, mv, statement, arguments);
     } catch (FailedToSpecializeException e) {
-      throw new NotCompilableException(call, "Failed to specialize .Primitive(" + primitiveName + ")");
+      emitUnspecializedAssigment(emitContext, mv, statement);
+//      throw new NotCompilableException(call, "Failed to specialize .Primitive(" + primitiveName + ")");
     }
+  }
+
+  private void emitUnspecializedAssigment(EmitContext emitContext, InstructionAdapter mv, Assignment statement) {
+    VariableStrategy lhs = emitContext.getVariable(statement.getLHS());
+    SexpExpr expr = new SexpExpr() {
+      @Override
+      public void loadSexp(EmitContext context, InstructionAdapter mv) {
+        writeBuiltinCall(context, mv);
+      }
+    };
+
+    lhs.store(emitContext, mv, expr);
   }
 
   @Override
@@ -123,8 +147,40 @@ public class BuiltinCall implements CallExpression {
     throw new UnsupportedOperationException("TODO");
   }
 
+  private void writeBuiltinCall(EmitContext context, InstructionAdapter mv) {
+
+    // Invoke the doApply method of the generated class
+    mv.visitVarInsn(Opcodes.ALOAD, context.getContextVarIndex());
+    mv.visitVarInsn(Opcodes.ALOAD, context.getEnvironmentVarIndex());
+
+    for (int i = 0; i < arguments.size(); i++) {
+      arguments.get(i).getExpression().getCompiledExpr(context);
+    }
+
+    String generatedClass = WrapperGenerator2.toFullJavaName(primitiveName)
+        .replace('.', '/');
+
+    mv.visitMethodInsn(Opcodes.INVOKESTATIC, generatedClass, "doApply", applyDescriptor(), false);
+
+  }
+
+  private String applyDescriptor() {
+    Type[] argumentTypes = new Type[arguments.size() + 2];
+    int argIndex = 0;
+    argumentTypes[argIndex++] = Type.getType(Context.class);
+    argumentTypes[argIndex++] = Type.getType(Environment.class);
+    for (int i = 0; i < arguments.size(); i++) {
+      argumentTypes[argIndex++] = Type.getType(SEXP.class);
+    }
+
+    return Type.getMethodDescriptor(Type.getType(SEXP.class), argumentTypes);
+  }
+
+
   @Override
   public String toString() {
     return "(" + primitiveName + " " + Joiner.on(" ").join(arguments) + ")";
   }
+
+
 }

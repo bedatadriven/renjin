@@ -22,13 +22,16 @@ package org.renjin.compiler.ir.tac.functions;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.expressions.Constant;
 import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.sexp.*;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
 
 
 public class BracketTranslator extends FunctionCallTranslator {
 
   @Override
-  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
+  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
     if(call.getArguments().length() == 0) {
       return Constant.NULL;
     } else {
@@ -44,7 +47,7 @@ public class BracketTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public void addStatement(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
+  public void addStatement(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
     if(call.getArguments() != Null.INSTANCE) {
       for(SEXP arg : call.getArguments().values()) {
         builder.translateStatements(context, arg);

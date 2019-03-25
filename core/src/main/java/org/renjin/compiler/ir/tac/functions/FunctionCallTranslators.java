@@ -25,6 +25,7 @@ import org.renjin.sexp.Function;
 import org.renjin.sexp.PrimitiveFunction;
 
 import java.util.Map;
+import java.util.Optional;
 
 public class FunctionCallTranslators {
 
@@ -57,14 +58,18 @@ public class FunctionCallTranslators {
     specials.put("@", new SlotTranslator());
     specials.put("missing", new MissingTranslator());
   }
-  
+
+  public FunctionCallTranslator get(Optional<Function> resolvedFunction) {
+    return resolvedFunction.map(this::get).orElse(DynamicCallTranslator.INSTANCE);
+  }
+
   public FunctionCallTranslator get(Function function) {
     if(function instanceof PrimitiveFunction) {
       PrimitiveFunction primitiveFunction = (PrimitiveFunction)function;
       if(specials.containsKey(primitiveFunction.getName())) {
         return specials.get(primitiveFunction.getName());
       } else {
-        return BuiltinTranslator.INSTANCE;
+        return new BuiltinTranslator((PrimitiveFunction) function);
       }
     }
   

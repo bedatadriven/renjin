@@ -46,4 +46,7 @@ public class LocalVarAllocator {
     return nextIndex;
   }
 
+  public int reserveObject() {
+    return reserveWithSize(1);
+  }
 }

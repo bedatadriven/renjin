@@ -37,9 +37,8 @@ import java.util.List;
  */
 public class UseMethodTranslator extends FunctionCallTranslator {
   @Override
-  public Expression translateToExpression(IRBodyBuilder builder, 
-                                          TranslationContext context, 
-                                          Function resolvedFunction, 
+  public Expression translateToExpression(IRBodyBuilder builder,
+                                          TranslationContext context,
                                           FunctionCall call) {
     
     if(!(context instanceof InlinedContext)) {
@@ -89,7 +88,7 @@ public class UseMethodTranslator extends FunctionCallTranslator {
   }
 
   @Override
-  public void addStatement(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
+  public void addStatement(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
     throw new NotCompilableException(call);
   }
 }

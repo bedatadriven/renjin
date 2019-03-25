@@ -74,7 +74,7 @@ public class EnvironmentVariable extends Variable {
 
   @Override
   public CompiledSexp getCompiledExpr(EmitContext emitContext) {
-    throw new UnsupportedOperationException("TODO");
+    return emitContext.getVariable(this).getCompiledExpr();
   }
 
 

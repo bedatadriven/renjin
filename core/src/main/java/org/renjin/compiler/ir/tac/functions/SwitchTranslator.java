@@ -25,7 +25,10 @@ import org.renjin.compiler.ir.tac.expressions.*;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.GotoStatement;
 import org.renjin.compiler.ir.tac.statements.IfStatement;
-import org.renjin.sexp.*;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.Symbol;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -37,7 +40,7 @@ public class SwitchTranslator extends FunctionCallTranslator {
 
   @Override
   public Expression translateToExpression(IRBodyBuilder builder,
-                                          TranslationContext context, Function resolvedFunction, FunctionCall call) {
+                                          TranslationContext context, FunctionCall call) {
     // since "switch" is being used in the context of an expression, we need
     // to store its final value somewhere
     Temp result = builder.newTemp();
@@ -49,7 +52,7 @@ public class SwitchTranslator extends FunctionCallTranslator {
 
   @Override
   public void addStatement(IRBodyBuilder builder, TranslationContext context,
-                           Function resolvedFunction, FunctionCall call) {
+                           FunctionCall call) {
 
     build(builder, context, call, Optional.empty());
   }

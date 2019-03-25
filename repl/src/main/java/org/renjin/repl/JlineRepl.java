@@ -128,12 +128,12 @@ public class JlineRepl {
 
     try {
       while(readExpression()) { }
+
       // run finalizers and shutdown
       session.close();
 
     } finally {
       reader.getTerminal().restore();
-      reader.println();
     }
 
   }

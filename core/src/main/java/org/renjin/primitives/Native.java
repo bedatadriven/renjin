@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ import org.renjin.eval.Profiler;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.gcc.runtime.ObjectPtr;
+import org.renjin.gcc.runtime.PointerPtr;
 import org.renjin.invoke.annotations.*;
 import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.invoke.reflection.FunctionBinding;
@@ -209,7 +209,7 @@ public class Native {
       }
       builder.add(callArguments.getName(i), sexpFromPointer(
           nativeArguments[i],
-          callArguments.get(i).getAttributes()));
+          callArguments.get(i)));
     }
     return builder.build();
   }
@@ -217,7 +217,7 @@ public class Native {
   /**
    * Converts a StringVector to an array of null-terminated strings.
    */
-  private static ObjectPtr stringPtrToCharPtrPtr(SEXP sexp) {
+  private static PointerPtr stringPtrToCharPtrPtr(SEXP sexp) {
     if(!((sexp instanceof StringVector))) {
       throw new EvalException(".C function expected 'character', but argument was '%s'", sexp.getTypeName());
     }
@@ -229,18 +229,18 @@ public class Native {
         strings[i] = BytePtr.nullTerminatedString(element, Charsets.UTF_8);
       }
     }
-    return new ObjectPtr(strings, 0);
+    return new PointerPtr(strings, 0);
   }
 
-  private static SEXP sexpFromPointer(Object ptr, AttributeMap attributes) {
+  private static SEXP sexpFromPointer(Object ptr, SEXP inputArgument) {
     // We are trusting the C code not to modify the arrays after the call
     // returns. 
     if(ptr instanceof DoublePtr) {
-      return DoubleArrayVector.unsafe(((DoublePtr) ptr).array, attributes);
+      return DoubleArrayVector.unsafe(((DoublePtr) ptr).array, inputArgument.getAttributes());
     } else if(ptr instanceof IntPtr) {
-      return new IntArrayVector(((IntPtr) ptr).array, attributes);
-    } else if(ptr instanceof ObjectPtr) {
-      return new NativeStringVector((ObjectPtr)ptr, attributes);
+      return new IntArrayVector(((IntPtr) ptr).array, inputArgument.getAttributes());
+    } else if(ptr instanceof PointerPtr) {
+      return new NativeStringVector((PointerPtr) ptr, inputArgument.getAttributes());
     } else {
       throw new UnsupportedOperationException(ptr.toString());
     }
@@ -283,8 +283,9 @@ public class Native {
     DllSymbol method = findMethod(context, methodExp, packageName, className, DllSymbol.Convention.FORTRAN);
 
     Class<?>[] fortranTypes = method.getMethodHandle().type().parameterArray();
-    if(fortranTypes.length != callArguments.length()) {
-      throw new EvalException("Invalid number of args");
+    if(fortranTypes.length > callArguments.length()) {
+      throw new EvalException("Argument mismatch while invoking .Fortran(" + method.getName() + ", ...): " +
+          " expected " + fortranTypes.length + " arguments, received " + callArguments.length() + " arguments");
     }
 
     Object[] fortranArgs = new Object[fortranTypes.length];
@@ -298,7 +299,7 @@ public class Native {
     // reference to the fortran subroutine, and then return the modified arguments
     // as a ListVector.
 
-    for(int i=0;i!=callArguments.length();++i) {
+    for(int i=0;i!=fortranTypes.length;++i) {
       AtomicVector vector = (AtomicVector) callArguments.get(i);
       if(vector instanceof DoubleVector) {
         double[] array = vector.toDoubleArray();
@@ -463,8 +464,8 @@ public class Native {
     }
 
     SEXP call = context.getCall();
-    SEXP op = Null.INSTANCE;
-    SEXP args = new PairList.Node(StringVector.valueOf(symbol.getName()), PairList.Node.fromVector(callArguments));
+    SEXP op = Primitives.getPrimitive(Symbol.get(".External2"));
+    SEXP args = new PairList.Node(methodExp, PairList.Node.fromVector(callArguments));
     SEXP rho = context.getEnvironment();
 
     if(Profiler.ENABLED) {

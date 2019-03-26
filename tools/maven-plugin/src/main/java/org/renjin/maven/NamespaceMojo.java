@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -104,7 +104,7 @@ public class NamespaceMojo extends AbstractMojo {
 
     try {
       PackageSource source = new PackageSource.Builder(project.getBasedir())
-          .setGroupId(groupId)
+          .setDefaultGroupId(groupId)
           .setPackageName(packageName)
           .setDescription(buildDescription())
           .setNamespaceFile(namespaceFile)
@@ -117,7 +117,7 @@ public class NamespaceMojo extends AbstractMojo {
       buildContext.setDefaultPackages(defaultPackages);
 
       PackageBuilder builder = new PackageBuilder(source, buildContext);
-      builder.copyRootFiles();
+      builder.copyDescriptionFile();
       builder.compileNamespace();
       builder.compileDatasets();
 

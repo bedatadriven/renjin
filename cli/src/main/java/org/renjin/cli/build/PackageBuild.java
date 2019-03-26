@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,77 +19,60 @@
 package org.renjin.cli.build;
 
 import org.codehaus.plexus.util.FileUtils;
-import org.eclipse.aether.RepositorySystem;
-import org.eclipse.aether.RepositorySystemSession;
-import org.eclipse.aether.artifact.Artifact;
-import org.eclipse.aether.artifact.DefaultArtifact;
-import org.eclipse.aether.installation.InstallRequest;
-import org.eclipse.aether.installation.InstallationException;
-import org.eclipse.aether.util.artifact.SubArtifact;
-import org.renjin.aether.AetherFactory;
 import org.renjin.eval.Session;
-import org.renjin.gnur.GnurSourcesCompiler;
-import org.renjin.packaging.*;
-import org.renjin.repackaged.guava.base.Charsets;
-import org.renjin.repackaged.guava.io.Files;
+import org.renjin.packaging.BuildContext;
+import org.renjin.packaging.BuildException;
+import org.renjin.packaging.BuildLogger;
+import org.renjin.packaging.PackageSource;
+import org.renjin.primitives.packaging.PackageLoader;
 
-import java.io.*;
-import java.util.Properties;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
+public class PackageBuild implements BuildContext {
 
-public class PackageBuild {
-  
-  private BuildReporter reporter;
-
-  private final PackageSource source;
-  private final String buildVersion;
-
-  /**
-   * The directory to write files to be included in the jar 
-   */
-  private final File stagingDir;
+  private final CliBuildLogger logger = new CliBuildLogger();
 
   private final File buildDir;
-
-  /**
-   * Directory for GCC work
-   */
-  private final File gccWorkDir;
-  
-  /**
-   * The subdir within the stagingDir corresponding to this package's java package directory.
-   * For example, $stagingDir/org/renjin/bioconductor/limma
-   */
+  private final PackageSource source;
+  private final DependencyResolution dependencyResolution;
   private final File outputDir;
-  
+  private final File packageOutputDir;
   private final File mavenMetaDir;
 
-  private final File environmentFile;
 
-  public PackageBuild(BuildReporter reporter, PackageSource source, String buildSuffix) {
-    this.reporter = reporter;
-    this.source = source;
-    this.buildVersion = source.getVersion() + buildSuffix;
+  public PackageBuild(PackageSource source, Optional<String> renjinVersion) {
     this.buildDir = createCleanBuildDir(source.getPackageDir());
-    this.stagingDir = new File(buildDir, "classes");
-    this.gccWorkDir = new File(buildDir, "gcc-work");
-    this.outputDir = new File(
-            stagingDir + File.separator + 
-            source.getGroupId().replace('.', File.separatorChar) + File.separator + 
+    this.source = source;
+    this.outputDir = new File(buildDir, "classes");
+    this.packageOutputDir = new File(
+        outputDir + File.separator +
+            source.getGroupId().replace('.', File.separatorChar) + File.separator +
             source.getPackageName());
-    
-    mkdirs(outputDir);
+
+    mkdirs(packageOutputDir);
 
     this.mavenMetaDir = new File(
-            stagingDir + File.separator + 
-            "META-INF" + File.separator + 
+        outputDir + File.separator +
+            "META-INF" + File.separator +
             "maven" + File.separator +
-            source.getGroupId() + File.separator + 
+            source.getGroupId() + File.separator +
             source.getPackageName());
-    
+
     mkdirs(mavenMetaDir);
-    
-    environmentFile = new File(outputDir, "environment");  
+
+    this.dependencyResolution = new DependencyResolution(logger, source.getDescription(), renjinVersion);
+  }
+
+  public DependencyResolution getDependencyResolution() {
+    return dependencyResolution;
+  }
+
+  public String getBuildVersion() {
+    return source.getVersion();
   }
 
   private static File createCleanBuildDir(File packageDir) {
@@ -117,162 +100,91 @@ public class PackageBuild {
     }
   }
 
-
-  /**
-   * @return the temporary directory where files to be included in the package's JAR will be written.
-   */
-  public File getStagingDir() {
-    return stagingDir;
+  public PackageSource getSource() {
+    return source;
   }
 
-  public File getEnvironmentFile() {
-    return environmentFile;
+  @Override
+  public BuildLogger getLogger() {
+    return logger;
+  }
+
+  @Override
+  public void setupNativeCompilation() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public File getGccBridgePlugin() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public File getGnuRHomeDir() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public File getUnpackedIncludesDir() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public File getOutputDir() {
+    return outputDir;
+  }
+
+  @Override
+  public File getPackageOutputDir() {
+    return packageOutputDir;
+  }
+
+  public File getMavenMetaDir() {
+    return mavenMetaDir;
   }
 
   public File getJarFile() {
-    return new File(source.getPackageDir().getParentFile(), source.getPackageName() + "-" + buildVersion + ".jar");
+    return new File(buildDir, source.getPackageName() + "-" + getBuildVersion() + ".jar");
   }
 
-  public File getPomFile() {
-    return new File(mavenMetaDir, "pom.xml");
-  }
-  
-  public File getPomPropertiesFile() {
-    return new File(mavenMetaDir, "pom.properties");
-  }
-  
-  public void build() {
-    if(source.needsCompilation()) {
-      compileNativeSources();
-    }
-    compileDatasets();
-    copyResources();
-    compileNamespace();
-    runTests();
-    writePomFile();
-    writePomProperties();
-    archivePackage();
+  public File getZipFile() {
+    return new File(buildDir, source.getPackageName() + "-" + getBuildVersion() + ".zip");
   }
 
-  private void compileDatasets() {
-    DatasetsBuilder datasetsBuilder = new DatasetsBuilder(source.getDataDir(), outputDir);
-    try {
-      datasetsBuilder.build();
-    } catch (FileNotFoundException e) {
-      throw new BuildException("Exception compiling datasets", e);
-    }
-  }
-  
-  private void compileNativeSources() {
-    GnurSourcesCompiler compiler = new GnurSourcesCompiler();
-    compiler.addSources(source.getNativeSourceDir());
-    compiler.setVerbose(false);
-    compiler.setPackageName(source.getJavaPackageName());
-    compiler.setClassName(source.getPackageName());
-    compiler.setWorkDirectory(gccWorkDir("work"));
-    compiler.setGimpleDirectory(gccWorkDir("gimple"));
-    compiler.setOutputDirectory(stagingDir);
-    compiler.setLoggingDir(gccWorkDir("logging"));
-
-    try {
-      compiler.compile();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-     // reporter.warn("Compilation of GNU R sources failed", e);
-    }
+  public File getFatJarFile() {
+    return new File(buildDir, source.getPackageName() + "-" + getBuildVersion() + "-fat.jar");
   }
 
-  private File gccWorkDir(String subDir) {
-    File dir = new File(gccWorkDir, subDir);
-    boolean created = dir.mkdirs();
-    if(!created) {
-      throw new BuildException(String.format("Failed to create working directory '%s'", dir.getAbsolutePath()));
-    }
-    return dir;
+  @Override
+  public File getCompileLogDir() {
+    throw new UnsupportedOperationException("TODO");
   }
 
-  /**
-   * Copies files that should be available to installed packages
-   */
-  private void copyResources()  {
-    try {
-      Files.copy(source.getNamespaceFile(), new File(outputDir, "NAMESPACE"));
-      source.getDescription().writeTo(new File(outputDir, "DESCRIPTION"));
-      
-    } catch (IOException e) {
-      throw new BuildException("Exception copying package resources");
-    }
+  @Override
+  public PackageLoader getPackageLoader() {
+    return dependencyResolution.getPackageLoader();
   }
 
-  private void compileNamespace() {
-    
-    NamespaceBuilder builder = new NamespaceBuilder();
-    try {
-      builder.build(source.getGroupId(), source.getPackageName(), source.getNamespaceFile(),
-          source.getSourceFiles(),
-          environmentFile,
-          Session.DEFAULT_PACKAGES);
-      
-
-    } catch (IOException e) {
-      throw new BuildException("Exception building namespace: " + e.getMessage(), e);
-    }
-  }
-  
-  private void runTests() {
-    TestRun run = new TestRun(stagingDir, source.getTestsDir());
-    run.execute();
-  }
-  
-  private void writePomFile() {
-    PomBuilder builder = new PomBuilder(source, buildVersion);
-    try {
-      Files.write(builder.getXml(), getPomFile(), Charsets.UTF_8);
-    } catch (IOException e) {
-      throw new BuildException("Exception writing "   + getPomFile().getAbsolutePath());
-    }
-  }
-  
-  private void writePomProperties() {
-    Properties properties = new Properties();
-    properties.setProperty("groupId", source.getGroupId());
-    properties.setProperty("artifactId", source.getPackageName());
-    properties.setProperty("version", buildVersion);
-
-    try {
-      OutputStream out = new FileOutputStream(getPomPropertiesFile());
-      properties.store(out, "Generated by Renjin");
-    } catch (IOException e) {
-      throw new BuildException("Exception writing " + getPomPropertiesFile().getAbsolutePath());
-    }
+  @Override
+  public ClassLoader getClassLoader() {
+    return dependencyResolution.getClassLoader();
   }
 
-  private void archivePackage() {
-    try(JarArchiver archiver = new JarArchiver(getJarFile())) {
-      archiver.addDirectory(stagingDir);
-    } catch (Exception e) {
-      throw new BuildException("Failed to create package jar", e);
-    }
+  @Override
+  public List<String> getDefaultPackages() {
+    return Session.DEFAULT_PACKAGES;
+  }
+
+  @Override
+  public String getCompileClasspath() {
+    return "";
+  }
+
+  @Override
+  public Map<String, String> getPackageGroupMap() {
+    return dependencyResolution.getPackageGroupMap();
   }
 
 
-  public void install() {
-    RepositorySystem system = AetherFactory.newRepositorySystem();
-    RepositorySystemSession session = AetherFactory.newRepositorySystemSession(system);
 
-    Artifact jarArtifact = new DefaultArtifact( source.getGroupId(), source.getPackageName(), "jar", buildVersion);
-    jarArtifact = jarArtifact.setFile(getJarFile());
-
-    Artifact pomArtifact = new SubArtifact( jarArtifact, "", "pom" );
-    pomArtifact = pomArtifact.setFile( new File( "pom.xml" ) );
-
-    InstallRequest installRequest = new InstallRequest();
-    installRequest.addArtifact( jarArtifact ).addArtifact( pomArtifact );
-
-    try {
-      system.install( session, installRequest );
-    } catch (InstallationException e) {
-      throw new BuildException("Exception installing artifact " + getJarFile().getAbsolutePath());
-    }
-  }
 }

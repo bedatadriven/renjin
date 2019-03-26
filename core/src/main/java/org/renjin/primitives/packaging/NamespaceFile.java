@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -226,14 +226,23 @@ public class NamespaceFile {
   private Set<String> exportedClasses = Sets.newHashSet();
   private Set<String> exportedClassPatterns = Sets.newHashSet();
 
-  public static NamespaceFile parse(Context context, CharSource charSource) throws IOException {
+  public static NamespaceFile parseFile(Context context, CharSource charSource) throws IOException {
+    ExpressionVector source = parseSexp(charSource);
+    return parseFile(context, source);
+  }
+
+  public static NamespaceFile parseFile(Context context, ExpressionVector source) {
     NamespaceFile file = new NamespaceFile();
+    file.parse(context, source);
+    return file;
+  }
+
+  public static ExpressionVector parseSexp(CharSource charSource) throws IOException {
     ExpressionVector source;
     try(Reader reader = charSource.openStream()) {
       source = RParser.parseAllSource(reader);
     }
-    file.parse(context, source);
-    return file;
+    return source;
   }
 
   private NamespaceFile() {

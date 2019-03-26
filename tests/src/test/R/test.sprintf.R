@@ -1,6 +1,6 @@
 #
 # Renjin : JVM-based interpreter for the R language for the statistical analysis
-# Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+# Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -62,3 +62,6 @@ test.recycling <- function() {
          c("a1x9", "b2y10", "c3z11", "a4x12", "b5y9", "c6z10")))
 }
 
+test.extra.escapes <- function() {
+    assertThat(sprintf("^z\\d{3}|^%s$", "lb1"), identicalTo("^z\\d{3}|^lb1$"))
+}

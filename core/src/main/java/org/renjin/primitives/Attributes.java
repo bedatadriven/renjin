@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -342,9 +342,10 @@ public class Attributes {
     return 0;
   }
 
-  public static StringVector getContainsSlotNames(SEXP exp) {
-    if(exp.getAttribute(S4.CONTAINS) != null) {
-      return (StringArrayVector) exp.getAttribute(S4.CONTAINS).getNames();
+  public static StringVector getSlotElementsNames(SEXP exp, Symbol slot) {
+    SEXP attribute = exp.getAttribute(slot);
+    if(attribute != null && attribute.length() > 0) {
+      return (StringVector) attribute.getNames();
     }
     else {
       return StringVector.EMPTY;

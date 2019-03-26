@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,9 +86,10 @@ public final class DoubleArrayVector extends DoubleVector {
   }
 
   /**
-   * Creates a new DoubleArrayVector that is a copy of the given {@code vector}
+   * Creates a new DoubleArrayVector that is a copy of the given {@code vector},
+   * with the same attributes.
    */
-  public DoubleArrayVector(DoubleVector vector) {
+  public DoubleArrayVector(AtomicVector vector) {
     super(vector.getAttributes());
     this.values = vector.toDoubleArray();
   }

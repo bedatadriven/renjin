@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@ import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.packaging.LazyLoadFrameBuilder;
 import org.renjin.parser.RParser;
-import java.util.function.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.*;
 
 import java.io.File;
@@ -32,6 +32,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Bootstraps the packaging of the base R package
@@ -58,21 +59,14 @@ public class BasePackageCompiler {
     
     // now serialize them to a lazy-loadable frame
     
-    final List<String> omit = Lists.newArrayList(
+    final Set<String> omit = Sets.newHashSet(
         ".Last.value", ".AutoloadEnv", ".BaseNamespaceEnv", 
         ".Device", ".Devices", ".Machine", ".Options", ".Platform");
 
     new LazyLoadFrameBuilder(context)
         .outputTo(new File("target/classes/org/renjin/base"))
-        .filter(namedValue -> {
-          if(omit.contains(namedValue.getName())) {
-            return false;
-          }
-          if(namedValue.getValue() instanceof PrimitiveFunction) {
-            return false;
-          }
-          return true;
-        })
+        .excludeSymbols(omit)
+        .filter(x -> !(x instanceof PrimitiveFunction))
         .build(baseNamespaceEnv);
   }
 

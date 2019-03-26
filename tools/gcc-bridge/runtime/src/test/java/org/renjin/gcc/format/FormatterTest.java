@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -131,5 +131,8 @@ public class FormatterTest {
     assertThat(format("%a", Math.pow(Math.sqrt(2.0), 2.0)), Matchers.equalTo("0x1.0000000000001p+1"));
   }
 
-
+  @Test
+  public void backslash() {
+    assertThat(format("\\d"), equalTo("\\d"));
+  }
 }

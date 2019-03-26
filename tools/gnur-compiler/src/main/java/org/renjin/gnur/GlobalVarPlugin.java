@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,6 @@ import org.renjin.gcc.codegen.CodeGenerationContext;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.GlobalVarTransformer;
 import org.renjin.repackaged.asm.MethodVisitor;
-import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nonnull;
@@ -72,9 +71,6 @@ public class GlobalVarPlugin extends GimpleCompilerPlugin {
 
   @Override
   public void writeTrampolinePrelude(MethodVisitor mv, FunctionGenerator functionGenerator) {
-    mv.visitMethodInsn(Opcodes.INVOKESTATIC, contextClass.getInternalName(), "enter",
-        ContextClassWriter.ENTER_METHOD_DESCRIPTOR, false);
-    mv.visitInsn(Opcodes.POP);
   }
 
   @Override

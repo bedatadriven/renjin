@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,29 +16,21 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.packaging;
+package org.renjin.cli.build;
 
-/**
- * Reports status of build
- */
-public class BuildReporter {
-  
-  private boolean verbose = true;
-  
-  
-  
-  public void info(String message, Object... args) {
-    System.out.println(String.format(message, args));  
-  }
-  
-  public void debug(String message, Object... args) {
-    if(verbose) {
-      System.out.println(String.format(message, args));
-    }
-  }
+import io.airlift.airline.Command;
 
-  public void warn(String message, Exception e) {
-    System.out.println(message);
-    e.printStackTrace();
+import java.io.IOException;
+
+@Command(name = "build", description = "Build a JAR from package source")
+public class PackageBuildCommand extends PackageCommand {
+
+
+  @Override
+  public final void tryRun() throws IOException {
+    PackageBuild buildContext = createBuildContext();
+    Builder.buildPackage(buildContext);
+    Builder.buildJar(buildContext);
+
   }
 }

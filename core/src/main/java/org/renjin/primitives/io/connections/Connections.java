@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,14 +24,12 @@ import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Recycle;
-import org.renjin.invoke.reflection.converters.StringArrayConverter;
 import org.renjin.primitives.Identical;
 import org.renjin.primitives.io.connections.Connection.Type;
 import org.renjin.primitives.text.RCharsets;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.base.Strings;
-import org.renjin.repackaged.guava.io.ByteStreams;
 import org.renjin.sexp.*;
 
 import java.io.*;
@@ -285,6 +283,8 @@ public class Connections {
         return reader.readComplexVector(n, size, swap);
       case "character":
         return reader.readCharacterVector(n, size, swap);
+      case "raw":
+        return reader.readRaw(n, size);
       default:
         throw new EvalException("Unsupported/unimplemented type: " + typeName);
     }
@@ -418,5 +418,13 @@ public class Connections {
       conn.open(new OpenSpec(open));
     }
     return context.getSession().getConnectionTable().newConnection(conn);
+  }
+
+  @Internal
+  public static boolean isIncomplete(@Current Context context, SEXP conn) throws IOException {
+
+    Connection con = Connections.getConnection(context, conn);
+
+    return con.isIncomplete();
   }
 }

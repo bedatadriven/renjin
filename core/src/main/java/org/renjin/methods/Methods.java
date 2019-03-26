@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -350,12 +350,7 @@ public class Methods {
   public static SEXP getClass(@Current Context context, SEXP className, boolean dotForce, SEXP where) {
 
     if(className instanceof S4Object) {
-      SEXP classes = className.getAttribute(Symbol.get("class"));
-      if(classes instanceof StringVector) {
-        if("classRepresentation".equals(((StringVector)classes).getElementAsString(0))) {
-          return className;
-        }
-      }
+      return className;
     }
 
     SEXP classDef = getClassDef(context, ((StringVector)className), Null.INSTANCE, Null.INSTANCE, true);
@@ -566,7 +561,9 @@ public class Methods {
 
     PairList coercedArgs = coerce(context, arguments, selectedMethod);
 
-    FunctionCall call = new FunctionCall(function, coercedArgs);
+    // Create a synthetic function call S-expression that is visible to the callee and includes
+    // the original arguments passed to the caller of standardGeneric()
+    FunctionCall call = new FunctionCall(function, context.getCall().getArguments());
 
     return ClosureDispatcher.apply(context, context.getCallingEnvironment(), call, function, coercedArgs, metadata);
   }
@@ -597,9 +594,7 @@ public class Methods {
         }
         step += 1;
       } else {
-        if(value != Symbol.MISSING_ARG) {
-          coercedArgs.add(tag, value);
-        }
+        coercedArgs.add(tag, value);
       }
     }
     return coercedArgs.build();

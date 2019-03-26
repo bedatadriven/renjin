@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,11 @@ public class IntArrayVector extends IntVector {
     this.values = Arrays.copyOf(values, values.length);
   }
 
-  public IntArrayVector(IntVector vector) {
+  /**
+   * Creates a new IntArrayVector that is a copy of the given {@code vector},
+   * with the same attributes.
+   */
+  public IntArrayVector(AtomicVector vector) {
     super(vector.getAttributes());
     this.values = vector.toIntArray();
   }

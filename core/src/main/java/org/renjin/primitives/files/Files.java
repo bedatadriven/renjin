@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@ import org.apache.commons.vfs2.*;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
-import org.renjin.primitives.Warning;
 import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.primitives.text.regex.REFactory;
 import org.renjin.primitives.text.regex.RESyntaxException;
@@ -882,7 +881,7 @@ public class Files {
 
     } catch (Exception e) {
       if(showWarnings) {
-        Warning.invokeWarning(context, "cannot create file '%s', reason '%s'", fileName, e.getMessage());
+        context.warn(String.format("cannot create file '%s', reason '%s'", fileName, e.getMessage()));
       }
       return false;
     }

@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -208,6 +208,23 @@ public class FilesTest extends EvalTestCase {
         elementsIdenticalTo(c(false, false, false, false, false, false)));
     assertThat(eval("dir.exists(character(0))"),
         identicalTo((SEXP) LogicalVector.EMPTY));
+  }
+
+  @Test
+  public void testSrcrefcopy() {
+    eval("current.dir <- getwd()");
+    eval("mtime <- \"2018-10-08 09:50:54 CEST\"");
+    eval("text <- \"x <- 1 + 1\ny <- 2 + 2\"");
+    eval("filename <- \"<text>\"");
+    eval("srcfile <- srcfilecopy(filename, text, mtime)");
+
+    assertThat(eval("srcfile[[\"Enc\"]]"), identicalTo(c("unknown")));
+    assertThat(eval("srcfile[[\"filename\"]]"), identicalTo(c("<text>")));
+    assertThat(eval("srcfile[[\"lines\"]]"), identicalTo(c("x <- 1 + 1", "y <- 2 + 2")));
+    assertThat(eval("srcfile[[\"timestamp\"]]"), identicalTo(c("2018-10-08 09:50:54 CEST")));
+    assertThat(eval("srcfile[[\"wd\"]]"), identicalTo(eval("current.dir")));
+    assertThat(eval("srcfile[[\"fixedNewlines\"]]"), identicalTo(LogicalVector.TRUE));
+    assertThat(eval("srcfile[[\"isFile\"]]"), identicalTo(LogicalVector.FALSE));
   }
 
 }

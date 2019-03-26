@@ -1,6 +1,6 @@
 #
 # Renjin : JVM-based interpreter for the R language for the statistical analysis
-# Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+# Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,3 +27,10 @@ f = function(x,y) {
 assertThat(f(), identicalTo("> > > 0"))
 assertThat(f(1), identicalTo("> > > 1"))
 assertThat(f(1,1), identicalTo("> > > 2"))
+
+
+g <- function(i,j=3,...) nargs()
+
+assertThat(g(), identicalTo(0L))
+assertThat(g(i=1), identicalTo(1L))
+assertThat(g(x=9,y=10,z=11), identicalTo(3L))

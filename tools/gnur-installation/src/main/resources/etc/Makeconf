@@ -121,7 +121,7 @@ OBJC_LIBS =
 OBJCXX = 
 R_ARCH = 
 RANLIB = ranlib
-SAFE_FFLAGS = -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -ffloat-store
+SAFE_FFLAGS = ${RENJIN_FLAGS}  -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -ffloat-store
 SED = /bin/sed
 SHELL = /bin/bash
 SHLIB_CFLAGS = 

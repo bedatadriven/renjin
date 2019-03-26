@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -143,8 +143,8 @@ public class GraphicsDevices {
     ((GraphicsDevice) p.getArray()).text(x, y, Stdlib.nullTerminatedString(str), rot, hadj);
   }
 
-  public static void raster(Ptr p, Ptr raster, int w, int h, double x, double y, double width, double height, double rot, double interpolate) {
-    throw new UnsupportedOperationException("TODO");
+  public static void raster(Ptr p, Ptr raster, int w, int h, double x, double y, double width, double height, double rot, int interpolate) {
+    ((GraphicsDevice) p.getArray()).raster(raster, w, h, x, y, width, height, rot, interpolate != 0);
   }
 
   public static void setColor(Ptr p, int color) {

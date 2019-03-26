@@ -87,6 +87,8 @@ typedef struct {
     void*  talkClass; /* class of the talk object (cached) */
 
     int holdlevel;                      /* current hold level (0=no holding) */
+
+    Rboolean buffered;
 } newJavaGDDesc;
 
 newJavaGDDesc * Rf_allocNewJavaGDDeviceDesc(double ps);

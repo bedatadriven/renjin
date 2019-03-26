@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,10 +30,13 @@ import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.*;
 import org.eclipse.aether.transfer.TransferListener;
 import org.eclipse.aether.version.Version;
+import org.renjin.packaging.PackageRepoClient;
+import org.renjin.packaging.ResolvedDependency;
 import org.renjin.primitives.packaging.*;
 import org.renjin.primitives.packaging.Package;
 import org.renjin.repackaged.guava.collect.Lists;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -174,7 +177,25 @@ public class AetherPackageLoader implements PackageLoader {
       throw new RuntimeException(e);
     }
   }
-  
+
+  @Override
+  public Optional<Package> load(String packageName) {
+    PackageRepoClient client = new PackageRepoClient();
+    Map<String, ResolvedDependency> resolution;
+    try {
+      resolution = client.resolve(Collections.singletonList(packageName));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    if(resolution.containsKey(packageName)) {
+      ResolvedDependency resolvedDependency = resolution.get(packageName);
+      return load(new FqPackageName(resolvedDependency.getGroupId(), resolvedDependency.getName()));
+    } else {
+      return Optional.empty();
+    }
+  }
+
   private Artifact resolveLatestArtifact(FqPackageName name) throws VersionRangeResolutionException {
     Artifact artifact = new DefaultArtifact(name.getGroupId(), name.getPackageName(), "jar", "[0,)");
     Version newestVersion = resolveLatestVersion(artifact);

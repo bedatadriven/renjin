@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -132,9 +132,9 @@ public class S4MethodTable {
 
     Environment table = (Environment) forcedTable;
 
-    for (NamedValue namedValue : table.namedValues()) {
-      String signature = namedValue.getName();
-      SEXP definition = namedValue.getValue();
+    for (Symbol symbol : table.getSymbolNames()) {
+      String signature = symbol.getPrintName();
+      SEXP definition = table.getVariable(context, symbol);
       Method method = new Method(generic, groupLevel, signature, definition);
 
       if(method.getSignatureLength() > maximumSignatureLength) {

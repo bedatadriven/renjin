@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ package org.renjin.packaging;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Function;
+import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.ArrayListMultimap;
 import org.renjin.repackaged.guava.collect.Iterables;
@@ -41,8 +42,6 @@ import java.util.*;
 public class PackageDescription {
 
   private ArrayListMultimap<String, String> properties = ArrayListMultimap.create();
-
-
 
   public static class PackageDependency {
     private String name;
@@ -91,15 +90,41 @@ public class PackageDescription {
     public String toString() {
       return (name + "  " + versionRange).trim();
     }
-
-
   }
 
-  private static class PackageDependencyParser implements Function<String, PackageDependency> {
+  /**
+   * A fully qualified JVM dependency in the form {groupId}:{artifact/packageName}:{version}
+   */
+  public static class Dependency {
+    private String groupId;
+    private String name;
+    private String version;
 
-    @Override
-    public PackageDependency apply(String arg0) {
-      return new PackageDependency(arg0);
+    public Dependency(String spec) {
+      String[] parts = spec.split(":");
+      if(parts.length != 2 && parts.length != 3) {
+        throw new IllegalArgumentException(
+            "Expected dependency in the format {groupId}:{packageName} or {groupId}:{packageName}:{version}");
+      }
+      this.groupId = parts[0];
+      this.name = parts[1];
+      if(parts.length == 3) {
+        this.version = parts[2];
+      } else {
+        this.version = "RELEASE";
+      }
+    }
+
+    public String getGroupId() {
+      return groupId;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public String getVersion() {
+      return version;
     }
   }
 
@@ -154,19 +179,24 @@ public class PackageDescription {
     for(String line : lines) {
       if(line.length() > 0) {
         if(Character.isWhitespace(line.codePointAt(0))) {
-          if(key == null) {
-            throw new IllegalArgumentException("Expected key at line '" + line + "'");
-          }
+
+          // Continues value from previous line
+
+          Preconditions.checkArgument(key != null, "Expected key at line '%s'", line);
           value.append(" ").append(line.trim());
+
         } else {
+
+          // Starts a new field
+
           if(key != null) {
             d.properties.put(key, value.toString());
             value.setLength(0);
           }
+
           int colon = line.indexOf(':');
-          if(colon == -1) {
-            throw new IllegalArgumentException("Expected line in format key: value, found '" + line + "'");
-          }
+          Preconditions.checkArgument(colon != -1, "Expected line in format key: value, found '" + line + "'");
+
           key = line.substring(0, colon);
           value.append(line.substring(colon+1).trim());
         }
@@ -269,7 +299,12 @@ public class PackageDescription {
   }
 
   public Iterable<Person> getAuthors() {
-    return Iterables.transform(Arrays.asList(getFirstProperty("Author").split("\\s*,\\s*")), new PersonParser());
+    String authors = getFirstProperty("Author");
+    if(Strings.isNullOrEmpty(authors)) {
+      return Collections.emptySet();
+    } else {
+      return Iterables.transform(Arrays.asList(authors.split("\\s*,\\s*")), new PersonParser());
+    }
   }
 
   public Person getMaintainer() {
@@ -293,7 +328,16 @@ public class PackageDescription {
     if(Strings.isNullOrEmpty(list)) {
       return Collections.emptySet();
     } else {
-      return Iterables.transform(Arrays.asList(list.split("\\s*,\\s*")), new PackageDependencyParser());
+      return Iterables.transform(Arrays.asList(list.split("\\s*,\\s*")), PackageDependency::new);
+    }
+  }
+
+  public Iterable<Dependency> getDependencyList() {
+    String list = getFirstProperty("Dependencies");
+    if(Strings.isNullOrEmpty(list)) {
+      return Collections.emptySet();
+    } else {
+      return Iterables.transform(Arrays.asList(list.split("\\s*,\\s*")), Dependency::new);
     }
   }
 
@@ -314,7 +358,6 @@ public class PackageDescription {
     
     return "yes".equalsIgnoreCase(needed);
   }
-
 
   public void writeTo(File description) throws IOException {
     try(FileWriter writer = new FileWriter(description)) {

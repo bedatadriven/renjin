@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,14 +36,19 @@ public class RLexerReader {
   private int prevpos = 0;
   private int prevlines[] = new int[PUSHBACK_BUFSIZE];
   private int prevcols[] = new int[PUSHBACK_BUFSIZE];
+  private int prevbytes[] = new int[PUSHBACK_BUFSIZE];
 
-  private int columnNumber = 0;
-  private int lineNumber = 1;
+  private int lineNumber = 0;
   private int charIndex = -1;
+  private int columnNumber = -1;
 
   public RLexerReader(Reader reader) {
     super();
     this.reader = new PushbackReader(reader);
+  }
+
+  public Position getPosition() {
+    return new Position(lineNumber, columnNumber, charIndex);
   }
 
   public int read() throws IOException {
@@ -62,18 +67,20 @@ public class RLexerReader {
     prevpos = (prevpos + 1) % PUSHBACK_BUFSIZE;
     prevcols[prevpos] = columnNumber;
     prevlines[prevpos] = lineNumber;
+    prevbytes[prevpos] = charIndex;
 
-    if (c == '\n') {
-      lineNumber += 1;
-      columnNumber = 0;
+    if(c == '\n') {
+      lineNumber++;
+      columnNumber = -1;
+      charIndex = -1;
     } else {
       columnNumber++;
+      charIndex++;
     }
 
     if (c == '\t') { 
       columnNumber = ((columnNumber + 7) & ~7);
     }
-    charIndex++;
 
     return c;
   }
@@ -81,11 +88,11 @@ public class RLexerReader {
   public int unread(int c) {
     lineNumber = prevlines[prevpos];
     columnNumber = prevcols[prevpos];
+    charIndex = prevbytes[prevpos];
     prevpos = (prevpos + PUSHBACK_BUFSIZE - 1) % PUSHBACK_BUFSIZE;
 
     // if ( KeepSource && GenerateCode && FunctionLevel > 0 )
     // SourcePtr--;
-    charIndex--;
     //R_ParseContext[R_ParseContextLast] = '\0';
     /* precaution as to how % is implemented for < 0 numbers */
     //  R_ParseContextLast = (R_ParseContextLast + PARSE_CONTEXT_SIZE -1) % PARSE_CONTEXT_SIZE;
@@ -96,14 +103,24 @@ public class RLexerReader {
     return c;
   }
 
+  /**
+   * @return The zero-based line number of the character we just read. The newline character
+   * is considered to be the last character of the line it terminates.
+   */
   public int getLineNumber() {
     return lineNumber;
   }
 
+  /**
+   * @return The zero-based index of the character we just read within the current line.
+   */
   public int getColumnNumber() {
     return columnNumber;
   }
 
+  /**
+   * @return The zero-based index of the character we just read within the whole character stream.
+   */
   public int getCharacterIndex() {
     return charIndex;
   }

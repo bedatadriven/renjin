@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -122,4 +122,11 @@ public interface Connection {
    * @return the type of Connection: either {@link Type#BINARY} or {@link Type#TEXT}
    */
   Type getType();
+
+  /**
+   * @return true if connection type is {@link Type#TEXT} and buffer is empty and false otherwise.
+   */
+  default boolean isIncomplete() {
+    return false;
+  };
 }

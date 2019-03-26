@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -89,8 +89,11 @@ public class TestRun {
   }
 
   private Session newSession() {
+    ClasspathPackageLoader packageLoader = createPackageLoader();
+
     SessionBuilder builder = new SessionBuilder().withDefaultPackages();
-    builder.setPackageLoader(createPackageLoader());
+    builder.setPackageLoader(packageLoader);
+    builder.setClassLoader(packageLoader.getClassLoader());
     Session session = builder.build();
     session.setWorkingDirectory(resolveTestDir(session));
     return session;

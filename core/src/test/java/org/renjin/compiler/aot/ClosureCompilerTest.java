@@ -38,8 +38,8 @@ public class ClosureCompilerTest {
   public void simpleTest() throws InvocationTargetException, IllegalAccessException {
 
     Session session = new SessionBuilder().build();
-    session.getTopLevelContext().evaluate(RParser.parseInlineSource("g <- function(a, b) a * b\n"));
-    session.getTopLevelContext().evaluate(RParser.parseInlineSource("f <- function(x) g(b=x,a=2)\n"));
+    session.getTopLevelContext().evaluate(RParser.parseSource("g <- function(a, b) a * b\n"));
+    session.getTopLevelContext().evaluate(RParser.parseSource("f <- function(x) g(b=x,a=2)\n"));
     Closure closure = (Closure) session.getTopLevelContext().evaluate(Symbol.get("f"));
 
     ClosureCompiler compiler = new ClosureCompiler(session, closure);

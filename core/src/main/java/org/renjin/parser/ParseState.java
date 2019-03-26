@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ public class ParseState {
   /**
    * Whether to attach srcrefs to objects as they are parsed
    */
-  boolean keepSrcRefs = true;
+  boolean keepSrcRefs = false;
 
   /**
    * The srcfile object currently being parsed
@@ -67,5 +67,9 @@ public class ParseState {
 
   public void setSrcFile(SEXP srcFile) { 
     this.srcFile = srcFile; 
+  }
+
+  public void setKeepSrcRefs(boolean keepSrcRefs) {
+    this.keepSrcRefs = keepSrcRefs;
   }
 }

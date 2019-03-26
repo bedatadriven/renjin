@@ -73,16 +73,13 @@ withCallingHandlers <- function(expr, ...) {
     expr
 }
 
-# Dummy implementation until we fix Renjin's condition/restart functionality
-suppressWarnings <- function(expr) expr
-
-#suppressWarnings <- function(expr) {
-#    ops <- options(warn = -1) ## FIXME: temporary hack until R_tryEval
-#    on.exit(options(ops))     ## calls are removed from methods code
-#    withCallingHandlers(expr,
-#                        warning=function(w)
-#                            invokeRestart("muffleWarning"))
-#}
+suppressWarnings <- function(expr) {
+    ops <- options(warn = -1) ## FIXME: temporary hack until R_tryEval
+    on.exit(options(ops))     ## calls are removed from methods code
+    withCallingHandlers(expr,
+                        warning=function(w)
+                            invokeRestart("muffleWarning"))
+}
 
 
 ##
@@ -302,10 +299,10 @@ withRestarts <- function(expr, ...) {
 ## Callbacks
 ##
 
-.signalSimpleWarning <- function(msg, call)
+.signalSimpleWarning <- function(msg, call, immediate = FALSE)
     withRestarts({
            .Internal(.signalCondition(simpleWarning(msg, call), msg, call))
-           .Internal(.dfltWarn(msg, call))
+           .Internal(.dfltWarn(msg, call, immediate))
         }, muffleWarning = function() NULL)
 
 .handleSimpleError <- function(h, msg, call)

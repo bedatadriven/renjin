@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -104,11 +104,11 @@ public class RLexer implements RParser.Lexer {
 
 
   public Position getStartPos() {
-    return tokenBegin.clone();
+    return tokenBegin;
   }
 
   public Position getEndPos() {
-    return tokenEnd.clone();
+    return tokenEnd;
   }
 
   public SEXP getLVal() {
@@ -191,7 +191,7 @@ public class RLexer implements RParser.Lexer {
           } else {
             contextStack.ifPop();
             savedToken = token;
-            savedTokenPos = tokenBegin.clone();
+            savedTokenPos = tokenBegin;
             savedLVal = yylval;
             setlastloc();
             return '\n';
@@ -355,9 +355,7 @@ public class RLexer implements RParser.Lexer {
       c = skipComment();
     }
 
-    tokenBegin.line = reader.getLineNumber();
-    tokenBegin.column = reader.getColumnNumber();
-    tokenBegin.charIndex = reader.getCharacterIndex();
+    tokenBegin = reader.getPosition();
 
     if (c == R_EOF) {
       return END_OF_INPUT;
@@ -593,9 +591,7 @@ an ANSI digit or not */
  */
 
   void setlastloc() {
-    tokenEnd.line = reader.getLineNumber();
-    tokenEnd.column = reader.getColumnNumber();
-    tokenEnd.charIndex = reader.getCharacterIndex();
+    tokenEnd = reader.getPosition();
   }
 
 

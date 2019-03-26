@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ import org.renjin.parser.RParser;
 import org.renjin.primitives.io.connections.GzFileConnection;
 import org.renjin.primitives.io.serialization.RDataReader;
 import org.renjin.primitives.io.serialization.RDataWriter;
+import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.HashMultimap;
@@ -54,48 +55,53 @@ import java.util.zip.GZIPInputStream;
  */
 public class DatasetsBuilder {
 
-  private File packageOutputDir;
-  private File dataObjectDirectory;
-  private File dataDirectory;
+  private final PackageSource source;
+  private final BuildContext buildContext;
+  private final File dataObjectDirectory;
   
   /**
    * Maps logical datasets to R object names
    */
-  private Multimap<String, String> indexMap = HashMultimap.create();
+  private final Multimap<String, String> indexMap = HashMultimap.create();
 
-  /**
-   *
-   * @param dataDirectory the source directory containing the package's data files
-   * @param packageOutputDir the dir to write output files
-   */
-  public DatasetsBuilder(File dataDirectory, File packageOutputDir) {
-    this.packageOutputDir = packageOutputDir;
-    
-    this.dataObjectDirectory = new File(packageOutputDir, "data");
-    this.dataObjectDirectory.mkdirs();
-    
-    this.dataDirectory = dataDirectory;
+  public DatasetsBuilder(PackageSource source, BuildContext buildContext) {
+    this.source = source;
+    this.buildContext = buildContext;
+    this.dataObjectDirectory = new File(buildContext.getPackageOutputDir(), "data");
   }
 
-  public void build() throws FileNotFoundException  {
-    if(dataDirectory.exists()) {
-      File[] files = dataDirectory.listFiles();
-      if(files != null) {
-        for(File dataFile : files) {
-          try {
-            processDataset(dataFile);
-          } catch(EvalException e) {
-            System.err.println("ERROR processing data file " + dataFile.getName() + ": " + e.getMessage());
-            e.printRStackTrace(System.err);
-            throw e;
-          } catch(Exception e) {
-            System.err.println("Exception processing data file " + dataFile);
-            e.printStackTrace();
-            throw new RuntimeException(e);
-          }
+  public void build() throws IOException {
+    if(!source.getDataDir().exists()) {
+      buildContext.getLogger().debug(source.getDataDir() + " does not exist; no datasets will be built.");
+      return;
+    }  
+    
+    buildContext.getLogger().info("Building datasets in " + source.getDataDir());
+
+    if(!dataObjectDirectory.exists()) {
+      boolean created = this.dataObjectDirectory.mkdirs();
+      if (!created) {
+        throw new IOException("Failed to create data output directory: " + this.dataObjectDirectory.getAbsolutePath());
+      }
+    }
+
+    File[] files = source.getDataDir().listFiles();
+    if(files != null) {
+      for(File dataFile : files) {
+        try {
+          processDataset(dataFile);
+        } catch(EvalException e) {
+          System.err.println("ERROR processing data file " + dataFile.getName() + ": " + e.getMessage());
+          e.printRStackTrace(System.err);
+          throw e;
+        } catch(Exception e) {
+          System.err.println("Exception processing data file " + dataFile);
+          e.printStackTrace();
+          throw new RuntimeException(e);
         }
       }
     }
+  
 
     if(!indexMap.isEmpty())  {
       writeIndex();
@@ -109,7 +115,7 @@ public class DatasetsBuilder {
       index.put(logicalDatasetName, Joiner.on(",").join(indexMap.get(logicalDatasetName)));
     }
     
-    File indexFile = new File(packageOutputDir, "datasets");
+    File indexFile = new File(buildContext.getPackageOutputDir(), "datasets");
     FileOutputStream out = new FileOutputStream(indexFile);
     try {
       index.store(out, "Datasets index");
@@ -122,6 +128,9 @@ public class DatasetsBuilder {
 
   @VisibleForTesting
   void processDataset(File dataFile) throws IOException {
+
+
+
     if(dataFile.getName().endsWith("datalist")) {
       return;
       
@@ -151,7 +160,7 @@ public class DatasetsBuilder {
       processRScript(dataFile, stripExtension(dataFile));
 
     } else {
-      System.err.println("WARNING: Don't know how to process datafile " + dataFile.getName());
+      buildContext.getLogger().debug(dataFile.getName() + ": ignored.");
     }
   }
 
@@ -201,10 +210,15 @@ public class DatasetsBuilder {
    */
   private void processTextFile(File dataFile, String logicalDatasetName, String sep) throws IOException {
 
+
     if (scriptFileExists(logicalDatasetName) ||
         dataFileAlreadyExists(logicalDatasetName)) {
+
+      debug(dataFile, "skipping, script or data file exists.");
       return;
     }
+    
+    debug(dataFile, "processing as text file.");
     
     // Read into a data frame using read.table()
     PairList.Builder args = new PairList.Builder();
@@ -215,7 +229,10 @@ public class DatasetsBuilder {
     FunctionCall readTable = FunctionCall.newCall(Symbol.get("::"), Symbol.get("utils"), Symbol.get("read.table"));
     FunctionCall call = new FunctionCall(readTable, args.build());
 
-    Session session = new SessionBuilder().build();
+    Session session = new SessionBuilder()
+        .setClassLoader(buildContext.getClassLoader())
+        .setPackageLoader(buildContext.getPackageLoader())
+        .build();
     SEXP dataFrame = session.getTopLevelContext().evaluate(call);
 
     PairList.Builder pairList = new PairList.Builder();
@@ -224,8 +241,12 @@ public class DatasetsBuilder {
     writePairList(logicalDatasetName, session, pairList.build());
   }
 
+  private void debug(File dataFile, String message) {
+    buildContext.getLogger().debug(dataFile.getName() + ": " + message);
+  }
+
   private boolean dataFileAlreadyExists(String logicalDatasetName) {
-    for (File file : dataDirectory.listFiles()) {
+    for (File file : source.getDataDir().listFiles()) {
       String name = Files.getNameWithoutExtension(file.getName());
       String ext = Files.getFileExtension(file.getName());
       
@@ -238,7 +259,7 @@ public class DatasetsBuilder {
   }
 
   private boolean scriptFileExists(String logicalDatasetName) {
-    for (File file : dataDirectory.listFiles()) {
+    for (File file : source.getDataDir().listFiles()) {
       String name = Files.getNameWithoutExtension(file.getName());
       String ext = Files.getFileExtension(file.getName());
 
@@ -257,16 +278,30 @@ public class DatasetsBuilder {
   private void processRScript(File scriptFile, String logicalDatasetName) throws IOException {
 
     if(dataFileAlreadyExists(logicalDatasetName)) {
+      debug(scriptFile, "skipping, datafile exists.");
       return;
     }
-    
-    Session session = new SessionBuilder().build();
+
+    debug(scriptFile, "evaluating as script.");
+
+    SessionBuilder builder = new SessionBuilder()
+        .setClassLoader(buildContext.getClassLoader())
+        .setPackageLoader(buildContext.getPackageLoader());
+
+    // Do not load default packages when building the "datasets" package,
+    // this will create circular references
+    if(!this.source.getFqName().equals(new FqPackageName("org.renjin", "datasets"))) {
+      builder = builder.withDefaultPackages();
+    }
+
+    Session session = builder.build();
+
     FileReader reader = new FileReader(scriptFile);
     ExpressionVector source = RParser.parseAllSource(reader);
     reader.close();
 
     // The utils package needs to be on the search path
-    // For read.table, etc
+    // For read.table, etcr
     session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("library"), Symbol.get("utils")));
 
     // The working directory needs to be the data dir
@@ -327,19 +362,19 @@ public class DatasetsBuilder {
       b2 = in.read();
       b3 = in.read();
     }
-
-    if (b1 == GzFileConnection.GZIP_MAGIC_BYTE1 && b2 == GzFileConnection.GZIP_MAGIC_BYTE2) {
+    
+    if(b1 == GzFileConnection.GZIP_MAGIC_BYTE1 && b2 == GzFileConnection.GZIP_MAGIC_BYTE2) {
       return new GZIPInputStream(new FileInputStream(file));
 
-    } else if (b1 == 0xFD && b2 == '7') {
+    } else if(b1 == 0xFD && b2 == '7') {
       // See http://tukaani.org/xz/xz-javadoc/org/tukaani/xz/XZInputStream.html
       // Set a memory limit of 64mb, if this is not sufficient, it will throw
       // an exception rather than an OutOfMemoryError, which will terminate the JVM
       return new XZInputStream(new FileInputStream(file), 64 * 1024 * 1024);
-
-    } else if (b1 == 'B' && b2 == 'Z' && b3 == 'h') {
+      
+    } else if (b1 == 'B' && b2 == 'Z' && b3 == 'h' ) {
       return new BZip2CompressorInputStream(new FileInputStream(file));
-
+    
     } else {
       return new FileInputStream(file);
     }

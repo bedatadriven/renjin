@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,6 +53,8 @@ public class AetherFactory {
   private static final Logger LOGGER = Logger.getLogger(AetherPackageLoader.class.getName());
   private static Settings settings;
 
+  private AetherFactory() { }
+
   public static RepositorySystem newRepositorySystem() {
     /*
     * Aether's components implement org.eclipse.aether.spi.locator.Service to ease manual wiring and using the
@@ -68,11 +70,7 @@ public class AetherFactory {
 
   public static DefaultRepositorySystemSession newRepositorySystemSession(RepositorySystem system) {
     
-    
     DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
-    
-    System.out.println("Using local repository: " + getLocalRepositoryDir());
-    
     LocalRepository localRepo = new LocalRepository(getLocalRepositoryDir());
     session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
     
@@ -115,7 +113,7 @@ public class AetherFactory {
     if(!Strings.isNullOrEmpty(System.getenv("M2_HOME"))) {
       return new File(System.getenv("M2_HOME"));
     }
-    String paths[] = Strings.nullToEmpty(System.getenv("PATH")).split(File.pathSeparator);
+    String[] paths = Strings.nullToEmpty(System.getenv("PATH")).split(File.pathSeparator);
     for(String path : paths) {
       File pathDir = new File(path);
       if(pathDir.isDirectory()) {
@@ -154,11 +152,17 @@ public class AetherFactory {
     return settings;
   }
 
-  static RemoteRepository mavenCentral() {
+  /**
+   * @return a {@link RemoteRepository} object for the Maven central repository
+   */
+  public static RemoteRepository mavenCentral() {
     return new RemoteRepository.Builder("central", "default", "https://repo1.maven.org/maven2/").build();
   }
 
-  static RemoteRepository renjinRepo() {
+  /**
+   * @return a {@link RemoteRepository} object for Renjin's primary public repository
+   */
+  public static RemoteRepository renjinRepo() {
     return new RemoteRepository.Builder("renjin", "default", "https://nexus.bedatadriven.com/content/groups/public/").build();
   }
 }

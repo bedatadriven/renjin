@@ -1,6 +1,6 @@
 #
 # Renjin : JVM-based interpreter for the R language for the statistical analysis
-# Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+# Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ stopifnot( abs(m$coefficients["x"]-2) < 0.0001 )
 # Also ensure that we can dynamically load packages 
 # and their dependencies
 
-library(org.renjin.test.alpha)
+library('org.renjin.test:alpha')
 stopifnot(identical(alphaName(), "Alpha"))
 
 # Verify that parsing multi-line statements works...

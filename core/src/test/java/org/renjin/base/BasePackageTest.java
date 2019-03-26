@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -112,14 +112,6 @@ public class BasePackageTest extends EvalTestCase {
     assertThat(eval(" startsWith(x3, v2) "), elementsIdenticalTo(LogicalVector.EMPTY));
     assertThat(eval(" startsWith(x3, v3) "), elementsIdenticalTo(LogicalVector.EMPTY));
     assertThat(eval(" startsWith(x3, v5) "), elementsIdenticalTo(LogicalVector.EMPTY));
-//  assertThat( startsWith(x1, v4) , throwsError())
-//  assertThat( startsWith(x1, v6) , throwsError())
-//  assertThat( startsWith(x1, v7) , throwsError())
-//  assertThat( startsWith(x2, v1) , throwsError())
-//  assertThat( startsWith(x2, v2) , throwsError())
-//  assertThat( startsWith(x3, v4) , throwsError())
-//  assertThat( startsWith(x3, v6) , throwsError())
-//  assertThat( startsWith(x3, v7) , throwsError())
   }
 
   @Test
@@ -322,14 +314,25 @@ public class BasePackageTest extends EvalTestCase {
   }
 
 
-  @Ignore
+
   @Test
   public void parse() throws IOException {
     loadBasePackage();
 
-    SEXP sexp = eval(" parse(text='1', keep.source=TRUE) ");
+    SEXP mtime = eval("mtime <- \"2018-10-08 09:50:54 CEST\"");
+    SEXP cdir = eval("getwd()");
+    eval("text <- \"x <- 1 + 1\n" +
+        "    y <- 2 + 2\"");
+    eval("filename <- \"<text>\"");
+    eval("srcfile <- srcfilecopy(filename, text, mtime)");
+    eval("parsed <- parse(text = text, keep.source = TRUE, srcfile = srcfile)");
 
-    assertThat(sexp, identicalTo(expression(1d)));
+    assertThat(
+        eval("attr(parsed, \"srcfile\")[[\"timestamp\"]]"),
+        identicalTo(mtime)
+    );
+
+    SEXP sexp = eval(" parse(text='1', keep.source=TRUE) ");
 
     SEXP srcref = sexp.getAttribute(Symbols.SRC_REF).getElementAsSEXP(0);
     assertThat(srcref.getS3Class(), elementsIdenticalTo(c("srcref")));

@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,11 +20,11 @@ package org.renjin.base;
 
 import org.renjin.RenjinVersion;
 import org.renjin.eval.Context;
+import org.renjin.eval.Session;
 import org.renjin.packaging.LazyLoadFrame;
 import org.renjin.primitives.Primitives;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.*;
-import org.renjin.util.FileSystemUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -87,18 +87,16 @@ public class BaseFrame implements Frame {
     loaded.put(name, value);
   }
 
-  public BaseFrame() {
-    installPlatform();
+  public BaseFrame(Session session) {
+    installPlatform(session);
     installMachine();
     loaded.put(Symbol.get("R.version.string"),
         StringVector.valueOf("Renjin version " + RenjinVersion.getVersionName()));
   }
 
-  private void installPlatform() {
-    loaded.put(Symbol.get(".Library"),
-            StringVector.valueOf(FileSystemUtils.homeDirectoryInCoreJar() + "/library"));
-    loaded.put(Symbol.get(".Library.site"), 
-        new StringArrayVector());
+  private void installPlatform(Session session) {
+    loaded.put(Symbol.get(".Library"), StringVector.valueOf(session.getHomeDirectory() + "/library"));
+    loaded.put(Symbol.get(".Library.site"), StringVector.EMPTY);
     
     loaded.put(Symbol.get(".Platform"), ListVector.newNamedBuilder()
         .add("OS.type", resolveOsName())

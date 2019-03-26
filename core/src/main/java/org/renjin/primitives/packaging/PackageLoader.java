@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,10 +24,14 @@ import java.util.Optional;
 public interface PackageLoader {
 
   /**
-   * @param name the package name
+   * @param packageName the fully-qualified package name
    * @return a set of resources implementing the Package interface,
    * if a package matching the name could be located
    */
   Optional<Package> load(FqPackageName packageName);
 
+  /**
+   * @param packageName a local package name, not qualified with a group name
+   */
+  Optional<Package> load(String packageName);
 }

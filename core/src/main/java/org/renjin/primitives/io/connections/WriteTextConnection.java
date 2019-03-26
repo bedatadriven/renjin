@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ public class WriteTextConnection implements Connection {
   private Symbol objectName;
   private Environment environment;
   private boolean open = true;
+  private StringBuilder buffer = new StringBuilder();
 
   private PrintWriter printWriter;
 
@@ -38,7 +39,6 @@ public class WriteTextConnection implements Connection {
     this.printWriter = new PrintWriter(new Writer() {
 
       private List<String> lines = new ArrayList<>();
-      private StringBuilder buffer = new StringBuilder();
 
       @Override
       public void write(char[] cbuf, int off, int len) throws IOException {
@@ -111,6 +111,11 @@ public class WriteTextConnection implements Connection {
   @Override
   public OutputStream getOutputStream() throws IOException {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public boolean isIncomplete() {
+    return buffer.length() > 0;
   }
 
   @Override

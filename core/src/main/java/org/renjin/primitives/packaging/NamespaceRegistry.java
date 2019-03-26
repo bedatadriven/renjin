@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,6 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.SessionScoped;
 import org.renjin.repackaged.guava.base.Charsets;
-import org.renjin.repackaged.guava.base.Joiner;
-import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.repackaged.guava.io.CharSource;
@@ -32,10 +30,10 @@ import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbol;
 
-import java.util.*;
-
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Session-level registry of namespaces
@@ -119,119 +117,76 @@ public class NamespaceRegistry {
       return localMatch;
     }
 
-    // There are a small number of "core" packages that are part of the 
-    // the GNU R source, and now the Renjin source. (e.g., stats, methods, datasets, etc)
-    // These have the groupId "org.renjin"
-    
+    // Load package
     if(CORE_PACKAGES.contains(symbol.getPrintName())) {
+
+      // There are a small number of "core" packages that are part of the
+      // the GNU R source, and now the Renjin source. (e.g., stats, methods, datasets, etc)
+      // These have the groupId "org.renjin"
       return getNamespace(context, FqPackageName.corePackage(symbol));
-    }
 
-    // Otherwise, try to guess the groupId
-    List<FqPackageName> candidates = Lists.newArrayList();
+    } else if(FqPackageName.isQualified(symbol)) {
 
-    if(couldBeFullyQualified(symbol)) {
-      candidates.add(FqPackageName.fromSymbol(symbol));
-    }
+      // Is this namespace is explicitly qualified in the form {groupId}:{packageName}
+      return getNamespace(context, FqPackageName.fromSymbol(symbol));
 
-    // Try bioconductor first as some packages have moved from cran to bioconductor
-    candidates.add(new FqPackageName("org.renjin.bioconductor", symbol.getPrintName()));
-    candidates.add(new FqPackageName("org.renjin.cran", symbol.getPrintName()));
-
-    Optional<Namespace> namespace = empty();
-
-    for (FqPackageName candidate : candidates) {
-      namespace = tryGetNamespace(context, candidate);
-      if(namespace.isPresent()) {
-        break;
+    } else {
+      // Otherwise, we have an unqualified package name. Delegate lookup to the PackageLoader
+      Optional<Package> pkg = loader.load(symbol.getPrintName());
+      if(!pkg.isPresent()) {
+        throw new EvalException("Could not find package '" + symbol + "'");
       }
+      return load(context, pkg.get());
     }
-
-    if(!namespace.isPresent()) {
-      throw new EvalException("Could not load package " + symbol + "; tried " +
-          Joiner.on(", ").join(candidates));
-    }
-
-    return namespace.get();
   }
 
-  public static Set<String>  getCorePackages() {
-    return CORE_PACKAGES;
-  }
-
-  public Namespace getNamespace(Context context, FqPackageName fqPackageName) {
-    Optional<Namespace> namespace = tryGetNamespace(context, fqPackageName);
-    if(!namespace.isPresent()) {
+  private Namespace getNamespace(Context context, FqPackageName fqPackageName) {
+    Namespace namespace = namespaceMap.get(fqPackageName);
+    if(namespace != null) {
+      return namespace;
+    }
+    Optional<Package> pkg = loader.load(fqPackageName);
+    if(!pkg.isPresent()) {
       throw new EvalException("Could not load package " + fqPackageName);
     }
-    return namespace.get();
+    return load(context, pkg.get());
   }
 
-  /**
-   * Tries to obtain a reference to a namespace using it's fully qualified name,
-   * either from among those loaded or those available through the package loader.
-   *
-   * @param context
-   * @param fqName the fully-qualified package name
-   * @return the corresponding {@code Namespace}, or {@code null}
-   */
-  private Optional<Namespace> tryGetNamespace(Context context, FqPackageName fqName) {
-    if(namespaceMap.containsKey(fqName)) {
-      return of(namespaceMap.get(fqName));
-    } else {
-      return tryLoad(context, fqName);
-    }
-  }
+  private Namespace load(Context context, Package pkg) {
+    try {
+      // load the serialized functions/values from the classpath
+      // and add them to our private namespace environment
+      Namespace namespace = createNamespace(pkg);
 
-  private Optional<Namespace> tryLoad(Context context, FqPackageName fqName) {
+      CharSource namespaceSource = pkg.getResource("NAMESPACE").asCharSource(Charsets.UTF_8);
+      NamespaceFile namespaceFile = NamespaceFile.parseFile(context, namespaceSource);
 
-    Optional<Package> loadResult = loader.load(fqName);
-    if(!loadResult.isPresent()) {
-      return empty();
-    } else {
-      Package pkg = loadResult.get();
-      try {
-        // load the serialized functions/values from the classpath
-        // and add them to our private namespace environment
-        Namespace namespace = createNamespace(pkg);
+      // set up the namespace
+      namespace.populateNamespace(context);
+      namespace.initExports(namespaceFile);
 
-        CharSource namespaceSource = pkg.getResource("NAMESPACE").asCharSource(Charsets.UTF_8);
-        NamespaceFile namespaceFile = NamespaceFile.parse(context, namespaceSource);
+      context.getSession().getS4Cache().invalidate();
 
-        // set up the namespace
-        namespace.populateNamespace(context);
-        namespace.initExports(namespaceFile);
+      // set up the imported symbols
+      namespace.initImports(context, this, namespaceFile);
 
-        context.getSession().getS4Cache().invalidate();
-
-        // set up the imported symbols
-        namespace.initImports(context, this, namespaceFile);
-
-        // invoke the .onLoad hook
-        // (Before we export symbols!)
-        if(namespace.getNamespaceEnvironment().hasVariable(Symbol.get(".onLoad"))) {
-          StringVector nameArgument = StringVector.valueOf(pkg.getName().getPackageName());
-          context.evaluate(FunctionCall.newCall(Symbol.get(".onLoad"), nameArgument, nameArgument),
-              namespace.getNamespaceEnvironment());
-        }
-
-        namespace.registerS3Methods(context, namespaceFile);
-        namespace.loaded = true;
-
-        return of(namespace);
-
-      } catch(Exception e) {
-        throw new EvalException("IOException while loading package " + fqName + ": " + e.getMessage(), e);
+      // invoke the .onLoad hook
+      // (Before we export symbols!)
+      if(namespace.getNamespaceEnvironment().hasVariable(Symbol.get(".onLoad"))) {
+        StringVector nameArgument = StringVector.valueOf(pkg.getName().getPackageName());
+        context.evaluate(FunctionCall.newCall(Symbol.get(".onLoad"), nameArgument, nameArgument),
+            namespace.getNamespaceEnvironment());
       }
+
+      namespace.registerS3Methods(context, namespaceFile);
+      namespace.loaded = true;
+
+      return namespace;
+
+    } catch(Exception e) {
+      throw new EvalException("IOException while loading package " + pkg.getName() + ": " + e.getMessage(), e);
     }
   }
-
-
-  private boolean couldBeFullyQualified(Symbol name) {
-    String string = name.getPrintName();
-    return string.indexOf(':') != -1 || string.indexOf('.') != -1;
-  }
-
 
   public boolean isRegistered(Symbol name) {
     return localNameMap.containsKey(name);

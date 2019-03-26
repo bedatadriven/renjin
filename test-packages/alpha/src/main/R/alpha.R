@@ -1,6 +1,6 @@
 #
 # Renjin : JVM-based interpreter for the R language for the statistical analysis
-# Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+# Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,7 +27,18 @@ alphaName <- function() {
     Alpha$execute()
 }
 
+dummy <- function() { }
+
 .onLoad <- function(libname, pkgname) {
+
+    # make an active binding
+    pkgenv <- environment(dummy)
+    makeActiveBinding(
+        "symbol",
+        function() { stats::runif(1) },
+        pkgenv
+      )
+
     # The following loads the 'protein' dataset and inserts
     # into this package's namespace.
 

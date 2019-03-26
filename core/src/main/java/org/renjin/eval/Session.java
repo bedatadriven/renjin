@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -140,10 +140,10 @@ public class Session {
           ExecutorService executorService, Frame globalFrame) {
     this.fileSystemManager = fileSystemManager;
     this.classLoader = classLoader;
-    this.homeDirectory = FileSystemUtils.homeDirectoryInCoreJar();
+    this.homeDirectory = FileSystemUtils.homeDirectoryInCoreJar(fileSystemManager);
     this.workingDirectory = FileSystemUtils.workingDirectory(fileSystemManager);
     this.systemEnvironment = Maps.newHashMap(System.getenv()); //load system environment variables
-    this.baseEnvironment = Environment.createBaseEnvironment();
+    this.baseEnvironment = Environment.createBaseEnvironment(this);
     this.globalEnvironment = Environment.createGlobalEnvironment(baseEnvironment, globalFrame);
     this.baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment, baseEnvironment).build();
     this.topLevelContext = new Context(this);

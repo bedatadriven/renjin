@@ -1,4 +1,4 @@
 type=METHOD
 class=org/renjin/grDevices/GraphicsDevices
-descriptor=(Lorg/renjin/gcc/runtime/Ptr;Lorg/renjin/gcc/runtime/Ptr;IIDDDDDD)V
+descriptor=(Lorg/renjin/gcc/runtime/Ptr;Lorg/renjin/gcc/runtime/Ptr;IIDDDDDI)V
 member=raster

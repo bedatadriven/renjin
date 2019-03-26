@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,6 +70,16 @@ public class StdlibTest {
     assertThat(Stdlib.strtoul(cstring("18446744073709551615"), NULL, 0), equalTo(0xffffffffffffffffL));
     assertThat(Stdlib.strtoul(cstring("18446744073709551614"), NULL, 0), equalTo(0xfffffffffffffffeL));
     assertThat(Stdlib.strtoul(cstring("0xfffffffffffffffe"), NULL, 0), equalTo(0xfffffffffffffffeL));
+  }
+
+  @Test
+  public void strcspn() {
+    Ptr x = BytePtr.nullTerminatedString("hello world", StandardCharsets.US_ASCII);
+    Ptr y = BytePtr.nullTerminatedString("MXo", StandardCharsets.US_ASCII);
+    Ptr z = BytePtr.nullTerminatedString("QP", StandardCharsets.US_ASCII);
+
+    assertThat(Stdlib.strcspn(x, y), equalTo(4));
+    assertThat(Stdlib.strcspn(x, z), equalTo(Stdlib.strlen(x)));
   }
 
   private BytePtr cstring(String str) {

@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,7 +66,7 @@ public class S3Test extends EvalTestCase {
         .add(Symbol.get("drop"), Null.INSTANCE)
         .build();
 
-    Environment env = Environment.createGlobalEnvironment(Environment.createBaseEnvironment());
+    Environment env = Environment.createGlobalEnvironment(Environment.createBaseEnvironment(topLevelContext.getSession()));
     SEXP ni = new IntArrayVector(3);
     env.setVariable(topLevelContext, "i", ni);
     env.setVariable(topLevelContext, "x", x);

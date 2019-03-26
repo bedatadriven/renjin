@@ -2877,8 +2877,7 @@ void GEplayDisplayList(pGEDevDesc dd)
 	    SEXP args = CADR(theOperation);
 	    if (TYPEOF(op) == BUILTINSXP || TYPEOF(op) == SPECIALSXP) {
 
-            error("TODO: builtin");
-            //PRIMFUN(op) (R_NilValue, op, args, R_NilValue);
+            PRIMFUN(op) (R_NilValue, op, args, R_NilValue);
 
             /* Check with each graphics system that the plotting went ok
              */

@@ -25,10 +25,11 @@ will help you quickly setup a Virtual Box with all the tools needed
 for Renjin's C/Fortran compile step.
 
 Install Vagrant from https://www.vagrantup.com and then run the following
-from the root of the Renjin git repository:
+from the root of the Renjin git repository that calls the
+[Vagrantfile](Vagrantfile):
 
     vagrant up
-    vagrant ssh -c "cd renjin && mvn clean install"
+    vagrant ssh -c "cd /home/ubuntu/renjin && mvn clean install"
 
 Vagrant configures a shared directory on the VirtualBox guest machine
 that includes the Renjin repository, so once the initial build
@@ -44,16 +45,12 @@ Once you have run the build through Vagrant, then you should be able to
 make iterative changes to the Java sources and debug via your IDE 
 as normal.
 
-### Ubuntu 14.04+
+### Ubuntu 16.04+
 
 You can install the required tools through the APT package manager. 
-For 64-bit systems:
+A 64-bit architecture is required.
 
     sudo apt-get install openjdk-8-jdk maven make gcc-4.7 gcc-4.7-plugin-dev gfortran-4.7 g++-4.7 gcc-4.7.multilib g++-4.7-multilib
-
-For 32-bit systems:
-
-    sudo apt-get install openjdk-8-jdk maven make gcc-4.7 gcc-4.7-plugin-dev gfortran-4.7 g++-4.7 
 
 Then build:
 

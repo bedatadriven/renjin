@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ public class GnurBuildMojo extends AbstractMojo {
 
     try {
       PackageSource packageSource = new PackageSource.Builder(project.getBasedir())
-          .setGroupId(project.getGroupId())
+          .setDefaultGroupId(project.getGroupId())
           .setPackageName(project.getArtifactId())
           .build();
       

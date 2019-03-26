@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,6 +92,15 @@ public class Primitives {
     return getPrimitive(INSTANCE.internalEntries, INSTANCE.internals, symbol);
   }
 
+
+  public static PrimitiveFunction getPrimitive(Symbol symbol) {
+    if(INSTANCE.internalEntries.containsKey(symbol)) {
+      return getInternal(symbol);
+    } else {
+      return getBuiltin(symbol);
+    }
+  }
+
   public static boolean isBuiltin(String opName) {
     Symbol symbol = Symbol.get(opName);
     return INSTANCE.builtinEntries.containsKey(symbol);
@@ -181,7 +190,7 @@ public class Primitives {
     f(".resetCondHands", /*resetCondHands*/ null, 111);
     f(".signalCondition", Conditions.class, 11);
     f(".dfltStop", Conditions.class, 11);
-    f(".dfltWarn", /*dfltWarn*/ null, 11);
+    f(".dfltWarn", Warning.class, 11);
     f(".addRestart", Conditions.class, 11);
     f(".getRestart", Conditions.class, 11);
     f(".invokeRestart", Conditions.class, 11);
@@ -887,7 +896,7 @@ public class Primitives {
     f("writeChar", /*writechar*/ null, 211);
     f("open", Connections.class, 11);
     f("isOpen", Connections.class, 11);
-    f("isIncomplete", /*isincomplete*/ null, 11);
+    f("isIncomplete", Connections.class, 11);
     f("isSeekable", /*isseekable*/ null, 11);
     f("close", Connections.class, 11);
     f("flush", Connections.class, 11);
@@ -1041,6 +1050,7 @@ public class Primitives {
     e.eval = eval;
     add(e);
   }
+
 
 
   public static class Entry {

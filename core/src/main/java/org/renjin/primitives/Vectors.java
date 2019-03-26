@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -299,7 +299,7 @@ public class Vectors {
     return asRaw(source.toVector());
   }
 
-  static Vector convertToAtomicVector(Vector.Builder builder, Vector source) {
+  public static Vector convertToAtomicVector(Vector.Builder builder, Vector source) {
     if(source instanceof ListVector) {
       for (int i = 0; i != source.length(); ++i) {
         SEXP value = ((ListVector) source).getElementAsSEXP(i);
@@ -452,7 +452,7 @@ public class Vectors {
    * @param x
    * @param mode
    */
-  private static void checkForListThatCannotBeCoercedToAtomicVector(Vector x, String mode) {
+  public static void checkForListThatCannotBeCoercedToAtomicVector(Vector x, String mode) {
     if(x instanceof ListVector) {
       ListVector list = (ListVector) x;
       for (int i = 0; i < list.length(); i++) {

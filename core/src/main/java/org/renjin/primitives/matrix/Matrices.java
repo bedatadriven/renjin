@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,6 @@ import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Generic;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.Indexes;
-import org.renjin.primitives.Warning;
 import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.sequence.RepLogicalVector;
 import org.renjin.primitives.vector.ComputingIntVector;
@@ -410,20 +409,19 @@ public class Matrices {
         if (((dataLength > nrow) && (dataLength / nrow) * nrow != dataLength) ||
                 ((dataLength < nrow) && (nrow / dataLength) * dataLength != nrow)) {
 
-          Warning.invokeWarning(context,
+          context.warn(String.format(
                   "data length [%d] is not a sub-multiple or multiple of the number of rows [%d]",
-                  dataLength, nrow);
+                  dataLength, nrow));
 
         } else if (((dataLength > ncol) && (dataLength / ncol) * ncol != dataLength) ||
                 ((dataLength < ncol) && (ncol / dataLength) * dataLength != ncol)) {
 
-          Warning.invokeWarning(context,
+          context.warn(String.format(
                   "data length [%d] is not a sub-multiple or multiple of the number of columns [%d]",
-                  dataLength, ncol);
+                  dataLength, ncol));
         }
       }  else if ((dataLength > 1) && (nrow * ncol == 0)){
-        Warning.invokeWarning(context,
-                "data length exceeds size of matrix");
+        context.warn("data length exceeds size of matrix");
       }
     }
 

@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -80,7 +80,7 @@ public class SessionBuilder {
   /**
    * Sets the {@link FileSystemManager} used to implement calls to R's builtin functions.
    *
-   * <p>By default, the new {@code Session} will use {@link FileSystemUtils#getMinimalFileSystemManager()},
+   * <p>By default, the new {@code Session} will use {@link FileSystemUtils#getMinimalFileSystemManager(ClassLoader)},
    * but a custom {@code FileSystemManager} can be provided to limit or customize the access of R scripts
    * to the filesystem.</p>
    *
@@ -160,12 +160,12 @@ public class SessionBuilder {
   public Session build() {
     try {
 
-      if(fileSystemManager == null) {
-        fileSystemManager = FileSystemUtils.getMinimalFileSystemManager();
-      }
-
       if(classLoader == null) {
         classLoader = getClass().getClassLoader();
+      }
+
+      if(fileSystemManager == null) {
+        fileSystemManager = FileSystemUtils.getMinimalFileSystemManager(classLoader);
       }
 
       if(packageLoader == null) {

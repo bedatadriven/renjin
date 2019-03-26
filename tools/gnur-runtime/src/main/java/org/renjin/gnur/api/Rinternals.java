@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1164,6 +1164,10 @@ public final class Rinternals {
     return GnuCharSexp.valueOf(((AtomicVector) p0).getElementAsString(0));
   }
 
+  /**
+   * Coerces a vector from one type to another. Calling code expects to be
+   * able to safely modify the resulting vector.
+   */
   public static SEXP Rf_coerceVector(SEXP p0, /*SEXPTYPE*/ int type) {
     switch(type) {
       case SexpType.LISTSXP:
@@ -1171,9 +1175,9 @@ public final class Rinternals {
       case SexpType.LGLSXP:
         return Vectors.asLogical(((Vector) p0)).setAttributes(p0.getAttributes());
       case SexpType.INTSXP:
-        return Vectors.asInteger((Vector)p0).setAttributes(p0.getAttributes());
+        return asIntArrayVector((Vector)p0);
       case SexpType.REALSXP:
-        return Vectors.asDouble((Vector)p0).setAttributes(p0.getAttributes());
+        return asDoubleArrayVector((Vector) p0);
       case SexpType.CPLXSXP:
         return Vectors.asComplex((Vector)p0).setAttributes(p0.getAttributes());
       case SexpType.STRSXP:
@@ -1182,6 +1186,22 @@ public final class Rinternals {
         return toExpressionList(p0);
     }
     throw new UnimplementedGnuApiMethod("Rf_coerceVector: " + type);
+  }
+
+  private static SEXP asIntArrayVector(Vector vector) {
+    Vectors.checkForListThatCannotBeCoercedToAtomicVector(vector, "integer");
+
+    IntArrayVector.Builder builder = new IntArrayVector.Builder(0, vector.length());
+    Vector integerVector = Vectors.convertToAtomicVector(builder, vector);
+    return integerVector.setAttributes(vector.getAttributes());
+  }
+
+  private static SEXP asDoubleArrayVector(Vector vector) {
+    Vectors.checkForListThatCannotBeCoercedToAtomicVector(vector, "double");
+
+    DoubleArrayVector.Builder builder = new DoubleArrayVector.Builder(0, vector.length());
+    Vector integerVector = Vectors.convertToAtomicVector(builder, vector);
+    return integerVector.setAttributes(vector.getAttributes());
   }
 
   private static SEXP toExpressionList(SEXP sexp) {
@@ -2516,16 +2536,13 @@ public final class Rinternals {
     throw new EvalException(errorMessage);
   }
 
-  public static void Rf_warningcall (SEXP callSexp, Ptr format, Object... args) {
-    String message = Stdlib.format(format, new FormatArrayInput(args));
-    FunctionCall call = null;
-    if(callSexp instanceof FunctionCall) {
-      call = (FunctionCall) callSexp;
-    }
-    Warning.emitWarning(Native.currentContext(), call, false, message);
+  public static void Rf_warningcall (SEXP call, Ptr format, Object... args) {
+    Warning.warning(Native.currentContext(), call, false, Stdlib.format(format, new FormatArrayInput(args)));
   }
 
-  // void Rf_warningcall_immediate (SEXP, const char *,...)
+  public static void Rf_warningcall_immediate(SEXP call, Ptr format, Object... args) {
+    Warning.warning(Native.currentContext(), call, true, Stdlib.format(format, new FormatArrayInput(args)));
+  }
 
   public static void R_XDREncodeDouble(double d, Object buf) {
     throw new UnimplementedGnuApiMethod("R_XDREncodeDouble");
@@ -2982,8 +2999,13 @@ public final class Rinternals {
     return FunctionCall.newCall(p0, p1, p2, p3, p4, p5);
   }
 
-  public static SEXP Rf_lastElt(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_lastElt");
+  public static SEXP Rf_lastElt(SEXP list) {
+    SEXP result = Null.INSTANCE;
+    while (list != Null.INSTANCE) {
+      result = list;
+      list = CDR(list);
+    }
+    return result;
   }
 
   /**

@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ public class AetherTest {
   public void alpha() throws IOException {
 
     String script =
-        "library(org.renjin.test.alpha);" +
+        "library('org.renjin.test:alpha');" +
             "alphaVersion()\n";
 
     assertThat(evaluate(script), equalTo("1.13.0"));
@@ -60,7 +60,7 @@ public class AetherTest {
   public void beta() throws IOException {
 
     String script =
-        "library(org.renjin.test.beta);" +
+        "library('org.renjin.test:beta');" +
             "betaVersion()\n";
 
     assertThat(evaluate(script), equalTo("1.12.0"));
@@ -110,16 +110,16 @@ public class AetherTest {
     // We have no way of knowing what will be loaded next.
 
     String alphaFirst =
-        "library(org.renjin.test.alpha);" +
-            "library(org.renjin.test.beta);" +
+        "library('org.renjin.test:alpha');" +
+            "library('org.renjin.test:beta');" +
             "stopifnot(identical(alphaVersion(), betaVersion()));" +
             "alphaVersion();";
 
     assertThat(evaluate(alphaFirst), equalTo("1.13.0"));
 
     String betaFirst =
-        "library(org.renjin.test.beta);" +
-            "library(org.renjin.test.alpha);" +
+        "library('org.renjin.test:beta');" +
+            "library('org.renjin.test:alpha');" +
             "stopifnot(identical(alphaVersion(), betaVersion()));" +
             "alphaVersion();";
 

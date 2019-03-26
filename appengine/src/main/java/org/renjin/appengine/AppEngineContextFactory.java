@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,8 +23,6 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.cache.NullFilesCache;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
-import org.apache.commons.vfs2.provider.LocalFileProvider;
-import org.apache.commons.vfs2.provider.res.ResourceFileProvider;
 import org.apache.commons.vfs2.provider.url.UrlFileProvider;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
@@ -76,8 +74,7 @@ public class AppEngineContextFactory {
   }
 
   public static FileSystemManager createFileSystemManager(ServletContext context) throws FileSystemException {
-    final File contextRoot = contextRoot(context);
-    return createFileSystemManager(new AppEngineLocalFilesSystemProvider(contextRoot));
+    return createFileSystemManager(contextRoot(context));
   }
 
   private static File contextRoot(ServletContext context) {
@@ -85,7 +82,7 @@ public class AppEngineContextFactory {
   }
 
   @VisibleForTesting
-  static FileSystemManager createFileSystemManager(LocalFileProvider localFileProvider) throws FileSystemException {
+  static FileSystemManager createFileSystemManager(File contextRoot) throws FileSystemException {
     try {
       FastJarFileProvider jarFileProvider = new FastJarFileProvider();
 
@@ -95,8 +92,8 @@ public class AppEngineContextFactory {
 
       DefaultFileSystemManager dfsm = new DefaultFileSystemManager();
       dfsm.addProvider("jar", jarFileProvider);
-      dfsm.addProvider("file", localFileProvider);
-      dfsm.addProvider("res", new ResourceFileProvider());
+      dfsm.addProvider("file", new AppEngineLocalFilesSystemProvider(contextRoot));
+      dfsm.addProvider("res", new AppEngineResourceProvider(AppEngineContextFactory.class.getClassLoader(), contextRoot));
       dfsm.addExtensionMap("jar", "jar");
       dfsm.setDefaultProvider(new UrlFileProvider());
       dfsm.setFilesCache(new NullFilesCache());
@@ -109,44 +106,5 @@ public class AppEngineContextFactory {
       LOG.log(Level.SEVERE, "Failed to initialize file system for development server", e);
       throw new RuntimeException(e);
     }
-  }
-
-  @VisibleForTesting
-  static String findHomeDirectory(File servletContextRoot, String sexpClassPath) throws IOException {
-
-    LOG.fine("Found SEXP in '" + sexpClassPath);
-
-    File jarFile = jarFileFromResource(sexpClassPath);
-    StringBuilder homePath = new StringBuilder();
-    homePath.append('/').append(jarFile.getName()).append("!/org/renjin");
-
-    File parent = jarFile.getParentFile();
-    while(!servletContextRoot.equals(parent)) {
-      if(parent==null) {
-        throw new IllegalStateException("Expected the renjin-core jar to be in the WEB-INF, bound found it in:\n" +
-            jarFile.toString() + "\nAre you sure you are running in a servlet environment?");
-      }
-      homePath.insert(0, parent.getName());
-      homePath.insert(0, '/');
-      parent = parent.getParentFile();
-    }
-    homePath.insert(0, "jar:file://");
-
-    return homePath.toString();
-  }
-
-  @VisibleForTesting
-  static File jarFileFromResource(String path) {
-    int sep = path.indexOf('!');
-    if(sep == -1) {
-      throw new IllegalStateException("Expected to find renjin-core classes in a jar in the WEB-INF/lib folder." +
-          " This probably means that you are not running in a servlet environment and you do not need to use " +
-          " AppEngineContextFactory; you may be able to just call Context.newTopLevelContext()");
-    }
-    String jarPath = path.substring(0,sep);
-    if(jarPath.toLowerCase().startsWith("file:")) {
-      jarPath = jarPath.substring(5);
-    }
-    return new File(jarPath);
   }
 }

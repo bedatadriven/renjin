@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -625,9 +625,14 @@ public class S3 {
         return next;
       }
 
-      // Look up the .default method in the calling environment
-      // and the original *definition environment*, *NOT* the methods table.
+      // Look up the .default method first in the definition environment
       GenericMethod function = findNext(definitionEnvironment, genericMethodName, "default");
+      if(function != null) {
+        return function;
+      }
+
+      // Otherwise see if *another* package has defined a default method
+      function = findNext(getMethodTable(), genericMethodName, "default");
       if(function != null) {
         return function;
       }
@@ -736,13 +741,14 @@ public class S3 {
     }
 
     public SEXP applyNext(Context context, Environment environment, ListVector extraArgs) {
-      PairList arguments = nextArguments(context, extraArgs);
+      Context originalCallingContext = findOriginalCallingContext(context);
+      PairList arguments = nextArguments(originalCallingContext, extraArgs);
 
       if("Ops".equals(resolver.group) && arguments.length() == 2) {
         withMethodVector(groupsMethodVector());
       }
 
-      return doApply(context, environment, context.getCall(), arguments);
+      return doApply(context, environment, originalCallingContext.getCall(), arguments);
     }
 
     private String[] groupsMethodVector() {
@@ -804,26 +810,8 @@ public class S3 {
       return this;
     }
 
-    public PairList nextArguments(Context callContext, ListVector extraArgs) {
+    public PairList nextArguments(Context parentContext, ListVector extraArgs) {
 
-      /*
-       * Get the arguments to the function that called NextMethod(),
-       * no arguments are really passed to NextMethod() at all.
-       *
-       * Note that we have to do a bit of climbing here-- it can be that previous
-       * method looked like:
-       *
-       * `[.simple.list <- function(x, i, ...) structure(NextMethod('['], class=class(x))
-       *
-       * In this case, NextMethod is passed a promise to the closure 'structure',
-       * and so our parent context is NOT the function context of `[.simple.list`
-       * but that of `structure`.
-       *
-       */
-      Context parentContext = callContext.getParent();
-      while(parentContext.getParent() != resolver.previousContext) {
-        parentContext = parentContext.getParent();
-      }
 
       /*
        * Now update the original arguments with any new values from the previous generic.
@@ -832,11 +820,23 @@ public class S3 {
        */
 
       PairList actuals = parentContext.getArguments();
-      Closure closure = (Closure)parentContext.getFunction();
+      Closure closure = (Closure) parentContext.getFunction();
       PairList formals = closure.getFormals();
       Environment previousEnv = parentContext.getEnvironment();
 
       return updateArguments(parentContext, actuals, formals, previousEnv, extraArgs);
+    }
+
+    /**
+     * For calls via NextMethod, find the original call to the function which calls NextMethod.
+     */
+    private Context findOriginalCallingContext(Context callContext) {
+
+      Context parentContext = callContext.getParent();
+      while(parentContext.getParent() != resolver.previousContext) {
+        parentContext = parentContext.getParent();
+      }
+      return parentContext;
     }
 
 

@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ import org.renjin.primitives.packaging.PackageLoader;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Provides general access to the build environment, whether
@@ -82,10 +83,26 @@ public interface BuildContext {
 
   /**
    * 
-   * @return the nmaes of the packages that should be on the search path when the 
+   * @return the nmaes of the packages that should be on the search path when evaluating package sources.
    * 
    */
   List<String> getDefaultPackages();
 
   String getCompileClasspath();
+
+  /**
+   *
+   * @return a map from simple package name to its group id, for those known at build time.
+   */
+  Map<String, String> getPackageGroupMap();
+
+  default File getExecuteMetadataFile() {
+    File metaInfDir = new File(getOutputDir(), "META-INF");
+    return new File(metaInfDir, "org.renjin.execute");
+  }
+
+  default File getExecuteNamespaceFile() {
+    File metaInfDir = new File(getOutputDir(), "META-INF");
+    return new File(metaInfDir, "org.renjin.execute.namespace");
+  }
 }

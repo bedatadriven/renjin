@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -879,7 +879,7 @@ public class RdParser
       { xxpopMode(((yystack.valueAt (2-(1))))); yyval = xxnewlist(((yystack.valueAt (2-(2))))); 
 //      if(wCalls)
         System.out.println(String.format(_("bad markup (extra space?) at %s:%d:%d"), 
-            xxBasename, yystack.locationAt (2-(2)).begin.line, yystack.locationAt (2-(2)).begin.column)); 
+            xxBasename, yystack.locationAt (2-(2)).begin.getLine(), yystack.locationAt (2-(2)).begin.getColumn()));
 //      else
 //        warningcall(R_NilValue, _("bad markup (extra space?) at %s:%d:%d"), 
 //            xxBasename, yystack.locationAt (2-(2)).begin.line, yystack.locationAt (2-(2)).begin.column); 
@@ -1860,35 +1860,8 @@ public class RdParser
   //static int yyparse(void);
 
 
-
-  private void YYLLOC_DEFAULT(Location Current, Object Rhs, int N) {      
-    do {                 
-      if (N != 0)             
-      {               
-        (Current).begin.line   = YYRHSLOC (Rhs, 1).begin.line;  
-        (Current).begin.column = YYRHSLOC (Rhs, 1).begin.column;  
-        (Current).begin.charIndex   = YYRHSLOC (Rhs, 1).begin.charIndex;  
-        (Current).end.line    = YYRHSLOC (Rhs, N).end.line;   
-        (Current).end.column  = YYRHSLOC (Rhs, N).end.column; 
-        (Current).end.charIndex    = YYRHSLOC (Rhs, N).end.charIndex;   
-      } else {               
-        (Current).begin.line   = (Current).end.line   =    
-            YYRHSLOC (Rhs, 0).end.line;        
-        (Current).begin.column = (Current).end.column =    
-            YYRHSLOC (Rhs, 0).end.column;        
-        (Current).begin.charIndex   = (Current).end.charIndex =    
-            YYRHSLOC (Rhs, 0).end.charIndex;        
-      }               
-    } while (false);
-
-  }
-
   /* Useful defines so editors don't get confused ... */
 
-  private Location YYRHSLOC(Object rhs, int i) {
-    // TODO Auto-generated method stub
-    return null;
-  }
 
   private static final char LBRACE =  '{';
   private static final char RBRACE  = '}';
@@ -2284,12 +2257,12 @@ public class RdParser
   private SEXP makeSrcref(Location lloc, SEXP srcfile) {
     if(lloc.begin != null && lloc.end != null) {
       IntArrayVector.Builder val = new IntArrayVector.Builder();
-      val.add(lloc.begin.line);
-      val.add(lloc.begin.charIndex);
-      val.add(lloc.end.line);
-      val.add(lloc.end.charIndex);
-      val.add(lloc.begin.column);
-      val.add(lloc.end.column);
+      val.add(lloc.begin.getLine());
+      val.add(lloc.begin.getCharIndex());
+      val.add(lloc.end.getLine());
+      val.add(lloc.end.getCharIndex());
+      val.add(lloc.begin.getColumn());
+      val.add(lloc.end.getColumn());
       val.setAttribute(Symbols.SRC_FILE, srcfile);
       val.setAttribute(Symbols.CLASS, new StringArrayVector("srcref"));
       return val.build();
@@ -2617,15 +2590,11 @@ public class RdParser
     };
 
   private void setfirstloc() {
-    yylloc.begin.line = xxlineno;
-    yylloc.begin.column = xxcolno;
-    yylloc.begin.charIndex = xxbyteno;
+    yylloc.begin = new Position(xxlineno, xxcolno, xxbyteno);
   }
 
   private void setlastloc() {
-    yylloc.end.line = prevlines[prevpos];
-    yylloc.end.column = prevcols[prevpos];
-    yylloc.end.charIndex = prevbytes[prevpos];
+    yylloc.end = new Position(prevlines[prevpos], prevcols[prevpos], prevbytes[prevpos]);
   }
   public static final int INITBUFSIZE = 128;
 
@@ -2975,7 +2944,7 @@ public class RdParser
       int tok = token();
 
       if (xxDebugTokens) {
-        Rprintf("%d:%d: %s", yylloc.begin.line, yylloc.begin.column, yytname__[yytranslate_(tok)]);
+        Rprintf("%d:%d: %s", yylloc.begin.getLine(), yylloc.begin.getColumn(), yytname__[yytranslate_(tok)]);
         if (xxinRString != 0) {
           Rprintf("(in %c%c)", xxinRString, xxinRString);
         }
@@ -2997,12 +2966,8 @@ public class RdParser
       boolean outsideLiteral = xxmode == LATEXLIKE || xxmode == INOPTION || xxbraceDepth == 0;
 
       if (xxinitvalue != 0) {
-        yylloc.begin.line = 0;
-        yylloc.begin.column = 0;
-        yylloc.begin.charIndex = 0;
-        yylloc.end.line = 0;
-        yylloc.end.column = 0;
-        yylloc.end.charIndex = 0;
+        yylloc.begin = new Position(0, 0, 0);
+        yylloc.end = new Position(0,0,0);
         PROTECT(yylval = new StringArrayVector(""));
         c = xxinitvalue;
         xxinitvalue = 0;
@@ -3035,7 +3000,7 @@ public class RdParser
         }
         return END_OF_INPUT; 
       case '#':
-        if (!xxinEqn && yylloc.begin.column == 1) {
+        if (!xxinEqn && yylloc.begin.getColumn() == 1) {
           return mkIfdef(c);
         }
         break;

@@ -1,6 +1,6 @@
 #
 # Renjin : JVM-based interpreter for the R language for the statistical analysis
-# Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+# Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 #
 
 
-library(org.renjin.test.alpha)
+library('org.renjin.test:alpha')
 library(hamcrest)
 
 
@@ -56,4 +56,14 @@ test.packageRds <- function() {
 
     assertTrue(file.exists(path))
 
+}
+
+
+test.activebinding.onload <- function() {
+    x <- symbol
+    y <- symbol
+
+    assertTrue(is.numeric(x))
+    assertTrue(is.numeric(y))
+    assertTrue(x != y)
 }

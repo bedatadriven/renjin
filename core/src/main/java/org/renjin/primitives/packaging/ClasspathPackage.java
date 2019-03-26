@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,9 +70,23 @@ public class ClasspathPackage extends FileBasedPackage {
   public FileObject resolvePackageRoot(FileSystemManager fileSystemManager) throws FileSystemException {
     // Find the URL where the package is located
     String qualifiedName = qualifyResourceName("environment");
-    URL url = classLoader.getResource(qualifiedName);
-    
-    return fileSystemManager.resolveFile(url.toString()).getParent();
+    String uri = "res:" + qualifiedName;
+
+
+    FileObject environmentFileObject;
+    try {
+      environmentFileObject = fileSystemManager.resolveFile(uri);
+    } catch (FileSystemException e) {
+      throw new FileSystemException("Exception locating package resource '" + uri + "' using the provided VirtualFileSystem, " +
+          "check your Renjin Session configuration.", e);
+    }
+
+    if(!environmentFileObject.exists()) {
+      throw new FileSystemException("Could not locate resource '" + uri + "' using the provided VirtualFileSystem, " +
+          "check your Renjin Session configuration.");
+    }
+
+    return environmentFileObject.getParent();
   }
 
 

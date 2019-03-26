@@ -20,9 +20,18 @@
 
 package org.renjin.sexp;
 
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+
+import java.util.Arrays;
+
 public final class LocalEnvironment extends Environment {
 
   private final SEXP[] frameArray;
+
+  public static LocalEnvironment init(Environment parent, SEXP[] arguments, int frameSize) {
+    return new LocalEnvironment(parent, Arrays.copyOf(arguments, frameSize));
+  }
 
   public LocalEnvironment(Environment parent, SEXP[] frameArray) {
     super(AttributeMap.EMPTY);
@@ -41,6 +50,14 @@ public final class LocalEnvironment extends Environment {
 
   public Promise promise(int index) {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  public Function findFunctionOrThrow(Context context, String functionName) {
+    Function function = findFunction(context, Symbol.get(functionName));
+    if(function == null) {
+      throw new EvalException("Could not find function \"%s\"", functionName);
+    }
+    return function;
   }
 
 }

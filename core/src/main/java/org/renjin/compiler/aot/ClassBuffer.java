@@ -21,12 +21,18 @@
 package org.renjin.compiler.aot;
 
 import org.renjin.compiler.JitClassLoader;
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.SexpExpr;
 import org.renjin.repackaged.asm.*;
+import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.asm.util.TraceClassVisitor;
+import org.renjin.sexp.SEXP;
 
+import java.io.File;
 import java.io.PrintWriter;
-import java.util.HashSet;
-import java.util.Set;
+import java.lang.reflect.Field;
+import java.util.*;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
@@ -40,6 +46,9 @@ public class ClassBuffer {
   private boolean open = true;
   private Class loadedClass = null;
 
+  private List<SEXP> astBuffer = new ArrayList<>();
+  private HashMap<SEXP, Integer> astMap = new HashMap<>();
+
   public ClassBuffer(String className, String sourceFile) {
     this.className = className;
     writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
@@ -48,11 +57,35 @@ public class ClassBuffer {
 
     visitor = new TraceClassVisitor(writer, new PrintWriter(System.out));
 
+    writeSexpPoolField();
     writeConstructor();
+    writeSexpPoolAccessor();
   }
 
   ClassVisitor getClassVisitor() {
     return visitor;
+  }
+
+
+  public String getClassName() {
+    return className;
+  }
+
+  private void writeSexpPoolField() {
+    visitor.visitField(ACC_STATIC | ACC_PUBLIC, "SEXP_POOL", Type.getDescriptor(SEXP[].class), null, null);
+
+  }
+
+  private void writeSexpPoolAccessor() {
+    MethodVisitor mv = visitor.visitMethod(ACC_STATIC | ACC_PRIVATE, "$sexp",
+        Type.getMethodDescriptor(Type.getType(SEXP.class), Type.INT_TYPE),null, null);
+    mv.visitCode();
+    mv.visitFieldInsn(GETSTATIC, className, "SEXP_POOL", Type.getDescriptor(SEXP[].class));
+    mv.visitVarInsn(ILOAD, 0);
+    mv.visitInsn(AALOAD);
+    mv.visitInsn(ARETURN);
+    mv.visitMaxs(3, 1);
+    mv.visitEnd();
   }
 
   private void writeConstructor() {
@@ -63,6 +96,22 @@ public class ClassBuffer {
     mv.visitInsn(RETURN);
     mv.visitMaxs(2, 1);
     mv.visitEnd();
+  }
+
+  public CompiledSexp sexp(SEXP sexp) {
+    int index = astMap.computeIfAbsent(sexp, s -> {
+      astBuffer.add(s);
+      return astBuffer.size() - 1;
+    });
+
+    return new SexpExpr() {
+      @Override
+      public void loadSexp(EmitContext context, InstructionAdapter mv) {
+        mv.iconst(index);
+        mv.invokestatic(className, "$sexp",
+              Type.getMethodDescriptor(Type.getType(SEXP.class), Type.INT_TYPE), false);
+      }
+    };
   }
 
   public String newUniqueMethodName(String function) {
@@ -93,9 +142,27 @@ public class ClassBuffer {
 
   public Class flushAndLoad() {
     flush();
+
+    try {
+      File file = File.createTempFile("renjin",".class");
+      org.renjin.repackaged.guava.io.Files.write(writer.toByteArray(), file);
+      System.err.println("Wrote to " + file);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     if(loadedClass == null) {
       loadedClass = JitClassLoader.defineClass(Object.class, className.replace('/', '.'), writer.toByteArray());
+
+      try {
+        Field field = loadedClass.getField("SEXP_POOL");
+        field.set(null, astBuffer.toArray(new SEXP[0]));
+
+      } catch (IllegalAccessException | NoSuchFieldException e) {
+        throw new IllegalStateException(e);
+      }
+
     }
     return loadedClass;
   }
+
 }

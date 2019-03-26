@@ -26,9 +26,12 @@ import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.eval.Context;
 import org.renjin.eval.Session;
+import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Environment;
+import org.renjin.sexp.LocalEnvironment;
 import org.renjin.sexp.SEXP;
 
 /**
@@ -47,7 +50,9 @@ public class ClosureCompiler {
     IRBody body = builder.build(closure.getBody(), false);
     System.out.println(body);
 
-    ClosureEmitContext emitContext = new ClosureEmitContext(closure.getFormals());
+    String sourceFile = "test.R";
+    ClassBuffer classBuffer = buffer.classBuffer(sourceFile);
+    ClosureEmitContext emitContext = new ClosureEmitContext(classBuffer, closure.getFormals());
 
     String methodDescriptor = Type.getMethodDescriptor(Type.getType(SEXP.class),
         Type.getType(Context.class),
@@ -55,15 +60,29 @@ public class ClosureCompiler {
         Type.getType("[Lorg/renjin/sexp/SEXP;"));
 
 
-    handle = buffer.newFunction("test.R", "scale", methodDescriptor, mv -> {
+    handle = buffer.newFunction(sourceFile, "scale", methodDescriptor, mv -> {
+
+      writePrelude(emitContext, mv);
+
       for (Statement statement : body.getStatements()) {
         statement.emit(emitContext, mv);
       }
-
       mv.visitMaxs(0, emitContext.getLocalVarAllocator().getCount());
       mv.visitEnd();
     });
+  }
 
+  private void writePrelude(ClosureEmitContext emitContext, InstructionAdapter mv) {
+    mv.visitVarInsn(Opcodes.ALOAD, ClosureEmitContext.ENVIRONMENT_VAR_INDEX);
+    mv.visitVarInsn(Opcodes.ALOAD, ClosureEmitContext.ARG_ARRAY_VAR_INDEX);
+    mv.iconst(emitContext.getNumFramVars());
+    mv.invokestatic(Type.getInternalName(LocalEnvironment.class), "init",
+        Type.getMethodDescriptor(Type.getType(LocalEnvironment.class),
+            Type.getType(Environment.class),
+            Type.getType(SEXP[].class),
+            Type.INT_TYPE), false);
+
+    mv.visitVarInsn(Opcodes.ASTORE, ClosureEmitContext.ENVIRONMENT_VAR_INDEX);
   }
 
   public AotHandle getHandle() {

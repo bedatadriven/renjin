@@ -70,4 +70,5 @@ public class DynamicCallTranslator extends FunctionCallTranslator {
       throw new IllegalStateException();
     }
   }
+
 }

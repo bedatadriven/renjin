@@ -19,6 +19,7 @@
 package org.renjin.compiler.codegen;
 
 import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.SexpExpr;
 import org.renjin.compiler.codegen.var.LocalVarAllocator;
 import org.renjin.compiler.codegen.var.VariableStrategy;
 import org.renjin.compiler.ir.tac.IRLabel;
@@ -28,6 +29,7 @@ import org.renjin.compiler.ir.tac.expressions.Temp;
 import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.SEXP;
 
 public interface EmitContext {
 
@@ -67,5 +69,14 @@ public interface EmitContext {
     } else {
       return false;
     }
+  }
+
+  default CompiledSexp constantSexp(SEXP sexp) {
+    return new SexpExpr() {
+      @Override
+      public void loadSexp(EmitContext context, InstructionAdapter mv) {
+        ConstantBytecode.pushConstant(mv, sexp);
+      }
+    };
   }
 }

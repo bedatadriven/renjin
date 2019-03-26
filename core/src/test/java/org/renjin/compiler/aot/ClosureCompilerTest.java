@@ -23,15 +23,37 @@ package org.renjin.compiler.aot;
 import org.junit.Test;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
+import org.renjin.parser.RParser;
 import org.renjin.sexp.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
 public class ClosureCompilerTest {
 
   @Test
   public void simpleTest() throws InvocationTargetException, IllegalAccessException {
+
+    Session session = new SessionBuilder().build();
+    session.getTopLevelContext().evaluate(RParser.parseInlineSource("g <- function(a, b) a * b\n"));
+    session.getTopLevelContext().evaluate(RParser.parseInlineSource("f <- function(x) g(b=x,a=2)\n"));
+    Closure closure = (Closure) session.getTopLevelContext().evaluate(Symbol.get("f"));
+
+    ClosureCompiler compiler = new ClosureCompiler(session, closure);
+
+    Method method = compiler.getHandle().loadAndReflect();
+
+    SEXP[] args = {DoubleVector.valueOf(14)};
+    SEXP result = (SEXP) method.invoke(null, session.getTopLevelContext(), session.getGlobalEnvironment(), args);
+
+    assertThat(result, equalTo(DoubleVector.valueOf(4)));
+  }
+
+  @Test
+  public void scaleTest() throws InvocationTargetException, IllegalAccessException {
 
     Session session = new SessionBuilder().build();
     Closure closure = (Closure) session.getTopLevelContext().evaluate(Symbol.get("scale.default"));
@@ -42,10 +64,9 @@ public class ClosureCompilerTest {
 
     DoubleVector x = new DoubleArrayVector(1, 2, 3);
 
-    SEXP result = (SEXP) method.invoke(session.getTopLevelContext(), session.getGlobalEnvironment(), new SEXP[]{x, LogicalVector.TRUE, LogicalVector.FALSE});
+    SEXP result = (SEXP) method.invoke(null, session.getTopLevelContext(), session.getGlobalEnvironment(), new SEXP[]{x, LogicalVector.TRUE, LogicalVector.FALSE});
 
     System.out.println(result);
-
 
   }
 

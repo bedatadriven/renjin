@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.renjin.repackaged.asm.Opcodes.ACC_PUBLIC;
+import static org.renjin.repackaged.asm.Opcodes.ACC_STATIC;
 
 public class AotBuffer {
 
@@ -45,24 +46,12 @@ public class AotBuffer {
   }
 
   public AotHandle newFunction(String sourceFile, String functionName, String descriptor, Consumer<InstructionAdapter> writer) {
-    String sourceName;
-    if (sourceFile.toUpperCase().endsWith(".R") ||
-        sourceFile.toUpperCase().endsWith(".S")) {
-
-      sourceName = sourceFile.substring(0, sourceFile.length() - 2);
-    } else {
-      sourceName = sourceFile;
-    }
-
-    String className = packageName.replace('.', '/') + "/" + sourceName;
-
-    ClassBuffer classBuffer = sourceMap.computeIfAbsent(sourceFile,
-        s -> new ClassBuffer(className, sourceFile));
+    ClassBuffer classBuffer = classBuffer(sourceFile);
 
     String methodName = classBuffer.newUniqueMethodName(functionName);
 
     if(DEBUG) {
-      MethodNode methodNode = new MethodNode(ACC_PUBLIC, methodName, descriptor,null, null);
+      MethodNode methodNode = new MethodNode(ACC_PUBLIC | ACC_STATIC, methodName, descriptor,null, null);
 
       MethodVisitor mv = methodNode;
 
@@ -83,15 +72,31 @@ public class AotBuffer {
 
     } else {
 
-      MethodVisitor mv = classBuffer.getClassVisitor().visitMethod(ACC_PUBLIC, methodName, descriptor, null, null);
+      MethodVisitor mv = classBuffer.getClassVisitor().visitMethod(ACC_PUBLIC | ACC_STATIC, methodName, descriptor, null, null);
       mv.visitCode();
       writer.accept(new InstructionAdapter(mv));
       mv.visitEnd();
     }
 
-    return new AotHandle(className, methodName,  () -> {
+    return new AotHandle(classBuffer.getClassName(), methodName,  () -> {
       return classBuffer.flushAndLoad();
     });
+  }
+
+  public ClassBuffer classBuffer(String sourceFile) {
+    String sourceName;
+    if (sourceFile.toUpperCase().endsWith(".R") ||
+        sourceFile.toUpperCase().endsWith(".S")) {
+
+      sourceName = sourceFile.substring(0, sourceFile.length() - 2);
+    } else {
+      sourceName = sourceFile;
+    }
+
+    String className = packageName.replace('.', '/') + "/" + sourceName;
+
+    return sourceMap.computeIfAbsent(sourceFile,
+        s -> new ClassBuffer(className, sourceFile));
   }
 
 

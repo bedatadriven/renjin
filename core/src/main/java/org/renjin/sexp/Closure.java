@@ -39,10 +39,7 @@ public class Closure extends AbstractSEXP implements Function {
   private Environment enclosingEnvironment;
   private SEXP body;
   private PairList formals;
-  
-  private int invocationCount = 0;
-  private boolean compilationFailed = false;
-  
+
   public Closure(Environment enclosingEnvironment, PairList formals, SEXP body, AttributeMap attributes) {
     super(attributes);
     assert !(formals instanceof FunctionCall);
@@ -85,16 +82,6 @@ public class Closure extends AbstractSEXP implements Function {
 
 
   public SEXP doApply(Context functionContext) {
-
-    invocationCount++;
-
-//    if(invocationCount > 5000) {
-//      CompiledBody body = Compiler.tryCompile(functionContext, functionContext.getEnvironment(), getBody());
-//      if(body != null) {
-//        return body.evaluate(functionContext, functionContext.getEnvironment());
-//      }
-//    }
-//    
     return functionContext.evaluate(body);
   }
    
@@ -205,6 +192,4 @@ public class Closure extends AbstractSEXP implements Function {
     }
     return true;
   }
-
-
 }

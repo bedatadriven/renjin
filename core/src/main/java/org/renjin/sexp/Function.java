@@ -39,4 +39,13 @@ public interface Function extends SEXP, Recursive {
    * @return the function's result
    */
   SEXP apply(Context context, Environment rho, FunctionCall call, PairList args);
+
+
+  default SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] arguments) {
+    PairList.Builder builder = new PairList.Builder();
+    for (int i = 0; i < argumentNames.length; i++) {
+      builder.add(argumentNames[i], arguments[i]);
+    }
+    return apply(context, rho, call, builder.build());
+  }
 }

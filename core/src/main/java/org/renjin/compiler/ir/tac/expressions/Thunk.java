@@ -18,72 +18,54 @@
  *
  */
 
-package org.renjin.sexp;
+package org.renjin.compiler.ir.tac.expressions;
 
-import org.renjin.eval.Context;
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.sexp.SEXP;
 
-import java.util.HashMap;
-import java.util.Set;
+import java.util.Map;
 
-public class LocalFrame implements Frame {
+public class Thunk implements Expression {
+  private final SEXP sexp;
 
-  private SEXP[] locals;
-  private Symbol[] localNames;
-  private HashMap<Symbol, SEXP> overflow = null;
-
-  public LocalFrame(SEXP[] locals) {
-    this.locals = locals;
-  }
-
-  public SEXP get(int localIndex) {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  public void set(int localIndex, SEXP value) {
-    locals[localIndex] = value;
+  public Thunk(SEXP sexp) {
+    this.sexp = sexp;
   }
 
   @Override
-  public Set<Symbol> getSymbols() {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
-  public SEXP getVariable(Symbol name) {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
-  public Function getFunction(Context context, Symbol name) {
-    // TODO:
-    return null;
-  }
-
-  private int indexOf(Symbol name) {
-    return -1;
-  }
-
-  @Override
-  public boolean isMissingArgument(Symbol name) {
+  public boolean isPure() {
     return false;
   }
 
   @Override
-  public void setVariable(Symbol name, SEXP value) {
+  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public void clear() {
+  public ValueBounds getValueBounds() {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public void remove(Symbol name) {
+  public CompiledSexp getCompiledExpr(EmitContext emitContext) {
     throw new UnsupportedOperationException("TODO");
   }
 
-  public Promise promise(int localVarIndex) {
-    return null;
+  @Override
+  public void setChild(int childIndex, Expression child) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public int getChildCount() {
+    return 0;
+  }
+
+  @Override
+  public Expression childAt(int index) {
+    throw new UnsupportedOperationException("TODO");
   }
 }

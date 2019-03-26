@@ -32,6 +32,7 @@ import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,14 +47,20 @@ public class ClosureEmitContext implements EmitContext {
   private final Map<LValue, VariableStrategy> variableMap = new HashMap<>();
 
   private final LocalVarAllocator varAllocator;
+  private final ClassBuffer classBuffer;
 
   private int nextFrameVar = 0;
 
-  public ClosureEmitContext(PairList formals) {
+  public ClosureEmitContext(ClassBuffer classBuffer, PairList formals) {
+    this.classBuffer = classBuffer;
     varAllocator = new LocalVarAllocator(ARG_ARRAY_VAR_INDEX + 1);
     for (PairList.Node node : formals.nodes()) {
       variableMap.put(new EnvironmentVariable(node.getTag()), new FrameVariableStrategy(nextFrameVar++));
     }
+  }
+
+  public int getNumFramVars() {
+    return nextFrameVar;
   }
 
   @Override
@@ -100,5 +107,10 @@ public class ClosureEmitContext implements EmitContext {
         return new SexpLocalVar(lhs, null, getLocalVarAllocator().reserveObject());
       }
     });
+  }
+
+  @Override
+  public CompiledSexp constantSexp(SEXP sexp) {
+    return classBuffer.sexp(sexp);
   }
 }

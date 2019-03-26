@@ -154,7 +154,7 @@ public class BuiltinCall implements CallExpression {
     mv.visitVarInsn(Opcodes.ALOAD, context.getEnvironmentVarIndex());
 
     for (int i = 0; i < arguments.size(); i++) {
-      arguments.get(i).getExpression().getCompiledExpr(context);
+      arguments.get(i).getExpression().getCompiledExpr(context).loadSexp(context, mv);
     }
 
     String generatedClass = WrapperGenerator2.toFullJavaName(primitiveName)

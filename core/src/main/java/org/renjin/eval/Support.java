@@ -26,10 +26,16 @@ import org.renjin.sexp.SEXP;
  * Provides helper methods for compiled code
  */
 public class Support {
-
-
+  public static final String[] UNNAMED_ARGUMENTS_0 = {};
+  public static final String[] UNNAMED_ARGUMENTS_1 = new String[1];
+  public static final String[] UNNAMED_ARGUMENTS_2 = new String[2];
+  public static final String[] UNNAMED_ARGUMENTS_3 = new String[3];
+  public static final String[] UNNAMED_ARGUMENTS_4 = new String[3];
+  public static final String[] UNNAMED_ARGUMENTS_5 = new String[4];
 
   public static boolean test(SEXP sexp) {
     throw new UnsupportedOperationException("TODO");
   }
+
+
 }

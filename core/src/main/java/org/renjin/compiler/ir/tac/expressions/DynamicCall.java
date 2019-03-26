@@ -26,26 +26,21 @@ import org.renjin.compiler.codegen.expr.SexpExpr;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.eval.Context;
-import org.renjin.eval.Support;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.sexp.*;
 
-import java.util.List;
 import java.util.Map;
 
 public class DynamicCall implements Expression {
 
   private final FunctionCall call;
   private final String functionName;
-  private final List<IRArgument> arguments;
 
-  public DynamicCall(FunctionCall call, String functionName, List<IRArgument> arguments) {
+  public DynamicCall(FunctionCall call, String functionName) {
     this.call = call;
     this.functionName = functionName;
-    this.arguments = arguments;
   }
 
   public String getFunctionName() {
@@ -57,28 +52,23 @@ public class DynamicCall implements Expression {
     return false;
   }
 
-  public boolean isArgumentNamed(int i) {
-    return arguments.get(i).isNamed();
-  }
-
   public IRArgument getArgument(int index) {
-    return arguments.get(index);
+    throw new IllegalArgumentException();
   }
 
   @Override
   public void setChild(int childIndex, Expression child) {
-    arguments.set(childIndex,
-        arguments.get(childIndex).withExpression(child));
+    throw new IllegalArgumentException();
   }
 
   @Override
   public int getChildCount() {
-    return arguments.size();
+    return 0;
   }
 
   @Override
   public Expression childAt(int index) {
-    return arguments.get(index).getExpression();
+    throw new IllegalArgumentException();
   }
 
   @Override
@@ -104,81 +94,81 @@ public class DynamicCall implements Expression {
   private void writeCall(EmitContext context, InstructionAdapter mv) {
 
     // First find function
-    mv.visitVarInsn(Opcodes.ALOAD, context.getEnvironmentVarIndex());
     mv.visitVarInsn(Opcodes.ALOAD, context.getContextVarIndex());
+    mv.visitVarInsn(Opcodes.ALOAD, context.getEnvironmentVarIndex());
     mv.aconst(functionName);
-    mv.invokevirtual(Type.getInternalName(LocalEnvironment.class), "findFunctionOrThrow",
+    mv.invokevirtual(Type.getInternalName(Context.class), "evaluateFunction",
           Type.getMethodDescriptor(Type.getType(Function.class),
-              Type.getType(Context.class),
+              Type.getType(Environment.class),
               Type.getType(String.class)), false);
 
     // Now we need to invoke:
-    // SEXP Function::apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] arguments)
+    // SEXP Function::apply(Context context, Environment rho, FunctionCall call, PairList args)
     mv.visitVarInsn(Opcodes.ALOAD, context.getContextVarIndex());
     mv.visitVarInsn(Opcodes.ALOAD, context.getEnvironmentVarIndex());
+
     context.constantSexp(call).loadSexp(context, mv);
     mv.checkcast(Type.getType(FunctionCall.class));
-    loadArgumentNames(context, mv);
-    loadArgumentValues(context, mv);
+    mv.dup();
+    mv.invokevirtual(Type.getInternalName(FunctionCall.class), "getArguments",
+        Type.getMethodDescriptor(Type.getType(PairList.class)), false);
 
     mv.invokeinterface(Type.getInternalName(Function.class), "apply",
         Type.getMethodDescriptor(Type.getType(SEXP.class),
             Type.getType(Context.class),
             Type.getType(Environment.class),
             Type.getType(FunctionCall.class),
-            Type.getType(String[].class),
-            Type.getType(SEXP[].class)));
-
+            Type.getType(PairList.class)));
   }
-
-  private void loadArgumentValues(EmitContext context, InstructionAdapter mv) {
-    mv.iconst(arguments.size());
-    mv.newarray(Type.getType(SEXP.class));
-    for (int i = 0; i < arguments.size(); i++) {
-      mv.dup();
-      mv.iconst(i);
-      arguments.get(i).getExpression().getCompiledExpr(context).loadSexp(context, mv);
-      mv.visitInsn(Opcodes.AASTORE);
-    }
-  }
-
-  private void loadArgumentNames(EmitContext context, InstructionAdapter mv) {
-    if(!anyNamedArguments()) {
-      loadEmptyNamesArray(context, mv);
-
-    } else {
-      // Maybe maintain a pool of argument names?
-      mv.iconst(arguments.size());
-      mv.newarray(Type.getType(String.class));
-      for (int i = 0; i < arguments.size(); i++) {
-        IRArgument argument = arguments.get(i);
-        if(argument.isNamed()) {
-          mv.dup();
-          mv.iconst(i);
-          mv.aconst(argument.getName());
-          mv.visitInsn(Opcodes.AASTORE);
-        }
-      }
-    }
-  }
-
-  private void loadEmptyNamesArray(EmitContext context, InstructionAdapter mv) {
-    mv.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(Support.class), "UNNAMED_ARGUMENTS_" + arguments.size(),
-        Type.getDescriptor(String[].class));
-  }
-
-  private boolean anyNamedArguments() {
-    for (IRArgument argument : arguments) {
-      if(argument.isNamed()) {
-        return true;
-      }
-    }
-    return false;
-  }
+//
+//  private void loadArgumentValues(EmitContext context, InstructionAdapter mv) {
+//    mv.iconst(arguments.size());
+//    mv.newarray(Type.getType(SEXP.class));
+//    for (int i = 0; i < arguments.size(); i++) {
+//      mv.dup();
+//      mv.iconst(i);
+//      arguments.get(i).getExpression().getCompiledExpr(context).loadSexp(context, mv);
+//      mv.visitInsn(Opcodes.AASTORE);
+//    }
+//  }
+//
+//  private void loadArgumentNames(EmitContext context, InstructionAdapter mv) {
+//    if(!anyNamedArguments()) {
+//      loadEmptyNamesArray(context, mv);
+//
+//    } else {
+//      // Maybe maintain a pool of argument names?
+//      mv.iconst(arguments.size());
+//      mv.newarray(Type.getType(String.class));
+//      for (int i = 0; i < arguments.size(); i++) {
+//        IRArgument argument = arguments.get(i);
+//        if(argument.isNamed()) {
+//          mv.dup();
+//          mv.iconst(i);
+//          mv.aconst(argument.getName());
+//          mv.visitInsn(Opcodes.AASTORE);
+//        }
+//      }
+//    }
+//  }
+//
+//  private void loadEmptyNamesArray(EmitContext context, InstructionAdapter mv) {
+//    mv.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(Support.class), "UNNAMED_ARGUMENTS_" + arguments.size(),
+//        Type.getDescriptor(String[].class));
+//  }
+//
+//  private boolean anyNamedArguments() {
+//    for (IRArgument argument : arguments) {
+//      if(argument.isNamed()) {
+//        return true;
+//      }
+//    }
+//    return false;
+//  }
 
   @Override
   public String toString() {
-    return "dynamic " + functionName + "(" + Joiner.on(", ").join(arguments) + ")";
+    return "dynamic " + functionName + "(" + call.getArguments() + ")";
   }
 
 }

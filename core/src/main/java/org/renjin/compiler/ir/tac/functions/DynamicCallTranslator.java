@@ -20,16 +20,12 @@
 
 package org.renjin.compiler.ir.tac.functions;
 
-import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.expressions.DynamicCall;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.statements.ExprStatement;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.Symbol;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class DynamicCallTranslator extends FunctionCallTranslator {
 
@@ -42,9 +38,7 @@ public class DynamicCallTranslator extends FunctionCallTranslator {
   public Expression translateToExpression(IRBodyBuilder builder,
                                           TranslationContext context, FunctionCall call) {
 
-    List<IRArgument> arguments = builder.translateArgumentList(context, call.getArguments());
-
-    return new DynamicCall(call, functionName(call), arguments);
+    return new DynamicCall(call, functionName(call));
   }
 
   @Override
@@ -54,13 +48,7 @@ public class DynamicCallTranslator extends FunctionCallTranslator {
 
   @Override
   public Expression translateToSetterExpression(IRBodyBuilder builder, TranslationContext context, FunctionCall getterCall, Expression rhs) {
-
-    List<IRArgument> setterArguments = new ArrayList<>();
-    setterArguments.addAll(builder.translateArgumentList(context, getterCall.getArguments()));
-    setterArguments.add(new IRArgument("value", rhs));
-
-    String functionName = functionName(getterCall) + "<-";
-    return new DynamicCall(getterCall, functionName, setterArguments);
+    throw new UnsupportedOperationException("TODO");
   }
 
   private String functionName(FunctionCall call) {

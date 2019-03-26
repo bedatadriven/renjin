@@ -20,23 +20,20 @@
 
 package org.renjin.sexp;
 
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
-
 import java.util.Arrays;
 
-public final class LocalEnvironment extends Environment {
+public final class CompiledFunctionEnvironment extends Environment {
 
   private final SEXP[] frameArray;
 
-  public static LocalEnvironment init(Environment parent, SEXP[] arguments, int frameSize) {
-    return new LocalEnvironment(parent, Arrays.copyOf(arguments, frameSize));
+  public static CompiledFunctionEnvironment init(Environment parent, SEXP[] arguments, SEXP variableNames) {
+    return new CompiledFunctionEnvironment(parent, (ListVector) variableNames, Arrays.copyOf(arguments, variableNames.length()));
   }
 
-  public LocalEnvironment(Environment parent, SEXP[] frameArray) {
+  public CompiledFunctionEnvironment(Environment parent, ListVector frameNames, SEXP[] frameArray) {
     super(AttributeMap.EMPTY);
     this.frameArray = frameArray;
-    this.frame = new LocalFrame(frameArray);
+    this.frame = new CompiledFrame(frameNames, frameArray);
     this.setParent(parent);
   }
 
@@ -45,19 +42,14 @@ public final class LocalEnvironment extends Environment {
   }
 
   public SEXP get(int index) {
-    return frameArray[index];
+    SEXP value = frameArray[index];
+    if(value != null) {
+      return value;
+    }
+    throw new UnsupportedOperationException("TODO");
   }
 
   public Promise promise(int index) {
     throw new UnsupportedOperationException("TODO");
   }
-
-  public Function findFunctionOrThrow(Context context, String functionName) {
-    Function function = findFunction(context, Symbol.get(functionName));
-    if(function == null) {
-      throw new EvalException("Could not find function \"%s\"", functionName);
-    }
-    return function;
-  }
-
 }

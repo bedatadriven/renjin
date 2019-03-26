@@ -22,6 +22,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.base.BaseFrame;
+import org.renjin.invoke.annotations.CompilerSpecialization;
 import org.renjin.pipeliner.VectorPipeliner;
 import org.renjin.primitives.Primitives;
 import org.renjin.primitives.Warning;
@@ -397,7 +398,7 @@ public class Context {
     clearInvisibleFlag();
 
     SEXP fn = call.getFunction();
-    Function functionExpr = evaluateFunction(fn, rho);
+    Function functionExpr = evaluateFunction(rho, fn);
 
     boolean profiling = Profiler.ENABLED && fn instanceof Symbol && !((Symbol) fn).isReservedWord();
     if(Profiler.ENABLED && profiling) {
@@ -422,7 +423,19 @@ public class Context {
     }
   }
 
-  private Function evaluateFunction(SEXP functionExp, Environment rho) {
+  /**
+   * Evaluates a function reference from compiled code.
+   */
+  @CompilerSpecialization
+  public Function evaluateFunction(Environment rho, String name) {
+    Function function = rho.findFunction(this, Symbol.get(name));
+    if(function == null) {
+      throw new EvalException("Could not find function \"%s\"", name);
+    }
+    return function;
+  }
+
+  private Function evaluateFunction(Environment rho, SEXP functionExp) {
     if(functionExp instanceof Symbol) {
       Symbol symbol = (Symbol) functionExp;
       if(symbol.isReservedWord()) {

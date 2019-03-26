@@ -31,6 +31,7 @@ import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.ListVector;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 
@@ -55,12 +56,20 @@ public class ClosureEmitContext implements EmitContext {
     this.classBuffer = classBuffer;
     varAllocator = new LocalVarAllocator(ARG_ARRAY_VAR_INDEX + 1);
     for (PairList.Node node : formals.nodes()) {
-      variableMap.put(new EnvironmentVariable(node.getTag()), new FrameVariableStrategy(nextFrameVar++));
+      variableMap.put(new EnvironmentVariable(node.getTag()), new FrameVariableStrategy(node.getTag(), nextFrameVar++));
     }
   }
 
-  public int getNumFramVars() {
-    return nextFrameVar;
+  public ListVector getFrameVariableNames() {
+    SEXP[] names = new SEXP[nextFrameVar];
+
+    for (VariableStrategy variable : variableMap.values()) {
+      if(variable instanceof FrameVariableStrategy) {
+        FrameVariableStrategy frameVar = (FrameVariableStrategy) variable;
+        names[frameVar.getFrameIndex()] = frameVar.getName();
+      }
+    }
+    return new ListVector(names);
   }
 
   @Override
@@ -102,7 +111,7 @@ public class ClosureEmitContext implements EmitContext {
   public VariableStrategy getVariable(LValue lhs) {
     return variableMap.computeIfAbsent(lhs, var -> {
       if(var instanceof EnvironmentVariable) {
-        return new FrameVariableStrategy(nextFrameVar++);
+        return new FrameVariableStrategy(((EnvironmentVariable) var).getName(), nextFrameVar++);
       } else {
         return new SexpLocalVar(lhs, null, getLocalVarAllocator().reserveObject());
       }

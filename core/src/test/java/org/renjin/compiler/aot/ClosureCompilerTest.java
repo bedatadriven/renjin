@@ -49,7 +49,7 @@ public class ClosureCompilerTest {
     SEXP[] args = {DoubleVector.valueOf(14)};
     SEXP result = (SEXP) method.invoke(null, session.getTopLevelContext(), session.getGlobalEnvironment(), args);
 
-    assertThat(result, equalTo(DoubleVector.valueOf(4)));
+    assertThat(result, equalTo(DoubleVector.valueOf(28)));
   }
 
   @Test

@@ -30,8 +30,8 @@ import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.Closure;
+import org.renjin.sexp.CompiledFunctionEnvironment;
 import org.renjin.sexp.Environment;
-import org.renjin.sexp.LocalEnvironment;
 import org.renjin.sexp.SEXP;
 
 /**
@@ -75,12 +75,12 @@ public class ClosureCompiler {
   private void writePrelude(ClosureEmitContext emitContext, InstructionAdapter mv) {
     mv.visitVarInsn(Opcodes.ALOAD, ClosureEmitContext.ENVIRONMENT_VAR_INDEX);
     mv.visitVarInsn(Opcodes.ALOAD, ClosureEmitContext.ARG_ARRAY_VAR_INDEX);
-    mv.iconst(emitContext.getNumFramVars());
-    mv.invokestatic(Type.getInternalName(LocalEnvironment.class), "init",
-        Type.getMethodDescriptor(Type.getType(LocalEnvironment.class),
+    emitContext.constantSexp(emitContext.getFrameVariableNames()).loadSexp(emitContext, mv);
+    mv.invokestatic(Type.getInternalName(CompiledFunctionEnvironment.class), "init",
+        Type.getMethodDescriptor(Type.getType(CompiledFunctionEnvironment.class),
             Type.getType(Environment.class),
             Type.getType(SEXP[].class),
-            Type.INT_TYPE), false);
+            Type.getType(SEXP.class)), false);
 
     mv.visitVarInsn(Opcodes.ASTORE, ClosureEmitContext.ENVIRONMENT_VAR_INDEX);
   }

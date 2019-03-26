@@ -27,19 +27,30 @@ import org.renjin.compiler.codegen.var.VariableStrategy;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.LocalEnvironment;
+import org.renjin.sexp.CompiledFunctionEnvironment;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 
 /**
  * Stores SEXP in an fixed-length array that can be accessed by other contexts via
- * {@link org.renjin.sexp.LocalEnvironment}
+ * {@link CompiledFunctionEnvironment}
  */
 public class FrameVariableStrategy extends VariableStrategy {
 
+  private final Symbol name;
   private final int frameIndex;
 
-  public FrameVariableStrategy(int frameIndex) {
+  public FrameVariableStrategy(Symbol name, int frameIndex) {
+    this.name = name;
     this.frameIndex = frameIndex;
+  }
+
+  public Symbol getName() {
+    return name;
+  }
+
+  public int getFrameIndex() {
+    return frameIndex;
   }
 
   @Override
@@ -49,7 +60,7 @@ public class FrameVariableStrategy extends VariableStrategy {
       public void loadSexp(EmitContext context, InstructionAdapter mv) {
         mv.visitVarInsn(Opcodes.ALOAD, context.getEnvironmentVarIndex());
         mv.iconst(frameIndex);
-        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(LocalEnvironment.class), "get",
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(CompiledFunctionEnvironment.class), "get",
             Type.getMethodDescriptor(Type.getType(SEXP.class), Type.INT_TYPE), false);
       }
     };
@@ -67,7 +78,7 @@ public class FrameVariableStrategy extends VariableStrategy {
     mv.visitVarInsn(Opcodes.ALOAD, emitContext.getEnvironmentVarIndex());
     mv.visitLdcInsn(frameIndex);
     compiledSexp.loadSexp(emitContext, mv);
-    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(LocalEnvironment.class), "set",
+    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(CompiledFunctionEnvironment.class), "set",
         Type.getMethodDescriptor(Type.VOID_TYPE, Type.INT_TYPE, Type.getType(SEXP.class)), false);
   }
 }

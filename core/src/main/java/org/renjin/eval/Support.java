@@ -20,7 +20,12 @@
 
 package org.renjin.eval;
 
+import org.renjin.primitives.io.serialization.RDataReader;
+import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Provides helper methods for compiled code
@@ -37,5 +42,16 @@ public class Support {
     throw new UnsupportedOperationException("TODO");
   }
 
+  public static SEXP[] loadPool(String resourceName) throws IOException {
+    InputStream poolInput = Support.class.getResourceAsStream("/" + resourceName);
+    if(poolInput == null) {
+      throw new IOException("Could not open SEXP pool " + resourceName);
+    }
+    ListVector vector;
+    try(RDataReader reader = new RDataReader(poolInput)) {
+      vector = (ListVector) reader.readFile();
+    }
+    return vector.toArrayUnsafe();
+  }
 
 }

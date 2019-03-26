@@ -53,7 +53,7 @@ public class ClosureCompilerTest {
     session.getTopLevelContext().evaluate(source);
     Closure closure = (Closure) session.getTopLevelContext().evaluate(Symbol.get("f"));
 
-    ClosureCompiler compiler = new ClosureCompiler(session, closure);
+    ClosureCompiler compiler = new ClosureCompiler(session.getTopLevelContext(), closure);
 
     Method method = compiler.getHandle().loadAndReflect();
 
@@ -69,7 +69,7 @@ public class ClosureCompilerTest {
     Session session = new SessionBuilder().build();
     Closure closure = (Closure) session.getTopLevelContext().evaluate(Symbol.get("scale.default"));
 
-    ClosureCompiler compiler = new ClosureCompiler(session, closure);
+    ClosureCompiler compiler = new ClosureCompiler(session.getTopLevelContext(), closure);
 
     Method method = compiler.getHandle().loadAndReflect();
 

@@ -35,6 +35,13 @@ public class AotHandle {
     this.flusher = flusher;
   }
 
+  public String getClassName() {
+    return className;
+  }
+
+  public String getMethodName() {
+    return methodName;
+  }
 
   public Method loadAndReflect() {
     Class loadedClass = flusher.get();

@@ -48,6 +48,6 @@ public class DollarTranslator extends FunctionCallTranslator {
     }
     String name = ((Symbol) nameArgument).getPrintName();
 
-    return new NamedElementAccess(object, name);
+    return new NamedElementAccess(object, call, name);
   }
 }

@@ -53,7 +53,7 @@ public class SwitchPredicate implements Expression {
   private final boolean finalBranch;
 
   private Expression expression;
-  private ValueBounds expressionBounds;
+  private ValueBounds expressionBounds = ValueBounds.UNBOUNDED;
 
   private ValueBounds bounds = LOWER_BOUNDS;
 

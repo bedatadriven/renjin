@@ -106,7 +106,7 @@ public class IRBodyBuilder {
     }
     mergeInitializations();
 
-    return new IRBody(statements, labels, sourceLineMap);
+    return new IRBody(statements, labels, sourceFile, sourceLineMap);
   }
   
   public IRBody buildLoopBody(FunctionCall call, ValueBounds sequenceBounds) {
@@ -130,7 +130,7 @@ public class IRBodyBuilder {
     maybeInitializeEllipses(bodyContext);
     mergeInitializations();
 
-    return new IRBody(statements, labels, sourceLineMap);
+    return new IRBody(statements, labels, sourceFile, sourceLineMap);
   }
 
 
@@ -209,7 +209,7 @@ public class IRBodyBuilder {
     initializeEnvironmentVariables();
     mergeInitializations();
 
-    IRBody body = new IRBody(statements, labels, sourceLineMap);
+    IRBody body = new IRBody(statements, labels, sourceFile, sourceLineMap);
     body.setParams(params);
     return body;
   }

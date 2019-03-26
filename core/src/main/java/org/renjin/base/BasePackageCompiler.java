@@ -21,14 +21,15 @@ package org.renjin.base;
 import org.renjin.eval.Context;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
-import org.renjin.packaging.LazyLoadFrameBuilder;
+import org.renjin.packaging.LazyLoadFrameBuilder3;
 import org.renjin.parser.RParser;
+import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
+import org.renjin.repackaged.guava.io.Files;
 import org.renjin.sexp.*;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -63,7 +64,7 @@ public class BasePackageCompiler {
         ".Last.value", ".AutoloadEnv", ".BaseNamespaceEnv", 
         ".Device", ".Devices", ".Machine", ".Options", ".Platform");
 
-    new LazyLoadFrameBuilder(context)
+    new LazyLoadFrameBuilder3(context)
         .outputTo(new File("target/classes/org/renjin/base"))
         .excludeSymbols(omit)
         .filter(x -> !(x instanceof PrimitiveFunction))
@@ -80,14 +81,11 @@ public class BasePackageCompiler {
     Collections.sort(sources);
     
     for(File source : sources) {
-      FileReader reader = new FileReader(source);
       try {
-        SEXP expr = RParser.parseAllSource(reader);
+        SEXP expr = RParser.parseSource(Files.asCharSource(source, Charsets.UTF_8), source.getName());
         evalContext.evaluate(expr);
       } catch(Exception e) {
         throw new RuntimeException("Error evaluating " + source.getName() + ": " + e.getMessage(), e);
-      } finally {
-        reader.close();        
       }
     }
   }  

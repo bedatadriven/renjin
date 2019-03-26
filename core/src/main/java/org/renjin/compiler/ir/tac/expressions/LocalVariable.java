@@ -45,7 +45,7 @@ public class LocalVariable extends Variable {
 
   @Override
   public CompiledSexp getCompiledExpr(EmitContext emitContext) {
-    throw new UnsupportedOperationException();
+    return emitContext.getVariable(this).getCompiledExpr();
   }
 
   @Override

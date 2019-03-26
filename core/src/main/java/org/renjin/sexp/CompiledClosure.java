@@ -20,8 +20,47 @@
 
 package org.renjin.sexp;
 
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
 public class CompiledClosure extends Closure {
-  public CompiledClosure(Environment enclosingEnvironment, PairList formals, SEXP body, AttributeMap attributes) {
+  private final String compiledClassName;
+  private final String compiledMethodName;
+  private MethodHandle methodHandle;
+
+  public CompiledClosure(Environment enclosingEnvironment, PairList formals, SEXP body,
+                         AttributeMap attributes,
+                         String compiledClassName,
+                         String compiledMethodName) {
     super(enclosingEnvironment, formals, Null.INSTANCE, attributes);
+    this.compiledClassName = compiledClassName;
+    this.compiledMethodName = compiledMethodName;
+  }
+
+
+  @Override
+  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+    if(args != Null.INSTANCE) {
+      throw new UnsupportedOperationException("TODO");
+    }
+    if(methodHandle == null) {
+      try {
+        methodHandle = MethodHandles.publicLookup().findStatic(Class.forName(compiledClassName), compiledMethodName,
+            MethodType.methodType(SEXP.class, Context.class, Environment.class, SEXP[].class));
+      } catch (Throwable e) {
+        throw new RuntimeException("Could not obtain method handle for " + compiledClassName + "." + compiledMethodName, e);
+      }
+    }
+    try {
+      return (SEXP)methodHandle.invokeExact(context, rho, new SEXP[0]);
+    } catch (RuntimeException e) {
+      throw e;
+    } catch (Throwable e) {
+      throw new EvalException(e);
+    }
   }
 }

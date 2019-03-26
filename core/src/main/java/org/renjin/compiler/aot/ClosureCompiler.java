@@ -25,34 +25,30 @@ import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.eval.Context;
-import org.renjin.eval.Session;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.CompiledFunctionEnvironment;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.SEXP;
+import org.renjin.sexp.*;
 
 /**
  * Compiles a closure to a java method
  */
 public class ClosureCompiler {
 
-  private Session session;
-  private AotBuffer buffer = new AotBuffer("org.renjin.test");
   private final AotHandle handle;
 
-  public ClosureCompiler(Session session, Closure closure) {
-    this.session = session;
-    RuntimeState runtimeState = new RuntimeState(session.getTopLevelContext(), session.getGlobalEnvironment(), rho -> false);
+  public ClosureCompiler(Context context, Closure closure) {
+    this(new AotBuffer("org.renjin"), context, Symbol.get("fn"), closure);
+  }
+
+  public ClosureCompiler(AotBuffer buffer, Context context, Symbol name, Closure closure) {
+    RuntimeState runtimeState = new RuntimeState(context, closure.getEnclosingEnvironment(), rho -> false);
     IRBodyBuilder builder = new IRBodyBuilder(runtimeState);
     IRBody body = builder.build(closure.getBody(), false);
     System.out.println(body);
 
-    String sourceFile = "test.R";
-    ClassBuffer classBuffer = buffer.classBuffer(sourceFile);
+    ClassBuffer classBuffer = buffer.classBuffer(body.getSourceFile());
     ClosureEmitContext emitContext = new ClosureEmitContext(classBuffer, closure.getFormals());
 
     String methodDescriptor = Type.getMethodDescriptor(Type.getType(SEXP.class),
@@ -61,7 +57,7 @@ public class ClosureCompiler {
         Type.getType("[Lorg/renjin/sexp/SEXP;"));
 
 
-    handle = buffer.newFunction(sourceFile, "scale", methodDescriptor, mv -> {
+    handle = buffer.newFunction(body.getSourceFile(), name.getPrintName(), methodDescriptor, mv -> {
 
       writePrelude(emitContext, mv);
 

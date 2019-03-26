@@ -21,11 +21,14 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.SexpExpr;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.eval.Context;
 import org.renjin.primitives.special.DollarFunction;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
+import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.*;
 
 import java.util.Map;
 
@@ -35,11 +38,13 @@ import java.util.Map;
 public class NamedElementAccess implements Expression {
 
   private Expression expression;
+  private final FunctionCall call;
   private String memberName;
   private ValueBounds valueBounds;
 
-  public NamedElementAccess(Expression expression, String memberName) {
+  public NamedElementAccess(Expression expression, FunctionCall call, String memberName) {
     this.expression = expression;
+    this.call = call;
     this.memberName = memberName;
     
     valueBounds = ValueBounds.UNBOUNDED;
@@ -76,7 +81,26 @@ public class NamedElementAccess implements Expression {
 
   @Override
   public CompiledSexp getCompiledExpr(EmitContext emitContext) {
-    throw new UnsupportedOperationException("TODO");
+    CompiledSexp compiledExpr = expression.getCompiledExpr(emitContext);
+    return new SexpExpr() {
+      @Override
+      public void loadSexp(EmitContext context, InstructionAdapter mv) {
+        // SEXP apply(Context context, Environment rho, FunctionCall call, SEXP object, String name)
+        mv.visitVarInsn(Opcodes.ALOAD, context.getContextVarIndex());
+        mv.visitVarInsn(Opcodes.ALOAD, context.getEnvironmentVarIndex());
+        emitContext.constantSexp(call).loadSexp(context, mv);
+        mv.checkcast(Type.getType(FunctionCall.class));
+        compiledExpr.loadSexp(context, mv);
+        mv.aconst(memberName);
+        mv.invokestatic(Type.getInternalName(DollarFunction.class), "apply",
+            Type.getMethodDescriptor(Type.getType(SEXP.class),
+                Type.getType(Context.class),
+                Type.getType(Environment.class),
+                Type.getType(FunctionCall.class),
+                Type.getType(SEXP.class),
+                Type.getType(String.class)), false);
+      }
+    };
   }
 
 

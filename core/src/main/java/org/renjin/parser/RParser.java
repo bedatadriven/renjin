@@ -118,13 +118,21 @@ public class RParser {
   }
 
   public static ExpressionVector parseSource(String source, String sourceFile) {
+    return parseSource(source, sourceFile(sourceFile));
+  }
+
+  public static ExpressionVector parseSource(CharSource reader, String sourceFile) throws IOException {
+    return parseSource(reader, sourceFile(sourceFile));
+  }
+
+  private static Environment sourceFile(String sourceFile) {
     Environment environment = new Environment(AttributeMap.EMPTY);
+    environment.setParent(Environment.EMPTY);
     environment.setVariableUnsafe("filename", StringVector.valueOf(sourceFile));
     environment.setAttribute("class", new StringArrayVector("srcfilecopy", "srcfile"));
-
-    return parseSource(source, environment);
+    return environment;
   }
-  
+
   public static ExpressionVector parseSource(String source, SEXP srcFile) {
     try {
       return parseSource(new StringReader(source), srcFile);

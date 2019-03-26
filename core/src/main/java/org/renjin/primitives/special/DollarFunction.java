@@ -20,6 +20,7 @@ package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.invoke.annotations.CompilerSpecialization;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.primitives.S3;
 import org.renjin.primitives.Types;
@@ -47,11 +48,20 @@ public class DollarFunction extends SpecialFunction {
 
     SEXP object = context.evaluate(args.getElementAsSEXP(0), rho);
     StringVector nameArgument = evaluateName(args.getElementAsSEXP(1));
+    return apply(context, rho, call, object, nameArgument);
 
+  }
+
+  @CompilerSpecialization
+  public static SEXP apply(Context context, Environment rho, FunctionCall call, SEXP object, String name) {
+    return apply(context, rho, call, object, StringVector.valueOf(name));
+  }
+
+  public static SEXP apply(Context context, Environment rho, FunctionCall call, SEXP object, StringVector nameArgument) {
     // For possible generic dispatch, repackage the name argument as character vector rather than
     // symbol
     PairList.Node repackagedArgs = new PairList.Node(object, new PairList.Node(nameArgument, Null.INSTANCE));
-    
+
     SEXP genericResult = S3.tryDispatchFromPrimitive(context, rho, call, "$", object, repackagedArgs);
     if (genericResult!= null) {
       return genericResult;
@@ -59,7 +69,7 @@ public class DollarFunction extends SpecialFunction {
 
     // Unwrap any environments hidden inside an S4 object
     object = Types.unwrapS4Object(object);
-    
+
     // If no generic function, extract the element
     String name = nameArgument.getElementAsString(0);
 

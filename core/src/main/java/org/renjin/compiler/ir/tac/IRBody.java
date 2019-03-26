@@ -31,13 +31,15 @@ public class IRBody {
 
   private Statement[] statements;
   private int[] labels;
+  private final String sourceFile;
   private final Map<Integer, Integer> sourceLineMap;
 
   private List<ReadParam> params = Collections.emptyList();
   
-  public IRBody(List<Statement> statements, Map<IRLabel, Integer> labels, Map<Integer, Integer> sourceLineMap) {
+  public IRBody(List<Statement> statements, Map<IRLabel, Integer> labels, String sourceFile, Map<Integer, Integer> sourceLineMap) {
     this.statements = statements.toArray(new Statement[statements.size()]);
     this.labels = new int[labels.size()];
+    this.sourceFile = sourceFile;
     this.sourceLineMap = sourceLineMap;
 
     Arrays.fill(this.labels, -1);
@@ -47,6 +49,9 @@ public class IRBody {
     }
   }
 
+  public String getSourceFile() {
+    return sourceFile;
+  }
 
   public List<ReadParam> getParams() {
     return params;

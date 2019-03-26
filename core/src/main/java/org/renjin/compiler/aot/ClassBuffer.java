@@ -24,12 +24,18 @@ import org.renjin.compiler.JitClassLoader;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.SexpExpr;
+import org.renjin.eval.Support;
+import org.renjin.primitives.io.serialization.HeadlessWriteContext;
+import org.renjin.primitives.io.serialization.RDataWriter;
 import org.renjin.repackaged.asm.*;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.asm.util.TraceClassVisitor;
+import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -95,6 +101,19 @@ public class ClassBuffer {
     mv.visitMethodInsn(INVOKESPECIAL, Type.getInternalName(Object.class), "<init>", "()V", false);
     mv.visitInsn(RETURN);
     mv.visitMaxs(2, 1);
+    mv.visitEnd();
+  }
+
+  private void writeStaticInitializer() {
+    MethodVisitor mv = visitor.visitMethod(ACC_PUBLIC | ACC_STATIC, "<clinit>", "()V", null, null);
+    mv.visitCode();
+    mv.visitLdcInsn(className + ".class.RData");
+    mv.visitMethodInsn(INVOKESTATIC, Type.getInternalName(Support.class), "loadPool",
+        Type.getMethodDescriptor(Type.getType(SEXP[].class), Type.getType(String.class)),
+        false);
+    mv.visitFieldInsn(PUTSTATIC, className, "SEXP_POOL", Type.getDescriptor(SEXP[].class));
+    mv.visitInsn(RETURN);
+    mv.visitMaxs(1, 0);
     mv.visitEnd();
   }
 
@@ -165,4 +184,21 @@ public class ClassBuffer {
     return loadedClass;
   }
 
+  public void flushTo(File outputDir) throws IOException {
+    writeStaticInitializer();
+    flush();
+    int classNameStart = className.lastIndexOf('/');
+    String simpleClassName = className.substring(classNameStart + 1);
+    File classFile = new File(outputDir.getAbsolutePath() + "/" + simpleClassName + ".class");
+    File poolFile = new File(outputDir.getAbsolutePath() + "/" + simpleClassName + ".class.RData");
+
+    org.renjin.repackaged.guava.io.Files.write(writer.toByteArray(), classFile);
+    writePool(poolFile);
+  }
+
+  private void writePool(File poolFile) throws IOException {
+    try(RDataWriter writer = new RDataWriter(HeadlessWriteContext.INSTANCE, new FileOutputStream(poolFile))) {
+      writer.save(new ListVector(astBuffer));
+    }
+  }
 }

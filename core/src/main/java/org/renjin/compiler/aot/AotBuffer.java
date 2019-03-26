@@ -26,6 +26,8 @@ import org.renjin.repackaged.asm.tree.MethodNode;
 import org.renjin.repackaged.asm.util.Textifier;
 import org.renjin.repackaged.asm.util.TraceMethodVisitor;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
@@ -85,10 +87,15 @@ public class AotBuffer {
 
   public ClassBuffer classBuffer(String sourceFile) {
     String sourceName;
-    if (sourceFile.toUpperCase().endsWith(".R") ||
-        sourceFile.toUpperCase().endsWith(".S")) {
+
+    if (sourceFile == null) {
+      sourceName = "Jit";
+
+    } else if (sourceFile.toUpperCase().endsWith(".R") ||
+               sourceFile.toUpperCase().endsWith(".S")) {
 
       sourceName = sourceFile.substring(0, sourceFile.length() - 2);
+
     } else {
       sourceName = sourceFile;
     }
@@ -100,4 +107,9 @@ public class AotBuffer {
   }
 
 
+  public void flushTo(File outputDir) throws IOException {
+    for (ClassBuffer classBuffer : sourceMap.values()) {
+      classBuffer.flushTo(outputDir);
+    }
+  }
 }

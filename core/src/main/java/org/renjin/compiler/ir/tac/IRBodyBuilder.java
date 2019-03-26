@@ -43,7 +43,8 @@ import java.util.*;
  * AST interpreter.
  */
 public class IRBodyBuilder {
-  
+
+  public static final Symbol SRCFILE_ATTR = Symbol.get("srcfile");
   private int nextTemp = 0;
   private int nextLabel = 0;
   
@@ -53,7 +54,14 @@ public class IRBodyBuilder {
   private List<Statement> statements = new ArrayList<>();
   private IRLabel currentLabel;
   private Map<IRLabel, Integer> labels;
-  private Map<Symbol, EnvironmentVariable> variables = Maps.newHashMap();
+
+  private String sourceFile;
+
+  /**
+   * Maps the statement index to the source line index
+   */
+  private Map<Integer, Integer> sourceLineMap = new HashMap<>();
+  private Map<Symbol, EnvironmentVariable> variables = new HashMap<>();
 
   private RuntimeState runtimeContext;
   
@@ -73,7 +81,15 @@ public class IRBodyBuilder {
   }
 
   public IRBody build(SEXP exp, boolean ensureInitialized) {
-    
+
+    if(exp.getAttributes().has(SRCFILE_ATTR)) {
+      Environment srcfile = (Environment) exp.getAttribute(SRCFILE_ATTR);
+      SEXP filenameVector = srcfile.getVariableUnsafe("filename");
+      if(filenameVector instanceof StringVector) {
+        sourceFile = ((StringVector) filenameVector).getElementAsString(0);
+      }
+    }
+
     labels = Maps.newHashMap();
     
     TranslationContext context = new TopLevelContext();
@@ -90,7 +106,7 @@ public class IRBodyBuilder {
     }
     mergeInitializations();
 
-    return new IRBody(statements, labels);
+    return new IRBody(statements, labels, sourceLineMap);
   }
   
   public IRBody buildLoopBody(FunctionCall call, ValueBounds sequenceBounds) {
@@ -114,7 +130,7 @@ public class IRBodyBuilder {
     maybeInitializeEllipses(bodyContext);
     mergeInitializations();
 
-    return new IRBody(statements, labels);
+    return new IRBody(statements, labels, sourceLineMap);
   }
 
 
@@ -193,7 +209,7 @@ public class IRBodyBuilder {
     initializeEnvironmentVariables();
     mergeInitializations();
 
-    IRBody body = new IRBody(statements, labels);
+    IRBody body = new IRBody(statements, labels, sourceLineMap);
     body.setParams(params);
     return body;
   }
@@ -235,6 +251,7 @@ public class IRBodyBuilder {
   }
 
   public Expression translateExpression(TranslationContext context, SEXP exp) {
+
     if(exp instanceof ExpressionVector) {
       return translateExpressionList(context, (ExpressionVector)exp);
     } else if(exp instanceof Symbol) {
@@ -424,7 +441,11 @@ public class IRBodyBuilder {
     }
     return null;
   }
-  
+
+  public void recordLineNumber(int lineNumber) {
+    sourceLineMap.put(statements.size(), lineNumber);
+  }
+
   private static class TopLevelContext implements TranslationContext {
 
     @Override

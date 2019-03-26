@@ -22,10 +22,11 @@ package org.renjin.compiler.aot;
 
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
+import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.RuntimeState;
-import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.eval.Context;
 import org.renjin.eval.Session;
+import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -64,8 +65,23 @@ public class ClosureCompiler {
 
       writePrelude(emitContext, mv);
 
-      for (Statement statement : body.getStatements()) {
-        statement.emit(emitContext, mv);
+      for (int i = 0; i < body.getStatements().size(); i++) {
+
+        Label label = null;
+        for (IRLabel irLabel : body.getInstructionLabels(i)) {
+          label = emitContext.getBytecodeLabel(irLabel);
+          mv.visitLabel(label);
+        }
+        int lineNumber = body.getLineNumber(i);
+        if(lineNumber != -1) {
+          if(label == null) {
+            label = new Label();
+          }
+          mv.visitLineNumber(lineNumber, label);
+        }
+
+        body.getStatements().get(i).emit(emitContext, mv);
+
       }
       mv.visitMaxs(0, emitContext.getLocalVarAllocator().getCount());
       mv.visitEnd();

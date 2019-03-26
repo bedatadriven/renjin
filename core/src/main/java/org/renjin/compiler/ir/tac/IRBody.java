@@ -30,14 +30,16 @@ import java.util.Map.Entry;
 public class IRBody {
 
   private Statement[] statements;
-  private int labels[];
-  
+  private int[] labels;
+  private final Map<Integer, Integer> sourceLineMap;
+
   private List<ReadParam> params = Collections.emptyList();
   
-  public IRBody(List<Statement> statements, Map<IRLabel, Integer> labels) {
+  public IRBody(List<Statement> statements, Map<IRLabel, Integer> labels, Map<Integer, Integer> sourceLineMap) {
     this.statements = statements.toArray(new Statement[statements.size()]);
     this.labels = new int[labels.size()];
-  
+    this.sourceLineMap = sourceLineMap;
+
     Arrays.fill(this.labels, -1);
     
     for(Entry<IRLabel,Integer> label : labels.entrySet()) {
@@ -56,6 +58,10 @@ public class IRBody {
 
   public List<Statement> getStatements() {
     return Lists.newArrayList(statements);
+  }
+
+  public int getLineNumber(int statementIndex) {
+    return sourceLineMap.getOrDefault(statementIndex, -1);
   }
 
   public Set<IRLabel> getInstructionLabels(int instructionIndex) {

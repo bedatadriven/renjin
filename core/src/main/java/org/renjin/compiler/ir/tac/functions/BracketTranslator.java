@@ -22,20 +22,30 @@ package org.renjin.compiler.ir.tac.functions;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.expressions.Constant;
 import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
+import org.renjin.sexp.*;
 
 
 public class BracketTranslator extends FunctionCallTranslator {
 
   @Override
   public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
+    ListVector sourceRefVector = null;
+    SEXP sourceRefAttribute = call.getAttribute(Symbol.get("srcref"));
+    if(sourceRefAttribute instanceof ListVector) {
+      sourceRefVector = (ListVector) sourceRefAttribute;
+    }
+
     if(call.getArguments().length() == 0) {
       return Constant.NULL;
     } else {
+      int statementIndex = 0;
       for(PairList.Node arg : call.getArguments().nodes()) {
+
+        if(sourceRefVector != null) {
+          IntVector sourceRef = (IntVector) sourceRefVector.get(statementIndex);
+          builder.recordLineNumber(sourceRef.getElementAsInt(0));
+        }
+
         if(arg.hasNextNode()) {
           builder.translateStatements(context, arg.getValue()); 
         } else {

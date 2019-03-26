@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
+import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.sexp.*;
 
 import java.lang.reflect.InvocationTargetException;
@@ -39,7 +40,17 @@ public class ClosureCompilerTest {
 
     Session session = new SessionBuilder().build();
     session.getTopLevelContext().evaluate(RParser.parseSource("g <- function(a, b) a * b\n"));
-    session.getTopLevelContext().evaluate(RParser.parseSource("f <- function(x) g(b=x,a=2)\n"));
+
+    ExpressionVector source = RParser.parseSource(Joiner.on('\n').join(
+        "f <- function(x) {",
+        "  if(x > 10) {",
+        "    g(b=x,a=2)",
+        "  } else {",
+        "    sqrt(x)",
+        "  }",
+        "}\n"), "test.R");
+
+    session.getTopLevelContext().evaluate(source);
     Closure closure = (Closure) session.getTopLevelContext().evaluate(Symbol.get("f"));
 
     ClosureCompiler compiler = new ClosureCompiler(session, closure);

@@ -116,6 +116,14 @@ public class RParser {
       throw new RuntimeException(e); // shouldn't happen when reading from a string
     }
   }
+
+  public static ExpressionVector parseSource(String source, String sourceFile) {
+    Environment environment = new Environment(AttributeMap.EMPTY);
+    environment.setVariableUnsafe("filename", StringVector.valueOf(sourceFile));
+    environment.setAttribute("class", new StringArrayVector("srcfilecopy", "srcfile"));
+
+    return parseSource(source, environment);
+  }
   
   public static ExpressionVector parseSource(String source, SEXP srcFile) {
     try {
@@ -124,11 +132,6 @@ public class RParser {
       throw new RuntimeException(e); // shouldn't happen when reading from a string.
     }
   }
-
-  public static ExpressionVector parseSource(String source, String srcFile) {
-     return parseSource(source, new CHARSEXP(srcFile));
-  }
-
 
   private ExpressionVector parseAll() throws IOException {
     List<SEXP> exprList = Lists.newArrayList();

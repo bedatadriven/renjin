@@ -20,8 +20,10 @@
 
 package org.renjin.sexp;
 
+import org.renjin.eval.ArgumentMatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.MatchedArguments;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -31,12 +33,13 @@ public class CompiledClosure extends Closure {
   private final String compiledClassName;
   private final String compiledMethodName;
   private MethodHandle methodHandle;
+  private ArgumentMatcher argumentMatcher;
 
   public CompiledClosure(Environment enclosingEnvironment, PairList formals, SEXP body,
                          AttributeMap attributes,
                          String compiledClassName,
                          String compiledMethodName) {
-    super(enclosingEnvironment, formals, Null.INSTANCE, attributes);
+    super(enclosingEnvironment, formals, body, attributes);
     this.compiledClassName = compiledClassName;
     this.compiledMethodName = compiledMethodName;
   }
@@ -44,9 +47,11 @@ public class CompiledClosure extends Closure {
 
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
-    if(args != Null.INSTANCE) {
-      throw new UnsupportedOperationException("TODO");
+
+    if(argumentMatcher == null) {
+      argumentMatcher = new ArgumentMatcher(getFormals());
     }
+
     if(methodHandle == null) {
       try {
         methodHandle = MethodHandles.publicLookup().findStatic(Class.forName(compiledClassName), compiledMethodName,
@@ -55,8 +60,20 @@ public class CompiledClosure extends Closure {
         throw new RuntimeException("Could not obtain method handle for " + compiledClassName + "." + compiledMethodName, e);
       }
     }
+
+    MatchedArguments matched = argumentMatcher.match(args);
+    SEXP[] arguments = new SEXP[matched.getFormalCount()];
+    for (int i = 0; i < matched.getFormalCount(); i++) {
+      int actualIndex = matched.getActualIndex(i);
+      if(actualIndex >= 0) {
+        SEXP actualValue = matched.getActualValue(actualIndex);
+        Promise promisedValue = new Promise(rho, actualValue);
+        arguments[i] = promisedValue;
+      }
+    }
+
     try {
-      return (SEXP)methodHandle.invokeExact(context, rho, new SEXP[0]);
+      return (SEXP)methodHandle.invokeExact(context, getEnclosingEnvironment(), arguments);
     } catch (RuntimeException e) {
       throw e;
     } catch (Throwable e) {

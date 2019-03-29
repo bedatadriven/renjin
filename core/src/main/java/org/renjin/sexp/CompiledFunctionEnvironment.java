@@ -27,13 +27,13 @@ public final class CompiledFunctionEnvironment extends Environment {
   private final SEXP[] frameArray;
 
   public static CompiledFunctionEnvironment init(Environment parent, SEXP[] arguments, SEXP variableNames) {
-    return new CompiledFunctionEnvironment(parent, (ListVector) variableNames, Arrays.copyOf(arguments, variableNames.length()));
+    return new CompiledFunctionEnvironment(parent, ((ListVector) variableNames).toArrayUnsafe(), arguments);
   }
 
-  public CompiledFunctionEnvironment(Environment parent, ListVector frameNames, SEXP[] frameArray) {
+  private CompiledFunctionEnvironment(Environment parent, SEXP[] variableNames, SEXP[] arguments) {
     super(AttributeMap.EMPTY);
-    this.frameArray = frameArray;
-    this.frame = new CompiledFrame(frameNames, frameArray);
+    this.frameArray = Arrays.copyOf(arguments, variableNames.length);
+    this.frame = new CompiledFrame(variableNames, arguments, frameArray);
     this.setParent(parent);
   }
 
@@ -48,6 +48,8 @@ public final class CompiledFunctionEnvironment extends Environment {
     }
     throw new UnsupportedOperationException("TODO");
   }
+
+
 
   public Promise promise(int index) {
     throw new UnsupportedOperationException("TODO");

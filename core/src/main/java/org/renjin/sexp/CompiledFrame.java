@@ -46,17 +46,19 @@ import java.util.Set;
  */
 public class CompiledFrame implements Frame {
 
-  private SEXP[] names;
-  private SEXP[] frame;
+  private final SEXP[] names;
+  private final SEXP[] arguments;
+  private final SEXP[] frame;
   private HashMap<Symbol, SEXP> overflow = null;
 
   /**
-   *
    * @param names a {@link ListVector} containing the names of the variables in this local frame
-   * @param locals
+   * @param arguments the original arguments array passed to the function.
+   * @param locals an array the same length as the names array used to store local variables.
    */
-  CompiledFrame(ListVector names, SEXP[] locals) {
-    this.names = names.toArrayUnsafe();
+  CompiledFrame(SEXP[] names, SEXP[] arguments, SEXP[] locals) {
+    this.names = names;
+    this.arguments = arguments;
     this.frame = locals;
   }
 
@@ -123,6 +125,12 @@ public class CompiledFrame implements Frame {
 
   @Override
   public boolean isMissingArgument(Symbol name) {
+    int argumentCount = arguments.length;
+    for (int i = 0; i < argumentCount; i++) {
+      if (names[i] == name && arguments[i] == null) {
+        return true;
+      }
+    }
     return false;
   }
 

@@ -66,6 +66,7 @@ public class LazyLoadFrameBuilder {
   
   public void build(Environment env) throws IOException {
 
+    outputDir.mkdirs();
 
     // Now write an index of symbols
     File indexFile = new File(outputDir, "environment");

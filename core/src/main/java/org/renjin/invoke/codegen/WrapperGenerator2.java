@@ -44,16 +44,21 @@ import java.util.List;
  */
 public class WrapperGenerator2 {
 
-  public static void main(String[] args) throws IOException {
-    
-    File baseDir = new File("");
 
-    WrapperGenerator2 generator = new WrapperGenerator2(baseDir);
-    
-    if(args.length > 0) {
-      generator.setSingleFunction(args[0]);
+  public static void main(String[] args) throws IOException {
+
+    WrapperGenerator2 generator;
+    if(args.length == 1) {
+      // Gradle
+      generator = new WrapperGenerator2(args[0]);
+      generator.generateSources();
+    } else {
+      // Maven
+      generator = new WrapperGenerator2();
+      generator.generateSources();
+      generator.compile();
     }
-    generator.generate();
+
     System.exit(generator.isSuccessful() ? 0 : 1);
   }
   
@@ -65,30 +70,25 @@ public class WrapperGenerator2 {
   
   private List<JavaFileObject> compilationUnits = new ArrayList<JavaFileObject>();
   
-  public WrapperGenerator2(File baseDir) {
-    sourcesDir = new File(baseDir.getAbsoluteFile() + File.separator + "target" + File.separator + "generated-sources" + File.separator +
-        "r-wrappers" + File.separator);
-    sourcesDir.mkdirs();
-
+  public WrapperGenerator2() {
+    File baseDir = new File("");
+    sourcesDir = new File(baseDir.getAbsoluteFile() + File.separator + "target" +
+        File.separator + "generated-sources" +
+        File.separator + "r-wrappers" + File.separator);
     outputDir = new File(baseDir.getAbsoluteFile() + File.separator + "target" + File.separator + "classes");
-
   }
 
-  public void setSingleFunction(String name) {
-    this.singleFunction = name;
-  }
-  
-  public void generate() throws IOException {
-    generateSources();
-    compile();
+  public WrapperGenerator2(String sourcesDir) {
+    this.sourcesDir = new File(sourcesDir);
   }
 
   public boolean isSuccessful() {
     return !encounteredError;
   }
   
-  private void generateSources()
-      throws IOException {
+  private void generateSources() throws IOException {
+
+    sourcesDir.mkdirs();
 
     int implementedCount = 0;
 

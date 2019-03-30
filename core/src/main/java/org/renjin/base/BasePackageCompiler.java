@@ -42,7 +42,14 @@ import java.util.Set;
 public class BasePackageCompiler {
 
   public static void main(String[] args) throws IOException {
- 
+
+    String outputDir;
+    if(args.length == 1) {
+      outputDir = args[0] + "/org/renjin/base";
+    } else {
+      outputDir = "target/classes/org/renjin/base";
+    }
+
     // Evaluate the base sources into the base namespace environment
 
     Session session = new SessionBuilder()
@@ -65,7 +72,7 @@ public class BasePackageCompiler {
         ".Device", ".Devices", ".Machine", ".Options", ".Platform");
 
     new LazyLoadFrameBuilder(context)
-        .outputTo(new File("target/classes/org/renjin/base"))
+        .outputTo(new File(outputDir))
         .excludeSymbols(omit)
         .filter(x -> !(x instanceof PrimitiveFunction))
         .build(baseNamespaceEnv);

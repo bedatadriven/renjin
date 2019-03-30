@@ -43,9 +43,18 @@ dependencies {
 
 sourceSets {
     wrappers {
+        compileClasspath = sourceSets.main.output + configurations.runtime
         java {
             srcDir "$buildDir/wrappers"
         }
+    }
+    base {
+        output.dir "$buildDir/base", builtBy: 'compileBasePackage'
+    }
+    test {
+        compileClasspath += sourceSets.wrappers.output
+        runtimeClasspath += sourceSets.wrappers.output
+        runtimeClasspath += sourceSets.base.output
     }
 }
 
@@ -54,12 +63,18 @@ task generateWrappers(type: JavaExec) {
 
     classpath sourceSets.main.runtimeClasspath
     main = 'org.renjin.invoke.codegen.WrapperGenerator2'
+    args "$buildDir/wrappers"
 }
+
 
 task compileBasePackage(type: JavaExec) {
     dependsOn 'compileJava'
+    dependsOn 'compileWrappersJava'
 
     classpath sourceSets.main.runtimeClasspath
-    main = 'org.renjin.base.BasePackageCompiler'
-}
+    classpath sourceSets.main.output
+    classpath sourceSets.wrappers.output
 
+    main = 'org.renjin.base.BasePackageCompiler'
+    args "$buildDir/base"
+}

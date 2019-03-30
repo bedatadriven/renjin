@@ -264,7 +264,7 @@ public abstract class Environment extends AbstractSEXP implements Recursive {
       return context.evaluate(new FunctionCall(fun, args.build()));
     }
 
-    if(locked && isBound(symbol)) {
+    if(locked && !isBound(symbol)) {
       throw new EvalException("cannot add bindings to a locked environment");
     }
 

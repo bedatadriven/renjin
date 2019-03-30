@@ -103,3 +103,15 @@ test.usemethod.then.sys.call.dollar <- function() {
     assertThat(object$b, equalTo(92))
 
 }
+
+test.usemethod.uses.first.arg <- function() {
+
+    f.default <- function(x, y) 42
+    f.foo <- function(x, y) 44
+
+    foo <- structure(33, class='foo')
+    f <- function(x, y) {  UseMethod("f") }
+
+    assertThat(f(2,foo), identicalTo(42))
+    assertThat(f(y=2,x=foo), identicalTo(44))
+}

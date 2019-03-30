@@ -1,0 +1,10 @@
+
+
+dependencies {
+    compile project(':tools:gcc-bridge:runtime')
+    compile libraries.guava
+    implementation libraries.asm
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.8.11.1'
+    implementation 'io.airlift:airline:0.4'
+}
+

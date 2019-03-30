@@ -1,0 +1,65 @@
+/*
+ * Renjin : JVM-based interpreter for the R language for the statistical analysis
+ * Copyright © 2010-${$file.lastModified.year} BeDataDriven Groep B.V. and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, a copy is available at
+ *  https://www.gnu.org/licenses/gpl-2.0.txt
+ *
+ */
+
+
+dependencies {
+
+    compile project(':math:appl')
+    compile project(':math:nmath')
+    compile project(':math:blas')
+    compile project(':math:lapack')
+
+    compile project(':tools:gcc-bridge:runtime')
+
+    compile 'org.apache.commons:commons-math:2.2'
+    compile 'com.github.fommil.netlib:core:1.1.2'
+    compile 'org.apache.commons:commons-vfs2:2.0'
+    compile 'org.apache.commons:commons-compress:1.18'
+    compile 'org.tukaani:xz:1.8'
+
+    compile libraries.asm
+    compile libraries.guava
+
+    compile 'com.sun.codemodel:codemodel:2.6'
+
+}
+
+sourceSets {
+    wrappers {
+        java {
+            srcDir "$buildDir/wrappers"
+        }
+    }
+}
+
+task generateWrappers(type: JavaExec) {
+    dependsOn 'compileJava'
+
+    classpath sourceSets.main.runtimeClasspath
+    main = 'org.renjin.invoke.codegen.WrapperGenerator2'
+}
+
+task compileBasePackage(type: JavaExec) {
+    dependsOn 'compileJava'
+
+    classpath sourceSets.main.runtimeClasspath
+    main = 'org.renjin.base.BasePackageCompiler'
+}
+

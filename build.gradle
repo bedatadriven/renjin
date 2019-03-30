@@ -1,0 +1,58 @@
+
+// Renjin Root project
+// The settings here are inherited by all subprojects
+
+
+// Declare the dependencies of the gradle build scripts
+// themselves.
+
+buildscript {
+  repositories {
+    maven { url "https://plugins.gradle.org/m2/" }
+    maven { url "https://nexus.bedatadriven.com/content/groups/public" }
+  }
+  dependencies {
+    //classpath "net.ltgt.gradle:gradle-apt-plugin:0.15"
+    classpath "gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.14.0"
+    classpath "org.owasp:dependency-check-gradle:4.0.2"
+  }
+}
+
+// For resolving actual project dependencies, use only our local maven repo and BeDataDriven's nexus repository,
+// which proxies maven central as well as other upstream repositories.
+
+allprojects {
+  repositories {
+    mavenLocal()
+    maven {
+      url "https://nexus.bedatadriven.com/content/groups/public"
+    }
+  }
+}
+
+//apply plugin: 'org.owasp.dependencycheck'
+//dependencyCheck {
+//  suppressionFile = rootProject.file("gradle/owasp-false-positives.xml")
+//  skipConfigurations = ['gwtSdk', 'devServer', 'closureCompiler']
+// failBuildOnCVSS = 1
+//}
+
+
+// Define common configuration properties and
+// apply cross-project processes.
+
+//apply from: "./gradle/buildNumber.gradle"
+apply from: "./gradle/libraries.gradle"
+//apply from: "./gradle/license.gradle"
+//apply from: './gradle/database.gradle'
+//apply from: "./gradle/environment.gradle"
+apply from: "./gradle/java.gradle"
+//apply from: "./gradle/sonar.gradle"
+
+// Defines the version based on our major version and the environment
+
+//ext.majorVersion = "4.0.1"
+//allprojects {
+//  project.version = "${majorVersion}.${buildNumber}"
+//}
+

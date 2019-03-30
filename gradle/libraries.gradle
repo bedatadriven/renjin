@@ -1,0 +1,24 @@
+
+// libraries.gradle
+
+// Define common versions of dependencies to use throughout the project, and
+// define conflict resolution rules.
+
+ext {
+
+    libraries = [
+
+        guava:              "org.renjin:renjin-guava:17.0b",
+        asm:                "org.renjin:renjin-asm:5.0.4b",
+        soot:               'org.renjin:renjin-soot:2.9.198',
+        slf4j: [
+            api:            'org.slf4j:slf4j-api:1.6.1',
+            impl:           'org.slf4j:slf4j-jdk14:1.6.1'
+        ],
+
+        junit:              'junit:junit:4.11',
+        hamcrest:           'org.hamcrest:hamcrest-library:1.3',
+        easymock:           'org.easymock:easymock:3.1'
+    ]
+}
+

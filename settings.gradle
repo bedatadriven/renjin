@@ -1,0 +1,11 @@
+rootProject.name = 'renjin'
+
+include 'tools:gcc-bridge:runtime'
+include 'tools:gcc-bridge:compiler'
+
+include 'math:nmath'
+include 'math:blas'
+include 'math:lapack'
+include 'math:appl'
+
+include 'core'

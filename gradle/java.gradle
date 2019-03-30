@@ -1,0 +1,24 @@
+
+// java.gradle
+
+// Applies common configuration to java projects
+
+subprojects {
+
+    apply plugin: 'java'
+ //   apply plugin: 'net.ltgt.apt'
+ //   apply plugin: 'net.ltgt.apt-idea'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+
+    dependencies {
+        compile libraries.slf4j.api
+        compile libraries.slf4j.impl
+
+        testCompile libraries.junit
+        testCompile libraries.hamcrest
+        testCompile libraries.easymock
+    }
+}

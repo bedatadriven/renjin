@@ -6,6 +6,8 @@
 **/.project
 target
 **/target
+**/build
+.gradle
 .settings
 **/*~
 **/*.iml

@@ -1,0 +1,14 @@
+
+apply from: '../compile.gradle'
+
+compile {
+    environment 'PACKAGE', 'org.renjin.nmath'
+    environment 'CFLAGS', '-std=gnu99 -DMATHLIB_STANDALONE -I .'
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from('src/main/c') {
+        into 'org/renjin/nmath'
+    }
+}

@@ -241,7 +241,7 @@ public class Wrapper {
     Environment parent = (Environment) wrap(engine.rniParentEnv(sexp));
     FrameWrapper frame = new FrameWrapper(engine, sexp);
     frame.setWrapper(this);
-    Environment env = Environment.createChildEnvironment(parent, frame).build();
+    Environment env = Environment.createChildEnvironment(parent, frame);
     env.setAttributes(wrapAttributes(sexp));
     return env;
   }

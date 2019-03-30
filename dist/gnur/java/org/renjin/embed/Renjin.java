@@ -101,10 +101,10 @@ public class Renjin {
         // Create the read-only "host" environment, which will be used to look up symbols
         long hostEnvPtr = (Long)environment.getHandle();
         Environment hostEnv = Environment.createChildEnvironment(session.getGlobalEnvironment(),
-            new HostFrame(rengine, wrapper, hostEnvPtr)).build();
+            new HostFrame(rengine, wrapper, hostEnvPtr));
 
         // Now create the evaluation environment
-        Environment evalEnvironment = Environment.createChildEnvironment(hostEnv).build();
+        Environment evalEnvironment = Environment.createChildEnvironment(hostEnv);
 
         SEXP result = session.getTopLevelContext().evaluate(exp, evalEnvironment);
 

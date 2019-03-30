@@ -8999,9 +8999,11 @@ public class MicroTest extends AbstractMicroTest {
   public void grepNAtest() {
     assertIdentical("x <- grep(c(\"a\",\"b\"), pattern=NA); x", "c(NA_character_,NA_character_)");
   }
+
   @Test
   public void microSTRSPLIT0() {
-    assertIdentical("{ a <- strsplit(NA, \"d\"); a[[1]] }", "NULL");
+    // GNU R throws an error....
+    assertIdentical("{ a <- strsplit(NA, \"d\"); a[[1]] }", "c()");
   }
   @Test
   public void microSTRSPLIT1() {

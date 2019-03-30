@@ -25,7 +25,6 @@ as.vector.foo <- function(...) 99
 Math.bar <- function(...) 44
 Summary.bar <- function(...) 45
 Ops.bar <- function(...) 46
-test.sort.1 <- function() assertThat(sort(NULL), identicalTo(NULL))
 test.sort.2 <- function() assertThat(sort(logical(0)), identicalTo(logical(0)))
 test.sort.3 <- function() assertThat(sort(c(TRUE, TRUE, FALSE, FALSE, TRUE)), identicalTo(c(FALSE, FALSE, TRUE, TRUE, TRUE)))
 test.sort.4 <- function() assertThat(sort(structure(c(TRUE, FALSE), .Names = c("a", ""))), identicalTo(structure(c(FALSE, TRUE), .Names = c("", "a"))))

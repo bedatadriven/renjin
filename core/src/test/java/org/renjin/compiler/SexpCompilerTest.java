@@ -1,6 +1,6 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2018 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.compiler.builtins.ArgumentBounds;
@@ -40,6 +41,7 @@ import java.util.Arrays;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+@Ignore
 public class SexpCompilerTest extends EvalTestCase {
 
   @Test

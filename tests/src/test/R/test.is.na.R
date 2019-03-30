@@ -25,7 +25,6 @@ as.vector.foo <- function(...) 99
 Math.bar <- function(...) 44
 Summary.bar <- function(...) 45
 Ops.bar <- function(...) 46
-test.is.na.1 <- function() assertThat(is.na(NULL), identicalTo(logical(0)))
 test.is.na.2 <- function() assertThat(is.na(logical(0)), identicalTo(logical(0)))
 test.is.na.3 <- function() assertThat(is.na(c(TRUE, TRUE, FALSE, FALSE, TRUE)), identicalTo(c(FALSE, FALSE, FALSE, FALSE, FALSE)))
 test.is.na.4 <- function() assertThat(is.na(structure(c(TRUE, FALSE), .Names = c("a", ""))), identicalTo(structure(c(FALSE, FALSE), .Names = c("a", ""))))

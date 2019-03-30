@@ -21,7 +21,7 @@ package org.renjin.base;
 import org.renjin.eval.Context;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
-import org.renjin.packaging.LazyLoadFrameBuilder3;
+import org.renjin.packaging.LazyLoadFrameBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -64,7 +64,7 @@ public class BasePackageCompiler {
         ".Last.value", ".AutoloadEnv", ".BaseNamespaceEnv", 
         ".Device", ".Devices", ".Machine", ".Options", ".Platform");
 
-    new LazyLoadFrameBuilder3(context)
+    new LazyLoadFrameBuilder(context)
         .outputTo(new File("target/classes/org/renjin/base"))
         .excludeSymbols(omit)
         .filter(x -> !(x instanceof PrimitiveFunction))

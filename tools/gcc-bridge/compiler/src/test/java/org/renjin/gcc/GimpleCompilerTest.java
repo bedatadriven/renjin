@@ -732,8 +732,8 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void linking() throws Exception {
     compile(Arrays.asList("link1.c", "link2.c"));
 
-    Class<?> link1 = Class.forName("org.renjin.gcc.link1");
-    Class<?> link2 = Class.forName("org.renjin.gcc.link2");
+    Class<?> link1 = testClassLoader.loadClass("org.renjin.gcc.link1");
+    Class<?> link2 = testClassLoader.loadClass("org.renjin.gcc.link2");
 
     Integer test1 = (Integer) link1.getMethod("test").invoke(null);
     assertThat(test1, equalTo(3));

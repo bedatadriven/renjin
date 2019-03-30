@@ -31,51 +31,72 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public abstract class AbstractGccTest {
 
+  protected File outputDir;
+  protected URLClassLoader testClassLoader;
+  private Gcc gcc;
+
   @Before
-  public void turnOnTracing() {
+  public void setUp() throws IOException {
     GimpleCompiler.TRACE = true;
+
+    File workingDir = Files.createTempDir();
+
+    gcc = new Gcc(workingDir);
+    gcc.addIncludeDirectory(new File("/usr/local/include/csmith-2.3.0"));
+
+    if(Strings.isNullOrEmpty(System.getProperty("gcc.bridge.plugin"))) {
+      gcc.extractPlugin();
+    } else {
+      gcc.setPluginLibrary(new File(System.getProperty("gcc.bridge.plugin")));
+    }
+    gcc.setDebug(true);
+    gcc.setGimpleOutputDir(workingDir);
+
+    outputDir = Files.createTempDir();
+    testClassLoader = new URLClassLoader(new URL[] { outputDir.toURI().toURL() }, getClass().getClassLoader());
   }
   
   public static final String PACKAGE_NAME = "org.renjin.gcc";
 
-  protected Integer call(Class clazz, String methodName, double x) throws Exception {
+  protected Integer call(Class<?> clazz, String methodName, double x) throws Exception {
     Method method = clazz.getMethod(methodName, double.class);
     return (Integer) method.invoke(null, x);
   }
 
-  protected Long call(Class clazz, String methodName, long x) throws Exception {
+  protected Long call(Class<?> clazz, String methodName, long x) throws Exception {
     Method method = clazz.getMethod(methodName, long.class);
     return (Long) method.invoke(null, x);
   }
 
-  protected Integer call(Class clazz, String methodName, byte x, byte y) throws Exception {
+  protected Integer call(Class<?> clazz, String methodName, byte x, byte y) throws Exception {
     Method method = clazz.getMethod(methodName, byte.class, byte.class);
     return (Integer) method.invoke(null, x, y);
   }
 
-  protected int call(Class clazz, String methodName, double x, double y) throws Exception {
+  protected int call(Class<?> clazz, String methodName, double x, double y) throws Exception {
     Method method = clazz.getMethod(methodName, double.class, double.class);
     return (Integer) method.invoke(null, x, y);
   }
 
-  protected int call(Class clazz, String methodName, float x, float y) throws Exception {
+  protected int call(Class<?> clazz, String methodName, float x, float y) throws Exception {
     Method method = clazz.getMethod(methodName, float.class, float.class);
     return (Integer) method.invoke(null, x, y);
   }
 
 
-  protected int call(Class clazz, String methodName, int x, int y) throws Exception {
+  protected int call(Class<?> clazz, String methodName, int x, int y) throws Exception {
     Method method = clazz.getMethod(methodName, int.class, int.class);
     return (Integer) method.invoke(null, x, y);
   }
 
-  protected int call(Class clazz, String methodName, int x) throws Exception {
+  protected int call(Class<?> clazz, String methodName, int x) throws Exception {
     Method method = clazz.getMethod(methodName, int.class);
     return (Integer) method.invoke(null, x);
   }
@@ -99,7 +120,7 @@ public abstract class AbstractGccTest {
     
     String className = Files.getNameWithoutExtension(source);
     
-    return Class.forName(PACKAGE_NAME + "." + className);
+    return testClassLoader.loadClass(PACKAGE_NAME + "." + className);
   }
   
   protected final Class<?> compileAndTest(String source) throws Exception {
@@ -139,19 +160,6 @@ public abstract class AbstractGccTest {
   }
 
   public List<GimpleCompilationUnit> compileToGimple(List<String> sources) throws IOException {
-    File workingDir = new File("target/gcc-work");
-    workingDir.mkdirs();
-
-    Gcc gcc = new Gcc(workingDir);
-    gcc.addIncludeDirectory(new File("/usr/local/include/csmith-2.3.0"));
-
-    if(Strings.isNullOrEmpty(System.getProperty("gcc.bridge.plugin"))) {
-      gcc.extractPlugin();
-    } else {
-      gcc.setPluginLibrary(new File(System.getProperty("gcc.bridge.plugin")));
-    }
-    gcc.setDebug(true);
-    gcc.setGimpleOutputDir(new File("target/gimple"));
 
     List<GimpleCompilationUnit> units = Lists.newArrayList();
 
@@ -170,18 +178,8 @@ public abstract class AbstractGccTest {
 
   protected void compileGimple(List<GimpleCompilationUnit> units) throws Exception {
 
-    File outputDir = new File("target/test-classes");
-
-    // Ensure we have the correct output directory
-    File expectedClassFile = new File(outputDir.getAbsolutePath() + "/" +
-          getClass().getName().replace('.', '/') + ".class");
-    if(!expectedClassFile.exists()) {
-      throw new RuntimeException("Expected working directory to be $renjin/tools/gcc-bridge/compiler, but was: " +
-        new File(".").getAbsolutePath());
-    }
-
     GimpleCompiler compiler = new GimpleCompiler();
-    compiler.setOutputDirectory(outputDir);          
+    compiler.setOutputDirectory(outputDir);
     compiler.setLoggingDirectory(new File("target/gcc-bridge-logs"));
     compiler.setRecordClassPrefix(units.get(0).getName());
     compiler.setPackageName(PACKAGE_NAME);
@@ -191,4 +189,5 @@ public abstract class AbstractGccTest {
     compiler.addMathLibrary();
     compiler.compile(units);
   }
+
 }

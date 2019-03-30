@@ -19,19 +19,20 @@
 package org.renjin.gcc.cpp;
 
 import org.junit.Test;
+import org.renjin.gcc.AbstractGccTest;
 
 import java.lang.reflect.Method;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
-public class CppClassTest extends AbstractGccCppTest {
+public class CppClassTest extends AbstractGccTest {
 
   @Test
   public void createClass() throws Exception {
-    compile("cppclass.cpp");
+    compile("cpp/cppclass.cpp");
 
-    Class<?> clazz = Class.forName("org.renjin.gcc.cppclass");
+    Class<?> clazz = testClassLoader.loadClass("org.renjin.gcc.cppclass");
     Method method = clazz.getMethod("create");
 
     Object rect = method.invoke(null);
@@ -40,7 +41,7 @@ public class CppClassTest extends AbstractGccCppTest {
 
   @Test
   public void constructors() throws Exception {
-    Class<?> clazz = compile("constructors.cpp");
+    Class<?> clazz = compile("cpp/constructors.cpp");
 
     Method method = clazz.getMethod("run");
     Integer retval = (Integer) method.invoke(null);
@@ -49,7 +50,7 @@ public class CppClassTest extends AbstractGccCppTest {
 
   @Test
   public void destructors() throws Exception {
-    Class<?> clazz = compile("destructors.cpp");
+    Class<?> clazz = compile("cpp/destructors.cpp");
 
     Method method = clazz.getMethod("run");
     Integer retval = (Integer) method.invoke(null);

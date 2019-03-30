@@ -76,11 +76,13 @@ public class LazyLoadFrameBuilder {
 
       // Filter the symbols to include
       List<Symbol> symbols = new ArrayList<>();
-      for (Symbol symbol : env.getFrame().getSymbols()) {
+      for (Symbol symbol : env.getSymbolNames()) {
         if(!excludedSymbols.contains(symbol.getPrintName())) {
-          SEXP value = env.getFrame().getVariable(symbol);
-          if(filter.test(value)) {
-            symbols.add(symbol);
+          if(!env.isActiveBinding(symbol)) {
+            SEXP value = env.getVariableOrThrowIfActivelyBound(symbol);
+            if (filter.test(value)) {
+              symbols.add(symbol);
+            }
           }
         }
       }
@@ -90,7 +92,7 @@ public class LazyLoadFrameBuilder {
       indexOut.writeInt(symbols.size());
 
       for (Symbol symbol : symbols) {
-        SEXP variable = env.getFrame().getVariable(symbol);
+        SEXP variable = env.getVariableOrThrowIfActivelyBound(symbol);
 
         indexOut.writeUTF(symbol.getPrintName());
         byte[] bytes = serializeSymbol(variable);

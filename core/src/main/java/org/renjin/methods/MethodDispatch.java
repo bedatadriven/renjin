@@ -18,7 +18,6 @@
  */
 package org.renjin.methods;
 
-import org.renjin.eval.Calls;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.SessionScoped;
@@ -377,7 +376,7 @@ public class MethodDispatch {
 
     /* create a new environment frame enclosed by the lexical
        environment of the method */
-    Environment.Builder newrho = Environment.createChildEnvironment(op.getEnclosingEnvironment());
+    Environment newrho = Environment.createChildEnvironment(op.getEnclosingEnvironment());
     
     /* copy the bindings for the formal environment from the top frame
        of the internal environment of the generic call to the new
@@ -457,14 +456,15 @@ public class MethodDispatch {
        execute the method, and return the result */
     FunctionCall call = cptr.getCall();
     PairList arglist = cptr.getArguments();
-    SEXP val = R_execClosure(context, call, op, arglist, callerenv, newrho.build());
+    SEXP val = R_execClosure(context, call, op, arglist, callerenv, newrho);
     return val;
   }
 
 
   private static SEXP R_execClosure(Context context, FunctionCall call, Closure op, PairList arglist,
                                     Environment callerenv, Environment newrho) {
-    return Calls.applyClosure(op, context, callerenv, call, arglist,  newrho.getFrame());
+//    return Calls.applyClosure(op, context, callerenv, call, arglist,  newrho);
+    throw new UnsupportedOperationException("TODO");
   }
 
 

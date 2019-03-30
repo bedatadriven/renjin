@@ -63,7 +63,7 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
   
   @Override
   public Bindings createBindings() {
-    return new RenjinBindings(new HashFrame());
+    return new RenjinBindings(new DynamicEnvironment(Environment.EMPTY));
   }
   
   @Override
@@ -75,7 +75,7 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
   public Bindings getBindings(int scope) {
     switch(scope) {
       case ScriptContext.ENGINE_SCOPE:
-        return new RenjinBindings(topLevelContext.getEnvironment().getFrame());
+        return new RenjinBindings(topLevelContext.getEnvironment());
 
       default:
       case ScriptContext.GLOBAL_SCOPE:

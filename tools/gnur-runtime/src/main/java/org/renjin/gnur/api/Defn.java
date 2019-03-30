@@ -703,7 +703,7 @@ public final class Defn {
   @Allocator
   public static SEXP Rf_NewEnvironment(SEXP namelist, SEXP valuelist, SEXP parentEnv) {
 
-    Environment.Builder newEnv = new Environment.Builder(((Environment) parentEnv), new HashFrame());
+    Environment newEnv = new DynamicEnvironment(null, ((Environment) parentEnv), new HashFrame());
 
     Iterator<PairList.Node> valueIt = ((PairList) valuelist).nodes().iterator();
     Iterator<PairList.Node> nameIt = ((PairList) namelist).nodes().iterator();
@@ -719,7 +719,7 @@ public final class Defn {
       }
     }
 
-    return newEnv.build();
+    return newEnv;
   }
 
   public static void Rf_onintr() {

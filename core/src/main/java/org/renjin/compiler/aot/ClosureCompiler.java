@@ -7,17 +7,15 @@
  *  the Free Software Foundation; either version 2 of the License, or
  *  (at your option) any later version.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, a copy is available at
- *  https://www.gnu.org/licenses/gpl-2.0.txt
- *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, a copy is available at
+ * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-
 package org.renjin.compiler.aot;
 
 import org.renjin.compiler.ir.tac.IRBody;
@@ -85,14 +83,18 @@ public class ClosureCompiler {
   }
 
   private void writePrelude(ClosureEmitContext emitContext, InstructionAdapter mv) {
+
+    // Invoke FunctionEnvironment::compiledInit(Environment parent, SEXP variableNames, SEXP[] arguments)
+
     mv.visitVarInsn(Opcodes.ALOAD, ClosureEmitContext.ENVIRONMENT_VAR_INDEX);
-    mv.visitVarInsn(Opcodes.ALOAD, ClosureEmitContext.ARG_ARRAY_VAR_INDEX);
     emitContext.constantSexp(emitContext.getFrameVariableNames()).loadSexp(emitContext, mv);
-    mv.invokestatic(Type.getInternalName(CompiledFunctionEnvironment.class), "init",
-        Type.getMethodDescriptor(Type.getType(CompiledFunctionEnvironment.class),
+    mv.visitVarInsn(Opcodes.ALOAD, ClosureEmitContext.ARG_ARRAY_VAR_INDEX);
+
+    mv.invokestatic(Type.getInternalName(FunctionEnvironment.class), "compiledInit",
+        Type.getMethodDescriptor(Type.getType(FunctionEnvironment.class),
             Type.getType(Environment.class),
-            Type.getType(SEXP[].class),
-            Type.getType(SEXP.class)), false);
+            Type.getType(SEXP.class),
+            Type.getType(SEXP[].class)), false);
 
     mv.visitVarInsn(Opcodes.ASTORE, ClosureEmitContext.ENVIRONMENT_VAR_INDEX);
   }

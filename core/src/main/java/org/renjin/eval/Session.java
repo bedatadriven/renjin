@@ -21,6 +21,7 @@ package org.renjin.eval;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
+import org.renjin.base.BaseFrame;
 import org.renjin.pipeliner.VectorPipeliner;
 import org.renjin.primitives.Warning;
 import org.renjin.primitives.io.connections.ConnectionTable;
@@ -134,18 +135,22 @@ public class Session {
    */
   Context conditionStack = null;
 
+  final BaseFrame baseFrame;
+
   Session(FileSystemManager fileSystemManager,
           ClassLoader classLoader,
           PackageLoader packageLoader,
-          ExecutorService executorService, Frame globalFrame) {
+          ExecutorService executorService,
+          Frame globalFrame) {
     this.fileSystemManager = fileSystemManager;
     this.classLoader = classLoader;
     this.homeDirectory = FileSystemUtils.homeDirectoryInCoreJar(fileSystemManager);
     this.workingDirectory = FileSystemUtils.workingDirectory(fileSystemManager);
     this.systemEnvironment = Maps.newHashMap(System.getenv()); //load system environment variables
-    this.baseEnvironment = Environment.createBaseEnvironment(this);
-    this.globalEnvironment = Environment.createGlobalEnvironment(baseEnvironment, globalFrame);
-    this.baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment, baseEnvironment).build();
+    this.baseFrame = new BaseFrame(this);
+    this.baseEnvironment = new DynamicEnvironment(Environment.BASE_ENVIRONMENT, Environment.EMPTY, baseFrame);
+    this.globalEnvironment = new DynamicEnvironment(Environment.GLOBAL_ENVIRONMENT_NAME, baseEnvironment, globalFrame);
+    this.baseNamespaceEnv = new DynamicEnvironment(Environment.BASE_NAMESPACE_ENVIRONMENT, globalEnvironment, baseFrame);
     this.topLevelContext = new Context(this);
     this.baseNamespaceEnv.setVariableUnsafe(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
 

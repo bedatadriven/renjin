@@ -116,7 +116,11 @@ public class Promise extends AbstractSEXP implements Recursive {
 
   @Override
   public String toString() {
-    return "{" + expression + "=>" + result + "}";
+    if(result == null) {
+      return "Unevaluated{" + expression + "}";
+    } else {
+      return "Evaluated{" + result + "}";
+    }
   }
 
   public static Promise repromise(SEXP value) {

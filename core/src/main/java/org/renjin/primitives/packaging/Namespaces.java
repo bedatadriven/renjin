@@ -63,7 +63,7 @@ public class Namespaces {
   
   @Internal
   public static Environment getNamespaceRegistry(@Current NamespaceRegistry registry) {
-    return Environment.createChildEnvironment(Environment.EMPTY, new NamespaceFrame(registry)).build();
+    return Environment.createChildEnvironment(Environment.EMPTY, new NamespaceFrame(registry));
   }
 
   @Builtin
@@ -213,7 +213,7 @@ public class Namespaces {
    * @param genericName 	character string giving the generic function name.
    * @param className 	character string giving the generic function name.
    * @param methodSexp 	character string giving the method name or a function to be registered. If this is NA or a function, the method name is constructed from genname and class
-   * @param envir the environment where the S3 method should be registered
+   * @param environment the environment where the S3 method should be registered
    */
   @Internal
   public static void registerS3method(@Current Context context, String genericName, String className, SEXP methodSexp, Environment environment) {
@@ -280,7 +280,7 @@ public class Namespaces {
    */
   public static void registerS3Method(Context context, String genericName, String className, Function method, Environment definitionEnv) {
     if (!definitionEnv.hasVariable(S3.METHODS_TABLE)) {
-      definitionEnv.setVariableUnsafe(S3.METHODS_TABLE, Environment.createChildEnvironment(context.getBaseEnvironment()).build());
+      definitionEnv.setVariableUnsafe(S3.METHODS_TABLE, Environment.createChildEnvironment(context.getBaseEnvironment()));
     }
     Environment methodsTable = (Environment) definitionEnv.getVariableUnsafe(S3.METHODS_TABLE);
     methodsTable.setVariableUnsafe(genericName + "." + className, method);

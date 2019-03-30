@@ -86,7 +86,7 @@ public class RDataWriterTest extends EvalTestCase {
   @Test
   public void sharedEnvironmentBetweenClosures() throws IOException {
         
-    Environment child = Environment.createChildEnvironment(topLevelContext.getGlobalEnvironment()).build();
+    Environment child = Environment.createChildEnvironment(topLevelContext.getGlobalEnvironment());
         
     Closure f = new Closure(child, 
           PairList.Node.singleton("x", Symbol.MISSING_ARG),

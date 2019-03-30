@@ -67,7 +67,7 @@ public class CompiledClosure extends Closure {
       int actualIndex = matched.getActualIndex(i);
       if(actualIndex >= 0) {
         SEXP actualValue = matched.getActualValue(actualIndex);
-        Promise promisedValue = new Promise(rho, actualValue);
+        Promise promisedValue = Promise.repromise(rho, actualValue);
         arguments[i] = promisedValue;
       }
     }

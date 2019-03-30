@@ -120,11 +120,7 @@ public final class Environments {
 
   @Builtin("as.environment")
   public static Environment asEnvironment(ListVector list) {
-    Environment.Builder env = Environment.createChildEnvironment(Environment.EMPTY);
-    for(NamedValue namedValue : list.namedValues()) {
-      env.setVariable(Symbol.get(namedValue.getName()), namedValue.getValue());
-    }
-    return env.build();
+    return new DynamicEnvironment(Environment.EMPTY, list.namedValues());
   }
 
   @Builtin("as.environment")
@@ -262,7 +258,7 @@ public final class Environments {
 
   @Internal("new.env")
   public static Environment newEnv(boolean hash, Environment parent, int size) {
-    return Environment.createChildEnvironment(parent).build();
+    return Environment.createChildEnvironment(parent);
   }
 
   @Builtin
@@ -387,7 +383,7 @@ public final class Environments {
       child = child.getParent();
     }
 
-    Environment newEnv = Environment.createChildEnvironment(child.getParent()).build();
+    Environment newEnv = Environment.createChildEnvironment(child.getParent());
     child.setParent(newEnv);
 
     newEnv.setAttribute(Symbols.NAME.getPrintName(), StringVector.valueOf(name));

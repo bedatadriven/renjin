@@ -33,7 +33,7 @@ public class Calls {
                                   Frame suppliedEnvironment) {
 
     Context functionContext = context.beginFunction(callingEnvironment, call, closure, promisedArgs);
-    Environment functionEnvironment = functionContext.getEnvironment();
+    FunctionEnvironment functionEnvironment = (FunctionEnvironment) functionContext.getEnvironment();
 
     try {
       ClosureDispatcher.matchArgumentsInto(closure.getFormals(), promisedArgs, functionEnvironment);

@@ -65,7 +65,7 @@ public class ClosureDispatcher {
                      FunctionCall call, Closure closure, PairList promisedArgs, Map<Symbol, SEXP> metadata) {
 
     Context functionContext = callingContext.beginFunction(callingEnvironment, call, closure, promisedArgs);
-    Environment functionEnvironment = functionContext.getEnvironment();
+    FunctionEnvironment functionEnvironment = (FunctionEnvironment)functionContext.getEnvironment();
 
     try {
       matchArgumentsInto(closure.getFormals(), promisedArgs, functionEnvironment);
@@ -123,7 +123,7 @@ public class ClosureDispatcher {
    * @param actuals the actual arguments provided to the function call, promised in the {@code callingEnvironment}
    * @param functionEnv the environment of the function call.
    */
-  public static void matchArgumentsInto(PairList formals, PairList actuals, Environment functionEnv) {
+  public static void matchArgumentsInto(PairList formals, PairList actuals, FunctionEnvironment functionEnv) {
 
     ArgumentMatcher matcher = new ArgumentMatcher(formals);
     MatchedArguments matching = matcher.match(actuals);

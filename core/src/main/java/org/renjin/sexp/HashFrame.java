@@ -35,7 +35,16 @@ public class HashFrame implements Frame{
    * been (potentially) set into this frame. 
    */
   private int functionFilter = 0;
-  
+
+  public HashFrame() {
+  }
+
+  public HashFrame(Iterable<NamedValue> namedValues) {
+    for (NamedValue namedValue : namedValues) {
+      values.put(Symbol.get(namedValue.getName()), namedValue.getValue());
+    }
+  }
+
   @Override
   public Set<Symbol> getSymbols() {
     return values.keySet();

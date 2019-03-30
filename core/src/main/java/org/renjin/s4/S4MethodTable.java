@@ -22,7 +22,10 @@ import org.renjin.eval.ArgumentMatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.packaging.Namespace;
-import org.renjin.sexp.*;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,14 +56,14 @@ public class S4MethodTable {
   private void initializeS4Method(Context context, Generic generic) {
     this.generic = generic;
 
-    List<Frame> namespaceFrames = new ArrayList<>();
-    namespaceFrames.add(context.getGlobalEnvironment().getFrame());
+    List<Environment> namespaceFrames = new ArrayList<>();
+    namespaceFrames.add(context.getGlobalEnvironment());
 
     for (Namespace namespace : context.getNamespaceRegistry().getLoadedNamespaces()) {
-      namespaceFrames.add(namespace.getNamespaceEnvironment().getFrame());
+      namespaceFrames.add(namespace.getNamespaceEnvironment());
     }
 
-    for (Frame frame : namespaceFrames) {
+    for (Environment frame : namespaceFrames) {
       addMethods(context, frame, generic.getGenericMethodTableName(), Method.SPECIFICITY_GENERIC);
 
       if(generic.isOps()) {
@@ -105,7 +108,7 @@ public class S4MethodTable {
    *
    * </pre>
    */
-  private void addMethods(Context context, Frame namespaceFrame, Symbol methodTableName, int groupLevel) {
+  private void addMethods(Context context, Environment namespaceFrame, Symbol methodTableName, int groupLevel) {
 
 
     // S4 methods for each generic function is stored in method table of type environment. methods for each
@@ -120,7 +123,7 @@ public class S4MethodTable {
     // lengths the return of computeSignatureLength is an integer array with the length of signature for
     // each found method table.
 
-    SEXP tableValue = namespaceFrame.getVariable(methodTableName);
+    SEXP tableValue = namespaceFrame.getVariableOrThrowIfActivelyBound(methodTableName);
     if(tableValue == Symbol.UNBOUND_VALUE) {
       return;
     }

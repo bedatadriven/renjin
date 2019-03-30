@@ -514,7 +514,7 @@ public class RDataReader implements AutoCloseable {
 
   private SEXP readEnv(int flags) throws IOException {
 
-    Environment env = Environment.createChildEnvironment(Environment.EMPTY).build();
+    Environment env = Environment.createChildEnvironment(Environment.EMPTY);
     addReadRef(env);
 
     boolean locked = (in.readInt() == 1);

@@ -20,7 +20,7 @@ package org.renjin.s4;
 
 import org.renjin.eval.Context;
 import org.renjin.primitives.packaging.Namespace;
-import org.renjin.sexp.Frame;
+import org.renjin.sexp.Environment;
 import org.renjin.sexp.S4Object;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
@@ -41,14 +41,14 @@ public class S4ClassCache {
 
     classTable = new HashMap<>();
 
-    List<Frame> loaded = new ArrayList<>();
-    loaded.add(context.getGlobalEnvironment().getFrame());
+    List<Environment> loaded = new ArrayList<>();
+    loaded.add(context.getGlobalEnvironment());
     for(Namespace namespace : context.getNamespaceRegistry().getLoadedNamespaces()) {
-      loaded.add(namespace.getNamespaceEnvironment().getFrame());
+      loaded.add(namespace.getNamespaceEnvironment());
     }
 
-    for(Frame frame : loaded) {
-      for(Symbol symbol : frame.getSymbols()) {
+    for(Environment frame : loaded) {
+      for(Symbol symbol : frame.getSymbolNames()) {
         if(symbol.getPrintName().startsWith(S4.CLASS_PREFIX)) {
           String className = symbol.getPrintName().substring(S4.CLASS_PREFIX.length());
           S4Object classRepresentation = (S4Object) frame.getVariable(symbol).force(context);

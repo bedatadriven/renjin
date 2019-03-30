@@ -204,10 +204,11 @@ public class NamespaceRegistry {
     // looks like this:
     // BASE-NS -> IMPORTS -> ENVIRONMENT
 
-    Environment imports = Environment.createNamedEnvironment(getBaseNamespaceEnv(),
-        "imports:" + pkg.getName().toString('.')).build();
+    Environment imports = Environment.createNamedEnvironment(
+        getBaseNamespaceEnv(),
+        "imports:" + pkg.getName().toString('.'));
 
-    Environment namespaceEnv = Environment.createNamespaceEnvironment(imports, pkg.getName().getPackageName()).build();
+    Environment namespaceEnv = Environment.createNamespaceEnvironment(imports, pkg.getName().getPackageName());
     Namespace namespace = new Namespace(pkg, namespaceEnv);
     localNameMap.put(pkg.getName().getPackageSymbol(), namespace);
     namespaceMap.put(pkg.getName(), namespace);

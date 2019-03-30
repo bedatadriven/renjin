@@ -40,6 +40,7 @@ import java.io.InputStreamReader;
 import static org.junit.Assert.assertThat;
 
 
+@Ignore
 public class IRBodyBuilderTest extends EvalTestCase {
 
   private Session session;

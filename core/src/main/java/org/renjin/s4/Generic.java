@@ -91,13 +91,13 @@ public class Generic {
 
   public static Closure findGenericFunction(Context context, String fname, String packageName) {
     Closure genericFunction = null;
-    Frame packageFrame;
+    Environment packageFrame;
     if(".GlobalEnv".equals(packageName)) {
-      packageFrame = context.getGlobalEnvironment().getFrame();
+      packageFrame = context.getGlobalEnvironment();
     } else {
-      packageFrame = context.getNamespaceRegistry().getNamespace(context, packageName).getNamespaceEnvironment().getFrame();
+      packageFrame = context.getNamespaceRegistry().getNamespace(context, packageName).getNamespaceEnvironment();
     }
-    SEXP foundFunction = packageFrame.getVariable(Symbol.get(fname)).force(context);
+    SEXP foundFunction = packageFrame.getVariable(context, Symbol.get(fname)).force(context);
     if(foundFunction instanceof Closure) {
       SEXP funClass = foundFunction.getAttribute(Symbols.CLASS);
       if(funClass instanceof StringArrayVector) {

@@ -21,7 +21,6 @@ package org.renjin.eval;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
-import org.renjin.base.BaseFrame;
 import org.renjin.invoke.annotations.CompilerSpecialization;
 import org.renjin.pipeliner.VectorPipeliner;
 import org.renjin.primitives.Primitives;
@@ -135,6 +134,20 @@ public class Context {
     this.function = Null.INSTANCE;
   }
 
+  public Context beginFunction(Environment callingEnvironment, FunctionEnvironment callEnvironment, FunctionCall call, Closure closure, PairList arguments) {
+    Context context = new Context();
+    context.type = Type.FUNCTION;
+    context.parent = this;
+    context.evaluationDepth = evaluationDepth+1;
+    context.function = closure;
+    context.environment = callEnvironment;
+    context.session = session;
+    context.arguments = arguments;
+    context.call = call;
+    context.callingEnvironment = callingEnvironment;
+    return context;
+  }
+
   public Context beginFunction(Environment rho, FunctionCall call, Closure closure, PairList arguments) {
     assert rho != null : "callingEnvironment cannot be null.";
     Context context = new Context();
@@ -142,7 +155,7 @@ public class Context {
     context.parent = this;
     context.evaluationDepth = evaluationDepth+1;
     context.function = closure;
-    context.environment = Environment.createChildEnvironment(closure.getEnclosingEnvironment()).build();
+    context.environment = new FunctionEnvironment(closure.getEnclosingEnvironment(), closure.getFormals());
     context.session = session;
     context.arguments = arguments;
     context.call = call;
@@ -631,9 +644,6 @@ public class Context {
    *
    */
   public void init() throws IOException {
-    BaseFrame baseFrame = (BaseFrame) session.getBaseEnvironment().getFrame();
-    baseFrame.load(this);
-    
     evaluate(FunctionCall.newCall(Symbol.get(".onLoad")), session.getBaseNamespaceEnv());
   }
 

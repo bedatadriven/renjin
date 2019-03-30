@@ -696,10 +696,10 @@ an ANSI digit or not */
             oldname.asString().equals(newname.asString())) {
         return;
       }
-        REPROTECT(parseState.srcFile = new Environment(
+        REPROTECT(parseState.srcFile = new DynamicEnvironment(
                                          AttributeMap.newBuilder().set(R_ClassSymbol,mkString("srcfile")).
                                          build()
-                                       ), 
+                                       ),
                   parseState.srcFileProt);
         env.setVariableUnsafe(Symbol.get("filename"), newname);
         env.setVariableUnsafe(Symbol.get("original"), oldname);

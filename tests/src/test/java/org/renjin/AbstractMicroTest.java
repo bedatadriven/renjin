@@ -24,7 +24,9 @@ import org.renjin.primitives.Deparse;
 import org.renjin.primitives.Identical;
 import org.renjin.script.RenjinScriptEngine;
 import org.renjin.script.RenjinScriptEngineFactory;
+import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 
 import javax.script.ScriptException;
 
@@ -39,7 +41,10 @@ public abstract class AbstractMicroTest {
 
   @Before
   public void cleanUpGlobalEnvironment() {
-    engine.getSession().getGlobalEnvironment().clear();
+    Environment globalEnvironment = engine.getSession().getGlobalEnvironment();
+    for (Symbol symbolName : globalEnvironment.getSymbolNames()) {
+      globalEnvironment.remove(symbolName);
+    }
   }
 
   protected final void assertIdentical(String x, String y) {

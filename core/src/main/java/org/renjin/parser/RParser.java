@@ -126,7 +126,7 @@ public class RParser {
   }
 
   private static Environment sourceFile(String sourceFile) {
-    Environment environment = new Environment(AttributeMap.EMPTY);
+    Environment environment = new DynamicEnvironment(Environment.EMPTY);
     environment.setParent(Environment.EMPTY);
     environment.setVariableUnsafe("filename", StringVector.valueOf(sourceFile));
     environment.setAttribute("class", new StringArrayVector("srcfilecopy", "srcfile"));

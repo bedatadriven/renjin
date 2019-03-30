@@ -18,39 +18,40 @@
  */
 package org.renjin.script;
 
+import org.renjin.eval.EvalException;
 import org.renjin.invoke.reflection.converters.Converters;
-import org.renjin.repackaged.guava.base.Function;
-import org.renjin.repackaged.guava.collect.Collections2;
 import org.renjin.repackaged.guava.collect.Sets;
-import org.renjin.sexp.Frame;
+import org.renjin.sexp.Environment;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
 import javax.script.Bindings;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 public class RenjinBindings implements Bindings {
 
-  private final Frame frame;
+  private final Environment environment;
   
-  public RenjinBindings(Frame frame) {
+  public RenjinBindings(Environment environment) {
     super();
-    this.frame = frame;
+    this.environment = environment;
   }
 
   @Override
   public void clear() {
-    frame.clear();
+    ArrayList<Symbol> names = new ArrayList<>(environment.getSymbolNames());
+    for (Symbol name : names) {
+      names.remove(name);
+    }
   }
 
   @Override
   public boolean containsValue(Object value) {
-    for(Symbol symbol : frame.getSymbols()) {
-      if(frame.getVariable(symbol).equals(value)) {
+    for(Symbol symbol : environment.getSymbolNames()) {
+      if(!environment.isActiveBinding(symbol) &&
+          environment.getVariableOrThrowIfActivelyBound(symbol).equals(value)) {
         return true;
       }
     }
@@ -64,13 +65,13 @@ public class RenjinBindings implements Bindings {
 
   @Override
   public boolean isEmpty() {
-    return frame.getSymbols().isEmpty();
+    return environment.getSymbolNames().isEmpty();
   }
 
   @Override
   public Set<String> keySet() {
     Set<String> names = Sets.newHashSet();
-    for(Symbol symbol : frame.getSymbols()) {
+    for(Symbol symbol : environment.getSymbolNames()) {
       names.add(symbol.getPrintName());
     }
     return names;
@@ -78,28 +79,32 @@ public class RenjinBindings implements Bindings {
 
   @Override
   public int size() {
-    return frame.getSymbols().size();
+    return environment.length();
   }
 
   @Override
   public Collection<Object> values() {
-    return Collections2.transform(frame.getSymbols(), new Function<Symbol, Object>() {
-
-      @Override
-      public Object apply(Symbol symbol) {
-        return frame.getVariable(symbol);
+    List<Object> values = new ArrayList<>();
+    for (Symbol symbolName : environment.getSymbolNames()) {
+      if(!environment.isActiveBinding(symbolName)) {
+        values.add(environment.getVariableOrThrowIfActivelyBound(symbolName));
       }
-    });
+    }
+    return values;
   }
 
   @Override
   public boolean containsKey(Object key) {
-    return frame.getSymbols().contains(toSymbol(key));
+    return environment.exists(toSymbol(key));
   }
 
   @Override
   public Object get(Object key) {
-    return frame.getVariable(toSymbol(key));
+    Symbol symbol = toSymbol(key);
+    if(environment.exists(symbol) && !environment.isActiveBinding(symbol)) {
+      return environment.getVariableOrThrowIfActivelyBound(symbol);
+    }
+    return null;
   }
   
   private Symbol toSymbol(Object key) {
@@ -115,14 +120,17 @@ public class RenjinBindings implements Bindings {
   @Override
   public Object put(String name, Object value) {
     Symbol symbol = Symbol.get(name);
-    SEXP previousValue = frame.getVariable(symbol);
+    if(environment.isActiveBinding(symbol)) {
+      throw new EvalException("Symbol " + name + " is actively bound.");
+    }
+    SEXP previousValue = environment.getVariableOrThrowIfActivelyBound(symbol);
     SEXP exp;
     if(value == null) {
       exp = Null.INSTANCE;
     } else {
       exp = Converters.get(value.getClass()).convertToR(value);
     }
-    frame.setVariable(symbol, exp);
+    environment.setVariableUnsafe(symbol, exp);
     return previousValue;
   }
 
@@ -136,7 +144,7 @@ public class RenjinBindings implements Bindings {
   @Override
   public Object remove(Object key) {
     Object originalValue = get(key);
-    frame.remove(toSymbol(key));
+    environment.remove(toSymbol(key));
     return originalValue;
   }
 }

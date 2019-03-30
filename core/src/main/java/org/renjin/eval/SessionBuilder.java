@@ -176,9 +176,10 @@ public class SessionBuilder {
         executorService = MoreExecutors.sameThreadExecutor();
       }
 
-      Session session = new Session(fileSystemManager, classLoader, packageLoader, executorService,
-          globalFrame);
+      Session session = new Session(fileSystemManager, classLoader, packageLoader, executorService, globalFrame);
+
       if(loadBasePackage) {
+        session.baseFrame.load(session.getTopLevelContext());
         session.getTopLevelContext().init();
       }
 

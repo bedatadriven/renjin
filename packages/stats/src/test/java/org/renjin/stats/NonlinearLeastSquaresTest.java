@@ -36,7 +36,7 @@ public class NonlinearLeastSquaresTest extends EvalTestCase{
   @Test
   public void numericDerivative() throws IOException {
     
-    Environment rho = Environment.createChildEnvironment(context.getGlobalEnvironment()).build();
+    Environment rho = Environment.createChildEnvironment(context.getGlobalEnvironment());
     rho.setVariable(context, "x", new DoubleArrayVector(1,2,3));
     rho.setVariable(context, "a", new DoubleArrayVector(1));
     rho.setVariable(context, "b", new DoubleArrayVector(1));

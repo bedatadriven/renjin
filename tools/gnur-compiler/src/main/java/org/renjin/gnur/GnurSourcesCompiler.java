@@ -24,8 +24,8 @@ import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GccException;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gnur.api.*;
 import org.renjin.gnur.api.Error;
+import org.renjin.gnur.api.*;
 import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.io.Files;
@@ -47,6 +47,7 @@ public class GnurSourcesCompiler {
   private List<File> includeDirs = Lists.newArrayList();
   private ClassLoader linkClassLoader = getClass().getClassLoader();
   private File loggingDir;
+  private File homeDirectory;
   private boolean transformGlobalVariables;
 
   public void setPackageName(String packageName) {
@@ -71,6 +72,16 @@ public class GnurSourcesCompiler {
 
   public void setWorkDirectory(File workDir) {
     this.workDirectory = workDir;
+  }
+
+  /**
+   * Sets the directory that contains a modified R home directory, with C headers and other
+   * resources expected by packages.
+   *
+   * @param homeDir
+   */
+  public void setHomeDirectory(File homeDir) {
+    this.homeDirectory = homeDir;
   }
 
   public void setLoggingDir(File loggingDir) {
@@ -113,13 +124,11 @@ public class GnurSourcesCompiler {
         return;
       }
 
-      File gnurHomeDir = GnurInstallation.unpackRHome(Files.createTempDir());
-      
       List<GimpleCompilationUnit> units = Lists.newArrayList();
 
       Gcc gcc = new Gcc(getWorkDirectory());
       gcc.extractPlugin();
-      gcc.addIncludeDirectory(new File(gnurHomeDir, "include"));
+      gcc.addIncludeDirectory(new File(homeDirectory, "include"));
       for (File includeDir : includeDirs) {
         gcc.addIncludeDirectory(includeDir);
       }

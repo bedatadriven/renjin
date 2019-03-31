@@ -26,7 +26,6 @@ import org.renjin.repackaged.guava.io.Files;
 import org.renjin.repackaged.guava.primitives.UnsignedBytes;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -48,7 +47,8 @@ public class PackageSource {
   private List<File> sourceFiles;
   
   private File dataDir;
-  
+  private File nativeSourceDir;
+
   private PackageSource() {
   }
 
@@ -73,7 +73,7 @@ public class PackageSource {
   }
   
   public File getNativeSourceDir() {
-    return new File(packageDir, "src");
+    return nativeSourceDir;
   }
   
   public File getInstalledFilesDir() {
@@ -207,6 +207,10 @@ public class PackageSource {
           source.packageName = source.packageDir.getCanonicalFile().getName();
         }
       }
+
+      if(source.nativeSourceDir == null) {
+        source.nativeSourceDir = new File(source.packageDir, "src");
+      }
       
       source.sourceFiles = sourceFiles();
       return source;
@@ -216,17 +220,24 @@ public class PackageSource {
       PackageDescription description = null;
       try {
         File descriptionFile = new File(source.packageDir, "DESCRIPTION");
-        if(!descriptionFile.exists()) {
-          throw new FileNotFoundException(descriptionFile.getAbsolutePath() + " does not exist.");
+        if(descriptionFile.exists()) {
+          description = PackageDescription.fromFile(descriptionFile);
+        } else {
+          description = buildDescription();
         }
 
-        description = PackageDescription.fromFile(descriptionFile);
       } catch (IOException e) {
         throw new BuildException("Exception reading DESCRIPTION file: " + e.getMessage());
       }
       return description;
     }
-    
+
+    private PackageDescription buildDescription() {
+      PackageDescription description = new PackageDescription();
+      description.setProperty("Package", source.packageName);
+      return description;
+    }
+
     private void checkExists(String what, File file) {
       check(file.exists(), what + " does not exist at " + file.getAbsolutePath());
     }

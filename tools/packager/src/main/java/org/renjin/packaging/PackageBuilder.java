@@ -47,6 +47,8 @@ public class PackageBuilder {
   }
 
   public void build() throws IOException {
+    context.getPackageOutputDir().mkdirs();
+
     copyDescriptionFile();
     writePackageName();
     compileNativeSources();
@@ -70,19 +72,25 @@ public class PackageBuilder {
     File metaInf = new File(context.getOutputDir(), "META-INF");
     File packageDir = new File(metaInf, "org.renjin.package");
 
-    boolean success = packageDir.mkdirs();
-    if(!success) {
-      throw new IOException("Failed to create directory " + packageDir.getAbsolutePath());
+    if(!packageDir.exists()) {
+      boolean success = packageDir.mkdirs();
+      if (!success) {
+        throw new IOException("Failed to create directory " + packageDir.getAbsolutePath());
+      }
     }
 
     File packageNameFile = new File(packageDir, packageSource.getPackageName());
+
+    if(packageSource.getPackageName().equals(".")) {
+      throw new RuntimeException("packageName = " + packageSource.getPackageName());
+    }
 
     Files.write(packageSource.getGroupId() + ":" + packageSource.getPackageName(), packageNameFile, Charsets.UTF_8);
   }
 
   private void compileNativeSources() {
 
-    if(packageSource.getNativeSourceDir().exists()) {
+    if(!isEmpty(packageSource.getNativeSourceDir())) {
       context.setupNativeCompilation();
 
       try {
@@ -99,12 +107,28 @@ public class PackageBuilder {
     }
   }
 
+  private boolean isEmpty(File nativeSourceDir) {
+    if(!nativeSourceDir.exists()) {
+      return true;
+    }
+    File[] files = nativeSourceDir.listFiles();
+    if(files == null) {
+      return true;
+    }
+    for (File file : files) {
+      if(!file.isDirectory()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   /**
    * Copies files recursively from the inst/ directory to the packageOutputDir
    */
   private void copyInstalledFiles() throws IOException {
 
-    if(packageSource.getInstalledFilesDir().exists()) {
+    if(!isEmpty(packageSource.getInstalledFilesDir())) {
       copyInstalledFiles(packageSource.getInstalledFilesDir(), context.getPackageOutputDir());
     }
   }
@@ -183,4 +207,5 @@ public class PackageBuilder {
       }
     }
   }
+
 }

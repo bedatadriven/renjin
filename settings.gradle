@@ -2,6 +2,10 @@ rootProject.name = 'renjin'
 
 include 'tools:gcc-bridge:runtime'
 include 'tools:gcc-bridge:compiler'
+include 'tools:gnur-compiler'
+include 'tools:gnur-runtime'
+include 'tools:packager'
+
 
 include 'math:nmath'
 include 'math:blas'
@@ -9,3 +13,6 @@ include 'math:lapack'
 include 'math:appl'
 
 include 'core'
+
+include 'packages:hamcrest'
+include 'packages:grDevices'

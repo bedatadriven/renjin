@@ -52,6 +52,7 @@ public class WrapperGenerator2 {
       // Gradle
       generator = new WrapperGenerator2(args[0]);
       generator.generateSources();
+      generator.compile();
     } else {
       // Maven
       generator = new WrapperGenerator2();
@@ -79,7 +80,8 @@ public class WrapperGenerator2 {
   }
 
   public WrapperGenerator2(String sourcesDir) {
-    this.sourcesDir = new File(sourcesDir);
+    this.sourcesDir = new File(sourcesDir + "-sources");
+    this.outputDir = new File(sourcesDir);
   }
 
   public boolean isSuccessful() {
@@ -184,6 +186,8 @@ public class WrapperGenerator2 {
   }
 
   public void compile() throws IOException {
+
+    outputDir.mkdirs();
 
     JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
     DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();

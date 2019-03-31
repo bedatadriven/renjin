@@ -59,7 +59,8 @@ public class Calls {
   }
 
   /**
-   *  Create a list of promises from a list of unevaluated arguments.
+   *  Create a list of promises from a list of unevaluated arguments, expanding any
+   *  '...' arguments into the list.
    *
    *  @param argumentList a pairlist of arguments passed to the function call
    *  @param context the current evaluation context

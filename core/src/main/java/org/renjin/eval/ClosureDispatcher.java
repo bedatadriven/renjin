@@ -21,7 +21,6 @@ package org.renjin.eval;
 import org.renjin.primitives.special.ReturnException;
 import org.renjin.sexp.*;
 
-import java.util.Collections;
 import java.util.Map;
 
 
@@ -43,11 +42,6 @@ public class ClosureDispatcher {
   public SEXP apply(DispatchChain chain, PairList arguments) {
     this.dispatchChain = chain;
     return apply(callingContext, callingEnvironment, call, chain.getClosure(), arguments, dispatchChain.createMetadata());
-  }
-
-  public SEXP applyClosure(Closure closure, PairList args) {
-    PairList promisedArgs = Calls.promiseArgs(args, callingContext, callingEnvironment);
-    return apply(callingContext, callingEnvironment, call, closure, promisedArgs, Collections.emptyMap());
   }
 
   /**

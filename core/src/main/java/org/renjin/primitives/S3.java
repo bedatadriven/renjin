@@ -49,7 +49,7 @@ public class S3 {
   private static final Symbol NA_RM = Symbol.get("na.rm");
 
   @Builtin
-  public static SEXP UseMethod(@Current Context context, String genericMethodName) {
+  public static SEXP UseMethod(@Current Context context, @Current Environment rho, String genericMethodName) {
     /*
      * When object is not provided, it defaults to the first argument
      * of the calling function

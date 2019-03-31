@@ -81,7 +81,7 @@ public final class FunctionEnvironment extends Environment {
     }
   }
 
-  private FunctionEnvironment(Environment parent, SEXP[] localNames, SEXP[] arguments, SEXP[] locals) {
+  public FunctionEnvironment(Environment parent, SEXP[] localNames, SEXP[] arguments, SEXP[] locals) {
     super(parent, null, AttributeMap.EMPTY);
     this.localNames = localNames;
     this.arguments = arguments;
@@ -262,4 +262,9 @@ public final class FunctionEnvironment extends Environment {
       overflow.put(symbol, value);
     }
   }
+
+  public PairList buildArgumentPairList() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
 }

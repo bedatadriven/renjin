@@ -86,6 +86,11 @@ public class ArgumentMatcher {
     }
   }
 
+  public int getFormalCount() {
+    return formalNames.length;
+  }
+
+
   public MatchedArgumentPositions match(List<ArgumentBounds> arguments) {
     String[] actualNames = new String[arguments.size()];
     for (int i = 0; i < arguments.size(); i++) {
@@ -278,5 +283,13 @@ public class ArgumentMatcher {
     return Arrays.asList(formalNames);
   }
 
+
+  public SEXP[] getFormalNameArray() {
+    SEXP[] symbols = new SEXP[formalNames.length];
+    for (int i = 0; i < symbols.length; i++) {
+      symbols[i] = Symbol.get(formalNames[i]);
+    }
+    return symbols;
+  }
 
 }

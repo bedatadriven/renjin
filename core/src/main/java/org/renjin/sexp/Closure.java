@@ -18,9 +18,10 @@
  */
 package org.renjin.sexp;
 
-import org.renjin.eval.ClosureDispatcher;
-import org.renjin.eval.Context;
+import org.renjin.eval.*;
+import org.renjin.primitives.special.ReturnException;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 
@@ -40,12 +41,15 @@ public class Closure extends AbstractSEXP implements Function {
   private SEXP body;
   private PairList formals;
 
+  private ArgumentMatcher matcher;
+  private SEXP[] formalSymbols;
+
   public Closure(Environment enclosingEnvironment, PairList formals, SEXP body, AttributeMap attributes) {
     super(attributes);
     assert !(formals instanceof FunctionCall);
     this.enclosingEnvironment = enclosingEnvironment;
     this.body = body;
-    this.formals = formals; 
+    this.formals = formals;
   }
  
   public Closure(Environment environment, PairList formals, SEXP body) {
@@ -74,10 +78,95 @@ public class Closure extends AbstractSEXP implements Function {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
-    
-    ClosureDispatcher dispatcher = new ClosureDispatcher(context, rho, call);
-    return dispatcher.applyClosure(this, args);
+  public SEXP apply(Context callingContext, Environment callingEnvironment, FunctionCall call, PairList args) {
+
+    PairList promisedArgs = Calls.promiseArgs(args, callingContext, callingEnvironment);
+
+    if(this.matcher == null) {
+      this.matcher = new ArgumentMatcher(getFormals());
+      this.formalSymbols = matcher.getFormalNameArray();
+    }
+
+    SEXP[] arguments = new SEXP[matcher.getFormalCount()];
+
+    MatchedArguments matching = matcher.match(promisedArgs);
+
+    for (int formalIndex = 0; formalIndex < matching.getFormalCount(); formalIndex++) {
+      if (matching.isFormalEllipses(formalIndex)) {
+        arguments[formalIndex] = matching.buildExtraArgumentList();
+
+      } else {
+        int actualIndex = matching.getActualIndex(formalIndex);
+        if (actualIndex != -1) {
+          SEXP actualValue = matching.getActualValue(actualIndex);
+          if (actualValue != Symbol.MISSING_ARG) {
+            arguments[formalIndex] = matching.getActualValue(actualIndex);
+          }
+        }
+      }
+    }
+
+    SEXP[] locals = Arrays.copyOf(arguments, arguments.length);
+
+    FunctionEnvironment functionEnvironment = new FunctionEnvironment(getEnclosingEnvironment(), formalSymbols, arguments, locals);
+
+    Context functionContext = callingContext.beginFunction(
+        callingEnvironment,
+        functionEnvironment,
+        call,
+        this,
+        promisedArgs
+    );
+
+    for (int i = 0; i < locals.length; i++) {
+      if (locals[i] == null) {
+        SEXP defaultValue = matcher.getDefaultValue(i);
+        if (defaultValue != Symbol.MISSING_ARG) {
+          defaultValue = Promise.repromise(functionEnvironment, defaultValue);
+        }
+        locals[i] = defaultValue;
+      }
+    }
+
+    try {
+
+      try {
+
+
+        return functionContext.evaluate(body);
+
+      } catch (EvalException e) {
+        // Associate this EvalException with this function call context if it's not already.
+        // N.B. initContext() also searches for condition handlers and may rethrow this
+        // EvalException as a ConditionException if found.
+        e.initContext(functionContext);
+        throw e;
+      }
+
+    } catch(ReturnException e) {
+      if (e.getEnvironment() != functionEnvironment) {
+        throw e;
+      }
+      return e.getValue();
+
+    } catch(ConditionException e) {
+      if (e.getHandlerContext() == functionContext) {
+        return new ListVector(e.getCondition(), Null.INSTANCE, e.getHandler());
+      } else {
+        throw e;
+      }
+
+    } catch (RestartException e) {
+      if(e.getExitEnvironment() == functionContext.getEnvironment()) {
+        // This return value is consumed by the R code in conditions.R
+        return e.getArguments();
+      } else {
+        throw e;
+      }
+
+    } finally {
+      functionContext.exit();
+    }
   }
 
 

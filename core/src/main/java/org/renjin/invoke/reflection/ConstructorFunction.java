@@ -49,7 +49,7 @@ public class ConstructorFunction extends AbstractSEXP implements Function {
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call,
       PairList args) {
-    
+
     List<SEXP> constructorArgs = Lists.newArrayList();
     Map<Symbol, SEXP> propertyValues = Maps.newHashMap();
     

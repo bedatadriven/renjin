@@ -2495,8 +2495,7 @@ public final class Rinternals {
   }
 
   public static SEXP R_FindNamespace(SEXP namespaceExp) throws Exception {
-    Context context = Native.currentContext();
-    return R$primitive$getNamespace.doApply(context, context.getEnvironment(), namespaceExp);
+    throw new UnsupportedOperationException("TODO");
   }
 
   public static void R_LockEnvironment(SEXP env, boolean bindings) {

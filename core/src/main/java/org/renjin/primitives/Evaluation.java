@@ -34,7 +34,6 @@ import org.renjin.repackaged.guava.io.CharSource;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
-import java.util.ArrayDeque;
 import java.util.List;
 
 public class Evaluation {
@@ -355,117 +354,6 @@ public class Evaluation {
   @Builtin
   public static SEXP quote(@Unevaluated SEXP exp) {
     return exp;
-  }
-  
-  @Builtin
-  public static boolean missing(@Current Context context, @Current Environment rho,
-                                @Unevaluated Symbol symbol) {
-
-
-    if(symbol.isVarArgReference()) {
-      return isVarArgMissing(context, rho, symbol.getVarArgReferenceIndex());
-
-    } else if(symbol == Symbols.ELLIPSES) {
-      return isEllipsesMissing(context, rho);
-
-    } else {
-      return isArgMissing(context, rho, symbol);
-    }
-  }
-
-  /**
-   * The '...' argument is considered to be "missing" if is empty.
-   */
-  private static boolean isEllipsesMissing(Context context, Environment rho) {
-
-    SEXP ellipses = rho.findVariable(context, Symbols.ELLIPSES);
-    if(ellipses == Symbol.UNBOUND_VALUE) {
-      throw new EvalException("missing can only be used for arguments.");
-    }
-
-    return ellipses.length() == 0;
-  }
-
-  /**
-   * The '..1' argument is considered to be "missing" IF one is not provided, OR it is a promise
-   * to a missing argument with no default value.
-   */
-  private static boolean isVarArgMissing(@Current Context context, Environment rho, int varArgReferenceIndex) {
-
-    SEXP ellipses = rho.findVariable(context, Symbols.ELLIPSES);
-    if(ellipses == Symbol.UNBOUND_VALUE) {
-      throw new EvalException("missing can only be used for arguments.");
-    }
-
-    if(ellipses.length() < varArgReferenceIndex) {
-      return true;
-    }
-    SEXP value = ellipses.getElementAsSEXP(varArgReferenceIndex-1);
-    return value == Symbol.MISSING_ARG || isPromisedMissingArg(context, value, new ArrayDeque<Promise>());
-  }
-
-  private static boolean isArgMissing(Context context, Environment rho, Symbol argumentName) {
-
-    if(rho.isMissingArgument(argumentName)) {
-      return true;
-    }
-    SEXP value = rho.findVariable(context, argumentName);
-
-    if(value == Symbol.UNBOUND_VALUE) {
-      throw new EvalException("missing can only be used for arguments.");
-    }
-    if (value == Symbol.MISSING_ARG) {
-      return true;
-    }
-
-    return isPromisedMissingArg(context, value, new ArrayDeque<Promise>());
-  }
-
-
-  /**
-   * @return true if {@code exp} evaluates to a missing argument with no default value.
-   */
-  private static boolean isPromisedMissingArg(Context context, SEXP exp, ArrayDeque<Promise> stack) {
-    if(exp instanceof Promise) {
-      Promise promise = (Promise)exp;
-
-      if(promise.getExpression() instanceof Symbol) {
-
-        // Avoid infinite recursion in the case of circular references, for example:
-        // g <- function(x, y) { missing(x) }
-        // f <- function(x = y, y = x) { g(x, y) } 
-        // f()
-        if(stack.contains(promise)) {
-          return true;  
-        }
-
-        stack.push(promise);
-        try {
-          SEXP argumentValue;
-          Symbol argumentName = (Symbol) promise.getExpression();
-          Environment argumentEnv = promise.getEnvironment();
-
-          if(argumentName.isVarArgReference()) {
-            SEXP forwardedArguments = argumentEnv.findVariable(context, Symbols.ELLIPSES);
-            if(forwardedArguments.length() < argumentName.getVarArgReferenceIndex()) {
-              return true;
-            }
-            argumentValue = forwardedArguments.getElementAsSEXP(argumentName.getVarArgReferenceIndex() - 1);
-          } else {
-            argumentValue = argumentEnv.findVariable(context, argumentName);
-          }
-
-          if (argumentValue == Symbol.MISSING_ARG) {
-            return true;
-          } else if (isPromisedMissingArg(context, argumentValue, stack)) {
-            return true;
-          }
-        } finally {
-          stack.pop();
-        }
-      }
-    } 
-    return false;
   }
 
 

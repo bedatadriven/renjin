@@ -19,6 +19,10 @@
 package org.renjin.sexp;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Superinterface for the three function-like {@code SEXP}s:
@@ -31,21 +35,68 @@ public interface Function extends SEXP, Recursive {
   public static final String IMPLICIT_CLASS = "function";
 
   /**
-   * 
+   *
+   * Applies the function with the given arguments.
+   *
+   * <p>The arguments as passed to the function must be <i>expanded</i>. That is, the symbol '...' should not
+   * be passed, but rather resolved and the array of argument names and values expanded to include in the array.</p>
+   *
+   * <p>The arguments, as passed to this method, are not yet matched: they should be in the original order.</p>
+   *
+   * <p>The promisedArguments array may be modified by the callee.</p>
+   *
+   * <p>The argumentNames array must not be modified.</p>
+   *
    * @param context the context from which this function is being called
-   * @param rho the environment from which this function is being called
+   * @param rho the function call's environment
    * @param call the original function call
-   * @param args UNEVALUATED arguments
+   * @param argumentNames the names of the arguments
+   * @param promisedArguments an array of the arguments, promised in the caller's environment
    * @return the function's result
    */
-  SEXP apply(Context context, Environment rho, FunctionCall call, PairList args);
-
-
-  default SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] arguments) {
-    PairList.Builder builder = new PairList.Builder();
-    for (int i = 0; i < argumentNames.length; i++) {
-      builder.add(argumentNames[i], arguments[i]);
+  default SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments) {
+    PairList.Builder args = new PairList.Builder();
+    for (int i = 0; i < promisedArguments.length; i++) {
+      args.add(argumentNames[i], ((Promise) promisedArguments[i]).getExpression());
     }
-    return apply(context, rho, call, builder.build());
+    return apply(context, rho, call, args.build());
   }
+
+
+  /**
+   * TEMPORARY TO REMOVE!!
+   *
+   * @param context
+   * @param rho
+   * @param call
+   * @param args
+   * @return
+   */
+  default SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+    List<String> argumentNames = new ArrayList<>();
+    List<SEXP> arguments = new ArrayList<>();
+
+    for (PairList.Node node : call.getArguments().nodes()) {
+      if (node.getValue() == Symbols.ELLIPSES) {
+        SEXP expando = rho.getEllipsesVariable();
+        if (expando == Symbol.UNBOUND_VALUE) {
+          throw new EvalException("'...' used in an incorrect context");
+        }
+        if (expando instanceof PromisePairList) {
+          PromisePairList extra = (PromisePairList) expando;
+          for (PairList.Node extraNode : extra.nodes()) {
+            argumentNames.add(extraNode.getTag().getPrintName());
+            arguments.add(extraNode.getValue());
+          }
+        }
+
+      } else {
+        argumentNames.add(node.hasTag() ? node.getName() : null);
+        arguments.add(Promise.repromise(rho, node.getValue()));
+      }
+    }
+
+    return apply(context, rho, call, argumentNames.toArray(new String[0]), arguments.toArray(new SEXP[0]));
+  }
+
 }

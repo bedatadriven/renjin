@@ -20,7 +20,7 @@ package org.renjin.primitives.combine;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.codegen.ArgumentIterator;
+import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.primitives.S3;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
@@ -41,17 +41,16 @@ public abstract class AbstractBindFunction extends SpecialFunction {
   }
 
   @Override
-  public final SEXP apply(Context context, Environment rho, FunctionCall call, PairList arguments) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments) {
 
-    ArgumentIterator argumentItr = new ArgumentIterator(context, rho, arguments);
-    int deparseLevel = ((Vector) argumentItr.evalNext()).getElementAsInt(0);
+    int deparseLevel = WrapperRuntime.convertToInt(promisedArguments[0].force(context));
 
     List<BindArgument> bindArguments = Lists.newArrayList();
-    while(argumentItr.hasNext()) {
-      PairList.Node currentNode = argumentItr.nextNode();
-      SEXP evaluated = context.evaluate(currentNode.getValue(), rho);
-      bindArguments.add(new BindArgument(currentNode.getName(), (Vector) evaluated, bindDim, 
-          currentNode.getValue(), deparseLevel, context));
+    for (int i = 1; i < promisedArguments.length; i++) {
+      Promise promisedArgument = (Promise) promisedArguments[i];
+      SEXP evaluated = promisedArguments[i].force(context);
+      bindArguments.add(new BindArgument(argumentNames[i], (Vector) evaluated, bindDim,
+          promisedArgument.getExpression(), deparseLevel, context));
     }
     
     SEXP genericResult = tryBindDispatch(context, rho, getName(), deparseLevel, bindArguments);

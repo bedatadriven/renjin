@@ -190,19 +190,20 @@ public class ArgumentMatcher {
     SEXP actualTags[] = new SEXP[numActuals];
     String actualNames[] = new String[numActuals];
     SEXP actualValues[] = new SEXP[numActuals];
-    {
-      int i = 0;
-      for (PairList.Node node : actuals.nodes()) {
-        actualTags[i] = node.getRawTag();
-        if (node.hasName()) {
-          actualNames[i] = node.getName();
-        }
-        actualValues[i] = node.getValue();
-        i++;
+    int i = 0;
+    for (PairList.Node node : actuals.nodes()) {
+      actualTags[i] = node.getRawTag();
+      if (node.hasName()) {
+        actualNames[i] = node.getName();
       }
+      actualValues[i] = node.getValue();
+      i++;
     }
+    return new MatchedArguments(match(actualNames), actualNames, actualValues);
+  }
 
-    return new MatchedArguments(match(actualNames), actualTags, actualValues);
+  public MatchedArguments match(String[] actualNames, SEXP[] actualValues) {
+    return new MatchedArguments(match(actualNames), actualNames, actualValues);
   }
 
 

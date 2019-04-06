@@ -21,7 +21,6 @@ package org.renjin.methods;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.SessionScoped;
-import org.renjin.primitives.Evaluation;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.*;
@@ -368,7 +367,7 @@ public class MethodDispatch {
 
 
   private static boolean is_missing_arg(Context context, Symbol arg_sym, Environment ev) {
-    return Evaluation.missing(context, ev, arg_sym);
+    return ((FunctionEnvironment) ev).isMissingArgument(context, arg_sym);
   }
 
 

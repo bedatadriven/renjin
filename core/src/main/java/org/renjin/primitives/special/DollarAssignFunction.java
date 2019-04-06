@@ -31,26 +31,24 @@ public class DollarAssignFunction extends SpecialFunction {
     super("$<-");
   }
 
+
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments) {
 
     // Even though this function is generic, it MUST be called with exactly three arguments
-    if(args.length() != 3) {
-      throw new EvalException(String.format("%d argument(s) passed to '$<-' which requires 3", args.length()));
+    if(promisedArguments.length != 3) {
+      throw new EvalException(String.format("%d argument(s) passed to '$<-' which requires 3", promisedArguments.length));
     }
 
-    SEXP object = context.evaluate(args.getElementAsSEXP(0), rho);
-    StringVector nameArgument = DollarFunction.evaluateName(args.getElementAsSEXP(1));
-    SEXP value = context.evaluate(args.getElementAsSEXP(2), rho);
+    SEXP object = promisedArguments[0].force(context);
+    StringVector nameArgument = DollarFunction.evaluateName(((Promise)promisedArguments[1]).getExpression());
+    SEXP value = promisedArguments[2].force(context);
 
     // For possible generic dispatch, repackage the name argument as character vector rather than
     // symbol
-    PairList.Node repackagedArgs = new PairList.Node(object,
-        new PairList.Node(nameArgument,
-            new PairList.Node(Symbol.get("value"), value,
-                Null.INSTANCE)));
+    promisedArguments[1] = nameArgument;
 
-    SEXP genericResult = S3.tryDispatchFromPrimitive(context, rho, call, "$<-", object, repackagedArgs);
+    SEXP genericResult = S3.tryDispatchFromPrimitive(context, rho, call, "$<-", argumentNames, promisedArguments);
     if (genericResult!= null) {
       return genericResult;
     }

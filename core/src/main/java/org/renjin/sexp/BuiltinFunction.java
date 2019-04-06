@@ -52,16 +52,12 @@ public abstract class BuiltinFunction extends PrimitiveFunction {
     visitor.visit(this);
   }
 
-  /**
-   * Applies this {@code BuiltinFunction} to the given the
-   * @param context the runtime context in which to evaluate this function
-   * @param call the original function call
-   * @param argumentNames the names of the arguments
-   * @param arguments the <b><i>evaluated</i></b> arguments
-   * @return the result of the function
-   */
-  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames,
-      SEXP arguments[]) {
-    throw new UnsupportedOperationException(getName());
+  @Override
+  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments) {
+    PairList.Builder list = new PairList.Builder();
+    for (int i = 0; i < argumentNames.length; i++) {
+      list.add(argumentNames[i], promisedArguments[i]);
+    }
+    return apply(context, rho, call, list.build());
   }
 }

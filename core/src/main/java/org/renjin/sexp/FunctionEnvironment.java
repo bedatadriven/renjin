@@ -21,6 +21,7 @@ package org.renjin.sexp;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.CompilerSpecialization;
+import org.renjin.invoke.annotations.Current;
 
 import java.util.*;
 
@@ -45,6 +46,13 @@ public final class FunctionEnvironment extends Environment {
   private final SEXP[] locals;
 
   /**
+   * An array of values that are set when dispatching to an S3 dispatch.
+   *
+   * <p>See {@link org.renjin.primitives.S3#CLASS_DISPATCH_TABLE_INDEX} and friends.</p>
+   */
+  private final SEXP[] dispatchTable;
+
+  /**
    * A map to store bindings of variables not identified at compile time. It is only allocated if needed.
    */
   private IdentityHashMap<Symbol, SEXP> overflow = null;
@@ -54,16 +62,7 @@ public final class FunctionEnvironment extends Environment {
     SEXP[] localNames = ((ListVector) variableNames).toArrayUnsafe();
     SEXP[] locals = Arrays.copyOf(arguments, localNames.length);
 
-    return new FunctionEnvironment(parent, localNames, arguments, locals);
-  }
-
-  public static FunctionEnvironment interpretedInit(Environment parent,
-                                                    SEXP[] formalNames,
-                                                    SEXP[] matchedPromisedArguments) {
-
-    SEXP[] locals = Arrays.copyOf(matchedPromisedArguments, matchedPromisedArguments.length);
-
-    return new FunctionEnvironment(parent, formalNames, matchedPromisedArguments, locals);
+    return new FunctionEnvironment(parent, localNames, arguments, locals, null);
   }
 
   /**
@@ -74,6 +73,7 @@ public final class FunctionEnvironment extends Environment {
     this.localNames = new SEXP[formals.length()];
     this.arguments = new SEXP[formals.length()];
     this.locals = new SEXP[formals.length()];
+    this.dispatchTable = null;
 
     int formalIndex = 0;
     for (PairList.Node node : formals.nodes()) {
@@ -81,18 +81,119 @@ public final class FunctionEnvironment extends Environment {
     }
   }
 
-  public FunctionEnvironment(Environment parent, SEXP[] localNames, SEXP[] arguments, SEXP[] locals) {
+
+
+  public FunctionEnvironment(Environment parent, SEXP[] localNames, SEXP[] arguments, SEXP[] locals, SEXP[] dispatchTable) {
     super(parent, null, AttributeMap.EMPTY);
     this.localNames = localNames;
     this.arguments = arguments;
     this.locals = locals;
+    this.dispatchTable = dispatchTable;
   }
 
-  @Override
-  public boolean isMissingArgument(Symbol symbol) {
+  public SEXP[] getArguments() {
+    return arguments;
+  }
+
+  public boolean isMissingArgument(Context context, Symbol symbol) {
+
     for (int i = 0; i < arguments.length; i++) {
       if(localNames[i] == symbol) {
-        return arguments[i] == null;
+        if(arguments[i] == null) {
+          return true;
+        }
+        if(localNames[i] == Symbols.ELLIPSES) {
+          return arguments[i].length() == 0;
+        }
+      }
+    }
+
+    if(symbol.isVarArgReference()) {
+      //return isVarArgMissing(context, rho, symbol.getVarArgReferenceIndex());
+      throw new UnsupportedOperationException("TODO");
+
+    } else if(symbol == Symbols.ELLIPSES) {
+      throw new EvalException("this function does not have a '...' formal argument");
+    }
+
+    // Otherwise need to lookup symbol further up...
+    return isArgMissing(context, this, symbol);
+  }
+
+
+  /**
+   * The '..1' argument is considered to be "missing" IF one is not provided, OR it is a promise
+   * to a missing argument with no default value.
+   */
+  private static boolean isVarArgMissing(@Current Context context, Environment rho, int varArgReferenceIndex) {
+
+    SEXP ellipses = rho.findVariable(context, Symbols.ELLIPSES);
+    if(ellipses == Symbol.UNBOUND_VALUE) {
+      throw new EvalException("missing can only be used for arguments.");
+    }
+
+    if(ellipses.length() < varArgReferenceIndex) {
+      return true;
+    }
+    SEXP value = ellipses.getElementAsSEXP(varArgReferenceIndex-1);
+    return value == Symbol.MISSING_ARG || isPromisedMissingArg(context, value, new ArrayDeque<Promise>());
+  }
+
+  private static boolean isArgMissing(Context context, Environment rho, Symbol argumentName) {
+
+    SEXP value = rho.findVariable(context, argumentName);
+
+    if(value == Symbol.UNBOUND_VALUE) {
+      throw new EvalException("missing can only be used for arguments.");
+    }
+    if (value == Symbol.MISSING_ARG) {
+      return true;
+    }
+
+    return isPromisedMissingArg(context, value, new ArrayDeque<>());
+  }
+
+  /**
+   * @return true if {@code exp} evaluates to a missing argument with no default value.
+   */
+  private static boolean isPromisedMissingArg(Context context, SEXP exp, ArrayDeque<Promise> stack) {
+    if(exp instanceof Promise) {
+      Promise promise = (Promise)exp;
+
+      if(promise.getExpression() instanceof Symbol) {
+
+        // Avoid infinite recursion in the case of circular references, for example:
+        // g <- function(x, y) { missing(x) }
+        // f <- function(x = y, y = x) { g(x, y) }
+        // f()
+        if(stack.contains(promise)) {
+          return true;
+        }
+
+        stack.push(promise);
+        try {
+          SEXP argumentValue;
+          Symbol argumentName = (Symbol) promise.getExpression();
+          Environment argumentEnv = promise.getEnvironment();
+
+          if(argumentName.isVarArgReference()) {
+            SEXP forwardedArguments = argumentEnv.findVariable(context, Symbols.ELLIPSES);
+            if(forwardedArguments.length() < argumentName.getVarArgReferenceIndex()) {
+              return true;
+            }
+            argumentValue = forwardedArguments.getElementAsSEXP(argumentName.getVarArgReferenceIndex() - 1);
+          } else {
+            argumentValue = argumentEnv.findVariable(context, argumentName);
+          }
+
+          if (argumentValue == Symbol.MISSING_ARG) {
+            return true;
+          } else if (isPromisedMissingArg(context, argumentValue, stack)) {
+            return true;
+          }
+        } finally {
+          stack.pop();
+        }
       }
     }
     return false;
@@ -117,10 +218,6 @@ public final class FunctionEnvironment extends Environment {
     int argIndex = indexOf(formalName);
     locals[argIndex] = actualValue;
     arguments[argIndex] = actualValue;
-  }
-
-  public void setDefaultArgumentValue(int index, SEXP value) {
-    locals[index] = value;
   }
 
   public void set(int index, SEXP value) {
@@ -263,8 +360,26 @@ public final class FunctionEnvironment extends Environment {
     }
   }
 
-  public PairList buildArgumentPairList() {
-    throw new UnsupportedOperationException("TODO");
+  public int getFormalCount() {
+    return arguments.length;
   }
 
+  public SEXP[] cloneArgumentArray() {
+    return Arrays.copyOf(arguments, arguments.length);
+  }
+
+  public String[] cloneArgumentNameArray() {
+    String[] names = new String[arguments.length];
+    for (int i = 0; i < arguments.length; i++) {
+      if(localNames[i] != null) {
+        names[i] = ((Symbol) localNames[i]).getPrintName();
+      }
+    }
+    return names;
+  }
+
+  public SEXP getFormalName(int i) {
+    assert i < arguments.length;
+    return localNames[i];
+  }
 }

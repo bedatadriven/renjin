@@ -18,22 +18,19 @@
  */
 package org.renjin.eval;
 
-import org.renjin.sexp.PromisePairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
+import org.renjin.sexp.*;
 
 /**
  * Matching between supplied arguments to a closure call and the
  * formally declared arguments of the closure.
  */
 public class MatchedArguments {
-  private SEXP[] actualTags;
+  private final String[] actualNames;
   private final SEXP[] actualValues;
   private final MatchedArgumentPositions matchedPositions;
 
-  public MatchedArguments(MatchedArgumentPositions matchedPositions, SEXP[] actualTags, SEXP[] actualValues) {
-    this.actualTags = actualTags;
+  public MatchedArguments(MatchedArgumentPositions matchedPositions, String[] actualNames, SEXP[] actualValues) {
+    this.actualNames = actualNames;
     this.actualValues = actualValues;
     this.matchedPositions = matchedPositions;
   }
@@ -61,7 +58,14 @@ public class MatchedArguments {
     PromisePairList.Builder promises = new PromisePairList.Builder();
     for (int actualIndex = 0; actualIndex < actualValues.length; actualIndex++) {
       if(matchedPositions.isExtraArgument(actualIndex)) {
-        promises.add( actualTags[actualIndex],  actualValues[actualIndex] );
+        String name = actualNames[actualIndex];
+        SEXP tag;
+        if(name == null) {
+          tag = Null.INSTANCE;
+        } else {
+          tag = Symbol.get(name);
+        }
+        promises.add(tag, actualValues[actualIndex] );
       }
     }
     return promises.build();

@@ -388,8 +388,6 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void issue8() throws IOException {
-    
-
     assertThat( eval("rep(seq(1,10,1),2)"), elementsIdenticalTo(c( 1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10)));
   }
 
@@ -533,8 +531,6 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void serialize() {
-
-    
 
     eval("x <- serialize(42, connection=NULL)");
     assertThat(eval("length(x)"), elementsIdenticalTo(c_i(30)));

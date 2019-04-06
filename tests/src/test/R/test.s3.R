@@ -19,6 +19,17 @@
 
 library(hamcrest)
 
+
+test.new.first.argument <- function() {
+
+    f.baz <- function(x, y) c(x, y)
+    f <- function(x, y) {  UseMethod("f", structure(99, class='baz')) }
+
+    assertThat(f(41,42), identicalTo(c(41,42)))
+
+}
+
+
 test.primitive.to.s3.not.evaled <- function() {
     `[.foo` <- function(x, i, j, drop = FALSE) { 142 }
     g <- function(x,i,j) x[i,j]
@@ -104,7 +115,7 @@ test.usemethod.then.sys.call.dollar <- function() {
 
 }
 
-test.usemethod.uses.first.arg <- function() {
+test.usemethod.uses.first.matched.arg <- function() {
 
     f.default <- function(x, y) 42
     f.foo <- function(x, y) 44
@@ -114,4 +125,71 @@ test.usemethod.uses.first.arg <- function() {
 
     assertThat(f(2,foo), identicalTo(42))
     assertThat(f(y=2,x=foo), identicalTo(44))
+}
+
+test.object.is.evaluated.twice <- function() {
+
+    f.default <- function(x) x+1
+    f <- function(x) {  UseMethod("f") }
+
+    count <- 0
+    g <- function() {
+        count <<- count + 1
+        count
+    }
+
+    assertThat(f(g()), identicalTo(2))
+}
+
+test.class.value <- function() {
+
+
+    f.default <- function(x, y) as.list(environment(), all.names=T)
+    f.foo <- function(x, y) as.list(environment(), all.names=T)
+    f <- function(x, y) {  UseMethod("f") }
+
+    foo <- structure(33, class=c('foo', 'bar', 'baz'))
+
+    e1 <- f(foo)
+    assertThat(e1$.Generic, identicalTo("f"))
+    assertThat(e1$.Class, identicalTo(c("foo", "bar", "baz")))
+    assertThat(e1$.Method, identicalTo("f.foo"))
+    assertThat(e1$.Group, identicalTo(""))
+
+    e2 <- f(41L)
+    assertThat(e2$.Generic, identicalTo("f"))
+    assertThat(e2$.Class, identicalTo(c("foo", "bar", "baz")))
+    assertThat(e2$.Method, identicalTo("f.default"))
+    assertThat(e2$.Group, identicalTo(""))
+}
+
+test.s3.reorder.args <- function() {
+
+     f.default <- function(y, x) c(x, y)
+     f <- function(x, y) UseMethod("f")
+
+     assertThat(f(1,2), identicalTo(c(2,1)))
+     assertThat(f(x=1,y=2), identicalTo(c(1,2)))
+     assertThat(f(y=91,92), identicalTo(c(92,91)))
+     assertThat(f(91,x=92), identicalTo(c(92,91)))
+}
+
+test.s3.updated.arguments.have.no.effect <- function() {
+
+     f.default <- function(x, y) c(x, y)
+     f <- function(x, y) {
+        y <- 92
+        UseMethod("f")
+     }
+
+     assertThat(f(41, 42), identicalTo(c(41,42)))
+}
+
+test.s3.ellipses.preserved.in.call <- function() {
+     f.default <- function(x, y) sys.call()
+     f <- function(...) UseMethod("f")
+     g <- function(...) f(...)
+
+     assertThat(f(1,2), identicalTo(quote(f.default(1,2))))
+     assertThat(g(1,2), identicalTo(quote(f.default(...))))
 }

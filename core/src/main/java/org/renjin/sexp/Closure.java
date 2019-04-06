@@ -77,10 +77,11 @@ public class Closure extends AbstractSEXP implements Function {
     visitor.visit(this);
   }
 
-  @Override
-  public SEXP apply(Context callingContext, Environment callingEnvironment, FunctionCall call, PairList args) {
+  public SEXP apply(Context callingContext, Environment callingEnvironment, FunctionCall call, String[] argNames, SEXP[] args) {
+    return apply(callingContext, callingEnvironment, call, argNames, args, null);
+  }
 
-    PairList promisedArgs = Calls.promiseArgs(args, callingContext, callingEnvironment);
+  public SEXP apply(Context callingContext, Environment callingEnvironment, FunctionCall call, String[] argNames, SEXP[] args, SEXP[] dispatchTable) {
 
     if(this.matcher == null) {
       this.matcher = new ArgumentMatcher(getFormals());
@@ -89,7 +90,7 @@ public class Closure extends AbstractSEXP implements Function {
 
     SEXP[] arguments = new SEXP[matcher.getFormalCount()];
 
-    MatchedArguments matching = matcher.match(promisedArgs);
+    MatchedArguments matching = matcher.match(argNames, args);
 
     for (int formalIndex = 0; formalIndex < matching.getFormalCount(); formalIndex++) {
       if (matching.isFormalEllipses(formalIndex)) {
@@ -108,14 +109,18 @@ public class Closure extends AbstractSEXP implements Function {
 
     SEXP[] locals = Arrays.copyOf(arguments, arguments.length);
 
-    FunctionEnvironment functionEnvironment = new FunctionEnvironment(getEnclosingEnvironment(), formalSymbols, arguments, locals);
+    FunctionEnvironment functionEnvironment = new FunctionEnvironment(
+        getEnclosingEnvironment(),
+        formalSymbols,
+        arguments,
+        locals,
+        dispatchTable);
 
     Context functionContext = callingContext.beginFunction(
         callingEnvironment,
         functionEnvironment,
         call,
-        this,
-        promisedArgs
+        this
     );
 
     for (int i = 0; i < locals.length; i++) {

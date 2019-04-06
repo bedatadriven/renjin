@@ -95,7 +95,7 @@ public class CallingArguments {
     for (int i = 0; i < argumentMatcher.getFormalNames().size(); i++) {
       String formalName = argumentMatcher.getFormalNames().get(i);
       SEXP promisedArg = environment.getVariableUnsafe(formalName);
-      boolean missing = environment.isMissingArgument(Symbol.get(formalName));
+      boolean missing = ((FunctionEnvironment)environment).isMissingArgument(context, Symbol.get(formalName));
       if(formalName.equals("...")) {
         promisedArgs.addAll(((PairList) promisedArg));
       } else {

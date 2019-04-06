@@ -134,7 +134,7 @@ public class Context {
     this.function = Null.INSTANCE;
   }
 
-  public Context beginFunction(Environment callingEnvironment, FunctionEnvironment callEnvironment, FunctionCall call, Closure closure, PairList arguments) {
+  public Context beginFunction(Environment callingEnvironment, FunctionEnvironment callEnvironment, FunctionCall call, Closure closure) {
     Context context = new Context();
     context.type = Type.FUNCTION;
     context.parent = this;
@@ -142,7 +142,6 @@ public class Context {
     context.function = closure;
     context.environment = callEnvironment;
     context.session = session;
-    context.arguments = arguments;
     context.call = call;
     context.callingEnvironment = callingEnvironment;
     return context;
@@ -407,7 +406,7 @@ public class Context {
     }
   }
 
-  private SEXP evaluateCall(FunctionCall call, Environment rho) {
+  public SEXP evaluateCall(FunctionCall call, Environment rho) {
     clearInvisibleFlag();
 
     SEXP fn = call.getFunction();
@@ -417,8 +416,36 @@ public class Context {
     if(Profiler.ENABLED && profiling) {
       Profiler.functionStart((Symbol)fn, functionExpr);
     }
+
+    List<String> argumentNames = new ArrayList<>();
+    List<SEXP> arguments = new ArrayList<>();
+
+    for (PairList.Node node : call.getArguments().nodes()) {
+      if(node.getValue() == Symbols.ELLIPSES) {
+        SEXP expando = rho.getEllipsesVariable();
+        if(expando == Symbol.UNBOUND_VALUE) {
+          throw new EvalException("'...' used in an incorrect context");
+        }
+        if(expando instanceof PromisePairList) {
+          PromisePairList extra = (PromisePairList) expando;
+          for (PairList.Node extraNode : extra.nodes()) {
+            argumentNames.add(extraNode.hasTag() ? extraNode.getName() : null);
+            arguments.add(extraNode.getValue());
+          }
+        }
+
+      } else {
+        if(node.hasName()) {
+          argumentNames.add(node.getTag().getPrintName());
+        } else {
+          argumentNames.add(null);
+        }
+        arguments.add(Promise.repromise(rho, node.getValue()));
+      }
+    }
+
     try {
-      return functionExpr.apply(this, rho, call, call.getArguments());
+      return functionExpr.apply(this, rho, call, argumentNames.toArray(new String[0]), arguments.toArray(new SEXP[0]));
     } catch (EvalException | ControlFlowException | ConditionException | Error e) {
       throw e;
 

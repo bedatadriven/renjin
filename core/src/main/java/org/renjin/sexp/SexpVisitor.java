@@ -119,7 +119,13 @@ public class SexpVisitor<R> {
   public <T> void visit(ExternalPtr sexp) {
     unhandled(sexp);
   }
-  
+
+  public final void acceptAll(SEXP[] arguments, int count) {
+    for (int i = 0; i < count; i++) {
+      arguments[i].accept(this);
+    }
+  }
+
   public final void acceptAll(Iterable<SEXP> elements) {
     for(SEXP element : elements) {
       element.accept(this);

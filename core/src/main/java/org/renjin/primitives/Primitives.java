@@ -26,6 +26,7 @@ import org.renjin.invoke.codegen.WrapperGenerator2;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.combine.ColumnBindFunction;
 import org.renjin.primitives.combine.Combine;
+import org.renjin.primitives.combine.CombineFunction;
 import org.renjin.primitives.combine.RowBindFunction;
 import org.renjin.primitives.files.Files;
 import org.renjin.primitives.io.Cat;
@@ -161,8 +162,7 @@ public class Primitives {
       return new BuiltinFunction(entry.name) {
 
         @Override
-        public SEXP apply(Context context, Environment rho,
-                          FunctionCall call, PairList args) {
+        public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments) {
           throw new EvalException("Sorry! " + entry.name + " not yet implemented!", e);
         }
       };
@@ -178,6 +178,10 @@ public class Primitives {
     add(new BreakFunction());
     add(new NextFunction());
     add(new ReturnFunction());
+    add(new UseMethod());
+    add(new MissingFunction());
+
+    add(new CombineFunction());
 
     f("stop", Conditions.class, 1);
     f("warning", Warning.class, 111);
@@ -741,7 +745,6 @@ public class Primitives {
     f("order", Sort.class, 11);
     f("rank", Sort.class, 11);
     f("findInterval", Sort.class, 11111);
-    f("missing", Evaluation.class, "missing", 0);
     f("nargs", Evaluation.class, 0);
     f("scan", Scan.class, 11);
     f("t.default", Matrices.class, 11);
@@ -849,7 +852,6 @@ public class Primitives {
 
 /* Objects */
     f("inherits", Attributes.class, 11);
-    f("UseMethod", S3.class, 200);
     f("NextMethod", S3.class, 210);
     f("invalidateS4Cache", S4.class, 1);
     f("invalidateS4MethodCache", S4.class, 1);
@@ -1016,7 +1018,7 @@ public class Primitives {
     }
   }
 
-  private void add(SpecialFunction fn) {
+  private void add(PrimitiveFunction fn) {
     Symbol name = Symbol.get(fn.getName());
     builtins.put(name, fn);
   }

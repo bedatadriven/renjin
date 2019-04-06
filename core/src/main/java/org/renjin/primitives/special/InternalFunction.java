@@ -19,9 +19,11 @@
 package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
 import org.renjin.primitives.Primitives;
 import org.renjin.sexp.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class InternalFunction extends SpecialFunction {
 
@@ -30,18 +32,28 @@ public class InternalFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
-    SEXP arg = call.getArgument(0);
-    assert arg!=null;
-    if(!(arg instanceof FunctionCall)) {
-      throw new EvalException("invalid .Internal() argument");
-    }
-    FunctionCall internalCall = (FunctionCall) arg;
+  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments) {
+    Promise internalCallPromise = (Promise) promisedArguments[0];
+    FunctionCall internalCall = (FunctionCall) internalCallPromise.getExpression();
     Symbol internalName = (Symbol)internalCall.getFunction();
-    SEXP function = Primitives.getInternal(internalName);
-    if(function==null || function == Null.INSTANCE) {
-      throw new EvalException(String.format("no internal function \"%s\"", internalName.getPrintName()));
+    Function function = Primitives.getInternal(internalName);
+
+    // Evaluate arguments to the internal call
+    List<String> names = new ArrayList<>();
+    List<SEXP> values = new ArrayList<>();
+    for (PairList.Node node : internalCall.getArguments().nodes()) {
+
+      if(node.getValue() == Symbols.ELLIPSES) {
+        PromisePairList expando = (PromisePairList) rho.getEllipsesVariable();
+        for (PairList.Node expandoNode : expando.nodes()) {
+          names.add(expandoNode.hasTag() ? expandoNode.getName() : null);
+          values.add(expandoNode.getValue());
+        }
+      } else {
+        names.add(node.hasTag() ? node.getName() : null);
+        values.add(Promise.repromise(rho, node.getValue()));
+      }
     }
-    return ((Function)function).apply(context, rho, internalCall, internalCall.getArguments());
+    return function.apply(context, rho, internalCall, names.toArray(new String[0]), values.toArray(new SEXP[0]));
   }
 }

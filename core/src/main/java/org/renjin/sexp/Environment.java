@@ -640,10 +640,6 @@ public abstract class Environment extends AbstractSEXP implements Recursive {
     return this;
   }
 
-  public boolean isMissingArgument(Symbol symbol) {
-    return false;
-  }
-
   private static class EnvIterator extends UnmodifiableIterator<Environment> {
     private Environment next;
 

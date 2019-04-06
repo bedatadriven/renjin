@@ -55,7 +55,7 @@ public class InvokerGenerator {
 
       ApplyArrayArgsMethodBuilder applyWithArray = new ApplyArrayArgsMethodBuilder(codeModel, invoker, model);
       applyWithArray.buildVarArgs();
-      addArrayApplyOverload(invoker);
+      //addArrayApplyOverload(invoker);
 
     } else {
       FixedArityApplyBuilder apply = new FixedArityApplyBuilder(codeModel, invoker, model);
@@ -63,7 +63,7 @@ public class InvokerGenerator {
 
       ApplyArrayArgsMethodBuilder applyWithArray = new ApplyArrayArgsMethodBuilder(codeModel, invoker, model);
       applyWithArray.build();
-      addArrayApplyOverload(invoker);
+     // addArrayApplyOverload(invoker);
 
       for(Integer arity : model.getArity()) {
         OverloadWrapperBuilder doApply = new OverloadWrapperBuilder(codeModel, invoker, model, arity);

@@ -22,7 +22,6 @@ import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.eval.*;
 import org.renjin.invoke.annotations.ArgumentList;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.codegen.ArgumentIterator;
@@ -42,39 +41,54 @@ import java.util.Set;
 public class S3 {
   public static final Set<String> GROUPS = Sets.newHashSet("Ops", "Math", "Summary");
 
-  private static final Set<String> SPECIAL = Sets.newHashSet("$", "$<-");
+  /**
+   * The size of the dispatch table.
+   *
+   * <p>The dispatch table </p>
+   */
+  public static final int DISPATCH_TABLE_SIZE = 6;
+
+
+  /**
+   * ‘.Generic’ is a length-one character vector naming the generic function.
+   */
+  public static final int GENERIC_DISPATCH_TABLE_INDEX = 0;
+
+
+  /**
+   * ‘.Class’ is a character vector of classes used to find the next
+   * method.  ‘NextMethod’ adds an attribute ‘"previous"’ to ‘.Class’
+   * giving the ‘.Class’ last used for dispatch, and shifts ‘.Class’
+   * along to that used for dispatch.
+   */
+  public static final int CLASS_DISPATCH_TABLE_INDEX = 1;
+
+  /**
+   * ‘.Method’ is a character vector (normally of length one) naming
+   * the method function.  (For functions in the group generic ‘Ops’ it
+   * is of length two.)
+   */
+  public static final int METHOD_DISPATCH_TABLE_INDEX = 2;
+
+  public static final int GROUP_DISPATCH_TABLE_INDEX = 3;
+
+  /**
+   * ‘.GenericCallEnv’ is the environment of the
+   * call to be generic.
+   */
+  public static final int GENERIC_CALL_ENV_TABLE_INDEX = 4;
+
+  /**
+   * ‘.GenericDefEnv’ is the environment of the
+   * defining the generic respectively. It is
+   * used to find methods registered for the generic
+   */
+  public static final int GENERIC_DEF_ENV_TABLE_INDEX = 5;
 
   public static final Symbol METHODS_TABLE = Symbol.get(".__S3MethodsTable__.");
 
   private static final Symbol NA_RM = Symbol.get("na.rm");
 
-  @Builtin
-  public static SEXP UseMethod(@Current Context context, @Current Environment rho, String genericMethodName) {
-    /*
-     * When object is not provided, it defaults to the first argument
-     * of the calling function
-     */
-    if(context.getArguments().length() == 0) {
-      return UseMethod(context, genericMethodName, Null.INSTANCE);
-
-    } else {
-      SEXP object = context.evaluate( context.getArguments().getElementAsSEXP(0),
-              context.getParent().getEnvironment());
-
-      return UseMethod(context, genericMethodName, object);
-    }
-  }
-
-  @Builtin
-  public static SEXP UseMethod(@Current Context context, String genericMethodName, SEXP object) {
-
-
-    return Resolver
-              .start(context, genericMethodName, object)
-              .withDefinitionEnvironment(((Closure) context.getFunction()).getEnclosingEnvironment())
-              .next()
-              .apply(context, context.getEnvironment());
-  }
 
   @Internal
   public static SEXP NextMethod(@Current Context context, @Current Environment env,
@@ -86,6 +100,17 @@ public class S3 {
            .withObjectArgument(object)
            .next()
            .applyNext(context, context.getEnvironment(), extraArgs);
+  }
+
+  public static StringVector computeObjectClass(Context context, SEXP object) {
+    StringVector objectClasses = computeDataClasses(context, object);
+    if(Types.isS4(object)) {
+      SEXP objectClassesS4 = S4.computeDataClassesS4(context, objectClasses.getElementAsString(0));
+      if (objectClassesS4 instanceof StringVector) {
+        return (StringVector) objectClassesS4;
+      }
+    }
+    return objectClasses;
   }
 
   /**
@@ -648,12 +673,12 @@ public class S3 {
     }
 
     public GenericMethod findNext() {
-      
+
       Environment methodTable = getMethodTable();
       GenericMethod method;
 
       for(String className : classes) {
-        
+
         method = findNext(methodTable, genericMethodName, className);
         if(method != null) {
           return method;
@@ -673,10 +698,10 @@ public class S3 {
       SEXP function = callingEnvironment.findFunction(context, method);
       if(function != null) {
         return new GenericMethod(this, method, className, (Function) function);
-        
+
       } else if(methodTable.hasVariable(method)) {
         return new GenericMethod(this, method, className, (Function) methodTable.getVariableUnsafe(method).force(context));
-      
+
       } else {
         return null;
       }
@@ -793,7 +818,8 @@ public class S3 {
                   promisedArgs, persistChain());
         } else {
           // primitive
-          return function.apply(callContext, callEnvironment, newCall, promisedArgs);
+//          return function.apply(callContext, callEnvironment, newCall, promisedArgs);
+          throw new UnsupportedOperationException("TODO");
         }
       } finally {
 
@@ -865,6 +891,91 @@ public class S3 {
       }
       int myIndex = resolver.classes.indexOf(className);
       return resolver.classes.subList(myIndex+1, resolver.classes.size());
+    }
+  }
+
+  public static SEXP[] initDispatchTable(Environment definitionEnvironment, SEXP generic, SEXP group, SEXP classes) {
+    SEXP[] table = new SEXP[DISPATCH_TABLE_SIZE];
+    table[GENERIC_DISPATCH_TABLE_INDEX] = generic;
+    table[CLASS_DISPATCH_TABLE_INDEX] = classes;
+    table[GROUP_DISPATCH_TABLE_INDEX] = group;
+    table[GENERIC_DEF_ENV_TABLE_INDEX] = definitionEnvironment;
+    return table;
+  }
+
+  public static Function findMethod(Context context,
+                                    Environment definitionEnvironment,
+                                    Environment callingEnvironment,
+                                    String genericMethodName,
+                                    String group,
+                                    Iterable<String> classes,
+                                    SEXP[] dispatchTable) {
+
+    Environment methodTable = findMethodTable(context, definitionEnvironment);
+    Function method;
+
+    for(String className : classes) {
+
+      method = findMethod(context, methodTable, callingEnvironment, genericMethodName, className, dispatchTable);
+      if(method != null) {
+        return method;
+      }
+      if(group != null) {
+        method = findMethod(context, methodTable, callingEnvironment, group, className, dispatchTable);
+        if(method != null) {
+          return method;
+        }
+      }
+    }
+
+    //---this is from nextOrDefault() //
+
+    // Look up the .default method first in the definition environment
+    Function function = findMethod(context, methodTable, definitionEnvironment, genericMethodName, "default", dispatchTable);
+    if(function != null) {
+      return function;
+    }
+
+    // Otherwise see if *another* package has defined a default method
+    function = findMethod(context, methodTable, callingEnvironment, genericMethodName, "default", dispatchTable);
+    if(function != null) {
+      dispatchTable[CLASS_DISPATCH_TABLE_INDEX] = Null.INSTANCE;
+      return function;
+    }
+
+    // as a last step, we call BACK into the primitive
+    // to get the default implementation  - ~ YECK ~
+    PrimitiveFunction primitive = Primitives.getBuiltin(genericMethodName);
+    if(primitive != null) {
+
+      dispatchTable[METHOD_DISPATCH_TABLE_INDEX] = StringVector.valueOf(genericMethodName + ".default");
+
+      return primitive;
+    }
+
+    return null;
+  }
+
+  private static Function findMethod(Context context,
+                                     Environment methodTable,
+                                     Environment callingEnvironment,
+                                     String name,
+                                     String className,
+                                     SEXP[] dispatchTable) {
+
+    String method = name + "." + className;
+    Symbol methodSymbol = Symbol.get(method);
+    Function function = callingEnvironment.findFunction(context, methodSymbol);
+    if(function != null) {
+      dispatchTable[METHOD_DISPATCH_TABLE_INDEX] = methodSymbol;
+      return function;
+
+    } else if(methodTable.hasVariable(methodSymbol)) {
+      dispatchTable[METHOD_DISPATCH_TABLE_INDEX] = methodSymbol;
+      return (Function) methodTable.getVariableUnsafe(methodSymbol).force(context);
+
+    } else {
+      return null;
     }
   }
 

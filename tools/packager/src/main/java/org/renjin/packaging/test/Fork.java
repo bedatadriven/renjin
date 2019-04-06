@@ -1,24 +1,25 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-${$file.lastModified.year} BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, a copy is available at
- * https://www.gnu.org/licenses/gpl-2.0.txt
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, a copy is available at
+ *  https://www.gnu.org/licenses/gpl-2.0.txt
+ *
  */
-package org.renjin.maven.test;
+package org.renjin.packaging.test;
 
-import org.apache.maven.plugin.logging.Log;
+import org.renjin.packaging.BuildLogger;
 import org.renjin.repackaged.guava.base.Charsets;
 
 import java.io.*;
@@ -26,7 +27,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 class Fork {
-  private final Log log;
+  private final BuildLogger log;
   private final Process process;
   private final DataOutputStream processChannel;
   private final ResultListener listener;
@@ -36,7 +37,7 @@ class Fork {
 
   private final ArrayBlockingQueue<ForkMessage> incomingQueue = new ArrayBlockingQueue<>(500);
 
-  public Fork(Log log, Process process) {
+  public Fork(BuildLogger log, Process process) {
     this.log = log;
     this.process = process;
     processChannel = new DataOutputStream(process.getOutputStream());
@@ -109,7 +110,7 @@ class Fork {
         if(ForkedTestController.DEBUG_FORKING) {
           log.debug("[CHANNEL] " + line);
         }
-        if (line.startsWith(TestExecutor.MESSAGE_PREFIX)) {
+        if (line.startsWith(ForkReporter.MESSAGE_PREFIX)) {
           try {
             incomingQueue.put(new ForkMessage(line));
           } catch (InterruptedException e) {

@@ -13,6 +13,7 @@ include 'math:lapack'
 include 'math:appl'
 
 include 'core'
+include 'repl'
 
 include 'packages:hamcrest'
 include 'packages:grDevices'

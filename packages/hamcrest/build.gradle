@@ -19,7 +19,7 @@
  */
 
 sourceSets {
-    namespace {
+    main {
         output.dir("$buildDir/namespace", builtBy: 'compileNamespace')
     }
 }
@@ -49,5 +49,20 @@ task compileNamespace(type: JavaExec) {
     environment "R_HOME", homeDir
 
     main = 'org.renjin.packaging.CorePackageBuilder'
+}
 
+task testPackage(type: JavaExec) {
+
+    classpath configurations.packager
+    classpath sourceSets.main.output
+
+    environment "TEST_REPORT_DIR", "$buildDir/renjin-test-reports"
+
+    args "$projectDir/src/test/R"
+
+    main = 'org.renjin.packaging.test.Main'
+
+    doFirst {
+        classpath.each { println it }
+    }
 }

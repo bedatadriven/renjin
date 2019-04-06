@@ -1,26 +1,25 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-${$file.lastModified.year} BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, a copy is available at
- * https://www.gnu.org/licenses/gpl-2.0.txt
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, a copy is available at
+ *  https://www.gnu.org/licenses/gpl-2.0.txt
+ *
  */
-package org.renjin.maven.test;
+package org.renjin.packaging.test;
 
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.plugin.logging.SystemStreamLog;
+import org.renjin.packaging.BuildLogger;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.base.Stopwatch;
 
@@ -41,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 public class ForkedTestController {
 
   public static final boolean DEBUG_FORKING = false;
-  private final Log log;
+  private final BuildLogger log;
 
   private long timeoutMillis = TimeUnit.MINUTES.toMillis(3);
 
@@ -53,11 +52,8 @@ public class ForkedTestController {
 
   private Fork fork;
 
-  public ForkedTestController() {
-    this(new SystemStreamLog());
-  }
 
-  public ForkedTestController(Log log) {
+  public ForkedTestController(BuildLogger log) {
     this.log = log;
   }
 
@@ -91,7 +87,7 @@ public class ForkedTestController {
     timeoutMillis = timeUnit.toMillis(timeout);
   }
 
-  public void executeTests(File testSourceDirectory) throws MojoExecutionException {
+  public void executeTests(File testSourceDirectory) throws Exception {
 
     log.info("Running tests in " + testSourceDirectory.getAbsolutePath());
 
@@ -108,7 +104,7 @@ public class ForkedTestController {
     }
   }
 
-  public void executeTest(File testFile) throws MojoExecutionException {
+  public void executeTest(File testFile) throws Exception {
 
     if(reporter == null) {
       reporter = new TestReporter(testReportsDirectory);
@@ -155,19 +151,19 @@ public class ForkedTestController {
         ForkMessage message = fork.readMessage(500, TimeUnit.MILLISECONDS);
         if (message != null) {
           switch (message.getType()) {
-            case TestExecutor.START_MESSAGE:
+            case ForkReporter.START_MESSAGE:
               reporter.testCaseStarting(message.getArgument());
               break;
 
-            case TestExecutor.FAIL_MESSAGE:
+            case ForkReporter.FAIL_MESSAGE:
               reporter.testCaseFailed();
               break;
 
-            case TestExecutor.PASS_MESSAGE:
+            case ForkReporter.PASS_MESSAGE:
               reporter.testCaseSucceeded();
               break;
 
-            case TestExecutor.DONE_MESSAGE:
+            case ForkReporter.DONE_MESSAGE:
               return true;
 
             default:
@@ -187,33 +183,27 @@ public class ForkedTestController {
       return false;
 
     } catch (Exception e) {
-      log.debug("ForkedTestController received exception while waiting for results.", e);
+      log.error("ForkedTestController received exception while waiting for results.", e);
       reporter.testCaseFailed();
       return false;
     }
   }
 
-  private void startFork() throws MojoExecutionException {
+  private void startFork() throws Exception {
 
-    try {
-
-      List<String> command = new ArrayList<>();
-      command.add("java");
-      if(argLine != null) {
-        command.add(argLine);
-      }
-      command.add(TestExecutor.class.getName());
-
-      ProcessBuilder processBuilder = new ProcessBuilder();
-      processBuilder.command(command);
-      processBuilder.environment().putAll(environmentVariables);
-      processBuilder.redirectErrorStream(true);
-
-      this.fork = new Fork(log, processBuilder.start());
-
-    } catch (Exception e) {
-      throw new MojoExecutionException("Could not start forked JVM", e);
+    List<String> command = new ArrayList<>();
+    command.add("java");
+    if(argLine != null) {
+      command.add(argLine);
     }
+    command.add(ForkMain.class.getName());
+
+    ProcessBuilder processBuilder = new ProcessBuilder();
+    processBuilder.command(command);
+    processBuilder.environment().putAll(environmentVariables);
+    processBuilder.redirectErrorStream(true);
+
+    this.fork = new Fork(log, processBuilder.start());
   }
 
   public void shutdown() {

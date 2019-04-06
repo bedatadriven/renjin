@@ -128,7 +128,7 @@ public class PackageSource {
   public static class Builder {
     private String defaultGroupId;
     private PackageSource source = new PackageSource();
-    
+
     private List<String> sourceFiles = null;
     
     public Builder(File baseDir) {

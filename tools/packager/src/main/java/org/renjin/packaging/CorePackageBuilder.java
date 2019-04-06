@@ -34,23 +34,42 @@ public class CorePackageBuilder implements BuildContext {
 
   public static void main(String[] args) throws IOException {
 
-    File packageDir = new File(".").getAbsoluteFile().getCanonicalFile();
-
-    System.out.println("PACKAGEDIR = " + packageDir.getName());
-
     PackageSource source = new PackageSource.Builder(new File("."))
         .setDefaultGroupId("org.renjin")
-        .setPackageName(packageDir.getName())
+        .setPackageName(packageNameFromWorkingDirectory())
+        .setSourceDir(detectSourcesDirectory())
+        .setNativeSourcesDir(detectNativeSourceDir())
         .build();
-
-
-    if(source.getPackageName().isEmpty() || source.getPackageName().equals(".")) {
-      throw new RuntimeException("packageName = " + source.getPackageName());
-    }
 
     CorePackageBuilder context = new CorePackageBuilder(source);
     PackageBuilder builder = new PackageBuilder(source, context);
     builder.build();
+  }
+
+
+  public static String packageNameFromWorkingDirectory() {
+    try {
+      File packageDir = new File(".").getAbsoluteFile().getCanonicalFile();
+      return packageDir.getName();
+    } catch (IOException e) {
+      throw new IllegalStateException("Could not get package name from working directory", e);
+    }
+  }
+
+  private static File detectSourcesDirectory() {
+    File sourceDir = new File("src/main/R");
+    if(sourceDir.exists() && sourceDir.isDirectory()) {
+      return sourceDir;
+    }
+    return new File("R");
+  }
+
+  private static File detectNativeSourceDir() {
+    File nativeSourceDir = new File("src/main/c");
+    if(nativeSourceDir.exists()) {
+      return nativeSourceDir;
+    }
+    return new File("src");
   }
 
   private final PackageSource source;
@@ -110,12 +129,12 @@ public class CorePackageBuilder implements BuildContext {
 
   @Override
   public File getUnpackedIncludesDir() {
-    throw new UnsupportedOperationException("TODO");
+    return new File("build/unpacked");
   }
 
   @Override
   public File getOutputDir() {
-    return new File("build/namespace/classes");
+    return new File("build/namespace");
   }
 
   @Override
@@ -125,7 +144,7 @@ public class CorePackageBuilder implements BuildContext {
 
   @Override
   public File getPackageOutputDir() {
-    return new File("build/namespace/classes/" +
+    return new File("build/namespace/" +
         source.getJavaPackageName().replace('.', '/'));
   }
 

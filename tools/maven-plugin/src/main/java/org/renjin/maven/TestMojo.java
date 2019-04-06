@@ -27,7 +27,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.renjin.maven.test.ForkedTestController;
+import org.renjin.packaging.test.ForkedTestController;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.Lists;
 
@@ -107,7 +107,7 @@ public class TestMojo extends AbstractMojo {
       defaultPackages = Lists.newArrayList();
     }
 
-    ForkedTestController controller = new ForkedTestController(getLog());
+    ForkedTestController controller = new ForkedTestController(new MavenBuildLogger(getLog()));
     controller.setArgLine(argLine);
     controller.setTimeout(timeoutInSeconds, TimeUnit.SECONDS);
     controller.setDefaultPackages(defaultPackages);
@@ -115,10 +115,14 @@ public class TestMojo extends AbstractMojo {
     controller.setNamespaceUnderTest(namespaceName);
     controller.setOutputLimit(outputLimit);
     controller.setTestReportDirectory(reportsDirectory);
-    
-    controller.executeTests(testSourceDirectory);
-    controller.executeTests(documentationDirectory);
-    controller.shutdown();
+
+    try {
+      controller.executeTests(testSourceDirectory);
+      controller.executeTests(documentationDirectory);
+      controller.shutdown();
+    } catch (Exception e) {
+      throw new MojoExecutionException("Failed to run fork", e);
+    }
     
     if(!controller.allTestsSucceeded()) {
       if(testFailureIgnore) {

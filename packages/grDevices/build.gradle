@@ -19,7 +19,7 @@
  */
 
 sourceSets {
-    namespace {
+    main {
         output.dir("$buildDir/namespace", builtBy: 'compileNamespace')
     }
 }
@@ -30,17 +30,46 @@ configurations {
 
 dependencies {
     packager project(':tools:packager')
+    compile project(':core')
+    compile 'org.jfree:jfreesvg:3.3'
+
+    testCompile project(':packages:hamcrest')
 }
+
+def homeDir = rootProject.file('tools/gnur-installation/src/main/resources')
+
+
 
 task compileNamespace(type: JavaExec) {
 
     inputs.file 'NAMESPACE'
-    inputs.dir 'src/main/c'
+    if(project.file('src/main/c').exists()) {
+        inputs.dir 'src/main/c'
+    }
     inputs.dir 'src/main/R'
+    inputs.dir homeDir
     outputs.dir "$buildDir/namespace"
 
     classpath configurations.packager
 
-    main = 'org.renjin.packaging.CorePackageBuilder'
+    environment "R_HOME", homeDir
 
+    main = 'org.renjin.packaging.CorePackageBuilder'
+}
+
+task testPackage(type: JavaExec) {
+
+    classpath configurations.packager
+    classpath configurations.testRuntime
+    classpath sourceSets.main.output
+
+    environment "TEST_REPORT_DIR", "$buildDir/renjin-test-reports"
+
+    args "$projectDir/src/test/R"
+
+    main = 'org.renjin.packaging.test.Main'
+
+    doFirst {
+        classpath.each { println it }
+    }
 }

@@ -17,13 +17,11 @@
  *  https://www.gnu.org/licenses/gpl-2.0.txt
  *
  */
+package org.renjin.packaging.test;
 
-
-
-dependencies {
-    compile project(':core')
-    compile project(':repl')
-    compile project(':tools:gnur-compiler')
-    compile 'org.json:json:20180130'
-    compile libraries.soot
+public enum TestOutcome {
+  SUCCESS,
+  ERROR,
+  FAILURE,
+  SKIPPED
 }

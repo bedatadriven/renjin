@@ -19,6 +19,7 @@
 package org.renjin.maven.test;
 
 import junit.framework.TestCase;
+import org.renjin.packaging.test.TestExecutor;
 import org.renjin.repackaged.guava.io.Files;
 import org.renjin.repackaged.guava.io.Resources;
 

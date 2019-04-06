@@ -1,22 +1,23 @@
 /*
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-${$file.lastModified.year} BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, a copy is available at
- * https://www.gnu.org/licenses/gpl-2.0.txt
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, a copy is available at
+ *  https://www.gnu.org/licenses/gpl-2.0.txt
+ *
  */
-package org.renjin.maven.test;
+package org.renjin.packaging.test;
 
 import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
@@ -24,9 +25,9 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
+import org.renjin.packaging.CorePackageBuilder;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Charsets;
-import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.base.Throwables;
 import org.renjin.repackaged.guava.io.Files;
@@ -51,38 +52,30 @@ public class TestExecutor {
   public static final String DEFAULT_PACKAGES = "DEFAULT_PACKAGES";
   public static final String OUTPUT_LIMIT = "OUTPUT_LIMIT";
 
-
-  public static final String MESSAGE_PREFIX = "!!@@@@####";
-  public static final String PASS_MESSAGE = "PASS";
-  public static final String FAIL_MESSAGE = "FAIL";
-  public static final String DONE_MESSAGE = "DONE";
-  public static final String START_MESSAGE = "START";
-
-
   private String namespaceUnderTest;
   private File testReportDirectory;
   private List<String> defaultPackages;
   private int maxOutputBytes = Integer.MAX_VALUE;
 
+  private TestListener listener;
 
-  public static void main(String[] args) throws IOException {
-    TestExecutor executor = new TestExecutor();
-    executor.execute();
-  }
-
-  public TestExecutor() {
+  public TestExecutor(TestListener listener) {
+    this.listener = listener;
     namespaceUnderTest = System.getenv(NAMESPACE_UNDER_TEST);
+    if(Strings.isNullOrEmpty(namespaceUnderTest)) {
+      namespaceUnderTest = CorePackageBuilder.packageNameFromWorkingDirectory();
+    }
     testReportDirectory = new File(System.getenv(TEST_REPORT_DIR));
     if(Strings.isNullOrEmpty(System.getenv(DEFAULT_PACKAGES))) {
       defaultPackages = Collections.emptyList();
     } else {
       defaultPackages = Arrays.asList(System.getenv(DEFAULT_PACKAGES).split(","));
       for (String defaultPackage : defaultPackages) {
-        debug("Default package: " + defaultPackage);
+        listener.debug("Default package: " + defaultPackage);
       }
     }
     
-    if(!Strings.isNullOrEmpty(System.getenv(DEFAULT_PACKAGES))) {
+    if(!Strings.isNullOrEmpty(System.getenv(OUTPUT_LIMIT))) {
       maxOutputBytes = Integer.parseInt(System.getenv(OUTPUT_LIMIT));
     } else {
       maxOutputBytes = MAX_DEFAULT_BYTES;
@@ -95,36 +88,6 @@ public class TestExecutor {
     this.defaultPackages = defaultPackages;
   }
 
-  public void execute() throws IOException {
-
-    debug("Starting execution...");
-
-    DataInputStream inputStream = new DataInputStream(System.in);
-
-    try {
-      while (true) {
-        debug("Waiting for command...");
-        String testFilePath = inputStream.readUTF();
-
-        debug("Received command: " + testFilePath);
-
-        executeTest(new File(testFilePath));
-      }
-    } catch (EOFException e) {
-      debug("EOF Caught, exiting.");
-    }
-  }
-
-  private void debug(final String message) {
-    if(ForkedTestController.DEBUG_FORKING) {
-      System.err.println("[EXECUTOR] " + message);
-    }
-  }
-
-  private void sendMessage(String message, String... arguments) {
-    System.out.println(MESSAGE_PREFIX + message + MESSAGE_PREFIX + Joiner.on(MESSAGE_PREFIX).join(arguments));
-    System.out.flush();
-  }
 
   @VisibleForTesting
   void executeTest(File testFile) throws IOException {
@@ -135,10 +98,27 @@ public class TestExecutor {
       executeTestFile(testFile, Files.toString(testFile, Charsets.UTF_8));
     }
 
-    sendMessage(DONE_MESSAGE);
+    listener.done();
+  }
+
+  public void executeTestDir(File dir) throws IOException {
+    File[] files = dir.listFiles();
+    if(files != null) {
+      for (File file : files) {
+        if(file.getName().toLowerCase().endsWith(".r") ||
+           file.getName().toLowerCase().endsWith(".rd")) {
+          executeTest(file);
+        }
+      }
+    }
   }
 
   private PrintStream openTestOutput(File testFile) {
+
+    if(!testReportDirectory.exists()) {
+      testReportDirectory.mkdirs();
+    }
+
     try {
       return new PrintStream(
           new CappedOutputStream(maxOutputBytes, new FileOutputStream(
@@ -192,7 +172,7 @@ public class TestExecutor {
         return;
       }
 
-      sendMessage(START_MESSAGE, TestCaseResult.ROOT_TEST_CASE);
+      listener.start(TestCaseResult.ROOT_TEST_CASE);
 
       Session session = createSession(testOutput, sourceFile.getParentFile());
       session.getOptions().set("device", graphicsDevice(session, sourceFile));
@@ -214,11 +194,11 @@ public class TestExecutor {
 
       try {
         repl.run();
-        sendMessage(PASS_MESSAGE);
+        listener.pass();
 
       } catch (Throwable e) {
         e.printStackTrace(testOutput);
-        sendMessage(FAIL_MESSAGE);
+        listener.fail();
 
         if(e instanceof OutOfMemoryError) {
           throw (OutOfMemoryError)e;
@@ -270,9 +250,9 @@ public class TestExecutor {
   private void executeTestFunction(Context context, Symbol name, PrintStream testOutput) {
     try {
       testOutput.print("Executing " + name.getPrintName() + "... ");
-      sendMessage(START_MESSAGE, name.getPrintName());
+      listener.start(name.getPrintName());
       context.evaluate(FunctionCall.newCall(name));
-      sendMessage(PASS_MESSAGE);
+      listener.pass();
       testOutput.println("PASSED");
       
     } catch (EvalException e) {
@@ -280,13 +260,13 @@ public class TestExecutor {
       testOutput.println("FAILED");
       testOutput.println("ERROR: " + e.getMessage());
       e.printRStackTrace(testOutput);
-      sendMessage(FAIL_MESSAGE);
+      listener.fail();
 
     } catch(Error e) {
       // Oops, we crashed the VM...
       testOutput.println("FAILED");
       e.printStackTrace(testOutput);
-      sendMessage(FAIL_MESSAGE);
+      listener.fail();
 
       // Abort...
       throw e;
@@ -296,7 +276,7 @@ public class TestExecutor {
       testOutput.println("FAILED");
       testOutput.println("UNCAUGHT EXCEPTION: " + e.getMessage());
       e.printStackTrace(testOutput);
-      sendMessage(FAIL_MESSAGE);
+      listener.fail();
     }
   }
 
@@ -336,4 +316,5 @@ public class TestExecutor {
 
     return session;
   }
+
 }

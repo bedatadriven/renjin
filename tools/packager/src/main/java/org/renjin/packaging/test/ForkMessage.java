@@ -17,13 +17,21 @@
  *  https://www.gnu.org/licenses/gpl-2.0.txt
  *
  */
+package org.renjin.packaging.test;
 
+class ForkMessage {
 
+  private final String[] parts;
 
-dependencies {
-    compile project(':core')
-    compile project(':repl')
-    compile project(':tools:gnur-compiler')
-    compile 'org.json:json:20180130'
-    compile libraries.soot
+  ForkMessage(String line) {
+    parts = line.substring(ForkReporter.MESSAGE_PREFIX.length()).split(ForkReporter.MESSAGE_PREFIX);
+  }
+
+  public String getType() {
+    return parts[0];
+  }
+
+  public String getArgument() {
+    return parts[1];
+  }
 }

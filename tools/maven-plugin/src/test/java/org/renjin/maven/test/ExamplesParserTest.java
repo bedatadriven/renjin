@@ -20,6 +20,8 @@ package org.renjin.maven.test;
 
 
 import junit.framework.TestCase;
+import org.renjin.packaging.test.ExamplesParser;
+import org.renjin.packaging.test.TestExecutor;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.io.Files;
 

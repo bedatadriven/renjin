@@ -489,6 +489,10 @@ public class Stdlib {
     return snprintf(string, Integer.MAX_VALUE, format, arguments);
   }
 
+  public static int vsnprintf(BytePtr string, int limit, BytePtr format, Object... arguments) {
+    return snprintf(string, limit, format, arguments);
+  }
+
   public static int snprintf(BytePtr string, int limit, BytePtr format, Object... arguments) {
     return sprintf(string, limit, format, f -> new FormatArrayInput(arguments));
   }

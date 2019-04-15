@@ -36,13 +36,17 @@ public class GenericDispatchStrategy {
     this.codeModel = codeModel;
   }
 
-  public void afterFirstArgIsEvaluated(ApplyMethodContext context, JExpression functionCall, JExpression arguments,
-                                       JBlock parent, JExpression argument) {
+  public void afterFirstArgIsEvaluated(ApplyMethodContext context,
+                                       JExpression functionCall,
+                                       JExpression firstArgument,
+                                       JExpression argNamesArray,
+                                       JExpression argArray,
+                                       JBlock parent) {
 
   }
 
   public void beforeTypeMatching(ApplyMethodContext context, JExpression functionCall,
-                                 List<JExpression> arguments, JBlock parent) {
+                                 List<JExpression> arguments, JVar argNamesArray, JVar argsArray, JBlock parent) {
 
 
   }
@@ -53,7 +57,7 @@ public class GenericDispatchStrategy {
     return JExpr.invoke(cast(codeModel.ref(AbstractSEXP.class), argument), "isObject");
   }
 
-  public void beforePrimitiveCalled(JBlock parent, VarArgParser args, ApplyMethodContext context, JExpression call) {
+  public void beforePrimitiveCalled(JBlock parent, VarArgParser args, ApplyMethodContext context, JExpression call, JVar argNamesArray, JVar argsArray) {
 
   }
 }

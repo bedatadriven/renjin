@@ -19,6 +19,7 @@
 package org.renjin.sexp;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.CompilerSpecialization;
 import org.renjin.invoke.annotations.Current;
@@ -44,18 +45,13 @@ public final class FunctionEnvironment extends Environment {
   private final SEXP[] arguments;
 
   private final SEXP[] locals;
-
-  /**
-   * An array of values that are set when dispatching to an S3 dispatch.
-   *
-   * <p>See {@link org.renjin.primitives.S3#CLASS_DISPATCH_TABLE_INDEX} and friends.</p>
-   */
-  private final SEXP[] dispatchTable;
+  private final DispatchTable dispatchTable;
 
   /**
    * A map to store bindings of variables not identified at compile time. It is only allocated if needed.
    */
   private IdentityHashMap<Symbol, SEXP> overflow = null;
+
 
   @CompilerSpecialization
   public static FunctionEnvironment compiledInit(Environment parent, SEXP variableNames, SEXP[] arguments) {
@@ -83,12 +79,12 @@ public final class FunctionEnvironment extends Environment {
 
 
 
-  public FunctionEnvironment(Environment parent, SEXP[] localNames, SEXP[] arguments, SEXP[] locals, SEXP[] dispatchTable) {
+  public FunctionEnvironment(Environment parent, SEXP[] localNames, SEXP[] arguments, SEXP[] locals, DispatchTable dispatch) {
     super(parent, null, AttributeMap.EMPTY);
     this.localNames = localNames;
     this.arguments = arguments;
     this.locals = locals;
-    this.dispatchTable = dispatchTable;
+    this.dispatchTable = dispatch;
   }
 
   public SEXP[] getArguments() {
@@ -259,6 +255,9 @@ public final class FunctionEnvironment extends Environment {
     if(overflow != null) {
       symbols.addAll(overflow.keySet());
     }
+    if(dispatchTable != null) {
+      throw new UnsupportedOperationException("TODO");
+    }
 
     return symbols;
   }
@@ -271,10 +270,13 @@ public final class FunctionEnvironment extends Environment {
     } else {
       if(overflow != null) {
         return overflow.containsKey(symbol);
-      } else {
-        return false;
       }
     }
+
+    if(symbol.isDispatchMetadata()) {
+      throw new UnsupportedOperationException("TODO");
+    }
+    return false;
   }
 
   @Override
@@ -291,6 +293,11 @@ public final class FunctionEnvironment extends Environment {
         return value;
       }
     }
+
+    if(symbol.isDispatchMetadata() && dispatchTable != null) {
+      return dispatchTable.get(symbol);
+    }
+
     return Symbol.UNBOUND_VALUE;
   }
 
@@ -364,22 +371,12 @@ public final class FunctionEnvironment extends Environment {
     return arguments.length;
   }
 
-  public SEXP[] cloneArgumentArray() {
-    return Arrays.copyOf(arguments, arguments.length);
-  }
-
-  public String[] cloneArgumentNameArray() {
-    String[] names = new String[arguments.length];
-    for (int i = 0; i < arguments.length; i++) {
-      if(localNames[i] != null) {
-        names[i] = ((Symbol) localNames[i]).getPrintName();
-      }
-    }
-    return names;
-  }
-
   public SEXP getFormalName(int i) {
     assert i < arguments.length;
     return localNames[i];
+  }
+
+  public DispatchTable getDispatchTable() {
+    return dispatchTable;
   }
 }

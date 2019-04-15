@@ -19,6 +19,7 @@
 package org.renjin.primitives.combine;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.primitives.S3;
@@ -41,7 +42,7 @@ public abstract class AbstractBindFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
 
     int deparseLevel = WrapperRuntime.convertToInt(promisedArguments[0].force(context));
 

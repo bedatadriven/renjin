@@ -28,7 +28,8 @@ import org.renjin.sexp.SEXP;
 
 import java.util.List;
 
-import static com.sun.codemodel.JExpr.*;
+import static com.sun.codemodel.JExpr._new;
+import static com.sun.codemodel.JExpr.lit;
 
 /**
  * Implements the apply() method of {@code PrimitiveFunction} for methods
@@ -59,7 +60,7 @@ public class FixedArityApplyBuilder extends ApplyMethodBuilder {
       arguments.add(argument);
 
       if(i == 0) {
-        genericDispatchStrategy.afterFirstArgIsEvaluated(this, call, args, parent, argument);
+        genericDispatchStrategy.afterFirstArgIsEvaluated(this, call, argument, argNamesArray, argsArray, parent);
       }
     }
 
@@ -74,7 +75,7 @@ public class FixedArityApplyBuilder extends ApplyMethodBuilder {
   }
 
   private void arityMatches(JBlock parent, List<JExpression> arguments) {
-    genericDispatchStrategy.beforeTypeMatching(this, call, arguments, parent);
+    genericDispatchStrategy.beforeTypeMatching(this, call, arguments, argNamesArray, argsArray, parent);
     parent._return(invokeWrapper(arguments));
   }
 
@@ -89,6 +90,6 @@ public class FixedArityApplyBuilder extends ApplyMethodBuilder {
   }
 
   private JExpression lastArgument() {
-    return invoke(argumentIterator, "hasNext").not();
+    return argumentIndex.eq(argsArray.ref("length"));
   }
 }

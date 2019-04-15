@@ -21,13 +21,13 @@ package org.renjin.invoke.codegen;
 
 import com.sun.codemodel.*;
 import org.renjin.eval.Context;
+import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.codegen.generic.*;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 
 import static com.sun.codemodel.JExpr._new;
@@ -40,11 +40,12 @@ public abstract class ApplyMethodBuilder implements ApplyMethodContext {
   protected JVar context;
   protected JVar environment;
   protected JVar call;
-  protected JVar args;
+  protected JVar argNamesArray;
+  protected JVar argsArray;
   protected PrimitiveModel primitive;
   protected JMethod method;
 
-  protected JVar argumentIterator;
+  protected JVar argumentIndex;
   protected GenericDispatchStrategy genericDispatchStrategy;
 
 
@@ -64,12 +65,7 @@ public abstract class ApplyMethodBuilder implements ApplyMethodContext {
     mainTryBlock.catchRuntimeExceptions();
     mainTryBlock.catchExceptions();
 
-    argumentIterator = mainTryBlock.body().decl(classRef(ArgumentIterator.class), "argIt",
-            _new(classRef(ArgumentIterator.class))
-                    .arg(context)
-                    .arg(environment)
-                    .arg(args));
-
+    argumentIndex = mainTryBlock.body().decl(codeModel.INT, "argumentIndex", JExpr.lit(0));
 
     apply(mainTryBlock.body());
 
@@ -90,7 +86,9 @@ public abstract class ApplyMethodBuilder implements ApplyMethodContext {
     context = method.param(Context.class, "context");
     environment = method.param(Environment.class, "environment");
     call = method.param(FunctionCall.class, "call");
-    args = method.param(PairList.class, "args");
+    argNamesArray = method.param(String[].class, "argumentNames");
+    argsArray = method.param(SEXP[].class, "arguments");
+    method.param(DispatchTable.class, "dispatch");
   }
 
   protected void apply(JBlock parent) {
@@ -101,11 +99,9 @@ public abstract class ApplyMethodBuilder implements ApplyMethodContext {
    * Extracts the next argument at {@code positionalIndex} into a SEXP expression
    */
   protected JExpression nextArgAsSexp(boolean evaluated) {
-    if(evaluated) {
-      return JExpr.invoke(argumentIterator, "evalNext");
-    } else {
-      return JExpr.invoke(argumentIterator, "next");
-    }
+    assert evaluated : "evalauted";
+    JExpression component = argsArray.component(argumentIndex.incr());
+    return component.invoke("force").arg(context);
   }
 
   public void catchArgumentExceptions(ExceptionWrapper mainTryBlock) {

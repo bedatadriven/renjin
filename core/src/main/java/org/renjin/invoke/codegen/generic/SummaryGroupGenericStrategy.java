@@ -37,18 +37,19 @@ public class SummaryGroupGenericStrategy extends GenericDispatchStrategy {
 
 
   @Override
-  public void beforePrimitiveCalled(JBlock parent, VarArgParser args, ApplyMethodContext context, JExpression call) {
+  public void beforePrimitiveCalled(JBlock parent, VarArgParser args, ApplyMethodContext context, JExpression call, JVar argNamesArray, JVar argsArray) {
     JBlock isObject = parent._if(args.getVarArgBuilder().invoke("length").gt(lit(0))
             .cand(fastIsObject(args.getVarArgList().invoke("getElementAsSEXP").arg(lit(0)))))._then();
     JVar genericResult = isObject.decl(codeModel.ref(SEXP.class), "genericResult",
             codeModel.ref(S3.class)
-                    .staticInvoke("tryDispatchSummaryFromPrimitive")
+                    .staticInvoke("tryDispatchFromSummary")
                     .arg(context.getContext())
                     .arg(context.getEnvironment())
                     .arg(call)
+                    .arg("Summary")
                     .arg(lit(name))
-                    .arg(args.getVarArgList())
-                    .arg(args.getNamedFlagJExp("na.rm")));
+                    .arg(argNamesArray)
+                    .arg(argsArray));
     isObject._if(genericResult.ne(JExpr._null()))
             ._then()
             ._return(genericResult);

@@ -52,7 +52,7 @@ public final class Symbol extends AbstractSEXP {
    * Hash bit for very frequently used and very rarely redefined 
    * primitives. 
    */
-  private static final int NUM_RESERVED_BITS = 4;
+  private static final int NUM_RESERVED_BITS = 5;
   
   static { 
     TABLE = new ConcurrentHashMap<>();
@@ -145,6 +145,16 @@ public final class Symbol extends AbstractSEXP {
         "nargs",
         "unique",
         "formals");
+
+
+    // These are symbols that are set during the method selection process.
+    // Since they are infrequently accessed, we need a quick way to determine
+    // whether they are being accessed and require the relatively slow lookup
+    addReserved(4,
+        ".Group",
+        ".Class",
+        ".Method",
+        ".Generic");
   }
   
   private static void addReserved(int hashBit, String... names) {
@@ -295,5 +305,9 @@ public final class Symbol extends AbstractSEXP {
    */
   public int getVarArgReferenceIndex() {
     return Integer.parseInt(printName.substring(2));
+  }
+
+  public boolean isDispatchMetadata() {
+    return hashBit == (1<<4);
   }
 }

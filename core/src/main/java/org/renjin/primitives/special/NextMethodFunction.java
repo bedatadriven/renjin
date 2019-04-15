@@ -25,28 +25,23 @@ import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
-public class MissingFunction extends SpecialFunction {
-
-  public MissingFunction() {
-    super("missing");
+public class NextMethodFunction extends SpecialFunction {
+  public NextMethodFunction() {
+    super("NextMethod");
   }
 
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
 
-    PairList arguments = call.getArguments();
-    if(arguments == Null.INSTANCE) {
-      throw new EvalException("0 arguments passed to 'missing' which requires 1");
+    FunctionEnvironment functionEnvironment;
+    try {
+      functionEnvironment = (FunctionEnvironment) rho;
+    } catch (ClassCastException ignored) {
+      throw new EvalException("'NextMethod' called from outside a function");
     }
 
-    SEXP argument = ((PairList.Node) arguments).getValue();
-    if(!(argument instanceof Symbol) || !(rho instanceof FunctionEnvironment)) {
-      throw new EvalException("'missing' can only be used for arguments");
-    }
+    DispatchTable dispatchTable = functionEnvironment.getDispatchTable();
 
-    Symbol symbol = (Symbol) argument;
-    FunctionEnvironment functionEnvironment = (FunctionEnvironment) rho;
-
-    return LogicalVector.valueOf(functionEnvironment.isMissingArgument(context, symbol));
+    throw new UnsupportedOperationException("TODO");
   }
 }

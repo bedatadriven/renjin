@@ -19,6 +19,7 @@
 package org.renjin.sexp;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 
 import java.util.ArrayList;
@@ -52,9 +53,10 @@ public interface Function extends SEXP, Recursive {
    * @param call the original function call
    * @param argumentNames the names of the arguments
    * @param promisedArguments an array of the arguments, promised in the caller's environment
+   * @param dispatch
    * @return the function's result
    */
-  default SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments) {
+  default SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
     PairList.Builder args = new PairList.Builder();
     for (int i = 0; i < promisedArguments.length; i++) {
       args.add(argumentNames[i], ((Promise) promisedArguments[i]).getExpression());
@@ -96,7 +98,7 @@ public interface Function extends SEXP, Recursive {
       }
     }
 
-    return apply(context, rho, call, argumentNames.toArray(new String[0]), arguments.toArray(new SEXP[0]));
+    return apply(context, rho, call, argumentNames.toArray(new String[0]), arguments.toArray(new SEXP[0]), null);
   }
 
 }

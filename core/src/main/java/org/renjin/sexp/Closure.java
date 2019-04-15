@@ -77,11 +77,7 @@ public class Closure extends AbstractSEXP implements Function {
     visitor.visit(this);
   }
 
-  public SEXP apply(Context callingContext, Environment callingEnvironment, FunctionCall call, String[] argNames, SEXP[] args) {
-    return apply(callingContext, callingEnvironment, call, argNames, args, null);
-  }
-
-  public SEXP apply(Context callingContext, Environment callingEnvironment, FunctionCall call, String[] argNames, SEXP[] args, SEXP[] dispatchTable) {
+  public SEXP apply(Context callingContext, Environment callingEnvironment, FunctionCall call, String[] argNames, SEXP[] args, DispatchTable dispatch) {
 
     if(this.matcher == null) {
       this.matcher = new ArgumentMatcher(getFormals());
@@ -114,7 +110,8 @@ public class Closure extends AbstractSEXP implements Function {
         formalSymbols,
         arguments,
         locals,
-        dispatchTable);
+        dispatch
+    );
 
     Context functionContext = callingContext.beginFunction(
         callingEnvironment,

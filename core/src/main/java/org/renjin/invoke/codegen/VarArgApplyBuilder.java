@@ -44,7 +44,7 @@ public class VarArgApplyBuilder extends ApplyMethodBuilder {
     convertArgs(parser.getArgumentProcessingBlock());
 
     // try S3 dispatch
-    genericDispatchStrategy.beforePrimitiveCalled(parent, parser, this, call);
+    genericDispatchStrategy.beforePrimitiveCalled(parent, parser, this, call, argNamesArray, argsArray);
 
     // finally invoke the underlying function
     JInvocation invocation = classRef(overload.getDeclaringClass()).staticInvoke(overload.getName());
@@ -63,7 +63,7 @@ public class VarArgApplyBuilder extends ApplyMethodBuilder {
     for(VarArgParser.PositionalArg posArgument : parser.getPositionalArguments()) {
       parent.assign(posArgument.getVariable(), convert(posArgument.getFormal(), nextArgAsSexp(posArgument.getFormal().isEvaluated())));
       if(posIndex == 0) {
-        genericDispatchStrategy.afterFirstArgIsEvaluated(this, call, args, parent, posArgument.getVariable());
+        genericDispatchStrategy.afterFirstArgIsEvaluated(this, call, posArgument.getVariable(), argNamesArray, argsArray, parent);
       }
       posIndex++;
     }
@@ -78,11 +78,13 @@ public class VarArgApplyBuilder extends ApplyMethodBuilder {
   private void matchVarArg(JVar firstArgVar, JBlock block) {
 
     JExpression evaluateCall;
-    if(primitive.isMissingAllowedInVarArgs()) {
-      evaluateCall = argumentIterator.invoke("evalNextOrMissing");
-    } else {
-      evaluateCall = argumentIterator.invoke("evalNext");
-    }
+//    if(primitive.isMissingAllowedInVarArgs()) {
+//      evaluateCall = argumentIterator.invoke("evalNextOrMissing");
+//    } else {
+//      evaluateCall = argumentIterator.invoke("evalNext");
+//    }
+
+    evaluateCall = nextArgAsSexp(true);
 
     JVar evaluated = block.decl(classRef(SEXP.class), "evaluated", evaluateCall);
 
@@ -90,11 +92,11 @@ public class VarArgApplyBuilder extends ApplyMethodBuilder {
     // the first argument for dispatch
     if(parser.getPositionalArguments().isEmpty()) {
       JBlock firstArgBlock = block._if(firstArgVar)._then();
-      genericDispatchStrategy.afterFirstArgIsEvaluated(this, call, args, firstArgBlock, evaluated);
+      genericDispatchStrategy.afterFirstArgIsEvaluated(this, call, evaluated, argNamesArray, argsArray, firstArgBlock);
       block.assign(firstArgVar, JExpr.FALSE);
     }
 
-    JVar name = block.decl(classRef(String.class), "name", argumentIterator.invoke("getCurrentName"));
+    JVar name = block.decl(classRef(String.class), "name", argNamesArray.component(argumentIndex));
 
     // otherwise we may need to check it against named flags
     IfElseBuilder matchSequence = new IfElseBuilder(block);
@@ -107,7 +109,7 @@ public class VarArgApplyBuilder extends ApplyMethodBuilder {
   }
 
   private JExpression hasMoreArguments() {
-    return argumentIterator.invoke("hasNext");
+    return argumentIndex.plus(lit(1)).lt(argsArray.ref("length"));
   }
 
   private JExpression convert(JvmMethod.Argument formal, JExpression sexp) {

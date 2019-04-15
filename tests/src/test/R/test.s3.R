@@ -163,6 +163,33 @@ test.class.value <- function() {
     assertThat(e2$.Group, identicalTo(""))
 }
 
+test.method.value <- function() {
+    `<.foo` <- function(x, y) as.list(environment(), all.names=T)
+    `<.bar` <- function(x, y) as.list(environment(), all.names=T)
+
+    foo <- structure(33, class=c('foo', 'bar', 'baz'))
+    bar <- structure(99, class='bar')
+    baz <- structure(34, class=c('baz', 'foo'))
+
+    e1 <- (foo < baz)
+    assertThat(e1$.Generic, identicalTo("<"))
+    assertThat(e1$.Group, identicalTo(""))
+    assertThat(e1$.Class, identicalTo(c('foo', 'bar', 'baz')))
+    assertThat(e1$.Method, identicalTo(c('<.foo', '<.foo')))
+
+    e2 <- (foo < 3)
+    assertThat(e2$.Generic, identicalTo("<"))
+    assertThat(e2$.Group, identicalTo(""))
+    assertThat(e2$.Class, identicalTo(c('foo', 'bar', 'baz')))
+    assertThat(e2$.Method, identicalTo(c('<.foo', '')))
+
+
+    # Incompatible methods
+    e3 <- (foo < bar)
+
+    assertThat(e3, identicalTo(TRUE))
+}
+
 test.s3.reorder.args <- function() {
 
      f.default <- function(y, x) c(x, y)

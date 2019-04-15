@@ -25,6 +25,8 @@ import org.renjin.sexp.SEXP;
 
 import java.util.List;
 
+import static com.sun.codemodel.JExpr.lit;
+
 /**
  * The 'Ops' group requires special treatment because they are always unary or binary,
  * and dispatch on either the first or second argument, which are always evaluated.
@@ -41,19 +43,19 @@ public class OpsGroupGenericDispatchStrategy extends GenericDispatchStrategy {
 
   @Override
   public void beforeTypeMatching(ApplyMethodContext context,
-                                 JExpression functionCall, List<JExpression> arguments,
-                                 JBlock parent) {
+                                 JExpression functionCall,
+                                 List<JExpression> arguments,
+                                 JVar argNamesArray, JVar argsArray, JBlock parent) {
 
     JInvocation dispatchInvocation = codeModel.ref(S3.class)
-            .staticInvoke("tryDispatchOpsFromPrimitive")
-            .arg(context.getContext())
-            .arg(context.getEnvironment())
-            .arg(functionCall)
-            .arg(JExpr.lit(name));
-
-    for(JExpression arg : arguments) {
-      dispatchInvocation.arg(arg);
-    }
+            .staticInvoke("tryDispatchFromPrimitive")
+              .arg(context.getContext())
+              .arg(context.getEnvironment())
+              .arg(functionCall)
+              .arg(lit("Ops"))
+              .arg(lit(name))
+              .arg(argNamesArray)
+              .arg(argsArray);
 
     JBlock ifObjects = parent._if(anyObjects(arguments))._then();
     JVar dispatchResult = ifObjects.decl(codeModel.ref(SEXP.class), "genericResult", dispatchInvocation);

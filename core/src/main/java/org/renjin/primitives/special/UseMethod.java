@@ -21,6 +21,7 @@
 package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.primitives.Contexts;
@@ -32,8 +33,6 @@ import java.util.List;
 
 public class UseMethod extends SpecialFunction {
 
-  private static final SEXP NO_GROUP_SEXP = StringVector.valueOf("");
-
   public UseMethod() {
     super("UseMethod");
   }
@@ -41,7 +40,7 @@ public class UseMethod extends SpecialFunction {
   @Override
   public SEXP apply(Context context, Environment callingEnvironment, FunctionCall call,
                     String[] useMethodArgNames,
-                    SEXP[] useMethodArgs) {
+                    SEXP[] useMethodArgs, DispatchTable dispatch) {
 
     if(useMethodArgNames.length == 0) {
       throw new EvalException("there must be a 'generic' argument");
@@ -106,12 +105,12 @@ public class UseMethod extends SpecialFunction {
      *
      * We store it as an array.
      */
-    SEXP[] dispatchTable = S3.initDispatchTable(definitionEnvironment, genericSexp, NO_GROUP_SEXP, classes);
+    DispatchTable dispatchTable = new DispatchTable(definitionEnvironment, generic, classes);
 
     /*
      * Find the method!
      */
-    Function method = S3.findMethod(context, definitionEnvironment, callingEnvironment, generic, "", classes, dispatchTable);
+    Function method = S3.findMethod(context, definitionEnvironment, callingEnvironment, generic, "", classes, true, dispatchTable);
     if(method == null) {
       throw new EvalException("no applicable method for '%s' applied to an object of class \"%s\"",
           generic, classes.toString());
@@ -183,31 +182,14 @@ public class UseMethod extends SpecialFunction {
      * For example, if you have a stack which looks like foo(x) -> UseMethod('foo') -> foo.default(x) then
      * the foo.default function will have a call of foo.default(x) visible to sys.call() and match.call()
      */
-    FunctionCall newCall = new FunctionCall(dispatchTable[S3.METHOD_DISPATCH_TABLE_INDEX], callingArguments);
+    FunctionCall newCall = new FunctionCall(dispatchTable.getMethodSymbol(), callingArguments);
 
 
     /*
      * Finally invoke the selected methods with the re-promised arguments
      */
+    return method.apply(context, callingEnvironment, newCall, argNameArray, argArray, dispatch);
 
-    if (method instanceof Closure) {
-
-      // Note that the callingEnvironment or "sys.parent" of the selected function will be the calling
-      // environment of the wrapper function that calls UseMethod, NOT the environment in which UseMethod
-      // is evaluated.
-//      Environment callingEnvironment = callContext.getCallingEnvironment();
-//      if(callingEnvironment == null) {
-//        callingEnvironment = callContext.getGlobalEnvironment();
-//      }
-
-      return ((Closure)method).apply(context, callingEnvironment, newCall,
-          argNameArray, argArray, dispatchTable);
-
-    } else {
-
-      // primitive
-      return method.apply(context, callingEnvironment, newCall, argNameArray, argArray);
-    }
   }
 
 

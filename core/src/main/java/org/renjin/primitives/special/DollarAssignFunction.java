@@ -19,6 +19,7 @@
 package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.S3;
 import org.renjin.primitives.subset.Subsetting;
@@ -33,7 +34,7 @@ public class DollarAssignFunction extends SpecialFunction {
 
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
 
     // Even though this function is generic, it MUST be called with exactly three arguments
     if(promisedArguments.length != 3) {
@@ -48,7 +49,7 @@ public class DollarAssignFunction extends SpecialFunction {
     // symbol
     promisedArguments[1] = nameArgument;
 
-    SEXP genericResult = S3.tryDispatchFromPrimitive(context, rho, call, "$<-", argumentNames, promisedArguments);
+    SEXP genericResult = S3.tryDispatchFromPrimitive(context, rho, call, "$<-", null, argumentNames, promisedArguments);
     if (genericResult!= null) {
       return genericResult;
     }

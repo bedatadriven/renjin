@@ -21,6 +21,7 @@
 package org.renjin.primitives.combine;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.DispatchTable;
 import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.sexp.*;
 
@@ -30,7 +31,7 @@ public class CombineFunction extends BuiltinFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] arguments) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] arguments, DispatchTable dispatch) {
     boolean recursive = false;
     int inputCount = 0;
     for (int i = 0; i < argumentNames.length; i++) {

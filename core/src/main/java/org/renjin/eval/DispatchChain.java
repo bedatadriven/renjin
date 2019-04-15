@@ -24,10 +24,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DispatchChain {
-  public static final Symbol GENERIC = Symbol.get(".Generic");
-  public static final Symbol METHOD = Symbol.get(".Method");
-  public static final Symbol CLASS = Symbol.get(".Class");
-  public static final Symbol GROUP = Symbol.get(".Group");
 
   private String generic;
   private String group;
@@ -60,36 +56,17 @@ public class DispatchChain {
 
   public Map<Symbol, SEXP> createMetadata() {
     Map<Symbol, SEXP> metadata = new HashMap<>();
-    metadata.put(CLASS, classes);
-    metadata.put(METHOD, new StringArrayVector(method));
-    metadata.put(GENERIC, StringVector.valueOf(generic));
+    metadata.put(DispatchTable.CLASS, classes);
+    metadata.put(DispatchTable.METHOD, new StringArrayVector(method));
+    metadata.put(DispatchTable.GENERIC, StringVector.valueOf(generic));
     if(group != null) {
-      metadata.put(GROUP, StringVector.valueOf(group));
+      metadata.put(DispatchTable.GROUP, StringVector.valueOf(group));
     }
     return metadata;
   }
 
   public Closure getClosure() {
     return closure;
-  }
-
-  /**
-   * Processes the {@code object} argument (for Use/NextMethod).
-   * Can override the {@code .Generic} in the environment
-   * @param sexp
-   */
-  public DispatchChain withGenericArgument(SEXP sexp) {
-    if(sexp instanceof StringVector) {
-      generic = ((StringVector) sexp).getElementAsString(0);
-    }
-    return this;
-  }
-
-  public DispatchChain withObjectArgument(SEXP sexp) {
-    if(sexp != Null.INSTANCE) {
-      throw new EvalException("oops, NextMethod(object!=null) is not yet implemented");
-    }
-    return this;
   }
 
   public boolean next() {
@@ -108,10 +85,6 @@ public class DispatchChain {
 
     }
     return false;
-  }
-
-  public Symbol getGenericSymbol() {
-    return Symbol.get(generic);
   }
 
   public Symbol getMethodSymbol() {

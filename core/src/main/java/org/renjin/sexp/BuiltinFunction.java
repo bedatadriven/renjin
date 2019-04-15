@@ -19,6 +19,7 @@
 package org.renjin.sexp;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.DispatchTable;
 
 
 public abstract class BuiltinFunction extends PrimitiveFunction {
@@ -53,7 +54,7 @@ public abstract class BuiltinFunction extends PrimitiveFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
     PairList.Builder list = new PairList.Builder();
     for (int i = 0; i < argumentNames.length; i++) {
       list.add(argumentNames[i], promisedArguments[i]);

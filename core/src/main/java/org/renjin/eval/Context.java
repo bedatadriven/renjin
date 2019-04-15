@@ -445,7 +445,7 @@ public class Context {
     }
 
     try {
-      return functionExpr.apply(this, rho, call, argumentNames.toArray(new String[0]), arguments.toArray(new SEXP[0]));
+      return functionExpr.apply(this, rho, call, argumentNames.toArray(new String[0]), arguments.toArray(new SEXP[0]), null);
     } catch (EvalException | ControlFlowException | ConditionException | Error e) {
       throw e;
 

@@ -21,6 +21,7 @@ package org.renjin.primitives;
 import org.renjin.base.Lapack;
 import org.renjin.base.internals.AllNamesVisitor;
 import org.renjin.eval.Context;
+import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.codegen.WrapperGenerator2;
 import org.renjin.methods.Methods;
@@ -162,7 +163,7 @@ public class Primitives {
       return new BuiltinFunction(entry.name) {
 
         @Override
-        public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments) {
+        public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
           throw new EvalException("Sorry! " + entry.name + " not yet implemented!", e);
         }
       };
@@ -179,6 +180,7 @@ public class Primitives {
     add(new NextFunction());
     add(new ReturnFunction());
     add(new UseMethod());
+    add(new NextMethodFunction());
     add(new MissingFunction());
 
     add(new CombineFunction());
@@ -852,7 +854,6 @@ public class Primitives {
 
 /* Objects */
     f("inherits", Attributes.class, 11);
-    f("NextMethod", S3.class, 210);
     f("invalidateS4Cache", S4.class, 1);
     f("invalidateS4MethodCache", S4.class, 1);
     f("standardGeneric", Methods.class, 201);

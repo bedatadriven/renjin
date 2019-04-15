@@ -39,7 +39,7 @@ public class MatrixMultDispatchStrategy extends GenericDispatchStrategy {
   @Override
   public void beforeTypeMatching(ApplyMethodContext context,
                                  JExpression functionCall, List<JExpression> arguments,
-                                 JBlock parent) {
+                                 JVar argNamesArray, JVar argsArray, JBlock parent) {
 
     // Call public static SEXP tryDispatchToS4Method(@Current Context context, SEXP source, PairList args,
     //                                           Environment rho, String group, String opName)

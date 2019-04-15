@@ -40,18 +40,22 @@ public class SimpleDispatchStrategy extends GenericDispatchStrategy {
 
 
   @Override
-  public void afterFirstArgIsEvaluated(ApplyMethodContext context, JExpression functionCall, JExpression arguments,
-                                       JBlock parent, JExpression argument) {
+  public void afterFirstArgIsEvaluated(ApplyMethodContext context,
+                                       JExpression functionCall,
+                                       JExpression firstArgument,
+                                       JExpression argNamesArray,
+                                       JExpression argsArray,
+                                       JBlock parent) {
 
-    JBlock ifObject = parent._if(fastIsObject(argument))._then();
+    JBlock ifObject = parent._if(fastIsObject(firstArgument))._then();
     JExpression genericResult = ifObject.decl(codeModel.ref(SEXP.class), "genericResult",
             codeModel.ref(S3.class).staticInvoke("tryDispatchFromPrimitive")
             .arg(context.getContext())
             .arg(context.getEnvironment())
             .arg(functionCall)
             .arg(lit(name))
-            .arg(argument)
-            .arg(arguments));
+            .arg(argNamesArray)
+            .arg(argsArray));
     ifObject._if(genericResult.ne(_null()))._then()._return(genericResult);
 
   }

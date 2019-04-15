@@ -19,6 +19,7 @@
 package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.DispatchTable;
 import org.renjin.primitives.Primitives;
 import org.renjin.sexp.*;
 
@@ -32,7 +33,7 @@ public class InternalFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
     Promise internalCallPromise = (Promise) promisedArguments[0];
     FunctionCall internalCall = (FunctionCall) internalCallPromise.getExpression();
     Symbol internalName = (Symbol)internalCall.getFunction();
@@ -54,6 +55,6 @@ public class InternalFunction extends SpecialFunction {
         values.add(Promise.repromise(rho, node.getValue()));
       }
     }
-    return function.apply(context, rho, internalCall, names.toArray(new String[0]), values.toArray(new SEXP[0]));
+    return function.apply(context, rho, internalCall, names.toArray(new String[0]), values.toArray(new SEXP[0]), null);
   }
 }

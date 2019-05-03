@@ -150,9 +150,7 @@ public class CDefines {
    */
   public static SEXP SETCAR(SEXP x, SEXP y) {
 
-    if (x == NULL || x == R_NilValue) {
-      error(_("bad value"));
-    }
+    if (x == NULL || x == R_NilValue) error(("bad value"));
     CHECK_OLD_TO_NEW(x, y);
     ((PairList.Node) x).setValue(y);
     return y;
@@ -160,7 +158,7 @@ public class CDefines {
 
   public static SEXP SETCDR(SEXP x, SEXP y) {
     if (x == NULL || x == R_NilValue) {
-      error(_("bad value"));
+      error("bad value");
     }
     CHECK_OLD_TO_NEW(x, y);
     ((PairList.Node) x).setNextNode((PairList.Node) y);
@@ -171,7 +169,7 @@ public class CDefines {
     SEXP cell;
     if (x == NULL || x == R_NilValue ||
         CDR(x) == NULL || CDR(x) == R_NilValue) {
-      error(_("bad value"));
+      error("bad value");
     }
     cell = CDR(x);
     CHECK_OLD_TO_NEW(cell, y);
@@ -184,7 +182,7 @@ public class CDefines {
     if (x == NULL || x == R_NilValue ||
         CDR(x) == NULL || CDR(x) == R_NilValue ||
         CDDR(x) == NULL || CDDR(x) == R_NilValue) {
-      error(_("bad value"));
+      error("bad value");
     }
     cell = CDDR(x);
     CHECK_OLD_TO_NEW(cell, y);
@@ -202,7 +200,7 @@ public class CDefines {
         CDR(x) == NULL || CDR(x) == R_NilValue ||
         CDDR(x) == NULL || CDDR(x) == R_NilValue ||
         CDDDR(x) == NULL || CDDDR(x) == R_NilValue) {
-      error(_("bad value"));
+      error("bad value");
     }
     cell = CDDDR(x);
     CHECK_OLD_TO_NEW(cell, y);
@@ -221,7 +219,7 @@ public class CDefines {
         CDDR(x) == NULL || CDDR(x) == R_NilValue ||
         CDDDR(x) == NULL || CDDDR(x) == R_NilValue ||
         CD4R(x) == NULL || CD4R(x) == R_NilValue) {
-      error(_("bad value"));
+      error("bad value");
     }
     cell = CD4R(x);
     CHECK_OLD_TO_NEW(cell, y);
@@ -397,10 +395,6 @@ public class CDefines {
 
   public static void error(String message, Object... args) {
     throw new EvalException(String.format(message, args));
-  }
-
-  public static String _(String s) {
-    return s;
   }
 
   public static SEXP eval(SEXP exp, Context context, SEXP rho) {

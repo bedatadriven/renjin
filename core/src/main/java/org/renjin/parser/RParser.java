@@ -3032,7 +3032,7 @@ public class RParser {
     if(tag instanceof Symbol || tag instanceof Null) {
         return lang2(arg, tag);
     } else {
-        error(_("incorrect tag type at line %d"), lloc.getBegin().getLine());
+        error("incorrect tag type at line %d", lloc.getBegin().getLine());
         return R_NilValue/* -Wall */;
     }
   }
@@ -3103,7 +3103,7 @@ public class RParser {
   private void CheckFormalArgs(SEXP formlist, SEXP _new, Location lloc) {
     while (formlist != R_NilValue) {
       if (TAG(formlist) == _new) {
-        error(_("Repeated formal argument '%s' on line %d"), CHAR(PRINTNAME(_new)),
+        error("Repeated formal argument '%s' on line %d", CHAR(PRINTNAME(_new)),
             lloc.getBegin().getLine());
       }
       formlist = CDR(formlist);

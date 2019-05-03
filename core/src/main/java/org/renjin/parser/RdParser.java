@@ -878,7 +878,7 @@ public class RdParser
         /* Line 239 of "gramRd.y"  */
       { xxpopMode(((yystack.valueAt (2-(1))))); yyval = xxnewlist(((yystack.valueAt (2-(2))))); 
 //      if(wCalls)
-        System.out.println(String.format(_("bad markup (extra space?) at %s:%d:%d"), 
+        System.out.println(String.format("bad markup (extra space?) at %s:%d:%d",
             xxBasename, yystack.locationAt (2-(2)).begin.getLine(), yystack.locationAt (2-(2)).begin.getColumn()));
 //      else
 //        warningcall(R_NilValue, _("bad markup (extra space?) at %s:%d:%d"), 
@@ -2160,15 +2160,13 @@ public class RdParser
   }
 
   private void xxWarnNewline() {
-    if (xxNewlineInString) {
-      //if(wCalls)
-        System.out.println(String.format(_("newline within quoted string at %s:%d"), 
-            xxBasename, xxNewlineInString));
-//      else
-//        System.out.println(R_NilValue,
-//            _("newline within quoted string at %s:%d"), 
-//            xxBasename, xxNewlineInString);
-    }
+    //if(wCalls)
+    //      else
+    //        System.out.println(R_NilValue,
+    //            _("newline within quoted string at %s:%d"),
+    //            xxBasename, xxNewlineInString);
+    if (xxNewlineInString) System.out.println(String.format(("newline within quoted string at %s:%d"),
+        xxBasename, xxNewlineInString));
   }
 
 
@@ -2995,7 +2993,7 @@ public class RdParser
       case R_EOF:
         if (xxinRString!=0) {
           xxWarnNewline();
-          error(_("Unexpected end of input (in %c quoted string opened at %s:%d:%d)"), 
+          error("Unexpected end of input (in %c quoted string opened at %s:%d:%d)",
               xxinRString, xxBasename, xxQuoteLine, xxQuoteCol);
         }
         return END_OF_INPUT; 

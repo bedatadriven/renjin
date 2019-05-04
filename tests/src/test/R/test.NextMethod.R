@@ -94,3 +94,21 @@ test.many <- function() {
                     .Tsp = c(1959.25, 1961.5, 4), class = 'ts')))
 
 }
+
+
+test.barbaz <- function() {
+
+    bar.called <- FALSE
+    baz.called <- FALSE
+
+    foo     <- function(x) { cat("foo\n"); UseMethod('foo') }
+    foo.bar <- function(x) { cat("foo.bar\n"); bar.called <<- TRUE; NextMethod(.Generic) }
+    foo.baz <- function(y) { cat("foo.baz\n"); baz.called <<- TRUE; NextMethod(.Generic) }
+    foo.default <- function(z) { cat("foo.default\n"); 42 }
+
+    barbaz <- structure(1, class=c("bar", "baz"))
+
+    assertThat(foo(barbaz), identicalTo(42))
+    assertTrue(bar.called)
+    assertTrue(baz.called)
+}

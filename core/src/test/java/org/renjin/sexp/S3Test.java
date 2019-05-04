@@ -55,34 +55,6 @@ public class S3Test extends EvalTestCase {
   }
 
   @Test
-  public void updateArguments() {
-    SEXP x = new IntArrayVector(1, 2, 3);
-    SEXP i = IntArrayVector.valueOf(1);
-    PairList actuals = PairList.Node.fromArray(x, i);
-    PairList formals = new PairList.Builder()
-        .add(Symbol.get("x"), Null.INSTANCE)
-        .add(Symbol.get("i"), Null.INSTANCE)
-        .add(Symbol.get("j"), Null.INSTANCE)
-        .add(Symbol.get("drop"), Null.INSTANCE)
-        .build();
-
-
-    Environment env = topLevelContext.getGlobalEnvironment();
-    SEXP ni = new IntArrayVector(3);
-    env.setVariable(topLevelContext, "i", ni);
-    env.setVariable(topLevelContext, "x", x);
-
-    PairList updated = S3.updateArguments(topLevelContext, actuals, formals, env, new ListVector());
-
-    assertThat(updated.length(), equalTo(2));
-    assertThat(updated.getElementAsSEXP(0), identicalTo(x));
-    assertThat(updated.getElementAsSEXP(1), identicalTo(ni));
-
-
-    System.out.println(updated);
-  }
-  
-  @Test
   public void nextMethodWithExtraArguments() {
 
     eval("f.default <- function(x, drop = TRUE) drop ");

@@ -43,6 +43,14 @@ public class MatchedArguments {
     return matchedPositions.getFormalCount();
   }
 
+  public String[] getActualNames() {
+    return actualNames;
+  }
+
+  public int getActualCount() {
+    return actualValues.length;
+  }
+
   /**
    * @return {@code true} if the formal at index {@code formalIndex} is the ellipses (...)
    */

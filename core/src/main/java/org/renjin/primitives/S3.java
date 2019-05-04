@@ -20,13 +20,10 @@ package org.renjin.primitives;
 
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.eval.Context;
-import org.renjin.eval.DispatchTable;
-import org.renjin.eval.EvalException;
+import org.renjin.eval.*;
 import org.renjin.invoke.annotations.ArgumentList;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
-import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.s4.S4;
 import org.renjin.sexp.*;
@@ -57,19 +54,66 @@ public class S3 {
 
 
   @Internal
-  public static SEXP NextMethod(@Current Context context, @Current Environment rho,
-                                SEXP genericArg, SEXP objectArg, @ArgumentList ListVector extraArgs) {
+  public static SEXP NextMethod(@Current Context context,
+                                @Current Environment rho,
+                                SEXP genericArg,
+                                SEXP objectArg,
+                                @ArgumentList ListVector extraArgs) {
 
-    Context originalCallingContext = findOriginalCallingContext(context, rho);
+    // NextMethod is actually a closure defined as:
+    //
+    //   NextMethod <- function(generic=NULL, object=NULL, ...)
+    //      .Internal(NextMethod(generic, object,...))
+    //
+    // And this closure must be called by the target method invoked by UseMethod or
+    // NextMethod.
+    //
+    // So a call chain might look like:
+    //
+    // foo(x=1, 2)
+    //  \
+    //  UseMethod('foo')
+    //  \
+    //  foo.numeric(x=1,2) [previousContext]
+    //   \
+    //   NextMethod  [callingContext]
+    //    \
+    //    .Internal(NextMethod)
+    //
+    //
+    // To continue dispatch, we need to retrieve the FunctionEnvironment associated with the previous
+    // S3 method [previousContext].
 
-    FunctionEnvironment functionEnvironment;
+
+    // But first, we need the callingContext, which may not be the same as the @Current context
+    // if the call to NextMethod() has been passed to a closure and forced in a deeper context.
+
+    Context callingContext = Contexts.findCallingContext(context, rho);
+
+    // From the callingContext, we can obtain a reference to the DispatchTable which contains
+    // the parameters used to dispatch to the previous method.
+
+    FunctionEnvironment previousEnvironment;
     try {
-      functionEnvironment = (FunctionEnvironment) originalCallingContext.getCallingEnvironment();
+      previousEnvironment = (FunctionEnvironment) callingContext.getCallingEnvironment();
     } catch (ClassCastException ignored) {
       throw new EvalException("'NextMethod' called from outside a function");
     }
 
-    DispatchTable dispatchTable = functionEnvironment.getDispatchTable();
+    // ...and from the previousEnvironment we can find the previousContext...
+
+    Context previousContext = callingContext;
+    while(previousContext.getEnvironment() != previousEnvironment) {
+      previousContext = previousContext.getParent();
+    }
+
+    DispatchTable dispatchTable = previousEnvironment.getDispatchTable();
+    if(dispatchTable == null) {
+      throw new EvalException("'NextMethod' must be called in a function invoked from UseMethod() or NextMethod()");
+    }
+
+    // The caller to NextMethod() can change the generic
+
     String generic = dispatchTable.getGeneric();
     if (genericArg != Null.INSTANCE) {
       generic = genericArg.asString();
@@ -78,87 +122,65 @@ public class S3 {
     DispatchTable nextTable = new DispatchTable(dispatchTable.getGenericDefinitionEnvironment(), generic);
 
     if (objectArg != Null.INSTANCE) {
-//        this.object = object;
+      throw new UnsupportedOperationException("TODO: object arg to NextMethod");
     }
+
+    List<String> nextClasses = nextClasses(dispatchTable);
 
     Function nextMethod = S3.findMethod(context,
         dispatchTable.getGenericDefinitionEnvironment(),
-        functionEnvironment,
+        previousEnvironment,
         dispatchTable.getGeneric(),
         dispatchTable.getGroup(),
-        nextClasses(dispatchTable),
+        nextClasses,
         true,
         nextTable);
 
-    PairList arguments = nextArguments(originalCallingContext, extraArgs);
-//
-//    if("Ops".equals(resolver.group) && arguments.length() == 2) {
-//      withMethodVector(groupsMethodVector());
-//    }
+    // Update the arguments
+    // If the previous method selected had the definition
+    //
+    //    function(x,y,z)
+    //
+    // And if it was called with the
+    //
+    //    foo.numeric(2, x=1, 3)
+    //
+    // And the variables are updated
+    //
+    //  x <- 91
+    //  z <- 93
+    //
+    // Then we need to update the arguments with the new values
+    // from the environment, without changing the order.
+    //
+    // This requires (re)matching the original arguments to get the
+    // formal arguments.
 
+    FunctionCall previousCall = previousContext.getCall();
+    PairList formals = ((Closure) previousContext.getFunction()).getFormals();
+
+    ArgumentMatcher matcher = new ArgumentMatcher(formals);
+    MatchedArguments matched = matcher.match(previousCall.getArguments());
+
+    SEXP[] updatedArguments = new SEXP[matched.getActualCount()];
+    for (int formal = 0; formal < matched.getFormalCount(); formal++) {
+      int actualIndex = matched.getActualIndex(formal);
+      if(actualIndex != -1) {
+        updatedArguments[actualIndex] = previousEnvironment.get(formal);
+      }
+    }
 
     // The new call that is visible to sys.call() and match.call()
     // is identical to the call which invoked UseMethod(), but we do update the function name.
 
     // For example, if you have a stack which looks like foo(x) -> UseMethod('foo') -> foo.default(x) then
     // the foo.default function will have a call of foo.default(x) visible to sys.call() and match.call()
-//    FunctionCall newCall = new FunctionCall(nextTable.getMethodSymbol(), call.getArguments());
-//
-//    try {
-//      if (function instanceof Closure) {
-//        // Note that the callingEnvironment or "sys.parent" of the selected function will be the calling
-//        // environment of the wrapper function that calls UseMethod, NOT the environment in which UseMethod
-//        // is evaluated.
-//        Environment callingEnvironment = callContext.getCallingEnvironment();
-//        if (callingEnvironment == null) {
-//          callingEnvironment = callContext.getGlobalEnvironment();
-//        }
-//        return Calls.applyClosure((Closure) function, callContext, callingEnvironment, newCall,
-//            promisedArgs, persistChain());
-//      } else {
-//        // primitive
-//        return function.apply(callContext, callEnvironment, newCall, promisedArgs);
-//      }
-//    } finally {
-//
-//      callContext.clearState(GenericMethod.class);
-//
-//      if (Profiler.ENABLED) {
-//        Profiler.functionEnd();
-//      }
-//    }
-    throw new UnsupportedOperationException("TODO");
+
+    FunctionCall newCall = new FunctionCall(nextTable.getMethodSymbol(), previousCall.getArguments());
+
+    return nextMethod.apply(context, rho, newCall, matched.getActualNames(), updatedArguments, nextTable);
   }
 
-
-  private static PairList nextArguments(Context parentContext, ListVector extraArgs) {
-
-
-    /*
-     * Now update the original arguments with any new values from the previous generic.
-     * in the chain. To do this, we have to match the original arguments to the
-     * formal names of the previous generic.
-     */
-
-    PairList actuals = parentContext.getArguments();
-    Closure closure = (Closure) parentContext.getFunction();
-    PairList formals = closure.getFormals();
-    Environment previousEnv = parentContext.getEnvironment();
-
-    return updateArguments(parentContext, actuals, formals, previousEnv, extraArgs);
-  }
-
-  /**
-   * For calls via NextMethod, find the original call to the function which calls NextMethod.
-   */
-  private static Context findOriginalCallingContext(Context callContext, Environment callEnvironment) {
-
-    Context parentContext = callContext;
-    while(parentContext.getEnvironment() != callEnvironment) {
-      parentContext = parentContext.getParent();
-    }
-    return parentContext;
-  }
 
   /**
    *
@@ -545,119 +567,4 @@ public class S3 {
     }
   }
 
-  public static PairList updateArguments(Context context, PairList actuals, PairList formals,
-                                         Environment previousEnv, ListVector extraArgs) {
-    // match each actual to a formal name so we can update it's value. but we can't reorder!
-
-    List<SEXP> actualNames = Lists.newArrayList();
-    List<SEXP> actualValues = Lists.newArrayList();
-    List<Symbol> matchedNames = Lists.newArrayList();
-
-
-    List<PairList.Node> unmatchedFormals = Lists.newLinkedList(formals.nodes());
-
-
-    // unpack ... and match exactly
-    for (PairList.Node node : actuals.nodes()) {
-      if(node.getValue() instanceof  PromisePairList) {
-        PromisePairList ellipses = (PromisePairList) node.getValue();
-        for(PairList.Node nestedNode : ellipses.nodes()) {
-          actualNames.add(nestedNode.getRawTag());
-          actualValues.add(nestedNode.getValue());
-          matchedNames.add(matchArgumentExactlyByName(nestedNode.getRawTag(), unmatchedFormals));
-        }
-
-      } else {
-        actualNames.add(node.getRawTag());
-        actualValues.add(node.getValue());
-        matchedNames.add(matchArgumentExactlyByName(node.getRawTag(), unmatchedFormals));
-      }
-    }
-
-    // match partially
-    for (int i = 0; i!=matchedNames.size();++i) {
-      if(matchedNames.get(i) == null) {
-        matchedNames.set(i, matchPartiallyByName(actualNames.get(i), unmatchedFormals));
-      }
-    }
-
-    // update
-    Iterator<PairList.Node> formalIt = unmatchedFormals.iterator();
-    for (int i = 0; i!=matchedNames.size();++i) {
-      if(matchedNames.get(i) == null) {
-        if(!formalIt.hasNext()) {
-          throw new EvalException("Unmatched argument");
-        }
-        Symbol nextFormalName = formalIt.next().getTag();
-        if(nextFormalName == Symbols.ELLIPSES) {
-          // don't match this or any subsequent arguments
-          break;
-        } else {
-          matchedNames.set(i, nextFormalName);
-        }
-      }
-    }
-
-    // update arguments from environment
-    PairList.Builder updated = PairList.Node.newBuilder();
-
-    for (int i = 0; i!=matchedNames.size();++i) {
-      SEXP updatedValue;
-      if(matchedNames.get(i) != null) {
-        updatedValue = previousEnv.getVariableUnsafe(matchedNames.get(i));
-        assert updatedValue != Symbol.UNBOUND_VALUE;
-      } else {
-        updatedValue = actualValues.get(i);
-      }
-      updated.add(actualNames.get(i), updatedValue);
-    }
-
-    // Add extra arguments passed to NextMethods
-    for (NamedValue extraArg : extraArgs.namedValues()) {
-      if(!extraArg.hasName()) {
-        updated.add(extraArg.getValue());
-      } else {
-        // update any existing arguments by this name, or add
-        updated.set(extraArg.getName(), extraArg.getValue());
-      }
-    }
-
-    return updated.build();
-  }
-
-  private static Symbol matchArgumentExactlyByName(SEXP tag, List<PairList.Node> unmatchedFormals) {
-    if(tag == Null.INSTANCE) {
-      return null;
-    } else {
-      for(PairList.Node formal : unmatchedFormals) {
-        if(formal.getTag() == tag) {
-          unmatchedFormals.remove(formal);
-          return formal.getTag();
-        }
-      }
-    }
-    return null;
-  }
-
-  private static Symbol matchPartiallyByName(SEXP tag, List<PairList.Node> unmatchedFormals) {
-    if(tag == Null.INSTANCE) {
-      return null;
-    } else {
-      String name = ((Symbol)tag).getPrintName();
-      PairList.Node partialMatch = null;
-      for(PairList.Node formal : unmatchedFormals) {
-        if(formal.getTag().getPrintName().startsWith(name)) {
-          if(partialMatch != null) {
-            throw new EvalException("multiple partial matches");
-          }
-          partialMatch = formal;
-        }
-      }
-      if(partialMatch == null) {
-        return null;
-      } else {
-        return partialMatch.getTag();
-      }
-    }
-  }
 }

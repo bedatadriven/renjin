@@ -23,15 +23,24 @@ package org.renjin.primitives.special;
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
+import org.renjin.primitives.S3;
 import org.renjin.sexp.*;
 
-public class NextMethodFunction extends SpecialFunction {
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class NextMethodFunction extends BuiltinFunction {
   public NextMethodFunction() {
     super("NextMethod");
   }
 
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
+
+    if(argumentNames.length > 1 || argumentNames[0] != null) {
+      throw new EvalException("TODO: NextMethod arguments");
+    }
 
     FunctionEnvironment functionEnvironment;
     try {
@@ -42,6 +51,46 @@ public class NextMethodFunction extends SpecialFunction {
 
     DispatchTable dispatchTable = functionEnvironment.getDispatchTable();
 
+    DispatchTable next = new DispatchTable(dispatchTable.getGenericDefinitionEnvironment(), dispatchTable.getGeneric());
+
+    Function nextMethod = S3.findMethod(context,
+        dispatchTable.getGenericDefinitionEnvironment(),
+        functionEnvironment,
+        dispatchTable.getGeneric(),
+        dispatchTable.getGroup(),
+        nextClasses(dispatchTable),
+        true,
+        next);
+
     throw new UnsupportedOperationException("TODO");
+  }
+
+
+  /**
+   *
+   * @return remaining classes to be  tried after this method
+   */
+  public List<String> nextClasses(DispatchTable table) {
+    if(table.classVector == null) {
+      return Collections.emptyList();
+    }
+    int classIndex = findIndex(table);
+    List<String> next = new ArrayList<>();
+
+    for (int i = classIndex + 1; i < table.classVector.length(); i++) {
+      next.add(table.classVector.getElementAsString(i));
+    }
+
+    return next;
+  }
+
+  private int findIndex(DispatchTable table) {
+    for (int i = 0; i < table.classVector.length(); i++) {
+      String className = table.classVector.getElementAsString(i);
+      if(table.method.endsWith(className)) {
+        return i;
+      }
+    }
+    return table.classVector.length() - 1;
   }
 }

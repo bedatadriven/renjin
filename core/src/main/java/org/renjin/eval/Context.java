@@ -421,7 +421,7 @@ public class Context {
     List<SEXP> arguments = new ArrayList<>();
 
     for (PairList.Node node : call.getArguments().nodes()) {
-      if(node.getValue() == Symbols.ELLIPSES) {
+      if(node.getValue() == Symbols.ELLIPSES && !(functionExpr instanceof SpecialFunction)) {
         SEXP expando = rho.getEllipsesVariable();
         if(expando == Symbol.UNBOUND_VALUE) {
           throw new EvalException("'...' used in an incorrect context");

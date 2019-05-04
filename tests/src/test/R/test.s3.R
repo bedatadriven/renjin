@@ -158,7 +158,7 @@ test.class.value <- function() {
 
     e2 <- f(41L)
     assertThat(e2$.Generic, identicalTo("f"))
-    assertThat(e2$.Class, identicalTo(c("foo", "bar", "baz")))
+    assertThat(e2$.Class, identicalTo(NULL))
     assertThat(e2$.Method, identicalTo("f.default"))
     assertThat(e2$.Group, identicalTo(""))
 }

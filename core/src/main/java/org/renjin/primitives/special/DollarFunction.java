@@ -19,6 +19,7 @@
 package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.CompilerSpecialization;
 import org.renjin.invoke.annotations.Current;
@@ -38,16 +39,16 @@ public class DollarFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
 
    
     // Even though this function is generic, it MUST be called with exactly two arguments
-    if(args.length() != 2) {
-      throw new EvalException(String.format("%d argument(s) passed to '$' which requires 2", args.length()));
+    if(promisedArguments.length != 2) {
+      throw new EvalException(String.format("%d argument(s) passed to '$' which requires 2", promisedArguments.length));
     }
 
-    SEXP object = context.evaluate(args.getElementAsSEXP(0), rho);
-    StringVector nameArgument = evaluateName(args.getElementAsSEXP(1));
+    SEXP object = promisedArguments[0].force(context);
+    StringVector nameArgument = evaluateName(promisedArguments[1]);
     return apply(context, rho, call, object, nameArgument);
 
   }
@@ -60,9 +61,11 @@ public class DollarFunction extends SpecialFunction {
   public static SEXP apply(Context context, Environment rho, FunctionCall call, SEXP object, StringVector nameArgument) {
     // For possible generic dispatch, repackage the name argument as character vector rather than
     // symbol
-    PairList.Node repackagedArgs = new PairList.Node(object, new PairList.Node(nameArgument, Null.INSTANCE));
+    SEXP[] repackedArguments = new SEXP[2];
+    repackedArguments[0] = Promise.repromise(object);
+    repackedArguments[1] = Promise.repromise(nameArgument);
 
-    SEXP genericResult = S3.tryDispatchFromPrimitive(context, rho, call, "$", object, repackagedArgs);
+    SEXP genericResult = S3.tryDispatchFromPrimitive(context, rho, call, "$", null, new String[2], repackedArguments);
     if (genericResult!= null) {
       return genericResult;
     }
@@ -97,7 +100,10 @@ public class DollarFunction extends SpecialFunction {
     }
   }
 
-  static StringVector evaluateName(SEXP name) {
+  static StringVector evaluateName(SEXP promisedName) {
+
+    SEXP name = ((Promise) promisedName).getExpression();
+
     if(name instanceof Symbol) {
       return new StringArrayVector(((Symbol) name).getPrintName());
     } else if(name instanceof StringVector) {

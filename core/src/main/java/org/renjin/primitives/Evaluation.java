@@ -23,7 +23,6 @@ import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
-import org.renjin.invoke.annotations.Unevaluated;
 import org.renjin.parser.ParseException;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.io.connections.Connection;
@@ -350,12 +349,6 @@ public class Evaluation {
     list.add("visible", !context.getSession().isInvisible());
     return list.build();
   }
-
-  @Builtin
-  public static SEXP quote(@Unevaluated SEXP exp) {
-    return exp;
-  }
-
 
   @Internal
   public static ExpressionVector parse(@Current Context context, SEXP file, SEXP maxExpressions, Vector text,

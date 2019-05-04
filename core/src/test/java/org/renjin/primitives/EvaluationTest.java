@@ -469,6 +469,12 @@ public class EvaluationTest extends EvalTestCase {
   }
 
   @Test
+  public void quoteElipses() {
+    eval("x <- quote(...)");
+    assertThat( eval("typeof(x)"), identicalTo(c("symbol")));
+  }
+
+  @Test
   public void symbolToCharacter() {
     assertThat( eval(" as.character(quote(x)) "), elementsIdenticalTo( c("x")));
   }

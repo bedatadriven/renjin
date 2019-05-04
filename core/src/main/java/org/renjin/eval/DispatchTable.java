@@ -20,10 +20,10 @@
 
 package org.renjin.eval;
 
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 public class DispatchTable {
 
@@ -61,16 +61,27 @@ public class DispatchTable {
   private Environment genericCallEnvironment;
 
 
-  public DispatchTable(Environment definitionEnvironment, String generic, String group) {
+  public DispatchTable(Environment definitionEnvironment, String generic) {
     this.genericDefinitionEnvironment = definitionEnvironment;
     this.generic = generic;
-    this.group = group;
   }
 
   public DispatchTable(Environment definitionEnvironment, String genericName, StringVector classes) {
     this.genericDefinitionEnvironment = definitionEnvironment;
     this.generic = genericName;
     this.classVector = classes;
+  }
+
+  public String getGeneric() {
+    return generic;
+  }
+
+  public String getGroup() {
+    return group;
+  }
+
+  public Environment getGenericDefinitionEnvironment() {
+    return genericDefinitionEnvironment;
   }
 
   public SEXP getMethodSymbol() {
@@ -82,14 +93,31 @@ public class DispatchTable {
       return StringVector.valueOf(generic);
     }
     if(symbol == METHOD) {
-      throw new UnsupportedOperationException("TODO");
+      return StringVector.valueOf(method);
     }
     if(symbol == GROUP) {
-      throw new UnsupportedOperationException("TODO");
+      if(group == null) {
+        return StringVector.valueOf("");
+      } else {
+        return StringVector.valueOf(group);
+      }
     }
     if(symbol == CLASS) {
-      return classVector;
+      if(classVector == null) {
+        return Null.INSTANCE;
+      } else {
+        return classVector;
+      }
     }
     return null;
   }
+
+  public Collection<Symbol> getEnvironmentSymbols() {
+    return Arrays.asList(GENERIC, METHOD, GROUP, CLASS);
+  }
+
+  public StringVector getClassVector() {
+    return classVector;
+  }
+
 }

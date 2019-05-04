@@ -73,6 +73,7 @@ public class VarArgApplyBuilder extends ApplyMethodBuilder {
     // now we consume remaining args
     JWhileLoop loop = parent._while(hasMoreArguments());
     matchVarArg(firstArgVar, loop.body());
+    loop.body().assignPlus(argumentIndex, lit(1));
   }
 
   private void matchVarArg(JVar firstArgVar, JBlock block) {
@@ -84,7 +85,8 @@ public class VarArgApplyBuilder extends ApplyMethodBuilder {
 //      evaluateCall = argumentIterator.invoke("evalNext");
 //    }
 
-    evaluateCall = nextArgAsSexp(true);
+    JExpression component = argsArray.component(argumentIndex);
+    evaluateCall = component.invoke("force").arg(context);
 
     JVar evaluated = block.decl(classRef(SEXP.class), "evaluated", evaluateCall);
 
@@ -97,6 +99,7 @@ public class VarArgApplyBuilder extends ApplyMethodBuilder {
     }
 
     JVar name = block.decl(classRef(String.class), "name", argNamesArray.component(argumentIndex));
+    block._if(name.eq(JExpr._null()))._then().assign(name, lit(""));
 
     // otherwise we may need to check it against named flags
     IfElseBuilder matchSequence = new IfElseBuilder(block);
@@ -109,7 +112,7 @@ public class VarArgApplyBuilder extends ApplyMethodBuilder {
   }
 
   private JExpression hasMoreArguments() {
-    return argumentIndex.plus(lit(1)).lt(argsArray.ref("length"));
+    return argumentIndex.lt(argsArray.ref("length"));
   }
 
   private JExpression convert(JvmMethod.Argument formal, JExpression sexp) {

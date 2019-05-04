@@ -25,7 +25,6 @@ import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
-import org.renjin.invoke.annotations.Unevaluated;
 import org.renjin.primitives.S3;
 import org.renjin.sexp.*;
 
@@ -97,24 +96,6 @@ public class Namespaces {
       result.add(name.getPrintName());
     }
     return result.build();
-  }
-
-  @Builtin(":::")
-  public static SEXP getNamespaceValue(@Current Context context,
-                                       @Current NamespaceRegistry registry,
-                                       @Unevaluated Symbol namespace,
-                                       @Unevaluated Symbol entry) {
-
-    return registry.getNamespace(context, namespace).getEntry(entry).force(context);
-  }
-
-  @Builtin("::")
-  public static SEXP getExportedNamespaceValue(@Current Context context,
-                                               @Current NamespaceRegistry registry,
-                                               @Unevaluated Symbol namespace,
-                                               @Unevaluated Symbol entry) {
-
-    return registry.getNamespace(context, namespace).getExport(entry).force(context);
   }
 
   @Internal

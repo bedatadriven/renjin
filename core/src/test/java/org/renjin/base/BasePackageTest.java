@@ -144,6 +144,8 @@ public class BasePackageTest extends EvalTestCase {
   public void versionCompare2() throws IOException {
     loadBasePackage();
 
+    System.out.println(global.getVariableUnsafe(Symbol.get("NextMethod")));
+
     eval(" x <- as.numeric_version('2.10.1') ");
     eval(" y <- as.numeric_version('2.2.0') ");
 

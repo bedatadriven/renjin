@@ -22,11 +22,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
-import org.renjin.invoke.annotations.Unevaluated;
 import org.renjin.sexp.Environment;
-import org.renjin.sexp.ExternalPtr;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -44,33 +40,6 @@ public class Jvmi {
 
   private Jvmi() {
   }
-  
-  @Builtin("import")
-  public static SEXP importClass(@Current Context context, @Current Environment rho, @Unevaluated Symbol className) {
-        
-    Class clazz;
-    try {
-      clazz = context.getSession().getClassLoader().loadClass(className.getPrintName());
-    } catch (ClassNotFoundException e) {
-      throw new EvalException("Cannot find class '%s'", className);
-    }
-    
-    if(!context.getSession().getSecurityManager().allowNewInstance(clazz)) {
-      throw new EvalException("Permission to create a new instance of class '%s' has been denied by the security manager",
-          className);
-    }
-
-    ExternalPtr ptr = new ExternalPtr(clazz);
-    try {
-      rho.setVariable(context, Symbol.get(clazz.getSimpleName()), ptr);
-    } catch ( EvalException e) {
-      throw new EvalException(e.getMessage());
-    }
-    context.setInvisibleFlag();
-
-    return ptr;
-  }
-
 
   public static void addURL(URL u){
 //    URLClassLoader sysloader = (URLClassLoader) ClassLoader

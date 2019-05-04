@@ -339,6 +339,10 @@ public class Types {
    */
   @Internal("as.function.default")
   public static Closure asFunctionDefault(ListVector list, Environment envir) {
+
+    if(list.length() == 0) {
+      throw new EvalException("list argument must have length at least 1");
+    }
   
     PairList.Builder formals = new PairList.Builder();
     for(int i=0;(i+1)<list.length();++i) {

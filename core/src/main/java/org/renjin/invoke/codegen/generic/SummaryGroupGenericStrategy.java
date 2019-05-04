@@ -42,12 +42,12 @@ public class SummaryGroupGenericStrategy extends GenericDispatchStrategy {
             .cand(fastIsObject(args.getVarArgList().invoke("getElementAsSEXP").arg(lit(0)))))._then();
     JVar genericResult = isObject.decl(codeModel.ref(SEXP.class), "genericResult",
             codeModel.ref(S3.class)
-                    .staticInvoke("tryDispatchFromSummary")
+                    .staticInvoke("tryDispatchFromPrimitive")
                     .arg(context.getContext())
                     .arg(context.getEnvironment())
                     .arg(call)
-                    .arg("Summary")
                     .arg(lit(name))
+                    .arg("Summary")
                     .arg(argNamesArray)
                     .arg(argsArray));
     isObject._if(genericResult.ne(JExpr._null()))

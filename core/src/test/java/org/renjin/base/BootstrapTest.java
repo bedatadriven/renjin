@@ -27,6 +27,11 @@ import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.IntArrayVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.SEXP;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 public class BootstrapTest {
 
@@ -64,7 +69,24 @@ public class BootstrapTest {
     eval(" f(foo, 3, 4) ");
   }
 
-  private void eval(String s) {
-    session.getTopLevelContext().evaluate(RParser.parseSource(s));
+  @Test
+  public void listWithNull() {
+    ListVector list = (ListVector) eval("list(NULL)");
+    assertThat(list.length(), equalTo(1));
+  }
+
+  @Test
+  public void asFunction() {
+    eval("as.function <- function (x) .Internal(as.function.default(x, baseenv()))");
+    eval("as.list <- function(x) .Internal(as.vector(x, 'list'))");
+    eval("formals <- function(x) .Internal(formals(fun))");
+    eval("fun <- function(x) NULL");
+    eval("value <- 42");
+    eval("fun <- as.function(c(as.list(formals(fun)), list(value)))");
+    System.out.println(eval("fun()"));
+  }
+
+  private SEXP eval(String s) {
+    return session.getTopLevelContext().evaluate(RParser.parseSource(s));
   }
 }

@@ -52,8 +52,8 @@ public class OpsGroupGenericDispatchStrategy extends GenericDispatchStrategy {
               .arg(context.getContext())
               .arg(context.getEnvironment())
               .arg(functionCall)
-              .arg(lit("Ops"))
               .arg(lit(name))
+              .arg(lit("Ops"))
               .arg(argNamesArray)
               .arg(argsArray);
 

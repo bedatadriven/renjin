@@ -42,7 +42,7 @@ public class DollarAssignFunction extends SpecialFunction {
     }
 
     SEXP object = promisedArguments[0].force(context);
-    StringVector nameArgument = DollarFunction.evaluateName(((Promise)promisedArguments[1]).getExpression());
+    StringVector nameArgument = DollarFunction.evaluateName(promisedArguments[1]);
     SEXP value = promisedArguments[2].force(context);
 
     // For possible generic dispatch, repackage the name argument as character vector rather than

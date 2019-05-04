@@ -16,13 +16,8 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
+
 /**
- * Implementation of core "special" functions that implement
- * control-flow and other essential operations.
- *
- * <p>
- * Not all special functions are implemented here, these are the most frequently
- * used and those that do not need complicated argument matching and so can be
- * implemented as simple subclasses of {@link org.renjin.SpecialFunction}
+ * Implementation of "special" functions that have non-standard evaluation.
  */
 package org.renjin.primitives.special;

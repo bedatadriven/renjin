@@ -180,7 +180,6 @@ public class Primitives {
     add(new NextFunction());
     add(new ReturnFunction());
     add(new UseMethod());
-    add(new NextMethodFunction());
     add(new MissingFunction());
 
     add(new CombineFunction());
@@ -207,7 +206,7 @@ public class Primitives {
     f("printDeferredWarnings", Warning.class, 111);
     f("interruptsSuspended", /*interruptsSuspended*/ null, 11);
 
-    addInternal("restart", new RestartFunction());
+    addInternal(new RestartFunction());
     add(new ClosureFunction());
 
     f("as.function.default", Types.class, 11);
@@ -244,7 +243,7 @@ public class Primitives {
     add(new InternalFunction());
     add(new OnExitFunction());
 
-    addInternal("Recall", new RecallFunction());
+    addInternal(new RecallFunction());
     f("delayedAssign", Evaluation.class, 111);
     f("makeLazy", Serialization.class, 111);
     f(".Primitive", Evaluation.class, 1);
@@ -278,8 +277,8 @@ public class Primitives {
     f("|", Ops.class, 2);
     f("!", Ops.class, 1);
 
-    f("&&", Comparison.class, "and", 0);
-    f("||", Comparison.class, "or", 0);
+    add(new AndFunction());
+    add(new OrFunction());
     f(":", Sequences.class, "colon", 1);
 
     add(new TildeFunction());
@@ -303,8 +302,8 @@ public class Primitives {
     f("col", Matrices.class, 11);
     f("c", Combine.class, 1);
     f("unlist", Combine.class, 11);
-    addInternal("cbind", new ColumnBindFunction());
-    addInternal("rbind", new RowBindFunction());
+    addInternal(new ColumnBindFunction());
+    addInternal(new RowBindFunction());
     f("drop", Vectors.class, 11);
     f("class", Attributes.class, "getClass", 1);
     f(".cache_class", Methods.class, 2);
@@ -854,6 +853,7 @@ public class Primitives {
 
 /* Objects */
     f("inherits", Attributes.class, 11);
+    f("NextMethod", S3.class, 210);
     f("invalidateS4Cache", S4.class, 1);
     f("invalidateS4MethodCache", S4.class, 1);
     f("standardGeneric", Methods.class, 201);
@@ -963,8 +963,8 @@ public class Primitives {
 
    // hiding f("importIntoEnv", Namespaces.class, 0, 11, 4);
     f("env.profile", /*envprofile*/ null, 211);
-    f(":::", Namespaces.class, 0);
-    f("::", Namespaces.class, 0);
+    add(new NamespaceFunction("::"));
+    add(new NamespaceFunction(":::"));
     f("getDataset", Namespaces.class, 11);
     f("find.package", Namespaces.class, 11);
     f("Encoding", Types.class, 11);
@@ -975,7 +975,7 @@ public class Primitives {
     f("icuSetCollate", /*ICUset*/ null, 111) ;
 
     // jvm specific
-    f("import", Jvmi.class, 0);
+    add(new ImportFunction());
     f("jload", Jvmi.class, 0);
     f("library", Packages.class, 11);
     f("require", Packages.class, 11);
@@ -1032,7 +1032,7 @@ public class Primitives {
     }
   }
 
-  private void addInternal(String name, PrimitiveFunction fn) {
+  private void addInternal(PrimitiveFunction fn) {
     internals.put(Symbol.get(fn.getName()), fn);
   }
 

@@ -42,11 +42,11 @@ public class UseMethod extends SpecialFunction {
                     String[] useMethodArgNames,
                     SEXP[] useMethodArgs, DispatchTable dispatch) {
 
-    if(useMethodArgNames.length == 0) {
+    if (useMethodArgNames.length == 0) {
       throw new EvalException("there must be a 'generic' argument");
     }
     SEXP genericSexp = useMethodArgs[0].force(context);
-    if(!(genericSexp instanceof StringVector)) {
+    if (!(genericSexp instanceof StringVector)) {
       throw new EvalException("'generic' must be a character string");
     }
 
@@ -111,7 +111,7 @@ public class UseMethod extends SpecialFunction {
      * Find the method!
      */
     Function method = S3.findMethod(context, definitionEnvironment, callingEnvironment, generic, "", classes, true, dispatchTable);
-    if(method == null) {
+    if (method == null) {
       throw new EvalException("no applicable method for '%s' applied to an object of class \"%s\"",
           generic, classes.toString());
     }
@@ -120,7 +120,7 @@ public class UseMethod extends SpecialFunction {
      * Callers to UseMethod() may also provide additional arguments to be passed to the selected method.
      * But this is rarely used.
      */
-    if(useMethodArgs.length > 2) {
+    if (useMethodArgs.length > 2) {
       throw new EvalException("TODO: Extra arguments to UseMethod()");
     }
 
@@ -161,7 +161,7 @@ public class UseMethod extends SpecialFunction {
     List<SEXP> argValues = new ArrayList<>();
 
     for (PairList.Node callingArg : callingArguments.nodes()) {
-      if(callingArg.getValue() == Symbols.ELLIPSES) {
+      if (callingArg.getValue() == Symbols.ELLIPSES) {
         PromisePairList varArgs = (PromisePairList) callingArgumentEnvironment.getEllipsesVariable();
         for (PairList.Node node : varArgs.nodes()) {
           argNames.add(node.hasTag() ? node.getName() : null);
@@ -188,7 +188,7 @@ public class UseMethod extends SpecialFunction {
     /*
      * Finally invoke the selected methods with the re-promised arguments
      */
-    return method.apply(context, callingEnvironment, newCall, argNameArray, argArray, dispatch);
+    return method.apply(context, callingEnvironment, newCall, argNameArray, argArray, dispatchTable);
 
   }
 
@@ -199,7 +199,7 @@ public class UseMethod extends SpecialFunction {
   private SEXP findObject(Context context, SEXP[] useMethodArgs, FunctionEnvironment functionEnvironment) {
 
 
-    if(useMethodArgs.length > 1) {
+    if (useMethodArgs.length > 1) {
 
       /*
        * If a second argument to UseMethod is provided, then the value of that argument is used
@@ -213,7 +213,7 @@ public class UseMethod extends SpecialFunction {
       return useMethodArgs[1].force(context);
 
 
-    } else if(functionEnvironment.getFormalCount() > 0) {
+    } else if (functionEnvironment.getFormalCount() > 0) {
 
       /*
        * If the second argument to UseMethod is omitted, then the first *formal* argument
@@ -235,9 +235,9 @@ public class UseMethod extends SpecialFunction {
        * We need to expand this so it can be passed to the selected function.
        *
        */
-      if(functionEnvironment.getFormalName(0) == Symbols.ELLIPSES) {
+      if (functionEnvironment.getFormalName(0) == Symbols.ELLIPSES) {
 
-        if(firstArgument.length() > 0) {
+        if (firstArgument.length() > 0) {
           return firstArgument.getElementAsSEXP(0).force(context);
         }
 

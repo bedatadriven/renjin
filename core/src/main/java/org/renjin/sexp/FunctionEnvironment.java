@@ -256,7 +256,7 @@ public final class FunctionEnvironment extends Environment {
       symbols.addAll(overflow.keySet());
     }
     if(dispatchTable != null) {
-      throw new UnsupportedOperationException("TODO");
+      symbols.addAll(dispatchTable.getEnvironmentSymbols());
     }
 
     return symbols;

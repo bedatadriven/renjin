@@ -20,6 +20,7 @@ package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchTable;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.Primitives;
 import org.renjin.sexp.*;
 
@@ -38,6 +39,10 @@ public class InternalFunction extends SpecialFunction {
     FunctionCall internalCall = (FunctionCall) internalCallPromise.getExpression();
     Symbol internalName = (Symbol)internalCall.getFunction();
     Function function = Primitives.getInternal(internalName);
+
+    if(function == null) {
+      throw new EvalException("No such internal '" + internalName + "'");
+    }
 
     // Evaluate arguments to the internal call
     List<String> names = new ArrayList<>();

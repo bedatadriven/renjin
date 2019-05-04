@@ -20,6 +20,7 @@ package org.renjin.invoke.codegen.generic;
 
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
 import org.renjin.invoke.codegen.ApplyMethodContext;
 import org.renjin.primitives.S3;
@@ -54,6 +55,7 @@ public class SimpleDispatchStrategy extends GenericDispatchStrategy {
             .arg(context.getEnvironment())
             .arg(functionCall)
             .arg(lit(name))
+            .arg(JExpr._null())
             .arg(argNamesArray)
             .arg(argsArray));
     ifObject._if(genericResult.ne(_null()))._then()._return(genericResult);

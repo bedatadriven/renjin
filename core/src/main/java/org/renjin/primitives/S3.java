@@ -23,15 +23,15 @@ import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
+import org.renjin.invoke.annotations.ArgumentList;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.s4.S4;
 import org.renjin.sexp.*;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Primitives used in the implementation of the S3 object system
@@ -54,6 +54,140 @@ public class S3 {
     }
     return objectClasses;
   }
+
+
+  @Internal
+  public static SEXP NextMethod(@Current Context context, @Current Environment rho,
+                                SEXP genericArg, SEXP objectArg, @ArgumentList ListVector extraArgs) {
+
+    Context originalCallingContext = findOriginalCallingContext(context, rho);
+
+    FunctionEnvironment functionEnvironment;
+    try {
+      functionEnvironment = (FunctionEnvironment) originalCallingContext.getCallingEnvironment();
+    } catch (ClassCastException ignored) {
+      throw new EvalException("'NextMethod' called from outside a function");
+    }
+
+    DispatchTable dispatchTable = functionEnvironment.getDispatchTable();
+    String generic = dispatchTable.getGeneric();
+    if (genericArg != Null.INSTANCE) {
+      generic = genericArg.asString();
+    }
+
+    DispatchTable nextTable = new DispatchTable(dispatchTable.getGenericDefinitionEnvironment(), generic);
+
+    if (objectArg != Null.INSTANCE) {
+//        this.object = object;
+    }
+
+    Function nextMethod = S3.findMethod(context,
+        dispatchTable.getGenericDefinitionEnvironment(),
+        functionEnvironment,
+        dispatchTable.getGeneric(),
+        dispatchTable.getGroup(),
+        nextClasses(dispatchTable),
+        true,
+        nextTable);
+
+    PairList arguments = nextArguments(originalCallingContext, extraArgs);
+//
+//    if("Ops".equals(resolver.group) && arguments.length() == 2) {
+//      withMethodVector(groupsMethodVector());
+//    }
+
+
+    // The new call that is visible to sys.call() and match.call()
+    // is identical to the call which invoked UseMethod(), but we do update the function name.
+
+    // For example, if you have a stack which looks like foo(x) -> UseMethod('foo') -> foo.default(x) then
+    // the foo.default function will have a call of foo.default(x) visible to sys.call() and match.call()
+//    FunctionCall newCall = new FunctionCall(nextTable.getMethodSymbol(), call.getArguments());
+//
+//    try {
+//      if (function instanceof Closure) {
+//        // Note that the callingEnvironment or "sys.parent" of the selected function will be the calling
+//        // environment of the wrapper function that calls UseMethod, NOT the environment in which UseMethod
+//        // is evaluated.
+//        Environment callingEnvironment = callContext.getCallingEnvironment();
+//        if (callingEnvironment == null) {
+//          callingEnvironment = callContext.getGlobalEnvironment();
+//        }
+//        return Calls.applyClosure((Closure) function, callContext, callingEnvironment, newCall,
+//            promisedArgs, persistChain());
+//      } else {
+//        // primitive
+//        return function.apply(callContext, callEnvironment, newCall, promisedArgs);
+//      }
+//    } finally {
+//
+//      callContext.clearState(GenericMethod.class);
+//
+//      if (Profiler.ENABLED) {
+//        Profiler.functionEnd();
+//      }
+//    }
+    throw new UnsupportedOperationException("TODO");
+  }
+
+
+  private static PairList nextArguments(Context parentContext, ListVector extraArgs) {
+
+
+    /*
+     * Now update the original arguments with any new values from the previous generic.
+     * in the chain. To do this, we have to match the original arguments to the
+     * formal names of the previous generic.
+     */
+
+    PairList actuals = parentContext.getArguments();
+    Closure closure = (Closure) parentContext.getFunction();
+    PairList formals = closure.getFormals();
+    Environment previousEnv = parentContext.getEnvironment();
+
+    return updateArguments(parentContext, actuals, formals, previousEnv, extraArgs);
+  }
+
+  /**
+   * For calls via NextMethod, find the original call to the function which calls NextMethod.
+   */
+  private static Context findOriginalCallingContext(Context callContext, Environment callEnvironment) {
+
+    Context parentContext = callContext;
+    while(parentContext.getEnvironment() != callEnvironment) {
+      parentContext = parentContext.getParent();
+    }
+    return parentContext;
+  }
+
+  /**
+   *
+   * @return remaining classes to be  tried after this method
+   */
+  private static List<String> nextClasses(DispatchTable table) {
+    if(table.classVector == null) {
+      return Collections.emptyList();
+    }
+    int classIndex = findIndex(table);
+    List<String> next = new ArrayList<>();
+
+    for (int i = classIndex + 1; i < table.classVector.length(); i++) {
+      next.add(table.classVector.getElementAsString(i));
+    }
+
+    return next;
+  }
+
+  private static int findIndex(DispatchTable table) {
+    for (int i = 0; i < table.classVector.length(); i++) {
+      String className = table.classVector.getElementAsString(i);
+      if(table.method.endsWith(className)) {
+        return i;
+      }
+    }
+    return table.classVector.length() - 1;
+  }
+
 
   /**
    * Attempts to compute the classes used for S3 dispatch based on value bounds for an expression.
@@ -180,7 +314,7 @@ public class S3 {
       return null;
     }
 
-    boolean isOps = group.equals("Ops");
+    boolean isOps = "Ops".equals(group);
 
     int nargs;
     if (isOps) {
@@ -203,10 +337,11 @@ public class S3 {
 
     Environment definitionEnvironment = context.getBaseEnvironment();
 
-    DispatchTable dispatchTable = new DispatchTable(definitionEnvironment, generic, group);
 
     SEXP left = arguments[0].force(context);
     StringVector leftClasses = computeDataClasses(context, left);
+
+    DispatchTable dispatchTable = new DispatchTable(definitionEnvironment, generic, leftClasses);
 
     Function leftMethod = findMethod(context, definitionEnvironment, rho, generic, group, leftClasses, false, dispatchTable);
 
@@ -232,6 +367,8 @@ public class S3 {
 
         } else if(leftMethod == null) {
           leftMethod = rightMethod;
+          dispatchTable.classVector = rightClasses;
+
         }
       }
     }
@@ -363,6 +500,7 @@ public class S3 {
     // Look up the .default method first in the definition environment
     Function function = findMethod(context, methodTable, definitionEnvironment, genericMethodName, "default", dispatchTable);
     if(function != null) {
+      dispatchTable.classVector = null;
       return function;
     }
 

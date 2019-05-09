@@ -135,6 +135,7 @@ public class JlineRepl {
     } finally {
       reader.getTerminal().restore();
     }
+
   }
 
   private void printGreeting() throws Exception {

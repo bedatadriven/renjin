@@ -87,6 +87,8 @@ public class Main {
         Profiler.dump(System.out);
       }
     }
+    // print a new line when quit
+    System.out.println();
   }
 
   public Main(OptionSet options) {

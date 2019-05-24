@@ -123,7 +123,6 @@ static void prn3lb(int n, double *x, double *f, char *task, int iprint,
 
 
 /* ================    L-BFGS-B (version 2.3)	========================== */
-static
 void setulb(int n, int m, double *x, double *l, double *u, int *nbd,
 	    double *f, double *g, double factr, double *pgtol,
 	    double *wa, int * iwa, char *task, int iprint, int *isave)

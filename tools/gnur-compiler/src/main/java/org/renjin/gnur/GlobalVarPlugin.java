@@ -79,7 +79,7 @@ public class GlobalVarPlugin extends GimpleCompilerPlugin {
     writer.writeFields(globalVarRewriter.getContextFields());
     writer.writeConstructor(generationContext,
         globalVarRewriter.getContextFields(),
-        globalVarRewriter.getContextVars());
+        globalVarRewriter.getGlobalVariables());
 
     writer.writeTo(generationContext);
   }

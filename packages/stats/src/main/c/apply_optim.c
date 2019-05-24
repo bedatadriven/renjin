@@ -641,7 +641,9 @@ void cgmin(int n, double *Bvec, double *X, double *Fmin,
 }
 
 /* include setulb() */
-#include "lbfgsb.c"
+void setulb(int n, int m, double *x, double *l, double *u, int *nbd,
+	    double *f, double *g, double factr, double *pgtol,
+	    double *wa, int * iwa, char *task, int iprint, int *isave);
 
 void lbfgsb(int n, int m, double *x, double *l, double *u, int *nbd,
 	    double *Fmin, optimfn fminfn, optimgr fmingr, int *fail,

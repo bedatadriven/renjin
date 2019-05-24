@@ -73,6 +73,7 @@ public class FunctionGenerator implements InvocationStrategy {
   private TypeOracle typeOracle;
   private FunctionOracle functionOracle;
   private ExprFactory exprFactory;
+  private List<GlobalVarTransformer> globalVarTransformers;
   private LocalStaticVarAllocator staticVarAllocator;
   private LocalVariableTable localSymbolTable;
   private LocalVariableTable localStaticSymbolTable;
@@ -85,7 +86,9 @@ public class FunctionGenerator implements InvocationStrategy {
   private boolean compilationFailed = false;
 
   public FunctionGenerator(String className, GimpleFunction function, TypeOracle typeOracle,
-                           GlobalVarAllocator globalVarAllocator, UnitSymbolTable symbolTable) {
+                           GlobalVarAllocator globalVarAllocator,
+                           List<GlobalVarTransformer> globalVarTransformers,
+                           UnitSymbolTable symbolTable) {
     this.className = className;
     this.function = function;
     this.typeOracle = typeOracle;
@@ -103,6 +106,7 @@ public class FunctionGenerator implements InvocationStrategy {
     this.staticVarAllocator = new LocalStaticVarAllocator("$" + function.getSafeMangledName() + "$", globalVarAllocator);
     this.localSymbolTable = new LocalVariableTable(symbolTable);
     this.localStaticSymbolTable = new LocalVariableTable(symbolTable);
+    this.globalVarTransformers = globalVarTransformers;
 
   }
 
@@ -375,21 +379,29 @@ public class FunctionGenerator implements InvocationStrategy {
       }
 
       try {
-        GExpr generator = functionOracle.variable(varDecl,
-            varDecl.isStatic() ?
-                staticVarAllocator :
-                mv.getLocalVarAllocator());
-
-        localSymbolTable.addVariable(varDecl.getId(), generator);
-
         if(varDecl.isStatic()) {
+          GExpr generator = localStaticGenerator(varDecl);
+          localSymbolTable.addVariable(varDecl.getId(), generator);
           localStaticSymbolTable.addVariable(varDecl.getId(), generator);
+
+        } else {
+          localSymbolTable.addVariable(varDecl.getId(),
+              functionOracle.variable(varDecl, mv.getLocalVarAllocator()));
         }
 
       } catch (Exception e) {
         throw new InternalCompilerException("Exception generating local variable " + varDecl, e);
       }
     }
+  }
+
+  private GExpr localStaticGenerator(GimpleVarDecl varDecl) {
+    for (GlobalVarTransformer globalVarTransformer : globalVarTransformers) {
+      if(globalVarTransformer.acceptLocalStaticVar(varDecl)) {
+        return globalVarTransformer.generator(typeOracle, function, varDecl);
+      }
+    }
+    return functionOracle.variable(varDecl, staticVarAllocator);
   }
 
   private void emitBasicBlock(GimpleBasicBlock basicBlock) {

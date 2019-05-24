@@ -22,6 +22,7 @@ import org.renjin.gcc.ProvidedGlobalVar;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
+import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 
 import java.util.Map;
@@ -37,12 +38,22 @@ public class ProvidedVarTransformer implements GlobalVarTransformer {
   }
 
   @Override
-  public boolean accept(GimpleVarDecl decl) {
+  public boolean acceptGlobalVar(GimpleVarDecl decl) {
     return decl.isPublic() && providedVariables.containsKey(decl.getName());
+  }
+
+  @Override
+  public boolean acceptLocalStaticVar(GimpleVarDecl decl) {
+    return false;
   }
 
   @Override
   public GExpr generator(TypeOracle typeOracle, GimpleCompilationUnit unit, GimpleVarDecl decl) {
     return providedVariables.get(decl.getName()).createExpr(decl, this.typeOracle);
+  }
+
+  @Override
+  public GExpr generator(TypeOracle typeOracle, GimpleFunction function, GimpleVarDecl decl) {
+    throw new UnsupportedOperationException();
   }
 }

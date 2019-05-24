@@ -30,7 +30,6 @@ import org.renjin.primitives.special.ControlFlowException;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -108,8 +107,6 @@ public class Context {
    * conditions are signaled.
    */
   private Map<String, ConditionHandler> conditionHandlers = null;
-
-  private Map<Class, Object> stateMap = null;
 
   private Context() {
   }
@@ -303,31 +300,8 @@ public class Context {
     }
   }
 
-  public <T> T getState(Class<T> clazz) {
-    if(stateMap != null) {
-      return (T)stateMap.get(clazz);
-    } else {
-      return null;
-    }
-  }
-
-  public void clearState(Class<?> stateType) {
-    stateMap.remove(stateType);
-  }
-
   public <T> T getSingleton(Class<T> clazz) {
     return session.getSingleton(clazz);
-  }
-
-  public <T> void setState(T instance) {
-    this.setState((Class<T>) instance.getClass(), instance);
-  }
-
-  public <T> void setState(Class<T> clazz, T instance) {
-    if(stateMap == null) {
-      stateMap = Maps.newHashMap();
-    }
-    stateMap.put(clazz, instance);
   }
 
   private SEXP evaluateSymbol(Symbol symbol, Environment rho, boolean allowMissing) {

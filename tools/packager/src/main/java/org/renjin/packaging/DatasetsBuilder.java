@@ -72,7 +72,6 @@ public class DatasetsBuilder {
 
   public void build() throws IOException {
     if(!source.getDataDir().exists()) {
-      buildContext.getLogger().debug(source.getDataDir() + " does not exist; no datasets will be built.");
       return;
     }  
     

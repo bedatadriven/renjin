@@ -72,11 +72,7 @@ public class NativeSourceBuilder {
     compileGimple();
     buildContext.getLogger().info("Compilation of GNU R sources succeeded.");
 
-    try {
-      optimizeClasses();
-    } catch (Exception e) {
-      buildContext.getLogger().error("Soot optimization run failed", e);
-    }
+//    optimizeClasses();
 
     // When soot hits an error, it can set the interrupt flag for this
     // thread.
@@ -245,7 +241,7 @@ public class NativeSourceBuilder {
 
     // Classpath for soot analysis
     args.add("-cp");
-    args.add(buildContext.getCompileClasspath());
+    args.add(buildContext.getSootClasspath());
 
     args.add("-asm-backend");
     args.add("-java-version");

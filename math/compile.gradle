@@ -40,7 +40,8 @@ sourceSets {
     }
 }
 
-task compile(type: JavaExec) {
+task compile(type: JavaExec, dependsOn: ':tools:gcc-bridge:compiler:compilePlugin') {
+
 
     if(project.file('src/main/c').exists()) {
         inputs.dir 'src/main/c'
@@ -48,6 +49,8 @@ task compile(type: JavaExec) {
     if(project.file('src/main/fortran').exists()) {
         inputs.dir 'src/main/fortran'
     }
+
+    environment 'GCC_BRIDGE_PLUGIN', gccBridgePlugin
 
     outputs.dir compiledOutputDir
 

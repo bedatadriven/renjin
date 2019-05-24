@@ -21,9 +21,5 @@
 
 dependencies {
     compile project(':core')
-    compile project(':tools:gnur-runtime')
-
-    compile 'org.jfree:jfreesvg:3.3'
-
     testCompile project(':packages:hamcrest')
 }

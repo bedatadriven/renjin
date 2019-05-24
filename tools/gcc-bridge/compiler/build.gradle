@@ -8,3 +8,14 @@ dependencies {
     implementation 'io.airlift:airline:0.4'
 }
 
+task compilePlugin(type: Exec) {
+
+    def sourceFile = 'src/main/resources/org/renjin/gcc/plugin.c'
+    def gcc = 'gcc-4.7'
+
+    inputs.file sourceFile
+    outputs.file gccBridgePlugin
+
+    commandLine 'sh', '-c', "${gcc} -shared -xc++ -I `${gcc} -print-file-name=plugin`/include -fPIC -fno-rtti -O2 ${sourceFile} -lstdc++ -shared-libgcc -o ${gccBridgePlugin}"
+
+}

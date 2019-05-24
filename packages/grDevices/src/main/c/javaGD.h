@@ -13,7 +13,7 @@
 #include <R_ext/GraphicsEngine.h>
 #include <R_ext/GraphicsDevice.h>
 
-#ifdef _RENJIN
+#ifdef RENJIN
 typedef void * jobject;
 typedef void * jclass;
 typedef void JNIEnv;

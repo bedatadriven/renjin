@@ -36,6 +36,7 @@ public class PackageBuilder {
   private BuildContext context;
 
   private boolean ignoreNativeCompilationFailure;
+  private boolean transformGlobalVariables;
 
   public PackageBuilder(PackageSource packageSource, BuildContext context) {
     this.packageSource = packageSource;
@@ -44,6 +45,10 @@ public class PackageBuilder {
 
   public void setIgnoreNativeCompilationFailure(boolean ignoreNativeCompilationFailure) {
     this.ignoreNativeCompilationFailure = ignoreNativeCompilationFailure;
+  }
+
+  public void setTransformGlobalVariables(boolean transform) {
+    this.transformGlobalVariables = transform;
   }
 
   public void build() throws IOException {
@@ -95,6 +100,7 @@ public class PackageBuilder {
 
       try {
         NativeSourceBuilder nativeSourceBuilder = new NativeSourceBuilder(packageSource, context);
+        nativeSourceBuilder.setTransformGlobalVariables(transformGlobalVariables);
         nativeSourceBuilder.build();
       } catch (Exception e) {
         if (ignoreNativeCompilationFailure) {

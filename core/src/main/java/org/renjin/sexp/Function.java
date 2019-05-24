@@ -21,6 +21,7 @@ package org.renjin.sexp;
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
+import org.renjin.repackaged.guava.base.Strings;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -97,7 +98,7 @@ public interface Function extends SEXP, Recursive {
         if (expando instanceof PromisePairList) {
           PromisePairList extra = (PromisePairList) expando;
           for (PairList.Node extraNode : extra.nodes()) {
-            argumentNames.add(extraNode.getTag().getPrintName());
+            argumentNames.add(Strings.emptyToNull(extraNode.getName()));
             arguments.add(extraNode.getValue());
           }
         }

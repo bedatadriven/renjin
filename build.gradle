@@ -30,6 +30,17 @@ allprojects {
   }
 }
 
+ext {
+    gccBridgePlugin = "$projectDir/tools/gcc-bridge/compiler/build/bridge.so"
+}
+
+
+subprojects {
+
+    configurations.all {
+        exclude group: 'org.slf4j', module: 'slf4j-simple'
+    }
+}
 //apply plugin: 'org.owasp.dependencycheck'
 //dependencyCheck {
 //  suppressionFile = rootProject.file("gradle/owasp-false-positives.xml")

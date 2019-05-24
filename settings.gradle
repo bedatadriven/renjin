@@ -19,5 +19,7 @@ include 'script-engine'
 
 include 'packages:hamcrest'
 include 'packages:grDevices'
+include 'packages:graphics'
+include 'packages:utils'
 
 include 'tests'

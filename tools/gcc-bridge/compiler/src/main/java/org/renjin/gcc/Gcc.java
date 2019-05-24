@@ -223,6 +223,14 @@ public class Gcc {
   
   public void extractPlugin() throws IOException {
 
+    if(!Strings.isNullOrEmpty(System.getenv("GCC_BRIDGE_PLUGIN"))) {
+      pluginLibrary = new File(System.getenv("GCC_BRIDGE_PLUGIN"));
+      if(!pluginLibrary.exists()) {
+        throw new RuntimeException("Plugin does not exist at path specified by GCC_BRIDGE_PLUGIN: " + pluginLibrary.getAbsolutePath());
+      }
+      return;
+    }
+
     if(!Strings.isNullOrEmpty(System.getProperty("gcc.bridge.plugin"))) {
       pluginLibrary = new File(System.getProperty("gcc.bridge.plugin"));
       if(pluginLibrary.exists()) {

@@ -28,9 +28,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class CorePackageBuilder implements BuildContext {
 
+  static {
+    // Silence warnings about not being able to load native libs
+    Logger.getLogger("com.github.fommil.netlib").setLevel(Level.SEVERE);
+  }
 
   public static void main(String[] args) throws IOException {
 
@@ -43,6 +49,7 @@ public class CorePackageBuilder implements BuildContext {
 
     CorePackageBuilder context = new CorePackageBuilder(source);
     PackageBuilder builder = new PackageBuilder(source, context);
+    builder.setTransformGlobalVariables("TRUE".equals(System.getenv("TRANSFORM_GLOBAL_VARIABLES")));
     builder.build();
   }
 
@@ -111,18 +118,22 @@ public class CorePackageBuilder implements BuildContext {
 
   @Override
   public File getGccBridgePlugin() {
-    return new File(".");
+    return readFileFromEnvironment("GCC_BRIDGE_PLUGIN");
   }
 
   @Override
   public File getGnuRHomeDir() {
-    String home = System.getenv("R_HOME");
+    return readFileFromEnvironment("R_HOME");
+  }
+
+  private File readFileFromEnvironment(String name) {
+    String home = System.getenv(name);
     if(Strings.isNullOrEmpty(home)) {
-      throw new RuntimeException("Environment variable R_HOME not set");
+      throw new RuntimeException("Environment variable " + name + " not set");
     }
     File homeDir = new File(home);
     if(!homeDir.exists()) {
-      throw new RuntimeException("R_HOME dir " + homeDir.getAbsolutePath() + " does not exist");
+      throw new RuntimeException("File specified by " + name + " (" + homeDir.getAbsolutePath() + ") does not exist");
     }
     return homeDir;
   }
@@ -169,8 +180,12 @@ public class CorePackageBuilder implements BuildContext {
   }
 
   @Override
-  public String getCompileClasspath() {
-    throw new UnsupportedOperationException("TODO");
+  public String getSootClasspath() {
+    String classpath = System.getenv("SOOT_CLASSPATH");
+    if(Strings.isNullOrEmpty(classpath)) {
+      throw new RuntimeException("SOOT_CLASSPATH is not set.");
+    }
+    return classpath;
   }
 
   @Override

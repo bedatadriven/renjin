@@ -184,7 +184,6 @@ public class NamespaceBuilder {
 
   private void serializeEnvironment(Context context, Environment namespaceEnv, File environmentFile) {
 
-    System.out.println("Writing namespace environment to " + environmentFile);
     try {
       LazyLoadFrameBuilder builder = new LazyLoadFrameBuilder(context);
       builder.outputTo(environmentFile.getParentFile());

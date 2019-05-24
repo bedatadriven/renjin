@@ -1,0 +1,75 @@
+
+
+subprojects {
+
+    println "common configuration for ${project.name}"
+
+    sourceSets {
+        main {
+            output.dir("$buildDir/namespace", builtBy: 'compileNamespace')
+        }
+    }
+
+    configurations {
+        packager
+    }
+
+    dependencies {
+        packager project(':tools:packager')
+        compile project(':core')
+        compile 'org.jfree:jfreesvg:3.3'
+
+        testCompile project(':packages:hamcrest')
+    }
+
+    def homeDir = rootProject.file('tools/gnur-installation/src/main/resources')
+
+    task compileNamespace(type: JavaExec, dependsOn: [ ':tools:gcc-bridge:compiler:compilePlugin', ':tools:packager:build' ]) {
+
+        inputs.file 'NAMESPACE'
+        if(project.file('src/main/c').exists()) {
+            inputs.dir 'src/main/c'
+        }
+        inputs.dir 'src/main/R'
+        inputs.dir homeDir
+        outputs.dir "$buildDir/namespace"
+
+        doFirst {
+            classpath configurations.packager
+            classpath sourceSets.main.resources
+            classpath sourceSets.main.runtimeClasspath
+
+            environment "R_HOME", homeDir
+            environment "GCC_BRIDGE_PLUGIN", gccBridgePlugin
+            environment "SOOT_CLASSPATH", (sourceSets.main.output + sourceSets.main.compileClasspath)
+                    .filter({it.exists()})
+                    .getAsPath()
+
+//            // For now, only transform global variables of grDevices and graphics packages
+//            if(project.name.equals("grDevices") || project.name.equals("graphics")) {
+//                environment "TRANSFORM_GLOBAL_VARIABLES", "TRUE"
+//            }
+
+            main = 'org.renjin.packaging.CorePackageBuilder'
+
+            classpath.forEach { println it }
+
+        }
+    }
+
+    task testPackage(type: JavaExec) {
+
+        classpath configurations.packager
+        classpath configurations.testRuntime
+        classpath sourceSets.main.output
+
+        environment "TEST_REPORT_DIR", "$buildDir/renjin-test-reports"
+
+        args "$projectDir/src/test/R"
+
+        main = 'org.renjin.packaging.test.Main'
+    }
+
+    test.dependsOn 'testPackage'
+
+}

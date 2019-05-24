@@ -916,5 +916,23 @@ public class EvaluationTest extends EvalTestCase {
     eval("f <- function(x = NULL) g(y = x)");
     assertThat(eval("f()"), elementsIdenticalTo(c(false)));
   }
+
+  @Test
+  public void missingWithDefault() {
+    eval("f <- function(a = 41, b = 42) a");
+
+    assertThat(eval("f(,3)"), elementsIdenticalTo(c(41)));
+  }
+
+  @Test
+  public void missingVarArg() {
+    eval("f <- function(...) missing(..1)");
+    eval("g <- function(a,b) f(a,b)");
+
+    assertThat(eval("f()"), elementsIdenticalTo(LogicalVector.TRUE));
+    assertThat(eval("f(1)"), elementsIdenticalTo(LogicalVector.FALSE));
+    assertThat(eval("g()"), elementsIdenticalTo(LogicalVector.TRUE));
+
+  }
 }
 

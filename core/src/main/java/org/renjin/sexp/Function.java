@@ -42,6 +42,9 @@ public interface Function extends SEXP, Recursive {
    * <p>The arguments as passed to the function must be <i>expanded</i>. That is, the symbol '...' should not
    * be passed, but rather resolved and the array of argument names and values expanded to include in the array.</p>
    *
+   * <p>Missing positional arguments, such as the first argument in the call g(, 1), should be passed as
+   * {@code Symbol.MISSING_ARG}, not a promise.</p>
+   *
    * <p>The arguments, as passed to this method, are not yet matched: they should be in the original order.</p>
    *
    * <p>The promisedArguments array may be modified by the callee.</p>
@@ -59,7 +62,14 @@ public interface Function extends SEXP, Recursive {
   default SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
     PairList.Builder args = new PairList.Builder();
     for (int i = 0; i < promisedArguments.length; i++) {
-      args.add(argumentNames[i], ((Promise) promisedArguments[i]).getExpression());
+      SEXP promisedArgument = promisedArguments[i];
+      SEXP unevaluatedArgument;
+      if(promisedArgument == Symbol.MISSING_ARG) {
+        unevaluatedArgument = promisedArgument;
+      } else {
+        unevaluatedArgument = ((Promise) promisedArgument).getExpression();
+      }
+      args.add(argumentNames[i], unevaluatedArgument);
     }
     return apply(context, rho, call, args.build());
   }

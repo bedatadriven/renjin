@@ -105,8 +105,7 @@ public final class FunctionEnvironment extends Environment {
     }
 
     if(symbol.isVarArgReference()) {
-      //return isVarArgMissing(context, rho, symbol.getVarArgReferenceIndex());
-      throw new UnsupportedOperationException("TODO");
+      return isVarArgMissing(context, symbol.getVarArgReferenceIndex());
 
     } else if(symbol == Symbols.ELLIPSES) {
       throw new EvalException("this function does not have a '...' formal argument");
@@ -121,18 +120,18 @@ public final class FunctionEnvironment extends Environment {
    * The '..1' argument is considered to be "missing" IF one is not provided, OR it is a promise
    * to a missing argument with no default value.
    */
-  private static boolean isVarArgMissing(@Current Context context, Environment rho, int varArgReferenceIndex) {
+  private boolean isVarArgMissing(@Current Context context, int varArgReferenceIndex) {
 
-    SEXP ellipses = rho.findVariable(context, Symbols.ELLIPSES);
-    if(ellipses == Symbol.UNBOUND_VALUE) {
+    int ellipsesIndex = indexOf(Symbols.ELLIPSES);
+    if(ellipsesIndex == -1) {
       throw new EvalException("missing can only be used for arguments.");
     }
-
-    if(ellipses.length() < varArgReferenceIndex) {
+    PromisePairList expando = (PromisePairList) arguments[ellipsesIndex];
+    if(expando.length() < varArgReferenceIndex) {
       return true;
     }
-    SEXP value = ellipses.getElementAsSEXP(varArgReferenceIndex-1);
-    return value == Symbol.MISSING_ARG || isPromisedMissingArg(context, value, new ArrayDeque<Promise>());
+    SEXP value = expando.getElementAsSEXP(varArgReferenceIndex-1);
+    return value == Symbol.MISSING_ARG || isPromisedMissingArg(context, value, new ArrayDeque<>());
   }
 
   private static boolean isArgMissing(Context context, Environment rho, Symbol argumentName) {

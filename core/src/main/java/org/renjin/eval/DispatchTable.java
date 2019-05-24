@@ -46,11 +46,17 @@ public class DispatchTable {
   public StringVector classVector;
 
   /**
-   * ‘.Method’ is a character vector (normally of length one) naming
-   * the method function.  (For functions in the group generic ‘Ops’ it
-   * is of length two.)
+   * The name of the method that was selected during dispatch. For example,
+   * "print.foo" or "Ops.factor"
    */
   public String method;
+
+  /**
+   * For dispatch on the Ops group, we also need to store the method selected
+   * for the second argument. This will be either the same as {@link #method} or ""
+   */
+  public String method2;
+
 
   private Environment genericDefinitionEnvironment;
 
@@ -59,6 +65,15 @@ public class DispatchTable {
    * call to be generic.
    */
   private Environment genericCallEnvironment;
+
+  /**
+   * The original argument to the matched function.
+   *
+   * <p>This value is stored when apply the closure and is used
+   * by NextMethod.</p>
+   */
+  public MatchedArguments arguments;
+
 
 
   public DispatchTable(Environment definitionEnvironment, String generic) {
@@ -93,7 +108,11 @@ public class DispatchTable {
       return StringVector.valueOf(generic);
     }
     if(symbol == METHOD) {
-      return StringVector.valueOf(method);
+      if(method2 == null) {
+        return StringVector.valueOf(method);
+      } else {
+        return new StringArrayVector(method, method2);
+      }
     }
     if(symbol == GROUP) {
       if(group == null) {

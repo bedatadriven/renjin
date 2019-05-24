@@ -627,7 +627,7 @@ public abstract class Environment extends AbstractSEXP implements Recursive {
   }
 
   public SEXP getEllipsesVariable() {
-    return getVariableUnsafe(Symbols.ELLIPSES);
+    return findVariableUnsafe(Symbols.ELLIPSES);
   }
 
   public boolean hasVariable(Symbol symbol) {

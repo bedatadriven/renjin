@@ -97,11 +97,13 @@ public class Closure extends AbstractSEXP implements Function {
         if (actualIndex != -1) {
           SEXP actualValue = matching.getActualValue(actualIndex);
           if (actualValue != Symbol.MISSING_ARG) {
-            arguments[formalIndex] = matching.getActualValue(actualIndex);
+            arguments[formalIndex] = actualValue;
           }
         }
       }
     }
+
+
 
     SEXP[] locals = Arrays.copyOf(arguments, arguments.length);
 
@@ -128,6 +130,13 @@ public class Closure extends AbstractSEXP implements Function {
         }
         locals[i] = defaultValue;
       }
+    }
+
+    // If we are being called by UseMethod() or by NextMethod(), then
+    // save a reference to our matched arguments. This is required by NextMethod().
+
+    if(dispatch != null) {
+      dispatch.arguments = matching;
     }
 
     try {

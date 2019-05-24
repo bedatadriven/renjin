@@ -45,6 +45,7 @@ public class UseMethod extends SpecialFunction {
     if (useMethodArgNames.length == 0) {
       throw new EvalException("there must be a 'generic' argument");
     }
+
     SEXP genericSexp = useMethodArgs[0].force(context);
     if (!(genericSexp instanceof StringVector)) {
       throw new EvalException("'generic' must be a character string");
@@ -69,8 +70,58 @@ public class UseMethod extends SpecialFunction {
      */
     FunctionEnvironment functionEnvironment = (FunctionEnvironment) callingEnvironment;
 
+    /*
+     * Part I: Prepare the new argument list
+     *
+     */
 
-    SEXP object = findObject(context, useMethodArgs, functionEnvironment);
+    /*
+     * UseMethod() is very special.
+     *
+     * It selects and invokes a method based on the class of an argument, but it is not
+     * passed the arguments directly.
+     *
+     * Rather, it inherits its arguments from the *calling function*.
+     *
+     * For example:
+     *
+     * foo     <- function(a) as.list(a)
+     * as.list <- function(x,...) UseMethod("as.list")
+     *
+     * The *calling arguments* are the arguments to the as.list() function, which include
+     * "a" above.
+     *
+     * This means that we actually throw away the work done in Closure.apply() to match and promise
+     * the arguments to as.list().
+     *
+     * The first argument has to be handled specially to ensure that it is not re-evaluated.
+     *
+     */
+
+    Context callingContext = Contexts.findCallingContext(context, functionEnvironment);
+    PairList callingArguments = callingContext.getCall().getArguments();
+    Environment callingArgumentEnvironment = callingContext.getCallingEnvironment();
+
+    List<String> argNames = new ArrayList<>();
+    List<SEXP> argValues = new ArrayList<>();
+
+    for (PairList.Node callingArg : callingArguments.nodes()) {
+      if (callingArg.getValue() == Symbols.ELLIPSES) {
+        PromisePairList varArgs = (PromisePairList) callingArgumentEnvironment.getEllipsesVariable();
+        for (PairList.Node node : varArgs.nodes()) {
+          argNames.add(node.hasTag() ? node.getName() : null);
+          argValues.add(node.getValue());
+        }
+      } else {
+        argNames.add(callingArg.hasTag() ? callingArg.getName() : null);
+        argValues.add(Promise.repromise(callingArgumentEnvironment, callingArg.getValue()));
+      }
+    }
+    String[] argNameArray = argNames.toArray(new String[0]);
+    SEXP[] argArray = argValues.toArray(new SEXP[0]);
+
+
+    SEXP object = findObject(context, useMethodArgs, argArray, functionEnvironment);
 
 
     /*
@@ -126,56 +177,6 @@ public class UseMethod extends SpecialFunction {
 
 
     /*
-     * Part III: Prepare the new argument list
-     *
-     */
-
-    /*
-     * UseMethod() is very special.
-     *
-     * It selects and invokes a method based on the class of an argument, but it is not
-     * passed the arguments directly.
-     *
-     * Rather, it inherits its arguments from the *calling function*.
-     *
-     * For example:
-     *
-     * foo     <- function(a) as.list(a)
-     * as.list <- function(x,...) UseMethod("as.list")
-     *
-     * The *calling arguments* are the arguments to the as.list() function, which include
-     * "a" above.
-     *
-     * This means that we actually throw away the work done in Closure.apply() to match and promise
-     * the arguments to as.list().
-     *
-     * This *also* means that the object argument WILL BE EVALUATED twice!
-     *
-     */
-
-    Context callingContext = Contexts.findCallingContext(context, functionEnvironment);
-    PairList callingArguments = callingContext.getCall().getArguments();
-    Environment callingArgumentEnvironment = callingContext.getCallingEnvironment();
-
-    List<String> argNames = new ArrayList<>();
-    List<SEXP> argValues = new ArrayList<>();
-
-    for (PairList.Node callingArg : callingArguments.nodes()) {
-      if (callingArg.getValue() == Symbols.ELLIPSES) {
-        PromisePairList varArgs = (PromisePairList) callingArgumentEnvironment.getEllipsesVariable();
-        for (PairList.Node node : varArgs.nodes()) {
-          argNames.add(node.hasTag() ? node.getName() : null);
-          argValues.add(node.getValue());
-        }
-      } else {
-        argNames.add(callingArg.hasTag() ? callingArg.getName() : null);
-        argValues.add(Promise.repromise(callingArgumentEnvironment, callingArg.getValue()));
-      }
-    }
-    String[] argNameArray = argNames.toArray(new String[0]);
-    SEXP[] argArray = argValues.toArray(new SEXP[0]);
-
-    /*
      * The new call that is visible to sys.call() and match.call()
      * is identical to the call which invoked UseMethod(), but we do update the function name.
 
@@ -196,7 +197,7 @@ public class UseMethod extends SpecialFunction {
   /*
    * Find the "object" on which to dispatch.
    */
-  private SEXP findObject(Context context, SEXP[] useMethodArgs, FunctionEnvironment functionEnvironment) {
+  private SEXP findObject(Context context, SEXP[] useMethodArgs, SEXP[] argArray, FunctionEnvironment functionEnvironment) {
 
 
     if (useMethodArgs.length > 1) {
@@ -213,39 +214,18 @@ public class UseMethod extends SpecialFunction {
       return useMethodArgs[1].force(context);
 
 
-    } else if (functionEnvironment.getFormalCount() > 0) {
+    } else if (argArray.length > 0) {
 
       /*
        * If the second argument to UseMethod is omitted, then the first *formal* argument
        * of the function *calling* UseMethod() is used for dispatch.
        */
 
-      SEXP firstArgument = functionEnvironment.get(0);
+      return argArray[0].force(context);
 
-      /*
-       * It is possible for the first argument to be the '...' symbol.
-       *
-       * For example:
-       *
-       * foo <- function() seq(1,10,1)
-       * seq <- function(...) UseMethod("seq")
-       *
-       * In this case, callArguments[0] will be a PromisePairList{ Unevaluated{1}, Unevaluated{10}, Unevaluated{1} }
-       *
-       * We need to expand this so it can be passed to the selected function.
-       *
-       */
-      if (functionEnvironment.getFormalName(0) == Symbols.ELLIPSES) {
-
-        if (firstArgument.length() > 0) {
-          return firstArgument.getElementAsSEXP(0).force(context);
-        }
-
-      } else {
-        return firstArgument.force(context);
-      }
+    } else {
+      return Null.INSTANCE;
     }
-    return Null.INSTANCE;
   }
 
 

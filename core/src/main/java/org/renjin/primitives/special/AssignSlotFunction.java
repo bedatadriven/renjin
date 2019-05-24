@@ -56,11 +56,13 @@ public class AssignSlotFunction extends SpecialFunction {
     SEXP unevaluatedValue = args.getElementAsSEXP(2);
 
     // Try to dispatch to an override, but repackage the name as a character
-    PairList repackagedArgs = PairList.Node.fromArray(object, new StringArrayVector(slotName), unevaluatedValue);
-
-    SEXP genericResult = S3.tryDispatchFromPrimitive(context, rho, call, getName(), object, repackagedArgs);
-    if(genericResult != null) {
-      return genericResult;
+    if(object.isObject()) {
+      SEXP[] repackedArgs = new SEXP[] { object, new StringArrayVector(slotName), unevaluatedValue};
+      String[] repackagedArgNames = new String[3];
+      SEXP genericResult = S3.tryDispatchFromPrimitive(context, rho, call, "@<-", null, repackagedArgNames, repackedArgs);
+      if (genericResult != null) {
+        return genericResult;
+      }
     }
 
     // Nope, we're going to use the default version so we need to evaluate the value

@@ -421,7 +421,8 @@ public class Context {
     List<SEXP> arguments = new ArrayList<>();
 
     for (PairList.Node node : call.getArguments().nodes()) {
-      if(node.getValue() == Symbols.ELLIPSES && !(functionExpr instanceof SpecialFunction)) {
+      SEXP value = node.getValue();
+      if(value == Symbols.ELLIPSES && !(functionExpr instanceof SpecialFunction)) {
         SEXP expando = rho.getEllipsesVariable();
         if(expando == Symbol.UNBOUND_VALUE) {
           throw new EvalException("'...' used in an incorrect context");
@@ -440,7 +441,11 @@ public class Context {
         } else {
           argumentNames.add(null);
         }
-        arguments.add(Promise.repromise(rho, node.getValue()));
+        if(value == Symbol.MISSING_ARG) {
+          arguments.add(Symbol.MISSING_ARG);
+        } else {
+          arguments.add(Promise.repromise(rho, value));
+        }
       }
     }
 

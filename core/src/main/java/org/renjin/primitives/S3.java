@@ -20,10 +20,14 @@ package org.renjin.primitives;
 
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.eval.*;
+import org.renjin.eval.Context;
+import org.renjin.eval.DispatchTable;
+import org.renjin.eval.EvalException;
+import org.renjin.eval.MatchedArguments;
 import org.renjin.invoke.annotations.ArgumentList;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
+import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.s4.S4;
 import org.renjin.sexp.*;
@@ -153,22 +157,69 @@ public class S3 {
     // Then we need to update the arguments with the new values
     // from the environment, without changing the order.
     //
-    // This requires (re)matching the original arguments to get the
-    // formal arguments.
+    // For this reason, Closure.apply() stores the MatchedArguments
+    // structure for use here.
 
     FunctionCall previousCall = previousContext.getCall();
-    PairList formals = ((Closure) previousContext.getFunction()).getFormals();
 
-    ArgumentMatcher matcher = new ArgumentMatcher(formals);
-    MatchedArguments matched = matcher.match(previousCall.getArguments());
+    MatchedArguments previousArguments = dispatchTable.arguments;
 
-    SEXP[] updatedArguments = new SEXP[matched.getActualCount()];
-    for (int formal = 0; formal < matched.getFormalCount(); formal++) {
-      int actualIndex = matched.getActualIndex(formal);
-      if(actualIndex != -1) {
-        updatedArguments[actualIndex] = previousEnvironment.get(formal);
+    int numPrevious = previousArguments.getActualCount();
+
+    // Number of extra arguments passed to NextMethod()
+    int numExtra = extraArgs.length();
+
+    // Allocate at most space for the original + extra arguments,
+    // though the size may be smaller.
+
+    int maxUpdatedArguments = numPrevious + numExtra;
+    String[] updatedNames = Arrays.copyOf(previousArguments.getActualNames(), maxUpdatedArguments);
+    SEXP[] updatedArguments = Arrays.copyOf(previousArguments.getActualValues(), maxUpdatedArguments);
+
+    // Update the previous arguments with new values by name from the
+    // environment. These will be default values or values explicitly replaced in the function body
+
+    for (int formal = 0; formal < previousArguments.getFormalCount(); formal++) {
+      int previousIndex = previousArguments.getActualIndex(formal);
+      if(previousIndex != -1) {
+        updatedArguments[previousIndex] = previousEnvironment.get(formal);
       }
     }
+
+    if(numExtra != 0) {
+
+      int actualIndex = numPrevious;
+      for (int extraIndex = 0; extraIndex < numExtra; extraIndex++) {
+
+        // Extra arguments to NextMethod() can either replace a previous argument,
+        // if the names match exactly, or be added as a new argument.
+
+        String extraName = Strings.emptyToNull(extraArgs.getName(extraIndex));
+        int replacing = -1;
+        if(extraName != null) {
+          replacing = previousArguments.findActualIndexByName(extraName);
+        }
+        if(replacing != -1) {
+          // Replace a previous argument's value
+          updatedArguments[replacing] = extraArgs.getElementAsSEXP(extraIndex);
+
+        } else {
+          // Add a new argument to the end of the list
+          updatedNames[actualIndex] = extraName;
+          updatedArguments[actualIndex] = extraArgs.getElementAsSEXP(extraIndex);
+          actualIndex++;
+        }
+      }
+
+      // If we replaced any of the previous arguments with values from the
+      // extraArgs list, our arrays will be too large. Resize to fit.
+
+      if(actualIndex < maxUpdatedArguments) {
+        updatedNames = Arrays.copyOf(updatedNames, actualIndex);
+        updatedArguments = Arrays.copyOf(updatedArguments, actualIndex);
+      }
+    }
+
 
     // The new call that is visible to sys.call() and match.call()
     // is identical to the call which invoked UseMethod(), but we do update the function name.
@@ -178,7 +229,7 @@ public class S3 {
 
     FunctionCall newCall = new FunctionCall(nextTable.getMethodSymbol(), previousCall.getArguments());
 
-    return nextMethod.apply(context, rho, newCall, matched.getActualNames(), updatedArguments, nextTable);
+    return nextMethod.apply(context, rho, newCall, updatedNames, updatedArguments, nextTable);
   }
 
 
@@ -373,10 +424,27 @@ public class S3 {
      * For these generics (and only these generics), we attempt a match on both the left
      * AND right arguments. If only one matches a method, that match is used. But if they
      * match TWO DIFFERENT methods, then a warning is emitted and we fallback to the default implementation.
+     *
+     * The .Method value in the environment of the dispatched function is then
+     * also exceptionally a vector of length two, and shows which argument was used for dispatch.
+     *
+     * For example:
+     *
+     * .Method == c("Ops.foo", "")        => dispatched to Ops.foo on only the first argument; second argument was
+     *                                       not an object, or was of a class with no Ops method defined.
+     * .Method == c("", "Ops.foo")        => dispatched only on the second argument
+     * .Method == c("Ops.foo", "Ops.foo") => dispatched on both arguments; both had a class of "foo"
+     *
+     * The second element of the .Method vector is stored in the method2 field of DispatchTable. That way we
+     * only have to allocate a StringArrayVector if really used.
      */
     if(nargs == 2) {
+
+
       // Verify that the second argument is either not an object, or at least results in selecting the
       // same method
+
+      dispatchTable.method2 = "";
 
       SEXP right = arguments[1].force(context);
       if(right.isObject()) {
@@ -388,9 +456,21 @@ public class S3 {
           return null;
 
         } else if(leftMethod == null) {
+
+          // Dispatching on the class of the right argument.
+
           leftMethod = rightMethod;
           dispatchTable.classVector = rightClasses;
 
+          // findMethod() sets the "method" field. Swap the value to method2 and
+          // set "method" to blank.
+          dispatchTable.method2 = dispatchTable.method;
+          dispatchTable.method = "";
+
+        } else {
+          // Dispatching on both the left and right argument because
+          // they have the same affect.
+          dispatchTable.method2 = dispatchTable.method;
         }
       }
     }
@@ -428,51 +508,6 @@ public class S3 {
     }
 
     return leftMethod.apply(context, rho, call, argumentNames, arguments, dispatchTable);
-  }
-
-  /**
-   * There are a few primitive functions (`[[` among them) which are proper builtins, but attempt
-   * to dispatch on the class of their first argument before going ahead with the default implementation.
-   *
-   * @param name the name of the function
-   * @param args the original args from the FunctionCall
-   * @param object evaluated first argument
-   */
-  public static SEXP tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call,
-      String name, SEXP object, PairList args) {
-
-    if(call.getFunction() instanceof Symbol &&
-        ((Symbol)call.getFunction()).getPrintName().endsWith(".default")) {
-      return null;
-    }
-
-    SEXP resultS4Dispatch = null;
-    if(Types.isS4(object) && isS4DispatchSupported(name)) {
-      resultS4Dispatch = S4.tryS4DispatchFromPrimitive(context, object, args, rho, null, name);
-    }
-    if (resultS4Dispatch != null) {
-      return resultS4Dispatch;
-    }
-
-    Environment definitionEnvironment = context.getBaseEnvironment();
-
-    StringVector classes = computeDataClasses(context, object);
-
-    DispatchTable dispatchTable = new DispatchTable(definitionEnvironment, name, classes);
-
-    Function method = findMethod(context, definitionEnvironment, rho, name, null, classes, false, dispatchTable);
-
-    if(method == null) {
-      return null;
-    }
-
-    Context fakeContext = context.beginFunction(rho, call, new Closure(rho, Null.INSTANCE, Null.INSTANCE), args);
-
-    return method.apply(fakeContext, rho, call, args);
-  }
-
-  private static boolean isS4DispatchSupported(String name) {
-    return !("@<-".equals(name));
   }
 
 

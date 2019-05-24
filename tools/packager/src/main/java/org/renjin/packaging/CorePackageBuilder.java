@@ -38,7 +38,7 @@ public class CorePackageBuilder implements BuildContext {
         .setDefaultGroupId("org.renjin")
         .setPackageName(packageNameFromWorkingDirectory())
         .setSourceDir(detectSourcesDirectory())
-        .setNativeSourcesDir(detectNativeSourceDir())
+        .setNativeSourceDir(detectNativeSourceDir())
         .build();
 
     CorePackageBuilder context = new CorePackageBuilder(source);

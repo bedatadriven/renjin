@@ -23,6 +23,7 @@ package org.renjin.primitives.combine;
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchTable;
 import org.renjin.invoke.codegen.WrapperRuntime;
+import org.renjin.primitives.S3;
 import org.renjin.sexp.*;
 
 public class CombineFunction extends BuiltinFunction {
@@ -32,10 +33,25 @@ public class CombineFunction extends BuiltinFunction {
 
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] arguments, DispatchTable dispatch) {
+
+    if(arguments.length == 0) {
+      return Null.INSTANCE;
+    }
+
     boolean recursive = false;
     int inputCount = 0;
     for (int i = 0; i < argumentNames.length; i++) {
       SEXP argument = arguments[i].force(context);
+
+      // Dispatch on the first argument, whether or not its named
+      // "recursive" !
+      if(i == 0 && argument.isObject()) {
+        SEXP genericResult = S3.tryDispatchFromPrimitive(context, rho, call, "c",null, argumentNames, arguments);
+        if(genericResult != null) {
+          return genericResult;
+        }
+      }
+
       String argumentName = argumentNames[i];
       if("recursive".equals(argumentName)) {
         recursive = WrapperRuntime.convertToBooleanPrimitive(argument);

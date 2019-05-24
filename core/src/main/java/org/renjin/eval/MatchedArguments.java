@@ -91,10 +91,6 @@ public class MatchedArguments {
     return actualValues[actualIndex];
   }
 
-  public boolean areAllFormalsMatched() {
-    return matchedPositions.allFormalsMatched();
-  }
-
   public SEXP getActualForFormal(int formalIndex, SEXP defaultValue) {
     int actualIndex = getActualIndex(formalIndex);
     if(actualIndex == -1) {
@@ -110,5 +106,21 @@ public class MatchedArguments {
       throw new EvalException("Argument \"" + getFormalName(formalIndex).getPrintName() + "\" is missing, with no default");
     }
     return actualValues[actualIndex];
+  }
+
+  /**
+   * Finds the index of an actual that is (exactly) named {@code name}, or -1 if no match is found.
+   */
+  public int findActualIndexByName(String name) {
+    for (int i = 0; i < actualNames.length; i++) {
+      if(name.equals(actualNames[i])) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  public SEXP[] getActualValues() {
+    return actualValues;
   }
 }

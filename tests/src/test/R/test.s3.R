@@ -29,6 +29,15 @@ test.new.first.argument <- function() {
 
 }
 
+test.ops.method.value <- function() {
+
+    Ops.foo <- function(e1,e2) .Method
+    foo <- structure(1, class="foo")
+
+    assertThat(foo == foo, identicalTo(c("Ops.foo", "Ops.foo")))
+    assertThat(foo == 1, identicalTo(c("Ops.foo", "")))
+    assertThat(1 == foo, identicalTo(c("", "Ops.foo")))
+}
 
 test.primitive.to.s3.not.evaled <- function() {
     `[.foo` <- function(x, i, j, drop = FALSE) { 142 }
@@ -127,18 +136,20 @@ test.usemethod.uses.first.matched.arg <- function() {
     assertThat(f(y=2,x=foo), identicalTo(44))
 }
 
-test.object.is.evaluated.twice <- function() {
+test.object.is.evaluated.once <- function() {
 
     f.default <- function(x) x+1
     f <- function(x) {  UseMethod("f") }
 
     count <- 0
     g <- function() {
+        cat("G!!!\n")
         count <<- count + 1
         count
     }
 
     assertThat(f(g()), identicalTo(2))
+    assertThat(count, identicalTo(1))
 }
 
 test.class.value <- function() {

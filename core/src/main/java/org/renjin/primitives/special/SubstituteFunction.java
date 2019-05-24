@@ -18,6 +18,7 @@
  */
 package org.renjin.primitives.special;
 
+import org.renjin.eval.ArgumentMatcher;
 import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -30,6 +31,8 @@ public class SubstituteFunction extends SpecialFunction {
 
   private static final Symbol EXPR_ARGUMENT = Symbol.get("expr");
   private static final Symbol ENV_ARGUMENT = Symbol.get("env");
+  
+  private static final ArgumentMatcher ARGUMENT_MATCHER = new ArgumentMatcher("expr", "env");
   
   private final PairList formals;
   

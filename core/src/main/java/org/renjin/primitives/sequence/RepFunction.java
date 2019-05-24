@@ -18,11 +18,7 @@
  */
 package org.renjin.primitives.sequence;
 
-import org.renjin.eval.ArgumentMatcher;
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
-import org.renjin.eval.MatchedArguments;
-import org.renjin.invoke.codegen.ArgumentIterator;
+import org.renjin.eval.*;
 import org.renjin.primitives.S3;
 import org.renjin.sexp.*;
 
@@ -46,7 +42,7 @@ public class RepFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList arguments) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
 
     // rep is one of the very few primitives that uses argument matching
     // *ALMOST* like that employed for closures.
@@ -55,36 +51,27 @@ public class RepFunction extends SpecialFunction {
     // even if 'x' is provided as named argument elsewhere
 
     // check for zero args -- the result should be null
-    if(arguments == Null.INSTANCE) {
+    if(promisedArguments.length == 0) {
       context.setInvisibleFlag();
       return Null.INSTANCE;
     }
 
     // evaluate the first arg
-    ArgumentIterator argIt = new ArgumentIterator(context, rho, arguments);
-    PairList.Node firstArgNode = argIt.nextNode();
-    SEXP firstArg = context.evaluate( firstArgNode.getValue(), rho);
+
+    SEXP firstArg = promisedArguments[0].force(context);
     if(firstArg.isObject()) {
-      SEXP result = S3.tryDispatchFromPrimitive(context, rho, call, "rep", firstArg, arguments);
+      SEXP result = S3.tryDispatchFromPrimitive(context, rho, call, "rep", null, argumentNames, promisedArguments);
       if(result != null) {
         return result;
       }
     }
 
-    // create a new pair list of evaluated arguments
-    PairList.Builder evaled = new PairList.Builder();
-    evaled.add(firstArgNode.getRawTag(), firstArg);
-    while(argIt.hasNext()) {
-      PairList.Node node = argIt.nextNode();
-      evaled.add(node.getRawTag(), context.evaluate( node.getValue(), rho));
-    }
+    MatchedArguments matched = ARGUMENT_MATCHER.match(argumentNames, promisedArguments);
 
-    MatchedArguments matched = ARGUMENT_MATCHER.match(evaled.build());
-
-    SEXP x = matched.getActualForFormal(FORMAL_X);
-    SEXP times = matched.getActualForFormal(FORMAL_TIMES, DEFAULT_TIMES_ARGUMENT);
-    SEXP lengthOut = matched.getActualForFormal(FORMAL_LENGTH_OUT, Symbol.MISSING_ARG);
-    SEXP each = matched.getActualForFormal(FORMAL_EACH, Symbol.MISSING_ARG);
+    SEXP x = matched.getActualForFormal(FORMAL_X).force(context);
+    SEXP times = matched.getActualForFormal(FORMAL_TIMES, DEFAULT_TIMES_ARGUMENT).force(context);
+    SEXP lengthOut = matched.getActualForFormal(FORMAL_LENGTH_OUT, Symbol.MISSING_ARG).force(context);
+    SEXP each = matched.getActualForFormal(FORMAL_EACH, Symbol.MISSING_ARG).force(context);
 
     return rep(
         (Vector) x,

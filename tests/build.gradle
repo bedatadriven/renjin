@@ -17,3 +17,33 @@
  *  https://www.gnu.org/licenses/gpl-2.0.txt
  *
  */
+
+
+configurations {
+    packager
+}
+
+dependencies {
+
+    compile project(':core')
+    compile project(':script-engine')
+
+    packager project(':tools:packager')
+
+    testCompile project(':packages:hamcrest')
+}
+
+task testR(type: JavaExec) {
+
+    classpath configurations.packager
+    classpath configurations.testRuntime
+    classpath sourceSets.main.output
+
+    environment "TEST_REPORT_DIR", "$buildDir/renjin-test-reports"
+
+    args "$projectDir/src/test/R"
+
+    main = 'org.renjin.packaging.test.Main'
+}
+
+test.dependsOn 'testR'

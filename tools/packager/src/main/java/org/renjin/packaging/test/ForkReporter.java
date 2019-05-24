@@ -22,6 +22,8 @@ package org.renjin.packaging.test;
 
 import org.renjin.repackaged.guava.base.Joiner;
 
+import java.io.File;
+
 /**
  * Sends coded results of the test execution to standard output, where they can
  * be read by the the listener in {@link Fork}
@@ -40,6 +42,10 @@ public class ForkReporter implements TestListener {
     if(ForkedTestController.DEBUG_FORKING) {
       System.err.println("[EXECUTOR] " + message);
     }
+  }
+
+  @Override
+  public void startFile(File testFile) {
   }
 
   @Override

@@ -22,6 +22,10 @@ package org.renjin.packaging.test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Simple main method that invokes tests in the directories provided by
@@ -30,6 +34,11 @@ import java.io.IOException;
  * Exits with 0 if all tests pass.
  */
 public class Main {
+
+  static {
+    // Silence warnings about not being able to load native libs
+    Logger.getLogger("com.github.fommil.netlib").setLevel(Level.SEVERE);
+  }
 
   public static void main(String[] args) throws IOException {
     SimpleListener listener = new SimpleListener();
@@ -50,13 +59,21 @@ public class Main {
 
   private static class SimpleListener implements TestListener {
 
+    private String testFile = "";
     private String executingTestName;
     private int passCount;
     private int failCount;
 
+    private List<String> failedCases = new ArrayList<>();
+
     @Override
     public void debug(String message) {
       System.out.println("[DEBUG] " + message);
+    }
+
+    @Override
+    public void startFile(File testFile) {
+      this.testFile = testFile.getName();
     }
 
     @Override
@@ -72,7 +89,8 @@ public class Main {
     @Override
     public void fail() {
       failCount++;
-      System.err.println(executingTestName + " failed.");
+      failedCases.add(testFile + " " + executingTestName);
+      System.err.println(testFile + " " + executingTestName + " failed.");
     }
 
     @Override
@@ -80,6 +98,13 @@ public class Main {
     }
 
     public void printResults() {
+      if(!failedCases.isEmpty()) {
+        System.err.println("Failed test cases:");
+        for (String failedCase : failedCases) {
+          System.err.println("  " + failedCase);
+        }
+        System.err.println();
+      }
       System.err.printf("Tests complete: %d/%d passed.%n", passCount, passCount + failCount);
     }
   }

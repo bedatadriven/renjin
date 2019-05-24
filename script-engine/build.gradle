@@ -1,0 +1,6 @@
+
+dependencies {
+    compile project(':core')
+}
+
+test.enabled = false

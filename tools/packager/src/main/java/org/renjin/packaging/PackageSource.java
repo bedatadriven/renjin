@@ -171,6 +171,11 @@ public class PackageSource {
       return this;
     }
 
+    public Builder setNativeSourceDir(File dir) {
+      source.nativeSourceDir = dir;
+      return this;
+    }
+
     /**
      * Overrides the location of the R sources. (Defaults to $basedir/R)
      */

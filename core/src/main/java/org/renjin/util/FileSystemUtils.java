@@ -28,9 +28,14 @@ import org.apache.commons.vfs2.provider.url.UrlFileProvider;
 import org.renjin.eval.vfs.FastJarFileProvider;
 
 import java.io.File;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class FileSystemUtils {
-  
+
+  static {
+    Logger.getLogger("org.apache.commons.vfs2").setLevel(Level.WARNING);
+  }
 
   /**
    *

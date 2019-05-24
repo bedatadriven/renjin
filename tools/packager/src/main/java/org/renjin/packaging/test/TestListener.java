@@ -19,9 +19,13 @@
  */
 package org.renjin.packaging.test;
 
+import java.io.File;
+
 public interface TestListener {
 
   void debug(String message);
+
+  void startFile(File testFile);
 
   void start(String testName);
 
@@ -30,4 +34,5 @@ public interface TestListener {
   void fail();
 
   void done();
+
 }

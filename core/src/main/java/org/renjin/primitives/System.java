@@ -159,7 +159,6 @@ public class System {
 
   @Internal("Sys.setlocale")
   public static String setLocale(int categoryIndex, String locale) {
-    java.lang .System.out.println("locale = " + locale);
     return "";
   }
   

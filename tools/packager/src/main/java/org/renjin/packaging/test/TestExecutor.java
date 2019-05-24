@@ -163,6 +163,7 @@ public class TestExecutor {
   @VisibleForTesting
   void executeTestFile(File sourceFile, String sourceText) throws IOException {
 
+    listener.startFile(sourceFile);
 
     PrintStream testOutput = openTestOutput(sourceFile);
     try {
@@ -292,10 +293,6 @@ public class TestExecutor {
 
     session.setStdErr(testOutputWriter);
     session.setStdOut(testOutputWriter);
-
-    if(defaultPackages.isEmpty()) {
-      System.err.println("No default packages specified");
-    }
 
     for(String pkg : defaultPackages) {
       System.err.println("Loading default package " + pkg);

@@ -1,5 +1,7 @@
 #  File src/library/base/R/New-Internal.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,11 +14,12 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 geterrmessage <- function() .Internal(geterrmessage())
 
-try <- function(expr, silent = FALSE) {
+try <- function(expr, silent = FALSE,
+                outFile = getOption("try.outFile", default = stderr())) {
     tryCatch(expr, error = function(e) {
         call <- conditionCall(e)
         if (! is.null(call)) {
@@ -29,48 +32,47 @@ try <- function(expr, silent = FALSE) {
             dcall <- deparse(call)[1L]
             prefix <- paste("Error in", dcall, ": ")
             LONG <- 75L # to match value in errors.c
-            msg <- conditionMessage(e)
-            sm <- strsplit(msg, "\n")[[1L]]
+            sm <- strsplit(conditionMessage(e), "\n")[[1L]]
             w <- 14L + nchar(dcall, type="w") + nchar(sm[1L], type="w")
             ## this could be NA if any of this is invalid in a MBCS
             if(is.na(w))
                 w <-  14L + nchar(dcall, type="b") + nchar(sm[1L], type="b")
             if (w > LONG)
-                prefix <- paste(prefix, "\n  ", sep = "")
+                prefix <- paste0(prefix, "\n  ")
         }
         else prefix <- "Error : "
-        msg <- paste(prefix, conditionMessage(e), "\n", sep="")
+        msg <- paste0(prefix, conditionMessage(e), "\n")
         ## Store the error message for legacy uses of try() with
         ## geterrmessage().
         .Internal(seterrmessage(msg[1L]))
-        if (! silent && identical(getOption("show.error.messages"), TRUE)) {
-            cat(msg, file = stderr())
+        if (! silent && isTRUE(getOption("show.error.messages"))) {
+            cat(msg, file = outFile)
             .Internal(printDeferredWarnings())
         }
         invisible(structure(msg, class = "try-error", condition = e))
     })
 }
 
-comment <- function(x).Internal(comment(x))
-`comment<-` <- function(x,value).Internal("comment<-"(x, value))
+comment <- function(x) .Internal(comment(x))
+`comment<-` <- function(x, value) .Internal("comment<-"(x, value))
 
 logb <- function(x, base=exp(1)) if(missing(base)) log(x) else log(x, base)
 
-atan2 <- function(y, x).Internal(atan2(y, x))
+atan2 <- function(y, x) .Internal(atan2(y, x))
 
-beta <- function(a, b).Internal( beta(a, b))
-lbeta <- function(a, b).Internal(lbeta(a, b))
+beta <- function(a, b) .Internal( beta(a, b))
+lbeta <- function(a, b) .Internal(lbeta(a, b))
 
 psigamma <- function(x, deriv = 0L) .Internal(psigamma(x, deriv))
 
 factorial <- function(x) gamma(x + 1)
 lfactorial <- function(x) lgamma(x + 1)
 
-choose <- function(n,k).Internal(choose(n,k))
-lchoose <- function(n,k).Internal(lchoose(n,k))
+choose <- function(n, k) .Internal(choose(n, k))
+lchoose <- function(n, k) .Internal(lchoose(n, k))
 
 ##-- 2nd part --
-R.Version <- function().Internal(Version())
+R.Version <- function() .Internal(Version())
 
 commandArgs <- function(trailingOnly = FALSE) {
     args <- .Internal(commandArgs())
@@ -80,7 +82,7 @@ commandArgs <- function(trailingOnly = FALSE) {
     } else args
 }
 
-args <- function(name).Internal(args(name))
+args <- function(name) .Internal(args(name))
 
 cbind <- function(..., deparse.level = 1)
     .Internal(cbind(deparse.level, ...))
@@ -88,36 +90,49 @@ cbind <- function(..., deparse.level = 1)
 rbind <- function(..., deparse.level = 1)
     .Internal(rbind(deparse.level, ...))
 
-## for methods:::bind_activation
-.__H__.cbind <- cbind
-.__H__.rbind <- rbind
+## methods:::bind_activation defunct as of 2018-02-05 (R >= 3.5.0)
+## Deprecating these aliases now
+.__H__.cbind <- function(..., deparse.level = 1) {
+    .Deprecated("base::cbind")
+    .Internal(cbind(deparse.level, ...))
+}
+.__H__.rbind <- function(..., deparse.level = 1) {
+    .Deprecated("base::rbind")
+    .Internal(rbind(deparse.level, ...))
+}
+
 
 
 # convert deparsing options to bitmapped integer
+..deparseOpts <-
+    ## the exact order of these is determined by the integer codes in
+    ## ../../../include/Defn.h
+    c("all",
+      "keepInteger", "quoteExpressions", "showAttributes", # 2,3,4
+      "useSource", "warnIncomplete", "delayPromises",      # 5,6,7
+      "keepNA", "S_compatible", "hexNumeric",              # 8,9,10
+      "digits17", "niceNames")                             # 11,12
 
 .deparseOpts <- function(control) {
-    opts <- pmatch(as.character(control),
-                   ## the exact order of these is determined by the integer codes in
-                   ## ../../../include/Defn.h
-                   c("all",
-                     "keepInteger", "quoteExpressions", "showAttributes",
-                     "useSource", "warnIncomplete", "delayPromises",
-                     "keepNA", "S_compatible"))
-    if (any(is.na(opts)))
+    if(!length(control)) return(0) # fast exit
+    opts <- pmatch(as.character(control), ..deparseOpts)
+    if (anyNA(opts))
         stop(sprintf(ngettext(as.integer(sum(is.na(opts))),
                               "deparse option %s is not recognized",
                               "deparse options %s are not recognized"),
                      paste(sQuote(control[is.na(opts)]), collapse=", ")),
              call. = FALSE, domain = NA)
-    if (any(opts == 1L))
-        opts <- unique(c(opts[opts != 1L], 2L,3L,4L,5L,6L,8L)) # not (7,9)
-    return(sum(2^(opts-2)))
+    if (any(opts == 1L)) # "all"
+        opts <- unique(c(opts[opts != 1L], 2L,3L,4L,5L,6L,8L, 12L)) # not (7,9:11)
+    if(10L %in% opts && 11L %in% opts)
+        stop('"hexNumeric" and "digits17" are mutually exclusive')
+    sum(2^(opts-2))
 }
 
 deparse <-
     function(expr, width.cutoff = 60L,
 	     backtick = mode(expr) %in% c("call", "expression", "(", "function"),
-	     control = c("keepInteger", "showAttributes", "keepNA"),
+	     control = c("keepNA", "keepInteger", "niceNames", "showAttributes"),
              nlines = -1L)
     .Internal(deparse(expr, width.cutoff, backtick,
                       .deparseOpts(control), nlines))
@@ -131,43 +146,29 @@ do.call <- function(what, args, quote = FALSE, envir = parent.frame())
     .Internal(do.call(what, args, envir))
 }
 
-drop <- function(x).Internal(drop(x))
+drop <- function(x) .Internal(drop(x))
 
 format.info <- function(x, digits = NULL, nsmall = 0L)
     .Internal(format.info(x, digits, nsmall))
 
-gc <- function(verbose = getOption("verbose"),	reset=FALSE) {
-
-    # This is implemented as a NO OP in Renjin.
-    # While it is possible to force the JVM to stop and run
-    # garbage collection, it is very UNLIKELY to yield any
-    # performance benefit because the JVM does its job very well
-    # without intervention, and generally in parallel, while calling
-    # Runtime.gc() stops the world to run an exhaustive collection.
-
-    res <- matrix(numeric(14), 2L, 7L,
+gc <- function(verbose = getOption("verbose"),	reset=FALSE, full=TRUE)
+{
+    res <- .Internal(gc(verbose, reset, full))
+    res <- matrix(res, 2L, 7L,
 		  dimnames = list(c("Ncells","Vcells"),
 		  c("used", "(Mb)", "gc trigger", "(Mb)",
 		    "limit (Mb)", "max used", "(Mb)")))
     if(all(is.na(res[, 5L]))) res[, -5L] else res
 }
-
-gcinfo <- function(verbose) FALSE
-
-gctorture <- function(on=TRUE) {
-    warning("Renjin does not implement the gc torture mode.")
-    FALSE
-}
-
-gctorture2 <- function(step, wait = step, inhibit_release = FALSE) {
-    warning("Renjin does not implement the gc torture mode.")
-    FALSE
-}
+gcinfo <- function(verbose) .Internal(gcinfo(verbose))
+gctorture <- function(on = TRUE) .Internal(gctorture(on))
+gctorture2 <- function(step, wait = step, inhibit_release = FALSE)
+    .Internal(gctorture2(step, wait, inhibit_release))
 
 is.unsorted <- function(x, na.rm = FALSE, strictly = FALSE)
 {
-    if(is.null(x)) return(FALSE)
-    if(!na.rm && any(is.na(x)))## "FIXME" is.na(<large>) is "too slow"
+    if(length(x) <= 1L) return(FALSE)
+    if(!na.rm && anyNA(x))
 	return(NA)
     ## else
     if(na.rm && any(ii <- is.na(x)))
@@ -175,19 +176,13 @@ is.unsorted <- function(x, na.rm = FALSE, strictly = FALSE)
     .Internal(is.unsorted(x, strictly))
 }
 
-mem.limits <- function(nsize=NA, vsize=NA)
-{
-    .Deprecated("gc")
-    structure(.Internal(mem.limits(nsize, vsize)), names = c("nsize", "vsize"))
-}
-
 nchar <- function(x, type = "chars", allowNA = FALSE, keepNA = NA)
-    .Internal(nchar(x, type, allowNA))
+    .Internal(nchar(x, type, allowNA, keepNA))
 
-polyroot <- function(z).Internal(polyroot(z))
+polyroot <- function(z) .Internal(polyroot(z))
 
-readline <- function(prompt="").Internal(readline(prompt))
-search <- function().Internal(search())
+readline <- function(prompt = "") .Internal(readline(prompt))
+search <- function() .Internal(search())
 searchpaths <- function()
 {
     s <- search()
@@ -202,10 +197,10 @@ searchpaths <- function()
 sprintf <- function(fmt, ...) .Internal(sprintf(fmt, ...))
 
 ##-- DANGER ! ---   substitute(list(...))  inside functions !!!
-##substitute <- function(expr, env=baseenv()).Internal(substitute(expr, env))
+##substitute <- function(expr, env=baseenv()) .Internal(substitute(expr, env))
 
-t.default <- function(x).Internal(t.default(x))
-typeof <- function(x).Internal(typeof(x))
+t.default <- function(x) .Internal(t.default(x))
+typeof <- function(x) .Internal(typeof(x))
 
 
 memory.profile <- function() .Internal(memory.profile())
@@ -253,11 +248,7 @@ encodeString <- function(x, width = 0L, quote = "", na.encode = TRUE,
     .Internal(encodeString(x, width, quote, justify, na.encode))
 }
 
-
-l10n_info <- function() {
-    list(MBCS = TRUE, `UTF-8` = TRUE, `Latin-1` = FALSE)
-}
-
+l10n_info <- function() .Internal(l10n_info())
 
 iconv <- function(x, from = "", to = "", sub = NA, mark = TRUE, toRaw = FALSE)
 {
@@ -299,6 +290,21 @@ setSessionTimeLimit <- function(cpu = Inf, elapsed = Inf)
     .Internal(setSessionTimeLimit(cpu, elapsed))
 
 icuSetCollate <- function(...) .Internal(icuSetCollate(...))
+icuGetCollate <- function(type = c("actual", "valid")) {
+    type <- match.arg(type)
+    .Internal(icuGetCollate(match(type, c("actual", "valid"))))
+}
+
+extSoftVersion <- function() .Internal(eSoftVersion())
+
+libcurlVersion <- function() .Internal(curlVersion())
+
+curlGetHeaders <- function(url, redirect = TRUE, verify = TRUE)
+    .Internal(curlGetHeaders(url, redirect, verify))
+
+
+lengths <- function(x, use.names=TRUE) .Internal(lengths(x, use.names))
+
 
 ## base has no S4 generics
 .noGenerics <- TRUE

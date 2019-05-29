@@ -1,5 +1,7 @@
 #  File src/library/base/R/scale.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 scale <- function(x, center = TRUE, scale = TRUE) UseMethod("scale")
 
@@ -26,10 +28,13 @@ scale.default <- function(x, center = TRUE, scale = TRUE)
 	    x <- sweep(x, 2L, center, check.margin=FALSE)
         }
     }
-    else if (is.numeric(center) && (length(center) == nc))
-	x <- sweep(x, 2L, center, check.margin=FALSE)
-    else
-	stop("length of 'center' must equal the number of columns of 'x'")
+    else {
+	if(!is.numeric(center)) center <- as.numeric(center)
+	if (length(center) == nc)
+	    x <- sweep(x, 2L, center, check.margin=FALSE)
+	else
+	    stop("length of 'center' must equal the number of columns of 'x'")
+    }
     if (is.logical(scale)) {
 	if (scale) {
 	    f <- function(v) {
@@ -40,11 +45,14 @@ scale.default <- function(x, center = TRUE, scale = TRUE)
 	    x <- sweep(x, 2L, scale, "/", check.margin=FALSE)
 	}
     }
-    else if (is.numeric(scale) && length(scale) == nc)
-	x <- sweep(x, 2L, scale, "/", check.margin=FALSE)
-    else
-	stop("length of 'scale' must equal the number of columns of 'x'")
+    else {
+	if(!is.numeric(scale)) scale <- as.numeric(scale)
+	if (length(scale) == nc)
+	    x <- sweep(x, 2L, scale, "/", check.margin=FALSE)
+	else
+	    stop("length of 'scale' must equal the number of columns of 'x'")
+    }
     if(is.numeric(center)) attr(x, "scaled:center") <- center
-    if(is.numeric(scale)) attr(x, "scaled:scale") <- scale
+    if(is.numeric(scale )) attr(x, "scaled:scale" ) <- scale
     x
 }

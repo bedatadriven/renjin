@@ -1,5 +1,7 @@
 #  File src/library/base/R/mean.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2013 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 mean <- function(x, ...) UseMethod("mean")
 
@@ -30,18 +32,11 @@ mean.default <- function(x, trim = 0, na.rm = FALSE, ...)
     if(trim > 0 && n) {
 	if(is.complex(x))
 	    stop("trimmed means are not defined for complex data")
-        if(any(is.na(x))) return(NA_real_)
+        if(anyNA(x)) return(NA_real_)
 	if(trim >= 0.5) return(stats::median(x, na.rm=FALSE))
 	lo <- floor(n*trim)+1
 	hi <- n+1-lo
-	x <- sort.int(x, partial=unique(c(lo, hi)))[lo:hi]
+	x <- sort.int(x, partial = unique(c(lo, hi)))[lo:hi]
     }
     .Internal(mean(x))
-}
-
-mean.data.frame <- function(x, ...) {
-    ## cannot use .Deprecated("sapply( <data>, mean)")
-    msg <- "mean(<data.frame>) is deprecated.\n Use colMeans() or sapply(*, mean) instead."
-    warning(paste(msg, collapse = ""), call. = FALSE, domain = NA)
-    sapply(X = x, FUN = mean, ...)
 }

@@ -1,5 +1,7 @@
 #  File src/library/base/R/backquote.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,17 +14,19 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ## quote() is .Primitive
 
+### PR#15077: need to substitute in a length-one pairlist, so
+### handle pairlists first
 bquote <- function(expr, where=parent.frame())
 {
     unquote <- function(e)
-        if (length(e) <= 1L) e
+        if (is.pairlist(e)) as.pairlist(lapply(e, unquote))
+        else if (length(e) <= 1L) e
         else if (e[[1L]] == as.name(".")) eval(e[[2L]], where)
-        else if (is.pairlist(e)) as.pairlist(lapply(e,unquote))
-        else as.call(lapply(e,unquote))
+        else as.call(lapply(e, unquote))
 
     unquote(substitute(expr))
 }

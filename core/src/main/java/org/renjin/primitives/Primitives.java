@@ -235,6 +235,9 @@ public class Primitives {
     f(".primTrace", /*trace*/ null, 101);
     f(".primUntrace", /*trace*/ null, 101);
 
+    f("traceOnOff", /*traceOnOff*/ null, 11);
+    f("debugOnOff", /*traceOnOff*/ null, 11);
+
     add(new InternalFunction());
     add(new OnExitFunction());
 

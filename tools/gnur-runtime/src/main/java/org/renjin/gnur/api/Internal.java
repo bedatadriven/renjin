@@ -19,6 +19,8 @@
 // Initial template generated from Internal.h from R 3.2.2
 package org.renjin.gnur.api;
 
+import org.renjin.eval.Context;
+import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Native;
 import org.renjin.primitives.Primitives;
@@ -33,8 +35,38 @@ public final class Internal {
 
   private Internal() { }
 
+  /**
+   * Invokes an .Internal function by name
+   *
+   * @param name the name of the internal to invoke
+   * @param call the original call with unevaluated arguments
+   * @param op
+   * @param args a PairList of evaluated arguments
+   * @param env the evaluation environment.
+   * @return
+   */
   private static SEXP invokeInternal(String name, SEXP call, SEXP op, SEXP args, SEXP env) {
-    return Primitives.getPrimitive(Symbol.get(name)).apply(Native.currentContext(), (Environment)env, (FunctionCall)call, (PairList)args);
+
+    Context context = Native.currentContext();
+    PrimitiveFunction primitive = Primitives.getPrimitive(Symbol.get(name));
+
+    // Prepare argument list
+
+    int numArguments = args.length();
+    String[] argumentNames = new String[numArguments];
+    SEXP[] arguments = new SEXP[numArguments];
+    PairList nextArg = (PairList) args;
+    for (int i = 0; i < numArguments; i++) {
+      PairList.Node argNode = ((PairList.Node) nextArg);
+      argumentNames[i] = argNode.hasTag() ? argNode.getName() : null;
+      arguments[i] = new Promise(argNode.getValue(), argNode.getValue());
+      nextArg = argNode.getNext();
+    }
+
+    // Not dispatching from S3
+    DispatchTable dispatch = null;
+
+    return primitive.apply(context, (Environment)env, (FunctionCall)call, argumentNames, arguments, dispatch);
   }
 
   public static SEXP invokePrimitive(SEXP callSexp, SEXP op, SEXP args, SEXP env) {

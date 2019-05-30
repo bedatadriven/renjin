@@ -18,6 +18,11 @@
 #
 
 
-# The following two definitions are copied from GNU R 3.5.3's identical.R:
-isTRUE <- function(x) is.logical(x) && length(x) == 1L && !is.na(x) && x
-isFALSE <- function(x) is.logical(x) && length(x) == 1L && !is.na(x) && !x
+# Renjin's implementation of the 'identical' primitive doesn't accept the new
+# 'ignore.environment' and 'ignore.srcref' arguments:
+identical <- function(x, y, num.eq = TRUE, single.NA = TRUE,
+                      attrib.as.set = TRUE, ignore.bytecode = TRUE,
+                      ignore.environment = FALSE, ignore.srcref = FALSE)
+    .Internal(identical(x,y, num.eq, single.NA, attrib.as.set,
+                        ignore.bytecode))
+

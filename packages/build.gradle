@@ -2,8 +2,6 @@
 
 subprojects {
 
-    println "common configuration for ${project.name}"
-
     sourceSets {
         main {
             output.dir("$buildDir/namespace", builtBy: 'compileNamespace')
@@ -45,29 +43,43 @@ subprojects {
                     .filter({it.exists()})
                     .getAsPath()
 
-//            // For now, only transform global variables of grDevices and graphics packages
-//            if(project.name.equals("grDevices") || project.name.equals("graphics")) {
-//                environment "TRANSFORM_GLOBAL_VARIABLES", "TRUE"
-//            }
+            // For now, only transform global variables of grDevices and graphics packages
+            if(project.name == "grDevices" || project.name == "graphics") {
+                environment "TRANSFORM_GLOBAL_VARIABLES", "TRUE"
+            }
 
             main = 'org.renjin.packaging.CorePackageBuilder'
 
-            classpath.forEach { println it }
+//            classpath.forEach { println it }
 
         }
     }
 
     task testPackage(type: JavaExec) {
 
+        inputs.dir "$projectDir/src/test/R"
+        
+        outputs.upToDateWhen { true }
+
         classpath configurations.packager
         classpath configurations.testRuntime
         classpath sourceSets.main.output
 
         environment "TEST_REPORT_DIR", "$buildDir/renjin-test-reports"
-
+        environment "DEFAULT_PACKAGES", "methods,datasets,utils,grDevices,graphics,stats"
+        environment "IGNORE_MISSING_DEFAULT_PACKAGES", "TRUE"
+        
         args "$projectDir/src/test/R"
+        
+        workingDir "$projectDir/src/test/R"
+
+//        jvmArgs '-Xdebug', '-Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=y'
 
         main = 'org.renjin.packaging.test.Main'
+
+        doFirst {
+            classpath.forEach { println it }
+        }
     }
 
     test.dependsOn 'testPackage'

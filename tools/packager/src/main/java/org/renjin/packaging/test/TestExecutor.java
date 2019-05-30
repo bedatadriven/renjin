@@ -50,12 +50,14 @@ public class TestExecutor {
   public static final String NAMESPACE_UNDER_TEST = "NAMESPACE_UNDER_TEST";
   public static final String TEST_REPORT_DIR = "TEST_REPORT_DIR";
   public static final String DEFAULT_PACKAGES = "DEFAULT_PACKAGES";
+  public static final String IGNORE_MISSING_DEFAULT_PACKAGES = "IGNORE_MISSING_DEFAULT_PACKAGES";
   public static final String OUTPUT_LIMIT = "OUTPUT_LIMIT";
 
   private String namespaceUnderTest;
   private File testReportDirectory;
   private List<String> defaultPackages;
   private int maxOutputBytes = Integer.MAX_VALUE;
+  private boolean ignoreMissingDefaultPackages;
 
   private TestListener listener;
 
@@ -74,6 +76,8 @@ public class TestExecutor {
         listener.debug("Default package: " + defaultPackage);
       }
     }
+
+    ignoreMissingDefaultPackages = "TRUE".equals(System.getenv(IGNORE_MISSING_DEFAULT_PACKAGES));
     
     if(!Strings.isNullOrEmpty(System.getenv(OUTPUT_LIMIT))) {
       maxOutputBytes = Integer.parseInt(System.getenv(OUTPUT_LIMIT));
@@ -143,9 +147,11 @@ public class TestExecutor {
     try {
       session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("library"), Symbol.get(namespaceName)));
     } catch(Exception e) {
-      testOutput.println("Failed to load namespace " + namespaceName);
-      testOutput.println(Throwables.getStackTraceAsString(e));
-      throw new EvalException("Failed to load namespace " + namespaceName, e);
+      if(!ignoreMissingDefaultPackages) {
+        testOutput.println("Failed to load namespace " + namespaceName);
+        testOutput.println(Throwables.getStackTraceAsString(e));
+        throw new EvalException("Failed to load namespace " + namespaceName, e);
+      }
     }
   }
 
@@ -295,7 +301,6 @@ public class TestExecutor {
     session.setStdOut(testOutputWriter);
 
     for(String pkg : defaultPackages) {
-      System.err.println("Loading default package " + pkg);
       loadLibrary(session, pkg, testOutput);
     }
 

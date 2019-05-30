@@ -21,5 +21,9 @@
 
 dependencies {
     compile project(':core')
+    compile project(':packages:graphics')
+    compile project(':packages:grDevices')
+    compile project(':packages:utils')
+
     testCompile project(':packages:hamcrest')
 }

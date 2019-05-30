@@ -57,7 +57,7 @@ l10n_info <- function() {
 # Fixed in R-3.2.1 to work (trivially) on atomic vectors.
 lengths <- function(x, use.names = TRUE) {
     if (!isTRUE(use.names)) x <- unname(x)
-    sapply(x, length)
+    vapply(x, length, 1L)
 }
 
 nchar <- function(x, type = "chars", allowNA = FALSE, keepNA = NA) {

@@ -19,7 +19,6 @@
 package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
-import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.S3;
 import org.renjin.primitives.subset.Subsetting;
@@ -34,24 +33,28 @@ public class DollarAssignFunction extends SpecialFunction {
 
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
 
     // Even though this function is generic, it MUST be called with exactly three arguments
-    if(promisedArguments.length != 3) {
-      throw new EvalException(String.format("%d argument(s) passed to '$<-' which requires 3", promisedArguments.length));
-    }
+    checkArity(call, 3);
 
-    SEXP object = promisedArguments[0].force(context);
-    StringVector nameArgument = DollarFunction.evaluateName(promisedArguments[1]);
-    SEXP value = promisedArguments[2].force(context);
+    SEXP object = context.evaluate(call.getArgument(0));
+    StringVector nameArgument = DollarFunction.evaluateName(call.getArgument(1));
+    SEXP value = context.evaluate(call.getArgument(2));
 
-    // For possible generic dispatch, repackage the name argument as character vector rather than
-    // symbol
-    promisedArguments[1] = nameArgument;
 
-    SEXP genericResult = S3.tryDispatchFromPrimitive(context, rho, call, "$<-", null, argumentNames, promisedArguments);
-    if (genericResult!= null) {
-      return genericResult;
+    if(object.isObject()) {
+      // For possible generic dispatch, repackage the name argument as character vector rather than
+      // symbol
+      String[] argumentNames = new String[3];
+      SEXP[] promisedArguments = new SEXP[3];
+      promisedArguments[0] = new Promise(call.getArgument(0), object);
+      promisedArguments[1] = new Promise(nameArgument, nameArgument);
+      promisedArguments[2] = new Promise(call.getArgument(2), value);
+      SEXP genericResult = S3.tryDispatchFromPrimitive(context, rho, call, "$<-", null, argumentNames, promisedArguments);
+      if (genericResult!= null) {
+        return genericResult;
+      }
     }
 
     // If no generic function, replace the element

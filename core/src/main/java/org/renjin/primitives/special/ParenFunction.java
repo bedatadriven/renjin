@@ -19,7 +19,10 @@
 package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
-import org.renjin.sexp.*;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.SpecialFunction;
 
 public class ParenFunction extends SpecialFunction {
 
@@ -28,7 +31,7 @@ public class ParenFunction extends SpecialFunction {
   }
   
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
     return context.evaluate(call.getArgument(0), rho);
   }
 }

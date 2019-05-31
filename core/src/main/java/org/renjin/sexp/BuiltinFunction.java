@@ -19,8 +19,10 @@
 package org.renjin.sexp;
 
 import org.renjin.eval.Context;
-import org.renjin.eval.DispatchTable;
+import org.renjin.eval.EvalException;
 
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class BuiltinFunction extends PrimitiveFunction {
 
@@ -54,11 +56,40 @@ public abstract class BuiltinFunction extends PrimitiveFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
-    PairList.Builder list = new PairList.Builder();
-    for (int i = 0; i < argumentNames.length; i++) {
-      list.add(argumentNames[i], promisedArguments[i]);
+  public final SEXP apply(Context context, Environment rho, FunctionCall call) {
+
+    List<String> argumentNames = new ArrayList<>();
+    List<SEXP> arguments = new ArrayList<>();
+
+    for (PairList.Node node : call.getArguments().nodes()) {
+      SEXP value = node.getValue();
+      if(value == Symbols.ELLIPSES) {
+        SEXP expando = rho.getEllipsesVariable();
+        if(expando == Symbol.UNBOUND_VALUE) {
+          throw new EvalException("'...' used in an incorrect context");
+        }
+        if(expando instanceof PromisePairList) {
+          PromisePairList extra = (PromisePairList) expando;
+          for (PairList.Node extraNode : extra.nodes()) {
+            argumentNames.add(extraNode.hasTag() ? extraNode.getName() : null);
+            arguments.add(extraNode.getValue());
+          }
+        }
+
+      } else {
+        if(node.hasName()) {
+          argumentNames.add(node.getTag().getPrintName());
+        } else {
+          argumentNames.add(null);
+        }
+        if(value == Symbol.MISSING_ARG) {
+          arguments.add(Symbol.MISSING_ARG);
+        } else {
+          arguments.add(Promise.repromise(rho, value));
+        }
+      }
     }
-    return apply(context, rho, call, list.build());
+    return apply(context, rho, call, argumentNames.toArray(new String[0]), arguments.toArray(new SEXP[0]), null);
   }
+
 }

@@ -21,8 +21,6 @@
 package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
-import org.renjin.eval.DispatchTable;
-import org.renjin.eval.EvalException;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.sexp.*;
 
@@ -33,12 +31,10 @@ public class NamespaceFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
-    if (promisedArguments.length != 2) {
-      throw new EvalException(getName() + " requires 2 arguments");
-    }
-    Symbol namespaceSymbol = (Symbol) ((Promise) promisedArguments[0]).getExpression();
-    Symbol entry = (Symbol) ((Promise) promisedArguments[1]).getExpression();
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
+    checkArity(call, 2);
+    Symbol namespaceSymbol = call.getArgument(0);
+    Symbol entry = call.getArgument(1);
 
     Namespace namespace = context.getNamespaceRegistry().getNamespace(context, namespaceSymbol);
 

@@ -20,8 +20,7 @@
 package org.renjin.gnur.api;
 
 import org.renjin.eval.Context;
-import org.renjin.eval.DispatchTable;
-import org.renjin.eval.EvalException;
+import org.renjin.eval.S3DispatchMetadata;
 import org.renjin.primitives.Native;
 import org.renjin.primitives.Primitives;
 import org.renjin.sexp.*;
@@ -64,29 +63,9 @@ public final class Internal {
     }
 
     // Not dispatching from S3
-    DispatchTable dispatch = null;
+    S3DispatchMetadata dispatch = null;
 
     return primitive.apply(context, (Environment)env, (FunctionCall)call, argumentNames, arguments, dispatch);
-  }
-
-  public static SEXP invokePrimitive(SEXP callSexp, SEXP op, SEXP args, SEXP env) {
-    Environment rho;
-    if(env == Null.INSTANCE) {
-      rho = Environment.EMPTY;
-    } else {
-      rho = (Environment) env;
-    }
-    FunctionCall call;
-    if(callSexp instanceof FunctionCall) {
-      call = (FunctionCall) callSexp;
-    } else if(callSexp == Null.INSTANCE) {
-      call = new FunctionCall(op, (PairList) args);
-    } else {
-      throw new EvalException("typeof(call) = " + callSexp.getTypeName());
-    }
-
-    PrimitiveFunction function = (PrimitiveFunction) op;
-    return function.apply(Native.currentContext(), rho, call, (PairList) args);
   }
 
   public static SEXP do_X11(SEXP call, SEXP op, SEXP args, SEXP env) {

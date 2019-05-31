@@ -28,8 +28,7 @@ public class TildeFunction extends SpecialFunction {
   }
 
   @Override
-  public FunctionCall apply(Context context, Environment rho, FunctionCall call,
-                            PairList args) {
+  public FunctionCall apply(Context context, Environment rho, FunctionCall call) {
 
     return new FunctionCall(call.getFunction(), call.getArguments(),
         AttributeMap.builder()

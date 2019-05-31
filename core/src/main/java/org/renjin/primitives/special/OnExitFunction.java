@@ -29,7 +29,7 @@ public class OnExitFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
     EvalException.check(call.getArguments().length() <= 2,
         "invalid number of arguments");
 

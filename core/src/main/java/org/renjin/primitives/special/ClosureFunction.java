@@ -33,8 +33,8 @@ public class ClosureFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
-    if(args.length() < 2) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
+    if(call.getArguments().length() < 2) {
       throw new EvalException("incorrect number of arguments to \"function\"");
     }
     SEXP formals = call.getArgument(0);

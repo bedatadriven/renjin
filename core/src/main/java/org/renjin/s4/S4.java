@@ -60,8 +60,12 @@ public class S4 {
    *
    * <p>If no method is found, then this method returns {@code null}</p>
    */
-  public static SEXP tryS4DispatchFromPrimitive(@Current Context context, SEXP source, PairList args,
-                                                Environment rho, String group, String opName) {
+  public static SEXP tryS4DispatchFromPrimitive(Context context, Environment rho,
+                                                String opName,
+                                                String group,
+                                                FunctionCall originalCall,
+                                                String[] argumentNames,
+                                                SEXP[] promisedArguments) {
 
     Generic generic;
     if(group == null) {
@@ -77,7 +81,10 @@ public class S4 {
       return null;
     }
 
-    CallingArguments arguments = CallingArguments.primitiveArguments(context, rho, methodTable.getArgumentMatcher(), source, args);
+    SEXP source = promisedArguments[0].force(context);
+
+    CallingArguments arguments = CallingArguments.primitiveArguments(context, rho, methodTable.getArgumentMatcher(),
+        source, argumentNames, promisedArguments);
 
     Signature signature = arguments.getSignature(methodTable.getMaximumSignatureLength());
 
@@ -94,7 +101,7 @@ public class S4 {
 
     PairList coercedArgs = Methods.coerce(context, arguments, selectedMethod);
 
-    FunctionCall call = new FunctionCall(function, args);
+    FunctionCall call = new FunctionCall(function, originalCall.getArguments());
 
     if (dispatchWithoutMeta(opName, source, selectedMethod)) {
       return context.evaluate(call);

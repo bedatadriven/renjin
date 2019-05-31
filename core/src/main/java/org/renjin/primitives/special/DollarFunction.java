@@ -19,7 +19,6 @@
 package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
-import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.CompilerSpecialization;
 import org.renjin.invoke.annotations.Current;
@@ -39,18 +38,14 @@ public class DollarFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
 
-   
     // Even though this function is generic, it MUST be called with exactly two arguments
-    if(promisedArguments.length != 2) {
-      throw new EvalException(String.format("%d argument(s) passed to '$' which requires 2", promisedArguments.length));
-    }
+    checkArity(call, 2);
 
-    SEXP object = promisedArguments[0].force(context);
-    StringVector nameArgument = evaluateName(promisedArguments[1]);
+    SEXP object = context.evaluate(call.getArgument(0), rho);
+    StringVector nameArgument = evaluateName(call.getArgument(1));
     return apply(context, rho, call, object, nameArgument);
-
   }
 
   @CompilerSpecialization
@@ -100,9 +95,7 @@ public class DollarFunction extends SpecialFunction {
     }
   }
 
-  static StringVector evaluateName(SEXP promisedName) {
-
-    SEXP name = ((Promise) promisedName).getExpression();
+  static StringVector evaluateName(SEXP name) {
 
     if(name instanceof Symbol) {
       return new StringArrayVector(((Symbol) name).getPrintName());

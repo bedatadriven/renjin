@@ -21,7 +21,6 @@
 package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
-import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
@@ -31,15 +30,13 @@ public class ImportFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
 
-    if (promisedArguments.length != 1) {
-      throw new EvalException("import() requires 1 argument.");
-    }
+    checkArity(call, 1,0);
 
     Symbol className;
     try {
-      className = (Symbol) ((Promise) promisedArguments[0]).getExpression();
+      className = call.getArguments().getElementAsSEXP(0);
     } catch (ClassCastException e) {
       throw new EvalException("Expected symbol argument");
     }

@@ -128,4 +128,8 @@ public class MatchedArgumentPositions {
   public boolean isFormalMatched(int formalIndex) {
     return getActualIndex(formalIndex) != -1;
   }
+
+  public String[] getFormalNames() {
+    return formalNames;
+  }
 }

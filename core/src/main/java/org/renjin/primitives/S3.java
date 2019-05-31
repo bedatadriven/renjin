@@ -21,9 +21,9 @@ package org.renjin.primitives;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.eval.Context;
-import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.MatchedArguments;
+import org.renjin.eval.S3DispatchMetadata;
 import org.renjin.invoke.annotations.ArgumentList;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
@@ -111,7 +111,7 @@ public class S3 {
       previousContext = previousContext.getParent();
     }
 
-    DispatchTable dispatchTable = previousEnvironment.getDispatchTable();
+    S3DispatchMetadata dispatchTable = (S3DispatchMetadata) previousEnvironment.getDispatchTable();
     if(dispatchTable == null) {
       throw new EvalException("'NextMethod' must be called in a function invoked from UseMethod() or NextMethod()");
     }
@@ -123,7 +123,7 @@ public class S3 {
       generic = genericArg.asString();
     }
 
-    DispatchTable nextTable = new DispatchTable(dispatchTable.getGenericDefinitionEnvironment(), generic);
+    S3DispatchMetadata nextTable = new S3DispatchMetadata(dispatchTable.getGenericDefinitionEnvironment(), generic);
 
     if (objectArg != Null.INSTANCE) {
       throw new UnsupportedOperationException("TODO: object arg to NextMethod");
@@ -237,7 +237,7 @@ public class S3 {
    *
    * @return remaining classes to be  tried after this method
    */
-  private static List<String> nextClasses(DispatchTable table) {
+  private static List<String> nextClasses(S3DispatchMetadata table) {
     if(table.classVector == null) {
       return Collections.emptyList();
     }
@@ -251,7 +251,7 @@ public class S3 {
     return next;
   }
 
-  private static int findIndex(DispatchTable table) {
+  private static int findIndex(S3DispatchMetadata table) {
     for (int i = 0; i < table.classVector.length(); i++) {
       String className = table.classVector.getElementAsString(i);
       if(table.method.endsWith(className)) {
@@ -357,6 +357,17 @@ public class S3 {
     }
   }
 
+  /**
+   *
+   * @param context the current evaluation context
+   * @param rho the current evaluation environment
+   * @param call the original function call, for example {@code c}
+   * @param generic the name of the generic function to dispatch, for example, "as.character" or "print"
+   * @param group the name of the group the generic belongs to, or {@code null} if the generic does not belong to a group
+   * @param argumentNames the (expanded) names of the arguments.
+   * @param arguments the (expanded) and promised arguments to the function.
+   * @return
+   */
   public static SEXP tryDispatchFromPrimitive(Context context,
                                        Environment rho,
                                        FunctionCall call,
@@ -399,8 +410,7 @@ public class S3 {
     for (int k = 0; k < nargs; k++) {
       SEXP argument = arguments[k].force(context);
       if(Types.isS4(argument)) {
-        throw new UnsupportedOperationException("TODO");
-        //return S4.tryS4DispatchFromPrimitive(context, argument, args, rho, group, generic);
+        return S4.tryS4DispatchFromPrimitive(context, rho, generic, group, call, argumentNames, arguments);
       }
     }
 
@@ -414,7 +424,7 @@ public class S3 {
     SEXP left = arguments[0].force(context);
     StringVector leftClasses = computeDataClasses(context, left);
 
-    DispatchTable dispatchTable = new DispatchTable(definitionEnvironment, generic, leftClasses);
+    S3DispatchMetadata dispatchTable = new S3DispatchMetadata(definitionEnvironment, generic, leftClasses);
 
     Function leftMethod = findMethod(context, definitionEnvironment, rho, generic, group, leftClasses, false, dispatchTable);
 
@@ -529,7 +539,7 @@ public class S3 {
                                     String group,
                                     Iterable<String> classes,
                                     boolean searchForDefault,
-                                    DispatchTable dispatchTable) {
+                                    S3DispatchMetadata dispatchTable) {
 
     Environment methodTable = findMethodTable(context, definitionEnvironment);
     Function method;
@@ -584,7 +594,7 @@ public class S3 {
                                      Environment callingEnvironment,
                                      String name,
                                      String className,
-                                     DispatchTable dispatchTable) {
+                                     S3DispatchMetadata dispatchTable) {
 
     String method = name + "." + className;
     Symbol methodSymbol = Symbol.get(method);

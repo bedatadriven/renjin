@@ -21,8 +21,8 @@
 package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
-import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.S3DispatchMetadata;
 import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.primitives.Contexts;
 import org.renjin.primitives.S3;
@@ -38,15 +38,14 @@ public class UseMethod extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment callingEnvironment, FunctionCall call,
-                    String[] useMethodArgNames,
-                    SEXP[] useMethodArgs, DispatchTable dispatch) {
+  public SEXP apply(Context context, Environment callingEnvironment, FunctionCall call) {
 
-    if (useMethodArgNames.length == 0) {
+    int numUseMethodArgs = call.getArguments().length();
+    if (numUseMethodArgs == 0) {
       throw new EvalException("there must be a 'generic' argument");
     }
 
-    SEXP genericSexp = useMethodArgs[0].force(context);
+    SEXP genericSexp = context.evaluate(call.getArgument(0), callingEnvironment);
     if (!(genericSexp instanceof StringVector)) {
       throw new EvalException("'generic' must be a character string");
     }
@@ -121,7 +120,7 @@ public class UseMethod extends SpecialFunction {
     SEXP[] argArray = argValues.toArray(new SEXP[0]);
 
 
-    SEXP object = findObject(context, useMethodArgs, argArray, functionEnvironment);
+    SEXP object = findObject(context, callingEnvironment, call.getArguments(), argArray);
 
 
     /*
@@ -156,7 +155,7 @@ public class UseMethod extends SpecialFunction {
      *
      * We store it as an array.
      */
-    DispatchTable dispatchTable = new DispatchTable(definitionEnvironment, generic, classes);
+    S3DispatchMetadata dispatchTable = new S3DispatchMetadata(definitionEnvironment, generic, classes);
 
     /*
      * Find the method!
@@ -171,7 +170,7 @@ public class UseMethod extends SpecialFunction {
      * Callers to UseMethod() may also provide additional arguments to be passed to the selected method.
      * But this is rarely used.
      */
-    if (useMethodArgs.length > 2) {
+    if (numUseMethodArgs > 2) {
       throw new EvalException("TODO: Extra arguments to UseMethod()");
     }
 
@@ -197,10 +196,10 @@ public class UseMethod extends SpecialFunction {
   /*
    * Find the "object" on which to dispatch.
    */
-  private SEXP findObject(Context context, SEXP[] useMethodArgs, SEXP[] argArray, FunctionEnvironment functionEnvironment) {
+  private SEXP findObject(Context context, Environment callingEnvironment, PairList useMethodArgs, SEXP[] argArray) {
 
 
-    if (useMethodArgs.length > 1) {
+    if (useMethodArgs.length() > 1) {
 
       /*
        * If a second argument to UseMethod is provided, then the value of that argument is used
@@ -211,7 +210,7 @@ public class UseMethod extends SpecialFunction {
        * invoked
        */
 
-      return useMethodArgs[1].force(context);
+      return context.evaluate(useMethodArgs.getElementAsSEXP(0), callingEnvironment);
 
 
     } else if (argArray.length > 0) {

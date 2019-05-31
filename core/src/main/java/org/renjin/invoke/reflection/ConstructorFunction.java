@@ -19,6 +19,7 @@
 package org.renjin.invoke.reflection;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.DispatchTable;
 import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
@@ -47,13 +48,12 @@ public class ConstructorFunction extends AbstractSEXP implements Function {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call,
-      PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
 
     List<SEXP> constructorArgs = Lists.newArrayList();
     Map<Symbol, SEXP> propertyValues = Maps.newHashMap();
     
-    ArgumentIterator argIt = new ArgumentIterator(context, rho, args);
+    ArgumentIterator argIt = new ArgumentIterator(context, rho, call.getArguments());
     while(argIt.hasNext()) {
       PairList.Node node = argIt.nextNode();
       SEXP evaled = context.evaluate( node.getValue(), rho);
@@ -75,5 +75,10 @@ public class ConstructorFunction extends AbstractSEXP implements Function {
       }
       return externalPtr;
     }
+  }
+
+  @Override
+  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
+    throw new UnsupportedOperationException("TODO");
   }
 }

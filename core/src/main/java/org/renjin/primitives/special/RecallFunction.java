@@ -29,7 +29,7 @@ public class RecallFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
 
     // this is an .Internal function, so we need to go up one context.
     Context originalContext = context.getParent();
@@ -44,8 +44,7 @@ public class RecallFunction extends SpecialFunction {
     
     return closure.apply(originalContext, 
           originalContext.getEnvironment(), 
-          newCall, 
-          newArguments);
+          newCall);
   }
 
   

@@ -21,7 +21,9 @@ package org.renjin.sexp;
 import org.renjin.eval.*;
 import org.renjin.primitives.special.ReturnException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 
@@ -75,6 +77,43 @@ public class Closure extends AbstractSEXP implements Function {
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
+  }
+
+  @Override
+  public final SEXP apply(Context context, Environment rho, FunctionCall call) {
+
+    List<String> argumentNames = new ArrayList<>();
+    List<SEXP> arguments = new ArrayList<>();
+
+    for (PairList.Node node : call.getArguments().nodes()) {
+      SEXP value = node.getValue();
+      if(value == Symbols.ELLIPSES) {
+        SEXP expando = rho.getEllipsesVariable();
+        if(expando == Symbol.UNBOUND_VALUE) {
+          throw new EvalException("'...' used in an incorrect context");
+        }
+        if(expando instanceof PromisePairList) {
+          PromisePairList extra = (PromisePairList) expando;
+          for (PairList.Node extraNode : extra.nodes()) {
+            argumentNames.add(extraNode.hasTag() ? extraNode.getName() : null);
+            arguments.add(extraNode.getValue());
+          }
+        }
+
+      } else {
+        if(node.hasName()) {
+          argumentNames.add(node.getTag().getPrintName());
+        } else {
+          argumentNames.add(null);
+        }
+        if(value == Symbol.MISSING_ARG) {
+          arguments.add(Symbol.MISSING_ARG);
+        } else {
+          arguments.add(Promise.repromise(rho, value));
+        }
+      }
+    }
+    return apply(context, rho, call, argumentNames.toArray(new String[0]), arguments.toArray(new SEXP[0]), null);
   }
 
   public SEXP apply(Context callingContext, Environment callingEnvironment, FunctionCall call, String[] argNames, SEXP[] args, DispatchTable dispatch) {
@@ -135,8 +174,8 @@ public class Closure extends AbstractSEXP implements Function {
     // If we are being called by UseMethod() or by NextMethod(), then
     // save a reference to our matched arguments. This is required by NextMethod().
 
-    if(dispatch != null) {
-      dispatch.arguments = matching;
+    if(dispatch instanceof S3DispatchMetadata) {
+      ((S3DispatchMetadata) dispatch).arguments = matching;
     }
 
     try {
@@ -292,4 +331,5 @@ public class Closure extends AbstractSEXP implements Function {
     }
     return true;
   }
+
 }

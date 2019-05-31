@@ -28,12 +28,9 @@ public class RepeatFunction extends SpecialFunction {
   }
   
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
-    SEXP statement = args.getElementAsSEXP(0);
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
+    SEXP statement = call.getArgument(0);
 
-//    int iterationCount = 0;
-//    boolean compilationFailed = false;
-    
     while(true) {
       try {
         

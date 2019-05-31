@@ -19,13 +19,9 @@
 package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
-import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Primitives;
 import org.renjin.sexp.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class InternalFunction extends SpecialFunction {
 
@@ -34,9 +30,12 @@ public class InternalFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
-    Promise internalCallPromise = (Promise) promisedArguments[0];
-    FunctionCall internalCall = (FunctionCall) internalCallPromise.getExpression();
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
+    SEXP arg = call.getArgument(0);
+    if(!(arg instanceof FunctionCall)) {
+      throw new EvalException("invalid .Internal() argument");
+    }
+    FunctionCall internalCall = (FunctionCall) arg;
     Symbol internalName = (Symbol)internalCall.getFunction();
     Function function = Primitives.getInternal(internalName);
 
@@ -44,22 +43,6 @@ public class InternalFunction extends SpecialFunction {
       throw new EvalException("No such internal '" + internalName + "'");
     }
 
-    // Evaluate arguments to the internal call
-    List<String> names = new ArrayList<>();
-    List<SEXP> values = new ArrayList<>();
-    for (PairList.Node node : internalCall.getArguments().nodes()) {
-
-      if(node.getValue() == Symbols.ELLIPSES) {
-        PromisePairList expando = (PromisePairList) rho.getEllipsesVariable();
-        for (PairList.Node expandoNode : expando.nodes()) {
-          names.add(expandoNode.hasTag() ? expandoNode.getName() : null);
-          values.add(expandoNode.getValue());
-        }
-      } else {
-        names.add(node.hasTag() ? node.getName() : null);
-        values.add(Promise.repromise(rho, node.getValue()));
-      }
-    }
-    return function.apply(context, rho, internalCall, names.toArray(new String[0]), values.toArray(new SEXP[0]), null);
+    return function.apply(context, rho, internalCall);
   }
 }

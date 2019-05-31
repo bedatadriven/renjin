@@ -19,9 +19,9 @@
 package org.renjin.primitives.special;
 
 import org.renjin.eval.ArgumentMatcher;
-import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.MatchedArguments;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
@@ -33,25 +33,18 @@ public class SubstituteFunction extends SpecialFunction {
   private static final Symbol ENV_ARGUMENT = Symbol.get("env");
   
   private static final ArgumentMatcher ARGUMENT_MATCHER = new ArgumentMatcher("expr", "env");
-  
-  private final PairList formals;
-  
+
   public SubstituteFunction() {
     super("substitute");
-
-    this.formals = new PairList.Builder()
-        .add(EXPR_ARGUMENT, Symbol.MISSING_ARG)
-        .add(ENV_ARGUMENT, Symbol.MISSING_ARG)
-        .build();
   }
   
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
 
-    PairList matchedArguments = ClosureDispatcher.matchArguments(formals, args);
+    MatchedArguments matched = ARGUMENT_MATCHER.match(call.getArguments());
 
-    SEXP exprArgument = matchedArguments.findByTag(EXPR_ARGUMENT);
-    SEXP envArgument = matchedArguments.findByTag(ENV_ARGUMENT);
+    SEXP exprArgument = matched.getActualForFormal(0, Symbol.MISSING_ARG);
+    SEXP envArgument = matched.getActualForFormal(1, Symbol.MISSING_ARG);
     
     // Substitute handles ... in an idiosyncratic way:
     // Only the first argument is used, and there is no attempt to 

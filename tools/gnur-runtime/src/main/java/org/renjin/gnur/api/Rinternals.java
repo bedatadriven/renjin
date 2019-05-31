@@ -32,7 +32,7 @@ import org.renjin.methods.Methods;
 import org.renjin.primitives.*;
 import org.renjin.primitives.match.Duplicates;
 import org.renjin.primitives.packaging.Namespaces;
-import org.renjin.primitives.subset.Subsetting;
+import org.renjin.primitives.special.AtFunction;
 import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.sexp.*;
 
@@ -2573,8 +2573,7 @@ public final class Rinternals {
 
   public static SEXP R_do_slot(SEXP obj, SEXP name) {
     Context context = Native.currentContext();
-    MethodDispatch methodDispatch = context.getSingleton(MethodDispatch.class);
-    return Subsetting.getSlotValue(context, methodDispatch, obj, ((Symbol) name));
+    return AtFunction.getSlotValue(context, obj, (Symbol) name);
   }
 
   public static SEXP R_do_slot_assign(SEXP obj, SEXP name, SEXP value) {

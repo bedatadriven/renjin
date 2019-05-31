@@ -19,6 +19,7 @@
 package org.renjin.sexp;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 
 
@@ -45,8 +46,18 @@ public abstract class SpecialFunction extends PrimitiveFunction {
   public void accept(SexpVisitor visitor) {
     visitor.visitSpecial(this);
   }
-  
-  
+
+  @Override
+  public final SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
+
+    // Discard promised arguments, apply non-standard evaluation
+    return apply(context, rho, call);
+
+  }
+
+  public abstract SEXP apply(Context context, Environment rho, FunctionCall call);
+
+
   public static boolean asLogicalNoNA(Context context, FunctionCall call, SEXP s) {
 
     if (s.length() == 0) {
@@ -66,10 +77,15 @@ public abstract class SpecialFunction extends PrimitiveFunction {
     return logical == Logical.TRUE;
   }
 
-  protected void checkArity(FunctionCall call, int expectedArguments, int optional) {
+  protected final void checkArity(FunctionCall call, int expectedArguments, int optional) {
     int count = call.getArguments().length();
     EvalException.check(count <= expectedArguments &&
             count >= (expectedArguments-optional),
         "invalid number of arguments");
+  }
+
+  protected final void checkArity(FunctionCall call, int expectedArguments) {
+    int count = call.getArguments().length();
+    EvalException.check(count == expectedArguments, "invalid number of arguments");
   }
 }

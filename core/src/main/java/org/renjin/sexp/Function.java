@@ -20,11 +20,6 @@ package org.renjin.sexp;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchTable;
-import org.renjin.eval.EvalException;
-import org.renjin.repackaged.guava.base.Strings;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Superinterface for the three function-like {@code SEXP}s:
@@ -35,6 +30,8 @@ import java.util.List;
 public interface Function extends SEXP, Recursive {
 
   public static final String IMPLICIT_CLASS = "function";
+
+  SEXP apply(Context originalContext, Environment environment, FunctionCall call);
 
   /**
    *
@@ -60,56 +57,7 @@ public interface Function extends SEXP, Recursive {
    * @param dispatch
    * @return the function's result
    */
-  default SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
-    PairList.Builder args = new PairList.Builder();
-    for (int i = 0; i < promisedArguments.length; i++) {
-      SEXP promisedArgument = promisedArguments[i];
-      SEXP unevaluatedArgument;
-      if(promisedArgument == Symbol.MISSING_ARG) {
-        unevaluatedArgument = promisedArgument;
-      } else {
-        unevaluatedArgument = ((Promise) promisedArgument).getExpression();
-      }
-      args.add(argumentNames[i], unevaluatedArgument);
-    }
-    return apply(context, rho, call, args.build());
-  }
+  SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch);
 
-
-  /**
-   * TEMPORARY TO REMOVE!!
-   *
-   * @param context
-   * @param rho
-   * @param call
-   * @param args
-   * @return
-   */
-  default SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
-    List<String> argumentNames = new ArrayList<>();
-    List<SEXP> arguments = new ArrayList<>();
-
-    for (PairList.Node node : call.getArguments().nodes()) {
-      if (node.getValue() == Symbols.ELLIPSES) {
-        SEXP expando = rho.getEllipsesVariable();
-        if (expando == Symbol.UNBOUND_VALUE) {
-          throw new EvalException("'...' used in an incorrect context");
-        }
-        if (expando instanceof PromisePairList) {
-          PromisePairList extra = (PromisePairList) expando;
-          for (PairList.Node extraNode : extra.nodes()) {
-            argumentNames.add(Strings.emptyToNull(extraNode.getName()));
-            arguments.add(extraNode.getValue());
-          }
-        }
-
-      } else {
-        argumentNames.add(node.hasTag() ? node.getName() : null);
-        arguments.add(Promise.repromise(rho, node.getValue()));
-      }
-    }
-
-    return apply(context, rho, call, argumentNames.toArray(new String[0]), arguments.toArray(new SEXP[0]), null);
-  }
 
 }

@@ -226,7 +226,7 @@ public class Primitives {
     f("[[", Subsetting.class, -1);
     add(new DollarFunction());
     add(new DollarAssignFunction());
-    f("@", Subsetting.class, 2);
+    add(new AtFunction());
     f("[<-", Subsetting.class, 3);
     f("[[<-", Subsetting.class, 3);
 

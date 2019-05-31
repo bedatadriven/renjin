@@ -44,7 +44,7 @@ public class ForFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList _args_unused) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
 
     
     PairList args = call.getArguments();

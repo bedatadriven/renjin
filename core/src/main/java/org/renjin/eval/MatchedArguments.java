@@ -123,4 +123,8 @@ public class MatchedArguments {
   public SEXP[] getActualValues() {
     return actualValues;
   }
+
+  public String[] getFormalNames() {
+    return matchedPositions.getFormalNames();
+  }
 }

@@ -30,11 +30,11 @@ public class CallFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
     if (call.length() < 1) {
       throw new EvalException("first argument must be character string");
     }
-    PairList.Node arg = (PairList.Node) args;
+    PairList.Node arg = (PairList.Node) call.getArguments();
     SEXP name = context.evaluate(arg.getValue(), rho);
     if (!(name instanceof StringVector) || name.length() != 1) {
       throw new EvalException("first argument must be character string");

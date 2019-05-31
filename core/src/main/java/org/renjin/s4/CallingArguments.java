@@ -19,12 +19,10 @@
 package org.renjin.s4;
 
 import org.renjin.eval.ArgumentMatcher;
-import org.renjin.eval.Calls;
 import org.renjin.eval.Context;
 import org.renjin.eval.MatchedArguments;
 import org.renjin.sexp.*;
 
-import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -36,18 +34,19 @@ public class CallingArguments {
   private static final String MISSING = "missing";
 
   private final Context context;
-  private final PairList promisedArgs;
+  private final String[] argumentNames;
+  private final SEXP[] promisedArguments;
 
-  private CallingArguments(Context context, PairList promisedArgs) {
+  private CallingArguments(Context context, String[] argumentNames, SEXP[] promisedArguments) {
     this.context = context;
-    this.promisedArgs = promisedArgs;
+    this.argumentNames = argumentNames;
+    this.promisedArguments = promisedArguments;
   }
 
 
-  public static CallingArguments primitiveArguments(Context context, Environment rho, ArgumentMatcher matcher, SEXP object, PairList args) {
-
-    // expand ... in arguments or remove if empty
-    PairList expandedArgs = Calls.promiseArgs(args, context, rho);
+  public static CallingArguments primitiveArguments(Context context, Environment rho, ArgumentMatcher matcher, SEXP object,
+                                                    String[] argumentNames,
+                                                    SEXP[] promisedArguments) {
 
 
     // when length of all arguments used in function call is as long as formals length (except ...)
@@ -71,21 +70,20 @@ public class CallingArguments {
 
 
     PairList promisedArgs;
-    if(matcher.getNamedFormalCount() == expandedArgs.length()) {
+    if(matcher.getNamedFormalCount() == argumentNames.length) {
 
       // Match positionally, ignoring the names of the arguments.
-      promisedArgs = expandedArgs;
+      return new CallingArguments(context, argumentNames, promisedArguments);
 
 
     } else {
 
       // Match the provided arguments to the formals of the generic
 
-      MatchedArguments matchedArguments = matcher.match(expandedArgs);
-      promisedArgs = matchByName(rho, object, matchedArguments);
+      MatchedArguments matchedArguments = matcher.match(argumentNames, promisedArguments);
+      return matchByName(context, rho, object, matchedArguments);
 
     }
-    return new CallingArguments(context, promisedArgs);
   }
 
 
@@ -106,11 +104,14 @@ public class CallingArguments {
         }
       }
     }
-    return new CallingArguments(context, promisedArgs.build());
+//    return new CallingArguments(context, promisedArgs.build());
+    throw new UnsupportedOperationException("TODO");
   }
 
-  private static PairList matchByName(Environment rho, SEXP object, MatchedArguments matchedArguments) {
-    PairList.Builder promisedArgs = new PairList.Builder();
+  private static CallingArguments matchByName(Context context, Environment rho, SEXP object, MatchedArguments matchedArguments) {
+
+    SEXP[] matchedPromisedArgs = new SEXP[matchedArguments.getFormalCount()];
+
     for (int formalIndex = 0; formalIndex < matchedArguments.getFormalCount(); formalIndex++) {
 
       Symbol formalName = matchedArguments.getFormalName(formalIndex);
@@ -119,31 +120,24 @@ public class CallingArguments {
       if(actualIndex == -1) {
         if(formalName != Symbols.ELLIPSES) {
           // This formal argument was not provided by the caller
-          promisedArgs.add(formalName, Symbol.MISSING_ARG);
+          matchedPromisedArgs[formalIndex] = Symbol.MISSING_ARG;
         }
       } else {
-        SEXP uneval = matchedArguments.getActualValue(actualIndex);
-        if(actualIndex == 0) {
-          // The source has already been evaluated to check for class
-          promisedArgs.add(formalName, new Promise(uneval, object));
-
-        } else {
-          promisedArgs.add(formalName, Promise.repromise(rho, uneval));
-        }
+        matchedPromisedArgs[formalIndex] = matchedArguments.getActualValue(actualIndex);
       }
     }
-    return promisedArgs.build();
+    return new CallingArguments(context, matchedArguments.getFormalNames(), matchedPromisedArgs);
   }
 
   public PairList getPromisedArgs() {
-    return promisedArgs;
+    throw new UnsupportedOperationException("TODO");
   }
 
   public Signature getSignature(int length) {
     String[] classes = new String[length];
-    Iterator<PairList.Node> argumentIt = promisedArgs.nodes().iterator();
+    int argumentIt = 0;
     for(int index = 0; index < length; ++index) {
-      if(argumentIt.hasNext()) {
+      if(argumentIt < promisedArguments.length) {
         classes[index] = getArgumentClass(index);
       } else {
         classes[index] = MISSING;
@@ -154,11 +148,11 @@ public class CallingArguments {
 
   public Signature getSignature(int length, Set<String> args) {
     String[] classes = new String[length];
-    Iterator<PairList.Node> argumentIt = promisedArgs.nodes().iterator();
+    int argumentIt = 0;
     int step = 0;
     for(int index = 0; step < length; ++index) {
-      if(argumentIt.hasNext()) {
-        String nodeTag = argumentIt.next().getName();
+      if(argumentIt < promisedArguments.length) {
+        String nodeTag = argumentNames[argumentIt++];
         if(args.isEmpty() || args.contains(nodeTag)) {
           classes[step] = getArgumentClass(index);
           step++;
@@ -173,9 +167,9 @@ public class CallingArguments {
 
   public StringBuilder getFullSignatureString(int length) {
     StringBuilder sb = new StringBuilder();
-    Iterator<PairList.Node> argumentIt = promisedArgs.nodes().iterator();
+    int argumentIt = 0;
     for(int i = 0; i < length; i++) {
-      if(argumentIt.hasNext()) {
+      if(argumentIt < promisedArguments.length) {
         sb.append(" '");
         sb.append(getArgumentClass(i));
         if(i == length-1) {
@@ -189,10 +183,10 @@ public class CallingArguments {
   }
 
   public String getArgumentClass(int index) {
-    if(index >= promisedArgs.length()) {
+    if(index >= promisedArguments.length) {
       return MISSING;
     }
-    SEXP actual = promisedArgs.getElementAsSEXP(index);
+    SEXP actual = promisedArguments[index];
     SEXP evaluated = actual.force(context);
     if (evaluated == Symbol.MISSING_ARG) {
       return MISSING;

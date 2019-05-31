@@ -21,8 +21,6 @@
 package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
-import org.renjin.eval.DispatchTable;
-import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
 /**
@@ -39,17 +37,16 @@ public class OrFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
-    if (promisedArguments.length != 2) {
-      throw new EvalException("'||' operator requires 2 arguments");
-    }
-    Logical x = AndFunction.checkedToLogical(promisedArguments[0].force(context), "invalid 'x' type in 'x || y'");
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
+    checkArity(call, 2);
+
+    Logical x = AndFunction.checkedToLogical(context.evaluate(call.getArgument(0), rho), "invalid 'x' type in 'x || y'");
 
     if (x == Logical.TRUE) {
       return LogicalVector.TRUE;
     }
 
-    Logical y = AndFunction.checkedToLogical(promisedArguments[1].force(context), "invalid 'y' type in 'x || y'");
+    Logical y = AndFunction.checkedToLogical(context.evaluate(call.getArgument(1), rho), "invalid 'y' type in 'x || y'");
     if (y == Logical.TRUE) {
       return LogicalVector.TRUE;
     }

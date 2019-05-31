@@ -21,7 +21,6 @@
 package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
-import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
@@ -40,17 +39,15 @@ public class AndFunction extends SpecialFunction {
 
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
-    if (promisedArguments.length != 2) {
-      throw new EvalException("'&&' operator requires 2 arguments");
-    }
-    Logical x = checkedToLogical(promisedArguments[0].force(context), "invalid 'x' type in 'x && y'");
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
+    checkArity(call, 2);
+    Logical x = checkedToLogical(context.evaluate(call.getArgument(0), rho), "invalid 'x' type in 'x && y'");
 
     if (x == Logical.FALSE) {
       return LogicalVector.FALSE;
     }
 
-    Logical y = checkedToLogical(promisedArguments[1].force(context), "invalid 'y' type in 'x && y'");
+    Logical y = checkedToLogical(context.evaluate(call.getArgument(1), rho), "invalid 'y' type in 'x && y'");
 
     if (y == Logical.FALSE) {
       return LogicalVector.FALSE;

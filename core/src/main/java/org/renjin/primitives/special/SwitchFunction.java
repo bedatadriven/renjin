@@ -31,13 +31,9 @@ public class SwitchFunction extends SpecialFunction {
   }
   
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
-    return doApply(context, rho, call, args);
-  }
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
 
-  private static SEXP doApply(Context context, Environment rho, FunctionCall call, PairList args) {
-
-    ArgumentIterator argIt = new ArgumentIterator(context, rho, args);
+    ArgumentIterator argIt = new ArgumentIterator(context, rho, call.getArguments());
     if(!argIt.hasNext()) {
       throw new EvalException("argument \"EXPR\" is missing");
     }

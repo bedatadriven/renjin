@@ -22,7 +22,10 @@ package org.renjin.invoke.codegen;
 import com.sun.codemodel.*;
 import org.renjin.eval.Context;
 import org.renjin.invoke.model.PrimitiveModel;
-import org.renjin.sexp.*;
+import org.renjin.sexp.BuiltinFunction;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.SEXP;
 
 import java.io.IOException;
 
@@ -36,11 +39,7 @@ public class InvokerGenerator {
 
   public final void generate(PrimitiveModel model) throws JClassAlreadyExistsException, IOException {
     JDefinedClass invoker = codeModel._class(  WrapperGenerator2.toFullJavaName(model.getName()) ); //Creates a new class
-    if(model.isSpecial()) {
-      invoker._extends(SpecialFunction.class);
-    } else {
-      invoker._extends(BuiltinFunction.class);
-    }
+    invoker._extends(BuiltinFunction.class);
 
     JMethod defaultConstructor = invoker.constructor(JMod.PUBLIC);
     defaultConstructor.body().invoke("super").arg(JExpr.lit(model.getName()));

@@ -36,10 +36,10 @@ public class ExpressionFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
     NamesBuilder names = NamesBuilder.withInitialLength(0);
     List<SEXP> expressions = Lists.newArrayList();
-    for(PairList.Node node : args.nodes()) {
+    for(PairList.Node node : call.getArguments().nodes()) {
       if(node.hasName()) {
         names.add(node.getName());
       } else {

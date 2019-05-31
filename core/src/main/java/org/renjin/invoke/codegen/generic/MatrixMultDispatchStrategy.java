@@ -41,18 +41,24 @@ public class MatrixMultDispatchStrategy extends GenericDispatchStrategy {
                                  JExpression functionCall, List<JExpression> arguments,
                                  JVar argNamesArray, JVar argsArray, JBlock parent) {
 
-    // Call public static SEXP tryDispatchToS4Method(@Current Context context, SEXP source, PairList args,
-    //                                           Environment rho, String group, String opName)
+    //    public static SEXP tryS4DispatchFromPrimitive(
+    //        Context context,
+    //        Environment rho,
+    //        String opName,
+    //        String group,
+    //        FunctionCall originalCall,
+    //        String[] argumentNames,
+    //        SEXP[] promisedArguments)
 
     JInvocation dispatchInvocation = codeModel.ref(S4.class)
         .staticInvoke("tryS4DispatchFromPrimitive")
         .arg(context.getContext())  // context
-        .arg(arguments.get(0))      // source
-        .arg(functionCall.invoke("getArguments"))           // args
         .arg(context.getEnvironment())
+        .arg(JExpr.lit("%*%"))
         .arg(JExpr._null())
-        .arg(JExpr.lit("%*%"));
-
+        .arg(functionCall)
+        .arg(argNamesArray)
+        .arg(argsArray);
 
     JBlock ifObjects = parent._if(anyS4(arguments))._then();
     JVar dispatchResult = ifObjects.decl(codeModel.ref(SEXP.class), "genericResult", dispatchInvocation);

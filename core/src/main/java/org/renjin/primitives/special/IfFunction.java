@@ -28,7 +28,7 @@ public class IfFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
     SEXP condition = 
         context.materialize(
           context.evaluate( call.getArguments().getElementAsSEXP(0), rho));

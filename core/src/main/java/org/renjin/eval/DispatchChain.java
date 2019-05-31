@@ -56,11 +56,11 @@ public class DispatchChain {
 
   public Map<Symbol, SEXP> createMetadata() {
     Map<Symbol, SEXP> metadata = new HashMap<>();
-    metadata.put(DispatchTable.CLASS, classes);
-    metadata.put(DispatchTable.METHOD, new StringArrayVector(method));
-    metadata.put(DispatchTable.GENERIC, StringVector.valueOf(generic));
+    metadata.put(S3DispatchMetadata.CLASS, classes);
+    metadata.put(S3DispatchMetadata.METHOD, new StringArrayVector(method));
+    metadata.put(S3DispatchMetadata.GENERIC, StringVector.valueOf(generic));
     if(group != null) {
-      metadata.put(DispatchTable.GROUP, StringVector.valueOf(group));
+      metadata.put(S3DispatchMetadata.GROUP, StringVector.valueOf(group));
     }
     return metadata;
   }

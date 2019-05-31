@@ -28,7 +28,7 @@ public class ReturnFunction extends SpecialFunction {
   }
   
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
     if(call.getArguments().length() > 0) {
       throw new ReturnException(rho, context.evaluate(call.getArgument(0), rho));
     } else {

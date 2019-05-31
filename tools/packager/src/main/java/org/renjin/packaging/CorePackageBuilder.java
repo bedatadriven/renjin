@@ -45,6 +45,7 @@ public class CorePackageBuilder implements BuildContext {
         .setPackageName(packageNameFromWorkingDirectory())
         .setSourceDir(detectSourcesDirectory())
         .setNativeSourceDir(detectNativeSourceDir())
+        .setDataDir(detectDataDir())
         .build();
 
     CorePackageBuilder context = new CorePackageBuilder(source);
@@ -52,6 +53,7 @@ public class CorePackageBuilder implements BuildContext {
     builder.setTransformGlobalVariables("TRUE".equals(System.getenv("TRANSFORM_GLOBAL_VARIABLES")));
     builder.build();
   }
+
 
 
   public static String packageNameFromWorkingDirectory() {
@@ -70,6 +72,15 @@ public class CorePackageBuilder implements BuildContext {
     }
     return new File("R");
   }
+
+  private static File detectDataDir() {
+    File dataDir = new File("src/main/data");
+    if(dataDir.exists() && dataDir.isDirectory()) {
+      return dataDir;
+    }
+    return new File("data");
+  }
+
 
   private static File detectNativeSourceDir() {
     File nativeSourceDir = new File("src/main/c");

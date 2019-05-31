@@ -22,7 +22,7 @@ import org.renjin.eval.*;
 import org.renjin.primitives.S3;
 import org.renjin.sexp.*;
 
-public class RepFunction extends SpecialFunction {
+public class RepFunction extends BuiltinFunction {
 
   public static final ArgumentMatcher ARGUMENT_MATCHER =
       new ArgumentMatcher("x", "times", "length.out", "each", "...");

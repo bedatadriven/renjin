@@ -34,7 +34,7 @@ public class AssignLeftFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
     SEXP lhs = call.getArgument(0);
     SEXP rhs = call.getArgument(1);
 
@@ -84,9 +84,8 @@ public class AssignLeftFunction extends SpecialFunction {
     }
 
     // make the final assignment to the target symbol
-    if(rhs instanceof Promise) {
-      rhs = rhs.force(context);
-    }
+    rhs = rhs.force(context);
+
     assignResult(context, rho, target, rhs);
 
     context.setInvisibleFlag();

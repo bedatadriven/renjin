@@ -119,10 +119,11 @@ public class LazyLoadFrame {
     String compiledClassName = din.readUTF().replace('/', '.');
     String compiledMethodName = din.readUTF();
 
-    return new CompiledClosure(enclosingEnvironment, formals, bodyPromise,
-        AttributeMap.fromPairList(attributes),
-        compiledClassName,
-        compiledMethodName);
+//    return new CompiledClosure(enclosingEnvironment, formals, bodyPromise,
+//        AttributeMap.fromPairList(attributes),
+//        compiledClassName,
+//        compiledMethodName);
+    throw new UnsupportedOperationException("TODO");
   }
 
   private static SEXP readInline(Context context, DataInputStream din) throws IOException {

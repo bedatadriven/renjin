@@ -19,7 +19,10 @@
 package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
-import org.renjin.sexp.*;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.SpecialFunction;
 
 public class BreakFunction extends SpecialFunction {
 
@@ -29,7 +32,7 @@ public class BreakFunction extends SpecialFunction {
   
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
     throw BreakException.INSTANCE;
   }
 }

@@ -19,9 +19,10 @@
 package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
-import org.renjin.eval.DispatchTable;
-import org.renjin.eval.EvalException;
-import org.renjin.sexp.*;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.SpecialFunction;
 
 
 public class QuoteFunction extends SpecialFunction {
@@ -31,11 +32,9 @@ public class QuoteFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
-    if(promisedArguments.length != 1) {
-      throw new EvalException("%d arguments passed to 'quote' which requires 1", promisedArguments.length);
-    }
-    return ((Promise) promisedArguments[0]).getExpression();
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
+    checkArity(call, 1);
+    return call.getArgument(0);
   }
 
 }

@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * methods used by both cbind and rbind
  */
-public abstract class AbstractBindFunction extends SpecialFunction {
+public abstract class AbstractBindFunction extends BuiltinFunction {
 
   private MatrixDim bindDim;
 
@@ -145,7 +145,7 @@ public abstract class AbstractBindFunction extends SpecialFunction {
     PairList buildArgs = args.build();
 
     FunctionCall call = new FunctionCall(Symbol.get(bindFunctionName), buildArgs);
-    return foundFunction.apply(context, rho, call, buildArgs);
+    return foundFunction.apply(context, rho, call);
   }
 
   /**

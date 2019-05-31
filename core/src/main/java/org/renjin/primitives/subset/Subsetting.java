@@ -21,7 +21,6 @@ package org.renjin.primitives.subset;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
-import org.renjin.methods.MethodDispatch;
 import org.renjin.primitives.Types;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
@@ -55,45 +54,6 @@ public class Subsetting {
     externalPtr.setMember(Symbol.get(name), value);
     return externalPtr;
   }
-
-  @Builtin("@")
-  public static SEXP getSlotValue(@Current Context context, @Current MethodDispatch methods, SEXP object,
-                                  @Unevaluated Symbol slotName) {
-    if(slotName.getPrintName().equals(".Data")) {
-      return context.evaluate(FunctionCall.newCall(Symbol.get("getDataPart"), object), methods.getMethodsNamespace());
-    }
-    if(!Types.isS4(object)) {
-      SEXP className = object.getAttribute(Symbols.CLASS_NAME);
-      if(className.length() == 0) {
-        throw new EvalException("trying to get slot \"%s\" from an object of a basic class (\"%s\") with no slots",
-                slotName.getPrintName(),
-                object.getS3Class().getElementAsString(0));
-      } else {
-        throw new EvalException("trying to get slot \"%s\" from an object (class \"%s\") that is not an S4 object ",
-                slotName.getPrintName(),
-                className.getElementAsSEXP(0));
-      }
-    }
-
-    SEXP value = object.getAttribute(slotName);
-    if(value == Null.INSTANCE) {
-      if (slotName == Symbol.get(".S3Class")) { /* defaults to class(obj) */
-        throw new EvalException("not implemented: .S3Class");
-        //return R_data_class(obj, FALSE);
-      } else if (slotName == Symbols.NAMES && object instanceof ListVector) {
-         /* needed for namedList class */
-        return value;
-      } else {
-        throw new EvalException("cannot get slot %s", slotName);
-      }
-    }
-    if(value == Symbols.S4_NULL) {
-      return Null.INSTANCE;
-    } else {
-      return value;
-    }
-  }
-
 
   public static SEXP setElementByName(ListVector list, String name, SEXP value) {
     return setSingleListElementByName(list.newCopyNamedBuilder(), name, value);

@@ -317,6 +317,7 @@ public class Primitives {
     f("attributes<-", Attributes.class, null, 1);
     f("attr", Attributes.class, 1);
     f("attr<-", Attributes.class, 3);
+    f("copyDFattr", Attributes.class, 11); /* used in dataframe.R */
     f("comment", Attributes.class, 11);
     f("comment<-", Attributes.class, 2);
     f("levels<-", Attributes.class, 2);

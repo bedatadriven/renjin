@@ -1,6 +1,7 @@
 
 dependencies {
     compile project(':core')
+    compile project(':packages:stats')
 }
 
 test.enabled = false

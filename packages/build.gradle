@@ -28,14 +28,20 @@ subprojects {
         if(project.file('src/main/c').exists()) {
             inputs.dir 'src/main/c'
         }
-        inputs.dir 'src/main/R'
+        if(project.file('src/main/R').exists()) {
+            inputs.dir 'src/main/R'
+        }
+        if(project.file('src/main/data').exists()) {
+            inputs.dir 'src/main/data'
+        }
         inputs.dir homeDir
         outputs.dir "$buildDir/namespace"
 
         doFirst {
             classpath configurations.packager
             classpath sourceSets.main.resources
-            classpath sourceSets.main.runtimeClasspath
+            classpath sourceSets.main.compileClasspath
+            classpath sourceSets.main.output
 
             environment "R_HOME", homeDir
             environment "GCC_BRIDGE_PLUGIN", gccBridgePlugin

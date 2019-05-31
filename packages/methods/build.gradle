@@ -1,0 +1,7 @@
+
+dependencies {
+    compile project(':packages:stats')
+    compile project(':packages:tools')
+    compile project(':packages:datasets')
+    testCompile project(':packages:hamcrest')
+}

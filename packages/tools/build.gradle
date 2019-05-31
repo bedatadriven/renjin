@@ -1,0 +1,6 @@
+
+
+dependencies {
+    compile project(':core')
+    testCompile project(':packages:hamcrest')
+}

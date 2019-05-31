@@ -22,5 +22,8 @@ include 'packages:grDevices'
 include 'packages:graphics'
 include 'packages:utils'
 include 'packages:stats'
+include 'packages:tools'
+include 'packages:datasets'
+include 'packages:methods'
 
 include 'tests'

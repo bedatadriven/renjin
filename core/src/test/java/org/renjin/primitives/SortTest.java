@@ -55,7 +55,8 @@ public class SortTest extends EvalTestCase {
 
     assertThat(eval(".Internal(rank(c(2, 3, 1, 1, 2, 2, 2, 3), 8L, \"max\"))"), elementsIdenticalTo(c_i(6, 8, 2, 2, 6, 6, 6, 8)));
 
-    assertThat(eval(".Internal(rank(123, 1L, \"average\"))"), elementsIdenticalTo(c_i(1)));
+    assertThat(eval(".Internal(rank(123, 1L, \"average\"))"), elementsIdenticalTo(c(1)));
+    assertThat(eval(".Internal(rank(123, 1L, \"min\"))"), elementsIdenticalTo(c_i(1)));
   }
 
 

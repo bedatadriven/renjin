@@ -440,6 +440,9 @@ public class Sort {
   public static Vector rank(final AtomicVector input, int length, String tiesMethod) {
 
     if(length == 1L) {
+      if(tiesMethod.toUpperCase().equals("AVERAGE")) {
+        return new DoubleArrayVector(1);
+      }
       return new IntArrayVector(1);
     }
 

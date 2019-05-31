@@ -71,3 +71,6 @@ nchar <- function(x, type = "chars", allowNA = FALSE, keepNA = NA) {
 
     res
 }
+
+# required by apply():
+forceAndCall <- function(n, FUN, ...) FUN(...)

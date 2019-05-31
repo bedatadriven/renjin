@@ -20,5 +20,5 @@
 library(hamcrest)
 
 x <- list(1,1:2,1:16)
-assertThat(lengths(x), identicalTo(c(1, 2, 16)))
+assertThat(lengths(x), identicalTo(c(1L, 2L, 16L)))
 

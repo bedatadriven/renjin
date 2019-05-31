@@ -18,17 +18,9 @@
 #
 
 
-library(hamcrest)
+get <-
+    function (x, pos = -1L, envir = as.environment(pos), mode = "any",
+              inherits = TRUE)
+    # change introduced in commit 3fc477b on February 5, 2018: use only first element if length(x) > 1
+    .Internal(get(x[1], envir, mode, inherits))
 
-test.all.equal.check_attributes <- function() {
-
-    x <- c(a = 1, b = 2, c = 3)
-    y <- c(a = 1, b = 2, d = 3)
-
-    assertThat(all.equal(x, y), identicalTo("Names: 1 string mismatch"))
-    assertThat(all.equal(x, y, check.attributes = FALSE), identicalTo(TRUE))
-
-    y <- c(a = 1, b = 2, c = 4)
-
-    assertThat(all.equal(x, y), identicalTo("Mean relative difference: 0.333"))
-}

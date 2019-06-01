@@ -23,6 +23,8 @@ import org.renjin.eval.Context;
 import org.renjin.eval.MatchedArguments;
 import org.renjin.sexp.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -89,23 +91,28 @@ public class CallingArguments {
 
   public static CallingArguments standardGenericArguments(Context context, ArgumentMatcher argumentMatcher) {
     Environment environment = context.getEnvironment();
-    PairList.Builder promisedArgs = new PairList.Builder();
+    List<String> argumentNames = new ArrayList<>();
+    List<SEXP> promisedArguments = new ArrayList<>();
+
     for (int i = 0; i < argumentMatcher.getFormalNames().size(); i++) {
       String formalName = argumentMatcher.getFormalNames().get(i);
       SEXP promisedArg = environment.getVariableUnsafe(formalName);
       boolean missing = ((FunctionEnvironment)environment).isMissingArgument(context, Symbol.get(formalName));
       if(formalName.equals("...")) {
-        promisedArgs.addAll(((PairList) promisedArg));
+        for (PairList.Node node : ((PromisePairList) promisedArg).nodes()) {
+          argumentNames.add(node.hasTag() ? node.getName() : null);
+          promisedArguments.add(node.getValue());
+        }
       } else {
+        argumentNames.add(formalName);
         if(!missing) {
-          promisedArgs.add(formalName, promisedArg);
+          promisedArguments.add(promisedArg);
         } else {
-          promisedArgs.add(formalName, Symbol.MISSING_ARG);
+          promisedArguments.add(Symbol.MISSING_ARG);
         }
       }
     }
-//    return new CallingArguments(context, promisedArgs.build());
-    throw new UnsupportedOperationException("TODO");
+    return new CallingArguments(context, argumentNames.toArray(new String[0]), promisedArguments.toArray(new SEXP[0]));
   }
 
   private static CallingArguments matchByName(Context context, Environment rho, SEXP object, MatchedArguments matchedArguments) {
@@ -129,8 +136,12 @@ public class CallingArguments {
     return new CallingArguments(context, matchedArguments.getFormalNames(), matchedPromisedArgs);
   }
 
-  public PairList getPromisedArgs() {
-    throw new UnsupportedOperationException("TODO");
+  public String[] getArgumentNames() {
+    return argumentNames;
+  }
+
+  public SEXP[] getPromisedArguments() {
+    return promisedArguments;
   }
 
   public Signature getSignature(int length) {

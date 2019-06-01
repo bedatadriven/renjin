@@ -315,7 +315,10 @@ public class Match {
   }  
   
   @Internal("match.call")
-  public static SEXP matchCall (@Current Context context, @Current Environment rho, SEXP definition, FunctionCall call, boolean expandDots,
+  public static SEXP matchCall (@Current Context context, @Current Environment rho,
+                                SEXP definition,
+                                FunctionCall call,
+                                boolean expandDots,
                                 SEXP environment) {
     
     Closure closure = null;

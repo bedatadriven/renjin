@@ -18,9 +18,9 @@
  */
 package org.renjin.methods;
 
-import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.Context.Type;
+import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
@@ -557,18 +557,18 @@ public class Methods {
 
     Closure function = selectedMethod.getMethodDefinition();
 
-    Map<Symbol, SEXP> metadata = generateCallMetaData(context, selectedMethod, signature, fname);
+    DispatchTable dispatchTable = generateCallMetaData(context, selectedMethod, signature, fname);
 
-    PairList coercedArgs = coerce(context, arguments, selectedMethod);
+    coerce(context, arguments, selectedMethod);
 
     // Create a synthetic function call S-expression that is visible to the callee and includes
     // the original arguments passed to the caller of standardGeneric()
     FunctionCall call = new FunctionCall(function, context.getCall().getArguments());
 
-    return ClosureDispatcher.apply(context, context.getCallingEnvironment(), call, function, coercedArgs, metadata);
+    return function.apply(context, context.getCallingEnvironment(), call, arguments.getArgumentNames(), arguments.getPromisedArguments(), dispatchTable);
   }
 
-  public static PairList coerce(Context context, CallingArguments arguments, RankedMethod method) {
+  public static void coerce(Context context, CallingArguments arguments, RankedMethod method) {
 
     int signatureLength = method.getMethodSignatureLength();
 
@@ -576,28 +576,27 @@ public class Methods {
 
     S4ClassCache classCache = context.getSession().getS4Cache().getS4ClassCache();
 
-    PairList.Builder coercedArgs = new PairList.Builder();
+    SEXP[] promisedArguments = arguments.getPromisedArguments();
+    String[] argumentNames = arguments.getArgumentNames();
 
     int step = 0;
-
-    for(PairList.Node arg : arguments.getPromisedArgs().nodes()) {
-      SEXP value = arg.getValue();
-      SEXP tag = arg.getRawTag();
-      if(step < signatureLength && (tag != Null.INSTANCE && argNames.contains(arg.getTag().getPrintName()))) {
+    for (int i = 0; i < promisedArguments.length; i++) {
+      SEXP value = promisedArguments[i];
+      String tag = argumentNames[i];
+      if(step < signatureLength && (tag != null && argNames.contains(tag))) {
         String from = arguments.getArgumentClass(step);
         String to = method.getArgumentClass(step);
         if(to.equals(from) || to.equals("ANY") || classCache.isSimple(from, to)) {
-          coercedArgs.add(tag, value);
+          // no coercion necessary
         } else {
           SEXP coercedArg = classCache.coerceComplex(context, value, from, to);
-          coercedArgs.add(tag, coercedArg);
+          promisedArguments[i] = coercedArg;
         }
         step += 1;
       } else {
-        coercedArgs.add(tag, value);
+        // no coercion necessary
       }
     }
-    return coercedArgs.build();
   }
 
 

@@ -154,7 +154,9 @@ public final class Symbol extends AbstractSEXP {
         ".Group",
         ".Class",
         ".Method",
-        ".Generic");
+        ".Generic",
+        ".target",
+        ".defined");
   }
   
   private static void addReserved(int hashBit, String... names) {

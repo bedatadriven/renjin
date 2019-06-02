@@ -1,7 +1,7 @@
 #  File src/library/base/R/match.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,38 +14,16 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
-
-
-.compile.loops <- FALSE
-
-match <- function(x, table, nomatch = NA_integer_, incomparables = NULL) {
- 
-    if(!.compile.loops) {
-        return(.Internal(match(x, table, nomatch, incomparables)))
-    } 
-
-    # Special case, exit early if x is empty
-    if(length(x) == 0) {
-        return(integer(0))
-    }   
-
-    # For historical reasons, FALSE is treated the same as NULL
-    if(identical(incomparables, FALSE)) {
-        incomparables <- NULL
-    }   
-
-    
-
-}
-
+match <- function(x, table, nomatch = NA_integer_, incomparables = NULL)
+    .Internal(match(x, table, nomatch, incomparables))
 
 match.call <-
     function(definition=sys.function(sys.parent()),
              call=sys.call(sys.parent()), expand.dots=TRUE,
              envir=parent.frame(2L))
-{    
+{
     if (!missing(definition) && is.null(definition)) {
         definition <- sys.function(sys.parent())
     }
@@ -56,13 +34,16 @@ pmatch <- function(x, table, nomatch = NA_integer_, duplicates.ok = FALSE)
     .Internal(pmatch(as.character(x), as.character(table), nomatch,
                      duplicates.ok))
 
+# "utils::hasName(x, name)" is defined to be the same as "name %in% names(x)",
+# so change it if this changes.
 `%in%`  <- function(x, table) match(x, table, nomatch = 0L) > 0L
 
 match.arg <- function (arg, choices, several.ok = FALSE)
 {
     if (missing(choices)) {
-	formal.args <- formals(sys.function(sys.parent()))
-	choices <- eval(formal.args[[deparse(substitute(arg))]])
+	formal.args <- formals(sys.function(sysP <- sys.parent()))
+	choices <- eval(formal.args[[as.character(substitute(arg))]],
+			envir = sys.frame(sysP))
     }
     if (is.null(arg)) return(choices[1L])
     else if(!is.character(arg))

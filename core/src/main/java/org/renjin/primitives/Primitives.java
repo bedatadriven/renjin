@@ -601,6 +601,7 @@ public class Primitives {
     f("strsplit", Text.class, 11);
     f("abbreviate", /*abbrev*/ null, 11);
     f("make.names", Text.class, 11);
+    f("pcre_config", null, 11);
     f("grep", Text.class, 11);
     f("grepl", Text.class, 11);
     f("sub", Text.class, 11);

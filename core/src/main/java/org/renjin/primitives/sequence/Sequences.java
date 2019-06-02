@@ -147,11 +147,6 @@ public class Sequences {
   }
 
   @Builtin
-  public static IntVector seq_along(SEXP exp) {
-    return new IntSequence(1, 1, exp.length());
-  }
-
-  @Builtin
   public static IntVector seq_len(int length) {
     return new IntSequence(1, 1, length);
   }

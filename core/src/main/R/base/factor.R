@@ -1,5 +1,7 @@
 #  File src/library/base/R/factor.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,43 +14,76 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
-factor <- function(x = character(), levels, labels=levels,
-                   exclude = NA, ordered = is.ordered(x))
+factor <- function(x = character(), levels, labels = levels,
+                   exclude = NA, ordered = is.ordered(x), nmax = NA)
 {
     if(is.null(x)) x <- character()
     nx <- names(x)
     if (missing(levels)) {
-        y <- unique(x)
-        ind <- sort.list(y) # or possibly order(x) which is more (too ?) tolerant
-        y <- as.character(y)
-        levels <- unique(y[ind])
+	y <- unique(x, nmax = nmax)
+	ind <- order(y)
+	levels <- unique(as.character(y)[ind])
     }
     force(ordered) # check if original x is an ordered factor
-    exclude <- as.vector(exclude, typeof(x))# may result in NA
-    x <- as.character(x)
+    if(!is.character(x))
+	x <- as.character(x)
+    ## levels could be a long vector, but match will not handle that.
     levels <- levels[is.na(match(levels, exclude))]
     f <- match(x, levels)
     if(!is.null(nx))
 	names(f) <- nx
-    nl <- length(labels)
-    nL <- length(levels)
-    if(!any(nl == c(1L, nL)))
-	stop(gettextf("invalid labels; length %d should be 1 or %d", nl, nL),
-	     domain = NA)
-    levels(f) <- ## nl == nL or 1
-	if (nl == nL) as.character(labels)
-	else paste(labels, seq_along(levels), sep="")
-    class(f) <- c(if(ordered)"ordered", "factor")
+    if(missing(labels)) { ## default: labels := levels
+	levels(f) <- as.character(levels)
+    } else { ## labels specified explicitly
+	nlab <- length(labels)
+	if(nlab == length(levels)) { ## NB: duplicated labels should work
+	    ## a version of  f <- `levels<-.factor`(f, as.character(labels))
+	    ## ... but not dropping NA :
+	    nlevs <- unique(xlevs <- as.character(labels))
+	    at <- attributes(f)
+	    at$levels <- nlevs
+	    f <- match(xlevs, nlevs)[f]
+	    attributes(f) <- at
+	}
+	else if(nlab == 1L)
+	    levels(f) <- paste0(labels, seq_along(levels))
+	else ## nlab is neither 1 nor length(levels)
+	    stop(gettextf("invalid 'labels'; length %d should be 1 or %d",
+			  nlab, length(levels)),
+		 domain = NA)
+    }
+    class(f) <- c(if(ordered) "ordered", "factor")
     f
 }
 
-is.factor <- function(x) inherits(x, "factor")
-as.factor <- function(x) if (is.factor(x)) x else factor(x)
 
-## Help old S users:
-category <- function(...) .Defunct()
+## Also used for methods::validObject(<factor>) :
+.valid.factor <- function(object) {
+    levs <- levels(object)
+    if (!is.character(levs))
+        return("factor levels must be \"character\"")
+    if (d <- anyDuplicated(levs))
+	return(sprintf("duplicated level [%d] in factor", d))
+    ## 'else'	ok :
+    TRUE
+}
+
+is.factor <- function(x) inherits(x, "factor")
+
+as.factor <- function(x) {
+    if (is.factor(x)) x
+    else if (!is.object(x) && is.integer(x)) {
+        ## optimization for calls from tapply via split.default
+        levels <- sort(unique.default(x)) # avoid array methods
+        f <- match(x, levels)
+        levels(f) <- as.character(levels)
+	if(!is.null(nx <- names(x))) names(f) <- nx
+        class(f) <- "factor"
+        f
+    } else factor(x)
+}
 
 levels <- function(x) UseMethod("levels")
 levels.default <- function(x) attr(x, "levels")
@@ -73,18 +108,23 @@ nlevels <- function(x) length(levels(x))
     nlevs <- unique(nlevs)
     at <- attributes(x)
     at$levels <- nlevs
-    y <- match(xlevs[x], nlevs)
+    y <- match(xlevs, nlevs)[x]
     attributes(y) <- at
     y
 }
 
 droplevels <- function(x, ...) UseMethod("droplevels")
-droplevels.factor <- function(x, ...) factor(x)
-droplevels.data.frame <- function(x, except = NULL, ...)
+## default 'exclude' matches `[.factor` (drop=TRUE)
+droplevels.factor <- function(x, exclude = if(anyNA(levels(x))) NULL else NA, ...)
+    factor(x, exclude = exclude)
+
+droplevels.data.frame <- function(x, except = NULL, exclude, ...)
   {
     ix <- vapply(x, is.factor, NA)
     if (!is.null(except)) ix[except] <- FALSE
-    x[ix] <- lapply(x[ix], factor)
+    x[ix] <- if(missing(exclude))
+		  lapply(x[ix], droplevels)
+	     else lapply(x[ix], droplevels, exclude=exclude)
     x
   }
 
@@ -97,7 +137,7 @@ as.vector.factor <- function(x, mode="any")
 	as.vector(unclass(x), mode)
 }
 
-as.character.factor <- function(x,...) levels(x)[x]
+as.character.factor <- function(x,...) .Internal(asCharacterFactor(x))
 
 as.logical.factor <- function(x,...) as.logical(levels(x))[x]
 
@@ -116,12 +156,10 @@ print.factor <- function (x, quote = FALSE, max.levels = NULL,
     if (length(x) == 0L)
         cat(if(ord)"ordered" else "factor", "(0)\n", sep = "")
     else {
-        ## The idea here is to preserve all relevant attributes such as
-        ## names and dims
-        xx <- x
-        class(xx) <- NULL
-        levels(xx) <- NULL
+        xx <- character(length(x))
         xx[] <- as.character(x)
+        keepAttrs <- setdiff(names(attributes(x)), c("levels", "class"))
+        attributes(xx)[keepAttrs] <- attributes(x)[keepAttrs]
         print(xx, quote = quote, ...)
     }
     maxl <- if(is.null(max.levels)) TRUE else max.levels
@@ -135,31 +173,34 @@ print.factor <- function (x, quote = FALSE, max.levels = NULL,
                                         # 3='...', 3=#lev, 1=extra
                 lenl <- cumsum(nchar(lev, "w") + nchar(colsep, "w"))
                 if(n <= 1L || lenl[n] <= width) n
-                else max(1L, which(lenl > width)[1L] - 1L)
+		else max(1L, which.max(lenl > width) - 1L)
             }
         drop <- n > maxl
-        cat(if(drop)paste(format(n),""), T0,
+        cat(if(drop) paste(format(n), ""), T0,
             paste(if(drop)c(lev[1L:max(1,maxl-1)],"...",if(maxl > 1) lev[n])
-                      else lev, collapse= colsep), "\n", sep="")
+                      else lev, collapse = colsep),
+            "\n", sep = "")
     }
+    if(!isTRUE(val <- .valid.factor(x)))
+	warning(val) # stop() in the future
     invisible(x)
 }
 
 
-Math.factor <- function(x, ...) {
-    stop(.Generic, " not meaningful for factors")
-}
+Math.factor <- function(x, ...)
+    stop(gettextf("%s not meaningful for factors", sQuote(.Generic)))
+
 ## The next two have an .ordered method:
 Summary.factor <- function(..., na.rm)
-    stop(.Generic, " not meaningful for factors")
+    stop(gettextf("%s not meaningful for factors", sQuote(.Generic)))
+
 Ops.factor <- function(e1, e2)
 {
     ok <- switch(.Generic, "=="=, "!="=TRUE, FALSE)
     if(!ok) {
-	warning(.Generic, " not meaningful for factors")
-	return(rep.int(NA, max(length(e1), if(!missing(e2))length(e2))))
+	warning(gettextf("%s not meaningful for factors", sQuote(.Generic)))
+	return(rep.int(NA, max(length(e1), if(!missing(e2)) length(e2))))
     }
-    nas <- is.na(e1) | is.na(e2)
     ## Need this for NA *levels* as opposed to missing
     noNA.levels <- function(f) {
 	r <- levels(f)
@@ -171,10 +212,32 @@ Ops.factor <- function(e1, e2)
 	r
     }
     if (nzchar(.Method[1L])) { # e1 *is* a factor
+        ## fastpath for factor w/ no NA levels vs scalar character
+        if(!anyNA(levels(e1)) && is.character(e2) && length(e2) == 1L) {
+            if(.Generic == "==") {
+                ## if e1[i] OR e2 is NA then (leq[e1])[i] is NA
+                ## as desired
+                leq <- (levels(e1) == e2)
+                return(leq[e1])
+            } else { ## != case
+                leq <- (levels(e1) != e2)
+                return(leq[e1])
+            }
+        }
 	l1 <- noNA.levels(e1)
 	e1 <- l1[e1]
     }
     if (nzchar(.Method[2L])) { # e2 *is* a factor
+        ## fastpath for factor w/ no NA levels vs scalar character
+        if(!anyNA(levels(e2)) && is.character(e1) && length(e1) == 1L){
+            if(.Generic == "==") {
+                leq <- (levels(e2) == e1)
+                return(leq[e2])
+            } else {  ## != case
+                leq <- (levels(e2) != e1)
+                return(leq[e2])
+            }
+        }
 	l2 <- noNA.levels(e2)
 	e2 <- l2[e2]
     }
@@ -182,6 +245,7 @@ Ops.factor <- function(e1, e2)
 	(length(l1) != length(l2) || !all(sort.int(l2) == sort.int(l1))))
 	stop("level sets of factors are different")
     value <- NextMethod(.Generic)
+    nas <- is.na(e1) | is.na(e2)
     value[nas] <- NA
     value
 }
@@ -191,12 +255,11 @@ Ops.factor <- function(e1, e2)
 `[.factor` <- function(x, ..., drop = FALSE)
 {
     y <- NextMethod("[")
-    attr(y,"contrasts")<-attr(x,"contrasts")
+    attr(y,"contrasts") <- attr(x,"contrasts")
     attr(y,"levels") <- attr(x,"levels")
     class(y) <- oldClass(x)
-    lev <- levels(x)
     if (drop)
-        factor(y, exclude = if(any(is.na(levels(x)))) NULL else NA ) else y
+        factor(y, exclude = if(anyNA(levels(x))) NULL else NA ) else y
 }
 
 `[<-.factor` <- function(x, ..., value)
@@ -206,7 +269,7 @@ Ops.factor <- function(e1, e2)
     if (is.factor(value)) value <- levels(value)[value]
     m <- match(value, lx)
     if (any(is.na(m) & !is.na(value)))
-	warning("invalid factor level, NAs generated")
+	warning("invalid factor level, NA generated")
     class(x) <- NULL
     x[...] <- m
     attr(x,"levels") <- lx
@@ -255,7 +318,7 @@ Ops.ordered <- function (e1, e2)
     if(!ok) {
 	warning(sprintf("'%s' is not meaningful for ordered factors",
                         .Generic))
-	return(rep.int(NA, max(length(e1), if(!missing(e2))length(e2))))
+	return(rep.int(NA, max(length(e1), if(!missing(e2)) length(e2))))
     }
     if (.Generic %in% c("==", "!="))
       return(NextMethod(.Generic))  ##not S-PLUS compatible, but saner
@@ -301,7 +364,7 @@ Summary.ordered <- function(..., na.rm)
     levl <- lapply(args, levels)
     levset <- levl[[1]]
     if (!all(vapply(args, is.ordered, NA)) ||
-	!all(sapply(levl, identical, levset)))
+	!all(vapply(levl, identical, NA, levset)))
 	stop(gettextf("'%s' is only meaningful for ordered factors if all arguments have the same level sets",
 		      .Generic))
     codes <- lapply(args, as.integer)
@@ -329,8 +392,9 @@ Summary.ordered <- function(..., na.rm)
 addNA <- function(x, ifany=FALSE)
 {
     if (!is.factor(x)) x <- factor(x)
-    if (ifany & !any(is.na(x))) return(x)
+    if (ifany && !anyNA(x)) return(x)
     ll <- levels(x)
-    if (!any(is.na(ll))) ll <- c(ll, NA)
+    if (!anyNA(ll)) ll <- c(ll, NA)
+    else if (!ifany && !anyNA(x)) return(x)
     factor(x, levels=ll, exclude=NULL)
 }

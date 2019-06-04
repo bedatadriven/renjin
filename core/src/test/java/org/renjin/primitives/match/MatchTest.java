@@ -111,10 +111,10 @@ public class MatchTest extends EvalTestCase {
 
   @Test
   public void duplicated() {
-    assertThat( eval(" .Internal(duplicated(1, FALSE, FALSE)) "), elementsIdenticalTo( c(false)) );
-    assertThat( eval(" .Internal(duplicated(c(1,1,3), FALSE, FALSE)) "), elementsIdenticalTo( c(false,true,false) ));
-    assertThat( eval(" .Internal(duplicated(c(1,2,3,3), FALSE, FALSE)) "), elementsIdenticalTo( c(false,false,false,true)) );
-    assertThat( eval(" .Internal(duplicated(c(2,2,3,3), FALSE, TRUE)) "), elementsIdenticalTo( c(true, false,true,false) ));
+    assertThat( eval(" .Internal(duplicated(1, FALSE, FALSE, NA)) "), elementsIdenticalTo( c(false)) );
+    assertThat( eval(" .Internal(duplicated(c(1,1,3), FALSE, FALSE, NA)) "), elementsIdenticalTo( c(false,true,false) ));
+    assertThat( eval(" .Internal(duplicated(c(1,2,3,3), FALSE, FALSE, NA)) "), elementsIdenticalTo( c(false,false,false,true)) );
+    assertThat( eval(" .Internal(duplicated(c(2,2,3,3), FALSE, TRUE, NA)) "), elementsIdenticalTo( c(true, false,true,false) ));
   }
  
   @Test

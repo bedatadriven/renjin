@@ -24,6 +24,7 @@ import org.renjin.eval.MatchedArguments;
 import org.renjin.sexp.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -117,23 +118,35 @@ public class CallingArguments {
 
   private static CallingArguments matchByName(Context context, Environment rho, SEXP object, MatchedArguments matchedArguments) {
 
-    SEXP[] matchedPromisedArgs = new SEXP[matchedArguments.getFormalCount()];
+    int numFormals = matchedArguments.getFormalCount();
+    String[] matchedArgNames = new String[numFormals];
+    SEXP[] matchedPromisedArgs = new SEXP[numFormals];
 
-    for (int formalIndex = 0; formalIndex < matchedArguments.getFormalCount(); formalIndex++) {
+    int matchedIndex = 0;
 
-      Symbol formalName = matchedArguments.getFormalName(formalIndex);
+    for (int formalIndex = 0; formalIndex < numFormals; formalIndex++) {
+      String formalName = matchedArguments.getFormalName(formalIndex);
       int actualIndex = matchedArguments.getActualIndex(formalIndex);
-
       if(actualIndex == -1) {
-        if(formalName != Symbols.ELLIPSES) {
+        if(formalName.equals("...")) {
           // This formal argument was not provided by the caller
-          matchedPromisedArgs[formalIndex] = Symbol.MISSING_ARG;
+          matchedArgNames[matchedIndex] = formalName;
+          matchedPromisedArgs[matchedIndex] = Symbol.MISSING_ARG;
+          matchedIndex++;
         }
       } else {
-        matchedPromisedArgs[formalIndex] = matchedArguments.getActualValue(actualIndex);
+        matchedArgNames[matchedIndex] = formalName;
+        matchedPromisedArgs[matchedIndex] = matchedArguments.getActualValue(actualIndex);
+        matchedIndex++;
       }
     }
-    return new CallingArguments(context, matchedArguments.getFormalNames(), matchedPromisedArgs);
+
+    if(matchedIndex < numFormals) {
+      matchedArgNames = Arrays.copyOf(matchedArgNames, matchedIndex);
+      matchedPromisedArgs = Arrays.copyOf(matchedPromisedArgs, matchedIndex);
+    }
+
+    return new CallingArguments(context, matchedArgNames, matchedPromisedArgs);
   }
 
   public String[] getArgumentNames() {

@@ -56,7 +56,7 @@ public class FixedArityApplyBuilder extends ApplyMethodBuilder {
         arityMatches(parent._if(lastArgument())._then(), arguments);
       }
 
-      JVar argument = parent.decl(classRef(SEXP.class), "s" + i, nextArgAsSexp(primitive.isEvaluated(i)));
+      JVar argument = parent.decl(classRef(SEXP.class), "s" + i, nextArgAsSexp());
       arguments.add(argument);
 
       if(i == 0) {

@@ -57,7 +57,6 @@ public abstract class BuiltinFunction extends PrimitiveFunction {
 
   @Override
   public final SEXP apply(Context context, Environment rho, FunctionCall call) {
-
     List<String> argumentNames = new ArrayList<>();
     List<SEXP> arguments = new ArrayList<>();
 
@@ -89,7 +88,7 @@ public abstract class BuiltinFunction extends PrimitiveFunction {
         }
       }
     }
-    return apply(context, rho, call, argumentNames.toArray(new String[0]), arguments.toArray(new SEXP[0]), null);
+    return applyPromised(context, rho, call, argumentNames.toArray(new String[0]), arguments.toArray(new SEXP[0]), null);
   }
 
 }

@@ -22,14 +22,12 @@ package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.MatchedArguments;
 import org.renjin.eval.S3DispatchMetadata;
 import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.primitives.Contexts;
 import org.renjin.primitives.S3;
 import org.renjin.sexp.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class UseMethod extends SpecialFunction {
 
@@ -38,14 +36,14 @@ public class UseMethod extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment callingEnvironment, FunctionCall call) {
+  public SEXP apply(Context context, Environment rho, FunctionCall call) {
 
     int numUseMethodArgs = call.getArguments().length();
     if (numUseMethodArgs == 0) {
       throw new EvalException("there must be a 'generic' argument");
     }
 
-    SEXP genericSexp = context.evaluate(call.getArgument(0), callingEnvironment);
+    SEXP genericSexp = context.evaluate(call.getArgument(0), rho);
     if (!(genericSexp instanceof StringVector)) {
       throw new EvalException("'generic' must be a character string");
     }
@@ -67,7 +65,7 @@ public class UseMethod extends SpecialFunction {
      * ... :   the PromisePairList
      *
      */
-    FunctionEnvironment functionEnvironment = (FunctionEnvironment) callingEnvironment;
+    FunctionEnvironment functionEnvironment = (FunctionEnvironment) rho;
 
     /*
      * Part I: Prepare the new argument list
@@ -88,40 +86,17 @@ public class UseMethod extends SpecialFunction {
      * as.list <- function(x,...) UseMethod("as.list")
      *
      * The *calling arguments* are the arguments to the as.list() function, which include
-     * "a" above.
-     *
-     * This means that we actually throw away the work done in Closure.apply() to match and promise
-     * the arguments to as.list().
+     * "a" above. This
      *
      * The first argument has to be handled specially to ensure that it is not re-evaluated.
      *
      */
 
+    MatchedArguments previousArguments = functionEnvironment.getMatching();
+
     Context callingContext = Contexts.findCallingContext(context, functionEnvironment);
-    PairList callingArguments = callingContext.getCall().getArguments();
-    Environment callingArgumentEnvironment = callingContext.getCallingEnvironment();
 
-    List<String> argNames = new ArrayList<>();
-    List<SEXP> argValues = new ArrayList<>();
-
-    for (PairList.Node callingArg : callingArguments.nodes()) {
-      if (callingArg.getValue() == Symbols.ELLIPSES) {
-        PromisePairList varArgs = (PromisePairList) callingArgumentEnvironment.getEllipsesVariable();
-        for (PairList.Node node : varArgs.nodes()) {
-          argNames.add(node.hasTag() ? node.getName() : null);
-          argValues.add(node.getValue());
-        }
-      } else {
-        argNames.add(callingArg.hasTag() ? callingArg.getName() : null);
-        argValues.add(Promise.repromise(callingArgumentEnvironment, callingArg.getValue()));
-      }
-    }
-    String[] argNameArray = argNames.toArray(new String[0]);
-    SEXP[] argArray = argValues.toArray(new SEXP[0]);
-
-
-    SEXP object = findObject(context, callingEnvironment, call.getArguments(), argArray);
-
+    SEXP object = findObject(context, rho, call.getArguments(), functionEnvironment);
 
     /*
      * From the "object", we compute a list of classes that are used to select a method.
@@ -160,7 +135,7 @@ public class UseMethod extends SpecialFunction {
     /*
      * Find the method!
      */
-    Function method = S3.findMethod(context, definitionEnvironment, callingEnvironment, generic, "", classes, true, dispatchTable);
+    Function method = S3.findMethod(context, definitionEnvironment, rho, generic, null, classes, true, dispatchTable);
     if (method == null) {
       throw new EvalException("no applicable method for '%s' applied to an object of class \"%s\"",
           generic, classes.toString());
@@ -182,50 +157,69 @@ public class UseMethod extends SpecialFunction {
      * For example, if you have a stack which looks like foo(x) -> UseMethod('foo') -> foo.default(x) then
      * the foo.default function will have a call of foo.default(x) visible to sys.call() and match.call()
      */
-    FunctionCall newCall = new FunctionCall(dispatchTable.getMethodSymbol(), callingArguments);
+    FunctionCall newCall = new FunctionCall(dispatchTable.getMethodSymbol(), callingContext.getCall().getArguments());
 
 
     /*
      * Finally invoke the selected methods with the re-promised arguments
      */
-    return method.apply(context, callingEnvironment, newCall, argNameArray, argArray, dispatchTable);
-
+    return method.applyPromised(
+        context,
+        callingContext.getCallingEnvironment(),
+        newCall,
+        previousArguments.getActualNames(),
+        previousArguments.getActualValues(),
+        dispatchTable);
   }
 
 
   /*
    * Find the "object" on which to dispatch.
    */
-  private SEXP findObject(Context context, Environment callingEnvironment, PairList useMethodArgs, SEXP[] argArray) {
+  private SEXP findObject(Context context, Environment callingEnvironment, PairList useMethodArgs, FunctionEnvironment functionEnvironment) {
 
-
+    /*
+     * If a second argument to UseMethod is provided, then the value of that argument is used
+     * to dispatch the call. That is to say, that class of that argument's value determines which
+     * method is selected.
+     *
+     * It *does not* however, replace the first callingArgument when the selected method is
+     * invoked
+     */
     if (useMethodArgs.length() > 1) {
-
-      /*
-       * If a second argument to UseMethod is provided, then the value of that argument is used
-       * to dispatch the call. That is to say, that class of that argument's value determines which
-       * method is selected.
-       *
-       * It *does not* however, replace the first callingArgument when the selected method is
-       * invoked
-       */
-
-      return context.evaluate(useMethodArgs.getElementAsSEXP(0), callingEnvironment);
-
-
-    } else if (argArray.length > 0) {
-
-      /*
-       * If the second argument to UseMethod is omitted, then the first *formal* argument
-       * of the function *calling* UseMethod() is used for dispatch.
-       */
-
-      return argArray[0].force(context);
-
-    } else {
-      return Null.INSTANCE;
+      return context.evaluate(useMethodArgs.getElementAsSEXP(1), callingEnvironment);
     }
+
+    /*
+     * If not, we must dispatch on the first *matched* argument.
+     */
+    if(functionEnvironment.getFormalCount() > 0) {
+
+      SEXP firstArgument = functionEnvironment.getFormalValue(0);
+      if (firstArgument != null) {
+
+        /*
+         * It can be that the first formal is the ellipses (...).
+         * In the case, we dispatch on the first argument
+         */
+
+        if (functionEnvironment.getLocalName(0) == Symbols.ELLIPSES) {
+          if (firstArgument instanceof PromisePairList.Node) {
+            return ((PromisePairList.Node) firstArgument).getValue().force(context);
+          } else {
+            return Null.INSTANCE;
+          }
+
+        } else {
+
+          /*
+           * Otherwise, it is the argument matched to the first formal.
+           */
+          return firstArgument.force(context);
+        }
+      }
+
+    }
+    return Null.INSTANCE;
   }
-
-
 }

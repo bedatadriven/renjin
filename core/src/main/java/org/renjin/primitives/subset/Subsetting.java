@@ -122,7 +122,7 @@ public class Subsetting {
 
   @Builtin(".subset2")
   public static SEXP getSingleElementNonGeneric(@Current Context context, SEXP source,
-                                                @ArgumentList ListVector subscripts,
+                                                @ArgumentList(allowMissing = true) ListVector subscripts,
                                                 @NamedFlag("exact") @DefaultValue(true) boolean exact,
                                                 @NamedFlag("drop") @DefaultValue(true) boolean drop) {
 
@@ -132,7 +132,7 @@ public class Subsetting {
   @Generic
   @Builtin("[[")
   public static SEXP getSingleElement(@Current Context context, SEXP source,
-                                      @ArgumentList ListVector subscripts,
+                                      @ArgumentList(allowMissing = true) ListVector subscripts,
                                       @NamedFlag("exact") @DefaultValue(true) boolean exact,
                                       @NamedFlag("drop") @DefaultValue(true) boolean drop) {
 
@@ -319,7 +319,7 @@ public class Subsetting {
 
   @Generic
   @Builtin("[[<-")
-  public static SEXP setSingleElement(@Current Context context, SEXP source, @ArgumentList ListVector argumentList) {
+  public static SEXP setSingleElement(@Current Context context, SEXP source, @ArgumentList(allowMissing = true) ListVector argumentList) {
 
     // Handle environment case as exceptional first
     if(source instanceof Environment || source instanceof S4Object) {

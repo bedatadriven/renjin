@@ -96,7 +96,11 @@ class BindArgument {
   }
 
   public String getArgName() {
-    return this.argName;
+    if("".equals(this.argName)) {
+      return null;
+    } else {
+      return this.argName;
+    }
   }
 
   public String getName() {

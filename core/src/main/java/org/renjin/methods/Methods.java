@@ -565,7 +565,7 @@ public class Methods {
     // the original arguments passed to the caller of standardGeneric()
     FunctionCall call = new FunctionCall(function, context.getCall().getArguments());
 
-    return function.apply(context, context.getCallingEnvironment(), call, arguments.getArgumentNames(), arguments.getPromisedArguments(), dispatchTable);
+    return function.applyPromised(context, context.getCallingEnvironment(), call, arguments.getArgumentNames(), arguments.getPromisedArguments(), dispatchTable);
   }
 
   public static void coerce(Context context, CallingArguments arguments, RankedMethod method) {

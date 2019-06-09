@@ -82,7 +82,7 @@ public abstract class ApplyMethodBuilder implements ApplyMethodContext {
   }
 
   protected void declareMethod() {
-    method = invoker.method( JMod.PUBLIC, SEXP.class, "apply" );
+    method = invoker.method( JMod.PUBLIC, SEXP.class, "applyPromised" );
     context = method.param(Context.class, "context");
     environment = method.param(Environment.class, "environment");
     call = method.param(FunctionCall.class, "call");
@@ -98,8 +98,7 @@ public abstract class ApplyMethodBuilder implements ApplyMethodContext {
   /**
    * Extracts the next argument at {@code positionalIndex} into a SEXP expression
    */
-  protected JExpression nextArgAsSexp(boolean evaluated) {
-    assert evaluated : "evalauted";
+  protected JExpression nextArgAsSexp() {
     JExpression component = argsArray.component(argumentIndex.incr());
     return component.invoke("force").arg(context);
   }

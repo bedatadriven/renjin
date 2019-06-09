@@ -284,7 +284,6 @@ public class ArgumentMatcher {
     return Arrays.asList(formalNames);
   }
 
-
   public SEXP[] getFormalNameArray() {
     SEXP[] symbols = new SEXP[formalNames.length];
     for (int i = 0; i < symbols.length; i++) {

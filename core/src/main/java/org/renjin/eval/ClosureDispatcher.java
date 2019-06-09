@@ -48,10 +48,10 @@ public class ClosureDispatcher {
         int actualIndex = matching.getActualIndex(formalIndex);
         if(actualIndex == -1) {
           if(populateMissing) {
-            result.add(matching.getFormalName(formalIndex), Symbol.MISSING_ARG);
+            result.add(matching.getFormalSymbol(formalIndex), Symbol.MISSING_ARG);
           }
         } else {
-          result.add(matching.getFormalName(formalIndex), matching.getActualValue(actualIndex));
+          result.add(matching.getFormalSymbol(formalIndex), matching.getActualValue(actualIndex));
         }
       }
     }

@@ -19,7 +19,6 @@
 package org.renjin.invoke.model;
 
 import org.renjin.invoke.annotations.ArgumentList;
-import org.renjin.invoke.codegen.GeneratorDefinitionException;
 import org.renjin.invoke.codegen.WrapperGenerator2;
 import org.renjin.primitives.Primitives;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -79,25 +78,6 @@ public class PrimitiveModel {
     }
     Collections.sort(matching);
     return matching;
-  }
-
-  public boolean isEvaluated(int argumentIndex) {
-    boolean evaluated = false;
-    boolean unevaluated = false;
-    for (JvmMethod overload : overloads) {
-      if (argumentIndex < overload.getFormals().size()) {
-        if (overload.getFormals().get(argumentIndex).isEvaluated()) {
-          evaluated = true;
-        } else {
-          unevaluated = true;
-        }
-      }
-    }
-    if (evaluated && unevaluated) {
-      throw new GeneratorDefinitionException(
-              "Mixing evaluated and unevaluated arguments at the same position is not yet supported");
-    }
-    return evaluated;
   }
 
   public String getName() {

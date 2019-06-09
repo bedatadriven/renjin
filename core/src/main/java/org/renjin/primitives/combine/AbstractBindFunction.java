@@ -21,7 +21,7 @@ package org.renjin.primitives.combine;
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.codegen.WrapperRuntime;
+import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.primitives.S3;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
@@ -30,9 +30,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * methods used by both cbind and rbind
+ * Methods used by both cbind and rbind
  */
-public abstract class AbstractBindFunction extends BuiltinFunction {
+public abstract class AbstractBindFunction extends SpecialFunction {
 
   private MatrixDim bindDim;
 
@@ -42,19 +42,20 @@ public abstract class AbstractBindFunction extends BuiltinFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
+  public final SEXP apply(Context context, Environment rho, FunctionCall call) {
 
-    int deparseLevel = WrapperRuntime.convertToInt(promisedArguments[0].force(context));
+    ArgumentIterator argumentItr = new ArgumentIterator(context, rho, call.getArguments());
+    int deparseLevel = ((Vector) argumentItr.evalNext()).getElementAsInt(0);
 
     List<BindArgument> bindArguments = Lists.newArrayList();
-    for (int i = 1; i < promisedArguments.length; i++) {
-      Promise promisedArgument = (Promise) promisedArguments[i];
-      SEXP evaluated = promisedArguments[i].force(context);
-      bindArguments.add(new BindArgument(argumentNames[i], (Vector) evaluated, bindDim,
-          promisedArgument.getExpression(), deparseLevel, context));
+    while(argumentItr.hasNext()) {
+      PairList.Node currentNode = argumentItr.nextNode();
+      SEXP evaluated = context.evaluate(currentNode.getValue(), rho);
+      bindArguments.add(new BindArgument(currentNode.getName(), (Vector) evaluated, bindDim,
+          currentNode.getValue(), deparseLevel, context));
     }
     
-    SEXP genericResult = tryBindDispatch(context, rho, getName(), deparseLevel, bindArguments);
+    SEXP genericResult = tryBindDispatch(context, rho, call, getName(), deparseLevel, bindArguments);
     if (genericResult != null) {
       return genericResult;
     }
@@ -101,7 +102,7 @@ public abstract class AbstractBindFunction extends BuiltinFunction {
    </ol>
    */
   public static SEXP tryBindDispatch(Context context, Environment rho,
-                                     String bindFunctionName, int deparseLevel, List<BindArgument> arguments) {
+                                     FunctionCall call, String bindFunctionName, int deparseLevel, List<BindArgument> arguments) {
 
     Symbol foundMethod = null;
     org.renjin.sexp.Function foundFunction = null;
@@ -134,18 +135,24 @@ public abstract class AbstractBindFunction extends BuiltinFunction {
       return null;
     }
 
-    // build a new FunctionCall object and apply
-    PairList.Builder args = new PairList.Builder();
-    args.add("deparse.level", new Promise(Symbol.get("deparse.level"), new IntArrayVector(deparseLevel)));
+    // build a new list of promised arguments
 
-    for (BindArgument argument : arguments) {
-      args.add(argument.getArgName(), argument.repromise());
+    int numArguments = arguments.size();
+    String[] promisedArgumentNames = new String[numArguments];
+    SEXP[] promisedArguments = new SEXP[numArguments];
+    for (int i = 0; i < numArguments; i++) {
+      BindArgument bindArgument = arguments.get(i);
+      promisedArgumentNames[i] = bindArgument.getArgName();
+      promisedArguments[i] = bindArgument.repromise();
     }
 
-    PairList buildArgs = args.build();
 
-    FunctionCall call = new FunctionCall(Symbol.get(bindFunctionName), buildArgs);
-    return foundFunction.apply(context, rho, call);
+    // When dispatching from rbind/cbind there is actually no
+    // dispatch metadata, so NextMethod() cannot be used.
+    DispatchTable dispatch = null;
+
+
+    return foundFunction.applyPromised(context, rho, call, promisedArgumentNames, promisedArguments, dispatch);
   }
 
   /**

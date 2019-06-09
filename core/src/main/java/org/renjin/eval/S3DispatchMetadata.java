@@ -36,7 +36,7 @@ public class S3DispatchMetadata implements DispatchTable {
    */
   private String generic;
 
-  private String group;
+  public String group;
   /**
    * ‘.Class’ is a character vector of classes used to find the next
    * method.  ‘NextMethod’ adds an attribute ‘"previous"’ to ‘.Class’
@@ -66,15 +66,6 @@ public class S3DispatchMetadata implements DispatchTable {
    */
   private Environment genericCallEnvironment;
 
-  /**
-   * The original argument to the matched function.
-   *
-   * <p>This value is stored when apply the closure and is used
-   * by NextMethod.</p>
-   */
-  public MatchedArguments arguments;
-
-
 
   public S3DispatchMetadata(Environment definitionEnvironment, String generic) {
     this.genericDefinitionEnvironment = definitionEnvironment;
@@ -100,7 +91,11 @@ public class S3DispatchMetadata implements DispatchTable {
   }
 
   public SEXP getMethodSymbol() {
-    return Symbol.get(method);
+    if(method.isEmpty()) {
+      return Symbol.get(method2);
+    } else {
+      return Symbol.get(method);
+    }
   }
 
   @Override

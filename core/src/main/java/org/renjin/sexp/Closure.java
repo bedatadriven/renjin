@@ -107,49 +107,47 @@ public class Closure extends AbstractSEXP implements Function {
           argumentNames.add(null);
         }
         if(value == Symbol.MISSING_ARG) {
-          arguments.add(Symbol.MISSING_ARG);
+          arguments.add(value);
         } else {
           arguments.add(Promise.repromise(rho, value));
         }
       }
     }
-    return apply(context, rho, call, argumentNames.toArray(new String[0]), arguments.toArray(new SEXP[0]), null);
+    return applyPromised(context, rho, call, argumentNames.toArray(new String[0]), arguments.toArray(new SEXP[0]), null);
   }
 
-  public SEXP apply(Context callingContext, Environment callingEnvironment, FunctionCall call, String[] argNames, SEXP[] args, DispatchTable dispatch) {
+  public SEXP applyPromised(Context callingContext, Environment callingEnvironment, FunctionCall call, String[] argNames, SEXP[] args, DispatchTable dispatch) {
 
     if(this.matcher == null) {
       this.matcher = new ArgumentMatcher(getFormals());
       this.formalSymbols = matcher.getFormalNameArray();
     }
 
-    SEXP[] arguments = new SEXP[matcher.getFormalCount()];
-
     MatchedArguments matching = matcher.match(argNames, args);
+    SEXP[] matchedArguments = new SEXP[matcher.getFormalCount()];
 
     for (int formalIndex = 0; formalIndex < matching.getFormalCount(); formalIndex++) {
       if (matching.isFormalEllipses(formalIndex)) {
-        arguments[formalIndex] = matching.buildExtraArgumentList();
+        matchedArguments[formalIndex] = matching.buildExtraArgumentList();
 
       } else {
         int actualIndex = matching.getActualIndex(formalIndex);
         if (actualIndex != -1) {
           SEXP actualValue = matching.getActualValue(actualIndex);
           if (actualValue != Symbol.MISSING_ARG) {
-            arguments[formalIndex] = actualValue;
+            matchedArguments[formalIndex] = actualValue;
           }
         }
       }
     }
 
-
-
-    SEXP[] locals = Arrays.copyOf(arguments, arguments.length);
+    SEXP[] locals = Arrays.copyOf(matchedArguments, matchedArguments.length);
 
     FunctionEnvironment functionEnvironment = new FunctionEnvironment(
         getEnclosingEnvironment(),
         formalSymbols,
-        arguments,
+        matchedArguments,
+        matching,
         locals,
         dispatch
     );
@@ -171,17 +169,9 @@ public class Closure extends AbstractSEXP implements Function {
       }
     }
 
-    // If we are being called by UseMethod() or by NextMethod(), then
-    // save a reference to our matched arguments. This is required by NextMethod().
-
-    if(dispatch instanceof S3DispatchMetadata) {
-      ((S3DispatchMetadata) dispatch).arguments = matching;
-    }
-
     try {
 
       try {
-
 
         return functionContext.evaluate(body);
 
@@ -219,11 +209,6 @@ public class Closure extends AbstractSEXP implements Function {
     }
   }
 
-
-  public SEXP doApply(Context functionContext) {
-    return functionContext.evaluate(body);
-  }
-   
 
   /**
    * A function's <strong> evaluation environment</strong> is the environment

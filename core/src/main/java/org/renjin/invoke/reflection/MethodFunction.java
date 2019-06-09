@@ -59,7 +59,7 @@ public class MethodFunction extends AbstractSEXP implements Function {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
+  public SEXP applyPromised(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
     throw new UnsupportedOperationException("TODO");
   }
 

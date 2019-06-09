@@ -56,8 +56,8 @@ public class GroupDispatchStrategy extends GenericDispatchStrategy {
             .arg(context.getContext())
             .arg(context.getEnvironment())
             .arg(functionCall)
-            .arg(lit(groupName))
             .arg(lit(methodName))
+            .arg(lit(groupName))
             .arg(argNamesArray)
             .arg(argArray));
 

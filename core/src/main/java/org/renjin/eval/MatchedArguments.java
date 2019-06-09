@@ -33,6 +33,12 @@ public class MatchedArguments {
     this.actualNames = actualNames;
     this.actualValues = actualValues;
     this.matchedPositions = matchedPositions;
+
+    for (int i = 0; i < actualNames.length; i++) {
+      if("".equals(actualNames[i])) {
+        throw new IllegalStateException();
+      }
+    }
   }
 
   /**
@@ -55,11 +61,11 @@ public class MatchedArguments {
    * @return {@code true} if the formal at index {@code formalIndex} is the ellipses (...)
    */
   public boolean isFormalEllipses(int formalIndex) {
-    return matchedPositions.getFormalName(formalIndex) == Symbols.ELLIPSES;
+    return matchedPositions.getFormalSymbol(formalIndex) == Symbols.ELLIPSES;
   }
 
-  public Symbol getFormalName(int formalIndex) {
-    return matchedPositions.getFormalName(formalIndex);
+  public Symbol getFormalSymbol(int formalIndex) {
+    return matchedPositions.getFormalSymbol(formalIndex);
   }
 
   public PromisePairList buildExtraArgumentList() {
@@ -103,7 +109,7 @@ public class MatchedArguments {
   public SEXP getActualForFormal(int formalIndex) {
     int actualIndex = getActualIndex(formalIndex);
     if(actualIndex == -1) {
-      throw new EvalException("Argument \"" + getFormalName(formalIndex).getPrintName() + "\" is missing, with no default");
+      throw new EvalException("Argument \"" + getFormalSymbol(formalIndex).getPrintName() + "\" is missing, with no default");
     }
     return actualValues[actualIndex];
   }
@@ -124,7 +130,7 @@ public class MatchedArguments {
     return actualValues;
   }
 
-  public String[] getFormalNames() {
-    return matchedPositions.getFormalNames();
+  public String getFormalName(int formalIndex) {
+    return matchedPositions.getFormalName(formalIndex);
   }
 }

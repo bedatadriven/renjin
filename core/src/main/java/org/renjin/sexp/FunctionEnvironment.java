@@ -21,12 +21,13 @@ package org.renjin.sexp;
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.annotations.CompilerSpecialization;
+import org.renjin.eval.MatchedArguments;
 import org.renjin.invoke.annotations.Current;
 
 import java.util.*;
 
 public final class FunctionEnvironment extends Environment {
+
 
   /**
    * An array of Symbols that correspond to the names of the local variables stored in {@link #locals}.
@@ -42,9 +43,11 @@ public final class FunctionEnvironment extends Environment {
    * An array of arguments passed to this function. Missing arguments will be {@code null} in the array, even if they
    * have default values. Default values of arrays are assigned into the {@link #locals} array.
    */
-  private final SEXP[] arguments;
+  private final SEXP[] matchedArguments;
 
+  private final MatchedArguments matching;
   private final SEXP[] locals;
+
   private final DispatchTable dispatchTable;
 
   /**
@@ -53,53 +56,24 @@ public final class FunctionEnvironment extends Environment {
   private IdentityHashMap<Symbol, SEXP> overflow = null;
 
 
-  @CompilerSpecialization
-  public static FunctionEnvironment compiledInit(Environment parent, SEXP variableNames, SEXP[] arguments) {
-    SEXP[] localNames = ((ListVector) variableNames).toArrayUnsafe();
-    SEXP[] locals = Arrays.copyOf(arguments, localNames.length);
-
-    return new FunctionEnvironment(parent, localNames, arguments, locals, null);
-  }
-
-  /**
-   * TEMPORARY!!
-   */
-  public FunctionEnvironment(Environment parent, PairList formals) {
-    super(parent, null, AttributeMap.EMPTY);
-    this.localNames = new SEXP[formals.length()];
-    this.arguments = new SEXP[formals.length()];
-    this.locals = new SEXP[formals.length()];
-    this.dispatchTable = null;
-
-    int formalIndex = 0;
-    for (PairList.Node node : formals.nodes()) {
-      localNames[formalIndex++] = node.getTag();
-    }
-  }
-
-
-
-  public FunctionEnvironment(Environment parent, SEXP[] localNames, SEXP[] arguments, SEXP[] locals, DispatchTable dispatch) {
+  public FunctionEnvironment(Environment parent, SEXP[] localNames, SEXP[] matchedArguments, MatchedArguments matching, SEXP[] locals, DispatchTable dispatch) {
     super(parent, null, AttributeMap.EMPTY);
     this.localNames = localNames;
-    this.arguments = arguments;
+    this.matchedArguments = matchedArguments;
+    this.matching = matching;
     this.locals = locals;
     this.dispatchTable = dispatch;
   }
 
-  public SEXP[] getArguments() {
-    return arguments;
-  }
-
   public boolean isMissingArgument(Context context, Symbol symbol) {
 
-    for (int i = 0; i < arguments.length; i++) {
+    for (int i = 0; i < matchedArguments.length; i++) {
       if(localNames[i] == symbol) {
-        if(arguments[i] == null) {
+        if(matchedArguments[i] == null) {
           return true;
         }
         if(localNames[i] == Symbols.ELLIPSES) {
-          return arguments[i].length() == 0;
+          return matchedArguments[i].length() == 0;
         }
       }
     }
@@ -126,7 +100,7 @@ public final class FunctionEnvironment extends Environment {
     if(ellipsesIndex == -1) {
       throw new EvalException("missing can only be used for arguments.");
     }
-    PromisePairList expando = (PromisePairList) arguments[ellipsesIndex];
+    PromisePairList expando = (PromisePairList) matchedArguments[ellipsesIndex];
     if(expando.length() < varArgReferenceIndex) {
       return true;
     }
@@ -194,31 +168,10 @@ public final class FunctionEnvironment extends Environment {
     return false;
   }
 
-  /**
-   * TEMPORARY!!
-   * @param formalName
-   * @param promiseDefaultValue
-   */
-  public void setMissingArgument(Symbol formalName, SEXP promiseDefaultValue) {
-    int argIndex = indexOf(formalName);
-    locals[argIndex] = promiseDefaultValue;
-  }
-
-  /**
-   * TEMPORARY!!
-   * @param formalName
-   * @param actualValue
-   */
-  public void setArgument(Symbol formalName, SEXP actualValue) {
-    int argIndex = indexOf(formalName);
-    locals[argIndex] = actualValue;
-    arguments[argIndex] = actualValue;
-  }
-
   public void set(int index, SEXP value) {
     locals[index] = value;
-    if(index < arguments.length) {
-      arguments[index] = value;
+    if(index < matchedArguments.length) {
+      matchedArguments[index] = value;
     }
   }
 
@@ -311,7 +264,7 @@ public final class FunctionEnvironment extends Environment {
 
       // Special case: if the symbol matches a missing argument with no default, we
       // throw an error
-      if(value == null && localIndex < arguments.length) {
+      if(value == null && localIndex < matchedArguments.length) {
         throw new EvalException("argument \"%s\" is missing, with no default", symbol.getPrintName());
       }
     } else if(overflow != null) {
@@ -354,8 +307,8 @@ public final class FunctionEnvironment extends Environment {
       locals[localIndex] = value;
 
       // Clear the missing argument flag if neccessary
-      if(localIndex < arguments.length) {
-        arguments[localIndex] = value;
+      if(localIndex < matchedArguments.length) {
+        matchedArguments[localIndex] = value;
       }
 
     } else {
@@ -366,16 +319,31 @@ public final class FunctionEnvironment extends Environment {
     }
   }
 
-  public int getFormalCount() {
-    return arguments.length;
-  }
-
-  public SEXP getFormalName(int i) {
-    assert i < arguments.length;
-    return localNames[i];
-  }
-
   public DispatchTable getDispatchTable() {
     return dispatchTable;
+  }
+
+  public int getFormalCount() {
+    return matchedArguments.length;
+  }
+
+  /**
+   * Returns the promised argument matched to the first formal argument, or {@code null} if no value
+   * was provided for the first formal.
+   */
+  public SEXP getFormalValue(int index) {
+    return matchedArguments[index];
+  }
+
+  public Symbol getLocalName(int index) {
+    return (Symbol)localNames[index];
+  }
+
+  /**
+   *
+   * @return the matching between the arguments as passed by the caller and this closure's formal arguments.
+   */
+  public MatchedArguments getMatching() {
+    return matching;
   }
 }

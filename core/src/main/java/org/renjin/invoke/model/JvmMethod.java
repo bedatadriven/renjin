@@ -161,15 +161,6 @@ public class JvmMethod implements Comparable<JvmMethod> {
   public boolean isDataParallel() {
     return dataParallel;
   }
-  
-  public boolean isStrict() {
-    for(Argument formal : getFormals()) {
-      if(!formal.isEvaluated() && !formal.isSymbol()) {
-        return false;
-      }
-    }
-    return true;
-  }
 
   public boolean isGeneric() {
     return method.getAnnotation(Generic.class) != null ||
@@ -342,7 +333,6 @@ public class JvmMethod implements Comparable<JvmMethod> {
     private int index;
     private Class clazz;
     private boolean contextual = false;
-    private boolean evaluated = true;
     private boolean symbol;
     private String name;
     public boolean recycle;
@@ -357,9 +347,6 @@ public class JvmMethod implements Comparable<JvmMethod> {
         if(annotation instanceof Current) {
           contextual = true;
 
-        } else if(annotation instanceof Unevaluated) {
-          evaluated = false;
-
         } else if(annotation instanceof NamedFlag) {
           name = ((NamedFlag) annotation).value();
 
@@ -367,7 +354,6 @@ public class JvmMethod implements Comparable<JvmMethod> {
           defaultValue = ((DefaultValue) annotation).value();
         
         } else if(annotation instanceof InvokeAsCharacter) {
-          evaluated = true;
         }
       }
 
@@ -399,10 +385,6 @@ public class JvmMethod implements Comparable<JvmMethod> {
 
     public boolean isContextual() {
       return contextual;
-    }
-
-    public boolean isEvaluated() {
-      return evaluated;
     }
 
     public boolean isSymbol() {

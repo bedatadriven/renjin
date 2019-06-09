@@ -38,9 +38,9 @@ public class DollarAssignFunction extends SpecialFunction {
     // Even though this function is generic, it MUST be called with exactly three arguments
     checkArity(call, 3);
 
-    SEXP object = context.evaluate(call.getArgument(0));
+    SEXP object = context.evaluate(call.getArgument(0), rho);
     StringVector nameArgument = DollarFunction.evaluateName(call.getArgument(1));
-    SEXP value = context.evaluate(call.getArgument(2));
+    SEXP value = context.evaluate(call.getArgument(2), rho);
 
 
     if(object.isObject()) {

@@ -53,13 +53,13 @@ test.primitive.to.s3.not.evaled <- function() {
 
 test.primitive.to.s3.first.promised <- function() {
     `[.foo` <- function(x, i, j, drop = FALSE) substitute(x)
-    g <- function(x,i,j) x[i,j]
+    g <- function(x,i,j) (x+1)[i,j]
 
     x <- structure(99, class = 'foo')
 
     # Despite the fact that we are calling a primitive,
-    # the arguments, besides the first one, are lazily dispatched.
-    assertThat(g(x), identicalTo(quote(x)))
+    # the arguments, besides the first one, are lazily evaluated.
+    assertThat(g(x), identicalTo(quote( (x+1)  )))
 }
 
 

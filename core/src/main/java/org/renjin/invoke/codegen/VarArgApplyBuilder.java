@@ -61,7 +61,7 @@ public class VarArgApplyBuilder extends ApplyMethodBuilder {
     // convert the positional arguments
     int posIndex = 0;
     for(VarArgParser.PositionalArg posArgument : parser.getPositionalArguments()) {
-      parent.assign(posArgument.getVariable(), convert(posArgument.getFormal(), nextArgAsSexp(posArgument.getFormal().isEvaluated())));
+      parent.assign(posArgument.getVariable(), convert(posArgument.getFormal(), nextArgAsSexp()));
       if(posIndex == 0) {
         genericDispatchStrategy.afterFirstArgIsEvaluated(this, call, posArgument.getVariable(), argNamesArray, argsArray, parent);
       }
@@ -78,15 +78,14 @@ public class VarArgApplyBuilder extends ApplyMethodBuilder {
 
   private void matchVarArg(JVar firstArgVar, JBlock block) {
 
-    JExpression evaluateCall;
-//    if(primitive.isMissingAllowedInVarArgs()) {
-//      evaluateCall = argumentIterator.invoke("evalNextOrMissing");
-//    } else {
-//      evaluateCall = argumentIterator.invoke("evalNext");
-//    }
-
     JExpression component = argsArray.component(argumentIndex);
-    evaluateCall = component.invoke("force").arg(context);
+
+    JExpression evaluateCall;
+    if(primitive.isMissingAllowedInVarArgs()) {
+      evaluateCall = classRef(WrapperRuntime.class).staticInvoke("forceOrMissing").arg(context).arg(component);
+    } else {
+      evaluateCall =  component.invoke("force").arg(context);
+    }
 
     JVar evaluated = block.decl(classRef(SEXP.class), "evaluated", evaluateCall);
 

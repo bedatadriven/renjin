@@ -158,7 +158,7 @@ public class IRBodyBuilder {
     for (int formalIndex = 0; formalIndex < matching.getFormalCount(); formalIndex++) {
       if(matching.isFormalMatched(formalIndex)) {
         int argumentIndex = matching.getActualIndex(formalIndex);
-        argumentVars[argumentIndex] = new EnvironmentVariable(matching.getFormalName(formalIndex));
+        argumentVars[argumentIndex] = new EnvironmentVariable(matching.getFormalSymbol(formalIndex));
       }
     }
 

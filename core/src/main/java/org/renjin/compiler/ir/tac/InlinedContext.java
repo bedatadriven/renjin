@@ -51,7 +51,7 @@ public class InlinedContext implements TranslationContext {
   @Override
   public boolean isMissing(Symbol name) {
     for (int formalIndex = 0; formalIndex < matched.getFormalCount(); formalIndex++) {
-      if(matched.getFormalName(formalIndex) == name) {
+      if(matched.getFormalSymbol(formalIndex) == name) {
         return matched.isFormalMatched(formalIndex);
       }
     }

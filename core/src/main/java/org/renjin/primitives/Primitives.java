@@ -163,7 +163,7 @@ public class Primitives {
       return new BuiltinFunction(entry.name) {
 
         @Override
-        public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
+        public SEXP applyPromised(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] evaluatedArguments, DispatchTable dispatchTable) {
           throw new EvalException("Sorry! " + entry.name + " not yet implemented!", e);
         }
       };

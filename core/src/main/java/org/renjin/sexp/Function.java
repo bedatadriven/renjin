@@ -31,17 +31,30 @@ public interface Function extends SEXP, Recursive {
 
   public static final String IMPLICIT_CLASS = "function";
 
-  SEXP apply(Context originalContext, Environment environment, FunctionCall call);
+
+  /**
+   * Applies this function with the given function call.
+   *
+   * <p>The function call contains a list of named, unevaluated expressions. Omitted arguments, such as those
+   * in the call {@code f(,,1)} are represented in the pairlist as {@code Symbol.MISSING_ARG} symbols, and
+   * forwarded arguments are represented by the symbol {@code Symbols.ELLIPSES}</p>
+   *
+   * @param context the evaluation context
+   * @param rho the evaluation environment
+   * @param call the function call to which this function should be applied.
+   * @return
+   */
+  SEXP apply(Context context, Environment rho, FunctionCall call);
 
   /**
    *
-   * Applies the function with the given arguments.
+   * Applies the function with the given, promised arguments.
    *
    * <p>The arguments as passed to the function must be <i>expanded</i>. That is, the symbol '...' should not
    * be passed, but rather resolved and the array of argument names and values expanded to include in the array.</p>
    *
    * <p>Missing positional arguments, such as the first argument in the call g(, 1), should be passed as
-   * {@code Symbol.MISSING_ARG}, not a promise.</p>
+   * {@code null}, not a promise.</p>
    *
    * <p>The arguments, as passed to this method, are not yet matched: they should be in the original order.</p>
    *
@@ -57,7 +70,7 @@ public interface Function extends SEXP, Recursive {
    * @param dispatch
    * @return the function's result
    */
-  SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch);
+  SEXP applyPromised(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch);
 
 
 }

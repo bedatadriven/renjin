@@ -208,4 +208,23 @@ public class WrapperRuntime {
     }
     throw new IllegalArgumentException();
   }
+
+  public static SEXP forceOrMissing(Context context, SEXP argument) {
+    if(argument == Symbol.MISSING_ARG) {
+      return argument;
+    }
+    Promise promise = (Promise) argument;
+    if(promise.isEvaluated()) {
+      return promise.getValue();
+    }
+//
+//    if(promise.getExpression() instanceof Symbol && promise.getEnvironment() instanceof FunctionEnvironment) {
+//      FunctionEnvironment functionEnvironment = (FunctionEnvironment) promise.getEnvironment();
+//      if(functionEnvironment.isMissingArgument(context, (Symbol) promise.getExpression())) {
+//        return Symbol.MISSING_ARG;
+//      }
+//    }
+
+    return promise.force(context, true);
+  }
 }

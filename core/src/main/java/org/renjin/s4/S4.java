@@ -109,7 +109,7 @@ public class S4 {
       dispatchTable = generateCallMetaData(context, selectedMethod, signature, opName);
     }
 
-    return function.apply(context, rho, call, arguments.getArgumentNames(), arguments.getPromisedArguments(), dispatchTable);
+    return function.applyPromised(context, rho, call, arguments.getArgumentNames(), arguments.getPromisedArguments(), dispatchTable);
   }
 
   private static boolean dispatchWithoutMeta(String opName, SEXP source, RankedMethod rank) {

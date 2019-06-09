@@ -140,6 +140,19 @@ public class S3 {
         true,
         nextTable);
 
+    // Patch up for Ops functions.
+    // This may not be totally correct...
+    if(dispatchTable.method.equals("")) {
+      nextTable.method2 = nextTable.method;
+      nextTable.method = "";
+
+    } else if(dispatchTable.method.equals(dispatchTable.method2)) {
+      nextTable.method2 = nextTable.method;
+
+    } else {
+      nextTable.method2 = dispatchTable.method2;
+    }
+
     // Update the arguments
     // If the previous method selected had the definition
     //
@@ -162,7 +175,7 @@ public class S3 {
 
     FunctionCall previousCall = previousContext.getCall();
 
-    MatchedArguments previousArguments = dispatchTable.arguments;
+    MatchedArguments previousArguments = previousEnvironment.getMatching();
 
     int numPrevious = previousArguments.getActualCount();
 
@@ -229,7 +242,7 @@ public class S3 {
 
     FunctionCall newCall = new FunctionCall(nextTable.getMethodSymbol(), previousCall.getArguments());
 
-    return nextMethod.apply(context, rho, newCall, updatedNames, updatedArguments, nextTable);
+    return nextMethod.applyPromised(context, rho, newCall, updatedNames, updatedArguments, nextTable);
   }
 
 
@@ -254,7 +267,11 @@ public class S3 {
   private static int findIndex(S3DispatchMetadata table) {
     for (int i = 0; i < table.classVector.length(); i++) {
       String className = table.classVector.getElementAsString(i);
-      if(table.method.endsWith(className)) {
+      String method = table.method;
+      if(method.isEmpty()) {
+        method = table.method2;
+      }
+      if(method.endsWith(className)) {
         return i;
       }
     }
@@ -517,7 +534,25 @@ public class S3 {
       }
     }
 
-    return leftMethod.apply(context, rho, call, argumentNames, arguments, dispatchTable);
+    /*
+     * Create an additional "fake" context to mark the call to the primitive. For example, if we are dispatching
+     * to as.double.foo, then we insert a new context:
+     *
+     * => as.double(x)
+     * => as.double.foo(x)
+     */
+    Context fakeContext = context.beginFakeFunction(rho, call);
+
+    /*
+     * We rewrite the call to as.double(x) so that it includes the symbol as as.double.foo(x)
+     */
+
+    FunctionCall fakeCall = new FunctionCall(dispatchTable.getMethodSymbol(), call.getArguments());
+
+    /*
+     * Finally we are ready to call.
+     */
+    return leftMethod.applyPromised(fakeContext, rho, fakeCall, argumentNames, arguments, dispatchTable);
   }
 
 
@@ -541,6 +576,8 @@ public class S3 {
                                     boolean searchForDefault,
                                     S3DispatchMetadata dispatchTable) {
 
+    assert !"".equals(group);
+
     Environment methodTable = findMethodTable(context, definitionEnvironment);
     Function method;
 
@@ -553,6 +590,7 @@ public class S3 {
       if(group != null) {
         method = findMethod(context, methodTable, callingEnvironment, group, className, dispatchTable);
         if(method != null) {
+          dispatchTable.group = group;
           return method;
         }
       }

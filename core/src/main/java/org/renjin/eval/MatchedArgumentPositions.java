@@ -104,8 +104,12 @@ public class MatchedArgumentPositions {
   /**
    * @return the name of the {@code i}th formal argument
    */
-  public Symbol getFormalName(int i) {
+  public Symbol getFormalSymbol(int i) {
     return Symbol.get(formalNames[i]);
+  }
+
+  public String getFormalName(int i) {
+    return formalNames[i];
   }
 
   public int getFormalCount() {

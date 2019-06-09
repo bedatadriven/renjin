@@ -48,15 +48,12 @@ public abstract class SpecialFunction extends PrimitiveFunction {
   }
 
   @Override
-  public final SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
+  public final SEXP applyPromised(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
 
     // Discard promised arguments, apply non-standard evaluation
     return apply(context, rho, call);
 
   }
-
-  public abstract SEXP apply(Context context, Environment rho, FunctionCall call);
-
 
   public static boolean asLogicalNoNA(Context context, FunctionCall call, SEXP s) {
 

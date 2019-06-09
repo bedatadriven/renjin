@@ -42,7 +42,7 @@ public class RepFunction extends BuiltinFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
+  public SEXP applyPromised(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
 
     // rep is one of the very few primitives that uses argument matching
     // *ALMOST* like that employed for closures.

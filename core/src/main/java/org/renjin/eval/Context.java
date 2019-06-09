@@ -46,7 +46,9 @@ import java.util.Map;
  * (such as via traceback) and otherwise (the sys.xxx functions).
  */
 public class Context {
-  
+
+
+  private static final Closure FAKE_CLOSURE = new Closure(Environment.EMPTY, Null.INSTANCE, Null.INSTANCE);
 
   public enum Type {
     /** toplevel context */
@@ -144,21 +146,21 @@ public class Context {
     return context;
   }
 
-  public Context beginFunction(Environment rho, FunctionCall call, Closure closure, PairList arguments) {
-    assert rho != null : "callingEnvironment cannot be null.";
+  public Context beginFakeFunction(Environment callingEnvironment, FunctionCall call) {
     Context context = new Context();
     context.type = Type.FUNCTION;
     context.parent = this;
     context.evaluationDepth = evaluationDepth+1;
-    context.function = closure;
-    context.environment = new FunctionEnvironment(closure.getEnclosingEnvironment(), closure.getFormals());
     context.session = session;
-    context.arguments = arguments;
     context.call = call;
-    context.callingEnvironment = rho;
+    context.callingEnvironment = callingEnvironment;
+
+    context.function = FAKE_CLOSURE;
+    context.environment = Environment.EMPTY;
+
     return context;
   }
-  
+
   public Context beginEvalContext(Environment environment) {
     Context context = new Context();
     context.type = Type.RETURN;

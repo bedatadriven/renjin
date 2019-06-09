@@ -34,6 +34,9 @@ ext {
     gccBridgePlugin = "$projectDir/tools/gcc-bridge/compiler/build/bridge.so"
 }
 
+allprojects {
+    group = 'org.renjin'
+}
 
 subprojects {
 

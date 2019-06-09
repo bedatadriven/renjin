@@ -1,10 +1,8 @@
 
+group = 'org.renjin.test'
+
 apply from: '../../gradle/package.gradle'
 
 dependencies {
-    compile project(':packages:utils')
-
-    compileOnly project(':packages:stats')
-
     testCompile project(':packages:hamcrest')
 }

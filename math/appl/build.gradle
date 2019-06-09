@@ -31,3 +31,7 @@ task sourcesJar(type: Jar, dependsOn: classes) {
         into 'org/renjin/appl'
     }
 }
+
+dependencies {
+    compile project(':math:blas')
+}

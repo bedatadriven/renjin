@@ -2,6 +2,11 @@
 dependencies {
     compile project(':core')
     compile project(':packages:stats')
+    compile project(':packages:utils')
+    compile project(':packages:methods')
+    compile project(':packages:graphics')
+    compile project(':packages:grDevices')
+    compile project(':packages:datasets')
 }
 
 test.enabled = false

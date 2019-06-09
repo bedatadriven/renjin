@@ -28,6 +28,8 @@ dependencies {
     compile project(':core')
     compile project(':script-engine')
 
+    compile project(':test-packages:thirdparty')
+
     packager project(':tools:packager')
 
     testCompile project(':packages:hamcrest')
@@ -44,6 +46,10 @@ task testR(type: JavaExec) {
     args "$projectDir/src/test/R"
 
     main = 'org.renjin.packaging.test.Main'
+
+    doFirst {
+        classpath.forEach { println it }
+    }
 }
 
 test.dependsOn 'testR'

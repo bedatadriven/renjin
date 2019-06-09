@@ -49,13 +49,17 @@ task compile(type: JavaExec, dependsOn: ':tools:gcc-bridge:compiler:compilePlugi
     if(project.file('src/main/fortran').exists()) {
         inputs.dir 'src/main/fortran'
     }
+    outputs.dir compiledOutputDir
 
     environment 'GCC_BRIDGE_PLUGIN', gccBridgePlugin
 
-    outputs.dir compiledOutputDir
 
-    classpath configurations.gcc
     main = 'org.renjin.gcc.Build'
+
+    doFirst {
+        classpath configurations.gcc
+        classpath sourceSets.main.compileClasspath
+    }
 }
 
 task optimize(type: JavaExec) {
@@ -65,27 +69,30 @@ task optimize(type: JavaExec) {
     inputs.dir compiledOutputDir
     outputs.dir optimizedOutputDir
 
-    classpath configurations.gcc
-    main = 'soot.Main'
+    doFirst {
 
-    // Prepend maven's classpath
-    args '-pp'
+        classpath configurations.gcc
+        main = 'soot.Main'
 
-    // Classpath for soot analysis
-    args '-cp'
-    args configurations.compile + ":" + compiledOutputDir
+        // Prepend maven's classpath
+        args '-pp'
 
-    args '-asm-backend'
-    args '-java-version'
-    args '1.8';
+        // Classpath for soot analysis
+        args '-cp'
+        args configurations.compile + ":" + compiledOutputDir
+
+        args '-asm-backend'
+        args '-java-version'
+        args '1.8';
 
 //    args("-v");
-    args '-debug'
+        args '-debug'
 
-    // Add classes to optimize
-    args '-O'
+        // Add classes to optimize
+        args '-O'
 
-    // Write out to build directory and overwrite existing classfiles
-    args '-d"'
-    args optimizedOutputDir
+        // Write out to build directory and overwrite existing classfiles
+        args '-d"'
+        args optimizedOutputDir
+    }
 }

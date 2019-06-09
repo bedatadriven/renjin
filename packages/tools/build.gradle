@@ -1,5 +1,8 @@
 
 
+apply from: '../../gradle/package.gradle'
+
+
 dependencies {
     compile project(':core')
     testCompile project(':packages:hamcrest')

@@ -2,9 +2,6 @@
 apply from: '../../gradle/package.gradle'
 
 dependencies {
-    compile project(':packages:utils')
-
-    compileOnly project(':packages:stats')
-
+    compile 'com.vividsolutions:jts:1.13'
     testCompile project(':packages:hamcrest')
 }

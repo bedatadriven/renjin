@@ -18,4 +18,5 @@
  *
  */
 
+apply from: '../../gradle/package.gradle'
 

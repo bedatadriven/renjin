@@ -41,7 +41,7 @@ public class CorePackageBuilder implements BuildContext {
   public static void main(String[] args) throws IOException {
 
     PackageSource source = new PackageSource.Builder(new File("."))
-        .setDefaultGroupId("org.renjin")
+        .setDefaultGroupId(detectGroupId())
         .setPackageName(packageNameFromWorkingDirectory())
         .setSourceDir(detectSourcesDirectory())
         .setNativeSourceDir(detectNativeSourceDir())
@@ -54,6 +54,13 @@ public class CorePackageBuilder implements BuildContext {
     builder.build();
   }
 
+  private static String detectGroupId() {
+    String groupId = System.getenv("PACKAGE_GROUP_ID");
+    if(Strings.isNullOrEmpty(groupId)) {
+      groupId = "org.renjin";
+    }
+    return groupId;
+  }
 
 
   public static String packageNameFromWorkingDirectory() {

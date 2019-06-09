@@ -1,4 +1,7 @@
 
+apply from: '../../gradle/package.gradle'
+
+
 dependencies {
     compile project(':packages:stats')
     compile project(':packages:tools')

@@ -1073,4 +1073,22 @@ public class Stdlib {
   public static void longjmp(Ptr buf, int value) {
     throw new LongJumpException(buf, value);
   }
+
+  /**
+   * Returns maximum length of a multibyte character in the current locale.
+   *
+   */
+  public static int __ctype_get_mb_cur_max() {
+    // Based on the output of the function when compiled with gcc -m32.
+    return 1;
+  }
+
+
+  public static int mbrtowc(Ptr pwc, Ptr s, int n, Ptr ps) {
+    throw new UnsupportedOperationException("TODO: mbrtowc");
+  }
+
+  public static int wcrtomb(Ptr s, int wc, Ptr ps) {
+    throw new UnsupportedOperationException("TODO: wcrtomb");
+  }
 }

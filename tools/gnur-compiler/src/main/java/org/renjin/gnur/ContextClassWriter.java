@@ -19,6 +19,8 @@
 package org.renjin.gnur;
 
 import org.renjin.eval.Context;
+import org.renjin.gcc.GimpleCompiler;
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.CodeGenerationContext;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ConstantValue;
@@ -204,8 +206,15 @@ public class ContextClassWriter {
 
         varExpr.store(mv, initialValueExpr);
       } catch (Exception e) {
-        System.err.println("Exception initializing per-thread global var '" + globalVar.getMangledName() + "'");
-        e.printStackTrace(System.err);
+
+        String message = "Exception initializing per-thread global var '" + globalVar.getMangledName() + "'";
+
+        if(GimpleCompiler.ignoreCompilerErrors()) {
+          System.err.println(message);
+          e.printStackTrace(System.err);
+        } else {
+          throw new InternalCompilerException(message, e);
+        }
       }
     }
   }

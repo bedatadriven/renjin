@@ -63,6 +63,8 @@ import java.util.*;
  */
 public class GimpleCompiler  {
 
+  public static boolean IGNORE_ERRORS = "TRUE".equals(System.getenv("GCC_BRIDGE_IGNORE_ERRORS"));
+
   public static boolean TRACE = false;
 
   private File outputDirectory;
@@ -89,6 +91,7 @@ public class GimpleCompiler  {
 
   private final LogManager logManager = new LogManager(System.err);
 
+
   public GimpleCompiler() {
     functionBodyTransformers.add(AddressableSimplifier.INSTANCE);
     functionBodyTransformers.add(FunctionCallPruner.INSTANCE);
@@ -104,6 +107,11 @@ public class GimpleCompiler  {
     addReferenceClass(Mathlib.class);
     addReferenceClass(Std.class);
     addReferenceClass(PosixThreads.class);
+  }
+
+
+  public static boolean ignoreCompilerErrors() {
+    return IGNORE_ERRORS;
   }
 
   public LogManager getLogManager() {

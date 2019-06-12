@@ -1,0 +1,105 @@
+
+sourceSets {
+    main {
+        output.dir("$buildDir/namespace", builtBy: 'compileNamespace')
+    }
+}
+
+configurations {
+    packager
+}
+
+dependencies {
+    packager project(':tools:packager')
+    compile project(':core')
+
+    testCompile project(':packages:hamcrest')
+}
+
+def homeDir = rootProject.file('tools/gnur-installation/src/main/resources')
+
+task compileNamespace(type: JavaExec, dependsOn: [ ':tools:gcc-bridge:compiler:compilePlugin', ':tools:packager:build', 'processResources' ]) {
+
+    inputs.file 'NAMESPACE'
+    if(project.file('src/main/c').exists()) {
+        inputs.dir 'src/main/c'
+    }
+    if(project.file('src/main/R').exists()) {
+        inputs.dir 'src/main/R'
+    }
+    if(project.file('src/main/data').exists()) {
+        inputs.dir 'src/main/data'
+    }
+    inputs.dir homeDir
+    outputs.dir "$buildDir/namespace"
+    outputs.files()
+
+    doFirst {
+        classpath configurations.packager
+        classpath sourceSets.main.compileClasspath
+        classpath sourceSets.main.output
+
+        environment "PACKAGE_GROUP_ID", project.group
+        environment "R_HOME", homeDir
+        environment "GCC_BRIDGE_PLUGIN", gccBridgePlugin
+        environment "SOOT_CLASSPATH", (sourceSets.main.output + sourceSets.main.compileClasspath)
+                .filter({it.exists()})
+                .getAsPath()
+
+        // For now, only transform global variables of grDevices and graphics packages
+        if(project.name == "grDevices" || project.name == "graphics") {
+            environment "TRANSFORM_GLOBAL_VARIABLES", "TRUE"
+        }
+
+        main = 'org.renjin.packaging.CorePackageBuilder'
+
+//        classpath.forEach { println it }
+
+    }
+}
+
+task testPackage(type: JavaExec) {
+
+    def testDir = project.file('src/test/R')
+
+    inputs.dir testDir
+
+    outputs.upToDateWhen { true }
+
+    onlyIf { testDir.exists() }
+
+    classpath configurations.packager
+    classpath configurations.testRuntime
+    classpath sourceSets.main.output
+
+    environment "TEST_REPORT_DIR", "$buildDir/renjin-test-reports"
+    environment "DEFAULT_PACKAGES", "methods,datasets,utils,grDevices,graphics,stats"
+    environment "IGNORE_MISSING_DEFAULT_PACKAGES", "TRUE"
+
+    args testDir
+
+    if (project.hasProperty('debugTests')) {
+        jvmArgs '-Xdebug', '-Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=y'
+    }
+
+    main = 'org.renjin.packaging.test.Main'
+
+    doFirst {
+        workingDir testDir
+    }
+}
+
+
+test.dependsOn 'testPackage'
+
+task cleanGimple {
+    doFirst {
+        delete fileTree('src/main/c') {
+            include '**/*.gimple'
+            include '**/*.so'
+            include '**/*.o'
+        }
+    }
+}
+
+clean.dependsOn 'cleanGimple'

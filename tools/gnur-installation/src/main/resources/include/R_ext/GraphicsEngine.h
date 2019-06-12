@@ -480,7 +480,7 @@ SEXP GEcontourLines(double *x, int nx, double *y, int ny,
  */
 double R_GE_VStrWidth(const char *s, cetype_t enc, const pGEcontext gc, pGEDevDesc dd);
 
-double R_GE_VStrHeight(const char *s, cetype_t enc, const pGEcontext gc, pGEDevDesc dd);
+    double R_GE_VStrHeight(const char *s, cetype_t enc, const pGEcontext gc, pGEDevDesc dd);
 void R_GE_VText(double x, double y, const char * const s, cetype_t enc,
 		double x_justify, double y_justify, double rotation,
 		const pGEcontext gc, pGEDevDesc dd);

@@ -63,8 +63,10 @@ static SEXP cairoProps(SEXP in)
 #define CALLDEF(name, n)  {#name, (DL_FUNC) &name, n}
 
 static const R_CallMethodDef CallEntries[] = {
+#ifndef RENJIN
     CALLDEF(Type1FontInUse, 2),
     CALLDEF(CIDFontInUse, 2),
+#endif
     CALLDEF(R_CreateAtVector, 4),
     CALLDEF(R_GAxisPars, 3),
     CALLDEF(chull, 1),
@@ -93,8 +95,11 @@ static const R_CallMethodDef CallEntries[] = {
 #define EXTDEF(name, n)  {#name, (DL_FUNC) &name, n}
 
 static const R_ExternalMethodDef ExtEntries[] = {
+
+#ifndef RENJIN
     EXTDEF(PDF, 20),
     EXTDEF(devCairo, 11),
+#endif
     EXTDEF(devcap, 0),
     EXTDEF(devcapture, 1),
     EXTDEF(devcontrol, 1),

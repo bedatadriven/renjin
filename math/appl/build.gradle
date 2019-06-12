@@ -34,4 +34,5 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 
 dependencies {
     compile project(':math:blas')
+    compile project(':math:nmath')
 }

@@ -20,6 +20,11 @@
 
 apply from: '../compile.gradle'
 
+dependencies {
+    compile project(':math:common')
+    compile project(':math:blas')
+}
+
 compile {
     environment 'PACKAGE', 'org.renjin.math'
     environment 'CLASS', 'Lapack'

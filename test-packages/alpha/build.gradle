@@ -1,7 +1,11 @@
 
+group = 'org.renjin.test'
+
 apply from: '../../gradle/package.gradle'
 
 dependencies {
     compile 'com.vividsolutions:jts:1.13'
+    compile project(':packages:stats')
+    testCompile project(':script-engine')
     testCompile project(':packages:hamcrest')
 }

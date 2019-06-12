@@ -212,15 +212,21 @@ public class FunctionGenerator implements InvocationStrategy {
             "Offending bytecode:\n" + toString(methodNode), e);
       }
     } catch (Exception e) {
-      System.err.println("COMPILATION FAILED: " + getMangledName() + " in " +
-          getCompilationUnit().getSourceName());
-      e.printStackTrace(System.err);
 
-      logger.log(function, "error", Throwables.getStackTraceAsString(e));
+      if(GimpleCompiler.ignoreCompilerErrors()) {
 
-      writeRuntimeStub(cw);
+        System.err.println("COMPILATION FAILED: " + getMangledName() + " in " +
+            getCompilationUnit().getSourceName());
+        e.printStackTrace(System.err);
 
-      compilationFailed = true;
+        logger.log(function, "error", Throwables.getStackTraceAsString(e));
+
+        writeRuntimeStub(cw);
+
+        compilationFailed = true;
+      } else {
+        throw new InternalCompilerException(this, e);
+      }
     }
   }
 

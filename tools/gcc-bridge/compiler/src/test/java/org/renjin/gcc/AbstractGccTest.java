@@ -38,6 +38,10 @@ import java.util.List;
 
 public abstract class AbstractGccTest {
 
+  static {
+    GimpleCompiler.IGNORE_ERRORS = true;
+  }
+
   protected File outputDir;
   protected URLClassLoader testClassLoader;
   private Gcc gcc;

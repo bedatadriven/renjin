@@ -336,6 +336,10 @@ public final class Rinternals {
   public static final int CE_ANY = 99;
 
 
+  public static Ptr _(Ptr p) {
+    return p;
+  }
+
   public static BytePtr R_CHAR(SEXP x) {
     GnuCharSexp charSexp = (GnuCharSexp) x;
     return charSexp.getValue();
@@ -727,9 +731,13 @@ public final class Rinternals {
     return v;
   }
 
-  // SEXP*() STRING_PTR (SEXP x)
+  public static Ptr STRING_PTR(SEXP x) {
+    throw new UnimplementedGnuApiMethod("STRING_PTR");
+  }
 
-  // SEXP*() VECTOR_PTR (SEXP x)
+  public static Ptr VECTOR_PTR(SEXP x) {
+    throw new UnimplementedGnuApiMethod("VECTOR_PTR");
+  }
 
   public static SEXP TAG(SEXP e) {
     return ((PairList.Node) e).getRawTag();

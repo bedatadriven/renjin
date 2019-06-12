@@ -18,6 +18,7 @@
  */
 package org.renjin.packaging;
 
+import org.renjin.RenjinVersion;
 import org.renjin.primitives.packaging.ClasspathPackageLoader;
 import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repackaged.guava.base.Strings;
@@ -46,12 +47,32 @@ public class CorePackageBuilder implements BuildContext {
         .setSourceDir(detectSourcesDirectory())
         .setNativeSourceDir(detectNativeSourceDir())
         .setDataDir(detectDataDir())
+        .setDescription(buildDescription())
         .build();
 
     CorePackageBuilder context = new CorePackageBuilder(source);
     PackageBuilder builder = new PackageBuilder(source, context);
     builder.setTransformGlobalVariables("TRUE".equals(System.getenv("TRANSFORM_GLOBAL_VARIABLES")));
     builder.build();
+  }
+
+  private static PackageDescription buildDescription() throws IOException {
+
+    File descriptionFile = new File("DESCRIPTION");
+
+    PackageDescription description;
+    if(descriptionFile.exists()) {
+      description =  PackageDescription.fromFile(descriptionFile);
+    } else {
+      description = new PackageDescription();
+    }
+
+    // Override with settings from project
+    description.setPackage(packageNameFromWorkingDirectory());
+    description.setVersion(RenjinVersion.getVersionName());
+    description.setProperty("GroupId", detectGroupId());
+
+    return description;
   }
 
   private static String detectGroupId() {

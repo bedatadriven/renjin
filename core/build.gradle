@@ -41,15 +41,19 @@ dependencies {
 
 def wrapperOutputDir = "$buildDir/wrappers"
 def baseOutputDir = "$buildDir/base"
+def versionOutputDir = "$buildDir/version"
 
 sourceSets {
     main {
         output.dir wrapperOutputDir, builtBy: 'generateWrappers'
         output.dir baseOutputDir, builtBy: 'compileBasePackage'
+        output.dir versionOutputDir, builtBy: 'writeVersionData'
     }
 }
 
+
 task generateWrappers(type: JavaExec) {
+    dependsOn 'writeVersionData'
 
     inputs.dir tasks.getByName('compileJava').destinationDir
     outputs.dir wrapperOutputDir
@@ -65,6 +69,7 @@ task generateWrappers(type: JavaExec) {
 
 task compileBasePackage(type: JavaExec) {
     dependsOn 'generateWrappers'
+    dependsOn 'writeVersionData'
 
     inputs.dir tasks.getByName('compileJava').destinationDir
     inputs.dir 'src/main/R'
@@ -74,7 +79,18 @@ task compileBasePackage(type: JavaExec) {
     classpath sourceSets.main.resources.srcDirs
     classpath tasks.getByName('compileJava').destinationDir
     classpath wrapperOutputDir
+    classpath versionOutputDir
 
     main = 'org.renjin.base.BasePackageCompiler'
     args baseOutputDir
+}
+
+task writeVersionData {
+    doFirst {
+        def versionDir = new File(versionOutputDir, "org/renjin");
+        versionDir.mkdirs();
+
+        def versionFile = new File(versionDir, "Renjin.version.properties");
+        versionFile.text = "renjin.display.version=${project.version}\n"
+    }
 }

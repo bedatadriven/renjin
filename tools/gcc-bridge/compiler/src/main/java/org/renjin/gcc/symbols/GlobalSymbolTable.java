@@ -18,6 +18,7 @@
  */
 package org.renjin.gcc.symbols;
 
+import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.ProvidedGlobalVar;
 import org.renjin.gcc.ProvidedGlobalVarField;
@@ -93,10 +94,16 @@ public class GlobalSymbolTable implements SymbolTable {
 
     // Otherwise return a generator that will throw an error at runtime
     if (generator == null) {
-      generator = new UnsatisfiedLinkCallGenerator(mangledName);
-      functions.put(mangledName, generator);
 
-      System.err.println("Warning: undefined function " + mangledName + "; may throw exception at runtime");
+      if(GimpleCompiler.ignoreCompilerErrors()) {
+
+        generator = new UnsatisfiedLinkCallGenerator(mangledName);
+        functions.put(mangledName, generator);
+
+        System.err.println("Warning: undefined function " + mangledName + "; may throw exception at runtime");
+      } else {
+        throw new RuntimeException("Undefined function: " + mangledName);
+      }
     }
 
     return generator;

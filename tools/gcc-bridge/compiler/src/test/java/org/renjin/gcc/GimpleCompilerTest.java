@@ -38,6 +38,7 @@ import static org.renjin.repackaged.guava.primitives.UnsignedBytes.checkedCast;
 @SuppressWarnings("unchecked")
 public class GimpleCompilerTest extends AbstractGccTest {
 
+
   @Test
   public void sanitizeClassName() {
     assertThat(GimpleCompiler.sanitize("bit-ops"), equalTo("bit_ops"));

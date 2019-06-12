@@ -1,0 +1,5 @@
+# C Error handler for blas/lapack
+type=METHOD
+class=org/renjin/math/Omp
+descriptor=()I
+member=omp_get_num_threads_

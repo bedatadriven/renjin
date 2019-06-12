@@ -55,7 +55,7 @@ public class UnsatisfiedLinkCallGenerator implements CallGenerator, MethodHandle
   @Override
   public JExpr getMethodHandle() {
 
-    // Create a method handle that throws the UnsatisifiedLinkException.
+    // Create a method handle that throws the UnsatisfiedLinkException.
 
     return new JExpr() {
       @Nonnull

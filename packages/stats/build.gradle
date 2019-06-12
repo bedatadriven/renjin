@@ -27,5 +27,7 @@ dependencies {
     compile project(':packages:grDevices')
     compile project(':packages:utils')
 
+    compile project(':math:appl')
+
     testCompile project(':packages:hamcrest')
 }

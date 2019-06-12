@@ -445,7 +445,9 @@ public final class Defn {
 
   // int Rf_DispatchAnyOrEval (SEXP, SEXP, const char *, SEXP, SEXP, SEXP *, int, int)
 
-  // int Rf_DispatchOrEval (SEXP, SEXP, const char *, SEXP, SEXP, SEXP *, int, int)
+  public static int Rf_DispatchOrEval(SEXP call, SEXP op, Ptr name, SEXP args, SEXP rho, Ptr ans, int dropmissing, int argsevald) {
+    throw new UnimplementedGnuApiMethod("Rf_DispatchOrEval");
+  }
 
   // int Rf_DispatchGroup (const char *, SEXP, SEXP, SEXP, SEXP, SEXP *)
 
@@ -629,6 +631,10 @@ public final class Defn {
 
   public static SEXP Rf_markKnown(BytePtr p0, SEXP p1) {
     throw new UnimplementedGnuApiMethod("Rf_markKnown");
+  }
+
+  public static int ENC_KNOWN(SEXP x) {
+    return 1;
   }
 
   public static SEXP Rf_mat2indsub(SEXP p0, SEXP p1, SEXP p2) {

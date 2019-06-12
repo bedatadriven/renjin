@@ -29,6 +29,7 @@ dependencies {
     gcc libraries.soot
 
     compile project(':tools:gcc-bridge:runtime')
+    compile project(':math:common')
 }
 
 def compiledOutputDir = "$buildDir/gcc-bridge/classes"
@@ -52,14 +53,12 @@ task compile(type: JavaExec, dependsOn: ':tools:gcc-bridge:compiler:compilePlugi
     outputs.dir compiledOutputDir
 
     environment 'GCC_BRIDGE_PLUGIN', gccBridgePlugin
-
+    
+    classpath configurations.gcc
+    classpath sourceSets.main.compileClasspath
 
     main = 'org.renjin.gcc.Build'
 
-    doFirst {
-        classpath configurations.gcc
-        classpath sourceSets.main.compileClasspath
-    }
 }
 
 task optimize(type: JavaExec) {

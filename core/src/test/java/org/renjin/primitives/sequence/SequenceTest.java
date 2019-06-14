@@ -22,9 +22,9 @@ import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.*;
 
-import static junit.framework.Assert.assertTrue;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class SequenceTest extends EvalTestCase {
 

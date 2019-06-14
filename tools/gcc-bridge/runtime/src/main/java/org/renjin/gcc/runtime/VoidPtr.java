@@ -68,6 +68,7 @@ public final class VoidPtr {
     }
   }
   
+  @SuppressWarnings("deprecation")
   public static void memset(Object p, int value, int length) {
     
     if(p instanceof DoublePtr) {
@@ -79,9 +80,6 @@ public final class VoidPtr {
     } else if(p instanceof CharPtr) {
       CharPtr pc = (CharPtr) p;
       CharPtr.memset(pc.array, pc.offset, value, length);
-    } else if(p instanceof ObjectPtr) {
-      ObjectPtr po = (ObjectPtr) p;
-      ObjectPtr.memset(po.array, po.offset, value, length);
     } else {
       throw new UnsupportedOperationException("TODO: p instanceof " + p.getClass().getName());
     }
@@ -100,7 +98,7 @@ public final class VoidPtr {
       Ptr py = (Ptr) y;
 
       if(px.getArray() == py.getArray()) {
-        return Integer.compare(px.getOffset(), py.getOffset());
+        return Integer.compare(px.getOffsetInBytes(), py.getOffsetInBytes());
       }
     }
 

@@ -54,8 +54,8 @@ public class LongPtr extends AbstractPtr {
     return array;
   }
 
-  @Override
-  public int getOffset() {
+  @SuppressWarnings("deprecation")
+  private int getOffset() {
     return offset;
   }
 

@@ -56,11 +56,6 @@ public class BooleanPtr extends AbstractPtr implements Ptr {
   }
 
   @Override
-  public int getOffset() {
-    return offset;
-  }
-
-  @Override
   public int getOffsetInBytes() {
     return offset;
   }

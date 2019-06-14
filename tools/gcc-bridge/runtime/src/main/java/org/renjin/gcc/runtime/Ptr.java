@@ -25,9 +25,6 @@ public interface Ptr extends Comparable<Ptr> {
 
   Object getArray();
 
-  @Deprecated
-  int getOffset();
-
   int getOffsetInBytes();
   
   Ptr realloc(int newSizeInBytes);

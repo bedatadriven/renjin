@@ -20,7 +20,6 @@ package org.renjin.gcc.runtime;
 
 import org.renjin.gcc.annotations.GccSize;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 
 /**
@@ -119,28 +118,6 @@ public class MallocThunk extends AbstractPtr {
     }
     return (T)pointer;
   }
-  
-  public ObjectPtr objectPtr(Class<?> componentType) {
-    if(pointer == null) {
-      int sizeInBytes = sizeOf(componentType);
-
-      Constructor<?> constructor = constructorFor(componentType);
-
-      int numElements = bytes / sizeInBytes;
-      Object[] array = (Object[])Array.newInstance(componentType, numElements);
-      for(int i=0;i<array.length;++i) {
-        try {
-          array[i] = constructor.newInstance();
-        } catch (Exception e) {
-          throw new IllegalStateException(String.format(
-              "Exception malloc'ing array for class %s: %s", componentType.getName(), e.getMessage()), e);
-        }
-      }
-      pointer = new ObjectPtr<>(array);
-    }
-    
-    return (ObjectPtr)pointer;
-  }
 
   private Constructor<?> constructorFor(Class<?> componentType) {
     Constructor<?> constructor;
@@ -154,12 +131,7 @@ public class MallocThunk extends AbstractPtr {
   }
 
   private int sizeOf(Class<?> componentType) {
-    
-    if(componentType.equals(ObjectPtr.class)) {
-      // Pointer size. (Hardcoded to 4-bytes)
-      return 4;
-    }
-    
+
     GccSize size = componentType.getAnnotation(GccSize.class);
     if(size == null) {
       throw new IllegalStateException(String.format(
@@ -197,8 +169,6 @@ public class MallocThunk extends AbstractPtr {
       return longPtr();
     } else if(array instanceof ShortPtr[]) {
       return shortPtr();
-    } else if(array instanceof ObjectPtr[]) {
-      throw new UnsupportedOperationException("TODO");
     } else {
       // For arrays of records, we can only allocate one element
       // in any case, so no need to consult size.
@@ -243,11 +213,6 @@ public class MallocThunk extends AbstractPtr {
 
   @Override
   public Object getArray() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public int getOffset() {
     throw new UnsupportedOperationException();
   }
 

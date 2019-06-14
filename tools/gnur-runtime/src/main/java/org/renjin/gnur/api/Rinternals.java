@@ -2679,11 +2679,6 @@ public final class Rinternals {
     return value;
   }
 
-  @Deprecated
-  public static int R_check_class_and_super (SEXP x, ObjectPtr<BytePtr> valid, SEXP rho) {
-    return R_check_class_and_super(x, new PointerPtr((Ptr[])valid.array, valid.offset), rho);
-  }
-
   /**
    * Return the 0-based index of an is() match in a vector of class-name
    * strings terminated by an empty string.  Returns -1 for no match.
@@ -2731,11 +2726,6 @@ public final class Rinternals {
       }
     }
     return -1;
-  }
-
-  @Deprecated
-  public static int R_check_class_etc (SEXP x, ObjectPtr<BytePtr> valid) {
-    return R_check_class_etc(x, new PointerPtr((Ptr[]) valid.array, valid.offset));
   }
 
   /**
@@ -3083,11 +3073,6 @@ public final class Rinternals {
     }
     SETCDR(r, t);
     return s;
-  }
-
-  @Deprecated
-  public static SEXP Rf_mkNamed (int sexpType, ObjectPtr<BytePtr> names) {
-    return Rf_mkNamed(sexpType, new PointerPtr((Ptr[]) names.array, names.offset));
   }
 
   public static SEXP Rf_mkNamed (int sexpType, Ptr names) {

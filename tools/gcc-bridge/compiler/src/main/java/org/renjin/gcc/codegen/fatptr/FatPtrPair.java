@@ -38,7 +38,6 @@ import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Preconditions;
@@ -222,26 +221,10 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
       public void load(@Nonnull MethodGenerator mv) {
         mv.anew(wrapperType);
         mv.dup();
-        
-        if(wrapperType.equals(Type.getType(ObjectPtr.class))) {
-          if(valueFunction.getValueType().getSort() == Type.OBJECT) {
-            mv.aconst(valueFunction.getValueType());
-          } else {
-            mv.aconst(null);
-          }
-          array.load(mv);
-          offset.load(mv);
-          mv.invokeconstructor(wrapperType, 
-              Type.getType(Class.class), 
-              Wrappers.fieldArrayType(wrapperType), 
-              offset.getType());
 
-        } else {
-
-          array.load(mv);
-          offset.load(mv);
-          mv.invokeconstructor(wrapperType, Wrappers.fieldArrayType(wrapperType), offset.getType());
-        }
+        array.load(mv);
+        offset.load(mv);
+        mv.invokeconstructor(wrapperType, Wrappers.fieldArrayType(wrapperType), offset.getType());
       }
     };
   }

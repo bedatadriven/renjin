@@ -54,8 +54,7 @@ public class DoublePtr extends AbstractPtr implements Ptr {
     return array;
   }
 
-  @Override
-  public int getOffset() {
+  private int getOffset() {
     return offset;
   }
 

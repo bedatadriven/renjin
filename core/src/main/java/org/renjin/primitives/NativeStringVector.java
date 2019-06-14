@@ -18,7 +18,6 @@
  */
 package org.renjin.primitives;
 
-import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.gcc.runtime.PointerPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.gcc.runtime.Stdlib;
@@ -36,13 +35,6 @@ public class NativeStringVector extends StringVector {
     this.array = array;
     this.offset = offset;
     this.length = length;
-  }
-
-  public NativeStringVector(ObjectPtr ptr, AttributeMap attributes) {
-    super(attributes);
-    this.array = (Ptr[])ptr.array;
-    this.offset = ptr.offset;
-    this.length = ptr.array.length;
   }
 
   public NativeStringVector(PointerPtr ptr, AttributeMap attributes) {

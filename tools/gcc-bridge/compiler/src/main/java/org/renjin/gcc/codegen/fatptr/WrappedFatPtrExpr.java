@@ -35,7 +35,6 @@ import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 
@@ -200,24 +199,14 @@ public class WrappedFatPtrExpr implements FatPtr {
       @Override
       public void load(@Nonnull MethodGenerator mv) {
         ref.load(mv);
-        if(ref.getType().equals(Type.getType(ObjectPtr.class))) {
-          mv.invokevirtual(ref.getType(), "get", Type.getMethodDescriptor(Type.getType(Object.class)), false);
-          mv.checkcast(valueFunction.getValueType());
-
-        } else {
-          mv.invokevirtual(ref.getType(), "get", Type.getMethodDescriptor(valueFunction.getValueType()), false);
-        }
+        mv.invokevirtual(ref.getType(), "get", Type.getMethodDescriptor(valueFunction.getValueType()), false);
       }
 
       @Override
       public void store(MethodGenerator mv, JExpr expr) {
         ref.load(mv);
         expr.load(mv);
-        if(ref.getType().equals(Type.getType(ObjectPtr.class))) {
-          mv.invokevirtual(ref.getType(), "set", Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class)), false);
-        } else {
-          mv.invokevirtual(ref.getType(), "set", Type.getMethodDescriptor(Type.VOID_TYPE, valueFunction.getValueType()), false);
-        }
+        mv.invokevirtual(ref.getType(), "set", Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class)), false);
       }
     };
   }

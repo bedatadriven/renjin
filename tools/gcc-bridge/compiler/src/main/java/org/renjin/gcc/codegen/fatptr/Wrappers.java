@@ -57,8 +57,6 @@ public class Wrappers {
       return Type.FLOAT_TYPE;
     } else if(wrapperType.equals(Type.getType(DoublePtr.class))) {
       return Type.DOUBLE_TYPE;
-    } else if(wrapperType.equals(Type.getType(ObjectPtr.class))) {
-      return Type.getType(Object.class);
     } else if(wrapperType.equals(Type.getType(PointerPtr.class))) {
       return Type.getType(Ptr.class);
     }
@@ -66,9 +64,6 @@ public class Wrappers {
   }
 
   public static Type fieldArrayType(Type wrapperType) {
-    if (wrapperType.equals(Type.getType(ObjectPtr.class))) {
-      return Type.getType("[Ljava/lang/Object;");
-    }
     Type valueType = valueType(wrapperType);
     Type arrayType = Type.getType("[" + valueType.getDescriptor());
     return arrayType;
@@ -142,15 +137,9 @@ public class Wrappers {
       @Override
       public void load(@Nonnull MethodGenerator mv) {
         pointer.load(mv);
-        if(wrapperType.equals(Type.getType(ObjectPtr.class))) {
-          // If casting a void* to an ObjectPtr, we need additional type information
-          mv.visitLdcInsn(valueType);
-          mv.invokestatic(wrapperType, "cast", Type.getMethodDescriptor(wrapperType,
-              Type.getType(Object.class), Type.getType(Class.class)));
-        } else {
-          // For primitives like DoublePtr, IntPtr, etc, nothing additional is required
-          mv.invokestatic(wrapperType, "cast", Type.getMethodDescriptor(wrapperType, Type.getType(Object.class)));
-        }
+
+        // For primitives like DoublePtr, IntPtr, etc, nothing additional is required
+        mv.invokestatic(wrapperType, "cast", Type.getMethodDescriptor(wrapperType, Type.getType(Object.class)));
       }
     };
   }
@@ -174,9 +163,6 @@ public class Wrappers {
     tempVar.store(mv, wrapper);
     
     JExpr array = Wrappers.arrayField(tempVar, valueType(wrapper.getType()));
-    if(wrapper.getType().equals(Type.getType(ObjectPtr.class))) {
-      array = Expressions.cast(array, Wrappers.arrayType(valueFunction.getValueType()));
-    }
     JExpr offset = Wrappers.offsetField(tempVar);
 
     return new FatPtrPair(valueFunction, array, offset);

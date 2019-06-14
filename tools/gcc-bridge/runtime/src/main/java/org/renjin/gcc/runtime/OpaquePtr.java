@@ -49,11 +49,6 @@ public class OpaquePtr<T> implements Ptr {
   }
 
   @Override
-  public int getOffset() {
-    return 0;
-  }
-
-  @Override
   public int getOffsetInBytes() {
     return 0;
   }

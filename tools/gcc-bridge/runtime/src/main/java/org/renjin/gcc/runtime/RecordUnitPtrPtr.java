@@ -38,11 +38,6 @@ public class RecordUnitPtrPtr<T> implements Ptr {
   }
 
   @Override
-  public int getOffset() {
-    return offset;
-  }
-
-  @Override
   public int getOffsetInBytes() {
     return offset * BYTES;
   }
@@ -323,6 +318,7 @@ public class RecordUnitPtrPtr<T> implements Ptr {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public void setPointer(Ptr value) {
     array[this.offset] = (T) value.getArray();
   }

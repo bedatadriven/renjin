@@ -37,6 +37,7 @@ public class GimpleOffsetType extends AbstractGimpleType implements GimpleIndire
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public <X extends GimpleType> X getBaseType() {
     return (X)baseType;
   }

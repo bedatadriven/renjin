@@ -51,9 +51,6 @@ public class CharTypes {
 
   public static final int OFFSET = 128;
 
-  @Deprecated
-  public static final ObjectPtr<CharPtr> TABLE_OBJECT_PTR = new ObjectPtr<>(new CharPtr(TABLE, OFFSET));
-
   public static final PointerPtr TABLE_PTR = new PointerPtr(new Ptr[] { new CharPtr(TABLE, OFFSET) });
 
   private static char X(int x) {

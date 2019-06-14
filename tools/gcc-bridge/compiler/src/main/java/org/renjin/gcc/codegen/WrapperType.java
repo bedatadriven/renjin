@@ -30,8 +30,6 @@ import java.util.List;
 
 public class WrapperType {
 
-  public static final WrapperType OBJECT_PTR = new WrapperType(ObjectPtr.class);
-
   private static final List<WrapperType> TYPES = ImmutableList.of(
       new WrapperType(BytePtr.class),
       new WrapperType(IntPtr.class),
@@ -40,8 +38,7 @@ public class WrapperType {
       new WrapperType(BooleanPtr.class),
       new WrapperType(CharPtr.class),
       new WrapperType(DoublePtr.class),
-      new WrapperType(FloatPtr.class),
-      new WrapperType(ObjectPtr.class));
+      new WrapperType(FloatPtr.class));
   
 
 

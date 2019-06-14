@@ -46,12 +46,6 @@ public abstract class AbstractPtr implements Ptr {
     return count;
   }
 
-  @Deprecated
-  @Override
-  public int getOffset() {
-    throw new UnsupportedOperationException("No longer supported. Please recompile.");
-  }
-
   @Override
   public void setShort(short value) {
     setShort(0, value);

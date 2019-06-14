@@ -557,11 +557,6 @@ public class Stdlib {
     throw new UnsupportedOperationException();
   }
 
-  @Deprecated
-  public static ObjectPtr<CharPtr> __ctype_b_loc() {
-    return CharTypes.TABLE_OBJECT_PTR;
-  }
-
 
   @Struct
   public static int[] div(int numer, int denom) {

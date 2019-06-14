@@ -21,14 +21,11 @@ package org.renjin.gcc.codegen.type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.annotations.Struct;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
-import org.renjin.gcc.codegen.fatptr.FatPtrValueFunction;
-import org.renjin.gcc.codegen.fatptr.WrappedFatPtrParamStrategy;
 import org.renjin.gcc.codegen.type.complex.ComplexTypeStrategy;
 import org.renjin.gcc.codegen.type.fun.FunPtrStrategy;
 import org.renjin.gcc.codegen.type.fun.FunTypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveParamStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
 import org.renjin.gcc.codegen.type.primitive.StringParamStrategy;
 import org.renjin.gcc.codegen.type.record.RecordArrayReturnStrategy;
 import org.renjin.gcc.codegen.type.record.RecordArrayValueFunction;
@@ -44,8 +41,6 @@ import org.renjin.gcc.codegen.vptr.VPtrVariadicStrategy;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.*;
-import org.renjin.gcc.runtime.BytePtr;
-import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Preconditions;
@@ -54,7 +49,6 @@ import org.renjin.repackaged.guava.collect.Lists;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -229,11 +223,7 @@ public class TypeOracle {
       }
 
       Class<?> paramClass = method.getParameterTypes()[index];
-      if(paramClass.equals(ObjectPtr.class)) {
-        strategies.add(forObjectPtrParam(method.getGenericParameterTypes()[index]));
-        index++;
-
-      } else if (Ptr.class.isAssignableFrom(paramClass)) {
+      if (Ptr.class.isAssignableFrom(paramClass)) {
         strategies.add(new VPtrParamStrategy(Type.getType(paramClass)));
         index++;
 
@@ -267,27 +257,6 @@ public class TypeOracle {
     return strategies;
   }
 
-
-  private Class objectPtrBaseType(java.lang.reflect.Type type) {
-    if (!(type instanceof ParameterizedType)) {
-      throw new InternalCompilerException(ObjectPtr.class.getSimpleName() + " parameters must be parameterized");
-    }
-    ParameterizedType parameterizedType = (ParameterizedType) type;
-    return (Class) parameterizedType.getActualTypeArguments()[0];
-  }
-  
-  private ParamStrategy forObjectPtrParam(java.lang.reflect.Type type) {
-    Class baseType = objectPtrBaseType(type);
-    if(baseType.equals(BytePtr.class)) {
-      return new WrappedFatPtrParamStrategy(new FatPtrValueFunction(new PrimitiveValueFunction(new GimpleIntegerType(8))));
-    } else {
-      if(recordTypes.isMappedToRecordType(baseType)) {
-        RecordTypeStrategy recordTypeStrategy = recordTypes.getStrategyFor(baseType);
-        return new WrappedFatPtrParamStrategy(recordTypeStrategy.getValueFunction());
-      }
-    }
-    throw new UnsupportedOperationException("TODO: baseType = " + baseType);
-  }
 
   public Map<GimpleParameter, ParamStrategy> forParameters(List<GimpleParameter> parameters) {
     Map<GimpleParameter, ParamStrategy> map = new HashMap<GimpleParameter, ParamStrategy>();

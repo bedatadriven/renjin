@@ -35,11 +35,6 @@ public class OffsetPtr implements Ptr {
   }
 
   @Override
-  public int getOffset() {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
   public int getOffsetInBytes() {
     return ptr.getOffsetInBytes() + offset;
   }

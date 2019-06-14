@@ -20,7 +20,6 @@ package org.renjin.gcc.codegen.type.voidt;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.gcc.runtime.VoidPtr;
 import org.renjin.repackaged.asm.Type;
 
@@ -28,7 +27,7 @@ import javax.annotation.Nonnull;
 
 /**
  * Compares two pointers of unknown type by delegating to 
- * {@link ObjectPtr#memcmp(Object, Object, int)}
+ * {@link VoidPtr#memcmp(Object, Object, int)}
  */
 public class VoidPtrMemCmp implements JExpr {
   

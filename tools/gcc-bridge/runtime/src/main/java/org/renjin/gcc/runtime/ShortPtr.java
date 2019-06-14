@@ -55,11 +55,6 @@ public class ShortPtr extends AbstractPtr {
   }
 
   @Override
-  public int getOffset() {
-    return offset;
-  }
-
-  @Override
   public int getOffsetInBytes() {
     return offset * BYTES;
   }

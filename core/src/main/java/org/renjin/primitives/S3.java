@@ -195,7 +195,7 @@ public class S3 {
     for (int formal = 0; formal < previousArguments.getFormalCount(); formal++) {
       int previousIndex = previousArguments.getActualIndex(formal);
       if(previousIndex != -1) {
-        updatedArguments[previousIndex] = previousEnvironment.get(formal);
+        updatedArguments[previousIndex] = previousEnvironment.getPromised(formal);
       }
     }
 

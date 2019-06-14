@@ -22,7 +22,6 @@ import org.renjin.eval.Context;
 import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.MatchedArguments;
-import org.renjin.invoke.annotations.Current;
 
 import java.util.*;
 
@@ -94,7 +93,7 @@ public final class FunctionEnvironment extends Environment {
    * The '..1' argument is considered to be "missing" IF one is not provided, OR it is a promise
    * to a missing argument with no default value.
    */
-  private boolean isVarArgMissing(@Current Context context, int varArgReferenceIndex) {
+  private boolean isVarArgMissing(Context context, int varArgReferenceIndex) {
 
     int ellipsesIndex = indexOf(Symbols.ELLIPSES);
     if(ellipsesIndex == -1) {
@@ -175,10 +174,13 @@ public final class FunctionEnvironment extends Environment {
     }
   }
 
-  public SEXP get(int index) {
+  public SEXP getPromised(int index) {
+    return locals[index];
+  }
+  public SEXP get(Context context, int index) {
     SEXP value = locals[index];
     if(value != null) {
-      return value;
+      return value.force(context);
     }
     throw new UnsupportedOperationException("TODO");
   }
@@ -190,10 +192,6 @@ public final class FunctionEnvironment extends Environment {
       }
     }
     return -1;
-  }
-
-  public Promise promise(int index) {
-    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
@@ -345,5 +343,14 @@ public final class FunctionEnvironment extends Environment {
    */
   public MatchedArguments getMatching() {
     return matching;
+  }
+
+  public SEXP promise(int varIndex) {
+    return new Promise(this, localNames[varIndex]) {
+      @Override
+      protected SEXP doEval(Context context, boolean allowMissing) {
+        return get(context, varIndex);
+      }
+    };
   }
 }

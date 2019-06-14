@@ -18,12 +18,15 @@
  */
 package org.renjin.compiler.ir.tac.expressions;
 
+import org.renjin.compiler.aot.ClosureEmitContext;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.SexpExpr;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.eval.Context;
+import org.renjin.eval.DispatchTable;
+import org.renjin.eval.Support;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -101,72 +104,117 @@ public class DynamicCall implements Expression {
               Type.getType(String.class)), false);
 
     // Now we need to invoke:
-    // SEXP Function::apply(Context context, Environment rho, FunctionCall call, PairList args)
+    //   SEXP applyPromised(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch);
     mv.visitVarInsn(Opcodes.ALOAD, context.getContextVarIndex());
     mv.visitVarInsn(Opcodes.ALOAD, context.getEnvironmentVarIndex());
 
     context.constantSexp(call).loadSexp(context, mv);
     mv.checkcast(Type.getType(FunctionCall.class));
-    mv.dup();
-    mv.invokevirtual(Type.getInternalName(FunctionCall.class), "getArguments",
-        Type.getMethodDescriptor(Type.getType(PairList.class)), false);
 
-    mv.invokeinterface(Type.getInternalName(Function.class), "apply",
+    loadArgumentNames(context, mv);
+    loadArgumentValues(context, mv);
+
+    mv.aconst(null);
+
+    mv.invokeinterface(Type.getInternalName(Function.class), "applyPromised",
         Type.getMethodDescriptor(Type.getType(SEXP.class),
             Type.getType(Context.class),
             Type.getType(Environment.class),
             Type.getType(FunctionCall.class),
-            Type.getType(PairList.class)));
+            Type.getType(String[].class),
+            Type.getType(SEXP[].class),
+            Type.getType(DispatchTable.class)));
   }
-//
-//  private void loadArgumentValues(EmitContext context, InstructionAdapter mv) {
-//    mv.iconst(arguments.size());
-//    mv.newarray(Type.getType(SEXP.class));
-//    for (int i = 0; i < arguments.size(); i++) {
-//      mv.dup();
-//      mv.iconst(i);
-//      arguments.get(i).getExpression().getCompiledExpr(context).loadSexp(context, mv);
-//      mv.visitInsn(Opcodes.AASTORE);
-//    }
-//  }
-//
-//  private void loadArgumentNames(EmitContext context, InstructionAdapter mv) {
-//    if(!anyNamedArguments()) {
-//      loadEmptyNamesArray(context, mv);
-//
-//    } else {
-//      // Maybe maintain a pool of argument names?
-//      mv.iconst(arguments.size());
-//      mv.newarray(Type.getType(String.class));
-//      for (int i = 0; i < arguments.size(); i++) {
-//        IRArgument argument = arguments.get(i);
-//        if(argument.isNamed()) {
-//          mv.dup();
-//          mv.iconst(i);
-//          mv.aconst(argument.getName());
-//          mv.visitInsn(Opcodes.AASTORE);
-//        }
-//      }
-//    }
-//  }
-//
-//  private void loadEmptyNamesArray(EmitContext context, InstructionAdapter mv) {
-//    mv.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(Support.class), "UNNAMED_ARGUMENTS_" + arguments.size(),
-//        Type.getDescriptor(String[].class));
-//  }
-//
-//  private boolean anyNamedArguments() {
-//    for (IRArgument argument : arguments) {
-//      if(argument.isNamed()) {
-//        return true;
-//      }
-//    }
-//    return false;
-//  }
+
+  private void loadArgumentValues(EmitContext context, InstructionAdapter mv) {
+
+    int numArguments = call.getArguments().length();
+
+    mv.iconst(numArguments);
+    mv.newarray(Type.getType(SEXP.class));
+
+    int i = 0;
+    for (SEXP argumentValue : call.getArguments().values()) {
+      mv.dup();
+      mv.iconst(i);
+      loadArgumentPromise(context, mv, argumentValue);
+      mv.visitInsn(Opcodes.AASTORE);
+      i++;
+    }
+
+  }
+
+  private void loadArgumentPromise(EmitContext context, InstructionAdapter mv, SEXP argumentValue) {
+    if(argumentValue instanceof Symbol) {
+      loadSymbolPromise(context, mv, (Symbol)argumentValue);
+    } else {
+      context.constantSexp(argumentValue).loadSexp(context, mv);
+      mv.visitVarInsn(Opcodes.ALOAD, context.getEnvironmentVarIndex());
+      mv.invokeinterface(Type.getInternalName(SEXP.class), "promise", Type.getMethodDescriptor(
+          Type.getType(SEXP.class),
+          Type.getType(Environment.class)));
+    }
+  }
+
+  private void loadSymbolPromise(EmitContext context, InstructionAdapter mv, Symbol symbol) {
+    ClosureEmitContext closureEmitContext = (ClosureEmitContext) context;
+    closureEmitContext.loadSymbolPromise(symbol, mv);
+  }
+
+  private void loadArgumentNames(EmitContext context, InstructionAdapter mv) {
+    if(!anyNamedArguments()) {
+      loadEmptyNamesArray(context, mv);
+
+    } else {
+      // Maybe maintain a pool of argument names?
+      mv.iconst(call.getArguments().length());
+      mv.newarray(Type.getType(String.class));
+      int i = 0;
+      for (PairList.Node node : call.getArguments().nodes()) {
+        if(node.hasTag()) {
+          mv.dup();
+          mv.iconst(i);
+          mv.aconst(node.getName());
+          mv.visitInsn(Opcodes.AASTORE);
+        }
+        i++;
+      }
+    }
+  }
+
+  private void loadEmptyNamesArray(EmitContext context, InstructionAdapter mv) {
+    mv.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(Support.class), "UNNAMED_ARGUMENTS_" + call.getArguments().length(),
+        Type.getDescriptor(String[].class));
+  }
+
+  private boolean anyNamedArguments() {
+    for (PairList.Node node : call.getArguments().nodes()) {
+      if(node.hasTag()) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   @Override
   public String toString() {
-    return "dynamic " + functionName + "(" + call.getArguments() + ")";
+    StringBuilder s = new StringBuilder();
+    s.append("dynamic ").append(functionName).append("(");
+    boolean needsComma = false;
+    for (PairList.Node node : call.getArguments().nodes()) {
+      if(needsComma) {
+        s.append(", ");
+      }
+      if(node.hasTag()) {
+        s.append(node.getName()).append(" = ");
+      }
+      if(node.getValue() != Symbol.MISSING_ARG) {
+        s.append(node.getValue());
+      }
+      needsComma = true;
+    }
+    s.append(")");
+    return s.toString();
   }
 
 }

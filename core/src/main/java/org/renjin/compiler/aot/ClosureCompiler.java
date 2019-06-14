@@ -24,10 +24,11 @@ import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.eval.Context;
 import org.renjin.repackaged.asm.Label;
-import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.*;
+import org.renjin.sexp.Closure;
+import org.renjin.sexp.FunctionEnvironment;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 
 /**
  * Compiles a closure to a java method
@@ -51,13 +52,10 @@ public class ClosureCompiler {
 
     String methodDescriptor = Type.getMethodDescriptor(Type.getType(SEXP.class),
         Type.getType(Context.class),
-        Type.getType(Environment.class),
-        Type.getType("[Lorg/renjin/sexp/SEXP;"));
+        Type.getType(FunctionEnvironment.class));
 
 
     handle = buffer.newFunction(body.getSourceFile(), name.getPrintName(), methodDescriptor, mv -> {
-
-      writePrelude(emitContext, mv);
 
       for (int i = 0; i < body.getStatements().size(); i++) {
 
@@ -82,22 +80,6 @@ public class ClosureCompiler {
     });
   }
 
-  private void writePrelude(ClosureEmitContext emitContext, InstructionAdapter mv) {
-
-    // Invoke FunctionEnvironment::compiledInit(Environment parent, SEXP variableNames, SEXP[] arguments)
-
-    mv.visitVarInsn(Opcodes.ALOAD, ClosureEmitContext.ENVIRONMENT_VAR_INDEX);
-    emitContext.constantSexp(emitContext.getFrameVariableNames()).loadSexp(emitContext, mv);
-    mv.visitVarInsn(Opcodes.ALOAD, ClosureEmitContext.ARG_ARRAY_VAR_INDEX);
-
-    mv.invokestatic(Type.getInternalName(FunctionEnvironment.class), "compiledInit",
-        Type.getMethodDescriptor(Type.getType(FunctionEnvironment.class),
-            Type.getType(Environment.class),
-            Type.getType(SEXP.class),
-            Type.getType(SEXP[].class)), false);
-
-    mv.visitVarInsn(Opcodes.ASTORE, ClosureEmitContext.ENVIRONMENT_VAR_INDEX);
-  }
 
   public AotHandle getHandle() {
     return handle;

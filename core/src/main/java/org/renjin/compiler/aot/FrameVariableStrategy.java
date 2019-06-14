@@ -22,6 +22,7 @@ import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.SexpExpr;
 import org.renjin.compiler.codegen.var.VariableStrategy;
+import org.renjin.eval.Context;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -57,9 +58,12 @@ public class FrameVariableStrategy extends VariableStrategy {
       @Override
       public void loadSexp(EmitContext context, InstructionAdapter mv) {
         mv.visitVarInsn(Opcodes.ALOAD, context.getEnvironmentVarIndex());
+        mv.visitVarInsn(Opcodes.ALOAD, context.getContextVarIndex());
         mv.iconst(frameIndex);
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(FunctionEnvironment.class), "get",
-            Type.getMethodDescriptor(Type.getType(SEXP.class), Type.INT_TYPE), false);
+            Type.getMethodDescriptor(Type.getType(SEXP.class),
+                Type.getType(Context.class),
+                Type.INT_TYPE), false);
       }
     };
   }

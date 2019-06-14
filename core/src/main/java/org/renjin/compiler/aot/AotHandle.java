@@ -18,6 +18,8 @@
  */
 package org.renjin.compiler.aot;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.function.Supplier;
 
@@ -49,5 +51,9 @@ public class AotHandle {
       }
     }
     throw new IllegalStateException();
+  }
+
+  public MethodHandle loadAndGetHandle() throws IllegalAccessException {
+    return MethodHandles.publicLookup().unreflect(loadAndReflect());
   }
 }

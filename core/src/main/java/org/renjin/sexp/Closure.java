@@ -21,6 +21,7 @@ package org.renjin.sexp;
 import org.renjin.eval.*;
 import org.renjin.primitives.special.ReturnException;
 
+import java.lang.invoke.MethodHandle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -46,6 +47,8 @@ public class Closure extends AbstractSEXP implements Function {
   private ArgumentMatcher matcher;
   private SEXP[] formalSymbols;
 
+  public MethodHandle compiledBody;
+
   public Closure(Environment enclosingEnvironment, PairList formals, SEXP body, AttributeMap attributes) {
     super(attributes);
     assert !(formals instanceof FunctionCall);
@@ -62,7 +65,7 @@ public class Closure extends AbstractSEXP implements Function {
   public String getTypeName() {
     return TYPE_NAME;
   }
-  
+
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap newAttributes) {
@@ -173,7 +176,11 @@ public class Closure extends AbstractSEXP implements Function {
 
       try {
 
-        return functionContext.evaluate(body);
+        if(compiledBody != null) {
+          return (SEXP)compiledBody.invokeExact(functionContext, functionEnvironment);
+        } else {
+          return functionContext.evaluate(body);
+        }
 
       } catch (EvalException e) {
         // Associate this EvalException with this function call context if it's not already.
@@ -181,6 +188,10 @@ public class Closure extends AbstractSEXP implements Function {
         // EvalException as a ConditionException if found.
         e.initContext(functionContext);
         throw e;
+      } catch (RuntimeException e) {
+        throw e;
+      } catch (Throwable throwable) {
+        throw new EvalException(throwable);
       }
 
     } catch(ReturnException e) {

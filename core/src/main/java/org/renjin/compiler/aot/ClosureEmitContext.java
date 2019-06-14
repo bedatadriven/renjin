@@ -28,10 +28,9 @@ import org.renjin.compiler.ir.tac.expressions.EnvironmentVariable;
 import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
+import org.renjin.sexp.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +39,6 @@ public class ClosureEmitContext implements EmitContext {
 
   public static final int CONTEXT_VAR_INDEX = 0;
   public static final int ENVIRONMENT_VAR_INDEX = 1;
-  public static final int ARG_ARRAY_VAR_INDEX = 2;
 
   private final Map<IRLabel, Label> labelMap = new HashMap<>();
   private final Map<LValue, VariableStrategy> variableMap = new HashMap<>();
@@ -52,7 +50,7 @@ public class ClosureEmitContext implements EmitContext {
 
   public ClosureEmitContext(ClassBuffer classBuffer, PairList formals) {
     this.classBuffer = classBuffer;
-    varAllocator = new LocalVarAllocator(ARG_ARRAY_VAR_INDEX + 1);
+    varAllocator = new LocalVarAllocator(ENVIRONMENT_VAR_INDEX + 1);
     for (PairList.Node node : formals.nodes()) {
       variableMap.put(new EnvironmentVariable(node.getTag()), new FrameVariableStrategy(node.getTag(), nextFrameVar++));
     }
@@ -68,6 +66,24 @@ public class ClosureEmitContext implements EmitContext {
       }
     }
     return new ListVector(names);
+  }
+
+  public void loadSymbolPromise(Symbol symbol, InstructionAdapter mv) {
+    for (VariableStrategy value : variableMap.values()) {
+      if(value instanceof FrameVariableStrategy) {
+        FrameVariableStrategy frameVar = (FrameVariableStrategy) value;
+        if(frameVar.getName() == symbol) {
+          loadFrameVarPromise(frameVar, mv);
+        }
+      }
+    }
+  }
+
+  private void loadFrameVarPromise(FrameVariableStrategy frameVar, InstructionAdapter mv) {
+    mv.visitVarInsn(Opcodes.ALOAD, ENVIRONMENT_VAR_INDEX);
+    mv.iconst(frameVar.getFrameIndex());
+    mv.invokevirtual(Type.getInternalName(FunctionEnvironment.class), "promise",
+        Type.getMethodDescriptor(Type.getType(SEXP.class), Type.INT_TYPE), false);
   }
 
   @Override

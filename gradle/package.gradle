@@ -52,15 +52,15 @@ task compileNamespace(type: JavaExec, dependsOn: [ ':tools:gcc-bridge:compiler:c
         }
 
         main = 'org.renjin.packaging.CorePackageBuilder'
-
-//        classpath.forEach { println it }
-
     }
 }
 
 task testPackage(type: JavaExec) {
 
     def testDir = project.file('src/test/R')
+    if(!testDir.exists()) {
+        testDir = project.file('tests')
+    }
 
     inputs.dir testDir
 

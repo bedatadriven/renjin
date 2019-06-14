@@ -50,3 +50,9 @@ test.rep.forwarded.args <- function() {
 
     assertThat(f(times=3), identicalTo(c(42L, 42L, 42L)))
 }
+
+test.rep.missing.arg <- function() {
+    f <- function(x, times, each) rep(x, times, each)
+
+    assertThat(f(1L, 3L), identicalTo(c(1L, 1L, 1L)))
+}

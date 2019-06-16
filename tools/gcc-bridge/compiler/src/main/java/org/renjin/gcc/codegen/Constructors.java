@@ -44,17 +44,20 @@ public class Constructors {
 
     StringBuilder stringBuilder = new StringBuilder();
     for (GimpleConstructor.Element element : value.getElements()) {
-      if(element.getValue() instanceof GimpleAddressOf) {
-        GimpleAddressOf addressOf = (GimpleAddressOf) element.getValue();
-        if(addressOf.getValue() instanceof GimpleStringConstant) {
-          GimpleStringConstant stringConstant = (GimpleStringConstant) addressOf.getValue();
-          if (!isNullTerminated(stringConstant)) {
-            return null;
-          }
 
-          stringBuilder.append(stringConstant.getValue());
-        }
+      if(!(element.getValue() instanceof GimpleAddressOf)) {
+        return null;
       }
+      GimpleAddressOf addressOf = (GimpleAddressOf) element.getValue();
+      if(!(addressOf.getValue() instanceof GimpleStringConstant)) {
+        return null;
+      }
+      GimpleStringConstant stringConstant = (GimpleStringConstant) addressOf.getValue();
+      if (!isNullTerminated(stringConstant)) {
+        return null;
+      }
+
+      stringBuilder.append(stringConstant.getValue());
     }
 
     if(stringBuilder.length() < 1000) {

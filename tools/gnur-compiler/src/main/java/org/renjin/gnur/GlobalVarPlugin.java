@@ -82,5 +82,7 @@ public class GlobalVarPlugin extends GimpleCompilerPlugin {
         globalVarRewriter.getContextVars());
 
     writer.writeTo(generationContext);
+
+    globalVarRewriter.writeSymbols(generationContext);
   }
 }

@@ -18,13 +18,21 @@
  */
 package org.renjin.gnur;
 
+import org.renjin.gcc.codegen.CodeGenerationContext;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
+import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.gcc.link.LinkSymbol;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.collect.HashMultimap;
+import org.renjin.repackaged.guava.collect.Multimap;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,39 +45,64 @@ public class ContextVarAllocator {
 
   private final Type contextClass;
   private List<ContextField> fields = new ArrayList<>();
+  private Multimap<GimpleVarDecl, ContextField> varFields = HashMultimap.create();
 
   public ContextVarAllocator(Type contextClass) {
     this.contextClass = contextClass;
   }
 
 
-  public JLValue reserve(GimpleCompilationUnit unit, String name, Type type, Optional<JExpr> initialValue) {
+  public JLValue reserve(GimpleCompilationUnit unit, GimpleVarDecl decl, String name, Type type, Optional<JExpr> initialValue) {
 
-    String varName = VarAllocator.toJavaSafeName(unit.getName()) + "$" + VarAllocator.toJavaSafeName(name);
+    String varName = variableName(unit, name);
     ContextField var = new ContextField(contextClass, varName, type, initialValue);
 
     fields.add(var);
+    varFields.put(decl, var);
 
     return var.jvalue();
   }
 
+  public static String variableName(GimpleCompilationUnit unit, String name) {
+    return VarAllocator.toJavaSafeName(unit.getName()) + "$" + VarAllocator.toJavaSafeName(name);
+  }
 
-  public VarAllocator forUnit(GimpleCompilationUnit unit) {
+  public VarAllocator forUnit(GimpleCompilationUnit unit, GimpleVarDecl decl) {
     return new VarAllocator() {
       @Override
       public JLValue reserve(String name, Type type) {
-        return ContextVarAllocator.this.reserve(unit, name, type, Optional.empty());
+        return ContextVarAllocator.this.reserve(unit, decl, name, type, Optional.empty());
       }
 
       @Override
       public JLValue reserve(String name, Type type, JExpr initialValue) {
-        return ContextVarAllocator.this.reserve(unit, name, type, Optional.of(initialValue));
-
+        return ContextVarAllocator.this.reserve(unit, decl, name, type, Optional.of(initialValue));
       }
     };
   }
 
   public List<ContextField> getContextFields() {
     return fields;
+  }
+
+
+  public void writeSymbols(CodeGenerationContext generationContext) throws IOException {
+    for (GimpleVarDecl globalVar : varFields.keySet()) {
+      if(globalVar.isPublic()) {
+        Collection<ContextField> contextFields = varFields.get(globalVar);
+        if(contextFields.size() == 1) {
+          writeSymbol(generationContext, globalVar, contextFields.iterator().next());
+        }
+      }
+    }
+  }
+
+  private void writeSymbol(CodeGenerationContext generationContext, GimpleVarDecl globalVar, ContextField field) throws IOException {
+    String getterName = field.getGetterName();
+    LinkSymbol linkSymbol = LinkSymbol.forGetter(contextClass, globalVar.getMangledName(), getterName, field.getType());
+
+    generationContext.writeResourceFile(
+        linkSymbol.getMetadataName(),
+        linkSymbol.toProperties().getBytes(Charsets.UTF_8));
   }
 }

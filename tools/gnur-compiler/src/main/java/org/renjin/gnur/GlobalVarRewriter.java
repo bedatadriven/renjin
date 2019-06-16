@@ -18,6 +18,7 @@
  */
 package org.renjin.gnur;
 
+import org.renjin.gcc.codegen.CodeGenerationContext;
 import org.renjin.gcc.codegen.GlobalVarTransformer;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
@@ -25,6 +26,7 @@ import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.repackaged.asm.Type;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,10 +59,8 @@ public class GlobalVarRewriter implements GlobalVarTransformer {
 
   @Override
   public GExpr generator(TypeOracle typeOracle, GimpleCompilationUnit unit, GimpleVarDecl decl) {
-
     contextVars.add(decl);
-
-    return typeOracle.forType(decl.getType()).variable(decl, allocator.forUnit(unit));
+    return typeOracle.forType(decl.getType()).variable(decl, allocator.forUnit(unit, decl));
   }
 
   public List<ContextField> getContextFields() {
@@ -69,5 +69,9 @@ public class GlobalVarRewriter implements GlobalVarTransformer {
 
   public List<GimpleVarDecl> getContextVars() {
     return contextVars;
+  }
+
+  public void writeSymbols(CodeGenerationContext generationContext) throws IOException {
+    allocator.writeSymbols(generationContext);
   }
 }

@@ -455,3 +455,24 @@ void test_double_array() {
     ASSERT(gamcs[3] != 0)
 
 }
+
+
+const char *DefaultPalette[] = {
+    "black",
+    "red",
+    "green3",
+    "blue",
+    "cyan",
+    "magenta",
+    "yellow",
+    "grey",
+    NULL
+};
+
+
+void test_strings() {
+
+    ASSERT(strcmp(DefaultPalette[7], "grey") == 0)
+    ASSERT(DefaultPalette[8] == NULL);
+
+}

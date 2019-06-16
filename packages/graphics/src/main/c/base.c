@@ -211,7 +211,9 @@ static SEXP baseCallback(GEevent task, pGEDevDesc dd, SEXP data)
 	GPar *ddp;
 	sd = dd->gesd[baseRegisterIndex];
 	dev = dd->dev;
-	bss = sd->systemSpecific = malloc(sizeof(baseSystemState));
+	// Renjin: workaround for type inference
+	bss = malloc(sizeof(baseSystemState));
+	sd->systemSpecific = bss;
         /* Bail out if necessary */
         if (!bss) return result;
 	/* Make sure initialized, or valgrind may complain. */
@@ -368,7 +370,7 @@ registerBase(void) {
 void
 unregisterBase(void) {
     GEunregisterSystem(baseRegisterIndex);
-    baseRegisterIndex = -1;   
+//    baseRegisterIndex = -1;
 }
 
 SEXP RunregisterBase(void)

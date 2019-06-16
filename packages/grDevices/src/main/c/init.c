@@ -77,6 +77,7 @@ static const R_CallMethodDef CallEntries[] = {
     CALLDEF(colors, 0),
     CALLDEF(palette, 1),
     CALLDEF(palette2, 1),
+    CALLDEF(newJavaGD, 4),
     CALLDEF(bmVersion, 0),
 
 #ifndef _WIN32

@@ -22,6 +22,7 @@ package org.renjin.gnur.api;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.DoubleVector;
@@ -108,9 +109,14 @@ public final class PrtUtil {
     return BytePtr.nullTerminatedString(Strings.padStart(result, w, ' '), Charsets.UTF_8);
   }
 
-  // const char* Rf_EncodeComplex (Rcomplex, int, int, int, int, int, int, const char *)
+// printutils.c
+//  public static Ptr Rf_EncodeComplex (double x_r, double x_i, int wr, int dr, int er, int wi, int di, int ei, Ptr dec) {
+//    throw new UnimplementedGnuApiMethod("Rf_EncodeComplex");
+//  }
 
-  // const char* Rf_EncodeReal (double, int, int, int, char)
+  public static Ptr Rf_EncodeReal (double x, int w, int d, int e, char cdec) {
+    throw new UnimplementedGnuApiMethod("Rf_EncodeReal");
+  }
 
   public static int IndexWidth(/*R_xlen_t*/ int p0) {
     throw new UnimplementedGnuApiMethod("IndexWidth");

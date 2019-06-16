@@ -46,8 +46,12 @@ public class ProvidedGlobalVarGetter implements ProvidedGlobalVar {
     TypeStrategy strategy;
     if(typeOracle.getRecordTypes().isMappedToRecordType(getterMethod.getReturnType())) {
       strategy = typeOracle.getRecordTypes().getPointerStrategyFor(getterMethod.getReturnType());
+
     } else if (getterMethod.getReturnType().equals(Ptr.class)) {
       strategy = typeOracle.forPointerType(decl.getType()).pointerTo();
+
+    } else if (getterMethod.getReturnType().isPrimitive()) {
+      strategy = typeOracle.forType(decl.getType());
     } else {
       throw new UnsupportedOperationException("TODO: " + getterMethod.getReturnType());
     }

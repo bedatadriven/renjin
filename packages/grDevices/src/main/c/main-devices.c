@@ -503,6 +503,11 @@ pGEDevDesc GEcreateDevDesc(pDevDesc dev)
     return gdd;
 }
 
+// Renjin: Nota Bena
+// InitGraphics is never called by Renjin because we have moved it
+// to the grDevices package.
+
+// The .Devices symbol is initialized in BaseFrame.java
 
 void attribute_hidden InitGraphics(void)
 {

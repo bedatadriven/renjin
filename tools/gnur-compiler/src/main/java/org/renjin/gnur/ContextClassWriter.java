@@ -28,6 +28,7 @@ import org.renjin.gcc.codegen.expr.ConstantValue;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
@@ -182,7 +183,13 @@ public class ContextClassWriter {
     }
 
     for (GimpleVarDecl globalVar : globalVars) {
-      writeGlobalVarInit(generationContext, methodNode, mv, globalVar);
+      String initMethod = writeGlobalVarInit(generationContext, globalVar);
+      if (initMethod == null) {
+        writeGlobalVarInit(generationContext, globalVar, mv);
+      } else {
+        mv.visitVarInsn(ALOAD, 0);
+        mv.invokevirtual(contextClass, initMethod, "()V", false);
+      }
     }
 
     mv.visitInsn(RETURN);
@@ -193,10 +200,35 @@ public class ContextClassWriter {
 
   }
 
-  private void writeGlobalVarInit(CodeGenerationContext generationContext, MethodNode methodNode, MethodGenerator mv, GimpleVarDecl globalVar) {
+  private String writeGlobalVarInit(CodeGenerationContext generationContext, GimpleVarDecl globalVar) {
 
-    int before = BytecodeSizeEstimator.estimateSize(methodNode);
+    String initMethodName = VarAllocator.toJavaSafeName(globalVar.getUnit().getName()) + "$$" +
+                            VarAllocator.toJavaSafeName(globalVar.getMangledName()) + "$$init";
 
+    MethodNode methodNode = new MethodNode(ACC_PRIVATE, initMethodName, "()V", null, null);
+    MethodGenerator mv = new MethodGenerator(contextClass, methodNode);
+    mv.visitCode();
+    mv.getLocalVarAllocator().reserve(contextClass);
+
+    writeGlobalVarInit(generationContext, globalVar, mv);
+
+    mv.visitInsn(RETURN);
+    mv.visitMaxs(1, 1);
+    mv.visitEnd();
+
+    if(BytecodeSizeEstimator.estimateSize(methodNode) < 255) {
+      // Method is small enough, we don't
+      // need a separate initializer.
+      return null;
+
+    } else {
+      // Add a separate element
+      methodNode.accept(cv);
+      return initMethodName;
+    }
+  }
+
+  private void writeGlobalVarInit(CodeGenerationContext generationContext, GimpleVarDecl globalVar, MethodGenerator mv) {
     GimpleExpr initialValue = globalVar.getValue();
     if(initialValue == null && globalVar.getType() instanceof GimpleIndirectType) {
       initialValue = ((GimpleIndirectType) globalVar.getType()).nullValue();
@@ -207,7 +239,7 @@ public class ContextClassWriter {
       ExprFactory exprFactory = new ExprFactory(
           generationContext.getTypeOracle(),
           symbolTable,
-          generationContext::writeResourceFile,
+          (name, bytes) -> writeExternalResource(generationContext, name, bytes),
           mv);
 
       GExpr initialValueExpr;
@@ -229,9 +261,20 @@ public class ContextClassWriter {
         }
       }
     }
-    int after = BytecodeSizeEstimator.estimateSize(methodNode);
-
-    System.out.println(globalVar.getName() + " => " + (after - before) + " bytes");
-
   }
+
+  private void writeExternalResource(CodeGenerationContext generationContext, String name, byte[] bytes) throws IOException {
+    String internalClassName = contextClass.getInternalName();
+    String packageName;
+    int packageStart = internalClassName.lastIndexOf('/');
+    if(packageStart == -1) {
+      packageName = "";
+    } else {
+      packageName = internalClassName.substring(0, packageStart);
+    }
+
+    generationContext.writeResourceFile(packageName + "/" + name, bytes);
+  }
+
+
 }

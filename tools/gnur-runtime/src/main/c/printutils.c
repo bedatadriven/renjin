@@ -92,3 +92,9 @@ void attribute_hidden VectorIndex(R_xlen_t i, int w)
 /* print index label "[`i']" , using total width `w' (left filling blanks) */
     Rprintf("%*s[%ld]", w-IndexWidth(i)-2, "", i);
 }
+
+const char *EncodeComplex(Rcomplex x, int wr, int dr, int er, int wi, int di, int ei,
+               const char *dec)
+{
+    error("TODO: EncodeComplex");
+}

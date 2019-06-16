@@ -90,6 +90,16 @@ public class LinkSymbol {
     return symbol;
   }
 
+  public static LinkSymbol forGetter(Type declaringClass, String name, String methodName, Type returnType) {
+    LinkSymbol symbol = new LinkSymbol();
+    symbol.type = SymbolType.GETTER;
+    symbol.name = name;
+    symbol.className = declaringClass.getInternalName();
+    symbol.memberName = methodName;
+    symbol.descriptor = Type.getMethodDescriptor(returnType);
+    return symbol;
+  }
+
   public static LinkSymbol forFunction(String name, Handle methodHandle) {
     LinkSymbol symbol = new LinkSymbol();
     symbol.type = SymbolType.METHOD;
@@ -217,17 +227,21 @@ public class LinkSymbol {
    * @param outputDir the root of a class output 
    */
   public void write(File outputDir) throws IOException {
-    File metaInfDir = new File(outputDir, "META-INF");
-    File symbolsDir = new File(metaInfDir, "org.renjin.gcc.symbols");
-    File symbolFile = new File(symbolsDir, name);
-    
-    if(!symbolsDir.exists()) {
-      boolean created = symbolsDir.mkdirs();
+    File symbolFile = new File(outputDir, getMetadataName());
+    File symbolDir = symbolFile.getParentFile();
+    if(!symbolDir.exists()) {
+      boolean created = symbolDir.mkdirs();
       if(!created) {
-        throw new IOException("Failed to create directory " + symbolsDir.getAbsolutePath());
+        throw new IOException("Failed to create directory " + symbolDir.getAbsolutePath());
       }
     }
 
+    try(Writer out = new OutputStreamWriter(new FileOutputStream(symbolFile), Charsets.UTF_8)) {
+      out.write(toProperties());
+    }
+  }
+
+  public String toProperties() {
     StringBuilder properties = new StringBuilder();
     properties.append("type=").append(type.name()).append("\n");
     properties.append("class=").append(className).append("\n");
@@ -239,12 +253,13 @@ public class LinkSymbol {
     if(type == SymbolType.METHOD || type == SymbolType.GETTER) {
       properties.append("descriptor=").append(descriptor).append("\n");
     }
-
-    try(Writer out = new OutputStreamWriter(new FileOutputStream(symbolFile), Charsets.UTF_8)) {
-      out.write(properties.toString());
-    }
+    return properties.toString();
   }
-  
+
+  public String getMetadataName() {
+    return "META-INF/org.renjin.gcc.symbols/" + name;
+  }
+
   public static LinkSymbol fromDescriptor(String symbolName, Properties properties) {
 
     LinkSymbol symbol = new LinkSymbol();

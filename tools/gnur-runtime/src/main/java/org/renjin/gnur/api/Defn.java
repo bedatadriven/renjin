@@ -588,9 +588,6 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("R_possible_dispatch");
   }
 
-  public static void Rf_InitGraphics() {
-    throw new UnimplementedGnuApiMethod("Rf_InitGraphics");
-  }
 
   public static void Rf_InitMemory() {
     throw new UnimplementedGnuApiMethod("Rf_InitMemory");

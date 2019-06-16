@@ -90,6 +90,13 @@ public class BaseFrame implements Frame {
   public BaseFrame(Session session) {
     installPlatform(session);
     installMachine();
+
+    // This symbol is general registered by InitGraphics in main/devices.c, but since
+    // we have moved that to the graphics package, we do just a quick init here.
+    loaded.put(Symbol.get(".Devices"), new PairList.Builder()
+      .add(StringVector.valueOf("null device"))
+      .build());
+
     loaded.put(Symbol.get("R.version.string"),
         StringVector.valueOf("Renjin version " + RenjinVersion.getVersionName()));
   }

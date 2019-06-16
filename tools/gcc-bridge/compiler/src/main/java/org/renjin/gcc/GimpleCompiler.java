@@ -256,7 +256,7 @@ public class GimpleCompiler  {
             globalSymbolTable,
             globalVarTransformers,
             unit,
-            (resourceName, bytes) -> writeResource(packageName.replace('.', '/') + "/" + resourceName, bytes),
+            this::writeResourcePrefix,
             unitNames.get(unit));
         unitClassGenerators.add(generator);
       }
@@ -292,6 +292,10 @@ public class GimpleCompiler  {
         e.printStackTrace();
       }
     }
+  }
+
+  private void writeResourcePrefix(String resourceName, byte[] bytes) throws IOException {
+    writeResource(packageName.replace('.', '/') + "/" + resourceName, bytes);
   }
 
   private Map<GimpleCompilationUnit, String> nameCompilationUnits(List<GimpleCompilationUnit> units) {
@@ -510,10 +514,6 @@ public class GimpleCompiler  {
   public void addVariable(String name, Field field) {
     providedVariables.put(name, new ProvidedGlobalVarField(field));
 
-  }
-
-  public String getRecordClassPrefix() {
-    return recordClassPrefix;
   }
 
   public void setRecordClassPrefix(String recordClassPrefix) {

@@ -99,7 +99,7 @@ public class VPtrRecordExpr implements RecordExpr {
 
   @Override
   public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
-    throw new UnsupportedOperationException("TODO");
+    return pointer;
   }
 
   @Override

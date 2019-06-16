@@ -63,7 +63,9 @@ public class EvalException extends RuntimeException {
   public void initContext(Context context) {
     if(this.context == null) {
       this.context = context;
-      Conditions.signalCondition(context, condition, null, null);
+      if(condition != null) {
+        Conditions.signalCondition(context, condition, null, null);
+      }
     }
   }
 

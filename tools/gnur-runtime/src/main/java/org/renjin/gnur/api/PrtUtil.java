@@ -37,20 +37,6 @@ public final class PrtUtil {
 
 
 
-  public static void Rf_formatLogical(IntPtr p0, /*R_xlen_t*/ int p1, IntPtr p2) {
-    throw new UnimplementedGnuApiMethod("Rf_formatLogical");
-  }
-
-  public static void Rf_formatInteger(IntPtr p0, /*R_xlen_t*/ int p1, IntPtr p2) {
-    throw new UnimplementedGnuApiMethod("Rf_formatInteger");
-  }
-
-  public static void Rf_formatReal(DoublePtr x, int n, IntPtr w, IntPtr d, IntPtr e, int nsmall) {
-    throw new UnimplementedGnuApiMethod("Rf_formatReal");
-  }
-
-  // void Rf_formatComplex (Rcomplex *, R_xlen_t, int *, int *, int *, int *, int *, int *, int)
-
   public static BytePtr Rf_EncodeLogical(int p0, int p1) {
     throw new UnimplementedGnuApiMethod("Rf_EncodeLogical");
   }

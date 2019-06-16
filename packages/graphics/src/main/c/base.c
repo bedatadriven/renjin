@@ -370,7 +370,7 @@ registerBase(void) {
 void
 unregisterBase(void) {
     GEunregisterSystem(baseRegisterIndex);
-//    baseRegisterIndex = -1;
+    baseRegisterIndex = -1;
 }
 
 SEXP RunregisterBase(void)

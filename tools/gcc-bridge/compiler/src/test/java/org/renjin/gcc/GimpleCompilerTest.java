@@ -412,7 +412,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
     Integer result = (Integer) magic_number.invoke(null);
 
     assertThat(result, equalTo(42));
+  }
 
+  @Test
+  public void globalExternal() throws Exception {
+    compileAndTest("global_external.c");
   }
 
   @Test

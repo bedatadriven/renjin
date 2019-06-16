@@ -18,9 +18,14 @@
  */
 package org.renjin.gcc.runtime;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class BytePtr extends AbstractPtr {
   
@@ -222,5 +227,41 @@ public class BytePtr extends AbstractPtr {
       }
       x = new BytePtr(carray);
     }
+  }
+
+  /**
+   * Creates a pointer to an array of pointers to strings from a list of null-terminated strings.
+   */
+  public static Ptr stringArray(String string) {
+    return stringArray(string.getBytes(StandardCharsets.US_ASCII));
+  }
+
+  public static Ptr stringArrayFromResource(Class clazz, String resourceName) throws IOException {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    byte[] buffer = new byte[0x1000];
+
+    try(InputStream in = clazz.getResourceAsStream(resourceName)) {
+      while (true) {
+        int r = in.read(buffer);
+        if (r == -1) {
+          break;
+        }
+        baos.write(buffer, 0, r);
+      }
+    }
+    return stringArray(baos.toByteArray());
+  }
+
+  private static Ptr stringArray(byte[] bytes) {
+    List<Ptr> pointers = new ArrayList<>();
+    int start = 0;
+    for (int i = 0; i < bytes.length; i++) {
+      if(bytes[i] == 0) {
+        pointers.add(new BytePtr(bytes, start));
+        start = i + 1;
+      }
+    }
+
+    return new PointerPtr(pointers.toArray(new Ptr[0]));
   }
 }

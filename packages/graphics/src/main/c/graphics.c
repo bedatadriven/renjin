@@ -1864,6 +1864,8 @@ pGEDevDesc GNewPlot(Rboolean recording)
 }
 #undef G_ERR_MSG
 
+#if 0
+/* in src/main/graphics.c */
 // (usr, log, n_inp) |--> (axp, n_out) :
 void GAxisPars(double *min, double *max, int *n, Rboolean log, int axis)
 {
@@ -1911,6 +1913,7 @@ void GAxisPars(double *min, double *max, int *n, Rboolean log, int axis)
 	t_ = *min; *min = *max; *max = t_;
     }
 }
+#endif
 
 void GScale(double min, double max, int axis, pGEDevDesc dd)
 {
@@ -2482,6 +2485,7 @@ void GForceClip(pGEDevDesc dd)
     if (gpptr(dd)->state == 0) return;
     setClipRect(&x1, &y1, &x2, &y2, DEVICE, dd);
     GESetClip(x1, y1, x2, y2, dd);
+    gpptr(dd)->oldxpd = gpptr(dd)->xpd;
 }
 
 /*
@@ -3168,6 +3172,7 @@ void GBox(int which, pGEDevDesc dd)
     }
 }
 
+#if 0
 /* in src/main/graphics.c */
 #define LPR_SMALL  2
 #define LPR_MEDIUM 3
@@ -3213,6 +3218,7 @@ void GPretty(double *lo, double *up, int *ndiv)
 {
     GEPretty(lo, up, ndiv);
 }
+#endif
 
 #define SMALL	0.25
 #define RADIUS	0.375

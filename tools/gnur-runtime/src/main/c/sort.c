@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998-2014   The R Core Team
+ *  Copyright (C) 1998-2018   The R Core Team
  *  Copyright (C) 2004        The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -170,6 +170,32 @@ SEXP attribute_hidden do_isunsorted(SEXP call, SEXP op, SEXP args, SEXP rho)
 	return ans;
     PROTECT(args = ans); // args evaluated now
 
+    int sorted = UNKNOWN_SORTEDNESS;
+    switch(TYPEOF(x)) {
+    case INTSXP:
+	sorted = INTEGER_IS_SORTED(x);
+	break;
+    case REALSXP:
+	sorted = REAL_IS_SORTED(x);
+	break;
+    default:
+	break;
+    }
+
+    /* right now is.unsorted only tells you if something is sorted ascending
+      hopefully someday it will work for descending too */
+    if(!asLogical(CADR(args))) { /*not strict since we don't memoize that */
+	if(KNOWN_INCR(sorted)) {
+	    UNPROTECT(1);
+	    return ScalarLogical(FALSE);
+	}
+	/* is.unsorted returns TRUE for vectors sorted in descending order */
+	else if( KNOWN_DECR(sorted) || sorted == KNOWN_UNSORTED) {
+	    UNPROTECT(1);
+	    return ScalarLogical(TRUE);
+	}
+    }
+
     int strictly = asLogical(CADR(args));
     if(strictly == NA_LOGICAL)
 	error(_("invalid '%s' argument"), "strictly");
@@ -185,9 +211,11 @@ SEXP attribute_hidden do_isunsorted(SEXP call, SEXP op, SEXP args, SEXP rho)
 	ans = eval(call, rho);
 	UNPROTECT(2);
 	return ans;
-    } // else
+    }
+    else {
 	UNPROTECT(1);
-    return ScalarLogical(NA_LOGICAL);
+	return ScalarLogical(NA_LOGICAL);
+    }
 }
 
 
@@ -196,52 +224,44 @@ SEXP attribute_hidden do_isunsorted(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 /* SHELLsort -- corrected from R. Sedgewick `Algorithms in C'
  *		(version of BDR's lqs():*/
-#define sort_body					\
+#define sort_body(TYPE_CMP, TYPE_PROT, TYPE_UNPROT)	\
     Rboolean nalast=TRUE;				\
     int i, j, h;					\
 							\
     for (h = 1; h <= n / 9; h = 3 * h + 1);		\
     for (; h > 0; h /= 3)				\
 	for (i = h; i < n; i++) {			\
-	    v = x[i];					\
+	    v = TYPE_PROT(x[i]);			\
 	    j = i;					\
 	    while (j >= h && TYPE_CMP(x[j - h], v, nalast) > 0)	\
 		 { x[j] = x[j - h]; j -= h; }		\
 	    x[j] = v;					\
+	    TYPE_UNPROT;				\
 	}
 
 void R_isort(int *x, int n)
 {
     int v;
-#define TYPE_CMP icmp
-    sort_body
-#undef TYPE_CMP
+    sort_body(icmp,,)
 }
 
 void R_rsort(double *x, int n)
 {
     double v;
-#define TYPE_CMP rcmp
-    sort_body
-#undef TYPE_CMP
+    sort_body(rcmp,,)
 }
 
 void R_csort(Rcomplex *x, int n)
 {
     Rcomplex v;
-#define TYPE_CMP ccmp
-    sort_body
-#undef TYPE_CMP
+    sort_body(ccmp,,)
 }
-
 
 /* used in platform.c */
 void attribute_hidden ssort(SEXP *x, int n)
 {
     SEXP v;
-#define TYPE_CMP scmp
-    sort_body
-#undef TYPE_CMP
+    sort_body(scmp,PROTECT,UNPROTECT(1))
 }
 
 void rsort_with_index(double *x, int *indx, int n)
@@ -328,6 +348,7 @@ SEXP attribute_hidden do_sort(SEXP call, SEXP op, SEXP args, SEXP rho)
 	error(_("only atomic vectors can be sorted"));
     if(TYPEOF(CAR(args)) == RAWSXP)
 	error(_("raw vectors cannot be sorted"));
+
     /* we need consistent behaviour here, including dropping attibutes,
        so as from 2.3.0 we always duplicate. */
     PROTECT(ans = duplicate(CAR(args)));
@@ -335,8 +356,71 @@ SEXP attribute_hidden do_sort(SEXP call, SEXP op, SEXP args, SEXP rho)
     SET_OBJECT(ans, 0);		  /* we may have just stripped off the class */
     sortVector(ans, decreasing);
     UNPROTECT(1);
-    return(ans);
+    return(ans); /* wrapping with metadata happens at end of sort.int */
 }
+
+Rboolean fastpass_sortcheck(SEXP x, int wanted) {
+    if(!KNOWN_SORTED(wanted)) 
+	return FALSE;
+
+    int sorted = UNKNOWN_SORTEDNESS;
+    Rboolean noNA, done = FALSE;
+
+    switch(TYPEOF(x)) {
+    case INTSXP:
+	sorted = INTEGER_IS_SORTED(x);
+	noNA = INTEGER_NO_NA(x);
+	break;
+    case REALSXP:
+	sorted = REAL_IS_SORTED(x);
+	noNA = REAL_NO_NA(x);
+	break;
+    default:
+	/* keep sorted == UNKNOWN_SORTEDNESS */
+	break;
+    }
+    /* we know wanted is not NA_INTEGER or 0 at this point because
+       of the immediate return at the beginning for that case */
+    if(!KNOWN_SORTED(sorted)) {
+	done = FALSE;
+    } else if(sorted == wanted) {   
+	done = TRUE;
+	/* if there are no NAs, na.last can be ignored */
+    } else if(noNA && sorted * wanted > 0) { /* same sign, thus same direction of sort */
+	done = TRUE;
+    }
+    return done;
+}
+
+static int makeSortEnum(int decr, int nalast) {
+    
+    /* passing decr = NA_INTEGER indicates UNKNOWN_SORTEDNESS. */
+    if (decr == NA_INTEGER)
+	return UNKNOWN_SORTEDNESS;
+    
+    if (nalast == NA_INTEGER)
+	nalast = 1; //  they were/will be removed so we say they are "last"
+
+    if (decr)
+	return nalast ? SORTED_DECR : SORTED_DECR_NA_1ST;
+    else /* increasing */
+	return nalast ? SORTED_INCR : SORTED_INCR_NA_1ST;
+}
+
+/* .Internal(sorted_fpass(x, decr, nalast)) */
+SEXP attribute_hidden do_sorted_fpass(SEXP call, SEXP op, SEXP args, SEXP rho)
+{
+    checkArity(op, args);
+
+    int decr = asInteger(CADR(args)); 
+    int nalast = asInteger(CADDR(args)); 
+    int wanted = makeSortEnum(decr, nalast);
+    SEXP x = PROTECT(CAR(args));
+    Rboolean wassorted = fastpass_sortcheck(x, wanted);
+    UNPROTECT(1);
+    return ScalarLogical(wassorted);
+}
+
 
 /* faster versions of shellsort, following Sedgewick (1986) */
 
@@ -435,6 +519,7 @@ static void ssort2(SEXP *x, R_xlen_t n, Rboolean decreasing)
 	for (i = h; i < n; i++) {
 	    v = x[i];
 	    j = i;
+	    PROTECT(v);
 	    if(decreasing)
 		while (j >= h && scmp(x[j - h], v, TRUE) < 0)
 		{ x[j] = x[j - h]; j -= h; }
@@ -442,6 +527,7 @@ static void ssort2(SEXP *x, R_xlen_t n, Rboolean decreasing)
 		while (j >= h && scmp(x[j - h], v, TRUE) > 0)
 		{ x[j] = x[j - h]; j -= h; }
 	    x[j] = v;
+	    UNPROTECT(1); /* v */
 	}
 }
 
@@ -1362,7 +1448,7 @@ SEXP attribute_hidden do_rank(SEXP call, SEXP op, SEXP args, SEXP rho)
 		switch(ties_kind) {
 		case AVERAGE:
 		    for (k = i; k <= j; k++)
-			rk[in[k]] = (i + j + 2) / 2.;
+			rk[in[k]] = (i + j + 2) / 2.; 
 		    break;
 		case MAX:
 		    for (k = i; k <= j; k++) rk[in[k]] = j+1;
@@ -1391,7 +1477,7 @@ SEXP attribute_hidden do_rank(SEXP call, SEXP op, SEXP args, SEXP rho)
 		    for (k = i; k <= j; k++) ik[in[k]] = j+1;
 		    break;
 		case MIN:
-		    for (k = i; k <= j; k++) ik[in[k]] = i+1;
+		    for (k = i; k <= j; k++) ik[in[k]] = i+1; 
 		    break;
 		}
 	    }

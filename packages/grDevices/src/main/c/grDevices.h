@@ -111,7 +111,6 @@ SEXP RGB2hsv(SEXP rgb);
 
 unsigned int inRGBpar3(SEXP, int, unsigned int);
 const char *incol2name(unsigned int col);
-unsigned int inR_GE_str2col(const char *s);
 void initPalette(void);
 
 SEXP cairoVersion(void);

@@ -19,6 +19,7 @@
 package org.renjin.gcc.codegen.type.complex;
 
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.ResourceWriter;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
@@ -77,7 +78,7 @@ public class ComplexTypeStrategy implements TypeStrategy<ComplexExpr> {
   }
 
   @Override
-  public ComplexExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
+  public ComplexExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, ResourceWriter resourceWriter, GimpleConstructor value) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -93,7 +94,7 @@ public class ComplexTypeStrategy implements TypeStrategy<ComplexExpr> {
 
   @Override
   public ParamStrategy getParamStrategy() {
-    throw new UnsupportedOperationException("TODO");
+    return new ComplexParamStrategy(type);
   }
 
   @Override

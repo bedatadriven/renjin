@@ -39,9 +39,6 @@
 
 #include <R_ext/GraphicsEngine.h>
 
-#define _(String) (String)
-
-
 SEXP attribute_hidden do_Externalgr(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     // Since we are being invoked by .External2, skip the first argument

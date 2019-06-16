@@ -336,10 +336,6 @@ public final class Rinternals {
   public static final int CE_ANY = 99;
 
 
-  public static Ptr _(Ptr p) {
-    return p;
-  }
-
   public static BytePtr R_CHAR(SEXP x) {
     GnuCharSexp charSexp = (GnuCharSexp) x;
     return charSexp.getValue();
@@ -455,6 +451,10 @@ public final class Rinternals {
     // To "trick" code written for GNU R into observing Renjin's contract, we can simply always return a non-zero 
     // value here.
     return 2;
+  }
+
+  public static void ENSURE_NAMEDMAX(SEXP x) {
+    // NOOP
   }
 
   @Noop
@@ -738,6 +738,24 @@ public final class Rinternals {
   public static Ptr VECTOR_PTR(SEXP x) {
     throw new UnimplementedGnuApiMethod("VECTOR_PTR");
   }
+
+  public static int INTEGER_IS_SORTED(SEXP x) {
+    return 0;
+  }
+
+  public static int INTEGER_NO_NA(SEXP x) {
+    return 0;
+  }
+
+
+  public static int REAL_IS_SORTED(SEXP x) {
+    return 0;
+  }
+
+  public static int REAL_NO_NA(SEXP x) {
+    return 0;
+  }
+
 
   public static SEXP TAG(SEXP e) {
     return ((PairList.Node) e).getRawTag();

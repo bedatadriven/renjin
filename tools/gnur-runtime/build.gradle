@@ -35,26 +35,98 @@ dependencies {
 
 
 sourceSets {
-    c {
-        output.dir("build/gcc-bridge/classes", builtBy: 'compileC')
-    }
     main {
-        java {
-            compileClasspath += sourceSets.c.output
+        main {
+            output.dir("build/gcc-bridge/classes", builtBy: 'compileC')
+            output.dir("build/gcc-bridge/symbols", builtBy: 'buildSymbols')
         }
     }
 }
 
+task buildSymbols(type: JavaExec) {
+
+    dependsOn 'compileJava'
+
+    def outputDir = project.file("build/gcc-bridge/symbols")
+
+    inputs.dir 'src/main/java'
+    outputs.dir outputDir
+
+    classpath configurations.gcc
+    classpath configurations.compile
+    classpath tasks.getByName('compileJava').destinationDir
+
+    main = 'org.renjin.gcc.BuildMetadata'
+
+    workingDir outputDir
+
+    args 'org.renjin.gnur.api.Arith'
+    args 'org.renjin.gnur.api.Callbacks'
+    args 'org.renjin.gnur.api.Defn'
+    args 'org.renjin.gnur.api.Error'
+    args 'org.renjin.gnur.api.eventloop'
+    args 'org.renjin.gnur.api.Fileio'
+    args 'org.renjin.gnur.api.GetText'
+    args 'org.renjin.gnur.api.GetX11Image'
+    args 'org.renjin.gnur.api.Internal'
+    args 'org.renjin.gnur.api.Parse'
+    args 'org.renjin.gnur.api.Print'
+    args 'org.renjin.gnur.api.PrtUtil'
+    args 'org.renjin.gnur.api.QuartzDevice'
+    args 'org.renjin.gnur.api.R'
+    args 'org.renjin.gnur.api.R_ftp_http'
+    args 'org.renjin.gnur.api.Random'
+    args 'org.renjin.gnur.api.Rconnections'
+    args 'org.renjin.gnur.api.Rdynload'
+    args 'org.renjin.gnur.api.RenjinDebug'
+    args 'org.renjin.gnur.api.RenjinFiles'
+    args 'org.renjin.gnur.api.Rgraphics'
+    args 'org.renjin.gnur.api.Riconv'
+    args 'org.renjin.gnur.api.Rinterface'
+    args 'org.renjin.gnur.api.Rinternals'
+    args 'org.renjin.gnur.api.Rinternals2'
+    args 'org.renjin.gnur.api.rlocale'
+    args 'org.renjin.gnur.api.Rmath'
+    args 'org.renjin.gnur.api.RStartup'
+    args 'org.renjin.gnur.api.S'
+    args 'org.renjin.gnur.api.Startup'
+    args 'org.renjin.gnur.api.stats_package'
+    args 'org.renjin.gnur.api.stats_stubs'
+    args 'org.renjin.gnur.api.Utils'
+
+    args 'org.renjin.stats.internals.Distributions'
+
+    args 'org.renjin.gnur.api.Stubs'
+
+    doFirst {
+        outputDir.mkdirs()
+        workingDir outputDir
+    }
+}
 
 task compileC(type: JavaExec) {
+    
+    dependsOn 'compileJava'
+    dependsOn 'buildSymbols'
+    dependsOn 'processResources'
 
     inputs.dir 'src/main/c'
+    inputs.dir gnuHomeDir
+    inputs.dir "build/gcc-bridge/symbols"
+
     outputs.dir "build/gcc-bridge/classes"
 
     classpath configurations.gcc
+    classpath configurations.compile
+    classpath tasks.getByName('compileJava').destinationDir
+    classpath tasks.getByName('processResources').destinationDir
+    classpath "build/gcc-bridge/symbols"
+
     main = 'org.renjin.gcc.Build'
 
     environment 'PACKAGE', 'org.renjin.gnur'
+    environment 'CFLAGS', "-std=c99 -DRENJIN -DHAVE_CONFIG_H -I${gnuHomeDir}/include"
+//    environment "GCC_BRIDGE_IGNORE_ERRORS", "TRUE"
+
 }
 
-compileJava.dependsOn 'compileC'

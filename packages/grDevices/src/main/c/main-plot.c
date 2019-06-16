@@ -201,3 +201,4 @@ SEXP CreateAtVector(double *axp, double *usr, int nint, Rboolean logflag)
     } /* linear / log */
     return at;
 }
+

@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2000-2015   The R Core Team.
+ *  Copyright (C) 2000-2017   The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -14,8 +14,10 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, a copy is available at
- *  http://www.r-project.org/Licenses/
+ *  https://www.R-project.org/Licenses/
  */
+
+/* Internal header, not installed */
 
 #ifndef R_CONNECTIONS_H_
 #define R_CONNECTIONS_H_
@@ -58,7 +60,7 @@ typedef struct clpconn {
 
 int Rconn_fgetc(Rconnection con);
 int Rconn_ungetc(int c, Rconnection con);
-int Rconn_getline(Rconnection con, char *buf, int bufsize);
+size_t Rconn_getline(Rconnection con, char *buf, size_t bufsize);
 int Rconn_printf(Rconnection con, const char *format, ...);
 Rconnection getConnection(int n);
 Rconnection getConnection_no_err(int n);

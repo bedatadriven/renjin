@@ -19,7 +19,9 @@
 package org.renjin.gcc.codegen.expr;
 
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.Constructors;
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.ResourceWriter;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunPtrCallGenerator;
@@ -35,6 +37,7 @@ import org.renjin.gcc.codegen.type.complex.ComplexExpr;
 import org.renjin.gcc.codegen.type.fun.FunPtrExpr;
 import org.renjin.gcc.codegen.type.primitive.*;
 import org.renjin.gcc.codegen.type.record.RecordExpr;
+import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.*;
@@ -57,16 +60,18 @@ public class ExprFactory {
   private final SymbolTable symbolTable;
   private MethodGenerator mv;
   private Optional<VPtrExpr> varArgsPtr;
+  private ResourceWriter resourceWriter;
 
-  public ExprFactory(TypeOracle typeOracle, SymbolTable symbolTable, MethodGenerator mv, Optional<VPtrExpr> varArgsPtr) {
+  public ExprFactory(TypeOracle typeOracle, SymbolTable symbolTable, MethodGenerator mv, Optional<VPtrExpr> varArgsPtr, ResourceWriter resourceWriter) {
     this.typeOracle = typeOracle;
     this.symbolTable = symbolTable;
     this.mv = mv;
     this.varArgsPtr = varArgsPtr;
+    this.resourceWriter = resourceWriter;
   }
 
-  public ExprFactory(TypeOracle typeOracle, SymbolTable symbolTable, MethodGenerator mv) {
-    this(typeOracle, symbolTable, mv, Optional.empty());
+  public ExprFactory(TypeOracle typeOracle, SymbolTable symbolTable, ResourceWriter resourceWriter, MethodGenerator mv) {
+    this(typeOracle, symbolTable, mv, Optional.empty(), resourceWriter);
   }
 
   public Optional<VPtrExpr> getVarArgsPtr() {
@@ -208,7 +213,18 @@ public class ExprFactory {
   }
 
   private GExpr forConstructor(GimpleConstructor expr) {
-    return typeOracle.forType(expr.getType()).constructorExpr(this, mv, expr);
+
+    VArrayExpr stringArray = Constructors.isStringArray(mv, resourceWriter, expr);
+    if(stringArray != null) {
+      return stringArray;
+    }
+
+    GExpr charArray = Constructors.isCharArray(mv, resourceWriter, expr);
+    if(charArray != null) {
+      return charArray;
+    }
+
+    return typeOracle.forType(expr.getType()).constructorExpr(this, mv, resourceWriter, expr);
   }
 
   public CallGenerator findCallGenerator(GimpleExpr functionExpr) {
@@ -226,7 +242,7 @@ public class ExprFactory {
 
     // Assume this is a function pointer ptr expression  
     FunPtrExpr expr = findGenerator(functionExpr).toFunPtr();
-    return new FunPtrCallGenerator(typeOracle, (GimpleFunctionType) functionExpr.getType().getBaseType(), expr.jexpr());
+    return new FunPtrCallGenerator(typeOracle, functionExpr.getType().getBaseType(), expr.jexpr());
   }
 
   public ConditionGenerator findConditionGenerator(GimpleOp op, List<GimpleExpr> operands) {

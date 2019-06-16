@@ -131,6 +131,10 @@ public class CharPtr extends AbstractPtr {
     return array == null && offset == 0;
   }
 
+  public static Ptr int16Array(String string) {
+    return new CharPtr(string.toCharArray());
+  }
+
   public static CharPtr fromString(String string) {
     int nchars = string.length();
     char array[] = new char[nchars+1];

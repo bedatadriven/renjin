@@ -89,6 +89,10 @@ public class Stdlib {
     return strncmp(x, y, Integer.MAX_VALUE);
   }
 
+  public static int strcoll(Ptr x, Ptr y) {
+    throw new UnsupportedOperationException("TODO: strcoll");
+  }
+
   /**
    * The <code>strcasecmp()</code> function compares <code>x</code> and <code>y</code> without sensitivity to case.
    * 
@@ -116,7 +120,11 @@ public class Stdlib {
    *         </table>
    */
   public static int strcasecmp(Ptr x, Ptr y) {
-    for (int i = 0; i < Integer.MAX_VALUE; ++i) {
+    return strncasecmp(x, y, Integer.MAX_VALUE);
+  }
+
+  public static int strncasecmp(Ptr x, Ptr y, int len) {
+    for (int i = 0; i < len; ++i) {
       int bx = Character.toLowerCase(x.getByte(i));
       int by = Character.toLowerCase(y.getByte(i));
 
@@ -131,6 +139,8 @@ public class Stdlib {
     }
     return 0;
   }
+
+
 
   /**
    * Returns a pointer to the first occurrence of character in the C string str.
@@ -1083,7 +1093,16 @@ public class Stdlib {
     throw new UnsupportedOperationException("TODO: mbrtowc");
   }
 
+  public static int mbstowcs(Ptr dst, Ptr src, int len) {
+    throw new UnsupportedOperationException("TODO: mbstowcs");
+  }
+
   public static int wcrtomb(Ptr s, int wc, Ptr ps) {
     throw new UnsupportedOperationException("TODO: wcrtomb");
   }
+
+  public static Ptr strerror(int errnum) {
+    throw new UnsupportedOperationException("strerror");
+  }
+
 }

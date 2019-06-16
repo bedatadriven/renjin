@@ -20,6 +20,7 @@
 package org.renjin.gnur.api;
 
 import org.renjin.gcc.runtime.BytePtr;
+import org.renjin.gcc.runtime.Ptr;
 
 @SuppressWarnings("unused")
 public final class Riconv {
@@ -30,7 +31,9 @@ public final class Riconv {
     throw new UnimplementedGnuApiMethod("Riconv_open");
   }
 
-  // size_t Riconv (void *cd, const char **inbuf, size_t *inbytesleft, char **outbuf, size_t *outbytesleft)
+  public static int Riconv (Ptr cd, Ptr inbuf, Ptr inbytesleft, Ptr outbuf, Ptr outbytesleft) {
+    throw new UnimplementedGnuApiMethod("Riconv");
+  }
 
   public static int Riconv_close(Object cd) {
     throw new UnimplementedGnuApiMethod("Riconv_close");

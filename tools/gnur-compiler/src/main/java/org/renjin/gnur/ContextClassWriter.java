@@ -21,6 +21,7 @@ package org.renjin.gnur;
 import org.renjin.eval.Context;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.BytecodeSizeEstimator;
 import org.renjin.gcc.codegen.CodeGenerationContext;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ConstantValue;
@@ -36,6 +37,7 @@ import org.renjin.repackaged.asm.ClassWriter;
 import org.renjin.repackaged.asm.MethodVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.tree.MethodNode;
 
 import java.io.IOException;
 import java.util.List;
@@ -164,30 +166,36 @@ public class ContextClassWriter {
    * Writes an instance constructor that initializes the global variables.
    */
   public void writeConstructor(CodeGenerationContext generationContext, List<ContextField> contextFields, List<GimpleVarDecl> globalVars) {
-    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+
+    MethodNode methodNode = new MethodNode(ACC_PUBLIC, "<init>", "()V", null, null);
+
+    MethodGenerator mv = new MethodGenerator(contextClass, methodNode);
     mv.visitCode();
     mv.visitVarInsn(ALOAD, 0);
     mv.visitMethodInsn(INVOKESPECIAL, Type.getInternalName(Object.class), "<init>", "()V", false);
 
-    MethodGenerator methodGenerator = new MethodGenerator(contextClass, mv);
-
     // Reserve "this" variable
-    methodGenerator.getLocalVarAllocator().reserve(contextClass);
+    mv.getLocalVarAllocator().reserve(contextClass);
 
     for (ContextField contextField : contextFields) {
-      contextField.writeFieldInit(methodGenerator);
+      contextField.writeFieldInit(mv);
     }
 
     for (GimpleVarDecl globalVar : globalVars) {
-      writeGlobalVarInit(generationContext, methodGenerator, globalVar);
+      writeGlobalVarInit(generationContext, methodNode, mv, globalVar);
     }
 
     mv.visitInsn(RETURN);
     mv.visitMaxs(1, 1);
     mv.visitEnd();
+
+    methodNode.accept(cv);
+
   }
 
-  private void writeGlobalVarInit(CodeGenerationContext generationContext, MethodGenerator mv, GimpleVarDecl globalVar) {
+  private void writeGlobalVarInit(CodeGenerationContext generationContext, MethodNode methodNode, MethodGenerator mv, GimpleVarDecl globalVar) {
+
+    int before = BytecodeSizeEstimator.estimateSize(methodNode);
 
     GimpleExpr initialValue = globalVar.getValue();
     if(initialValue == null && globalVar.getType() instanceof GimpleIndirectType) {
@@ -196,7 +204,11 @@ public class ContextClassWriter {
 
     if(initialValue != null) {
       SymbolTable symbolTable = generationContext.getSymbolTable(globalVar.getUnit());
-      ExprFactory exprFactory = new ExprFactory(generationContext.getTypeOracle(), symbolTable, mv);
+      ExprFactory exprFactory = new ExprFactory(
+          generationContext.getTypeOracle(),
+          symbolTable,
+          generationContext::writeResourceFile,
+          mv);
 
       GExpr initialValueExpr;
       try {
@@ -217,5 +229,9 @@ public class ContextClassWriter {
         }
       }
     }
+    int after = BytecodeSizeEstimator.estimateSize(methodNode);
+
+    System.out.println(globalVar.getName() + " => " + (after - before) + " bytes");
+
   }
 }

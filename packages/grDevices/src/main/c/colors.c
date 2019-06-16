@@ -127,7 +127,6 @@ static void hsv2rgb(double h, double s, double v,
     default:
 	error(_("bad hsv to rgb color conversion"));
     }
-    printf("b = %f\n", b);
 }
 
 /* rgb2hsv() -- the reverse (same reference as above)
@@ -1402,6 +1401,7 @@ static rcolor name2col(const char *nm)
 /* Search the color name database first */
 /* If this fails, create an #RRGGBB string */
 
+// RENJIN: replacement for stub in main/colors.c
 const char *col2name(rcolor col) {
     return incol2name(col);
 }
@@ -1453,7 +1453,7 @@ static rcolor str2col(const char *s, rcolor bg)
     } else return name2col(s);
 }
 
-rcolor inR_GE_str2col(const char *s)
+rcolor R_GE_str2col(const char *s)
 {
     if (streql(s, "0")) 
 	error(_("invalid color specification \"%s\""), s);
@@ -1463,7 +1463,7 @@ rcolor inR_GE_str2col(const char *s)
 /* Convert a sexp element to an R color desc */
 /* We Assume that Checks Have Been Done */
 
-
+// RENJIN: replacement for stub in main/colors.c
 rcolor RGBpar3(SEXP x, int i, rcolor bg)
 {
     return inRGBpar3(x, i, bg);
@@ -1539,7 +1539,7 @@ SEXP palette2(SEXP val)
     int n = length(val), *ians = INTEGER(ans); 
     for (int i = 0; i < PaletteSize; i++) ians[i] = (int)Palette[i];
     if (n) {
-	if (TYPEOF(val) != INTSXP) error("requires INTSXP argment");
+	if (TYPEOF(val) != INTSXP) error("requires INTSXP argument");
 	if (n > MAX_PALETTE_SIZE)
 	    error(_("maximum number of colors is %d"), MAX_PALETTE_SIZE);
 	for (int i = 0; i < n; i++) Palette[i] = (rcolor)INTEGER(val)[i];
@@ -1562,7 +1562,8 @@ SEXP colors(void)
 }
 
 /* Used to push/pop palette when replaying display list */
-static void savePaletteImpl(Rboolean save)
+// RENJIN: non-static as there is no stub in main/colors.c
+void savePalette(Rboolean save)
 {
     if (save)
 	for (int i = 0; i < PaletteSize; i++)
@@ -1572,21 +1573,11 @@ static void savePaletteImpl(Rboolean save)
 	    Palette[i] = Palette0[i];
 }
 
-/* same as src/main/colors.c */
-typedef unsigned int (*F1)(SEXP x, int i, unsigned int bg);
-typedef const char * (*F2)(unsigned int col);
-typedef unsigned int (*F3)(const char *s);
-typedef void (*F4)(Rboolean save);
 
-static F4 ptr_savePalette;
-
-void Rg_set_col_ptrs(F1 f1, F2 f2, F3 f3, F4 f4);
+// RENJIN: Removed pointers to stubs in main/colors.c
 
 void initPalette(void)
 {
-    ptr_savePalette = &savePaletteImpl;
-    //Rg_set_col_ptrs(&inRGBpar3, &incol2name, &inR_GE_str2col, &savePalette);
-
     /* Initialize the Color Database: we now pre-compute this
     for(int i = 0 ; ColorDataBase[i].name ; i++)
 	ColorDataBase[i].code = rgb2col(ColorDataBase[i].rgb);
@@ -1597,12 +1588,4 @@ void initPalette(void)
 	Palette[i] = name2col(DefaultPalette[i]);
     PaletteSize = i;  // 8
     */
-}
-
-/* used in baseEngine.c */
-attribute_hidden
-void savePalette(Rboolean save)
-{
-    if (!ptr_savePalette) error("package grDevices must be loaded");
-    (ptr_savePalette)(save);
 }

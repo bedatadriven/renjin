@@ -2,10 +2,14 @@
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1999-2016 The R Core Team.
  *
- *  This program is free software; you can redistribute it and/or modify
+ *  This header file is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation; either version 2.1 of the License, or
  *  (at your option) any later version.
+ * 
+ *  This file is part of R. R is distributed under the terms of the
+ *  GNU General Public License, either Version 2, June 1991 or Version 3,
+ *  June 2007. See doc/COPYRIGHTS for details of the copyright status of R.
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -70,20 +74,20 @@ extern void *malloc (size_t __size);
 
 #ifndef STRICT_R_HEADERS
 /* S-PLUS 3.x but not 5.x NULLs the pointer in the following */
-#define Calloc(n, t)   (t *) R_chk_calloc( (size_t) (n), sizeof(t) )
-#define Realloc(p,n,t) (t *) realloc( (void *)(p), (size_t)((n) * sizeof(t)) )
-#define Free(p)        (R_chk_free( (void *)(p) ), (p) = NULL)
+#define Calloc(n, t)   (t *) calloc( (R_SIZE_T) (n), sizeof(t) )
+#define Realloc(p,n,t) (t *) realloc( (void *)(p), (R_SIZE_T)((n) * sizeof(t)) )
+#define Free(p)        (free( (void *)(p) ), (p) = NULL)
 #endif
-#define R_Calloc(n, t)   (t *) R_chk_calloc( (size_t) (n), sizeof(t) )
-#define R_Realloc(p,n,t) (t *) realloc( (void *)(p), (size_t)((n) * sizeof(t)) )
-#define R_Free(p)      (R_chk_free( (void *)(p) ), (p) = NULL)
+#define R_Calloc(n, t)   (t *) calloc( (R_SIZE_T) (n), sizeof(t) )
+#define R_Realloc(p,n,t) (t *) realloc( (void *)(p), (R_SIZE_T)((n) * sizeof(t)) )
+#define R_Free(p)      (free( (void *)(p) ), (p) = NULL)
 
-#define Memcpy(p,q,n)  memcpy( p, q, (size_t)(n) * sizeof(*p) )
+#define Memcpy(p,q,n)  memcpy( p, q, (R_SIZE_T)(n) * sizeof(*p) )
 
 /* added for 3.0.0 */
-#define Memzero(p,n)  memset(p, 0, (size_t)(n) * sizeof(*p))
+#define Memzero(p,n)  memset(p, 0, (R_SIZE_T)(n) * sizeof(*p))
 
-#define CallocCharBuf(n) (char *) R_chk_calloc((size_t) ((n)+1), sizeof(char))
+#define CallocCharBuf(n) (char *) R_chk_calloc((R_SIZE_T) ((n)+1), sizeof(char))
 
 /* S Like Fortran Interface */
 /* These may not be adequate everywhere. Convex had _ prepending common

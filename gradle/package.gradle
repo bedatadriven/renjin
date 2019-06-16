@@ -16,7 +16,6 @@ dependencies {
     testCompile project(':packages:hamcrest')
 }
 
-def homeDir = rootProject.file('tools/gnur-installation/src/main/resources')
 
 task compileNamespace(type: JavaExec, dependsOn: [ ':tools:gcc-bridge:compiler:compilePlugin', ':tools:packager:build', 'processResources' ]) {
 
@@ -30,7 +29,7 @@ task compileNamespace(type: JavaExec, dependsOn: [ ':tools:gcc-bridge:compiler:c
     if(project.file('src/main/data').exists()) {
         inputs.dir 'src/main/data'
     }
-    inputs.dir homeDir
+    inputs.dir gnuHomeDir
     outputs.dir "$buildDir/namespace"
     outputs.files()
 
@@ -40,15 +39,22 @@ task compileNamespace(type: JavaExec, dependsOn: [ ':tools:gcc-bridge:compiler:c
         classpath sourceSets.main.output
 
         environment "PACKAGE_GROUP_ID", project.group
-        environment "R_HOME", homeDir
+        environment "R_HOME", gnuHomeDir
         environment "GCC_BRIDGE_PLUGIN", gccBridgePlugin
         environment "SOOT_CLASSPATH", (sourceSets.main.output + sourceSets.main.compileClasspath)
                 .filter({it.exists()})
                 .getAsPath()
 
+//        environment "GCC_BRIDGE_IGNORE_ERRORS", "TRUE"
+
+
         // For now, only transform global variables of grDevices and graphics packages
         if(project.name == "grDevices" || project.name == "graphics") {
             environment "TRANSFORM_GLOBAL_VARIABLES", "TRUE"
+        }
+
+        if(project.hasProperty("compileDebug")) {
+            jvmArgs "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8000"
         }
 
         main = 'org.renjin.packaging.CorePackageBuilder'

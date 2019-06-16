@@ -19,6 +19,7 @@
 package org.renjin.gcc.codegen.array;
 
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.ResourceWriter;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
@@ -159,7 +160,7 @@ public class ArrayTypeStrategy implements TypeStrategy<FatArrayExpr> {
 
 
   @Override
-  public FatArrayExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor constructor) {
+  public FatArrayExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, ResourceWriter resourceWriter, GimpleConstructor constructor) {
     List<JExpr> values = Lists.newArrayList();
     addElementConstructors(values, exprFactory, constructor);
 

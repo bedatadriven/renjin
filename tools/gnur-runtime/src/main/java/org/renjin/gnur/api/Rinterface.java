@@ -19,14 +19,19 @@
 // Initial template generated from Rinterface.h from R 3.2.2
 package org.renjin.gnur.api;
 
+import org.renjin.gcc.annotations.GlobalVar;
 import org.renjin.gcc.runtime.BytePtr;
+import org.renjin.primitives.io.connections.Connection;
 
 @SuppressWarnings("unused")
 public final class Rinterface {
 
   private Rinterface() { }
 
-
+  @GlobalVar
+  public static Connection R_Consolefile() {
+    throw new UnimplementedGnuApiMethod("R_Consolefile");
+  }
 
   public static void R_RestoreGlobalEnv() {
     throw new UnimplementedGnuApiMethod("R_RestoreGlobalEnv");

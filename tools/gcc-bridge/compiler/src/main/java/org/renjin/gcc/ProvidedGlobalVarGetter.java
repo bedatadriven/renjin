@@ -24,6 +24,7 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 
 import java.lang.reflect.Method;
@@ -45,6 +46,8 @@ public class ProvidedGlobalVarGetter implements ProvidedGlobalVar {
     TypeStrategy strategy;
     if(typeOracle.getRecordTypes().isMappedToRecordType(getterMethod.getReturnType())) {
       strategy = typeOracle.getRecordTypes().getPointerStrategyFor(getterMethod.getReturnType());
+    } else if (getterMethod.getReturnType().equals(Ptr.class)) {
+      strategy = typeOracle.forPointerType(decl.getType()).pointerTo();
     } else {
       throw new UnsupportedOperationException("TODO: " + getterMethod.getReturnType());
     }

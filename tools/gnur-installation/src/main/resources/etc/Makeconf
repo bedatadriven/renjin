@@ -1,71 +1,43 @@
-# etc/Makeconf.  Generated from Makeconf.in by configure.
+# etc/Makeconf.  Generated from Makeconf.in by configure from
+# GNU R 3.5.3, and updated for Renjin.
 #
 # ${R_HOME}/etc/Makeconf
 #
-# R was configured using the following call
-# (not including env. vars and site configuration)
-# configure  '--prefix=/usr' '--with-cairo' '--with-jpeglib' '--with-readline' '--with-tcltk' '--with-system-bzlib' '--with-system-pcre' '--with-system-zlib' '--mandir=/usr/share/man' '--infodir=/usr/share/info' '--datadir=/usr/share/R/share' '--includedir=/usr/share/R/include' '--with-blas' '--with-lapack' '--enable-R-profiling' '--enable-R-shlib' '--enable-memory-profiling' '--without-recommended-packages' '--build' 'x86_64-linux-gnu' 'build_alias=x86_64-linux-gnu' 'R_PRINTCMD=/usr/bin/lpr' 'R_PAPERSIZE=letter' 'R_BROWSER=xdg-open' 'LIBnn=lib' 'JAVA_HOME=/usr/lib/jvm/default-java' 'CC=gcc -std=gnu99' 'CFLAGS=-g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g' 'LDFLAGS=-Wl,-Bsymbolic-functions -Wl,-z,relro' 'CPPFLAGS=' 'F77=gfortran' 'FFLAGS=-g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4' 'CXX=g++' 'CXXFLAGS=-g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g' 'FC=gfortran' 'FCFLAGS=-g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4'
+
+# This script is based on running the following:
+# configure  '--without-recommended-packages' '--disable-java' '--without-x'
 
 ## This fails if it contains spaces, or if it is quoted
-##include $(R_SHARE_DIR)/make/vars.mk
-
-#################################################################################################3
-#  Inlined from vars.mk
-## Static (i.e., not determined by configure) Make variables to be
-## shared *and* grepped from m4/R.m4 and tools/*-recommended.
-
-## There is also 'translations', but that is not Priority: base
-## so it can be handled by update.packages() in due course.
-R_PKGS_BASE = base tools utils grDevices graphics stats datasets methods grid splines stats4 tcltk compiler parallel
-## Those which can be installed initially compiled (not base tools)
-R_PKGS_BASE1 = utils grDevices graphics stats datasets methods grid splines stats4 tcltk parallel
-## Those with standard R directories (not datasets, methods)
-R_PKGS_BASE2 = base tools utils grDevices graphics stats grid splines stats4 tcltk compiler parallel
-
-R_PKGS_RECOMMENDED =  MASS lattice Matrix nlme survival boot cluster codetools foreign KernSmooth rpart class nnet spatial mgcv
-# there are dependencies in src/library/Recommended/Makefile*
-# which this order respects
-####################################################################################################################
-
-##########################################################################################################
-# Renjin Specific
-
-RENJIN_FLAGS=-m32 -fplugin=${BRIDGE_PLUGIN} -DRENJIN  -fno-inline-functions  -fdisable-tree-einline
-
-# Right now our gimple compiler is not good at hanlding optimized Gimple,
-# so turn it off for now.
-OPT_FLAGS=
-####################################################################################################################
+include $(R_SHARE_DIR)/make/vars.mk
 
 AR = ar
-## Used by packages 'maps' and 'mapdata'
-AWK = /usr/bin/awk
 BLAS_LIBS = -lblas
 C_VISIBILITY = -fvisibility=hidden
 CC = gcc-4.7 -std=gnu99
-CFLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security  -D_FORTIFY_SOURCE=2 -g $(LTO)
+CFLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} $(LTO)
 CPICFLAGS = -fpic
-CPPFLAGS = 
+CPPFLAGS =
 CXX = g++-4.7
 CXXCPP = $(CXX) -E
-CXXFLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g $(LTO)
+CXXFLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} $(LTO)
 CXXPICFLAGS = -fpic
 CXX98 = g++-4.7
-CXX98FLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g
+CXX98FLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS}
 CXX98PICFLAGS = -fpic
-CXX98STD =
+CXX98STD = -std=gnu++98
 CXX11 = g++-4.7
-CXX11FLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS}  -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g
+CXX11FLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS}
 CXX11PICFLAGS = -fpic
 CXX11STD = -std=gnu++11
 CXX14 = g++-4.7
-CXX14FLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g
+CXX14FLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS}
 CXX14PICFLAGS = -fpic
 CXX14STD = -std=gnu++14
 CXX17 =
 CXX17FLAGS =
 CXX17PICFLAGS =
 CXX17STD =
+CXX_VISIBILITY = -fvisibility=hidden
 DYLIB_EXT = .so
 DYLIB_LD = $(CC)
 DYLIB_LDFLAGS = -shared -fopenmp# $(CFLAGS) $(CPICFLAGS)
@@ -75,13 +47,16 @@ ECHO_C =
 ECHO_N = -n
 ECHO_T = 
 ## NB, set FC before F77 as on Solaris make, setting FC sets F77
+## FC is the compiler used for free-form Fortran, exts .f90/.f95
 FC = gfortran-4.7
-FCFLAGS = -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 $(LTO)
-## additional libs needed when linking with $(FC), e.g. on Solaris
-FCLIBS = 
+FCFLAGS = -g ${OPT_FLAGS} $(LTO)
+## additional libs needed when linking with $(FC), e.g. on some Oracle compilers
+FCLIBS =
+## F77 is the compiler used for fixed-form Fortran, ext .f
 F77 = gfortran-4.7
 F77_VISIBILITY = -fvisibility=hidden
-FFLAGS =  ${RENJIN_FLAGS} -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 $(LTO)
+F_VISIBILITY = -fvisibility=hidden
+FFLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} $(LTO)
 FLIBS =  -lgfortran -lm -lquadmath
 FCPICFLAGS = -fpic
 FPICFLAGS = -fpic
@@ -104,24 +79,24 @@ LIBM = -lm
 LIBR0 = -L$(R_HOME)/lib$(R_ARCH)
 LIBR1 = -lR
 LIBR = -L$(R_HOME)/lib$(R_ARCH) -lR
-LIBS =  -lpcre -llzma -lbz2 -lz -lrt -ldl -lm
+LIBS =  -lpcre -llzma -lbz2 -lz -lrt -ldl -lm -licuuc -licui18n
 ## needed by R CMD config
 LIBnn = lib
 LIBTOOL = $(SHELL) "$(R_HOME)/bin/libtool"
-LDFLAGS = -Wl,-Bsymbolic-functions -Wl,-z,relro
+LDFLAGS = -L/usr/local/lib
 LTO = 
 ## needed to build applications linking to static libR
 MAIN_LD = $(CC)
 MAIN_LDFLAGS = -Wl,--export-dynamic -fopenmp
 MAIN_LINK = $(MAIN_LD) $(MAIN_LDFLAGS) $(LDFLAGS)
-MKINSTALLDIRS = $(R_HOME)/bin/mkinstalldirs
+MKINSTALLDIRS = "$(R_HOME)/bin/mkinstalldirs"
 OBJC = 
 OBJCFLAGS =  $(LTO)
 OBJC_LIBS = 
 OBJCXX = 
 R_ARCH = 
 RANLIB = ranlib
-SAFE_FFLAGS = ${RENJIN_FLAGS}  -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -ffloat-store
+SAFE_FFLAGS = ${RENJIN_FLAGS}  -g -msse2 -mfpmath=sse
 SED = /bin/sed
 SHELL = /bin/bash
 SHLIB_CFLAGS = 
@@ -163,17 +138,18 @@ YACC = bison -y
 
 ## legacy
 CXX1X = g++-4.7
-CXX1XFLAGS = ${RENJIN_FLAGS} -g -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g
+CXX1XFLAGS = ${RENJIN_FLAGS} -g
 CXX1XPICFLAGS = -fpic
 CXX1XSTD = -std=gnu++11
 SHLIB_CXX1XLD = $(CXX11) $(CXX11STD)
 SHLIB_CXX1XLDFLAGS = -shared
 
+
 ## for linking to libR.a
 STATIC_LIBR = # -Wl,--whole-archive "$(R_HOME)/lib$(R_ARCH)/libR.a" -Wl,--no-whole-archive $(BLAS_LIBS) $(FLIBS)  $(LIBINTL) -lreadline  $(LIBS)
 
-R_XTRA_CFLAGS = 
-R_XTRA_CPPFLAGS =  -I$(R_INCLUDE_DIR) -DNDEBUG
+R_XTRA_CFLAGS = -DHAVE_CONFIG_H
+R_XTRA_CPPFLAGS =  -I"$(R_INCLUDE_DIR)" -DNDEBUG
 R_XTRA_CXXFLAGS = 
 R_XTRA_FFLAGS = 
 

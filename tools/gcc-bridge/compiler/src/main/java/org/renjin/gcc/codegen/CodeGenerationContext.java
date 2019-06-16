@@ -34,5 +34,9 @@ public interface CodeGenerationContext {
 
   SymbolTable getSymbolTable(GimpleCompilationUnit unit);
 
-  void writeClassFile(Type className, byte[] bytes) throws IOException;
+  default void writeClassFile(Type className, byte[] bytes) throws IOException {
+    writeResourceFile(className + ".class", bytes);
+  }
+
+  void writeResourceFile(String resourceName, byte[] bytes) throws IOException;
 }

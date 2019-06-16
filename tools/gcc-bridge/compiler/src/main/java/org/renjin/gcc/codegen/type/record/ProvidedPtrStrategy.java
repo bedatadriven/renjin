@@ -19,6 +19,7 @@
 package org.renjin.gcc.codegen.type.record;
 
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.ResourceWriter;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
@@ -62,7 +63,7 @@ public class ProvidedPtrStrategy implements PointerTypeStrategy<ProvidedPtrExpr>
   }
 
   @Override
-  public ProvidedPtrExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
+  public ProvidedPtrExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, ResourceWriter resourceWriter, GimpleConstructor value) {
     throw new UnsupportedOperationException("TODO");
   }
 

@@ -2,10 +2,14 @@
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 2001-11 The R Core Team.
  *
- *  This program is free software; you can redistribute it and/or modify
+ *  This header file is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation; either version 2.1 of the License, or
  *  (at your option) any later version.
+ *
+ *  This file is part of R. R is distributed under the terms of the
+ *  GNU General Public License, either Version 2, June 1991 or Version 3,
+ *  June 2007. See doc/COPYRIGHTS for details of the copyright status of R.
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,7 +18,7 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with this program; if not, a copy is available at
- *  http://www.r-project.org/Licenses/
+ *  https://www.R-project.org/Licenses/
  */
 
 /* Used by graphics.c, grid and by third-party graphics devices */
@@ -57,9 +61,18 @@ extern "C" {
  *             haveCapture, haveLocator.  (R 2.14.0)
  * Version 10: For R 3.0.0.  Typedef and use 'rcolor',
  *             Remove name2col (R_GE_str2col does the job).
+ * Version 11: For R 3.3.0.
+ *             Official support for saving/restoring display lists
+ *             across R sessions (via recordPlot() and replayPlot())
+ *             - added grid DL to snapshots (used to be NULL)
+ *             - added this version number to snapshots (as attribute)
+ *             - added R version number to snapshots (as attribute)
+ *             - added pkgName to graphics system state info (as attribute)
+ * Version 12: For R 3.4.0
+ *             Added canGenIdle, doIdle() and doesIdle() to devices.
  */
 
-#define R_GE_version 10
+#define R_GE_version 12
 
 int R_GE_getVersion(void);
 
@@ -161,7 +174,7 @@ typedef enum {
  * Devices are not *required* to honour graphical parameters
  * (e.g., alpha transparency is going to be tough for some)
  */
-typedef struct _R_GE_gcontext {
+typedef struct {
     /*
      * Colours
      *
@@ -186,10 +199,9 @@ typedef struct _R_GE_gcontext {
     double lineheight;   /* Line height (multiply by font size) */
     int fontface;        /* Font face (plain, italic, bold, ...) */
     char fontfamily[201]; /* Font family */
-};
+} R_GE_gcontext;
 
-typedef struct _R_GE_gcontext R_GE_gcontext;
-typedef struct _R_GE_gcontext* pGEcontext;
+typedef R_GE_gcontext* pGEcontext;
 
 
 #include <R_ext/GraphicsDevice.h> /* needed for DevDesc */
@@ -198,7 +210,7 @@ typedef struct _GEDevDesc GEDevDesc;
 
 typedef SEXP (* GEcallback)(GEevent, GEDevDesc *, SEXP);
 
-struct _GESystemDesc {
+typedef struct {
     /* An array of information about each graphics system that
      * has registered with the graphics engine.
      * This is used to store graphics state for each graphics
@@ -219,9 +231,7 @@ struct _GESystemDesc {
      * the graphics engine will know what array index to use.
      */
     GEcallback callback;
-};
-
-typedef struct _GESystemDesc GESystemDesc;
+} GESystemDesc;
 
 struct _GEDevDesc {
     /*
@@ -480,7 +490,7 @@ SEXP GEcontourLines(double *x, int nx, double *y, int ny,
  */
 double R_GE_VStrWidth(const char *s, cetype_t enc, const pGEcontext gc, pGEDevDesc dd);
 
-    double R_GE_VStrHeight(const char *s, cetype_t enc, const pGEcontext gc, pGEDevDesc dd);
+double R_GE_VStrHeight(const char *s, cetype_t enc, const pGEcontext gc, pGEDevDesc dd);
 void R_GE_VText(double x, double y, const char * const s, cetype_t enc,
 		double x_justify, double y_justify, double rotation,
 		const pGEcontext gc, pGEDevDesc dd);

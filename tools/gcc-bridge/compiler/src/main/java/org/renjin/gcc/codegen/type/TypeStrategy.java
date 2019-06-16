@@ -19,6 +19,7 @@
 package org.renjin.gcc.codegen.type;
 
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.ResourceWriter;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
@@ -68,7 +69,7 @@ public interface TypeStrategy<ExprT extends GExpr> {
   /**
    * Creates an expression generator for constructors of this type.
    */
-  ExprT constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value);
+  ExprT constructorExpr(ExprFactory exprFactory, MethodGenerator mv, ResourceWriter resourceWriter, GimpleConstructor value);
 
   /**
    * Creates a new FieldGenerator for fields of this type.

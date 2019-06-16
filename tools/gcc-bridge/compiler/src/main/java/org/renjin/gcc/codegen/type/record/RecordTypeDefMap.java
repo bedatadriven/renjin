@@ -23,12 +23,14 @@ import org.renjin.gcc.codegen.vptr.VPtrRecordTypeStrategy;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
+import org.renjin.gcc.link.RecordSymbol;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Preconditions;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class RecordTypeDefMap {
 
@@ -44,18 +46,17 @@ public class RecordTypeDefMap {
    */
   private Map<Type, ProvidedTypeStrategy> providedTypeMap = new HashMap<>();
 
-  public void init(List<GimpleCompilationUnit> units, Map<String, Type> providedRecordTypes) {
+  public void init(List<GimpleCompilationUnit> units, ClassLoader classLoader) {
     for (GimpleCompilationUnit unit : units) {
       for (GimpleRecordTypeDef recordTypeDef : unit.getRecordTypes()) {
         typeDefMap.put(recordTypeDef.getId(), recordTypeDef);
+        Optional<RecordSymbol> recordSymbol = RecordSymbol.forName(classLoader, recordTypeDef.getName());
+        recordSymbol.ifPresent(symbol -> {
+          ProvidedTypeStrategy strategy = new ProvidedTypeStrategy(recordTypeDef, symbol.getProvidedType());
 
-        if (providedRecordTypes.containsKey(recordTypeDef.getName())) {
-          Type jvmClass = providedRecordTypes.get(recordTypeDef.getName());
-          ProvidedTypeStrategy strategy = new ProvidedTypeStrategy(recordTypeDef, jvmClass);
-
-          recordNameMap.put(recordTypeDef.getName(), strategy);
-          providedTypeMap.put(jvmClass, strategy);
-        }
+          recordNameMap.put(symbol.getName(), strategy);
+          providedTypeMap.put(symbol.getProvidedType(), strategy);
+        });
       }
     }
   }

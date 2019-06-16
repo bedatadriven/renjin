@@ -1,12 +1,16 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998--2015  The R Core Team.
+ *  Copyright (C) 1998--2016  The R Core Team.
  *
- *  This program is free software; you can redistribute it and/or modify
+ *  This header file is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation; either version 2.1 of the License, or
  *  (at your option) any later version.
+ *
+ *  This file is part of R. R is distributed under the terms of the
+ *  GNU General Public License, either Version 2, June 1991 or Version 3,
+ *  June 2007. See doc/COPYRIGHTS for details of the copyright status of R.
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,7 +19,7 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with this program; if not, a copy is available at
- *  http://www.r-project.org/Licenses/
+ *  https://www.R-project.org/Licenses/
  */
 
 /* Included by R.h: API */
@@ -24,26 +28,15 @@
 #define R_ARITH_H_
 
 /* 
-   This used to define _BSD_SOURCE to make declarations of finite and
-   isnan visible in glibc.  But that was deprecated in glibc 2.20, and
-   --std=c99 suffices nowadays.
+   This used to define _BSD_SOURCE to make declarations of isfinite
+   and isnan visible in glibc.  But that was deprecated in glibc 2.20,
+   and --std=c99 suffices nowadays.
 */
-#if defined HAVE_FEATURES_H
-# include <features.h>
-# ifdef __GNUC_PREREQ
-#  if __GNUC_PREREQ(2,20) && !defined(_DEFAULT_SOURCE_)
-#   define _DEFAULT_SOURCE 1
-#  endif
-# endif
-#endif
-#if defined(HAVE_GLIBC2) && !defined(_DEFAULT_SOURCE_) && !defined(_BSD_SOURCE)
-# define _BSD_SOURCE 1
-#endif
 
 #include <R_ext/libextern.h>
 #ifdef  __cplusplus
 extern "C" {
-#elif !defined(NO_C_HEADERS)
+#else
 /* needed for isnan and isfinite, neither of which are used under C++ */
 # include <math.h>
 #endif
@@ -73,7 +66,7 @@ int R_finite(double);		/* True if none of NA, NaN, +/-Inf */
 /* ISNAN(): True for *both* NA and NaN.
    NOTE: some systems do not return 1 for TRUE.
    Also note that C++ math headers specifically undefine
-   isnan if it is a macro (it is on OS X and in C99),
+   isnan if it is a macro (it is on macOS and in C99),
    hence the workaround.  This code also appears in Rmath.h
 */
 #ifdef __cplusplus

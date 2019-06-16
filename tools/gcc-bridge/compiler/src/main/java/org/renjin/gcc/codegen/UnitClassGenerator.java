@@ -70,6 +70,8 @@ public class UnitClassGenerator {
   
   private final GlobalVarAllocator globalVarAllocator;
 
+  private final ResourceWriter resourceWriter;
+
   private final List<GimpleVarDecl> varToGenerate = Lists.newArrayList();
 
   private final List<LinkSymbol> globalVariableSymbols = new ArrayList<>();
@@ -83,8 +85,10 @@ public class UnitClassGenerator {
                             GlobalSymbolTable globalSymbolTable,
                             List<GlobalVarTransformer> globalVarTransformers,
                             GimpleCompilationUnit unit,
+                            ResourceWriter resourceWriter,
                             String className) {
     this.unit = unit;
+    this.resourceWriter = resourceWriter;
     this.className = className;
     this.typeOracle = typeOracle;
     this.globalVarAllocator = new GlobalVarAllocator(className);
@@ -107,7 +111,7 @@ public class UnitClassGenerator {
       if (!isExcluded(function)) {
         try {
           symbolTable.addFunction(function,
-              new FunctionGenerator(className, function, typeOracle, globalVarAllocator, symbolTable));
+              new FunctionGenerator(className, function, typeOracle, globalVarAllocator, symbolTable, resourceWriter));
         } catch (Exception e) {
           throw new InternalCompilerException(String.format("Exception creating %s for %s in %s: %s",
               FunctionGenerator.class.getSimpleName(),
@@ -222,7 +226,7 @@ public class UnitClassGenerator {
     MethodGenerator mv = new MethodGenerator(className, cv.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null));
     mv.visitCode();
 
-    ExprFactory exprFactory = new ExprFactory(typeOracle, symbolTable, mv);
+    ExprFactory exprFactory = new ExprFactory(typeOracle, symbolTable, resourceWriter, mv);
     
     globalVarAllocator.writeFieldInitialization(mv);
   
@@ -311,7 +315,7 @@ public class UnitClassGenerator {
 
     String initMethodName = VarAllocator.toJavaSafeName(decl.getMangledName()) + "$$clinit";
     MethodGenerator mv = new MethodGenerator(className, cv.visitMethod(ACC_STATIC, initMethodName, "()V", null, null));
-    ExprFactory exprFactory = new ExprFactory(typeOracle, symbolTable, mv);
+    ExprFactory exprFactory = new ExprFactory(typeOracle, symbolTable, resourceWriter, mv);
     mv.visitCode();
     tryWriteInitCode(mv, exprFactory, decl, varGenerator, initialValue);
     mv.visitInsn(RETURN);

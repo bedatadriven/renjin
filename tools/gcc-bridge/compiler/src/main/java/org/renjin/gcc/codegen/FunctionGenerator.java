@@ -47,7 +47,6 @@ import org.renjin.repackaged.asm.util.Textifier;
 import org.renjin.repackaged.asm.util.TraceMethodVisitor;
 import org.renjin.repackaged.guava.base.Throwables;
 import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.repackaged.guava.collect.Maps;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -62,11 +61,12 @@ public class FunctionGenerator implements InvocationStrategy {
 
   private String className;
   private GimpleFunction function;
+  private ResourceWriter resourceWriter;
   private final List<String> aliases = new ArrayList<>();
 
   private boolean variadic;
   private VariadicStrategy variadicStrategy;
-  private Map<GimpleParameter, ParamStrategy> params = Maps.newHashMap();
+  private Map<GimpleParameter, ParamStrategy> params;
   private ReturnStrategy returnStrategy;
   
   private Labels labels = new Labels();
@@ -85,12 +85,13 @@ public class FunctionGenerator implements InvocationStrategy {
   private boolean compilationFailed = false;
 
   public FunctionGenerator(String className, GimpleFunction function, TypeOracle typeOracle,
-                           GlobalVarAllocator globalVarAllocator, UnitSymbolTable symbolTable) {
+                           GlobalVarAllocator globalVarAllocator, UnitSymbolTable symbolTable, ResourceWriter writer) {
     this.className = className;
     this.function = function;
     this.typeOracle = typeOracle;
     this.functionOracle = new FunctionOracle(typeOracle, function);
     this.params = this.typeOracle.forParameters(function.getParameters());
+    this.resourceWriter = writer;
 
     if(function.isVariadic()) {
       this.variadic = true;
@@ -154,7 +155,7 @@ public class FunctionGenerator implements InvocationStrategy {
 
 
       mv = new MethodGenerator(className, methodNode);
-      this.exprFactory = new ExprFactory(typeOracle, this.localSymbolTable, mv, varArgsPtr);
+      this.exprFactory = new ExprFactory(typeOracle, this.localSymbolTable, mv, varArgsPtr, resourceWriter);
 
       mv.visitCode();
       mv.visitLabel(beginLabel);
@@ -263,7 +264,7 @@ public class FunctionGenerator implements InvocationStrategy {
         getFunctionDescriptor(), null, null);
 
     mv = new MethodGenerator(className, methodNode);
-    this.exprFactory = new ExprFactory(typeOracle, this.localSymbolTable, mv);
+    this.exprFactory = new ExprFactory(typeOracle, this.localSymbolTable, resourceWriter, mv);
 
     mv.visitCode();
     mv.anew(Type.getType(RuntimeException.class));
@@ -346,7 +347,7 @@ public class FunctionGenerator implements InvocationStrategy {
       return;
     }
 
-    ExprFactory exprFactory = new ExprFactory(typeOracle, localStaticSymbolTable, mv);
+    ExprFactory exprFactory = new ExprFactory(typeOracle, localStaticSymbolTable, resourceWriter, mv);
 
     for (GimpleVarDecl decl : function.getVariableDeclarations()) {
       if(decl.isStatic()) {

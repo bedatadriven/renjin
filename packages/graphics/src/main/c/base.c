@@ -211,8 +211,7 @@ static SEXP baseCallback(GEevent task, pGEDevDesc dd, SEXP data)
 	GPar *ddp;
 	sd = dd->gesd[baseRegisterIndex];
 	dev = dd->dev;
-	bss = malloc(sizeof(baseSystemState));
-	sd->systemSpecific = bss;
+	bss = sd->systemSpecific = malloc(sizeof(baseSystemState));
         /* Bail out if necessary */
         if (!bss) return result;
 	/* Make sure initialized, or valgrind may complain. */

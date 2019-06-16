@@ -19,6 +19,7 @@
 package org.renjin.gcc.codegen.vptr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.ResourceWriter;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
@@ -74,10 +75,10 @@ public class VArrayStrategy implements TypeStrategy<VArrayExpr> {
   }
 
   @Override
-  public VArrayExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
+  public VArrayExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, ResourceWriter resourceWriter, GimpleConstructor value) {
 
     if(arrayType.getComponentType() instanceof GimpleIndirectType) {
-      return pointerArrayConstructorExpr(exprFactory, mv, value);
+      return pointerArrayConstructorExpr(exprFactory, mv, resourceWriter, value);
     }
     if(arrayType.getComponentType() instanceof GimpleRecordType) {
       return mixedRecordArrayConstructor(exprFactory, mv, value);
@@ -110,8 +111,7 @@ public class VArrayStrategy implements TypeStrategy<VArrayExpr> {
     return new VArrayExpr(arrayType, tempVar);
   }
 
-  private VArrayExpr pointerArrayConstructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
-
+  private VArrayExpr pointerArrayConstructorExpr(ExprFactory exprFactory, MethodGenerator mv, ResourceWriter resourceWriter, GimpleConstructor value) {
     List<JExpr> pointers = new ArrayList<>();
     for (GimpleConstructor.Element element : value.getElements()) {
       GExpr ptrExpr = exprFactory.findGenerator(element.getValue(), arrayType.getComponentType());
@@ -121,10 +121,10 @@ public class VArrayStrategy implements TypeStrategy<VArrayExpr> {
     JExpr array = Expressions.newArray(Type.getType(Ptr.class), arrayType.getElementCount(), pointers);
 
     VPtrExpr pointer = new VPtrExpr(Expressions.newObject(Type.getType(PointerPtr.class), array));
-    VArrayExpr arrayExpr = new VArrayExpr(arrayType, pointer);
 
-    return arrayExpr;
+    return new VArrayExpr(arrayType, pointer);
   }
+
 
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) {

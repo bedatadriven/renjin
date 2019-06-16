@@ -20,6 +20,7 @@
 package org.renjin.gnur.api;
 
 import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.primitives.io.connections.Connection;
 
 @SuppressWarnings("unused")
 public final class Rconnections {
@@ -36,9 +37,13 @@ public final class Rconnections {
 
   // int Rconn_printf (Rconnection con, const char *format,...)
 
-  // Rconnection getConnection (int n)
+  public static Connection getConnection(int n) {
+    throw new UnimplementedGnuApiMethod("getConnection");
+  }
 
-  // Rconnection getConnection_no_err (int n)
+  public static Connection getConnection_no_err (int n) {
+    throw new UnimplementedGnuApiMethod("getConnection_no_err");
+  }
 
   public static boolean switch_stdout(int icon, int closeOnExit) {
     throw new UnimplementedGnuApiMethod("switch_stdout");

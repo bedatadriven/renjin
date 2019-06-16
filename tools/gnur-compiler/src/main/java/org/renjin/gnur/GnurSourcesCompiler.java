@@ -26,10 +26,8 @@ import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gnur.api.Error;
 import org.renjin.gnur.api.*;
-import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.io.Files;
-import org.renjin.sexp.SEXP;
 
 import java.io.File;
 import java.util.Date;
@@ -174,8 +172,6 @@ public class GnurSourcesCompiler {
   }
 
   public static void setupCompiler(GimpleCompiler compiler) throws ClassNotFoundException {
-    compiler.addReferenceClass(Class.forName("org.renjin.appl.Appl"));
-    compiler.addReferenceClass(Class.forName("org.renjin.math.Blas"));
     Class distributionsClass = Class.forName("org.renjin.stats.internals.Distributions");
     compiler.addReferenceClass(distributionsClass);
     compiler.addMethod("Rf_dbeta", distributionsClass, "dbeta");
@@ -191,14 +187,12 @@ public class GnurSourcesCompiler {
     compiler.addReferenceClass(GetText.class);
     compiler.addReferenceClass(GetX11Image.class);
     compiler.addReferenceClass(Internal.class);
-    compiler.addReferenceClass(Memory.class);
     compiler.addReferenceClass(Parse.class);
     compiler.addReferenceClass(Print.class);
     compiler.addReferenceClass(PrtUtil.class);
     compiler.addReferenceClass(QuartzDevice.class);
     compiler.addReferenceClass(R.class);
     compiler.addReferenceClass(R_ftp_http.class);
-    compiler.addReferenceClass(Sort.class);
     compiler.addReferenceClass(Random.class);
     compiler.addReferenceClass(Rconnections.class);
     compiler.addReferenceClass(Rdynload.class);
@@ -217,10 +211,7 @@ public class GnurSourcesCompiler {
     compiler.addReferenceClass(stats_stubs.class);
     compiler.addReferenceClass(Utils.class);
 
-    compiler.addRecordClass("SEXPREC", SEXP.class);
-
     compiler.addReferenceClass(Rdynload.class);
-    compiler.addRecordClass("_DllInfo", DllInfo.class);
     compiler.addReferenceClass(RenjinFiles.class);
 
     compiler.addTransformer(new SetTypeRewriter());

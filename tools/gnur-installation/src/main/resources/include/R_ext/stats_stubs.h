@@ -2,10 +2,14 @@
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 2007  The R Core Team.
  *
- *  This program is free software; you can redistribute it and/or modify
+ *  This header file is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation; either version 2.1 of the License, or
  *  (at your option) any later version.
+ *
+ *  This file is part of R. R is distributed under the terms of the
+ *  GNU General Public License, either Version 2, June 1991 or Version 3,
+ *  June 2007. See doc/COPYRIGHTS for details of the copyright status of R.
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,7 +18,7 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with this program; if not, a copy is available at
- *  http://www.r-project.org/Licenses/
+ *  https://www.R-project.org/Licenses/
  */
 
 #include <Rconfig.h>
@@ -66,3 +70,15 @@ S_nlsb_iterate(double b[], double d[], double dr[], int iv[], int liv,
     fun(b, d, dr, iv, liv, lv, n, nd, p, r, rd, v, x);
 }
 
+void attribute_hidden
+S_rcont2(int nrow[], int ncol[], int nrowt[], int ncolt[], 
+         int ntotal[], double fact[], int jwork[], int matrix[])
+{
+    static void(*fun)(int[], int[], int[], int[], int[], double[], 
+                      int[], int[]) = NULL;
+    if (fun == NULL)
+	fun = (void(*)(int[], int[], int[], int[], int[], double[], 
+                       int[], int[]))
+	    R_GetCCallable("stats", "rcont2");
+    fun(nrow, ncol, nrowt, ncolt, ntotal, fact, jwork, matrix);
+}

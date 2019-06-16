@@ -75,13 +75,14 @@ public class GimpleCompiler  {
 
   private boolean verbose;
 
+  private ClassLoader linkClassLoader = getClass().getClassLoader();
+
   private GlobalSymbolTable globalSymbolTable;
 
   private List<FunctionBodyTransformer> functionBodyTransformers = Lists.newArrayList();
 
   private final TypeOracle typeOracle = new TypeOracle();
 
-  private final Map<String, Type> providedRecordTypes = Maps.newHashMap();
   private final Map<String, ProvidedGlobalVar> providedVariables = Maps.newHashMap();
 
   private final List<GimpleCompilerPlugin> plugins = new ArrayList<>();
@@ -203,14 +204,6 @@ public class GimpleCompiler  {
     globalSymbolTable.addMethod(functionName, declaringClass, methodName);
   }
 
-  public void addRecordClass(String typeName, Class recordClass) {
-    addRecordClass(typeName, Type.getType(recordClass));
-  }
-
-  public void addRecordClass(String typeName, Type recordClass) {
-    providedRecordTypes.put(typeName, recordClass);
-  }
-
   public void compileSources(List<File> sourceFiles) throws Exception {
     GimpleParser parser = new GimpleParser();
 
@@ -236,7 +229,7 @@ public class GimpleCompiler  {
       PmfRewriter.rewrite(units);
       GlobalVarMerger.merge(units);
 
-      typeOracle.initRecords(units, providedRecordTypes);
+      typeOracle.initRecords(units, linkClassLoader);
 
       // First apply any transformations needed by the code generation process
       transform(units);
@@ -262,7 +255,9 @@ public class GimpleCompiler  {
             typeOracle,
             globalSymbolTable,
             globalVarTransformers,
-            unit, unitNames.get(unit));
+            unit,
+            (resourceName, bytes) -> writeResource(packageName.replace('.', '/') + "/" + resourceName, bytes),
+            unitNames.get(unit));
         unitClassGenerators.add(generator);
       }
 
@@ -477,24 +472,31 @@ public class GimpleCompiler  {
       public void writeClassFile(Type className, byte[] bytes) throws IOException {
         GimpleCompiler.this.writeClass(className.getInternalName(), bytes);
       }
+
+      @Override
+      public void writeResourceFile(String resourceName, byte[] bytes) throws IOException {
+        GimpleCompiler.this.writeResource(resourceName, bytes);
+      }
     };
 
     for (GimpleCompilerPlugin plugin : plugins) {
       plugin.writeClasses(context);
     }
-
   }
 
-
   private void writeClass(String internalName, byte[] classByteArray) throws IOException {
-    File classFile = new File(outputDirectory.getAbsolutePath() + File.separator + internalName + ".class");
+    writeResource(internalName + ".class", classByteArray);
+  }
+
+  private void writeResource(String resourceName, byte[] content) throws IOException {
+    File classFile = new File(outputDirectory.getAbsolutePath() + File.separator + resourceName);
     if(!classFile.getParentFile().exists()) {
       boolean created = classFile.getParentFile().mkdirs();
       if(!created) {
         throw new IOException("Failed to create directory for class file: " + classFile.getParentFile());
       }
     }
-    Files.write(classByteArray, classFile);
+    Files.write(content, classFile);
   }
 
   public void addVariable(String globalVariableName, Class<?> declaringClass) {
@@ -519,6 +521,7 @@ public class GimpleCompiler  {
   }
 
   public void setLinkClassLoader(ClassLoader linkClassLoader) {
+    this.linkClassLoader = linkClassLoader;
     this.globalSymbolTable.setLinkClassLoader(linkClassLoader);
   }
 

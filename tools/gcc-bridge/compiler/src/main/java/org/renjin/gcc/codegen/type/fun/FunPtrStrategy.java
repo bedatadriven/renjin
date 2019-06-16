@@ -20,6 +20,7 @@ package org.renjin.gcc.codegen.type.fun;
 
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.ResourceWriter;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
@@ -80,7 +81,7 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtrExpr> {
   }
 
   @Override
-  public FunPtrExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
+  public FunPtrExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, ResourceWriter resourceWriter, GimpleConstructor value) {
     throw new UnsupportedOperationException();
   }
 

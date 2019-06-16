@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998--2015  The R Core Team.
+ *  Copyright (C) 1998--2017  The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, a copy is available at
- *  http://www.r-project.org/Licenses/
+ *  https://www.R-project.org/Licenses/
  */
 
 /* This header file is to provide hooks for alternative front-ends,
@@ -24,26 +24,30 @@
 
    It should not be included by package sources unless they are
    providing such a front-end.
+
+   If CSTACK_DEFNS is defined, also define HAVE_UINTPTR_T (if true)
+   before including this, perhaps by including Rconfig.h from C code
+   (for C++ you need to test the C++ compiler in use).
 */
 
 #ifndef RINTERFACE_H_
 #define RINTERFACE_H_
 
+#include <R_ext/Boolean.h>
+
 #ifdef __cplusplus
-#include <cstdio>
+/* we do not support DO_NOT_USE_CXX_HEADERS in this file */
+# include <cstdio>
 extern "C" {
 #else
-#include <stdio.h>
+# include <stdio.h>
 #endif
 
 #if defined(__GNUC__) && __GNUC__ >= 3
-#define NORET __attribute__((noreturn))
+# define NORET __attribute__((noreturn))
 #else
-#define NORET
+# define NORET
 #endif
-
-#include <R_ext/Boolean.h>
-#include <R_ext/RStartup.h>
 
 /* from Defn.h */
 /* this duplication will be removed in due course */
@@ -70,9 +74,11 @@ extern char *R_Home;		    /* Root of the R tree */
 # define jump_to_toplevel	Rf_jump_to_toplevel
 # define mainloop		Rf_mainloop
 # define onintr			Rf_onintr
+# define onintrNoResume		Rf_onintrNoResume
 void NORET jump_to_toplevel(void);
 void mainloop(void);
 void onintr(void);
+void onintrNoResume(void);
 #ifndef DEFN_H_
 extern void* R_GlobalContext;    /* Need opaque pointer type for export */
 #endif
@@ -81,9 +87,13 @@ void process_site_Renviron(void);
 void process_system_Renviron(void);
 void process_user_Renviron(void);
 
+#ifdef __cplusplus
+extern std::FILE * R_Consolefile;
+extern std::FILE * R_Outputfile;
+#else
 extern FILE * R_Consolefile;
 extern FILE * R_Outputfile;
-
+#endif
 
 /* in ../unix/sys-unix.c */
 void R_setStartTime(void);
@@ -93,9 +103,17 @@ void fpu_setup(Rboolean);
 extern int R_running_as_main_program;
 
 #ifdef CSTACK_DEFNS
-/* duplicating Defn.h */
+/* duplicating older Defn.h.
+   Note: this is never used when including Rinterface.h from R itself
+*/
 #if !defined(HAVE_UINTPTR_T) && !defined(uintptr_t)
  typedef unsigned long uintptr_t;
+#else
+# ifndef __cplusplus
+#  include <stdint.h>
+# elif __cplusplus >= 201103L
+#  include <cstdint>
+# endif
 #endif
 
 extern uintptr_t R_CStackLimit;	/* C stack limit */
@@ -105,7 +123,8 @@ extern uintptr_t R_CStackStart;	/* Initial stack address */
 /* formerly in src/unix/devUI.h */
 
 #ifdef R_INTERFACE_PTRS
-#include <Rinternals.h>
+#include <Rinternals.h> // for SEXP
+#include <R_ext/RStartup.h> // for SA_TYPE
 
 #ifdef __SYSTEM__
 # define extern

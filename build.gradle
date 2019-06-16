@@ -32,6 +32,8 @@ allprojects {
 
 ext {
     gccBridgePlugin = "$projectDir/tools/gcc-bridge/compiler/build/bridge.so"
+    gnuHomeDir = rootProject.file('tools/gnur-installation/src/main/resources')
+
 }
 
 allprojects {

@@ -37,9 +37,6 @@
 #include <GraphicsBase.h>
 #include <R_ext/GraphicsEngine.h>
 
-#define _(String) (String)
-
-
 int baseRegisterIndex = -1;
 
 GPar* dpptr(pGEDevDesc dd) {
@@ -94,7 +91,7 @@ static SEXP R_INLINE getSymbolValue(SEXP symbol)
 static int R_CurrentDevice = 0;
 static int R_NumDevices = 1;
 /*
-   R_MaxDevices is defined in Rgraphics.h to be 64.  Slots are
+   R_MaxDevices is defined in ../include/Defn.h to be 64.  Slots are
    initiialized to be NULL, and returned to NULL when a device is
    removed.
 
@@ -112,7 +109,7 @@ static Rboolean active[R_MaxDevices];
 
 /* a dummy description to point to when there are no active devices */
 
-static pGEDevDesc pNullDevice;
+static GEDevDesc nullDevice;
 
 /* In many cases this is used to mean that the current device is
    the null device, and in others to mean that there is no open device.
@@ -175,6 +172,8 @@ pGEDevDesc GEcurrentDevice(void)
 	    UNPROTECT(1);
 	} else
 	    error(_("no active or default device"));
+	if (NoDevices()) // the startup above may have failed
+	    error(_("no active device and default getOption(\"device\") is invalid"));
     }
     return R_Devices[R_CurrentDevice];
 }
@@ -475,17 +474,8 @@ void GEaddDevice2f(pGEDevDesc gdd, const char *name, const char *file)
     GEinitDisplayList(gdd);
 }
 
-Rboolean Rf_GetOptionDeviceAsk(void)
-{
-    int ask;
-    ask = asLogical(GetOption1(install("device.ask.default")));
-    if(ask == NA_LOGICAL) {
-        warning(_("invalid value for \"device.ask.default\", using FALSE"));
-        return FALSE;
-    }
-    return ask != 0;
-}
 
+Rboolean Rf_GetOptionDeviceAsk(void); /* from options.c */
 
 /* Create a GEDevDesc, given a pDevDesc
  */
@@ -514,9 +504,9 @@ pGEDevDesc GEcreateDevDesc(pDevDesc dev)
 }
 
 
-void InitGraphics()
+void attribute_hidden InitGraphics(void)
 {
-    R_Devices[0] = pNullDevice;
+    R_Devices[0] = &nullDevice;
     active[0] = TRUE;
     // these are static arrays, not really needed
     for (int i = 1; i < R_MaxDevices; i++) {

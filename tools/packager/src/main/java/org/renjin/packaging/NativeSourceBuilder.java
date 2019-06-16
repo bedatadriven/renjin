@@ -149,7 +149,7 @@ public class NativeSourceBuilder {
     // DESCRIPTION or Makevars and overwrite the flags that install.R would otherwise
     // overwrite. We should add other cases from install.R ones we move to new version
     // of gcc that supports C++14 and C++17.
-    if(definedByMakeVars(makevars, "(CXX_STD)\\W+(CXX11)") || source.isCXX11()) {
+    if(definedByMakeVars(makevars, "sh(CXX_STD)\\W+(CXX11)") || source.isCXX11()) {
       if(!source.isCXX11()) {
         System.out.println("Checking wether in Makevars CXX_STD is set to CXX11... yes");
       }

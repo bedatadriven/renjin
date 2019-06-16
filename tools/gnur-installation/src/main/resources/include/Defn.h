@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
+ *  Copyright (C) 1998--2018  The R Core Team.
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998--2015  The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,8 +15,10 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, a copy is available at
- *  http://www.r-project.org/Licenses/
+ *  https://www.R-project.org/Licenses/
  */
+
+/* Internal header, not installed */
 
 #ifndef DEFN_H_
 #define DEFN_H_
@@ -91,7 +93,6 @@ extern0 SEXP	R_ColonSymbol;         /* ":" */
 extern0 SEXP    R_ConnIdSymbol;  /* "conn_id" */
 extern0 SEXP    R_DevicesSymbol;  /* ".Devices" */
 
-extern0 SEXP    R_dot_Generic;  /* ".Generic" */
 extern0 SEXP    R_dot_Methods;  /* ".Methods" */
 extern0 SEXP    R_dot_Group;  /* ".Group" */
 extern0 SEXP    R_dot_Class;  /* ".Class" */
@@ -181,7 +182,21 @@ extern void R_WaitEvent(void);
 
 /*  Heap and Pointer Protection Stack Sizes.  */
 
-/* These are all required by C99 */
+/* These headers are all required by C99.
+   However, we use types below such as uintptr_t which are optional in C11.
+   And on some older systems they were in inttypes.h but not stdint.h.
+
+   Up to 2.11.1 (r52035, May 2010) we had
+
+#if !defined(HAVE_INTPTR_T) && !defined(intptr_t)
+ typedef long intptr_t;
+#endif
+#if !defined(HAVE_UINTPTR_T) && !defined(uintptr_t)
+ typedef unsigned long uintptr_t;
+#endif
+    but size_t might be better.
+
+ */
 #ifdef HAVE_INTTYPES_H
 # include <inttypes.h>
 #endif
@@ -194,18 +209,12 @@ extern void R_WaitEvent(void);
 # include <limits.h>
 #endif
 
-
-//#if defined HAVE_DECL_SIZE_MAX && HAVE_DECL_SIZE_MAX
-typedef unsigned int R_size_t;
+#if defined HAVE_DECL_SIZE_MAX && HAVE_DECL_SIZE_MAX
+  typedef size_t R_size_t;
 # define R_SIZE_T_MAX SIZE_MAX
-//#else
-//# error SIZE_MAX is required for C99
-//#endif
-
-// not sure why these are not being pulled in from stdint.h
-typedef unsigned int uintptr_t;
-typedef int intptr_t;
-#define RETSIGTYPE void
+#else
+# error SIZE_MAX is required for C99
+#endif
 
 
 #define Mega 1048576. /* 1 Mega Byte := 2^20 (= 1048576) Bytes */
@@ -215,7 +224,7 @@ typedef int intptr_t;
 /*	R_NSIZE	   The number of cons cells	 */
 /*	R_VSIZE	   The vector heap size in bytes */
 /*  These values are defaults and can be overridden in config.h
-    The maxima and minima are in startup.c */
+    The maxima and minima are in ../main/startup.c */
 
 #ifndef R_PPSSIZE
 #define	R_PPSSIZE	50000L
@@ -224,7 +233,7 @@ typedef int intptr_t;
 #define	R_NSIZE		350000L
 #endif
 #ifndef R_VSIZE
-#define	R_VSIZE		6291456L
+#define	R_VSIZE		67108864L
 #endif
 
 /* some commonly needed headers */
@@ -294,7 +303,7 @@ extern int putenv(char *string);
 #endif
 #endif
 
-#define HSIZE	   4119	/* The size of the hash table for symbols */
+#define HSIZE	  49157	/* The size of the hash table for symbols */
 #define MAXIDSIZE 10000	/* Largest symbol size,
 			   in bytes excluding terminator.
 			   Was 256 prior to 2.13.0, now just a sanity check.
@@ -331,8 +340,8 @@ typedef enum {
 
 typedef enum {
     PREC_FN	 = 0,
-    PREC_LEFT    = 1,
-    PREC_EQ	 = 2,
+    PREC_EQ	 = 1,
+    PREC_LEFT    = 2,
     PREC_RIGHT	 = 3,
     PREC_TILDE	 = 4,
     PREC_OR	 = 5,
@@ -345,9 +354,9 @@ typedef enum {
     PREC_COLON	 = 12,
     PREC_SIGN	 = 13,
     PREC_POWER	 = 14,
-    PREC_DOLLAR  = 15,
-    PREC_NS	 = 16,
-    PREC_SUBSET	 = 17
+    PREC_SUBSET  = 15,
+    PREC_DOLLAR	 = 16,
+    PREC_NS	 = 17
 } PPprec;
 
 typedef struct {
@@ -393,10 +402,10 @@ typedef struct {
 
 /* Hashing Macros */
 #define HASHASH(x)      ((x)->sxpinfo.gp & HASHASH_MASK)
-#define HASHVALUE(x)    TRUELENGTH(x)
+#define HASHVALUE(x)    ((int) TRUELENGTH(x))
 #define SET_HASHASH(x,v) ((v) ? (((x)->sxpinfo.gp) |= HASHASH_MASK) : \
 			  (((x)->sxpinfo.gp) &= (~HASHASH_MASK)))
-#define SET_HASHVALUE(x,v) SET_TRUELENGTH(x, v)
+#define SET_HASHVALUE(x,v) SET_TRUELENGTH(x, ((int) (v)))
 
 /* Vector Heap Structure */
 typedef struct {
@@ -444,20 +453,20 @@ typedef struct VECREC *VECP;
 int (PRIMOFFSET)(SEXP x);
 void (SET_PRIMOFFSET)(SEXP x, int v);
 
-// The 'op' value is actually an instance of PrimitiveFunction,
+// Renjin: The 'op' value is actually an instance of PrimitiveFunction,
 // so we just need a wrapper function to invoke it
 // 'invokePrimitive' is implemented in Internal.java
 
 SEXP invokePrimitive(SEXP, SEXP, SEXP, SEXP);
 #define PRIMFUN(x) invokePrimitive
 
-#define PRIMNAME(x)	(R_FunTab[PRIMOFFSET(x)].name)
-#define PRIMVAL(x)	(R_FunTab[PRIMOFFSET(x)].code)
-#define PRIMARITY(x)	(R_FunTab[PRIMOFFSET(x)].arity)
-#define PPINFO(x)	(R_FunTab[PRIMOFFSET(x)].gram)
-#define PRIMPRINT(x)	(((R_FunTab[PRIMOFFSET(x)].eval)/100)%10)
-#define PRIMINTERNAL(x) (((R_FunTab[PRIMOFFSET(x)].eval)%100)/10)
-
+// Renjin: replace MACROs with functions
+char * PRIMNAME(SEXP);
+int PRIMVAL(SEXP);
+int PRIMARITY(SEXP);
+int PPINFO(SEXP);
+int PRIMPRINT(SEXP);
+int PRIMINTERNAL(SEXP);
 
 Rboolean (IS_ACTIVE_BINDING)(SEXP b);
 Rboolean (BINDING_IS_LOCKED)(SEXP b);
@@ -503,6 +512,7 @@ typedef struct {
 } R_bcstack_t;
 # define PARTIALSXP_MASK (~255)
 # define IS_PARTIAL_SXP_TAG(x) ((x) & PARTIALSXP_MASK)
+# define RAWMEM_TAG 254
 #else
 typedef SEXP R_bcstack_t;
 #endif
@@ -534,6 +544,10 @@ typedef struct RCNTXT {
     void *cenddata;		/* data for C "on.exit" thunk */
     void *vmax;		        /* top of R_alloc stack */
     int intsusp;                /* interrupts are suspended */
+    int gcenabled;		/* R_GCEnabled value */
+    int bcintactive;            /* R_BCIntActive value */
+    SEXP bcbody;                /* R_BCbody value */
+    void* bcpc;                 /* R_BCpc value */
     SEXP handlerstack;          /* condition handler stack */
     SEXP restartstack;          /* stack of available restarts */
     struct RPRSTACK *prstack;   /* stack of pending promises */
@@ -542,8 +556,11 @@ typedef struct RCNTXT {
     IStackval *intstack;
 #endif
     SEXP srcref;	        /* The source line in effect */
-    int browserfinish;     /* should browser finish this context without stopping */
-    SEXP returnValue;			/* only set during on.exit calls */
+    int browserfinish;          /* should browser finish this context without
+                                   stopping */
+    SEXP returnValue;           /* only set during on.exit calls */
+    struct RCNTXT *jumptarget;	/* target for a continuing jump */
+    int jumpmask;               /* associated LONGJMP argument */
 } RCNTXT, *context;
 
 /* The Various Context Types.
@@ -567,7 +584,8 @@ enum {
     CTXT_BROWSER  = 16,
     CTXT_GENERIC  = 20,
     CTXT_RESTART  = 32,
-    CTXT_BUILTIN  = 64  /* used in profiling */
+    CTXT_BUILTIN  = 64, /* used in profiling */
+    CTXT_UNWIND   = 128
 };
 
 /*
@@ -612,6 +630,13 @@ typedef enum {
     GTOP
 } RELOP_TYPE;
 
+typedef enum {
+    MATPROD_DEFAULT = 1,
+    MATPROD_INTERNAL,
+    MATPROD_BLAS,
+    MATPROD_DEFAULT_SIMD  /* experimental */
+} MATPROD_TYPE;
+
 /* File Handling */
 /*
 #define R_EOF	65535
@@ -651,6 +676,12 @@ LibExtern char *R_Home;		    /* Root of the R tree */
 /* Memory Management */
 extern0 R_size_t R_NSize  INI_as(R_NSIZE);/* Size of cons cell heap */
 extern0 R_size_t R_VSize  INI_as(R_VSIZE);/* Size of the vector heap */
+extern0 int	R_GCEnabled INI_as(1);
+extern0 int	R_in_gc INI_as(0);
+extern0 int	R_BCIntActive INI_as(0); /* bcEval called more recently than
+                                            eval */
+extern0 void*	R_BCpc INI_as(NULL);/* current byte code instruction */
+extern0 SEXP	R_BCbody INI_as(NULL); /* current byte code object */
 extern0 SEXP	R_NHeap;	    /* Start of the cons cell heap */
 extern0 SEXP	R_FreeSEXP;	    /* Cons cell free list */
 extern0 R_size_t R_Collected;	    /* Number of free cons cells (after gc) */
@@ -674,15 +705,18 @@ extern0 RCNTXT* R_ExitContext;      /* The active context for on.exit processing
 #endif
 extern Rboolean R_Visible;	    /* Value visibility flag */
 extern0 int	R_EvalDepth	INI_as(0);	/* Evaluation recursion depth */
-extern0 int	R_BrowseLines	INI_as(0);	/* lines/per call in browser */
-
+extern0 int	R_BrowseLines	INI_as(0);	/* lines/per call in browser :
+						 * options(deparse.max.lines) */
 extern0 int	R_Expressions	INI_as(5000);	/* options(expressions) */
-extern0 int	R_Expressions_keep INI_as(5000);	/* options(expressions) */
+extern0 int	R_Expressions_keep INI_as(5000);/* options(expressions) */
 extern0 Rboolean R_KeepSource	INI_as(FALSE);	/* options(keep.source) */
 extern0 Rboolean R_CBoundsCheck	INI_as(FALSE);	/* options(CBoundsCheck) */
+extern0 MATPROD_TYPE R_Matprod	INI_as(MATPROD_DEFAULT);  /* options(matprod) */
 extern0 int	R_WarnLength	INI_as(1000);	/* Error/warning max length */
 extern0 int	R_nwarnings	INI_as(50);
 extern uintptr_t R_CStackLimit	INI_as((uintptr_t)-1);	/* C stack limit */
+extern uintptr_t R_OldCStackLimit INI_as((uintptr_t)0); /* Old value while
+							   handling overflow */
 extern uintptr_t R_CStackStart	INI_as((uintptr_t)-1);	/* Initial stack address */
 extern int	R_CStackDir	INI_as(1);	/* C stack direction */
 
@@ -770,17 +804,27 @@ extern0 double elapsedLimitValue       	INI_as(-1.0);
 
 void resetTimeLimits(void);
 
-#define R_BCNODESTACKSIZE 100000
+#define R_BCNODESTACKSIZE 200000
 extern0 R_bcstack_t *R_BCNodeStackBase, *R_BCNodeStackTop, *R_BCNodeStackEnd;
 #ifdef BC_INT_STACK
 # define R_BCINTSTACKSIZE 10000
 extern0 IStackval *R_BCIntStackBase, *R_BCIntStackTop, *R_BCIntStackEnd;
 #endif
-extern0 int R_jit_enabled INI_as(0);
+extern0 int R_jit_enabled INI_as(0); /* has to be 0 during R startup */
 extern0 int R_compile_pkgs INI_as(0);
-extern SEXP R_cmpfun(SEXP);
+extern0 int R_check_constants INI_as(0);
+extern0 int R_disable_bytecode INI_as(0);
+extern SEXP R_cmpfun1(SEXP); /* unconditional fresh compilation */
 extern void R_init_jit_enabled(void);
-extern void R_initAsignSymbols(void);
+extern void R_initAssignSymbols(void);
+#ifdef R_USE_SIGNALS
+extern SEXP R_findBCInterpreterSrcref(RCNTXT*);
+#endif
+extern SEXP R_getCurrentSrcref();
+extern SEXP R_getBCInterpreterExpression();
+
+LibExtern SEXP R_CachedScalarReal INI_as(NULL);
+LibExtern SEXP R_CachedScalarInteger INI_as(NULL);
 
 LibExtern int R_num_math_threads INI_as(1);
 LibExtern int R_max_num_math_threads INI_as(1);
@@ -821,9 +865,11 @@ LibExtern SEXP R_TrueValue INI_as(NULL);
 LibExtern SEXP R_FalseValue INI_as(NULL);
 LibExtern SEXP R_LogicalNAValue INI_as(NULL);
 
-#ifdef Win32
-LibExtern Rboolean UseInternet2;
-#endif
+/* for PCRE as from R 3.4.0 */
+extern0 Rboolean R_PCRE_use_JIT INI_as(TRUE);
+extern0 int R_PCRE_study INI_as(10);
+extern0 int R_PCRE_limit_recursion;
+
 
 #ifdef __MAIN__
 # undef extern
@@ -856,6 +902,7 @@ LibExtern Rboolean UseInternet2;
 # define DataFrameClass		Rf_DataFrameClass
 # define ddfindVar		Rf_ddfindVar
 # define deparse1		Rf_deparse1
+# define deparse1m		Rf_deparse1m
 # define deparse1w		Rf_deparse1w
 # define deparse1line		Rf_deparse1line
 # define deparse1s		Rf_deparse1s
@@ -869,7 +916,7 @@ LibExtern Rboolean UseInternet2;
 # define EncodeString           Rf_EncodeString
 # define EnsureString 		Rf_EnsureString
 # define endcontext		Rf_endcontext
-# define envlength		Rf_envlength
+# define errorcall_cpy		Rf_errorcall_cpy
 # define ErrorMessage		Rf_ErrorMessage
 # define evalList		Rf_evalList
 # define evalListKeepMissing	Rf_evalListKeepMissing
@@ -920,9 +967,12 @@ LibExtern Rboolean UseInternet2;
 # define matchArg		Rf_matchArg
 # define matchArgExact		Rf_matchArgExact
 # define matchArgs		Rf_matchArgs
+# define matchArgs_RC		Rf_matchArgs_RC
 # define matchPar		Rf_matchPar
 # define Mbrtowc		Rf_mbrtowc
 # define mbtoucs		Rf_mbtoucs
+# define mbcsToUcs2		Rf_mbcsToUcs2
+# define memtrace_report	Rf_memtrace_report
 # define mkCLOSXP		Rf_mkCLOSXP
 # define mkFalse		Rf_mkFalse
 # define mkPROMISE		Rf_mkPROMISE
@@ -932,6 +982,7 @@ LibExtern Rboolean UseInternet2;
 # define NewEnvironment		Rf_NewEnvironment
 # define OneIndex		Rf_OneIndex
 # define onintr			Rf_onintr
+# define onintrNoResume		Rf_onintrNoResume
 # define onsigusr1              Rf_onsigusr1
 # define onsigusr2              Rf_onsigusr2
 # define parse			Rf_parse
@@ -964,13 +1015,15 @@ LibExtern Rboolean UseInternet2;
 # define strmat2intmat		Rf_strmat2intmat
 # define substituteList		Rf_substituteList
 # define TimeToSeed		Rf_TimeToSeed
-# define tsConform		Rf_tsConform
 # define tspgets		Rf_tspgets
 # define type2symbol		Rf_type2symbol
 # define unbindVar		Rf_unbindVar
 # define usemethod		Rf_usemethod
 # define ucstomb		Rf_ucstomb
 # define ucstoutf8		Rf_ucstoutf8
+#ifdef ADJUST_ENVIR_REFCNTS
+# define unpromiseArgs		Rf_unpromiseArgs
+#endif
 # define utf8toucs		Rf_utf8toucs
 # define utf8towcs		Rf_utf8towcs
 # define vectorIndex		Rf_vectorIndex
@@ -1007,9 +1060,12 @@ char	*R_HomeDir(void);
 Rboolean R_FileExists(const char *);
 Rboolean R_HiddenFile(const char *);
 double	R_FileMtime(const char *);
+int	R_GetFDLimit();
+int	R_EnsureFDLimit(int);
 
 /* environment cell access */
-typedef struct R_varloc_st *R_varloc_t;
+typedef struct { SEXP cell; } R_varloc_t; /* use struct to prevent casting */
+#define R_VARLOC_IS_NULL(loc) ((loc).cell == NULL)
 R_varloc_t R_findVarLocInFrame(SEXP, SEXP);
 SEXP R_GetVarLocValue(R_varloc_t);
 SEXP R_GetVarLocSymbol(R_varloc_t);
@@ -1028,9 +1084,10 @@ void R_SetVarLocValue(R_varloc_t, SEXP);
 #define S_COMPAT       		128
 #define HEXNUMERIC             	256
 #define DIGITS16             	512
+#define NICE_NAMES             	1024
 /* common combinations of the above */
 #define SIMPLEDEPARSE		0
-#define DEFAULTDEPARSE		65 /* KEEPINTEGER | KEEPNA, used for calls */
+#define DEFAULTDEPARSE		1089 /* KEEPINTEGER | KEEPNA | NICE_NAMES, used for calls */
 #define FORSOURCING		95 /* not DELAYPROMISES, used in edit.c */
 
 /* Coercion functions */
@@ -1062,16 +1119,20 @@ double currentTime(void);
 void DataFrameClass(SEXP);
 SEXP ddfindVar(SEXP, SEXP);
 SEXP deparse1(SEXP,Rboolean,int);
+SEXP deparse1m(SEXP call, Rboolean abbrev, int opts);
 SEXP deparse1w(SEXP,Rboolean,int);
-SEXP deparse1line(SEXP,Rboolean);
+SEXP deparse1line (SEXP, Rboolean);
+SEXP deparse1line_(SEXP, Rboolean, int);
 SEXP deparse1s(SEXP call);
 int DispatchAnyOrEval(SEXP, SEXP, const char *, SEXP, SEXP, SEXP*, int, int);
 int DispatchOrEval(SEXP, SEXP, const char *, SEXP, SEXP, SEXP*, int, int);
 int DispatchGroup(const char *, SEXP,SEXP,SEXP,SEXP,SEXP*);
+R_xlen_t dispatch_xlength(SEXP, SEXP, SEXP);
+R_len_t dispatch_length(SEXP, SEXP, SEXP);
+SEXP dispatch_subset2(SEXP, R_xlen_t, SEXP, SEXP);
 SEXP duplicated(SEXP, Rboolean);
 R_xlen_t any_duplicated(SEXP, Rboolean);
 R_xlen_t any_duplicated3(SEXP, SEXP, Rboolean);
-int envlength(SEXP);
 SEXP evalList(SEXP, SEXP, SEXP, int);
 SEXP evalListKeepMissing(SEXP, SEXP);
 int factorsConform(SEXP, SEXP);
@@ -1094,6 +1155,7 @@ Rboolean R_current_debug_state(void);
 Rboolean R_has_methods(SEXP);
 void R_InitialData(void);
 SEXP R_possible_dispatch(SEXP, SEXP, SEXP, SEXP, Rboolean);
+Rboolean inherits2(SEXP, const char *);
 void InitGraphics(void);
 void InitMemory(void);
 void InitNames(void);
@@ -1101,6 +1163,7 @@ void InitOptions(void);
 void InitStringHash(void);
 void Init_R_Variables(SEXP);
 void InitTempDir(void);
+void R_reInitTempDir(int);
 void InitTypeTables(void);
 void initStack(void);
 void InitS3DefaultTypes(void);
@@ -1117,6 +1180,7 @@ SEXP mat2indsub(SEXP, SEXP, SEXP);
 SEXP matchArg(SEXP, SEXP*);
 SEXP matchArgExact(SEXP, SEXP*);
 SEXP matchArgs(SEXP, SEXP, SEXP);
+SEXP matchArgs_RC(SEXP, SEXP, SEXP);
 SEXP matchPar(const char *, SEXP*);
 void memtrace_report(void *, void *);
 SEXP mkCLOSXP(SEXP, SEXP, SEXP);
@@ -1128,8 +1192,10 @@ SEXP R_mkEVPROMISE_NR(SEXP, SEXP);
 SEXP mkQUOTE(SEXP);
 SEXP mkSYMSXP(SEXP, SEXP);
 SEXP mkTrue(void);
+const char *R_nativeEncoding(void);
 SEXP NewEnvironment(SEXP, SEXP, SEXP);
 void onintr(void);
+void onintrNoResume(void);
 RETSIGTYPE onsigusr1(int);
 RETSIGTYPE onsigusr2(int);
 R_xlen_t OneIndex(SEXP, SEXP, R_xlen_t, int, SEXP*, int, SEXP);
@@ -1176,12 +1242,14 @@ int StrToInternal(const char *);
 SEXP strmat2intmat(SEXP, SEXP, SEXP);
 SEXP substituteList(SEXP, SEXP);
 unsigned int TimeToSeed(void);
-Rboolean tsConform(SEXP,SEXP);
 SEXP tspgets(SEXP, SEXP);
 SEXP type2symbol(SEXPTYPE);
 void unbindVar(SEXP, SEXP);
 #ifdef ALLOW_OLD_SAVE
 void unmarkPhase(void);
+#endif
+#ifdef ADJUST_ENVIR_REFCNTS
+void unpromiseArgs(SEXP);
 #endif
 SEXP R_LookupMethod(SEXP, SEXP, SEXP, SEXP);
 int usemethod(const char *, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP*);
@@ -1192,7 +1260,7 @@ void begincontext(RCNTXT*, int, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP dynamicfindVar(SEXP, RCNTXT*);
 void endcontext(RCNTXT*);
 int framedepth(RCNTXT*);
-void R_InsertRestartHandlers(RCNTXT *, Rboolean);
+void R_InsertRestartHandlers(RCNTXT *, const char *);
 void NORET R_JumpToContext(RCNTXT *, int, SEXP);
 SEXP R_syscall(int,RCNTXT*);
 int R_sysparent(int,RCNTXT*);
@@ -1200,13 +1268,14 @@ SEXP R_sysframe(int,RCNTXT*);
 SEXP R_sysfunction(int,RCNTXT*);
 
 void R_run_onexits(RCNTXT *);
-void R_restore_globals(RCNTXT *);
+void NORET R_jumpctxt(RCNTXT *, int, SEXP);
 #endif
 
 /* ../main/bind.c */
 SEXP ItemName(SEXP, R_xlen_t);
 
 /* ../main/errors.c : */
+void NORET errorcall_cpy(SEXP, const char *, ...);
 void NORET ErrorMessage(SEXP, int, ...);
 void WarningMessage(SEXP, R_WARNING, ...);
 SEXP R_GetTraceback(int);
@@ -1284,13 +1353,13 @@ SEXP fixup_NaRm(SEXP args); /* summary.c */
 void invalidate_cached_recodings(void);  /* from sysutils.c */
 void resetICUcollator(void); /* from util.c */
 void dt_invalidate_locale(); /* from Rstrptime.h */
-int R_OutputCon; /* from connections.c */
-int R_InitReadItemDepth, R_ReadItemDepth; /* from serialize.c */
+extern int R_OutputCon; /* from connections.c */
+extern int R_InitReadItemDepth, R_ReadItemDepth; /* from serialize.c */
 void get_current_mem(size_t *,size_t *,size_t *); /* from memory.c */
 unsigned long get_duplicate_counter(void);  /* from duplicate.c */
 void reset_duplicate_counter(void);  /* from duplicate.c */
 void BindDomain(char *); /* from main.c */
-Rboolean LoadInitFile;  /* from startup.c */
+extern Rboolean LoadInitFile;  /* from startup.c */
 
 // Unix and Windows versions
 double R_getClockIncrement(void);
@@ -1359,7 +1428,7 @@ extern const char *locale2charset(const char *);
 } while(0)
 
 
-/* 
+/*
    alloca is neither C99 nor POSIX.
 
    It might be better to try alloca.h first, see

@@ -18,10 +18,7 @@
  */
 package org.renjin.gcc.symbols;
 
-import org.renjin.gcc.GimpleCompiler;
-import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.ProvidedGlobalVar;
-import org.renjin.gcc.ProvidedGlobalVarField;
+import org.renjin.gcc.*;
 import org.renjin.gcc.annotations.GlobalVar;
 import org.renjin.gcc.annotations.Noop;
 import org.renjin.gcc.codegen.call.*;
@@ -44,7 +41,6 @@ import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Maps;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Map;
@@ -86,8 +82,7 @@ public class GlobalSymbolTable implements SymbolTable {
     if (generator == null) {
       Optional<LinkSymbol> linkSymbol = findLinkSymbol(mangledName);
       if (linkSymbol.isPresent()) {
-        Method method = linkSymbol.get().loadMethod(linkClassLoader);
-        generator = new FunctionCallGenerator(new StaticMethodStrategy(typeOracle, method));
+        generator = callGeneratorFromSymbol(mangledName, linkSymbol.get());
         functions.put(mangledName, generator);
       }
     }
@@ -106,6 +101,18 @@ public class GlobalSymbolTable implements SymbolTable {
       }
     }
 
+    return generator;
+  }
+
+  private CallGenerator callGeneratorFromSymbol(String mangledName, LinkSymbol linkSymbol) {
+    CallGenerator generator;
+    if(linkSymbol.getType() != LinkSymbol.SymbolType.METHOD) {
+      throw new IllegalStateException(
+          String.format("Invalid link: Tried to link name '%s' to function, found symbol of type %s",
+              mangledName, linkSymbol.getType()));
+    }
+    Method method = linkSymbol.loadMethod(linkClassLoader);
+    generator = new FunctionCallGenerator(new StaticMethodStrategy(typeOracle, method));
     return generator;
   }
 
@@ -273,16 +280,29 @@ public class GlobalSymbolTable implements SymbolTable {
     // Try to load the global variable from metadata on the classpath,
     // produced during an earlier build
     Optional<LinkSymbol> linkSymbol = findLinkSymbol(ref.getMangledName());
-    if (linkSymbol.isPresent()) {
-      Field field = linkSymbol.get().loadField(linkClassLoader);
-      ProvidedGlobalVarField globalField = new ProvidedGlobalVarField(field);
-      GimpleVarDecl varDecl = new GimpleVarDecl();
-      varDecl.setName(ref.getName());
-      varDecl.setMangledName(ref.getMangledName());
-      varDecl.setType(ref.getType());
-      return globalField.createExpr(varDecl, typeOracle);
+    return linkSymbol
+        .map(s -> globalVarFromSymbol(ref, s))
+        .orElse(null);
+  }
+
+  private GExpr globalVarFromSymbol(GimpleSymbolRef ref, LinkSymbol symbol) {
+    ProvidedGlobalVar globalField;
+    if(symbol.getType() == LinkSymbol.SymbolType.FIELD) {
+      globalField = new ProvidedGlobalVarField(symbol.loadField(linkClassLoader));
+
+    } else if(symbol.getType() == LinkSymbol.SymbolType.GETTER) {
+      globalField = new ProvidedGlobalVarGetter(symbol.loadMethod(ClassLoader.getSystemClassLoader()));
+
+    } else {
+      throw new InternalCompilerException("Found symbol of type " + symbol.getType());
     }
-    return null;
+
+    GimpleVarDecl varDecl = new GimpleVarDecl();
+    varDecl.setName(ref.getName());
+    varDecl.setMangledName(ref.getMangledName());
+    varDecl.setType(ref.getType());
+
+    return globalField.createExpr(varDecl, typeOracle);
   }
 
   public void addVariable(String name, GExpr expr) {

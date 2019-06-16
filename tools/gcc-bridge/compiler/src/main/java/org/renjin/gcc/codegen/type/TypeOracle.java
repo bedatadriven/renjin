@@ -70,8 +70,8 @@ public class TypeOracle {
   }
 
 
-  public void initRecords(List<GimpleCompilationUnit> units, Map<String, Type> providedRecordTypes) {
-    recordTypes.init(units, providedRecordTypes);
+  public void initRecords(List<GimpleCompilationUnit> units, ClassLoader classLoader) {
+    recordTypes.init(units, classLoader);
   }
 
   public GimpleRecordTypeDef getRecordTypeDef(GimpleRecordType recordType) {
@@ -235,10 +235,6 @@ public class TypeOracle {
         strategies.add(new StringParamStrategy());
         index++;
 
-      } else if (recordTypes.isMappedToRecordType(paramClass)) {
-        strategies.add(recordTypes.getPointerStrategyFor(paramClass).getParamStrategy());
-        index++;
-
       } else if (paramClass.equals(MethodHandle.class)) {
         strategies.add(new FunPtrStrategy().getParamStrategy());
         index++;
@@ -246,7 +242,11 @@ public class TypeOracle {
       } else if(paramClass.equals(Object.class)) {
         strategies.add(new VoidPtrParamStrategy());
         index++;
-        
+
+      } else if (recordTypes.isMappedToRecordType(paramClass)) {
+        strategies.add(recordTypes.getPointerStrategyFor(paramClass).getParamStrategy());
+        index++;
+
       } else {
         throw new UnsupportedOperationException(String.format(
             "Unsupported parameter %d of type %s", 

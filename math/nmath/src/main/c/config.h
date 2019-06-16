@@ -14,7 +14,7 @@
 
 /* Define to 1 if translation of program messages to the user's native
    language is requested. */
-#define ENABLE_NLS 1
+#define ENABLE_NLS 0
 
 /* Define to dummy `main' function (if any) required to link to the Fortran
    libraries. */
@@ -1225,9 +1225,6 @@
 #define SUPPORT_OPENMP 1
 #define SIZEOF_SIZE_T 8
 #define HAVE_ALLOCA_H 1
-
-// We are not supporting localization in Renjin at this time.
-#define NO_NLS
 
 #endif /* not R_CONFIG_H */
 

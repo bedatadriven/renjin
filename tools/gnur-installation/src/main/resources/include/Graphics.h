@@ -15,13 +15,13 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, a copy is available at
- *  http://www.r-project.org/Licenses/
+ *  https://www.R-project.org/Licenses/
  */
+
+/* Internal header, not installed */
 
 #ifndef GRAPHICS_H_
 #define GRAPHICS_H_
-
-/* This is a private header */
 
 #include <R_ext/Boolean.h>
 
@@ -30,8 +30,6 @@
 
 #define R_GRAPHICS 1
 #include <Rgraphics.h> /* RUnit */
-
-//typedef unsigned int rcolor;
 
 /* base.c, graphics.c, par.c */
 #define MAX_LAYOUT_ROWS 200

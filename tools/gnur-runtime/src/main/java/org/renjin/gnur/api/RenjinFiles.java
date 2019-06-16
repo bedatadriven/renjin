@@ -21,7 +21,6 @@ package org.renjin.gnur.api;
 import org.apache.commons.vfs2.FileContent;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.RandomAccessContent;
 import org.renjin.gcc.runtime.*;
 import org.renjin.primitives.Native;
 
@@ -36,6 +35,30 @@ import static org.renjin.gcc.runtime.Stdlib.nullTerminatedString;
  * Provides Renjin-specific hooks into the Session's FileSystemManager
  */
 public class RenjinFiles {
+
+  public static Ptr R_fopen(Ptr filename, Ptr mode) {
+    return fopen(filename, mode);
+  }
+
+  public static Ptr R_gzopen (Ptr path, Ptr mode) {
+    throw new UnsupportedOperationException("R_gzopen");
+  }
+
+  public static Ptr R_gzgets(Ptr file, Ptr buf, int len) {
+    throw new UnsupportedOperationException("R_gzgets");
+  }
+
+  public static int R_gzclose(Ptr file) {
+    throw new UnsupportedOperationException("R_gzclose");
+  }
+
+  public static Ptr R_popen(Ptr filename, Ptr mode) {
+    throw new UnsupportedOperationException("R_popen");
+  }
+
+  public static int pclose(Ptr stream) {
+    throw new UnsupportedOperationException("pclose");
+  }
 
   public static Ptr fopen(Ptr filename, Ptr mode) {
     String filenameString = nullTerminatedString(filename);
@@ -55,6 +78,45 @@ public class RenjinFiles {
       return BytePtr.NULL;
     }
   }
+
+  public static int feof(Ptr handle) {
+    throw new UnimplementedGnuApiMethod("feof");
+  }
+
+  public static long ftell(Ptr handle) {
+    throw new UnimplementedGnuApiMethod("ftell");
+  }
+
+  public static int fputs(Ptr str, Ptr stream) {
+    throw new UnimplementedGnuApiMethod("fputs");
+  }
+
+  //char * fgets ( char * str, int num, FILE * stream );
+
+  public static Ptr fgets(Ptr str, int num, Ptr stream) {
+    throw new UnimplementedGnuApiMethod("fgets");
+  }
+
+  public static void unlink(Ptr fname) {
+    throw new UnimplementedGnuApiMethod("unlink");
+  }
+
+  public static Ptr realpath(Ptr path, Ptr resolvedPath) {
+    throw new UnimplementedGnuApiMethod("realpath");
+  }
+
+  public static int compress(Ptr buf2, int outline, Ptr buf, int len) {
+    throw new UnimplementedGnuApiMethod("compress");
+  }
+
+  public static int chdir(Ptr path) {
+    throw new UnimplementedGnuApiMethod("chdir");
+  }
+
+  public static Ptr getcwd(Ptr ptr, int size) {
+    throw new UnimplementedGnuApiMethod("getcwd");
+  }
+
 
   private static FileHandle fopen(FileObject fileObject, String mode) throws FileSystemException {
     switch (mode) {

@@ -19,6 +19,7 @@
 package org.renjin.gcc.codegen.vptr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.ResourceWriter;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
@@ -79,7 +80,7 @@ public class VPtrRecordTypeStrategy extends RecordTypeStrategy<VPtrRecordExpr> {
   }
 
   @Override
-  public VPtrRecordExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
+  public VPtrRecordExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, ResourceWriter resourceWriter, GimpleConstructor value) {
     // Create a temporary variable for this constructed record array.
     Type pointerType = Type.getType(MixedPtr.class);
     VPtrExpr malloc = VPtrStrategy.malloc(pointerType, Expressions.constantInt(this.getRecordType().sizeOf()));

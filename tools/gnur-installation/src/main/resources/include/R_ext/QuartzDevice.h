@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2007-12  The R Core Team
+ *  Copyright (C) 2007-2016  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -14,14 +14,14 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, a copy is available at
- *  http://www.r-project.org/Licenses/
+ *  https://www.R-project.org/Licenses/
  *
  *---------------------------------------------------------------------
  *  This header file constitutes the (unofficial) API to the Quartz
  *  device. Being unofficial, the API may change at any point without
  *  warning.
  *
- *  Quartz is a general device-independent way of drawing in Mac OS X,
+ *  Quartz is a general device-independent way of drawing in macOS,
  *  therefore the Quartz device modularizes the actual drawing target
  *  implementation into separate modules (e.g. Carbon and Cocoa for
  *  on-screen display and PDF, Bitmap for off-screen drawing). The API
@@ -83,6 +83,8 @@
  *    create backend definition (QuartzBackend_t backend) -> 
  *    fn->Create(dd, &backend), return the result
  */
+
+/* Unix-only header */
 
 #ifndef R_EXT_QUARTZDEVICE_H_
 #define R_EXT_QUARTZDEVICE_H_

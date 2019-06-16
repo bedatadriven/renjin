@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2001-2015  The R Core Team.
+ *  Copyright (C) 2001-2017  The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,9 +28,6 @@
 #include <Rmath.h>
 
 # include <rlocale.h>
-
-
-#define _(String) String
 
 int R_GE_getVersion()
 {
@@ -1821,7 +1818,10 @@ void GEText(double x, double y, const char * const str, cetype_t enc,
 					size_t used;
 					wchar_t wc;
 					while ((used = utf8toucs(&wc, ss)) > 0) {
-					    GEMetricInfo(-(int) wc, gc, &h, &d, &w, dd);
+					    if (IS_HIGH_SURROGATE(wc))
+					    	GEMetricInfo(-(int)utf8toucs32(wc, ss), gc, &h, &d, &w, dd);
+					    else
+					    	GEMetricInfo(-(int) wc, gc, &h, &d, &w, dd);
 					    h = fromDeviceHeight(h, GE_INCHES, dd);
 					    d = fromDeviceHeight(d, GE_INCHES, dd);
 #ifdef DEBUG_MI
@@ -1908,7 +1908,7 @@ void GEText(double x, double y, const char * const str, cetype_t enc,
  ****************************************************************
  */
 
-#include "xspline.h"
+#include "main-xspline.h"
 
 /*
  * Draws a "curve" through the specified control points.
@@ -2348,15 +2348,14 @@ void GEPretty(double *lo, double *up, int *ndiv)
 #ifdef DEBUG_PLOT
     x1 = ns; x2 = nu;
 #endif
+    // -> ../appl/pretty.c 
     unit = R_pretty(&ns, &nu, ndiv, /* min_n = */ 1,
 		    /* shrink_sml = */ 0.25,
 		    high_u_fact,
 		    2, /* do eps_correction in any case */
 		    0 /* return (ns,nu) in  (lo,up) */);
-
-    /* The following is ugly since it kind of happens already in Rpretty0(..):
-     */
-#define rounding_eps 1e-7
+    // The following is ugly since it kind of happens already in R_pretty(..):
+#define rounding_eps 1e-10 /* <- compatible to seq*(); was 1e-7 till 2017-08-14 */
     if(nu >= ns + 1) {
 	if(               ns * unit < *lo - rounding_eps*unit)
 	    ns++;
@@ -2639,7 +2638,10 @@ void GEStrMetric(const char *str, cetype_t enc, const pGEcontext gc,
                     size_t used;
                     wchar_t wc;
                     while ((used = utf8toucs(&wc, s)) > 0) {
-                        GEMetricInfo(-(int) wc, gc, &asc, &dsc, &wid,dd);
+                    	if (IS_HIGH_SURROGATE(wc))
+                    	    GEMetricInfo(-utf8toucs32(wc, s), gc, &asc, &dsc, &wid, dd);
+                    	else
+                            GEMetricInfo(-(int) wc, gc, &asc, &dsc, &wid,dd);
                         if (asc > *ascent)
                             *ascent = asc;
                         s += used;
@@ -2697,7 +2699,10 @@ void GEStrMetric(const char *str, cetype_t enc, const pGEcontext gc,
                     size_t used;
                     wchar_t wc;
                     while ((used = utf8toucs(&wc, s)) > 0) {
-                        GEMetricInfo(-(int) wc, gc, &asc, &dsc, &wid,dd);
+                        if (IS_HIGH_SURROGATE(wc))
+                            GEMetricInfo(-utf8toucs32(wc, s), gc, &asc, &dsc, &wid, dd);
+                        else
+                            GEMetricInfo(-(int) wc, gc, &asc, &dsc, &wid,dd);
                         if (dsc > *descent)
                             *descent = dsc;
                         s += used;
@@ -2876,15 +2881,13 @@ void GEplayDisplayList(pGEDevDesc dd)
 	    SEXP op = CAR(theOperation);
 	    SEXP args = CADR(theOperation);
 	    if (TYPEOF(op) == BUILTINSXP || TYPEOF(op) == SPECIALSXP) {
-
-            PRIMFUN(op) (R_NilValue, op, args, R_NilValue);
-
-            /* Check with each graphics system that the plotting went ok
-             */
-            if (!GEcheckState(dd)) {
-                warning(_("display list redraw incomplete"));
-                plotok = 0;
-            }
+	    	PRIMFUN(op) (R_NilValue, op, args, R_NilValue);
+		/* Check with each graphics system that the plotting went ok
+		 */
+		if (!GEcheckState(dd)) {
+		    warning(_("display list redraw incomplete"));
+		    plotok = 0;
+		}
 	    } else {
 	    	warning(_("invalid display list"));
 	    	plotok = 0;
@@ -3051,7 +3054,7 @@ SEXP do_playSnapshot(SEXP call, SEXP op, SEXP args, SEXP env)
 
 SEXP attribute_hidden do_recordGraphics(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP x, xptr, evalenv, retval;
+    SEXP x, evalenv, retval;
     pGEDevDesc dd = GEcurrentDevice();
     Rboolean record = dd->recordGraphics;
     /*
@@ -3094,8 +3097,8 @@ SEXP attribute_hidden do_recordGraphics(SEXP call, SEXP op, SEXP args, SEXP env)
      * This conversion of list to env taken from do_eval
      */
     PROTECT(x = VectorToPairList(list));
-    for (xptr = x ; xptr != R_NilValue ; xptr = CDR(xptr))
-	SET_NAMED(CAR(xptr) , 2);
+    for (SEXP xptr = x ; xptr != R_NilValue ; xptr = CDR(xptr))
+	ENSURE_NAMEDMAX(CAR(xptr));
     /*
      * The environment passed in as the third arg is used as
      * the parent of the new evaluation environment.
@@ -3150,7 +3153,6 @@ void GEonExit()
     }
 }
 
-
 /* This is also used in grid. It may be used millions of times on the
  * same character */
 /* FIXME: should we warn on more than one character here? */
@@ -3165,22 +3167,25 @@ int GEstring_to_pch(SEXP pch)
     if (pch == last_pch) return last_ipch;/* take advantage of CHARSXP cache */
     ipch = (unsigned char) CHAR(pch)[0];
     if (IS_LATIN1(pch)) {
-	    if (ipch > 127) ipch = -ipch;  /* record as Unicode */
-
+	if (ipch > 127) ipch = -ipch;  /* record as Unicode */
     } else if (IS_UTF8(pch) || utf8locale) {
-	    wchar_t wc = 0;
-        if (ipch > 127) {
-            if ( (int) utf8toucs(&wc, CHAR(pch)) > 0) ipch = -wc;
-            else error(_("invalid multibyte char in pch=\"c\""));
-        }
+	wchar_t wc = 0;
+	if (ipch > 127) {
+	    if ( (int) utf8toucs(&wc, CHAR(pch)) > 0) {
+	    	if (IS_HIGH_SURROGATE(wc))
+	    	    ipch = -utf8toucs32(wc, CHAR(pch));
+	    	else
+	    	    ipch = -wc;
+	    } else error(_("invalid multibyte char in pch=\"c\""));
+	}
     } else if(mbcslocale) {
-        /* Could we safely assume that 7-bit first byte means ASCII?
-           On Windows this only covers CJK locales, so we could.
-         */
-        unsigned int ucs = 0;
-        if ( (int) mbtoucs(&ucs, CHAR(pch), MB_CUR_MAX) > 0) ipch = ucs;
-        else error(_("invalid multibyte char in pch=\"c\""));
-        if (ipch > 127) ipch = -ipch;
+	/* Could we safely assume that 7-bit first byte means ASCII?
+	   On Windows this only covers CJK locales, so we could.
+	 */
+	unsigned int ucs = 0;
+	if ( (int) mbtoucs(&ucs, CHAR(pch), MB_CUR_MAX) > 0) ipch = ucs;
+	else error(_("invalid multibyte char in pch=\"c\""));
+	if (ipch > 127) ipch = -ipch;
     }
 
     last_ipch = ipch; last_pch = pch;

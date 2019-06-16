@@ -61,6 +61,11 @@ public class LinkSymbol {
     METHOD,
 
     /**
+     * References a static method that provides read-only access to a global variable
+     */
+    GETTER,
+
+    /**
      * References a class that implements {@link org.renjin.gcc.codegen.call.CallGenerator}
      */
     CALL_GENERATOR
@@ -73,6 +78,16 @@ public class LinkSymbol {
   private String descriptor;
   
   private LinkSymbol() {
+  }
+
+  public static LinkSymbol forMethod(Method method, SymbolType type) {
+    LinkSymbol symbol = new LinkSymbol();
+    symbol.type = type;
+    symbol.name = method.getName();
+    symbol.className = Type.getInternalName(method.getDeclaringClass());
+    symbol.memberName = method.getName();
+    symbol.descriptor = Type.getMethodDescriptor(method);
+    return symbol;
   }
 
   public static LinkSymbol forFunction(String name, Handle methodHandle) {
@@ -91,6 +106,16 @@ public class LinkSymbol {
     symbol.name = name;
     symbol.className = declaringClass.getInternalName();
     symbol.memberName = name;
+    return symbol;
+  }
+
+
+  public static LinkSymbol forField(Field field) {
+    LinkSymbol symbol = new LinkSymbol();
+    symbol.type = SymbolType.FIELD;
+    symbol.name = field.getName();
+    symbol.className = Type.getInternalName(field.getDeclaringClass());
+    symbol.memberName = field.getName();
     return symbol;
   }
 
@@ -119,11 +144,6 @@ public class LinkSymbol {
    * @return
    */
   public Method loadMethod(ClassLoader classLoader) {
-    if(type != LinkSymbol.SymbolType.METHOD) {
-      throw new IllegalStateException(
-          String.format("Invalid link: Tried to link name '%s' to function, found symbol of type %s", name, type));
-    }
-
     Class<?> owner = loadClass(classLoader);
 
     for (java.lang.reflect.Method method : owner.getMethods()) {
@@ -208,20 +228,20 @@ public class LinkSymbol {
       }
     }
 
-    Properties properties = new Properties();
-    properties.setProperty("type", type.name());
-    properties.setProperty("class", className);
-    
-    if(type == SymbolType.FIELD || type == SymbolType.METHOD) {
-      properties.setProperty("member", memberName);
+    StringBuilder properties = new StringBuilder();
+    properties.append("type=").append(type.name()).append("\n");
+    properties.append("class=").append(className).append("\n");
+
+    if(type == SymbolType.FIELD || type == SymbolType.METHOD || type == SymbolType.GETTER) {
+      properties.append("member=").append(memberName).append("\n");
     }
 
-    if(type == SymbolType.METHOD) {
-      properties.setProperty("descriptor", descriptor);
+    if(type == SymbolType.METHOD || type == SymbolType.GETTER) {
+      properties.append("descriptor=").append(descriptor).append("\n");
     }
 
     try(Writer out = new OutputStreamWriter(new FileOutputStream(symbolFile), Charsets.UTF_8)) {
-      properties.store(out, name);      
+      out.write(properties.toString());
     }
   }
   
@@ -232,12 +252,12 @@ public class LinkSymbol {
     symbol.type = SymbolType.valueOf(properties.getProperty("type"));
     symbol.className = properties.getProperty("class");
     
-    if(symbol.type == SymbolType.FIELD || symbol.type == SymbolType.METHOD) {
+    if(symbol.type == SymbolType.FIELD || symbol.type == SymbolType.METHOD || symbol.type == SymbolType.GETTER) {
       symbol.memberName = properties.getProperty("member");
       symbol.descriptor = properties.getProperty("descriptor");
     }
 
-    if(symbol.type == SymbolType.METHOD) {
+    if(symbol.type == SymbolType.METHOD || symbol.type == SymbolType.GETTER) {
       symbol.descriptor = properties.getProperty("descriptor");
     }
 
@@ -249,15 +269,16 @@ public class LinkSymbol {
    * Looks up a LinkSymbol from the classpath.
    */
   public static Optional<LinkSymbol> lookup(ClassLoader classLoader, String name) throws IOException {
-    InputStream in = classLoader.getResourceAsStream("META-INF/org.renjin.gcc.symbols/" + name);
-    if(in == null) {
-      return Optional.empty();
-    }
-    try(InputStreamReader reader = new InputStreamReader(in, Charsets.UTF_8))  {
-      Properties properties = new Properties();
-      properties.load(reader);
+    try(InputStream in = classLoader.getResourceAsStream("META-INF/org.renjin.gcc.symbols/" + name)) {
+      if (in == null) {
+        return Optional.empty();
+      }
+      try (InputStreamReader reader = new InputStreamReader(in, Charsets.UTF_8)) {
+        Properties properties = new Properties();
+        properties.load(reader);
 
-      return Optional.of(fromDescriptor(name, properties));
+        return Optional.of(fromDescriptor(name, properties));
+      }
     }
   }
 

@@ -20,9 +20,9 @@
 
 apply from: '../compile.gradle'
 
-compile {
-    environment 'PACKAGE', 'org.renjin.math'
-    environment 'CLASS', 'Blas'
+compileGimple {
+    packageName = 'org.renjin.math'
+    className = 'Blas'
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {

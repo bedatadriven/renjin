@@ -37,28 +37,110 @@ def optimizedOutputDir = "$buildDir/gcc-bridge/optimized"
 
 sourceSets {
     main {
-        output.dir(compiledOutputDir, builtBy: 'compile')
+        output.dir(compiledOutputDir, builtBy: 'compileGimple')
+    }
+}
+def fortranDir = project.file('src/main/fortran')
+def cDir = project.file('src/main/c')
+
+if(fortranDir.exists()) {
+    task compileFortran(dependsOn: ':tools:gcc-bridge:compiler:compilePlugin') {
+
+        def gimpleDir = project.file('build/fortran/gimple')
+        inputs.dir fortranDir
+        outputs.dir gimpleDir
+
+        doFirst {
+            gimpleDir.mkdirs()
+
+            def tempDir = project.file('build/fortran/work')
+            tempDir.mkdirs()
+
+            fortranDir.eachFile { sourceFile ->
+                if (sourceFile.name.endsWith('.f')) {
+                    project.exec {
+                        workingDir tempDir
+                        executable 'gfortran-4.7'
+                        args '-m32'
+                        args '-D_GCC_BRIDGE', '-D_RENJIN'
+                        args '-c'
+                        args "-fplugin=${gccBridgePlugin}"
+                        args "-fplugin-arg-bridge-json-output-file=${gimpleDir.absolutePath}/${sourceFile.name}.gimple"
+                        args sourceFile.absolutePath
+                    }
+                }
+            }
+        }
     }
 }
 
-task compile(type: JavaExec, dependsOn: ':tools:gcc-bridge:compiler:compilePlugin') {
+if(cDir.exists()) {
+    task compileC(dependsOn: ':tools:gcc-bridge:compiler:compilePlugin') {
 
+        def gimpleDir = project.file('build/c/gimple')
+        inputs.dir cDir
+        outputs.dir gimpleDir
 
-    if(project.file('src/main/c').exists()) {
-        inputs.dir 'src/main/c'
+        ext.cflags = []
+
+        doFirst {
+            gimpleDir.mkdirs()
+
+            def tempDir = project.file('build/c/work')
+            tempDir.mkdirs()
+
+            cDir.eachFile { sourceFile ->
+                if (sourceFile.name.endsWith('.c')) {
+                    project.exec {
+                        workingDir tempDir
+                        executable 'gcc-4.7'
+                        args '-m32'
+                        args '-D_GCC_BRIDGE', '-D_RENJIN'
+                        args '-c'
+                        args += cflags
+                        args "-fplugin=${gccBridgePlugin}"
+                        args "-fplugin-arg-bridge-json-output-file=${gimpleDir.absolutePath}/${sourceFile.name}.gimple"
+                        args sourceFile.absolutePath
+                    }
+                }
+            }
+        }
     }
-    if(project.file('src/main/fortran').exists()) {
-        inputs.dir 'src/main/fortran'
+}
+
+task compileGimple(type: JavaExec) {
+
+    if(fortranDir.exists()) {
+        dependsOn 'compileFortran'
+        inputs.dir fortranDir
     }
+    if(cDir.exists()) {
+        dependsOn 'compileC'
+        inputs.dir cDir
+    }
+    
     outputs.dir compiledOutputDir
 
-    environment 'GCC_BRIDGE_PLUGIN', gccBridgePlugin
+    ext.packageName = 'org.renjin'
+    ext.className = ''
     
     classpath configurations.gcc
     classpath sourceSets.main.compileClasspath
 
-    main = 'org.renjin.gcc.Build'
-
+    main = 'org.renjin.gcc.GimpleCompiler'
+    doFirst {
+        args "--package=${packageName}"
+        if(className) {
+            args "--class=${className}"
+        }
+        args "--output-dir=${compiledOutputDir}"
+        if(fortranDir.exists()) {
+            args 'build/fortran/gimple'
+        }
+        if(cDir.exists()) {
+            args 'build/c/gimple'
+        }
+    }
 }
 
 task optimize(type: JavaExec) {

@@ -108,6 +108,7 @@ public class GimpleCompiler  {
     addReferenceClass(Mathlib.class);
     addReferenceClass(Std.class);
     addReferenceClass(PosixThreads.class);
+    addMethod("*__isoc99_sscanf", Stdlib.class, "sscanf");
   }
 
 
@@ -525,4 +526,43 @@ public class GimpleCompiler  {
     this.globalSymbolTable.setLinkClassLoader(linkClassLoader);
   }
 
+  public static void main(String[] args) throws Exception {
+
+    GimpleCompiler compiler = new GimpleCompiler();
+
+    List<GimpleCompilationUnit> units = new ArrayList<>();
+
+    for (String arg : args) {
+      if(arg.startsWith("--")) {
+        String[] parts = arg.split("=", 2);
+        String option = parts[0];
+        String value = parts[1];
+        switch (option) {
+          case "--package":
+            compiler.setPackageName(value);
+            break;
+          case "--class":
+            compiler.setClassName(value);
+            break;
+          case "--output-dir":
+            compiler.setOutputDirectory(new File(value));
+            break;
+          default:
+            throw new RuntimeException("Unknown option " + arg);
+        }
+      } else {
+        File input = new File(arg);
+        if(!input.exists()) {
+          throw new RuntimeException("The input '" + input + "' does not exist.");
+        }
+        if(input.isDirectory()) {
+          for (File gimpleFile : input.listFiles()) {
+            units.add(Gcc.parseGimple(gimpleFile));
+          }
+        }
+      }
+    }
+
+    compiler.compile(units);
+  }
 }

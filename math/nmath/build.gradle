@@ -1,9 +1,13 @@
 
 apply from: '../compile.gradle'
 
-compile {
-    environment 'PACKAGE', 'org.renjin.nmath'
-    environment 'CFLAGS', '-std=gnu99 -DMATHLIB_STANDALONE -I .'
+
+compileC {
+    cflags = ['-std=gnu99', '-DMATHLIB_STANDALONE', '-I.']
+}
+
+compileGimple {
+    packageName = 'org.renjin.nmath'
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {

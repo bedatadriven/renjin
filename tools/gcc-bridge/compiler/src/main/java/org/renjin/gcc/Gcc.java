@@ -152,7 +152,11 @@ public class Gcc {
     LOGGER.info("Executing " + Joiner.on(" ").join(arguments));
 
     callGcc(arguments);
-    
+
+    return parseGimple(gimpleFile);
+  }
+
+  public static GimpleCompilationUnit parseGimple(File gimpleFile) throws IOException {
     GimpleParser parser = new GimpleParser();
     GimpleCompilationUnit unit = parser.parse(gimpleFile);
     unit.setSourceFile(gimpleFile);

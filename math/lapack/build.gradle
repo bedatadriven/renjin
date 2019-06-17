@@ -25,9 +25,9 @@ dependencies {
     compile project(':math:blas')
 }
 
-compile {
-    environment 'PACKAGE', 'org.renjin.math'
-    environment 'CLASS', 'Lapack'
+compileGimple {
+    packageName = 'org.renjin.math'
+    className = 'Lapack'
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {

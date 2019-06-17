@@ -20,9 +20,9 @@
 
 apply from: '../compile.gradle'
 
-compile {
-    environment 'PACKAGE', 'org.renjin.appl'
-    environment 'CLASS', 'Appl'
+compileGimple {
+    packageName = 'org.renjin.appl'
+    className = 'Appl'
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {

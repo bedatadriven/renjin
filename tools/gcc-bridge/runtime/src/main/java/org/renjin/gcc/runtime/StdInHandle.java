@@ -58,4 +58,14 @@ public class StdInHandle extends AbstractFileHandle {
   public void seekEnd(long offset) {
     throw new UnsupportedOperationException("TODO");
   }
+
+  @Override
+  public boolean isEof() {
+    return false;
+  }
+
+  @Override
+  public long position() {
+    return 0;
+  }
 }

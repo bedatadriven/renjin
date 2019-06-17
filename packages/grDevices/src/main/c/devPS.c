@@ -3145,12 +3145,12 @@ PSDeviceDriver(pDevDesc dd, const char *file, const char *paper,
      */
     pd->encodings = NULL;
     if (!(enc = findEncoding(encoding, pd->encodings, FALSE)))
-	enc = addEncoding(encoding, 0);
+	    enc = addEncoding(encoding, 0);
     if (enc && (enclist = addDeviceEncoding(enc, pd->encodings))) {
-	pd->encodings = enclist;
+	    pd->encodings = enclist;
     } else {
-	PS_cleanup(1, dd, pd);
-	error(_("failed to load encoding file in %s()"), "postscript");
+	    PS_cleanup(1, dd, pd);
+	    error(_("failed to load encoding file in %s()"), "postscript");
     }
 
     /*****************************

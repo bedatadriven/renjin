@@ -264,4 +264,30 @@ public class BytePtr extends AbstractPtr {
 
     return new PointerPtr(pointers.toArray(new Ptr[0]));
   }
+
+  @Override
+  public String toString() {
+    if(array == null) {
+      if(offset == 0) {
+        return "NULL";
+      } else {
+        return "NULL+" + offset;
+      }
+    } else {
+      StringBuilder s = new StringBuilder();
+      for (int i = offset; i < array.length; i++) {
+        int b = array[i];
+        if(b == 0) {
+          break;
+        } else if(b >= 32 && b < 126) {
+          s.appendCodePoint(b);
+        }
+      }
+      if(s.length() > 0) {
+        return "BytePtr{\"" + s.toString() + "\"}";
+      } else {
+        return "BytePtr{" + Integer.hashCode(System.identityHashCode(array)) + "+" + offset + "}";
+      }
+    }
+  }
 }

@@ -26,6 +26,7 @@ include 'packages:stats'
 include 'packages:tools'
 include 'packages:datasets'
 include 'packages:methods'
+include 'packages:grid'
 
 include 'test-packages:alpha'
 //include 'test-packages:beta'
@@ -38,3 +39,7 @@ include 'test-packages:alpha'
 include 'test-packages:thirdparty'
 
 include 'tests'
+
+include 'cran:Matrix'
+include 'cran:MASS'
+include 'cran:lattice'

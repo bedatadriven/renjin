@@ -2521,7 +2521,14 @@ public final class Rinternals {
   }
 
   public static SEXP R_FindNamespace(SEXP namespaceExp) throws Exception {
-    throw new UnsupportedOperationException("TODO");
+
+    String namespaceName = ((StringVector) namespaceExp).getElementAsString(0);
+
+    Context context = Native.currentContext();
+
+    return context.getNamespaceRegistry()
+        .getNamespace(context, namespaceName)
+        .getNamespaceEnvironment();
   }
 
   public static void R_LockEnvironment(SEXP env, boolean bindings) {

@@ -37,4 +37,7 @@ cairo_ps <- function(filename = if(onefile) "Rplots.ps" else "Rplot%03d.ps",
 
 }
 
-cairoVersion <- function() .Call(C_cairoVersion)
+cairoVersion <- function()
+{
+    stop("Renjin does not support the cairo device.")
+}

@@ -21,6 +21,9 @@ package org.renjin.gcc.format;
 import org.hamcrest.Matchers;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.renjin.gcc.runtime.BytePtr;
+import org.renjin.gcc.runtime.Ptr;
+import org.renjin.gcc.runtime.Stdlib;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -134,5 +137,18 @@ public class FormatterTest {
   @Test
   public void backslash() {
     assertThat(format("\\d"), equalTo("\\d"));
+  }
+
+  @Test
+  public void scanf() {
+    Formatter formatter = new Formatter("%[^\r\n]", Formatter.Mode.SCAN);
+    BytePtr stringOutput = new BytePtr(new byte[1024]);
+    Ptr[] output = new Ptr[1];
+    output[0] = stringOutput;
+
+    formatter.scan(new StringCharIterator("Helvetica\nHello world"), output);
+
+    assertThat(Stdlib.nullTerminatedString(stringOutput), equalTo("Helvetica"));
+
   }
 }

@@ -19,9 +19,14 @@ dependencies {
 
 task compileNamespace(type: JavaExec, dependsOn: [ ':tools:gcc-bridge:compiler:compilePlugin', ':tools:packager:build', 'processResources' ]) {
 
+    dependsOn 'compileJava'
+    dependsOn 'processResources'
+
     inputs.file 'NAMESPACE'
     if(project.file('src/main/c').exists()) {
         inputs.dir 'src/main/c'
+    } else {
+        inputs.dir 'src'
     }
     if(project.file('src/main/R').exists()) {
         inputs.dir 'src/main/R'
@@ -31,12 +36,15 @@ task compileNamespace(type: JavaExec, dependsOn: [ ':tools:gcc-bridge:compiler:c
     }
     inputs.dir gnuHomeDir
     outputs.dir "$buildDir/namespace"
-    outputs.files()
+
+    classpath configurations.packager
+    classpath tasks.getByName('compileJava').destinationDir
+    classpath tasks.getByName('processResources').destinationDir
+    classpath sourceSets.main.compileClasspath
+    classpath "$buildDir/namespace"
 
     doFirst {
-        classpath configurations.packager
-        classpath sourceSets.main.compileClasspath
-        classpath sourceSets.main.output
+
 
         environment "PACKAGE_GROUP_ID", project.group
         environment "R_HOME", gnuHomeDir

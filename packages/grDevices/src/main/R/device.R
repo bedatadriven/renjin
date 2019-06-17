@@ -375,7 +375,7 @@ dev.capabilities <- function(what = NULL)
 ## for use in dev.new and .onLoad
 .select_device <- function() {
     ## Use device functions rather than names to make it harder to get masked.
-    if(!nzchar(defdev <- Sys.getenv("R_DEFAULT_DEVICE"))) defdev <- JavaGD
+    if(!nzchar(defdev <- Sys.getenv("R_DEFAULT_DEVICE"))) defdev <- pdf
     if(interactive()) {
         if(nzchar(intdev <- Sys.getenv("R_INTERACTIVE_DEVICE"))) intdev
         else {

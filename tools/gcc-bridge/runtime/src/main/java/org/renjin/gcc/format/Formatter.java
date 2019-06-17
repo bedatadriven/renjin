@@ -21,6 +21,9 @@
 
 package org.renjin.gcc.format;
 
+import org.renjin.gcc.runtime.Ptr;
+
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,12 +40,22 @@ import java.util.Locale;
 public class Formatter {
 
 
+  public enum Mode {
+    PRINT,
+    SCAN
+  }
+
+
   public enum ArgumentType {
     INTEGER,
     DOUBLE,
     POINTER,
-    UNUSED, LONG, STRING
+    UNUSED,
+    LONG,
+    STRING
   }
+
+  private final Mode mode;
 
   /**
    * The input format string
@@ -80,7 +93,11 @@ public class Formatter {
    * malformed.
    */
   public Formatter(String formatString) throws IllegalArgumentException {
-    this(Locale.getDefault(), formatString);
+    this(Locale.getDefault(), formatString, Mode.PRINT);
+  }
+
+  public Formatter(String formatString, Mode mode) {
+    this(Locale.getDefault(), formatString, mode);
   }
   
   
@@ -96,8 +113,9 @@ public class Formatter {
    * string is null, zero length, or otherwise
    * malformed.
    */
-  public Formatter(Locale locale, String formatString) throws IllegalArgumentException {
+  public Formatter(Locale locale, String formatString, Mode mode) throws IllegalArgumentException {
     this.formatString = formatString;
+    this.mode = mode;
     dfs = new DecimalFormatSymbols(locale);
 
     consumeLiteral();
@@ -221,7 +239,7 @@ public class Formatter {
         currentSpec.argumentPosition = currentArgumentIndex++;
       }
 
-      setArgumentType(currentSpec.argumentPosition, currentSpec.getArgumentType());
+      setArgumentType(currentSpec.argumentPosition, currentSpec.parseArgumentType());
       conversions.add(currentSpec);
     }
   }
@@ -367,11 +385,39 @@ public class Formatter {
       consumeIf('L');
     }
   }
+
+  private boolean consumeCharacterClass() {
+    if(consumeIf('[')) {
+      currentSpec.inverseCharacterClass = consumeIf('^');
+      currentSpec.characterClass = consumeCharacterRange();
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  private String consumeCharacterRange() {
+    StringBuilder s = new StringBuilder();
+    while(true) {
+      char c = next();
+      if(c == ']') {
+        break;
+      } else {
+        s.append(c);
+      }
+    }
+    return s.toString();
+  }
+
   /**
    * Check for a conversion character.
    */
   private void consumeConversionCharacter() {
-    currentSpec.conversionCharacter = next();
+    if(mode == Mode.SCAN && consumeCharacterClass()) {
+      currentSpec.conversionCharacter = 's';
+    } else {
+      currentSpec.conversionCharacter = next();
+    }
   }
 
   /**
@@ -457,6 +503,129 @@ public class Formatter {
 
   public static String format(String formatString, Object... arguments) {
     return new Formatter(formatString).format(new FormatArrayInput(arguments));
+  }
+
+  public int scan(CharIterator it, Object[] output) {
+
+    if(!it.hasMore()) {
+      return -1;
+    }
+
+    int matchCount = 0;
+    for (FormatSpec conversion : conversions) {
+      if(!it.hasMore()) {
+        break;
+      }
+      Ptr outputPtr = (Ptr) output[conversion.argumentPosition];
+      if(scan(conversion, it, outputPtr)) {
+        if(conversion.conversionCharacter != 0) {
+          matchCount++;
+        }
+      } else {
+        break;
+      }
+    }
+
+    return matchCount;
+  }
+
+  private boolean scan(FormatSpec conversion, CharIterator it, Ptr outputPtr) {
+    switch (conversion.conversionCharacter) {
+      case 0:
+        return scanLiteral(conversion, it);
+      case 's':
+        return scanString(conversion, it, outputPtr);
+      case 'd':
+        return scanInteger(conversion, it, outputPtr);
+      default:
+        throw new UnsupportedOperationException("TODO: " + conversion.conversionCharacter);
+    }
+  }
+
+  private boolean scanLiteral(FormatSpec conversion, CharIterator it) {
+    for (int i = 0; i < conversion.literal.length(); i++) {
+      if(!it.hasMore()) {
+        return false;
+      }
+      char c = it.next();
+      if(c != conversion.literal.charAt(i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private boolean scanString(FormatSpec conversion, CharIterator it, Ptr outputPtr) {
+    StringBuilder s = new StringBuilder();
+    CharPredicator predicate;
+    if(conversion.characterClass == null) {
+      predicate = c -> true;
+    } else if(conversion.inverseCharacterClass) {
+      predicate = c -> conversion.characterClass.indexOf(c) == -1;
+    } else {
+      predicate = c -> conversion.characterClass.indexOf(c) != -1;
+    }
+
+    while(it.hasMore()) {
+      char c = it.peek();
+      if(!predicate.test(c)) {
+        break;
+      }
+      s.append(c);
+      it.next();
+    }
+
+    if(s.length() == 0) {
+      return false;
+    }
+
+    byte[] bytes = s.toString().getBytes(StandardCharsets.UTF_8);
+    for (int i = 0; i < bytes.length; i++) {
+      outputPtr.setByte(i, bytes[i]);
+    }
+    outputPtr.setByte(bytes.length, (byte) 0);
+
+    return true;
+  }
+
+
+  private boolean scanInteger(FormatSpec conversion, CharIterator it, Ptr outputPtr) {
+
+    int sign = 1;
+    char firstChar = it.peek();
+    if(firstChar == '+') {
+      it.next();
+    } else if(firstChar == '-') {
+      sign = -1;
+      it.next();
+    }
+
+    StringBuilder s = new StringBuilder();
+    while(it.hasMore()) {
+      char c = it.peek();
+      if(!(c >= '0' && c <= '9')) {
+        break;
+      }
+      s.append(c);
+      it.next();
+    }
+
+    if(s.length() == 0) {
+      return false;
+    }
+
+    long value = Long.parseLong(s.toString());
+    if(sign < 0) {
+      value = -value;
+    }
+    if(conversion.optionall) {
+      outputPtr.setLong(value);
+    } else if(conversion.optionalh) {
+      outputPtr.setShort((short) value);
+    } else {
+      outputPtr.setInt((int) value);
+    }
+    return true;
   }
 
 }

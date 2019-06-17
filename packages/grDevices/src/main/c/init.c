@@ -78,6 +78,7 @@ static const R_CallMethodDef CallEntries[] = {
     CALLDEF(palette, 1),
     CALLDEF(palette2, 1),
     CALLDEF(newJavaGD, 4),
+    CALLDEF(recordGraphics, 3),
     CALLDEF(bmVersion, 0),
 
 #ifndef _WIN32
@@ -135,6 +136,9 @@ extern Rboolean useaqua;
 
 void attribute_visible R_init_grDevices(DllInfo *dll)
 {
+    // Renjin: call Rf_InitGraphics here rather than in startup
+    Rf_InitGraphics();
+
     initPalette();
     R_registerRoutines(dll, NULL, CallEntries, NULL, ExtEntries);
     R_useDynamicSymbols(dll, FALSE);

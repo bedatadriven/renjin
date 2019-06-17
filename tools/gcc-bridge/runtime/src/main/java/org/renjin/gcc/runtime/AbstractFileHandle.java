@@ -32,5 +32,10 @@ public abstract class AbstractFileHandle implements FileHandle {
     error = 0;
   }
 
+  @Override
+  public void setError(int errorCode) {
+    this.error = errorCode;
+  }
+
 
 }

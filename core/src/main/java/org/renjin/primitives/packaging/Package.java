@@ -103,4 +103,14 @@ public abstract class Package {
   public FileObject resolvePackageRoot(FileSystemManager fileSystemManager) throws FileSystemException {
     throw new EvalException("Cannot access package root");
   }
+
+  /**
+   * Finds the FileObject for a package resource object.
+   *
+   * @return a VFS {@link FileObject} pointing to the resource of this package.
+   * @throws FileSystemException
+   */
+  public FileObject resolvePackageResource(FileSystemManager fileSystemManager, String resourceName) throws FileSystemException {
+    return resolvePackageRoot(fileSystemManager).resolveFile(resourceName);
+  }
 }

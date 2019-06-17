@@ -19,10 +19,7 @@
 package org.renjin.gcc.runtime;
 
 import org.renjin.gcc.annotations.Struct;
-import org.renjin.gcc.format.FormatArrayInput;
-import org.renjin.gcc.format.FormatInput;
-import org.renjin.gcc.format.Formatter;
-import org.renjin.gcc.format.VarArgsInput;
+import org.renjin.gcc.format.*;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -495,20 +492,42 @@ public class Stdlib {
     return character;
   }
 
+  public static int sprintf(Ptr string, Ptr format, Object... arguments) {
+    return snprintf(string, Integer.MAX_VALUE, format, arguments);
+  }
+
+  @Deprecated
   public static int sprintf(BytePtr string, BytePtr format, Object... arguments) {
     return snprintf(string, Integer.MAX_VALUE, format, arguments);
   }
 
+  /**
+   * Chnaged
+   * @param string
+   * @param limit
+   * @param format
+   * @param arguments
+   * @return
+   */
+  @Deprecated
   public static int snprintf(BytePtr string, int limit, BytePtr format, Object... arguments) {
     return sprintf(string, limit, format, f -> new FormatArrayInput(arguments));
   }
 
+  public static int snprintf(Ptr string, int limit, Ptr format, Object... arguments) {
+    return sprintf(string, limit, format, f -> new FormatArrayInput(arguments));
+  }
 
+  @Deprecated
   public static int vsnprintf(BytePtr string, int n, BytePtr format, Ptr argumentList) {
     return sprintf(string, n, format, f -> new VarArgsInput(f, argumentList));
   }
 
-  private static int sprintf(BytePtr string, int limit, BytePtr format, Function<Formatter, FormatInput> arguments) {
+  public static int vsnprintf(Ptr string, int n, Ptr format, Ptr argumentList) {
+    return sprintf(string, n, format, f -> new VarArgsInput(f, argumentList));
+  }
+
+  private static int sprintf(Ptr string, int limit, Ptr format, Function<Formatter, FormatInput> arguments) {
     String outputString;
 
     try {
@@ -520,25 +539,38 @@ public class Stdlib {
     byte[] outputBytes = outputString.getBytes();
 
     // the NULL-termination character is countered towards the limit
-    int bytesToCopy = Math.min(outputBytes.length, limit-1);
+    int bytesToCopy = Math.min(outputBytes.length, limit - 1);
 
-    if(bytesToCopy > 0) {
-      // copy the formatted string to the output
-      System.arraycopy(outputBytes, 0, string.array, string.offset, bytesToCopy);
+    if(string instanceof BytePtr) {
+      copyToString((BytePtr) string, outputBytes, bytesToCopy);
+    } else {
+      copyToString(string, outputBytes, bytesToCopy);
     }
 
     // terminate string with null byte
     if(limit > 0) {
-      string.array[string.offset + bytesToCopy] = 0;
+      string.setByte(bytesToCopy, (byte)0);
     }
 
     return outputBytes.length;
   }
-
-  public static int sscanf(BytePtr format, Object... arguments) {
-    throw new UnsupportedOperationException("TODO: implement " + Stdlib.class.getName() + ".sscanf");
+  private static void copyToString(Ptr string, byte[] outputBytes, int n) {
+    for (int i = 0; i < n; i++) {
+      string.setByte(i, outputBytes[i]);
+    }
   }
 
+  private static void copyToString(BytePtr string, byte[] outputBytes, int n) {
+    if(n > 0) {
+      // copy the formatted string to the output
+      System.arraycopy(outputBytes, 0, string.array, string.offset, n);
+    }
+  }
+
+  public static int sscanf(Ptr str, Ptr format, Object... arguments) {
+    Formatter formatter = new Formatter(nullTerminatedString(format), Formatter.Mode.SCAN);
+    return formatter.scan(new ByteCharIterator(str), arguments);
+  }
 
   public static int tolower(int c) {
     return Character.toLowerCase(c);
@@ -789,8 +821,9 @@ public class Stdlib {
   public static int fprintf(Ptr stream, BytePtr format, Object... arguments) {
     try {
       String outputString = format(format, f -> new FormatArrayInput(arguments));
-      BytePtr outputBytes = BytePtr.nullTerminatedString(outputString, StandardCharsets.UTF_8);
-      int bytesWritten = fwrite(outputBytes, 1, outputBytes.getArray().length, stream);
+      byte[] outputBytes = outputString.getBytes(StandardCharsets.UTF_8);
+      Ptr outputPtr = new BytePtr(outputBytes);
+      int bytesWritten = fwrite(outputPtr, 1, outputBytes.length, stream);
 
       return bytesWritten;
     } catch (Exception e) {
@@ -906,6 +939,88 @@ public class Stdlib {
     } catch (IOException e) {
       return -1;
     }
+  }
+
+  private static FileHandle fileHandle(Ptr ptr) {
+    return (FileHandle)ptr.getArray();
+  }
+
+  public static int feof(Ptr handlePtr) {
+    return fileHandle(handlePtr).isEof() ? 1 : 0;
+  }
+
+  /**
+   * Returns the current value of the position indicator of the stream.
+   *
+   * For binary streams, this is the number of bytes from the beginning of the file.
+   *
+   * For text streams, the numerical value may not be meaningful but can still be used to
+   * restore the position to the same position later using fseek (if there are characters put
+   * back using ungetc still pending of being read, the behavior is undefined).
+   *
+   * @param handle
+   * @return
+   */
+  public static long ftell(Ptr stream) {
+    FileHandle handle = (FileHandle) stream.getArray();
+    try {
+      return handle.position();
+    } catch (IOException e) {
+      handle.setError(e);
+      return -1L;
+    }
+  }
+
+  public static int fputs(Ptr str, Ptr stream) {
+    throw new UnsupportedOperationException("fputs");
+  }
+
+
+  /**
+   * Reads characters from stream and stores them as a C string into str until (num-1) characters have been
+   * read or either a newline or the end-of-file is reached, whichever happens first.
+   *
+   */
+  public static Ptr fgets(Ptr str, int num, Ptr stream) {
+
+    FileHandle handle = fileHandle(stream);
+
+    int charsRead = 0;
+    while (charsRead < (num - 1)) {
+      int c;
+      try {
+        c = handle.read();
+      } catch (IOException e) {
+        // If a read error occurs, the error indicator (ferror) is set and a null pointer is also returned
+        // (but the contents pointed by str may have changed).
+        handle.setError(e);
+        return BytePtr.NULL;
+      }
+      if (c == -1) {
+        // If the end-of-file is encountered while attempting to read a character, the eof indicator is
+        // set (feof). If this happens before any characters could be read, the pointer returned is a null
+        // pointer (and the contents of str remain unchanged).
+        if (charsRead == 0) {
+          handle.setError(1);
+          return BytePtr.NULL;
+        } else {
+          break;
+        }
+      } else if (c == 0) {
+        break;
+      } else {
+        str.setByte(charsRead, (byte) c);
+        charsRead++;
+
+        // A newline character makes fgets stop reading, but it is considered a valid
+        // character by the function and included in the string copied to str.
+        if (c == '\n') {
+          break;
+        }
+      }
+    }
+    str.setByte(charsRead, (byte) 0);
+    return str;
   }
 
   /**

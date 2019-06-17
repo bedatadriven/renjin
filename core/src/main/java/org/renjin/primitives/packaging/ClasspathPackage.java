@@ -72,7 +72,6 @@ public class ClasspathPackage extends FileBasedPackage {
     String qualifiedName = qualifyResourceName("environment");
     String uri = "res:" + qualifiedName;
 
-
     FileObject environmentFileObject;
     try {
       environmentFileObject = fileSystemManager.resolveFile(uri);
@@ -89,6 +88,14 @@ public class ClasspathPackage extends FileBasedPackage {
     return environmentFileObject.getParent();
   }
 
+  @Override
+  public FileObject resolvePackageResource(FileSystemManager fileSystemManager, String resourceName) throws FileSystemException {
+    // Find the URL where the package is located
+    String qualifiedName = qualifyResourceName(resourceName);
+    String uri = "res:" + qualifiedName;
+
+    return fileSystemManager.resolveFile(uri);
+  }
 
   private String qualifyResourceName(String name) {
     return

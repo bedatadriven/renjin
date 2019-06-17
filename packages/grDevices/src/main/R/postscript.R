@@ -296,8 +296,6 @@ pdf <- function(file = if(onefile) "Rplots.pdf" else "Rplot%03d.pdf",
                 paper, encoding, bg, fg, pointsize, pagecentre, colormodel,
                 useDingbats, useKerning, fillOddEven, compress)
 {
-    if (is.null(file) ||  missing(file))
-        file <- if (!missing(onefile) && onefile) "Rplots.pdf" else "Rplot%03d.pdf"
     ## do initialization if needed
     initPSandPDFfonts()
 
@@ -366,13 +364,12 @@ pdf <- function(file = if(onefile) "Rplots.pdf" else "Rplot%03d.pdf",
     onefile <- old$onefile # needed to set 'file'
     if(!checkIntFormat(file))
         stop(gettextf("invalid 'file' argument '%s'", file), domain = NA)
-
-    file <- sub("(.*)(\\.pdf{1})$", "\\1.png", file, ignore.case = TRUE)
-    png(filename = file, units = "in", res = 100,
-            width = if(!is.null(old$width)) old$width,
-            height = if(!is.null(old$height)) old$height,
-            pointsize = if(!is.null(old$pointsize)) old$pointsize,
-            bg = if(!is.null(old$bg)) old$bg)
+    .External(C_PDF,
+              file, old$paper, old$family, old$encoding, old$bg, old$fg,
+              old$width, old$height, old$pointsize, onefile, old$pagecentre,
+              old$title, old$fonts, version[1L], version[2L],
+              old$colormodel, old$useDingbats, old$useKerning,
+              old$fillOddEven, old$compress)
     invisible()
 }
 
@@ -516,8 +513,8 @@ printFont.CIDFont <- function(font)
            ")\n    ", font$CMap, "\n    ", font$encoding, "\n")
 
 printFonts <- function(fonts)
-    cat(paste(names(fonts), ": ", unlist(lapply(fonts, printFont)),
-              sep = "", collapse = ""))
+    cat(paste0(names(fonts), ": ", unlist(lapply(fonts, printFont)),
+               collapse = ""))
 
 # If no arguments specified, return entire font database
 # If no named arguments specified, all args should be font names

@@ -46,6 +46,12 @@ public interface FileHandle {
 
   void clearError();
 
+  void setError(int errorCode);
+
+  default void setError(IOException e) {
+    setError(1);
+  }
+
   void write(int b) throws IOException;
 
   void rewind() throws IOException;
@@ -62,4 +68,8 @@ public interface FileHandle {
   void seekCurrent(long offset) throws IOException;
 
   void seekEnd(long offset);
+
+  boolean isEof();
+
+  long position() throws IOException;
 }

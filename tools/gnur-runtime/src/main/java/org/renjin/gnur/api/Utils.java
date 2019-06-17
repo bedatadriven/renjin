@@ -21,11 +21,9 @@ package org.renjin.gnur.api;
 
 import org.renjin.eval.EvalException;
 import org.renjin.gcc.annotations.Noop;
-import org.renjin.gcc.runtime.BytePtr;
-import org.renjin.gcc.runtime.DoublePtr;
-import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.gcc.runtime.Ptr;
+import org.renjin.gcc.runtime.*;
 import org.renjin.primitives.files.Files;
+import org.renjin.repackaged.guava.base.Charsets;
 
 import java.nio.charset.StandardCharsets;
 
@@ -73,11 +71,19 @@ public final class Utils {
   // double R_strtod (const char *c, char **end)
 
   public static BytePtr R_tmpnam(BytePtr prefix, BytePtr tempdir) {
-    throw new UnimplementedGnuApiMethod("R_tmpnam");
+    return BytePtr.nullTerminatedString(
+        Files.tempfile(
+            Stdlib.nullTerminatedString(prefix),
+            Stdlib.nullTerminatedString(tempdir),
+            ""), Charsets.UTF_8);
   }
 
   public static BytePtr R_tmpnam2(BytePtr prefix, BytePtr tempdir, BytePtr fileext) {
-    throw new UnimplementedGnuApiMethod("R_tmpnam2");
+    return BytePtr.nullTerminatedString(
+        Files.tempfile(
+            Stdlib.nullTerminatedString(prefix),
+            Stdlib.nullTerminatedString(tempdir),
+            Stdlib.nullTerminatedString(fileext)), Charsets.UTF_8);
   }
 
   public static void R_CheckUserInterrupt() {

@@ -59,6 +59,10 @@ public class CharPtr extends AbstractPtr {
     throw new UnsupportedOperationException("TODO");
   }
 
+  public static CharPtr malloc(int bytes) {
+    return new CharPtr(new char[AbstractPtr.mallocSize(bytes, BYTES)]);
+  }
+
   @Override
   public CharPtr realloc(int newSizeInBytes) {
     return new CharPtr(Realloc.realloc(array, offset, newSizeInBytes / 2));

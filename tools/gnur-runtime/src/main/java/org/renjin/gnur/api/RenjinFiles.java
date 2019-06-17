@@ -21,13 +21,16 @@ package org.renjin.gnur.api;
 import org.apache.commons.vfs2.FileContent;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.renjin.eval.Context;
 import org.renjin.gcc.runtime.*;
 import org.renjin.primitives.Native;
+import org.renjin.primitives.io.connections.GzFileConnection;
 
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.zip.GZIPInputStream;
 
 import static org.renjin.gcc.runtime.Stdlib.nullTerminatedString;
 
@@ -40,16 +43,60 @@ public class RenjinFiles {
     return fopen(filename, mode);
   }
 
-  public static Ptr R_gzopen (Ptr path, Ptr mode) {
-    throw new UnsupportedOperationException("R_gzopen");
+  public static Ptr R_gzopen (Ptr path, Ptr mode) throws IOException {
+    FileObject fileObject = resolveFileObject(path);
+    if(fileObject == null) {
+      return BytePtr.NULL;
+    }
+
+    FileContent content;
+    try {
+      content = fileObject.getContent();
+    } catch (FileSystemException e) {
+      return BytePtr.NULL;
+    }
+
+    switch (Stdlib.nullTerminatedString(mode)) {
+      case "r":
+      case "rb":
+        return new RecordUnitPtr<>(new InputStreamHandle(() -> openGzInputStream(content)));
+
+      default:
+        throw new UnsupportedOperationException("mode: " + mode);
+    }
+  }
+
+  private static InputStream openGzInputStream(FileContent content) throws IOException {
+    InputStream in = content.getInputStream();
+    if(in.markSupported()) {
+      in.mark(2);
+    }
+    int b1 = in.read();
+    int b2 = in.read();
+    boolean gzip = (b1 == GzFileConnection.GZIP_MAGIC_BYTE1 && b2 == GzFileConnection.GZIP_MAGIC_BYTE2);
+
+    if(in.markSupported()) {
+      in.reset();
+    } else {
+      in.close();
+      in = content.getInputStream();
+    }
+
+    if(gzip) {
+      return new GZIPInputStream(in);
+    } else {
+      return in;
+    }
   }
 
   public static Ptr R_gzgets(Ptr file, Ptr buf, int len) {
-    throw new UnsupportedOperationException("R_gzgets");
+    return Stdlib.fgets(buf, len, file);
   }
 
-  public static int R_gzclose(Ptr file) {
-    throw new UnsupportedOperationException("R_gzclose");
+  public static int R_gzclose(Ptr file) throws IOException {
+    FileHandle handle = (FileHandle) file.getArray();
+    handle.close();
+    return 0;
   }
 
   public static Ptr R_popen(Ptr filename, Ptr mode) {
@@ -61,13 +108,10 @@ public class RenjinFiles {
   }
 
   public static Ptr fopen(Ptr filename, Ptr mode) {
-    String filenameString = nullTerminatedString(filename);
     String modeString = nullTerminatedString(mode);
 
-    FileObject fileObject;
-    try {
-      fileObject = Native.currentContext().resolveFile(filenameString);
-    } catch (FileSystemException e) {
+    FileObject fileObject = resolveFileObject(filename);
+    if(fileObject == null) {
       return BytePtr.NULL;
     }
 
@@ -79,22 +123,38 @@ public class RenjinFiles {
     }
   }
 
-  public static int feof(Ptr handle) {
-    throw new UnimplementedGnuApiMethod("feof");
-  }
+  private static FileObject resolveFileObject(Ptr filename) {
+    String filenameString = nullTerminatedString(filename);
+    FileObject fileObject;
+    try {
 
-  public static long ftell(Ptr handle) {
-    throw new UnimplementedGnuApiMethod("ftell");
-  }
+      // Intercept requests for R_HOME/library/{packageName}/xx
+      Context context = Native.currentContext();
+      String homeDirectory = context.getSession().getHomeDirectory();
+      String libraryDirectory = homeDirectory + "/library/";
 
-  public static int fputs(Ptr str, Ptr stream) {
-    throw new UnimplementedGnuApiMethod("fputs");
-  }
+      if(filenameString.startsWith(libraryDirectory)) {
+        String relativePath = filenameString.substring(libraryDirectory.length()).replace('\\', '/');
+        int packageEnd = relativePath.indexOf('/');
+        String packageName = relativePath.substring(0, packageEnd);
+        String packageFile = relativePath.substring(packageEnd + 1);
 
-  //char * fgets ( char * str, int num, FILE * stream );
+        fileObject = context.getNamespaceRegistry()
+            .getNamespace(context, packageName)
+            .getPackage()
+            .resolvePackageResource(context.getFileSystemManager(), packageFile);
 
-  public static Ptr fgets(Ptr str, int num, Ptr stream) {
-    throw new UnimplementedGnuApiMethod("fgets");
+      } else {
+
+        // Otherwise, try a normal file resolution
+
+        fileObject = context.resolveFile(filenameString);
+
+      }
+    } catch (FileSystemException e) {
+      fileObject = null;
+    }
+    return fileObject;
   }
 
   public static void unlink(Ptr fname) {
@@ -118,11 +178,11 @@ public class RenjinFiles {
   }
 
 
-  private static FileHandle fopen(FileObject fileObject, String mode) throws FileSystemException {
+  private static FileHandle fopen(FileObject fileObject, String mode) throws IOException {
     switch (mode) {
       case "r":
       case "rb":
-        return new InputStreamHandle(fileObject.getContent());
+        return new InputStreamHandle(() -> fileObject.getContent().getInputStream());
 
       case "w":
       case "wb":
@@ -133,21 +193,28 @@ public class RenjinFiles {
     }
   }
 
+  private interface StreamSupplier<T> {
+    T get() throws IOException;
+  }
+
   private static class InputStreamHandle extends AbstractFileHandle {
 
-    private FileContent content;
+    private final StreamSupplier<InputStream> supplier;
     private InputStream inputStream;
     private long position = 0;
+    private boolean eof;
 
-    public InputStreamHandle(FileContent content) throws FileSystemException {
-      this.content = content;
-      this.inputStream = content.getInputStream();
+    public InputStreamHandle(StreamSupplier<InputStream> supplier) throws IOException {
+      this.supplier = supplier;
+      this.inputStream = supplier.get();
     }
 
     @Override
     public int read() throws IOException {
       int b = inputStream.read();
-      if(b != -1) {
+      if(b == -1) {
+        eof = true;
+      } else {
         position ++;
       }
       return b;
@@ -161,8 +228,9 @@ public class RenjinFiles {
     @Override
     public void rewind() throws IOException {
       inputStream.close();
-      inputStream = content.getInputStream();
+      inputStream = supplier.get();
       position = 0;
+      eof = false;
     }
 
     @Override
@@ -199,11 +267,22 @@ public class RenjinFiles {
     public void seekEnd(long offset) {
       throw new UnsupportedOperationException("TODO");
     }
+
+    @Override
+    public boolean isEof() {
+      return eof;
+    }
+
+    @Override
+    public long position() throws IOException {
+      return position;
+    }
   }
 
   private static class OutputStreamHandle extends AbstractFileHandle {
 
     private OutputStream outputStream;
+    private long position;
 
     public OutputStreamHandle(OutputStream outputStream) {
       this.outputStream = outputStream;
@@ -217,6 +296,7 @@ public class RenjinFiles {
     @Override
     public void write(int b) throws IOException {
       outputStream.write(b);
+      position++;
     }
 
     @Override
@@ -247,6 +327,16 @@ public class RenjinFiles {
     @Override
     public void seekEnd(long offset) {
       throw new UnsupportedOperationException("TODO");
+    }
+
+    @Override
+    public boolean isEof() {
+      return false;
+    }
+
+    @Override
+    public long position() throws IOException {
+      return position;
     }
   }
 

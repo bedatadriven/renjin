@@ -66,4 +66,14 @@ public class StdOutHandle extends AbstractFileHandle {
   public void seekEnd(long offset) {
     throw new UnsupportedOperationException("Cannot seek stdout");
   }
+
+  @Override
+  public boolean isEof() {
+    return false;
+  }
+
+  @Override
+  public long position() {
+    return 0;
+  }
 }

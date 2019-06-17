@@ -72,3 +72,11 @@ apply from: "./gradle/java.gradle"
 //  project.version = "${majorVersion}.${buildNumber}"
 //}
 
+subprojects {
+    
+    task cleanMaven(type: Delete) {
+        delete 'target'
+    }
+    
+    clean.dependsOn cleanMaven
+}

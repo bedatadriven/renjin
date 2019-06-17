@@ -71,4 +71,18 @@ public class FileHandleImpl extends AbstractFileHandle {
   public void seekEnd(long offset) {
     throw new UnsupportedOperationException("TODO");
   }
+
+  @Override
+  public boolean isEof() {
+    try {
+      return file.getFilePointer() >= file.length();
+    } catch (IOException e) {
+      return true;
+    }
+  }
+
+  @Override
+  public long position() throws IOException {
+    return file.getFilePointer();
+  }
 }

@@ -192,6 +192,10 @@ class FormatSpec {
    */
   boolean optionalL = false;
 
+  String characterClass;
+
+  boolean inverseCharacterClass;
+
   /**
    * Control string type.
    */
@@ -206,7 +210,7 @@ class FormatSpec {
     this.dfs = dfs;
   }
 
-  public Formatter.ArgumentType getArgumentType() {
+  Formatter.ArgumentType parseArgumentType() {
     switch (conversionCharacter) {
       case 'd':
       case 'i':

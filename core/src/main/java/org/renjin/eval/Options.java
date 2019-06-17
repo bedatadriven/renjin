@@ -46,6 +46,7 @@ public class Options {
     map.put("warnings.length", new IntArrayVector(1000));
     map.put("OutDec", new StringArrayVector("."));
     map.put("encoding", new StringArrayVector("UTF8"));
+    map.put("papersize", new StringArrayVector("a4"));
   }
 
   public SEXP get(String name) {

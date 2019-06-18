@@ -42,17 +42,6 @@ public final class Environments {
   }
 
   @Internal
-  public static ListVector env2list(@Current Context context, Environment env, boolean allNames) {
-    ListVector.NamedBuilder list = new ListVector.NamedBuilder();
-    for(Symbol name : env.getSymbolNames()) {
-      if(allNames || !name.getPrintName().startsWith(".")) {
-        list.add(name, env.getVariable(context, name));
-      }
-    }
-    return list.build();
-  }
-
-  @Internal
   public static Environment list2env(@Current Context context, ListVector list, Environment env) {
     AtomicVector names = list.getNames();
     if(names.length() != list.length()) {
@@ -64,7 +53,7 @@ public final class Environments {
     
     return env;
   }
-  
+
   @Builtin("as.environment")
   public static Environment asEnvironment(@Current Context context, int pos) {
     Environment env;

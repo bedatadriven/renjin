@@ -765,7 +765,6 @@ public class Primitives {
     f("environment", Environments.class, 11);
     f("environment<-", Environments.class, 2);
     f("environmentName", Environments.class, 11);
-    f("env2list", Environments.class, 11);
     f("reg.finalizer", Environments.class, 11);
     f("options", Types.class, 211);
     f("sink", Connections.class, 111);

@@ -332,42 +332,7 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" h <- function() { zz<-33; g(environment()); }");
     assertThat( eval("h()"), elementsIdenticalTo(c(33)));
   }
-  
-  @Test
-  public void env2list() {
-    eval(" env <- .Internal(new.env(TRUE, globalenv(), 29L))");
-    eval(" env$a <- 1");
-    eval(" env$.a <- 2");
-    eval(" x <- .Internal(env2list(env,FALSE))");
-    eval(" y <- .Internal(env2list(env,TRUE))");
 
-    assertThat(eval("names(x)"), elementsIdenticalTo(c("a")));
-    assertThat( eval("names(y)"), elementsIdenticalTo(c("a", ".a")));
-  }
-  
-  @Test
-  public void env2list_hiddenFirst() {
-    eval(" env <- .Internal(new.env(TRUE, globalenv(), 29L))");
-    eval(" env$.a <- 1");
-    eval(" env$a <- 2");
-    eval(" x <- .Internal(env2list(env,FALSE))");
-    eval(" y <- .Internal(env2list(env,TRUE))");
-
-    assertThat( eval("names(x)"), elementsIdenticalTo(c("a")));
-    assertThat( eval("names(y)"), elementsIdenticalTo(c("a",".a")));
-  }
-  
-  @Test
-  public void env2list_multipleNonHidden() {
-    eval(" env <- .Internal(new.env(TRUE, globalenv(), 29L))");
-    eval(" env$a <- 1");
-    eval(" env$b <- 2");
-    eval(" x <- .Internal(env2list(env,FALSE))");
-    eval(" y <- .Internal(env2list(env,TRUE))");
-
-    assertThat( eval("names(x)"), elementsIdenticalTo(c("a","b")));
-    assertThat( eval("names(y)"), elementsIdenticalTo(c("a","b")));
-  }
   
   @Test
   public void environmentName() {

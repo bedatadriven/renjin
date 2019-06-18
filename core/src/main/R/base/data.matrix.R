@@ -1,5 +1,7 @@
 #  File src/library/base/R/data.matrix.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,24 +14,16 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 data.matrix <- function(frame, rownames.force = NA)
 {
     if(!is.data.frame(frame)) return(as.matrix(frame))
 
     d <- dim(frame)
-    rn <- if(rownames.force %in% FALSE) {
-            NULL
-          } else if(rownames.force %in% TRUE) {
-            row.names(frame)
-          } else {
-            if(identical(row.names(frame), as.character(1L:nrow(frame)))) {
-                NULL
-            } else {
-                row.names(frame)
-            }
-          }
+    rn <- if(rownames.force %in% FALSE) NULL
+    else if(rownames.force %in% TRUE) row.names(frame)
+    else {if(.row_names_info(frame) <= 0L) NULL else row.names(frame)}
 
     for(i in seq_len(d[2L])) {
         xi <- frame[[i]]

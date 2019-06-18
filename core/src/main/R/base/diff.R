@@ -1,5 +1,7 @@
 #  File src/library/base/R/diff.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2013 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 diff <- function(x, ...) UseMethod("diff")
 
@@ -20,11 +22,11 @@ diff.default <- function(x, lag = 1L, differences = 1L, ...)
 {
     ismat <- is.matrix(x)
     xlen <- if(ismat) dim(x)[1L] else length(x)
-    if (length(lag) > 1L || length(differences) > 1L ||
+    if (length(lag) != 1L || length(differences) > 1L ||
         lag < 1L || differences < 1L)
 	stop("'lag' and 'differences' must be integers >= 1")
     if (lag * differences >= xlen)
-	return(x[0]) # empty of proper mode
+	return(x[0L]) # empty, but of proper mode
     r <- unclass(x)  # don't want class-specific subset methods
     i1 <- -seq_len(lag)
     if (ismat)

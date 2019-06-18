@@ -1,5 +1,7 @@
 #  File src/library/base/R/expand.grid.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 expand.grid <- function(..., KEEP.OUT.ATTRS = TRUE, stringsAsFactors = TRUE)
 {
@@ -25,7 +27,7 @@ expand.grid <- function(..., KEEP.OUT.ATTRS = TRUE, stringsAsFactors = TRUE)
     ## avoid classed args such as data frames: cargs <- args
     cargs <- vector("list", nargs)
     iArgs <- seq_len(nargs)
-    nmc <- paste("Var", iArgs, sep="")
+    nmc <- paste0("Var", iArgs)
     nm <- names(args)
     if(is.null(nm))
 	nm <- nmc
@@ -33,7 +35,7 @@ expand.grid <- function(..., KEEP.OUT.ATTRS = TRUE, stringsAsFactors = TRUE)
 	nmc[ng0] <- nm[ng0]
     names(cargs) <- nmc
     rep.fac <- 1L
-    d <- sapply(args, length)
+    d <- lengths(args)
     if(KEEP.OUT.ATTRS) {
 	dn <- vector("list", nargs)
 	names(dn) <- nmc
@@ -45,14 +47,14 @@ expand.grid <- function(..., KEEP.OUT.ATTRS = TRUE, stringsAsFactors = TRUE)
         for(i in iArgs) {
             x <- args[[i]]
             if(KEEP.OUT.ATTRS)
-                dn[[i]] <- paste(nmc[i], "=", if(is.numeric(x)) format(x) else x,
-                                 sep = "")
+                dn[[i]] <-
+                    paste0(nmc[i], "=", if(is.numeric(x)) format(x) else x)
             nx <- length(x)
             orep <- orep/nx
             x <- x[rep.int(rep.int(seq_len(nx),
                                    rep.int(rep.fac, nx)), orep)]
 	    ## avoid sorting the levels of character variates
-	    if(stringsAsFactors && !is.factor(x) && is.character(x))
+	    if(stringsAsFactors && is.character(x) && !is.factor(x))
 		x <- factor(x, levels = unique(x))
             cargs[[i]] <- x
             rep.fac <- rep.fac * nx

@@ -1,5 +1,7 @@
 #  File src/library/base/R/jitter.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ### Unimplemented Idea {for amount = NULL ?}
 ### Really "optimal" (e.g. for rug()), use a non-constant amount,
@@ -30,7 +32,7 @@ jitter <- function(x, factor = 1, amount=NULL)
 
     if(is.null(amount)) {		# default: Find 'necessary' amount
 	d <- diff(xx <- unique(sort.int(round(x, 3 - floor(log10(z))))))
-	d <- if(length(d)) min(d) else if(xx!=0) xx/10 else z/10
+	d <- if(length(d)) min(d) else if(xx != 0) xx/10 else z/10
 	amount <- factor/5 * abs(d)
     } else if(amount == 0)		# only then: S compatibility
 	amount <- factor * (z/50)

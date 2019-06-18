@@ -1,5 +1,7 @@
 #  File src/library/base/R/mapply.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,14 +14,14 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 mapply <- function(FUN,..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE)
 {
     FUN <- match.fun(FUN)
     dots <- list(...)
 
-    answer <- .Internal(mapply(FUN, dots, MoreArgs, environment()))
+    answer <- .Internal(mapply(FUN, dots, MoreArgs))
 
     if (USE.NAMES && length(dots)) {
 	if (is.null(names1 <- names(dots[[1L]])) && is.character(dots[[1L]]))
@@ -27,10 +29,13 @@ mapply <- function(FUN,..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE)
 	else if (!is.null(names1))
 	    names(answer) <- names1
     }
-    if(!identical(SIMPLIFY, FALSE) && length(answer))
+    if(!isFALSE(SIMPLIFY) && length(answer))
 	simplify2array(answer, higher = (SIMPLIFY == "array"))
     else answer
 }
+
+.mapply <- function(FUN, dots, MoreArgs)
+    .Internal(mapply(FUN, dots, MoreArgs))
 
 Vectorize <- function(FUN, vectorize.args = arg.names, SIMPLIFY = TRUE,
                       USE.NAMES = TRUE)
@@ -44,7 +49,13 @@ Vectorize <- function(FUN, vectorize.args = arg.names, SIMPLIFY = TRUE,
     if (!length(vectorize.args)) return(FUN)
 
     if (!all(vectorize.args %in% arg.names))
-    	stop("must specify formal argument names to vectorize")
+    	stop("must specify names of formal arguments for 'vectorize'")
+
+    collisions <- arg.names %in% c("FUN", "SIMPLIFY", "USE.NAMES",
+                                   "vectorize.args")
+    if (any(collisions))
+	stop(sQuote("FUN"), " may not have argument(s) named ",
+	     paste(sQuote(arg.names[collisions]), collapse = ", "))
 
     FUNV <- function() { ## will set the formals below
         args <- lapply(as.list(match.call())[-1L], eval, parent.frame())

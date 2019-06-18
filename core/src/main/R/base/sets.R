@@ -1,5 +1,7 @@
 #  File src/library/base/R/sets.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ## See the help for why as.vector is used:
 ## it includes coercing factors.
@@ -30,12 +32,13 @@ setdiff <- function(x, y)
     y <- as.vector(y)
     unique(if(length(x) || length(y)) x[match(x, y, 0L) == 0L] else x)
 }
-## Faster versions, see R-devel, Jan.4-6, 2000;  optimize later...
+
+## speed optimization etc: R-devel, Jan.4-6, 2000; then again 15 yrs later
 setequal <- function(x, y)
 {
     x <- as.vector(x)
     y <- as.vector(y)
-    all(c(match(x, y, 0L) > 0L, match(y, x, 0L) > 0L))
+    !( anyNA(match(x, y)) || anyNA(match(y, x)) )
 }
 
 ##  same as %in% ( ./match.R ) but different arg names:

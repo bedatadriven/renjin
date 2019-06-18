@@ -240,6 +240,9 @@ public class Primitives {
     f(".primTrace", /*trace*/ null, 101);
     f(".primUntrace", /*trace*/ null, 101);
 
+    f("traceOnOff", /*traceOnOff*/ null, 11);
+    f("debugOnOff", /*traceOnOff*/ null, 11);
+
     add(new InternalFunction());
     add(new OnExitFunction());
 
@@ -319,6 +322,7 @@ public class Primitives {
     f("attributes<-", Attributes.class, null, 1);
     f("attr", Attributes.class, 1);
     f("attr<-", Attributes.class, 3);
+    f("copyDFattr", Attributes.class, 11); /* used in dataframe.R */
     f("comment", Attributes.class, 11);
     f("comment<-", Attributes.class, 2);
     f("levels<-", Attributes.class, 2);
@@ -602,6 +606,7 @@ public class Primitives {
     f("strsplit", Text.class, 11);
     f("abbreviate", /*abbrev*/ null, 11);
     f("make.names", Text.class, 11);
+    f("pcre_config", null, 11);
     f("grep", Text.class, 11);
     f("grepl", Text.class, 11);
     f("sub", Text.class, 11);

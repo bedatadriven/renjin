@@ -28,31 +28,39 @@ public class UniqueTest extends EvalTestCase {
 
   @Test
   public void atomicVectors() {
-    assertThat( eval(".Internal(unique(c(1,3,1,4,4), FALSE, FALSE))"), elementsIdenticalTo( c(1,3,4)) );
+    assertThat( eval(".Internal(unique(c(1,3,1,4,4), FALSE, FALSE, NA))"), elementsIdenticalTo( c(1,3,4)) );
   }
   
   @Test
   public void fromLast() {
-    assertThat( eval(".Internal(unique(c(1,3,1,4,4), FALSE, TRUE))"), elementsIdenticalTo( c(3,1,4)) );
+    assertThat( eval(".Internal(unique(c(1,3,1,4,4), FALSE, TRUE, NA))"), elementsIdenticalTo( c(3,1,4)) );
   }
 
   @Test
   public void uniqueInt() {
-    assertThat( eval(" .Internal(unique(1L, FALSE, FALSE)) "), elementsIdenticalTo(c_i(1)));
+    assertThat( eval(".Internal(unique(1L, FALSE, FALSE, NA))"), elementsIdenticalTo(c_i(1)));
+  }
+
+  @Test
+  public void nmax() {
+    assertThat( eval(".Internal(unique(c(1, 2, 3, 3, 2, 2, 1, 3, 1, 1), FALSE, FALSE, 20))"),
+            elementsIdenticalTo(c(1, 2, 3)));
   }
   
   @Test
   public void falseIncomparablesIsTreatedAsNull() {
-    assertThat( eval(" .Internal(unique(c(0, 1, 0, 0, 0, 0, 0, 0), FALSE, FALSE))"), elementsIdenticalTo(c(0,1)));
+    assertThat( eval(" .Internal(unique(c(0, 1, 0, 0, 0, 0, 0, 0), FALSE, FALSE, NA))"),
+            elementsIdenticalTo(c(0,1)));
   }
   
   @Test
   public void uniqueList() {
-    assertThat( eval(" .Internal(unique(list('a','b','a','a'), FALSE,FALSE))"), elementsIdenticalTo(list("a","b")));
-    assertThat( eval(" .Internal(unique(list('a','a', c(1,2), c(1,2)), FALSE,FALSE))"),
-        elementsIdenticalTo(list("a",c(1,2))));
-    assertThat( eval(" length(unique(list('a','a', c(1,2), c(a=1,b=2))))"),
-        elementsIdenticalTo(c_i(3)));
+    assertThat( eval(".Internal(unique(list('a','b','a','a'), FALSE, FALSE, NA))"),
+            elementsIdenticalTo(list("a","b")));
+    assertThat( eval(".Internal(unique(list('a','a', c(1,2), c(1,2)), FALSE, FALSE, NA))"),
+            elementsIdenticalTo(list("a",c(1,2))));
+    assertThat( eval("length(unique(list('a','a', c(1,2), c(a=1,b=2))))"),
+            elementsIdenticalTo(c_i(3)));
 
 
   }

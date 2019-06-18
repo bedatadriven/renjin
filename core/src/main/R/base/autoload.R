@@ -1,5 +1,7 @@
 #  File src/library/base/R/autoload.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 autoload <- function(name, package, reset=FALSE, ...)
 {
@@ -32,7 +34,7 @@ autoload <- function(name, package, reset=FALSE, ...)
 
 autoloader <- function (name, package, ...)
 {
-    name <- paste(name, "", sep = "")
+    name <- paste0(name, "")
     rm(list = name, envir = .AutoloadEnv, inherits = FALSE)
     m <- match.call()
     m$name <- NULL
@@ -42,7 +44,7 @@ autoloader <- function (name, package, ...)
     ## reset the autoloader
     autoload(name, package, reset = TRUE, ...)
     ## reevaluate the object
-    where <- match(paste("package", package, sep = ":"), search())
+    where <- match(paste0("package:", package), search())
     if (exists(name, where = where, inherits = FALSE))
 	eval(as.name(name), as.environment(where))
     else

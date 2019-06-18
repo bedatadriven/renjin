@@ -22,6 +22,7 @@ import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.match.DuplicateSearchAlgorithm.Action;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.IntVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
 
@@ -39,22 +40,23 @@ public class Duplicates {
    * @param incomparables a vector of values that cannot be compared. FALSE is a special value,
    *          meaning that all values can be compared, and may be the only value accepted for methods
    *        other than the default. It will be coerced internally to the same type as x.
-   * @param fromLast
-   * @return logical indicating if duplication should be considered from the last, i.e., the last
+   * @param fromLast logical indicating if duplication should be considered from the last, i.e., the last
    *       (or rightmost) of identical elements will be kept. This only matters for names or dimnames.
+   * @param nmax integer to provide the expected size of the hash map; ignored if NA or less than 16.
+   * @return a vector, data frame or array like x with duplicates elements/rows removed.
    */
   @Internal
-  public static Vector unique(Vector x, Vector incomparables, boolean fromLast) {
+  public static Vector unique(Vector x, Vector incomparables, boolean fromLast, int nmax) {
     
-    return search(x, incomparables, fromLast,
+    return search(x, incomparables, fromLast, nmax,
         new UniqueAlgorithm());
  
   }
 
   @Internal
-  public static Vector duplicated(Vector x, AtomicVector incomparables, boolean fromLast) {
+  public static Vector duplicated(Vector x, AtomicVector incomparables, boolean fromLast, int nmax) {
     
-    return search(x, incomparables, fromLast, 
+    return search(x, incomparables, fromLast, nmax,
         new DuplicatedAlgorithm());
  
   }
@@ -73,7 +75,7 @@ public class Duplicates {
   @Internal
   public static int anyDuplicated(Vector x, AtomicVector incomparables, boolean fromLast) {
 
-    return search(x, incomparables, fromLast,
+    return search(x, incomparables, fromLast, IntVector.NA,
         new AnyDuplicateAlgorithm());
   }
   
@@ -81,13 +83,19 @@ public class Duplicates {
       Vector x, 
       Vector incomparables,
       boolean fromLast,
+      int nmax,
       DuplicateSearchAlgorithm<ResultType> algorithm) {
 
 
     algorithm.init(x);
     
     /* Maps elements -> first encountered index */
-    HashMap<SEXP, Integer> seen = Maps.newHashMap();
+    HashMap<SEXP, Integer> seen;
+    if(IntVector.isNA(nmax) || nmax < 16) {
+      seen = Maps.newHashMap();
+    } else {
+      seen = Maps.newHashMapWithExpectedSize(nmax);
+    }
    
     for(Integer index : new IndexSequence(x, fromLast)) {
       

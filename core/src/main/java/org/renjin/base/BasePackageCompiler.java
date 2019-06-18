@@ -59,10 +59,10 @@ public class BasePackageCompiler {
     Context context = session.getTopLevelContext();
     Environment baseNamespaceEnv = context.getNamespaceRegistry().getBase().getNamespaceEnvironment();
     Context evalContext = context.beginEvalContext(baseNamespaceEnv);
-    
-    File baseSourceRoot = new File("src/main/R/base");
-    evalSources(evalContext, baseSourceRoot);
-    
+
+    evalSources(evalContext, new File("src/main/R/base"));
+    evalSources(evalContext, new File("src/main/R/renjinBase"));
+
     evalContext.evaluate(FunctionCall.newCall(Symbol.get(".onLoad")));  
     
     // now serialize them to a lazy-loadable frame

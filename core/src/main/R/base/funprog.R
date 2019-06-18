@@ -1,5 +1,7 @@
 #  File src/library/base/R/funprog.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2014 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 Reduce <-
 function(f, x, init, right = FALSE, accumulate = FALSE)
@@ -47,11 +49,11 @@ function(f, x, init, right = FALSE, accumulate = FALSE)
     if(!accumulate) {
         if(right) {
             for(i in rev(ind))
-                init <- f(x[[i]], init)
+                init <- forceAndCall(2, f, x[[i]], init)
         }
         else {
             for(i in ind)
-                init <- f(init, x[[i]])
+                init <- forceAndCall(2, f, init, x[[i]])
         }
         init
     }
@@ -64,13 +66,13 @@ function(f, x, init, right = FALSE, accumulate = FALSE)
             if(right) {
                 out[[len]] <- init
                 for(i in rev(ind)) {
-                    init <- f(x[[i]], init)
+                    init <- forceAndCall(2, f, x[[i]], init)
                     out[[i]] <- init
                 }
             } else {
                 out[[1L]] <- init
                 for(i in ind) {
-                    init <- f(init, x[[i]])
+                    init <- forceAndCall(2, f, init, x[[i]])
                     out[[i]] <- init
                 }
             }
@@ -78,14 +80,14 @@ function(f, x, init, right = FALSE, accumulate = FALSE)
             if(right) {
                 out[[len]] <- init
                 for(i in rev(ind)) {
-                    init <- f(x[[i]], init)
+                    init <- forceAndCall(2, f, x[[i]], init)
                     out[[i]] <- init
                 }
             }
             else {
                 for(i in ind) {
                     out[[i]] <- init
-                    init <- f(init, x[[i]])
+                    init <- forceAndCall(2, f, init, x[[i]])
                 }
                 out[[len]] <- init
             }
@@ -93,7 +95,7 @@ function(f, x, init, right = FALSE, accumulate = FALSE)
         ## If all results have length one, we can simplify.
         ## (Note that we do not simplify to arrays in case all results
         ## have a common length > 1.)
-        if(all(sapply(out, length) == 1L))
+	if(all(lengths(out) == 1L))
             out <- unlist(out, recursive = FALSE)
         out
     }
@@ -102,8 +104,8 @@ function(f, x, init, right = FALSE, accumulate = FALSE)
 Filter <-
 function(f, x)
 {
-    ind <- as.logical(sapply(x, f))
-    x[!is.na(ind) & ind]
+    ind <- as.logical(unlist(lapply(x, f)))
+    x[which(ind)]
 }
 
 

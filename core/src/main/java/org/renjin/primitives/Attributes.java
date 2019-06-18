@@ -352,4 +352,18 @@ public class Attributes {
     }
   }
 
+  /**
+   * Copies attributes from one list to another.
+   * This primitive function is used in GNU R to do a shallow copy of attributes from one data frame to another,
+   * but we simply copy the attributes in whole.
+   *
+   * @param x an R list, usually a data frame
+   * @param y an R list, usually a data frame
+   * @return x with the attributes of y
+   */
+  @Internal
+  public static SEXP copyDFattr(ListVector x, ListVector y) {
+    return y.setAttributes(x.getAttributes());
+  }
 }
+

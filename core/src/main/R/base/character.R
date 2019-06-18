@@ -1,5 +1,7 @@
 #  File src/library/base/R/character.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 substr <- function(x, start, stop)
 {
@@ -24,35 +26,12 @@ substring <- function(text, first, last=1000000L)
 {
     if(!is.character(text)) text <- as.character(text)
     n <- max(lt <- length(text), length(first), length(last))
-    if(lt && lt < n) text <- rep(text, length.out = n)
+    if(lt && lt < n) text <- rep_len(text, length.out = n)
     .Internal(substr(text, as.integer(first), as.integer(last)))
 }
 
-startsWith <- function(x, prefix)
-{
-    if(!is.character(x) || !is.character(prefix)) {
-        stop("non-character object(s)")
-    }
-
-    if( length(x) == 0 || length(prefix) == 0) {
-        return(logical(0))
-    }
-
-    substr(x, 1, nchar(prefix)) == prefix
-}
-
-endsWith <- function(x, suffix)
-{
-    if(!is.character(x) || !is.character(suffix)) {
-        stop("non-character object(s)")
-    }
-
-    if( length(x) == 0 || length(suffix) == 0) {
-        return(logical(0))
-    }
-
-    substr(x, nchar(x)-nchar(suffix)+1, nchar(x)) == suffix
-}
+startsWith <- function(x, prefix) .Internal(startsWith(x, prefix))
+endsWith   <- function(x, suffix) .Internal(endsWith  (x, suffix))
 
 `substr<-` <- function(x, start, stop, value)
     .Internal(`substr<-`(x, as.integer(start), as.integer(stop), value))
@@ -62,21 +41,22 @@ endsWith <- function(x, suffix)
 
 abbreviate <-
     function(names.arg, minlength = 4L, use.classes = TRUE, dot = FALSE,
-             strict = FALSE, method = c("left.kept", "both.sides"))
+             strict = FALSE, method = c("left.kept", "both.sides"),
+             named = TRUE)
 {
-    ## we just ignore use.classes
-    if(minlength <= 0L)
-	return(rep.int("", length(names.arg)))
+    if(minlength <= 0L) {
+        x <- rep.int("", length(names.arg))
+        if(named) names(x) <- names.arg
+        return(x)
+    }
     ## need to remove leading/trailing spaces before we check for dups
-    ## This is inefficient but easier than modifying do_abbrev (=> FIXME !)
     names.arg <- sub("^ +", "", sub(" +$", "", as.character(names.arg)))
     dups <- duplicated(names.arg)
     old <- names.arg
-    if(any(dups))
-	names.arg <- names.arg[!dups]
+    if(any(dups)) names.arg <- names.arg[!dups]
     x <- names.arg
     if(strict) {
-	x[] <- .Internal(abbreviate(x, minlength, use.classes))
+        x[] <- .Internal(abbreviate(x, minlength, use.classes))
     } else {
 	method <- match.arg(method)
 	if(method == "both.sides")
@@ -101,20 +81,24 @@ abbreviate <-
 	}
     }
     if(any(dups))
-	x <- x[match(old,names.arg)]
+	x <- x[match(old, names.arg)]
     if(dot) {			    # add "." where we did abbreviate:
 	chgd <- x != old
-	x[chgd] <- paste(x[chgd],".",sep = "")
+	x[chgd] <- paste0(x[chgd],".")
     }
-    names(x) <- old
+    if(named) names(x) <- old
     x
 }
 
 make.names <- function(names, unique = FALSE, allow_ = TRUE)
 {
-    names <- .Internal(make.names(as.character(names), allow_))
-    if(unique) names <- make.unique(names)
-    names
+    names <- as.character(names)
+    names2 <- .Internal(make.names(names, allow_))
+    if(unique) {
+    	o <- order(names != names2)
+        names2[o] <- make.unique(names2[o])
+    }
+    names2
 }
 
 make.unique <- function (names, sep = ".") .Internal(make.unique(names, sep))
@@ -124,11 +108,13 @@ chartr <- function(old, new, x)
     if(!is.character(x)) x <- as.character(x)
     .Internal(chartr(old, new, x))
 }
-tolower <- function(x) {
+tolower <- function(x)
+{
     if(!is.character(x)) x <- as.character(x)
     .Internal(tolower(x))
 }
-toupper <- function(x) {
+toupper <- function(x)
+{
     if(!is.character(x)) x <- as.character(x)
     .Internal(toupper(x))
 }
@@ -136,11 +122,13 @@ toupper <- function(x) {
 casefold <- function(x, upper = FALSE)
     if(upper) toupper(x) else tolower(x)
 
-sQuote <- function(x) {
+sQuote <- function(x)
+{
+    if (!length(x)) return(character())
     before <- after <- "'"
     q <- getOption("useFancyQuotes")
     if(!is.null(q)) {
-        if(identical(q, TRUE)) {
+        if(isTRUE(q)) {
             li <- l10n_info()
             if(li$"UTF-8") q <- "UTF-8"
             if(!is.null(li$codepage) && li$codepage > 0L) {
@@ -148,9 +136,11 @@ sQuote <- function(x) {
                 ## it is in latin1 in CP1252
                 if(li$codepage >= 1250L && li$codepage <= 1258L
                    || li$codepage == 874L) {
-                    before <- "\x91"; after <- "\x92"
+                    before <- rawToChar(as.raw(0x91))
+                    after <- rawToChar(as.raw(0x92))
                 } else {
-                    z <- iconv(c("\xe2\x80\x98", "\xe2\x80\x99"), "UTF-8", "")
+                    z <- iconv(c(intToUtf8(0x2018), intToUtf8(0x2019)),
+                               "UTF-8", "")
                     before <- z[1L]; after <- z[2L]
                 }
             }
@@ -159,31 +149,32 @@ sQuote <- function(x) {
             before <- "`"; after <- "'"
         }
         if(identical(q, "UTF-8")) {
-            before <- "\xe2\x80\x98"; after <- "\xe2\x80\x99"
+            before <- intToUtf8(0x2018); after <- intToUtf8(0x2019)
         }
         if(is.character(q) && length(q) >= 4L) {
             before <- q[1L]; after <- q[2L]
         }
-        ## we do not want these strings marked as in the encoding
-        ## R was built under
-        Encoding(before) <- Encoding(after) <- "unknown"
     }
-    paste(before, x, after, sep = "")
+    paste0(before, x, after)
 }
 
-dQuote <- function(x) {
+dQuote <- function(x)
+{
+    if (!length(x)) return(character())
     before <- after <- "\""
     q <- getOption("useFancyQuotes")
     if(!is.null(q)) {
-        if(identical(q, TRUE)) {
+        if(isTRUE(q)) {
             li <- l10n_info()
             if(li$"UTF-8") q <- "UTF-8"
             if(!is.null(li$codepage) && li$codepage > 0L) {
                 if(li$codepage >= 1250L && li$codepage <= 1258L
                     || li$codepage == 874L) {
-                    before <- "\x93"; after <- "\x94"
+                    before <- rawToChar(as.raw(0x93))
+                    after <- rawToChar(as.raw(0x94))
                 } else {
-                    z <- iconv(c("\xe2\x80\x9c", "\xe2\x80\x9d"), "UTF-8", "")
+                    z <- iconv(c(intToUtf8(0x201c), intToUtf8(0x201d)),
+                               "UTF-8", "")
                     before <- z[1L]; after <- z[2L]
                 }
             }
@@ -192,33 +183,22 @@ dQuote <- function(x) {
             before <- "``"; after <- "''"
         }
         if(identical(q, "UTF-8")) {
-            before <- "\xe2\x80\x9c"; after <- "\xe2\x80\x9d"
+            before <- intToUtf8(0x201c); after <- intToUtf8(0x201d)
         }
         if(is.character(q) && length(q) >= 4L) {
             before <- q[3L]; after <- q[4L]
         }
-        Encoding(before) <- Encoding(after) <- "unknown"
     }
-    paste(before, x, after, sep = "")
+    paste0(before, x, after)
 }
 
 strtoi <-
 function(x, base = 0L)
-{
     .Internal(strtoi(as.character(x), as.integer(base)))
-}
-
 
 strrep <-
 function(x, times)
 {
     if(!is.character(x)) x <- as.character(x)
-    times <- as.integer(times)
-
-    mapply(x, times, SIMPLIFY = TRUE, USE.NAMES = FALSE, FUN = function(x, times) {
-        if(times < 0) {
-            error("invalid 'times' value")
-        }
-        paste(rep.int(x, times), collapse = "")
-    })
+    .Internal(strrep(x, as.integer(times)))
 }

@@ -1,5 +1,7 @@
 #  File src/library/base/R/print.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,20 +14,20 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 print <- function(x, ...) UseMethod("print")
 
 ##- Need '...' such that it can be called as  NextMethod("print", ...):
 print.default <- function(x, digits = NULL, quote = TRUE, na.print = NULL,
                           print.gap = NULL, right = FALSE, max = NULL,
-                          useSource = TRUE, useS4 = TRUE, ...)
+                          useSource = TRUE, ...)
 {
     noOpt <- missing(digits) && missing(quote) && missing(na.print) &&
 	missing(print.gap) && missing(right) && missing(max) &&
-	missing(useSource) && length(list(...)) == 0L
+	missing(useSource) && missing(...)
     .Internal(print.default(x, digits, quote, na.print, print.gap, right, max,
-			    useSource, noOpt, useS4))
+			    useSource, noOpt))
 }
 
 prmatrix <-
@@ -38,13 +40,18 @@ prmatrix <-
     .Internal(prmatrix(x, rowlab, collab, quote, right, na.print))
 }
 
-noquote <- function(obj) {
+noquote <- function(obj, right = FALSE) {
     ## constructor for a useful "minor" class
-    if(!inherits(obj,"noquote")) class(obj) <- c(attr(obj, "class"),"noquote")
+    if(!inherits(obj,"noquote"))
+        class(obj) <- c(attr(obj, "class"),
+                        if(right) c(right = "noquote") else "noquote")
     obj
 }
 
 as.matrix.noquote <- function(x, ...) noquote(NextMethod("as.matrix", x))
+
+as.data.frame.noquote <- as.data.frame.vector
+
 c.noquote <- function(..., recursive = FALSE)
     structure(NextMethod("c"), class = "noquote")
 
@@ -57,16 +64,22 @@ c.noquote <- function(..., recursive = FALSE)
     r
 }
 
-print.noquote <- function(x, ...) {
-    if(!is.null(cl <- attr(x, "class"))) {
-	cl <- cl[cl != "noquote"]
-        attr(x, "class") <-
-          (if(length(cl)) cl else NULL)
-      }
-    print(x, quote = FALSE, ...)
+print.noquote <- function(x, quote = FALSE, right = FALSE, ...) {
+    if(copy <- !is.null(cl <- attr(x, "class"))) {
+	isNQ <- cl == "noquote"
+	if(missing(right))
+	    right <- any("right" == names(cl[isNQ]))
+	if(copy <- any(isNQ)) {
+	    ox <- x
+	    cl <- cl[!isNQ]
+	    attr(x, "class") <- if(length(cl)) cl # else NULL
+	}
+    }
+    print(x, quote = quote, right = right, ...)
+    invisible(if(copy) ox else x)
 }
 
-## for alias:
+## for alias.lm, aov
 print.listof <- function(x, ...)
 {
     nn <- names(x)
@@ -80,12 +93,20 @@ print.listof <- function(x, ...)
 
 ## formerly same as [.AsIs
 `[.listof` <- function(x, i, ...) structure(NextMethod("["), class = class(x))
+`[.Dlist` <- `[.simple.list` <- `[.listof`
 
 ## used for version:
 print.simple.list <- function(x, ...)
     print(noquote(cbind("_"=unlist(x))), ...)
 
-`[.simple.list` <- `[.listof`
-
 print.function <- function(x, useSource = TRUE, ...)
     .Internal(print.function(x, useSource, ...))
+
+## used for getenv()
+print.Dlist <- function(x, ...)
+{
+    if(!is.list(x) && !is.matrix(x) && is.null(names(x))) ## messed up Dlist
+	return(NextMethod())
+    cat(formatDL(x, ...), sep="\n")
+    invisible(x)
+}

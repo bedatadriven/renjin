@@ -437,7 +437,14 @@ public class Sort {
   }
 
   @Internal
-  public static Vector rank(final AtomicVector input, String tiesMethod) {
+  public static Vector rank(final AtomicVector input, int length, String tiesMethod) {
+
+    if(length == 1L) {
+      if(tiesMethod.toUpperCase().equals("AVERAGE")) {
+        return new DoubleArrayVector(1);
+      }
+      return new IntArrayVector(1);
+    }
 
     boolean decreasing = false;
 
@@ -459,9 +466,6 @@ public class Sort {
         break;
     }
 
-
-
-
     switch(tiesMethod.toUpperCase()){
       case "MIN":
         return rankMin(input, sortedInput);
@@ -472,17 +476,8 @@ public class Sort {
       case "AVERAGE":
         return rankAverage(input, sortedInput);
 
-      case "FIRST":
-        throw new EvalException("ties.method=first not implemented");
-
-
-      case "RANDOM":
-        throw new EvalException("ties.method=random not implemented");
-
-
       default:
         throw new EvalException("Invalid ties.method.");
-
     }
 
   }

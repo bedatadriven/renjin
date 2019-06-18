@@ -16,5 +16,8 @@ target
 .idea
 atlassian-ide-plugin.xml
 *.o
+*.so
 *.gimple
 .Rproj.user
+out
+

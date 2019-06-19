@@ -183,6 +183,7 @@ for(fn in fns) {
   # define some nonsense generic functions
   writeFixture(test, "%s.foo <- function(...) 41L", fn)
   writeFixture(test, "as.vector.foo <- function(...) 99", fn)
+  writeFixture(test, "as.vector.bar <- function(...) 98", fn)
   writeFixture(test, "Math.bar <- function(...) 44")
   writeFixture(test, "Summary.bar <- function(...) 45")
   writeFixture(test, "Ops.bar <- function(...) 46")

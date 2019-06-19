@@ -81,18 +81,6 @@ public class Vectors {
 
   @Generic
   @Builtin("as.character")
-  public static StringVector asCharacter(PairList.Node source) {
-    return (StringVector) convertToStringVector(null, new StringVector.Builder(), source.toVector());
-  }
-  
-  @Generic
-  @Builtin("as.character")
-  public static StringVector asCharacter() {
-    return StringArrayVector.EMPTY;
-  }
-
-  @Generic
-  @Builtin("as.character")
   public static StringVector asCharacter(@Current Context context, Vector source) {
     if(source instanceof StringVector) {
       return (StringVector) source.setAttributes(AttributeMap.EMPTY);

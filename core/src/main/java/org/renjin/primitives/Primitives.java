@@ -580,7 +580,6 @@ public class Primitives {
 
 /* Type coercion */
 
-    f("as.character", Vectors.class, "asCharacter", 1);
     f("as.integer", Vectors.class, "asInteger", 1);
     f("as.double", Vectors.class, "asDouble", 1);
     f("as.complex", Vectors.class, 1);

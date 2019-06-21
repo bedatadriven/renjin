@@ -21,6 +21,7 @@ package org.renjin.gnur.api;
 import org.apache.commons.vfs2.FileContent;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.provider.local.LocalFile;
 import org.renjin.eval.Context;
 import org.renjin.gcc.runtime.*;
 import org.renjin.primitives.Native;
@@ -30,6 +31,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
 
 import static org.renjin.gcc.runtime.Stdlib.nullTerminatedString;
@@ -170,8 +172,23 @@ public class RenjinFiles {
     throw new UnimplementedGnuApiMethod("realpath");
   }
 
-  public static int compress(Ptr buf2, int outline, Ptr buf, int len) {
-    throw new UnimplementedGnuApiMethod("compress");
+  public static int compress(Ptr dest, Ptr destLength, Ptr source, int sourceLength) {
+
+    // Fast path:
+    if(dest instanceof BytePtr && source instanceof BytePtr) {
+      BytePtr sourceBytePtr = (BytePtr) source;
+      BytePtr destBytePtr = (BytePtr) dest;
+
+      Deflater deflater = new Deflater();
+      deflater.setInput(sourceBytePtr.array, source.getOffsetInBytes(), sourceLength);
+      deflater.finish();
+      destLength.setInt(deflater.deflate(destBytePtr.array, destBytePtr.offset,
+          destBytePtr.array.length - destBytePtr.offset));
+      return 0;
+    }
+    throw new UnimplementedGnuApiMethod("compress: " +
+        source.getClass().getName() + " => " +
+        dest.getClass().getName());
   }
 
   public static int chdir(Ptr path) {
@@ -183,6 +200,15 @@ public class RenjinFiles {
   }
 
   private static FileHandle fopen(FileObject fileObject, String mode) throws IOException {
+
+    // If this is a simple local file, defer to the Stdlib implementation
+    // which is more performant.
+    if(fileObject instanceof LocalFile) {
+      String localFile = fileObject.getURL().getFile();
+      return Stdlib.openFile(localFile, mode);
+    }
+
+
     switch (mode) {
       case "r":
       case "rb":

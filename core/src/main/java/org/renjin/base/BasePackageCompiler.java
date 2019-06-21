@@ -60,6 +60,9 @@ public class BasePackageCompiler {
     Environment baseNamespaceEnv = context.getNamespaceRegistry().getBase().getNamespaceEnvironment();
     Context evalContext = context.beginEvalContext(baseNamespaceEnv);
 
+    // as.character needs to be defined before evaluating the base sources
+    evalSource(evalContext, new File("src/main/R/renjinBase/as.character.R"));
+
     evalSources(evalContext, new File("src/main/R/base"));
     evalSources(evalContext, new File("src/main/R/renjinBase"));
 
@@ -88,13 +91,17 @@ public class BasePackageCompiler {
     Collections.sort(sources);
     
     for(File source : sources) {
-      try {
-        SEXP expr = RParser.parseSource(Files.asCharSource(source, Charsets.UTF_8), source.getName());
-        evalContext.evaluate(expr);
-      } catch(Exception e) {
-        throw new RuntimeException("Error evaluating " + source.getName() + ": " + e.getMessage(), e);
-      }
+      evalSource(evalContext, source);
     }
-  }  
-  
+  }
+
+  private static void evalSource(Context evalContext, File source) {
+    try {
+      SEXP expr = RParser.parseSource(Files.asCharSource(source, Charsets.UTF_8), source.getName());
+      evalContext.evaluate(expr);
+    } catch(Exception e) {
+      throw new RuntimeException("Error evaluating " + source.getName() + ": " + e.getMessage(), e);
+    }
+  }
+
 }

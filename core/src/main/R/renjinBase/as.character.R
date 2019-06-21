@@ -7,7 +7,7 @@
 # hard-coding fewer exceptions
 
 
-as.character.default <- function(x, ...)
+as.character.default <- function(x = NULL)
     as.vector(x, mode = "character")
 
 

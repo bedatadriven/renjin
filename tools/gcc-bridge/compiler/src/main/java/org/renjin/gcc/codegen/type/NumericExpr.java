@@ -18,6 +18,7 @@
  */
 package org.renjin.gcc.codegen.type;
 
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.complex.ComplexExpr;
 import org.renjin.gcc.codegen.type.primitive.RealExpr;
@@ -33,7 +34,7 @@ public interface NumericExpr extends GExpr {
 
   NumericExpr multiply(GExpr operand);
 
-  NumericExpr divide(GExpr operand);
+  NumericExpr divide(MethodGenerator mv, GExpr operand);
 
   NumericExpr remainder(GExpr operand);
 

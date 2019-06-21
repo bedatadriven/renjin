@@ -20,3 +20,11 @@
 
 apply from: '../../gradle/package.gradle'
 
+
+compileNamespace {
+    defaultPackages = []
+}
+
+testPackage {
+    defaultPackages = []
+}

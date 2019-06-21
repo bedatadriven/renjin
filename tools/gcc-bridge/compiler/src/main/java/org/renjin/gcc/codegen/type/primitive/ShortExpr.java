@@ -66,7 +66,7 @@ public class ShortExpr extends AbstractIntExpr implements IntExpr {
   }
 
   @Override
-  public ShortExpr divide(GExpr operand) {
+  public ShortExpr divide(MethodGenerator mv, GExpr operand) {
     return lift(i2s(Expressions.divide(jexpr(), jexpr(operand))));
   }
 

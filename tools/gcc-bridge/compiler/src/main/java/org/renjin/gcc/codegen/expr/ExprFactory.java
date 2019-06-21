@@ -168,12 +168,23 @@ public class ExprFactory {
     } else if(expr instanceof GimpleConstantRef) {
       GimpleConstant constant = ((GimpleConstantRef) expr).getValue();
       JExpr constantValue = findPrimitiveGenerator(constant);
-      PrimitiveType primitiveType = PrimitiveType.of((GimplePrimitiveType) constant.getType());
+      GimplePrimitiveType gimplePrimitiveType;
+
+      if(constant.getType() instanceof GimplePrimitiveType) {
+        gimplePrimitiveType = (GimplePrimitiveType) constant.getType();
+      } else if(constant.getType() instanceof GimpleComplexType) {
+        gimplePrimitiveType = ((GimpleComplexType) constant.getType()).getPartType();
+      } else {
+        throw new InternalCompilerException("Expected primitive or complex type, found: " +
+            constant.getType().getClass().getName());
+      }
+      PrimitiveType primitiveType = PrimitiveType.of(gimplePrimitiveType);
+
       FatPtrPair address = new FatPtrPair(
           new PrimitiveValueFunction(primitiveType),
-          Expressions.newArray(primitiveType.jvmType(), Collections.singletonList(constantValue)));
+          Expressions.newArray(constantValue.getType(), Collections.singletonList(constantValue)));
       
-      return PrimitiveType.of((GimplePrimitiveType) expr.getType()).fromStackValue(constantValue, address);
+      return primitiveType.fromStackValue(constantValue, address);
 
     } else if(expr instanceof GimpleComplexPartExpr) {
       GimpleExpr complexExpr = ((GimpleComplexPartExpr) expr).getComplexValue();
@@ -312,7 +323,7 @@ public class ExprFactory {
     return expr instanceof GimpleConstant && ((GimpleConstant) expr).isNull();
   }
 
-  public GExpr findGenerator(GimpleOp op, List<GimpleExpr> operands, GimpleType expectedType) {
+  public GExpr findGenerator(MethodGenerator mv, GimpleOp op, List<GimpleExpr> operands, GimpleType expectedType) {
 
 
     switch (op) {
@@ -443,7 +454,7 @@ public class ExprFactory {
       case RDIV_EXPR:
       case TRUNC_DIV_EXPR:
       case EXACT_DIV_EXPR:
-        return x.toNumericExpr().divide(y);
+        return x.toNumericExpr().divide(mv, y);
 
       case TRUNC_MOD_EXPR:
         return x.toPrimitiveExpr().toNumericExpr().remainder(y);
@@ -550,8 +561,16 @@ public class ExprFactory {
     if(gimpleExpr instanceof GimplePrimitiveConstant && gimpleExpr.getType() instanceof GimpleIndirectType) {
       return Expressions.constantInt(((GimplePrimitiveConstant) gimpleExpr).getValue().intValue());
     }
-    PrimitiveExpr primitive = findGenerator(gimpleExpr, PrimitiveExpr.class);
-    return primitive.jexpr();
+    GExpr generator = findGenerator(gimpleExpr);
+    if(generator instanceof PrimitiveExpr) {
+      return ((PrimitiveExpr) generator).jexpr();
+    } else if(generator instanceof ComplexExpr) {
+      return ((ComplexExpr) generator).getRealJExpr();
+    } else {
+      throw new InternalCompilerException(String.format("Expected PrimitiveExpr for expr %s, found: %s",
+          gimpleExpr,
+          generator.getClass().getName()));
+    }
   }
 
 

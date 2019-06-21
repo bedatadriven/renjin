@@ -80,9 +80,9 @@ public class PtrCarryingExpr implements NumericIntExpr {
   }
 
   @Override
-  public NumericExpr divide(GExpr operand) {
+  public NumericExpr divide(MethodGenerator mv, GExpr operand) {
     // Relationship to pointer is lost
-    return primitive.divide(operand);
+    return primitive.divide(mv, operand);
   }
 
   @Override

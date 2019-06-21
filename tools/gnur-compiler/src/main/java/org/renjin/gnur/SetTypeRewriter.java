@@ -31,7 +31,6 @@ import org.renjin.gcc.logging.LogManager;
 import org.renjin.repackaged.guava.collect.HashMultimap;
 import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.repackaged.guava.collect.Multimap;
-import org.renjin.sexp.SexpType;
 
 import java.util.Collection;
 
@@ -44,6 +43,9 @@ import java.util.Collection;
  * {@code Rf_allocLang}</p>
  */
 public class SetTypeRewriter implements FunctionBodyTransformer {
+
+  private static final int  LANGSXP	  =   6;
+
   @Override
   public boolean transform(LogManager logManager, GimpleCompilationUnit unit, GimpleFunction fn) {
 
@@ -85,7 +87,7 @@ public class SetTypeRewriter implements FunctionBodyTransformer {
       Collection<Integer> types = typeMap.get(allocSite);
       if(types.size() == 1) {
         int targetType = Iterables.getOnlyElement(types);
-        if(allocSite.isFunctionNamed("Rf_allocList") && targetType == SexpType.LANGSXP) {
+        if(allocSite.isFunctionNamed("Rf_allocList") && targetType == LANGSXP) {
           allocSite.setFunction(new GimpleAddressOf(new GimpleFunctionRef("Rf_allocLang")));
           logManager.note("changed Rf_allocList to Rf_allocLang at " +
               allocSite.getSourceFile() + ":" + allocSite.getLineNumber());

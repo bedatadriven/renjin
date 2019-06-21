@@ -18,7 +18,6 @@
  */
 package org.renjin.gnur;
 
-import org.renjin.eval.Context;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.BytecodeSizeEstimator;
@@ -33,7 +32,6 @@ import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.symbols.SymbolTable;
-import org.renjin.primitives.Native;
 import org.renjin.repackaged.asm.ClassWriter;
 import org.renjin.repackaged.asm.MethodVisitor;
 import org.renjin.repackaged.asm.Opcodes;
@@ -73,8 +71,8 @@ public class ContextClassWriter {
         null, null);
     mv.visitCode();
 
-    mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Native.class), "currentContext",
-        Type.getMethodDescriptor(Type.getType(Context.class)), false);
+    mv.visitMethodInsn(Opcodes.INVOKESTATIC, "org/renjin/primitives/Native", "currentContext",
+        "()Lorg/renjin/eval/Context;", false);
 
     // Stack: org.renjin.eval.Context
 
@@ -84,7 +82,7 @@ public class ContextClassWriter {
 
     // Call context.getSingleton(org.renjin.cran.mypackage.Context.class)
 
-    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(Context.class), "getSingleton",
+    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "org/renjin/eval/Context", "getSingleton",
         Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(Class.class)), false);
 
     mv.visitTypeInsn(CHECKCAST, contextClass.getInternalName());

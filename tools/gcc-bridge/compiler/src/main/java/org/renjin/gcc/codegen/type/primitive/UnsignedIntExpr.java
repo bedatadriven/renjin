@@ -71,7 +71,7 @@ public class UnsignedIntExpr extends AbstractIntExpr {
   }
 
   @Override
-  public UnsignedIntExpr divide(GExpr operand) {
+  public UnsignedIntExpr divide(MethodGenerator mv, GExpr operand) {
     return lift(Expressions.staticMethodCall(Integer.class, "divideUnsigned", "(II)I", jexpr(), jexpr(operand)));
   }
 

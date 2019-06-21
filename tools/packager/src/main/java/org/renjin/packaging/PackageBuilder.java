@@ -73,7 +73,7 @@ public class PackageBuilder {
    * Writes an entry to META-INF/org.renjin.package/{packageName} that contains the package's
    * fully-qualified name. This allows loading the locating packages by unqualified name on the classpath.
    */
-  private void writePackageName() throws IOException {
+  public void writePackageName() throws IOException {
     File metaInf = new File(context.getOutputDir(), "META-INF");
     File packageDir = new File(metaInf, "org.renjin.package");
 

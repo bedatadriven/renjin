@@ -74,7 +74,7 @@ public class RealExpr extends AbstractPrimitiveExpr implements NumericExpr {
   }
 
   @Override
-  public RealExpr divide(GExpr operand) {
+  public RealExpr divide(MethodGenerator mv, GExpr operand) {
     return lift(Expressions.divide(jexpr(), jexpr(operand)));
   }
 

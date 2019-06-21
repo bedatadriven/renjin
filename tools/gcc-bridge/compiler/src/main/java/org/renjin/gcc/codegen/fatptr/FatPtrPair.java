@@ -63,6 +63,12 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
     this.address = address;
     this.array = array;
     this.offset = offset;
+
+    if(!valueFunction.getValueType().equals(array.getType().getElementType())) {
+      throw new IllegalArgumentException(
+          "Type of value function (" + valueFunction.getValueType() + ") does not match array type " +
+              "( " + array.getType() + ")");
+    }
   }
 
   public FatPtrPair(ValueFunction valueFunction, @Nonnull JExpr array, @Nonnull JExpr offset) {

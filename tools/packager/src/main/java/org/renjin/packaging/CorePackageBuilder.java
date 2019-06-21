@@ -127,28 +127,7 @@ public class CorePackageBuilder implements BuildContext {
 
   @Override
   public BuildLogger getLogger() {
-    return new BuildLogger() {
-      @Override
-      public void info(String message) {
-        System.err.println("[INFO] " + message);
-      }
-
-      @Override
-      public void debug(String message) {
-        System.err.println("[DEBUG] " + message);
-      }
-
-      @Override
-      public void error(String message) {
-        System.err.println("[ERROR] " + message);
-      }
-
-      @Override
-      public void error(String message, Exception e) {
-        System.err.println("[ERR] " + message);
-        e.printStackTrace(System.err);
-      }
-    };
+    return new SimpleLogger();
   }
 
   @Override
@@ -231,4 +210,5 @@ public class CorePackageBuilder implements BuildContext {
   public Map<String, String> getPackageGroupMap() {
     return Collections.emptyMap();
   }
+
 }

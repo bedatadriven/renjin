@@ -83,6 +83,11 @@ task compileBasePackage(type: JavaExec) {
 
     main = 'org.renjin.base.BasePackageCompiler'
     args baseOutputDir
+    
+    doFirst {
+        delete baseOutputDir
+        mkdir baseOutputDir
+    }
 }
 
 task writeVersionData {

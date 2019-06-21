@@ -66,7 +66,7 @@ public class SignedByteExpr extends AbstractIntExpr implements IntExpr {
   }
 
   @Override
-  public SignedByteExpr divide(GExpr operand) {
+  public SignedByteExpr divide(MethodGenerator mv, GExpr operand) {
     return lift(i2b(Expressions.divide(jexpr(), jexpr(operand))));
   }
 

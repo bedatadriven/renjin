@@ -41,15 +41,9 @@ task testR(type: JavaExec) {
     classpath configurations.testRuntime
     classpath sourceSets.main.output
 
-    environment "TEST_REPORT_DIR", "$buildDir/renjin-test-reports"
-
+    main = 'org.renjin.packaging.test.TestMain'
+    args "--report-dir=$buildDir/renjin-test-reports"
     args "$projectDir/src/test/R"
-
-    main = 'org.renjin.packaging.test.Main'
-
-    doFirst {
-        classpath.forEach { println it }
-    }
 }
 
 test.dependsOn 'testR'

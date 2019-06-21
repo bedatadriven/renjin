@@ -163,7 +163,7 @@ public enum PrimitiveType {
     @Override
     public GExpr constantExpr(GimpleConstant expr) {
       GimpleIntegerConstant constantInt = (GimpleIntegerConstant) expr;
-      return new BooleanExpr(Expressions.constantInt(constantInt.getNumberValue().intValue()));
+      return new BooleanExpr(Expressions.constantBoolean(constantInt.getNumberValue().intValue() != 0));
     }
   },
   INT8 {
@@ -330,7 +330,7 @@ public enum PrimitiveType {
 
     @Override
     public Type localVariableType() {
-      return Type.INT_TYPE;
+      return Type.BYTE_TYPE;
     }
 
     @Override

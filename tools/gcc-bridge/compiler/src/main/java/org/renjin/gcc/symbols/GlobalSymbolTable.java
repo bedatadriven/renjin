@@ -76,6 +76,10 @@ public class GlobalSymbolTable implements SymbolTable {
   public CallGenerator findCallGenerator(GimpleFunctionRef ref) {
     String mangledName = ref.getName();
 
+    if(mangledName.startsWith("*")) {
+      mangledName = mangledName.substring(1);
+    }
+
     CallGenerator generator = functions.get(mangledName);
 
     // Try to find the symbol on the classpath

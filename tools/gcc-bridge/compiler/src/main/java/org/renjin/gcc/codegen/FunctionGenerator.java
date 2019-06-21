@@ -475,7 +475,7 @@ public class FunctionGenerator implements InvocationStrategy {
 
     try {
       GExpr lhs = exprFactory.findGenerator(ins.getLHS());
-      GExpr rhs = exprFactory.findGenerator(ins.getOperator(), ins.getOperands(), ins.getLHS().getType());
+      GExpr rhs = exprFactory.findGenerator(mv, ins.getOperator(), ins.getOperands(), ins.getLHS().getType());
       
       lhs.store(mv, rhs);
       

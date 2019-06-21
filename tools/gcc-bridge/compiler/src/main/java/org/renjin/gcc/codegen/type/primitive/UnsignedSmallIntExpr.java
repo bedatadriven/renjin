@@ -76,7 +76,7 @@ public class UnsignedSmallIntExpr extends AbstractIntExpr {
   }
 
   @Override
-  public NumericExpr divide(GExpr operand) {
+  public NumericExpr divide(MethodGenerator mv, GExpr operand) {
     // Do we need to truncate here?
     return lift(truncate(Expressions.divide(jexpr(), jexpr(operand))));
   }

@@ -20,10 +20,16 @@
 
 package org.renjin.packaging.test;
 
+import org.renjin.packaging.CorePackageBuilder;
+import org.renjin.repackaged.guava.base.Strings;
+
 import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Main class that is executed by {@link ForkedTestController} and runs tests
@@ -31,11 +37,33 @@ import java.io.IOException;
  */
 public class ForkMain {
 
+  public static final String NAMESPACE_UNDER_TEST = "NAMESPACE_UNDER_TEST";
+  public static final String TEST_REPORT_DIR = "TEST_REPORT_DIR";
+  public static final String DEFAULT_PACKAGES = "DEFAULT_PACKAGES";
+
+
   public static void main(String[] args) throws IOException {
 
     ForkReporter listener = new ForkReporter();
 
-    TestExecutor executor = new TestExecutor(listener);
+    List<String> defaultPackages;
+    if(Strings.isNullOrEmpty(System.getenv(DEFAULT_PACKAGES))) {
+      defaultPackages = Collections.emptyList();
+    } else {
+      defaultPackages = Arrays.asList(System.getenv(DEFAULT_PACKAGES).split(","));
+      for (String defaultPackage : defaultPackages) {
+        listener.debug("Default package: " + defaultPackage);
+      }
+    }
+
+    String namespaceUnderTest = System.getenv(NAMESPACE_UNDER_TEST);
+    if (Strings.isNullOrEmpty(namespaceUnderTest)) {
+      namespaceUnderTest = CorePackageBuilder.packageNameFromWorkingDirectory();
+    }
+
+    File testReportDirectory = new File(System.getenv(TEST_REPORT_DIR));
+
+    TestExecutor executor = new TestExecutor(namespaceUnderTest, defaultPackages, listener, testReportDirectory);
 
     listener.debug("Starting execution...");
 

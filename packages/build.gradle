@@ -1,1 +1,12 @@
 
+
+subprojects {
+
+    sourceSets {
+        main.java.srcDirs = ['java']
+        main.resources.srcDirs = ['javaResources']
+        test.java.srcDirs = ['javaTest']
+    }
+
+
+}

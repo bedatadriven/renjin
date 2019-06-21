@@ -63,13 +63,14 @@ public class FileHandleImpl extends AbstractFileHandle {
   }
 
   @Override
-  public void seekCurrent(long offset) throws IOException {
-    file.seek(file.getFilePointer() + offset);
+  public void seekCurrent(long relativeOffset) throws IOException {
+    file.seek(file.getFilePointer() + relativeOffset);
   }
 
   @Override
-  public void seekEnd(long offset) {
-    throw new UnsupportedOperationException("TODO");
+  public void seekEnd(long relativeOffset) throws IOException {
+    long offset = file.length() - relativeOffset - 1;
+    file.seek(offset);
   }
 
   @Override

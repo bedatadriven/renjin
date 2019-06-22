@@ -559,7 +559,7 @@ public class Formatter {
     StringBuilder s = new StringBuilder();
     CharPredicator predicate;
     if(conversion.characterClass == null) {
-      predicate = c -> true;
+      predicate = c -> !Character.isWhitespace(c);
     } else if(conversion.inverseCharacterClass) {
       predicate = c -> conversion.characterClass.indexOf(c) == -1;
     } else {

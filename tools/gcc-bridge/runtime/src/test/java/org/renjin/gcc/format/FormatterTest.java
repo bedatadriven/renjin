@@ -149,6 +149,20 @@ public class FormatterTest {
     formatter.scan(new StringCharIterator("Helvetica\nHello world"), output);
 
     assertThat(Stdlib.nullTerminatedString(stringOutput), equalTo("Helvetica"));
+  }
+
+  @Test
+  public void sscanfWhitespace() {
+    Formatter formatter = new Formatter("%39s", Formatter.Mode.SCAN);
+
+    BytePtr stringOutput = new BytePtr(new byte[1024]);
+    Ptr[] output = new Ptr[1];
+    output[0] = stringOutput;
+
+    formatter.scan(new StringCharIterator(".notdef 34 3 39"), output);
+
+    assertThat(Stdlib.nullTerminatedString(stringOutput), equalTo(".notdef"));
+
 
   }
 }

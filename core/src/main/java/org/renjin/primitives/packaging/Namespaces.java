@@ -18,7 +18,6 @@
  */
 package org.renjin.primitives.packaging;
 
-import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -163,8 +162,7 @@ public class Namespaces {
     for (int i = 0; i < packageNames.length(); i++) {
       String packageName = packageNames.getElementAsString(i);
       Namespace namespace = context.getNamespaceRegistry().getNamespace(context, packageName);
-      FileObject fileObject = namespace.getPackage().resolvePackageRoot(context.getFileSystemManager());
-      result.add(fileObject.getURL().toString());
+      result.add(namespace.getPackage().getPackageRootUri(context.getFileSystemManager()));
     }
     return result.build();
   }

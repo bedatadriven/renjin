@@ -26,7 +26,7 @@ import org.apache.commons.vfs2.provider.AbstractFileObject;
 import java.io.InputStream;
 
 
-public class NonExistentJarFileObject extends AbstractFileObject {
+class NonExistentJarFileObject extends AbstractFileObject {
 
   protected NonExistentJarFileObject(AbstractFileName name, FastJarFileSystem fs) {
     super(name, fs);

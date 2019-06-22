@@ -34,8 +34,6 @@ import java.util.Collections;
  * for all jar entries in the jar, even if they're never accessed. This seems
  * to be contributing to delays in start up time.</p>
  *
- * <p>This implementation creates </p>
- *
  */
 public class FastJarFileProvider extends AbstractLayeredFileProvider {
 

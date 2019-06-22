@@ -58,13 +58,17 @@ public class RenjinFiles {
       return BytePtr.NULL;
     }
 
-    switch (Stdlib.nullTerminatedString(mode)) {
-      case "r":
-      case "rb":
-        return new RecordUnitPtr<>(new InputStreamHandle(() -> openGzInputStream(content)));
+    try {
+      switch (Stdlib.nullTerminatedString(mode)) {
+        case "r":
+        case "rb":
+          return new RecordUnitPtr<>(new InputStreamHandle(() -> openGzInputStream(content)));
 
-      default:
-        throw new UnsupportedOperationException("mode: " + mode);
+        default:
+          throw new UnsupportedOperationException("mode: " + mode);
+      }
+    } catch (FileSystemException e) {
+      return BytePtr.NULL;
     }
   }
 

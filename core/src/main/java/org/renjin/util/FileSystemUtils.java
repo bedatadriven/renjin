@@ -25,6 +25,7 @@ import org.apache.commons.vfs2.impl.DefaultFileReplicator;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.local.DefaultLocalFileProvider;
 import org.apache.commons.vfs2.provider.url.UrlFileProvider;
+import org.renjin.eval.vfs.ClassPathFileProvider2;
 import org.renjin.eval.vfs.FastJarFileProvider;
 
 import java.io.File;
@@ -39,27 +40,13 @@ public class FileSystemUtils {
 
   /**
    *
-   * @return  the path to the R home directory as packaged within
-   * the renjin-core.jar archive. This can be a layered URI in the form
-   * jar:file:///path/to/renjin-core.jar!/org/renjin/library
+   * @return  the path to the R home directory as a virtual classpath
    */
   public static String homeDirectoryInCoreJar(FileSystemManager fileSystemManager) {
     // hardcode to the R home location to the classpath location
     // where this class is found.
 
-    try {
-      String resourceName = "res:org/renjin/sexp/SEXP.class";
-      FileObject fileObject = fileSystemManager.resolveFile(resourceName);
-      if(!fileObject.exists()) {
-        throw new IllegalStateException("Cannot locate resource '" + resourceName + "' in provided virtual file system," +
-            " make sure that you are including a ResourceFileProvider with scheme res:");
-      }
-
-      return fileObject.getParent().getParent().getURL().toString();
-
-    } catch (FileSystemException e) {
-      throw new IllegalStateException("Failed to locate R.home: ", e);
-    }
+    return "classpath:///org/renjin";
   }
 
   public static FileObject workingDirectory(FileSystemManager fileSystemManager) {
@@ -76,7 +63,13 @@ public class FileSystemUtils {
     fsm.setDefaultProvider(new UrlFileProvider());
     fsm.addProvider("file", new DefaultLocalFileProvider());
     fsm.addProvider("jar", new FastJarFileProvider());
+    fsm.addProvider("classpath", new ClassPathFileProvider2(classLoader));
+
+    // Maintain the "res" scheme for backwards compatibility
+    // Classpath resources should not be accessed via the classpath:/// scheme.
     fsm.addProvider("res", new ClasspathFileProvider(classLoader));
+
+
     fsm.init();
     return fsm;
   }

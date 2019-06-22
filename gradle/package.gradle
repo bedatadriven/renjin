@@ -43,6 +43,7 @@ task make(dependsOn: [':tools:gcc-bridge:compiler:compilePlugin'] ) {
         // First remove all the existing .o, .so, and .gimple files
         delete fileTree("src").matching {
             include "**/*.o"
+            include "**/*.d"
             include "**/*.so"
             include "**/*.gimple"
         }
@@ -113,6 +114,7 @@ task make(dependsOn: [':tools:gcc-bridge:compiler:compilePlugin'] ) {
         // Cleanup the leftovers
         delete fileTree("src").matching {
             include "**/*.o"
+            include "**/*.d"
             include "**/*.so"
             include "**/*.gimple"
         }

@@ -27,6 +27,7 @@ import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.FunctionCall;
 
 import java.util.Iterator;
 import java.util.List;
@@ -60,7 +61,7 @@ public class DataParallelScalarCall implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext context, List<IRArgument> arguments) {
+  public CompiledSexp getCompiledExpr(EmitContext context, FunctionCall call, List<IRArgument> arguments) {
     return new ScalarExpr(vectorTypeOf(method.getReturnType())) {
       @Override
       public void loadScalar(EmitContext context, InstructionAdapter mv) {

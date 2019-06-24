@@ -18,6 +18,8 @@
  */
 package org.renjin.compiler.aot;
 
+import org.renjin.sexp.ListVector;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
@@ -27,11 +29,13 @@ public class AotHandle {
 
   private final String className;
   private final String methodName;
+  private final ListVector localVars;
   private final Supplier<Class> flusher;
 
-  public AotHandle(String className, String methodName, Supplier<Class> flusher) {
+  public AotHandle(String className, String methodName, ListVector localVars, Supplier<Class> flusher) {
     this.className = className;
     this.methodName = methodName;
+    this.localVars = localVars;
     this.flusher = flusher;
   }
 
@@ -51,6 +55,10 @@ public class AotHandle {
       }
     }
     throw new IllegalStateException();
+  }
+
+  public ListVector getLocalVars() {
+    return localVars;
   }
 
   public MethodHandle loadAndGetHandle() throws IllegalAccessException {

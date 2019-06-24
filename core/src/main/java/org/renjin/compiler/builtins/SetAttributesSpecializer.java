@@ -21,15 +21,18 @@ package org.renjin.compiler.builtins;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
+import org.renjin.invoke.model.JvmMethod;
+import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.primitives.Primitives;
+import org.renjin.repackaged.guava.collect.Iterables;
 
 import java.util.List;
 
 public class SetAttributesSpecializer implements Specializer {
-  private final Primitives.Entry primitive;
+  private final PrimitiveModel primitive;
 
   public SetAttributesSpecializer() {
-    primitive = Primitives.getBuiltinEntry("attributes<-");
+    primitive = new PrimitiveModel(Primitives.getBuiltinEntry("attributes<-"));
   }
 
   @Override
@@ -41,6 +44,7 @@ public class SetAttributesSpecializer implements Specializer {
       return new IdentityCall(sexp.getExpression(), sexp.getBounds());
 
     } else {
+      JvmMethod method = Iterables.getOnlyElement(primitive.getOverloads());
       ValueBounds resultBounds = ValueBounds.builder()
           .setTypeSet(sexp.getTypeSet())
           .addFlagsFrom(sexp.getBounds(),
@@ -55,7 +59,7 @@ public class SetAttributesSpecializer implements Specializer {
           .addFlags(ValueBounds.MAYBE_OTHER_ATTR)
           .build();
 
-      return new WrapperApplyCall(primitive, arguments, resultBounds);
+      return new StaticMethodCall(method, resultBounds);
     }
   }
 }

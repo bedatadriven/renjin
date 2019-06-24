@@ -23,6 +23,7 @@ import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.expressions.BuiltinCall;
 import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.expressions.ThrowingExpression;
 import org.renjin.compiler.ir.tac.statements.ExprStatement;
 import org.renjin.primitives.Primitives;
 import org.renjin.sexp.FunctionCall;
@@ -50,12 +51,13 @@ public class InternalCallTranslator extends FunctionCallTranslator {
     Symbol internalName = (Symbol) primitiveCall.getFunction();
     Primitives.Entry entry = Primitives.getInternalEntry(internalName);
     if(entry == null) {
-      throw new InvalidSyntaxException("No such .Internal function '" + internalName + "'");
+      return new ThrowingExpression("No such .Internal function '" + internalName + "'");
     }
     
     List<IRArgument> internalArguments = builder.translateArgumentList(context, primitiveCall.getArguments());
 
-    return new BuiltinCall(builder.getRuntimeState(), call, internalName.getPrintName(), internalArguments);
+    return new BuiltinCall(builder.getRuntimeState(), call, internalName.getPrintName(), internalArguments,
+        BuiltinTranslator.findForwardedArgumentIndex(context, primitiveCall));
   }
 
   @Override

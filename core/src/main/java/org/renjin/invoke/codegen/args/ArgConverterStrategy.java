@@ -21,7 +21,6 @@ package org.renjin.invoke.codegen.args;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JVar;
-import org.renjin.invoke.codegen.ApplyMethodContext;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.model.JvmMethod.Argument;
 
@@ -44,6 +43,6 @@ public abstract class ArgConverterStrategy {
 
   public abstract JExpression getTestExpr(JCodeModel codeModel, JVar sexpVariable);
 
-  public abstract JExpression convertArgument(ApplyMethodContext method, JExpression sexp);
+  public abstract JExpression convertArgument(JCodeModel codeModel, JVar contextVar, JVar environmentRho, JExpression sexp);
 
 }

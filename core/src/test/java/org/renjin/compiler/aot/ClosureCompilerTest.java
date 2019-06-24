@@ -63,6 +63,20 @@ public class ClosureCompilerTest {
   }
 
   @Test
+  public void promises() throws IllegalAccessException {
+    Session session = new SessionBuilder().build();
+    session.getTopLevelContext().evaluate(RParser.parseSource(
+        "g <- function(a) substitute(a)\n" +
+        "f <- function() g(stop(x + y))\n", "test.R"));
+
+    Closure closure = (Closure) session.getTopLevelContext().evaluate(Symbol.get("f"));
+    ClosureCompiler compiler = new ClosureCompiler(session.getTopLevelContext(), closure);
+    closure.compiledBody = compiler.getHandle().loadAndGetHandle();
+
+    FunctionCall result = (FunctionCall) session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("f")));
+  }
+
+  @Test
   public void scaleTest() throws InvocationTargetException, IllegalAccessException {
 
     Session session = new SessionBuilder().build();

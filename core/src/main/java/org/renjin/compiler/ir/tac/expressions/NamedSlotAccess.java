@@ -24,8 +24,6 @@ import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.sexp.Symbol;
 
-import java.util.Map;
-
 /**
  * Slot access in the form x@name
  */
@@ -48,7 +46,7 @@ public class NamedSlotAccess implements Expression {
   }
 
   @Override
-  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+  public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
     throw new UnsupportedOperationException("TODO: ");
   }
 

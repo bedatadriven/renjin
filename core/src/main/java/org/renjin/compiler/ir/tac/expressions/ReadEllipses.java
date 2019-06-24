@@ -29,8 +29,6 @@ import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 
-import java.util.Map;
-
 public class ReadEllipses implements Expression {
 
   private final int index;
@@ -47,7 +45,7 @@ public class ReadEllipses implements Expression {
   }
 
   @Override
-  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+  public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
     return valueBounds;
   }
 

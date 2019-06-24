@@ -21,7 +21,6 @@
 package org.renjin.primitives.combine;
 
 import org.renjin.eval.Context;
-import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.primitives.S3;
@@ -33,7 +32,7 @@ public class CombineFunction extends BuiltinFunction {
   }
 
   @Override
-  public SEXP applyPromised(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] arguments, DispatchTable dispatchTable) {
+  public SEXP applyEvaluated(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] arguments) {
 
     if(arguments.length == 0) {
       return Null.INSTANCE;
@@ -47,11 +46,9 @@ public class CombineFunction extends BuiltinFunction {
         throw new EvalException("argument %d is empty", (i+1));
       }
 
-      SEXP evaluatedArgument = argument.force(context);
-
       // Dispatch on the first argument, whether or not its named
       // "recursive" !
-      if(i == 0 && evaluatedArgument.isObject()) {
+      if(i == 0 && argument.isObject()) {
         SEXP genericResult = S3.tryDispatchFromPrimitive(context, rho, call, "c",null, argumentNames, arguments);
         if(genericResult != null) {
           return genericResult;
@@ -60,10 +57,10 @@ public class CombineFunction extends BuiltinFunction {
 
       String argumentName = argumentNames[i];
       if("recursive".equals(argumentName)) {
-        recursive = WrapperRuntime.convertToBooleanPrimitive(evaluatedArgument);
+        recursive = WrapperRuntime.convertToBooleanPrimitive(argument);
       } else {
         argumentNames[inputCount] = argumentName == null ? "" : argumentName;
-        arguments[inputCount] = evaluatedArgument;
+        arguments[inputCount] = argument;
         inputCount++;
       }
     }

@@ -22,7 +22,6 @@ import com.sun.codemodel.JClass;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JVar;
-import org.renjin.invoke.codegen.ApplyMethodContext;
 import org.renjin.invoke.model.JvmMethod.Argument;
 import org.renjin.sexp.ExternalPtr;
 
@@ -48,9 +47,9 @@ public class UnwrapExternalObject extends ArgConverterStrategy {
   }
 
   @Override
-  public JExpression convertArgument(ApplyMethodContext method, JExpression sexp) {
-    JClass externalClass = method.classRef(ExternalPtr.class);
-    JClass formalClass = method.classRef(formal.getClazz());
+  public JExpression convertArgument(JCodeModel codeModel, JVar contextVar, JVar environmentRho, JExpression sexp) {
+    JClass externalClass = codeModel.ref(ExternalPtr.class);
+    JClass formalClass = codeModel.ref(formal.getClazz());
     return cast(formalClass, invoke(cast(externalClass, sexp), "getInstance"));
   }
 }

@@ -134,6 +134,6 @@ public class ConstantBytecode {
       }
     }
 
-    throw new UnsupportedOperationException("TODO: constant = " + value);
+    throw new UnsupportedOperationException("TODO: constant = " + value + " (class = " + value.getClass().getName() + ")");
   }
 }

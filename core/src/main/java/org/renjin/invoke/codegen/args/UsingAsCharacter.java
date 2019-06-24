@@ -23,7 +23,6 @@ import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JVar;
 import org.renjin.invoke.annotations.InvokeAsCharacter;
-import org.renjin.invoke.codegen.ApplyMethodContext;
 import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.invoke.model.JvmMethod.Argument;
 
@@ -39,10 +38,10 @@ public class UsingAsCharacter extends ArgConverterStrategy {
   }
 
   @Override
-  public JExpression convertArgument(ApplyMethodContext parent, JExpression sexp) {
-    return parent.classRef(WrapperRuntime.class).staticInvoke("invokeAsCharacter")
-            .arg(parent.getContext())
-            .arg(parent.getEnvironment())
+  public JExpression convertArgument(JCodeModel codeModel, JVar contextVar, JVar environmentRho, JExpression sexp) {
+    return codeModel.ref(WrapperRuntime.class).staticInvoke("invokeAsCharacter")
+            .arg(contextVar)
+            .arg(environmentRho)
             .arg(sexp);
   }
 

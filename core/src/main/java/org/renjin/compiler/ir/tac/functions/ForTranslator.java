@@ -72,7 +72,7 @@ public class ForTranslator extends FunctionCallTranslator {
     IRLabel exitLabel = factory.newLabel();
 
     factory.addStatement(new Assignment(length, new BuiltinCall(factory.getRuntimeState(), "length",
-        new LengthSpecializer(), Collections.singletonList(new IRArgument(vector)))));
+        new LengthSpecializer(), Collections.singletonList(new IRArgument(vector)), -1)));
 
     // In order to avoid updating the enclosing environment at each loop iteration,
     // we need an extra check to see whether the loop is executed at all

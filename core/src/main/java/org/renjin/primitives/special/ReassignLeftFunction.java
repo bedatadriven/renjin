@@ -19,6 +19,7 @@
 package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
+import org.renjin.invoke.annotations.CompilerSpecialization;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
@@ -31,7 +32,15 @@ public class ReassignLeftFunction extends AssignLeftFunction {
   
   @Override
   protected void assignResult(Context context, Environment rho, Symbol lhs, SEXP rhs) {
+    reassign(context, rho, lhs, rhs);
+  }
 
+  @CompilerSpecialization
+  public static void reassign(Context context, Environment rho, String lhs, SEXP rhs) {
+    reassign(context, rho, Symbol.get(lhs), rhs);
+  }
+
+  private static void reassign(Context context, Environment rho, Symbol lhs, SEXP rhs) {
     for(Environment env : rho.parents()) {
       if(env.hasVariable(lhs))  {
         env.setVariable(context, lhs, rhs);

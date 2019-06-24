@@ -19,6 +19,7 @@
 package org.renjin.invoke.codegen;
 
 import com.sun.codemodel.CodeWriter;
+import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JPackage;
 import org.renjin.invoke.annotations.CastStyle;
@@ -45,7 +46,7 @@ import java.util.List;
 public class WrapperGenerator2 {
 
 
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) throws Exception {
 
     WrapperGenerator2 generator;
     if(args.length == 1) {
@@ -88,13 +89,15 @@ public class WrapperGenerator2 {
     return !encounteredError;
   }
   
-  private void generateSources() throws IOException {
+  private void generateSources() throws IOException, JClassAlreadyExistsException {
 
     sourcesDir.mkdirs();
 
     int implementedCount = 0;
 
     JCodeModel codeModel = new JCodeModel();
+
+    OperatorsWriter operators = new OperatorsWriter(codeModel);
 
     List<Entry> entries = Primitives.getEntries();
     for(Entry entry : entries) {
@@ -107,15 +110,15 @@ public class WrapperGenerator2 {
         }
 
         if(!overloads.isEmpty()) {
-          generate(codeModel, new PrimitiveModel(entry, overloads));
+          PrimitiveModel model = new PrimitiveModel(entry, overloads);
+
+//          generate(codeModel, model);
+
+          operators.add(model);
+
           implementedCount ++;
         }
 
-        for(JvmMethod method : overloads) {
-          if(implicitIntCasting(method)) {
-            System.out.println("IMPLICIT INT CASTING: " + method);
-          }
-        }
       }
     }
 
@@ -151,22 +154,6 @@ public class WrapperGenerator2 {
       }
     }
     return false;
-  }
-
-  private void generate(JCodeModel codeModel, PrimitiveModel primitive) throws IOException {
-    try {
-      InvokerGenerator generator = new InvokerGenerator(codeModel);
-      generator.generate(primitive);
-
-    } catch(Exception e) {
-      System.err.println("Error generating wrapper for '" + primitive.getName() + "': " + e.getMessage());
-      System.err.println("Overloads defined:");
-      for(JvmMethod method : primitive.getOverloads()) {
-        System.err.println("  " + method.toString());
-      }
-      encounteredError = true;
-      e.printStackTrace();
-    }
   }
 
   private static class WrapperSource extends SimpleJavaFileObject {
@@ -217,7 +204,11 @@ public class WrapperGenerator2 {
   public static String toJavaName(String rName) {
     return toJavaName("R$primitive$", rName);
   }
-  
+
+  public static String toJavaMethod(String rname) {
+    return toJavaName("", rname);
+  }
+
   public static String toJavaName(String prefix, String rName) {
     StringBuilder sb = new StringBuilder();
     sb.append(prefix);
@@ -274,7 +265,12 @@ public class WrapperGenerator2 {
         sb.append("_$" + cp + "$_");
       }
     }
-    return sb.toString();
+    String name = sb.toString();
+    if (name.equals("class")) {
+      return name + "_";
+    } else {
+      return name;
+    }
   }
 
   public static String toFullJavaName(String rName) {

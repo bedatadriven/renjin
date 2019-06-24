@@ -19,6 +19,7 @@
 package org.renjin.sexp;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 
 import java.util.ArrayList;
@@ -71,7 +72,7 @@ public abstract class BuiltinFunction extends PrimitiveFunction {
           PromisePairList extra = (PromisePairList) expando;
           for (PairList.Node extraNode : extra.nodes()) {
             argumentNames.add(extraNode.hasTag() ? extraNode.getName() : null);
-            arguments.add(extraNode.getValue());
+            arguments.add(extraNode.getValue().force(context));
           }
         }
 
@@ -84,11 +85,29 @@ public abstract class BuiltinFunction extends PrimitiveFunction {
         if(value == Symbol.MISSING_ARG) {
           arguments.add(Symbol.MISSING_ARG);
         } else {
-          arguments.add(Promise.repromise(rho, value));
+          arguments.add(context.evaluate(value, rho));
         }
       }
     }
-    return applyPromised(context, rho, call, argumentNames.toArray(new String[0]), arguments.toArray(new SEXP[0]), null);
+    return applyEvaluated(context, rho, call, argumentNames.toArray(new String[0]), arguments.toArray(new SEXP[0]));
   }
+
+  @Override
+  public final SEXP applyPromised(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
+    int nargs = promisedArguments.length;
+    SEXP[] evaluated = new SEXP[nargs];
+    for (int i = 0; i < nargs; i++) {
+      evaluated[i] = promisedArguments[i].force(context);
+    }
+    try {
+      return applyEvaluated(context, rho, call, argumentNames, evaluated);
+    } catch (EvalException e) {
+      throw e;
+    } catch (Throwable throwable) {
+      throw new EvalException(throwable);
+    }
+  }
+
+  public abstract SEXP applyEvaluated(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] evaluatedArguments);
 
 }

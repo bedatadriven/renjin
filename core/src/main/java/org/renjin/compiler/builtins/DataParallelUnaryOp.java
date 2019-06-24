@@ -31,6 +31,7 @@ import org.renjin.repackaged.asm.Handle;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.FunctionCall;
 
 import java.lang.invoke.MethodHandle;
 import java.util.List;
@@ -78,7 +79,7 @@ public class DataParallelUnaryOp implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, FunctionCall call, List<IRArgument> arguments) {
 
     if(scalar) {
       return new ScalarExpr(resultType) {

@@ -137,7 +137,7 @@ public class DataParallelCall {
 
       return new DoubleBinaryArrayOp(method, argumentBounds, resultBounds);
     }
-    return new WrapperApplyCall(primitive, argumentBounds, resultBounds);
+    throw new UnsupportedOperationException("TODO");
   }
 
   private Specialization evaluateConstant() {

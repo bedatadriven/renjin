@@ -25,4 +25,8 @@ import java.util.List;
 public interface Specializer {
   
   Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments);
+
+  default Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> argumentTypes, int forwardedArgumentIndex) {
+    return UnspecializedCall.INSTANCE;
+  }
 }

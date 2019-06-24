@@ -76,6 +76,12 @@ public class AssignLeftTranslator extends FunctionCallTranslator {
       lhs = call.getArgument(0);
     }
 
+    doAssignment(builder, lhs, rhs);
+    
+  }
+
+  protected void doAssignment(IRBodyBuilder builder, SEXP lhs, Expression rhs) {
+
     LValue target;
     if( lhs instanceof Symbol) {
       target = builder.getEnvironmentVariable((Symbol)lhs);
@@ -85,11 +91,6 @@ public class AssignLeftTranslator extends FunctionCallTranslator {
       throw new EvalException("cannot assign to value of type " + lhs.getTypeName());
     }
 
-    doAssignment(builder, target, rhs);
-    
-  }
-
-  protected void doAssignment(IRBodyBuilder builder, LValue target, Expression rhs) {
     // make the final assignment to the target symbol
     builder.addStatement(new Assignment(target, rhs));
   }

@@ -24,10 +24,11 @@ import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.expressions.Constant;
 import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.expressions.ValueBoundsMap;
+import org.renjin.repackaged.guava.base.Strings;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class ArgumentBounds {
   private String name;
@@ -49,6 +50,10 @@ public class ArgumentBounds {
     return name;
   }
 
+  public boolean isNamed() {
+    return !Strings.isNullOrEmpty(name);
+  }
+
   public ValueBounds getBounds() {
     return bounds;
   }
@@ -66,7 +71,7 @@ public class ArgumentBounds {
    * named arguments and their ValueBounds.
    *
    */
-  public static List<ArgumentBounds> create(List<IRArgument> arguments, Map<Expression, ValueBounds> typeMap) {
+  public static List<ArgumentBounds> create(List<IRArgument> arguments, ValueBoundsMap typeMap) {
     List<ArgumentBounds> result = new ArrayList<>();
     for (int i = 0; i < arguments.size(); i++) {
       IRArgument symbolArgument = arguments.get(i);
@@ -110,5 +115,9 @@ public class ArgumentBounds {
       names[i] = arguments.get(i).getName();
     }
     return names;
+  }
+
+  public boolean isNamed(String name) {
+    return name.equals(this.name);
   }
 }

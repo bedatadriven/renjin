@@ -20,6 +20,7 @@ package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.invoke.annotations.CompilerSpecialization;
 import org.renjin.sexp.*;
 
 
@@ -59,16 +60,8 @@ public class AssignLeftFunction extends SpecialFunction {
 
     while(lhs instanceof FunctionCall) {
       FunctionCall call = (FunctionCall) lhs;
-      SEXP getter = call.getFunction();
-      SEXP setter = setterFromGetter(getter);
+      FunctionCall setterCall = setterCall(call, rhs);
 
-      PairList setterArgs = PairList.Node.newBuilder()
-          .addAll(call.getArguments())
-          .add("value", rhs)
-          .build();
-      
-      FunctionCall setterCall = new FunctionCall(setter, setterArgs);
-      
       rhs = Promise.repromise(context.evaluate(setterCall, rho));
 
       lhs = call.getArgument(0);
@@ -93,7 +86,20 @@ public class AssignLeftFunction extends SpecialFunction {
     return evaluatedValue;
   }
 
-  private SEXP setterFromGetter(SEXP getter) {
+  @CompilerSpecialization
+  public static FunctionCall setterCall(FunctionCall call, SEXP rhs) {
+    SEXP getter = call.getFunction();
+    SEXP setter = setterFromGetter(getter);
+
+    PairList setterArgs = PairList.Node.newBuilder()
+        .addAll(call.getArguments())
+        .add("value", rhs)
+        .build();
+
+    return new FunctionCall(setter, setterArgs);
+  }
+
+  private static SEXP setterFromGetter(SEXP getter) {
     if(getter instanceof Symbol) {
       return Symbol.get(((Symbol) getter).getPrintName() + "<-");
     }

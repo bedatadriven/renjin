@@ -25,7 +25,9 @@ import org.renjin.compiler.ir.tac.expressions.BuiltinCall;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.statements.ExprStatement;
 import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.PairList;
 import org.renjin.sexp.PrimitiveFunction;
+import org.renjin.sexp.Symbols;
 
 import java.util.List;
 
@@ -39,9 +41,27 @@ class BuiltinTranslator extends FunctionCallTranslator {
 
   @Override
   public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
+
+
     List<IRArgument> arguments = builder.translateArgumentList(context, call.getArguments());
     
-    return new BuiltinCall(builder.getRuntimeState(), call, builtin.getName(), arguments);
+    return new BuiltinCall(builder.getRuntimeState(), call, builtin.getName(), arguments,
+        findForwardedArgumentIndex(context, call));
+  }
+
+  static int findForwardedArgumentIndex(TranslationContext context, FunctionCall call) {
+    if(context.isEllipsesArgumentKnown()) {
+      return -1;
+    }
+    int index = 0;
+    for (PairList.Node node : call.getArguments().nodes()) {
+      if(node.getValue() == Symbols.ELLIPSES) {
+        return index;
+      }
+      index++;
+    }
+
+    return -1;
   }
 
   @Override
@@ -52,7 +72,8 @@ class BuiltinTranslator extends FunctionCallTranslator {
     List<IRArgument> arguments = builder.translateArgumentList(context, getterCall.getArguments());
     arguments.add(new IRArgument("value", builder.simplify(rhs)));
 
-    return new BuiltinCall(builder.getRuntimeState(), getterCall, builtin.getName(), arguments);
+    return new BuiltinCall(builder.getRuntimeState(), getterCall, builtin.getName(), arguments,
+        findForwardedArgumentIndex(context, getterCall));
   }
 
   @Override

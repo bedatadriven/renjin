@@ -18,18 +18,20 @@
  */
 package org.renjin.compiler.aot;
 
+import org.renjin.invoke.codegen.WrapperGenerator2;
 import org.renjin.repackaged.asm.MethodVisitor;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.asm.tree.MethodNode;
 import org.renjin.repackaged.asm.util.Textifier;
 import org.renjin.repackaged.asm.util.TraceMethodVisitor;
+import org.renjin.sexp.ListVector;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static org.renjin.repackaged.asm.Opcodes.ACC_PUBLIC;
 import static org.renjin.repackaged.asm.Opcodes.ACC_STATIC;
@@ -45,11 +47,11 @@ public class AotBuffer {
     this.packageName = packageName;
   }
 
-  public AotHandle newFunction(String sourceFile, String functionName, String descriptor, Consumer<InstructionAdapter> writer) {
+  public AotHandle newFunction(String sourceFile, String functionName, String descriptor, Function<InstructionAdapter, ListVector> writer) {
     ClassBuffer classBuffer = classBuffer(sourceFile);
 
     String methodName = classBuffer.newUniqueMethodName(functionName);
-
+    ListVector frameVars;
     if(DEBUG) {
       MethodNode methodNode = new MethodNode(ACC_PUBLIC | ACC_STATIC, methodName, descriptor,null, null);
 
@@ -60,7 +62,7 @@ public class AotBuffer {
 
       mv.visitCode();
 
-      writer.accept(new InstructionAdapter(mv));
+      frameVars = writer.apply(new InstructionAdapter(mv));
 
       mv.visitEnd();
 
@@ -74,11 +76,11 @@ public class AotBuffer {
 
       MethodVisitor mv = classBuffer.getClassVisitor().visitMethod(ACC_PUBLIC | ACC_STATIC, methodName, descriptor, null, null);
       mv.visitCode();
-      writer.accept(new InstructionAdapter(mv));
+      frameVars = writer.apply(new InstructionAdapter(mv));
       mv.visitEnd();
     }
 
-    return new AotHandle(classBuffer.getClassName(), methodName,  () -> {
+    return new AotHandle(classBuffer.getClassName(), methodName, frameVars, () -> {
       return classBuffer.flushAndLoad();
     });
   }
@@ -98,7 +100,7 @@ public class AotBuffer {
       sourceName = sourceFile;
     }
 
-    String className = packageName.replace('.', '/') + "/" + sourceName;
+    String className = packageName.replace('.', '/') + "/" + WrapperGenerator2.toJavaMethod(sourceName);
 
     return sourceMap.computeIfAbsent(sourceFile,
         s -> new ClassBuffer(className, sourceFile));

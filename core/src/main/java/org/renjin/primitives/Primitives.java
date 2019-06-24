@@ -20,8 +20,8 @@ package org.renjin.primitives;
 
 import org.renjin.base.Lapack;
 import org.renjin.base.internals.AllNamesVisitor;
+import org.renjin.eval.ArgList;
 import org.renjin.eval.Context;
-import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.codegen.WrapperGenerator2;
 import org.renjin.methods.Methods;
@@ -56,6 +56,9 @@ import org.renjin.stats.internals.distributions.Sampling;
 import org.renjin.stats.internals.optimize.Optimizations;
 import org.renjin.stats.internals.optimize.Roots;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +66,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Primitives {
+
+  private Class<?> wrappersClass;
 
   private IdentityHashMap<Symbol, PrimitiveFunction> reserved = new IdentityHashMap<>();
 
@@ -74,7 +79,7 @@ public class Primitives {
   private IdentityHashMap<Symbol, Entry> internalEntries = new IdentityHashMap<Symbol, Entry>();
   
   private static final Primitives INSTANCE = new Primitives();
-  
+
   public static PrimitiveFunction getBuiltin(String name) {
     return getBuiltin(Symbol.get(name));
   }
@@ -112,24 +117,14 @@ public class Primitives {
                                                 ConcurrentHashMap<Symbol, PrimitiveFunction> cache,
                                                 Symbol symbol) {
 
-    PrimitiveFunction existing = cache.get(symbol);
-    if(existing != null) {
-      return existing;
-    }
-
-    Entry entry = entryMap.get(symbol);
-    if(entry == null) {
-      // No such primitive
-      return null;
-    }
-
-    PrimitiveFunction newFunction = createFunction(entry);
-    existing = cache.putIfAbsent(symbol, newFunction);
-    if(existing != null) {
-      return existing;
-    }
-
-    return newFunction;
+    return cache.computeIfAbsent(symbol, s -> {
+      Entry entry = entryMap.get(symbol);
+      if(entry == null) {
+        // No such primitive
+        return null;
+      }
+      return INSTANCE.createFunction(entry);
+    });
   }
 
   public static List<Entry> getEntries() {
@@ -156,22 +151,44 @@ public class Primitives {
     return Sets.union(INSTANCE.builtins.keySet(), INSTANCE.builtinEntries.keySet());
   }
 
-  private static PrimitiveFunction createFunction(final Entry entry) {
-    try {
-      return (PrimitiveFunction) Class.forName(WrapperGenerator2.toFullJavaName(entry.name)).newInstance();
-    } catch(final Exception e) {
+  private PrimitiveFunction createFunction(Entry entry) {
+    MethodHandle methodHandle = findMethodHandle(entry);
+    if(methodHandle == null) {
       return new BuiltinFunction(entry.name) {
 
         @Override
-        public SEXP applyPromised(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] evaluatedArguments, DispatchTable dispatchTable) {
-          throw new EvalException("Sorry! " + entry.name + " not yet implemented!", e);
+        public SEXP applyEvaluated(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] evaluatedArguments) {
+          throw new EvalException("Sorry! " + entry.name + " not yet implemented!");
         }
       };
     }
+    return new BuiltinFunctionImpl(entry.name, methodHandle);
   }
-  
-   
+
+  private MethodHandle findMethodHandle(Entry entry) {
+    if(wrappersClass == null) {
+      try {
+        wrappersClass = Class.forName("org.renjin.primitives.Builtins");
+      } catch (ClassNotFoundException e) {
+        return null;
+      }
+    }
+
+    String methodName = WrapperGenerator2.toJavaName("", entry.name);
+    try {
+      return MethodHandles.publicLookup().findStatic(wrappersClass, methodName, MethodType.methodType(SEXP.class,
+          Context.class,
+          Environment.class,
+          ArgList.class,
+          FunctionCall.class));
+    } catch (NoSuchMethodException | IllegalAccessException e) {
+      return null;
+    }
+  }
+
+
   public Primitives() {
+
     add(new IfFunction());
     add(new WhileFunction());
     add(new ForFunction());
@@ -246,7 +263,7 @@ public class Primitives {
     add(new InternalFunction());
     add(new OnExitFunction());
 
-    addInternal(new RecallFunction());
+    add(new RecallFunction());
     f("delayedAssign", Evaluation.class, 111);
     f("makeLazy", Serialization.class, 111);
     f(".Primitive", Evaluation.class, 1);

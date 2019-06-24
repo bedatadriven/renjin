@@ -231,3 +231,22 @@ test.s3.ellipses.preserved.in.call <- function() {
      assertThat(f(1,2), identicalTo(quote(f.default(1,2))))
      assertThat(g(1,2), identicalTo(quote(f.default(...))))
 }
+
+test.plus.eval <- function() {
+
+    `+.foo`<- function(e1, e2) 98
+    a <- structure(1, class='foo')
+
+    assertThat(a + 3, identicalTo(98))
+    assertThat(a + stop('farp'), throwsError())
+
+}
+
+test.plus.substitute <- function() {
+
+    `+.foo`<- function(e1, e2) substitute(e1)
+
+    assertThat(structure(4, class = 'foo') + 99, identicalTo(quote(structure(4, class = 'foo'))))
+}
+
+

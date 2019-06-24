@@ -21,7 +21,7 @@ package org.renjin.base;
 import org.renjin.eval.Context;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
-import org.renjin.packaging.LazyLoadFrameBuilder;
+import org.renjin.packaging.LazyLoadFrameBuilder3;
 import org.renjin.parser.RParser;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -43,12 +43,7 @@ public class BasePackageCompiler {
 
   public static void main(String[] args) throws IOException {
 
-    String outputDir;
-    if(args.length == 1) {
-      outputDir = args[0] + "/org/renjin/base";
-    } else {
-      outputDir = "target/classes/org/renjin/base";
-    }
+    String outputDir = "build/base/org/renjin/base";
 
     // Evaluate the base sources into the base namespace environment
 
@@ -67,21 +62,22 @@ public class BasePackageCompiler {
     evalSources(evalContext, new File("src/main/R/renjinBase"));
 
     evalContext.evaluate(FunctionCall.newCall(Symbol.get(".onLoad")));  
-    
+
+
     // now serialize them to a lazy-loadable frame
     
     final Set<String> omit = Sets.newHashSet(
         ".Last.value", ".AutoloadEnv", ".BaseNamespaceEnv", 
         ".Device", ".Devices", ".Machine", ".Options", ".Platform");
 
-    new LazyLoadFrameBuilder(context)
+    new LazyLoadFrameBuilder3(context)
         .outputTo(new File(outputDir))
         .excludeSymbols(omit)
         .filter(x -> !(x instanceof PrimitiveFunction))
         .build(baseNamespaceEnv);
   }
 
-  private static void evalSources(Context evalContext, File dir) throws IOException {
+  private static void evalSources(Context evalContext, File dir) {
     List<File> sources = Lists.newArrayList();
     for(File sourceFile : dir.listFiles()) {
       if(sourceFile.getName().endsWith(".R")) {

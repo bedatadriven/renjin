@@ -44,13 +44,13 @@ public class BuiltinCallTest {
     Expression y = new EnvironmentVariable("y");
 
     BuiltinCall call = new BuiltinCall(null, functionCall, "+",
-        Arrays.asList( new IRArgument(x), new IRArgument(y)));
+        Arrays.asList( new IRArgument(x), new IRArgument(y)), -1);
 
     Map<Expression, ValueBounds> typeMap = new HashMap<>();
     typeMap.put(x, scalar(TypeSet.DOUBLE));
     typeMap.put(y, scalar(TypeSet.DOUBLE));
 
-    ValueBounds bounds = call.updateTypeBounds(typeMap);
+    ValueBounds bounds = call.updateTypeBounds(e -> typeMap.get(e));
 
     System.out.println(bounds);
     
@@ -70,13 +70,13 @@ public class BuiltinCallTest {
     Expression y = new EnvironmentVariable("y");
 
     BuiltinCall call = new BuiltinCall(null, functionCall, "+",
-        Arrays.asList( new IRArgument(x), new IRArgument(y) ));
+        Arrays.asList( new IRArgument(x), new IRArgument(y) ), -1);
 
     Map<Expression, ValueBounds> typeMap = new HashMap<>();
     typeMap.put(x, scalar(TypeSet.DOUBLE));
     typeMap.put(y, scalar(TypeSet.INT));
 
-    ValueBounds bounds = call.updateTypeBounds(typeMap);
+    ValueBounds bounds = call.updateTypeBounds(e -> typeMap.get(e));
 
     System.out.println(bounds);
 

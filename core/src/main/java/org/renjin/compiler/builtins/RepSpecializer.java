@@ -31,6 +31,7 @@ import org.renjin.eval.MatchedArgumentPositions;
 import org.renjin.primitives.sequence.RepFunction;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.Vector;
 
@@ -76,7 +77,7 @@ public class RepSpecializer implements Specializer {
       }
 
       @Override
-      public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+      public CompiledSexp getCompiledExpr(EmitContext emitContext, FunctionCall call, List<IRArgument> arguments) {
 
         return new SexpExpr() {
           @Override

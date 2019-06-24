@@ -22,7 +22,6 @@ import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JVar;
-import org.renjin.invoke.codegen.ApplyMethodContext;
 import org.renjin.invoke.model.JvmMethod.Argument;
 import org.renjin.sexp.SEXP;
 
@@ -43,8 +42,8 @@ public class SexpSubclass extends ArgConverterStrategy {
   }
 
   @Override
-  public JExpression convertArgument(ApplyMethodContext parent, JExpression sexp) {
-    return JExpr.cast(parent.classRef(formal.getClazz()), sexp);
+  public JExpression convertArgument(JCodeModel codeModel, JVar contextVar, JVar environmentRho, JExpression sexp) {
+    return JExpr.cast(codeModel.ref(formal.getClazz()), sexp);
   }
 
   @Override

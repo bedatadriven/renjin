@@ -101,8 +101,9 @@ public class SwitchTranslator extends FunctionCallTranslator {
     // We define a final "no match" branch, where the result value
     // is set to NULL if we need an expression
 
-    IRLabel noMatch = builder.newLabel();
+    IRLabel noMatch = null;
     if(result.isPresent()) {
+      noMatch = builder.newLabel();
       checks[branches.size()] = noMatch;
       body[branches.size()] = noMatch;
 

@@ -23,8 +23,6 @@ import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 
-import java.util.Map;
-
 
 /**
  * Extracts a single element from a vector, dropping all attributes.
@@ -63,7 +61,7 @@ public class ElementAccess extends SpecializedCallExpression {
   }
 
   @Override
-  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+  public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
     ValueBounds vectorBounds = getVector().updateTypeBounds(typeMap);
 
     if(TypeSet.isDefinitelyAtomic(vectorBounds.getTypeSet())) {

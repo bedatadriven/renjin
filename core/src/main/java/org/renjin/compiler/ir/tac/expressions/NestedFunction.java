@@ -21,6 +21,7 @@ package org.renjin.compiler.ir.tac.expressions;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.SexpExpr;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
@@ -28,9 +29,12 @@ import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 
-import java.util.Map;
-
 public class NestedFunction implements Expression {
+
+  private static final ValueBounds BOUNDS = ValueBounds.builder()
+      .setTypeSet(TypeSet.FUNCTION)
+      .build();
+
   private final PairList formals;
   private final SEXP body;
 
@@ -45,13 +49,13 @@ public class NestedFunction implements Expression {
   }
 
   @Override
-  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
-    throw new UnsupportedOperationException("TODO");
+  public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
+    return BOUNDS;
   }
 
   @Override
   public ValueBounds getValueBounds() {
-    throw new UnsupportedOperationException("TODO");
+    return BOUNDS;
   }
 
   @Override
@@ -60,6 +64,8 @@ public class NestedFunction implements Expression {
       @Override
       public void loadSexp(EmitContext context, InstructionAdapter mv) {
         mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(RuntimeException.class));
+        mv.dup();
+        mv.invokespecial(Type.getInternalName(RuntimeException.class), "<init>", "()V", false);
         mv.visitInsn(Opcodes.ATHROW);
       }
     };
@@ -67,7 +73,7 @@ public class NestedFunction implements Expression {
 
   @Override
   public void setChild(int childIndex, Expression child) {
-    throw new UnsupportedOperationException("TODO");
+    throw new IndexOutOfBoundsException();
   }
 
   @Override
@@ -77,7 +83,7 @@ public class NestedFunction implements Expression {
 
   @Override
   public Expression childAt(int index) {
-    throw new UnsupportedOperationException("TODO");
+    throw new IndexOutOfBoundsException();
   }
 
   @Override

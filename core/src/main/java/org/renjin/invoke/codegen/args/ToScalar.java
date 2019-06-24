@@ -21,7 +21,6 @@ package org.renjin.invoke.codegen.args;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JVar;
-import org.renjin.invoke.codegen.ApplyMethodContext;
 import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.invoke.codegen.scalars.ScalarType;
 import org.renjin.invoke.codegen.scalars.ScalarTypes;
@@ -41,8 +40,8 @@ public class ToScalar extends ArgConverterStrategy {
   }
 
   @Override
-  public JExpression convertArgument(ApplyMethodContext parent, JExpression sexp) {
-    return parent.classRef(WrapperRuntime.class).staticInvoke(scalarType.getConversionMethod())
+  public JExpression convertArgument(JCodeModel codeModel, JVar contextVar, JVar environmentRho, JExpression sexp) {
+    return codeModel.ref(WrapperRuntime.class).staticInvoke(scalarType.getConversionMethod())
             .arg(sexp);
   }
 

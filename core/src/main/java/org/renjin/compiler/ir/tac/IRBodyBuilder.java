@@ -77,10 +77,10 @@ public class IRBodyBuilder {
   }
 
   public IRBody build(SEXP exp) {
-    return build(exp, true);
+    return build(new TopLevelContext(), exp, true);
   }
 
-  public IRBody build(SEXP exp, boolean ensureInitialized) {
+  public IRBody build(TranslationContext context, SEXP exp, boolean ensureInitialized) {
 
     if(exp.getAttributes().has(SRCFILE_ATTR)) {
       Environment srcfile = (Environment) exp.getAttribute(SRCFILE_ATTR);
@@ -92,7 +92,6 @@ public class IRBodyBuilder {
 
     labels = Maps.newHashMap();
     
-    TranslationContext context = new TopLevelContext();
     Expression returnValue = translateSimpleExpression(context, exp);
     
     addStatement(new ReturnStatement(returnValue));
@@ -328,7 +327,9 @@ public class IRBodyBuilder {
     List<IRArgument> arguments = Lists.newArrayList();
     for(PairList.Node argNode : argumentSexps.nodes()) {
       if(argNode.getValue() == Symbols.ELLIPSES) {
-        arguments.addAll(context.getEllipsesArguments());
+        if(context.isEllipsesArgumentKnown()) {
+          arguments.addAll(context.getEllipsesArguments());
+        }
       } else {
         SimpleExpression argExpression = simplify(translateExpression(context, argNode.getValue()));
         arguments.add( new IRArgument(argNode.getRawTag(), argExpression) );
@@ -449,12 +450,17 @@ public class IRBodyBuilder {
   private static class TopLevelContext implements TranslationContext {
 
     @Override
+    public boolean isEllipsesArgumentKnown() {
+      return true;
+    }
+
+    @Override
     public List<IRArgument> getEllipsesArguments() {
       throw new InvalidSyntaxException("'...' used outside of a function");
     }
 
     @Override
-    public boolean isMissing(Symbol name) {
+    public Expression isMissing(Symbol name) {
       throw new InvalidSyntaxException("'missing' can only be used for arguments");
     }
   }

@@ -31,11 +31,9 @@ public class Packages {
   public static final FqPackageName METHODS_NAMESPACE = new FqPackageName("org.renjin", "methods");
 
   @Internal
-  public static void library(
-      @Current Context context,
-      @Current NamespaceRegistry namespaceRegistry, 
-      String packageName) throws IOException {
+  public static void library(@Current Context context, String packageName) throws IOException {
 
+    NamespaceRegistry namespaceRegistry = context.getNamespaceRegistry();
     Namespace namespace = namespaceRegistry.getNamespace(context, packageName);
     
     // Check to see if already on the search path...
@@ -47,7 +45,7 @@ public class Packages {
     // (But not "Imports" !)
     for(String dependencyName : namespace.getPackage().getPackageDependencies()) {
       context.getSession().getStdOut().println("Loading required package: " + dependencyName);
-      library(context, namespaceRegistry, dependencyName);
+      library(context, dependencyName);
     }
     
     // Create the package environment
@@ -82,11 +80,9 @@ public class Packages {
 
   @Internal
   @Invisible
-  public static boolean require(@Current Context context,
-                                @Current NamespaceRegistry registry, 
-                                String packageName) {
+  public static boolean require(@Current Context context, String packageName) {
     try {
-      library(context, registry, packageName);
+      library(context, packageName);
       return true;
     } catch(Exception e) {
       return false;

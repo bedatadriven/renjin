@@ -18,9 +18,9 @@
  */
 package org.renjin.eval;
 
+import org.renjin.invoke.annotations.CompilerSpecialization;
 import org.renjin.primitives.io.serialization.RDataReader;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.SEXP;
+import org.renjin.sexp.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,6 +40,7 @@ public class Support {
     throw new UnsupportedOperationException("TODO");
   }
 
+  @CompilerSpecialization
   public static SEXP[] loadPool(String resourceName) throws IOException {
     InputStream poolInput = Support.class.getResourceAsStream("/" + resourceName);
     if(poolInput == null) {
@@ -50,6 +51,25 @@ public class Support {
       vector = (ListVector) reader.readFile();
     }
     return vector.toArrayUnsafe();
+  }
+
+  public static boolean toFlag(SEXP exp) {
+    if(exp.length() == 0) {
+      return true;
+    }
+    return exp.asLogical() != Logical.FALSE;
+  }
+
+  public static String toStringFlag(SEXP sexp) {
+    if(sexp instanceof AtomicVector && sexp.length() > 0) {
+      return ((AtomicVector) sexp).getElementAsString(0);
+    } else {
+      return null;
+    }
+  }
+
+  public static EvalException arityException(FunctionCall call, String expectedArguments) {
+    return new EvalException("Unexpected argument count in " + call);
   }
 
 }

@@ -53,20 +53,17 @@ public class AssignSlotFunction extends SpecialFunction {
       throw new EvalException("invalid type '%s' for slot name", which.getTypeName());
     }
 
-    SEXP unevaluatedValue = args.getElementAsSEXP(2);
+    SEXP rhs = context.evaluate(args.getElementAsSEXP(2), rho);
 
     // Try to dispatch to an override, but repackage the name as a character
     if(object.isObject()) {
-      SEXP[] repackedArgs = new SEXP[] { object, new StringArrayVector(slotName), unevaluatedValue};
+      SEXP[] repackedArgs = new SEXP[] { object, new StringArrayVector(slotName), rhs};
       String[] repackagedArgNames = new String[3];
       SEXP genericResult = S3.tryDispatchFromPrimitive(context, rho, call, "@<-", null, repackagedArgNames, repackedArgs);
       if (genericResult != null) {
         return genericResult;
       }
     }
-
-    // Nope, we're going to use the default version so we need to evaluate the value
-    SEXP rhs = context.evaluate(args.getElementAsSEXP(2));
 
     // verify that the slot assignment is permitted
     StringVector valueClass = Attributes.getClass(rhs);

@@ -21,7 +21,10 @@ package org.renjin.compiler.builtins;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
+import org.renjin.invoke.model.JvmMethod;
+import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.primitives.Primitives;
+import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.sexp.Null;
 
 import java.util.List;
@@ -29,10 +32,10 @@ import java.util.List;
 public class GetAttributesSpecializer implements Specializer {
 
 
-  private final Primitives.Entry primitive;
+  private final PrimitiveModel primitive;
 
   public GetAttributesSpecializer() {
-    primitive = Primitives.getBuiltinEntry("attributes");
+    primitive = new PrimitiveModel(Primitives.getBuiltinEntry("attributes"));
   }
 
   @Override
@@ -44,7 +47,8 @@ public class GetAttributesSpecializer implements Specializer {
       return new ConstantCall(Null.INSTANCE);
 
     } else {
-      return new WrapperApplyCall(primitive, arguments, ValueBounds.builder()
+      JvmMethod overload = Iterables.getOnlyElement(primitive.getOverloads());
+      return new StaticMethodCall(overload, ValueBounds.builder()
           .setTypeSet(TypeSet.NULL | TypeSet.LIST)
           .addFlags(ValueBounds.MAYBE_NAMES)
           .addFlags(ValueBounds.NAME_CLASS_ABSENT, !bounds.isFlagSet(ValueBounds.MAYBE_CLASS))

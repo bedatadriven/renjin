@@ -228,4 +228,11 @@ public interface SEXP {
   @Override
   String toString();
 
+  default SEXP promise(Environment environment) {
+    return new Promise(environment, this);
+  }
+
+  default SEXP promise() {
+    return new Promise(this, this);
+  }
 }

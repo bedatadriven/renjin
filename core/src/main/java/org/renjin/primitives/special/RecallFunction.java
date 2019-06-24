@@ -32,18 +32,16 @@ public class RecallFunction extends SpecialFunction {
   public SEXP apply(Context context, Environment rho, FunctionCall call) {
 
     // this is an .Internal function, so we need to go up one context.
-    Context originalContext = context.getParent();
-    if (!(originalContext.getFunction() instanceof Closure)) {
+    if (!(context.getFunction() instanceof Closure)) {
       throw new EvalException("Recall() must be called from within a closure");
     }
 
-    Closure closure = (Closure)originalContext.getFunction();
+    Closure closure = (Closure)context.getFunction();
 
-    PairList newArguments = (PairList)rho.getVariable(context, Symbols.ELLIPSES);
-    FunctionCall newCall = new FunctionCall(originalContext.getCall().getFunction(), newArguments);
+    FunctionCall newCall = new FunctionCall(context.getCall().getFunction(), call.getArguments());
     
-    return closure.apply(originalContext, 
-          originalContext.getEnvironment(), 
+    return closure.apply(context,
+          context.getEnvironment(),
           newCall);
   }
 

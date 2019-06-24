@@ -101,7 +101,7 @@ public class UseMethod extends SpecialFunction {
     /*
      * From the "object", we compute a list of classes that are used to select a method.
      */
-    StringVector classes = S3.computeDataClasses(context, object);
+    StringVector classes = S3.computeDataClasses(object);
 
 
     /*

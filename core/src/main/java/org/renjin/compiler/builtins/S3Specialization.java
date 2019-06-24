@@ -30,6 +30,7 @@ import org.renjin.primitives.S3;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Function;
+import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.StringVector;
 
 import java.util.List;
@@ -94,12 +95,12 @@ public class S3Specialization implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, FunctionCall call, List<IRArgument> arguments) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public void emitAssignment(EmitContext emitContext, InstructionAdapter mv, Assignment statement, List<IRArgument> arguments) {
+  public void emitAssignment(EmitContext emitContext, InstructionAdapter mv, Assignment statement, FunctionCall call, List<IRArgument> arguments) {
 
     if(inlinedMethod == null) {
       throw new FailedToSpecializeException("Could not resolve S3 method");

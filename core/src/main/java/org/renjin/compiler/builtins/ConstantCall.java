@@ -37,9 +37,15 @@ import java.util.Map;
  */
 public class ConstantCall implements Specialization {
   private Object constantValue;
+  private Specialization fallback;
   private Type type;
   private ValueBounds valueBounds;
-  
+
+  public ConstantCall(Object constantValue, Specialization fallback) {
+    this(constantValue);
+    this.fallback = fallback;
+  }
+
   public ConstantCall(Object constantValue) {
     this.constantValue = constantValue;
 
@@ -78,11 +84,15 @@ public class ConstantCall implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
-    throw new UnsupportedOperationException("TODO");
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, FunctionCall call, List<IRArgument> arguments) {
+    if(fallback == null) {
+      return emitContext.constantSexp(valueBounds.getConstantValue());
+    } else {
+      return fallback.getCompiledExpr(emitContext, call, arguments);
+    }
   }
 
-  public static ConstantCall evaluate(JvmMethod method, List<ValueBounds> arguments) {
+  public static ConstantCall evaluate(JvmMethod method, List<ValueBounds> arguments, Specialization fallback) {
 
     ListVector.Builder varArgs = null;
     Map<String, Object> namedFlags = null;
@@ -125,7 +135,7 @@ public class ConstantCall implements Specialization {
       throw new RuntimeException(e);
     }
 
-    return new ConstantCall(constantValue);
+    return new ConstantCall(constantValue, fallback);
   }
 
 

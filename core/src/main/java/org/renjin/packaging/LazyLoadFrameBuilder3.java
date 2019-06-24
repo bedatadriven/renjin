@@ -18,6 +18,7 @@
  */
 package org.renjin.packaging;
 
+import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.aot.AotBuffer;
 import org.renjin.compiler.aot.AotHandle;
 import org.renjin.compiler.aot.ClosureCompiler;
@@ -75,6 +76,12 @@ public class LazyLoadFrameBuilder3 {
   
   public void build(Environment env) throws IOException {
 
+    if(!outputDir.exists()) {
+      boolean created = outputDir.mkdirs();
+      if(!created) {
+        throw new IOException("Could not creat " + outputDir.getAbsolutePath());
+      }
+    }
 
     // Now write an index of symbols
     File indexFile = new File(outputDir, "environment");
@@ -176,13 +183,19 @@ public class LazyLoadFrameBuilder3 {
   }
 
   private boolean compileAndSerializeClosure(DataOutputStream indexOut, Symbol symbol, Closure closure) throws IOException {
+
+    if(symbol.getPrintName().equals("NextMethod")) {
+      return false;
+    }
     AotHandle handle;
     try {
       ClosureCompiler compiler = new ClosureCompiler(buffer, context, symbol, closure);
       handle = compiler.getHandle();
+    } catch (NotCompilableException e) {
+      System.err.println("ERROR compiling " + symbol + ": " + e.getSexp());
+      throw new RuntimeException(e);
     } catch (Exception e) {
-      e.printStackTrace();
-      return false;
+      throw new RuntimeException("Exception compiling '" + symbol + "'", e);
     }
 
     // Write out the header
@@ -192,6 +205,7 @@ public class LazyLoadFrameBuilder3 {
     writeInlineResource(indexOut, serializeSymbol(closure.getEnclosingEnvironment()));
     writeInlineResource(indexOut, serializeSymbol(closure.getFormals()));
     writeInlineResource(indexOut, serializeSymbol(closure.getAttributes().asPairList()));
+    writeInlineResource(indexOut, serializeSymbol(handle.getLocalVars()));
 
     // Write the body of the function to an external resource file
     writeExternalResource(indexOut, symbol, serializeSymbol(closure.getBody()));

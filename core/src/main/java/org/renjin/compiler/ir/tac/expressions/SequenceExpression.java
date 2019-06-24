@@ -29,8 +29,6 @@ import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.DoubleVector;
 
-import java.util.Map;
-
 public class SequenceExpression extends SpecializedCallExpression {
  
   private ValueBounds valueBounds;
@@ -50,7 +48,7 @@ public class SequenceExpression extends SpecializedCallExpression {
   }
 
   @Override
-  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+  public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
     ValueBounds fromBounds = childAt(0).updateTypeBounds(typeMap);
     ValueBounds toBounds = childAt(1).updateTypeBounds(typeMap);
 

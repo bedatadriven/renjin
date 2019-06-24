@@ -18,29 +18,22 @@
  */
 package org.renjin.compiler.ir.tac.expressions;
 
+import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.builtins.*;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
-import org.renjin.compiler.codegen.expr.SexpExpr;
-import org.renjin.compiler.codegen.var.VariableStrategy;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.compiler.ir.tac.statements.Assignment;
-import org.renjin.eval.Context;
-import org.renjin.invoke.codegen.WrapperGenerator2;
 import org.renjin.repackaged.asm.Opcodes;
-import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.sexp.Environment;
 import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.SEXP;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Call to a builtin function
@@ -52,23 +45,31 @@ public class BuiltinCall implements CallExpression {
   private String primitiveName;
   private final List<IRArgument> arguments;
 
+  /**
+   * The index with in the argument list in which forwarded arguments (...)
+   * are to be inserted at runtime, or -1 if there are no forward arguments.
+   */
+  private int forwardedArgumentIndex = -1;
+
   private final Specializer specializer;
   
   private Specialization specialization = UnspecializedCall.INSTANCE;
 
-  public BuiltinCall(RuntimeState runtimeState, FunctionCall call, String primitiveName, List<IRArgument> arguments) {
+  public BuiltinCall(RuntimeState runtimeState, FunctionCall call, String primitiveName, List<IRArgument> arguments, int forwardArgumentIndex) {
     this.runtimeState = runtimeState;
     this.primitiveName = primitiveName;
     this.call = call;
     this.arguments = Lists.newArrayList(arguments);
     this.specializer = BuiltinSpecializers.INSTANCE.get(primitiveName);
+    this.forwardedArgumentIndex = forwardArgumentIndex;
   }
 
-  public BuiltinCall(RuntimeState runtimeState, String primitiveName, Specializer specializer, List<IRArgument> arguments) {
+  public BuiltinCall(RuntimeState runtimeState, String primitiveName, Specializer specializer, List<IRArgument> arguments, int forwardedArgumentIndex) {
     this.runtimeState = runtimeState;
     this.primitiveName = primitiveName;
     this.arguments = Lists.newArrayList(arguments);
     this.specializer = specializer;
+    this.forwardedArgumentIndex = forwardedArgumentIndex;
   }
 
   public String getPrimitiveName() {
@@ -97,7 +98,7 @@ public class BuiltinCall implements CallExpression {
   }
 
   @Override
-  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+  public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
     List<ArgumentBounds> argumentTypes = new ArrayList<>();
     for (IRArgument argument : arguments) {
       argumentTypes.add(new ArgumentBounds(
@@ -105,8 +106,17 @@ public class BuiltinCall implements CallExpression {
           argument.getExpression(),
           argument.getExpression().updateTypeBounds(typeMap)));
     }
-    specialization = specializer.trySpecialize(runtimeState, argumentTypes);
-    
+
+    // If call involves forwarded arguments, then specialization at
+    // compile time becomes more difficult
+
+    if(forwardedArgumentIndex != -1) {
+      specialization = specializer.trySpecialize(runtimeState, argumentTypes, forwardedArgumentIndex);
+
+    } else {
+      specialization = specializer.trySpecialize(runtimeState, argumentTypes);
+    }
+
     return specialization.getResultBounds();
   }
 
@@ -117,70 +127,31 @@ public class BuiltinCall implements CallExpression {
 
   @Override
   public CompiledSexp getCompiledExpr(EmitContext emitContext) {
-    return specialization.getCompiledExpr(emitContext, arguments);
+    try {
+      return specialization.getCompiledExpr(emitContext, call, arguments);
+    } catch (FailedToSpecializeException e) {
+      throw new NotCompilableException(call, "Failed to specialize .Primitive(" + primitiveName + ")");
+    }
   }
 
   @Override
   public void emitAssignment(EmitContext emitContext, InstructionAdapter mv, Assignment statement) {
     try {
-      specialization.emitAssignment(emitContext, mv, statement, arguments);
+      specialization.emitAssignment(emitContext, mv, statement, call, arguments);
     } catch (FailedToSpecializeException e) {
-      emitUnspecializedAssigment(emitContext, mv, statement);
-//      throw new NotCompilableException(call, "Failed to specialize .Primitive(" + primitiveName + ")");
+      throw new NotCompilableException(call, "Failed to specialize .Primitive(" + primitiveName + ")");
     }
-  }
-
-  private void emitUnspecializedAssigment(EmitContext emitContext, InstructionAdapter mv, Assignment statement) {
-    VariableStrategy lhs = emitContext.getVariable(statement.getLHS());
-    SexpExpr expr = new SexpExpr() {
-      @Override
-      public void loadSexp(EmitContext context, InstructionAdapter mv) {
-        writeBuiltinCall(context, mv);
-      }
-    };
-
-    lhs.store(emitContext, mv, expr);
   }
 
   @Override
   public void emitExecute(EmitContext emitContext, InstructionAdapter mv) {
-    throw new UnsupportedOperationException("TODO");
+    specialization.getCompiledExpr(emitContext, call, arguments).loadSexp(emitContext, mv);
+    mv.visitInsn(Opcodes.POP);
   }
-
-  private void writeBuiltinCall(EmitContext context, InstructionAdapter mv) {
-
-    // Invoke the doApply method of the generated class
-    mv.visitVarInsn(Opcodes.ALOAD, context.getContextVarIndex());
-    mv.visitVarInsn(Opcodes.ALOAD, context.getEnvironmentVarIndex());
-
-    for (int i = 0; i < arguments.size(); i++) {
-      arguments.get(i).getExpression().getCompiledExpr(context).loadSexp(context, mv);
-    }
-
-    String generatedClass = WrapperGenerator2.toFullJavaName(primitiveName)
-        .replace('.', '/');
-
-    mv.visitMethodInsn(Opcodes.INVOKESTATIC, generatedClass, "doApply", applyDescriptor(), false);
-
-  }
-
-  private String applyDescriptor() {
-    Type[] argumentTypes = new Type[arguments.size() + 2];
-    int argIndex = 0;
-    argumentTypes[argIndex++] = Type.getType(Context.class);
-    argumentTypes[argIndex++] = Type.getType(Environment.class);
-    for (int i = 0; i < arguments.size(); i++) {
-      argumentTypes[argIndex++] = Type.getType(SEXP.class);
-    }
-
-    return Type.getMethodDescriptor(Type.getType(SEXP.class), argumentTypes);
-  }
-
 
   @Override
   public String toString() {
     return "(" + primitiveName + " " + Joiner.on(" ").join(arguments) + ")";
   }
-
 
 }

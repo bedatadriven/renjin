@@ -24,8 +24,6 @@ import org.renjin.compiler.codegen.expr.ConstantExpr;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.sexp.*;
 
-import java.util.Map;
-
 
 /**
  * A value known at compile time.
@@ -78,7 +76,7 @@ public final class Constant implements SimpleExpression {
   }
 
   @Override
-  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+  public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
     return valueBounds;
   }
 

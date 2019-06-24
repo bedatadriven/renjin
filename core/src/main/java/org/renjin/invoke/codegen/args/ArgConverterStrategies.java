@@ -24,7 +24,7 @@ import org.renjin.invoke.model.JvmMethod;
 
 public class ArgConverterStrategies {
 
-  public static ArgConverterStrategy findArgConverterStrategy(JvmMethod.Argument formal) {
+  public static ArgConverterStrategy find(JvmMethod.Argument formal) {
     if(Recyclable.accept(formal)) {
       return new Recyclable(formal);
     

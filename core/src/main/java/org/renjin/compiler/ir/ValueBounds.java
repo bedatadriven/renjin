@@ -584,7 +584,7 @@ public class ValueBounds {
       return this;
     }
 
-    public void setAttributes(AttributeMap attributes) {
+    public Builder setAttributes(AttributeMap attributes) {
       for (Symbol symbol : attributes.names()) {
         if(symbol == Symbols.DIM) {
           setDimCount((short)attributes.getDim().length());
@@ -602,6 +602,7 @@ public class ValueBounds {
           addFlags(ValueBounds.MAYBE_OTHER_ATTR);
         }
       }
+      return this;
     }
 
     public ValueBounds build() {

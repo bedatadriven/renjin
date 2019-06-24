@@ -27,8 +27,6 @@ import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
-import java.util.Map;
-
 import static org.renjin.repackaged.asm.Opcodes.IF_ICMPGE;
 
 /**
@@ -62,7 +60,7 @@ public class CmpGE extends SpecializedCallExpression {
   }
 
   @Override
-  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+  public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
     return getValueBounds();
   }
 

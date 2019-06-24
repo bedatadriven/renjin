@@ -57,8 +57,8 @@ public class DollarFunction extends SpecialFunction {
     // For possible generic dispatch, repackage the name argument as character vector rather than
     // symbol
     SEXP[] repackedArguments = new SEXP[2];
-    repackedArguments[0] = Promise.repromise(object);
-    repackedArguments[1] = Promise.repromise(nameArgument);
+    repackedArguments[0] = object;
+    repackedArguments[1] = nameArgument;
 
     SEXP genericResult = S3.tryDispatchFromPrimitive(context, rho, call, "$", null, new String[2], repackedArguments);
     if (genericResult!= null) {

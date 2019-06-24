@@ -18,7 +18,10 @@
  */
 package org.renjin.primitives.sequence;
 
-import org.renjin.eval.*;
+import org.renjin.eval.ArgumentMatcher;
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+import org.renjin.eval.MatchedArguments;
 import org.renjin.primitives.S3;
 import org.renjin.sexp.*;
 
@@ -42,7 +45,7 @@ public class RepFunction extends BuiltinFunction {
   }
 
   @Override
-  public SEXP applyPromised(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
+  public SEXP applyEvaluated(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] evaluatedArguments) {
 
     // rep is one of the very few primitives that uses argument matching
     // *ALMOST* like that employed for closures.
@@ -51,33 +54,33 @@ public class RepFunction extends BuiltinFunction {
     // even if 'x' is provided as named argument elsewhere
 
     // check for zero args -- the result should be null
-    if(promisedArguments.length == 0) {
+    if(evaluatedArguments.length == 0) {
       context.setInvisibleFlag();
       return Null.INSTANCE;
     }
 
     // evaluate the first arg
 
-    SEXP firstArg = promisedArguments[0].force(context);
+    SEXP firstArg = evaluatedArguments[0];
     if(firstArg.isObject()) {
-      SEXP result = S3.tryDispatchFromPrimitive(context, rho, call, "rep", null, argumentNames, promisedArguments);
+      SEXP result = S3.tryDispatchFromPrimitive(context, rho, call, "rep", null, argumentNames, evaluatedArguments);
       if(result != null) {
         return result;
       }
     }
 
-    MatchedArguments matched = ARGUMENT_MATCHER.match(argumentNames, promisedArguments);
+    MatchedArguments matched = ARGUMENT_MATCHER.match(argumentNames, evaluatedArguments);
 
     SEXP x = matched.getActualForFormal(FORMAL_X).force(context, true);
     if(x == Symbol.MISSING_ARG) {
       x = Null.INSTANCE;
     }
-    SEXP times = matched.getActualForFormal(FORMAL_TIMES, DEFAULT_TIMES_ARGUMENT).force(context, true);
+    SEXP times = matched.getActualForFormal(FORMAL_TIMES, DEFAULT_TIMES_ARGUMENT);
     if(times == Symbol.MISSING_ARG) {
       times = DEFAULT_TIMES_ARGUMENT;
     }
-    SEXP lengthOut = matched.getActualForFormal(FORMAL_LENGTH_OUT, Symbol.MISSING_ARG).force(context, true);
-    SEXP each = matched.getActualForFormal(FORMAL_EACH, Symbol.MISSING_ARG).force(context, true);
+    SEXP lengthOut = matched.getActualForFormal(FORMAL_LENGTH_OUT, Symbol.MISSING_ARG);
+    SEXP each = matched.getActualForFormal(FORMAL_EACH, Symbol.MISSING_ARG);
 
     return rep(
         (Vector) x,

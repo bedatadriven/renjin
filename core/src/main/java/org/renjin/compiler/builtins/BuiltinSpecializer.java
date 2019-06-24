@@ -18,10 +18,17 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.ir.tac.RuntimeState;
+
+import java.util.List;
+
 public interface BuiltinSpecializer extends Specializer {
 
   String getName();
 
   String getGroup();
 
+  default Specialization trySpecializeMaybeGeneric(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
+    return new BuiltinWrapperCall(getName(), -1);
+  }
 }

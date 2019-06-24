@@ -46,7 +46,7 @@ public class S3 {
   public static final Symbol METHODS_TABLE = Symbol.get(".__S3MethodsTable__.");
 
   public static StringVector computeObjectClass(Context context, SEXP object) {
-    StringVector objectClasses = computeDataClasses(context, object);
+    StringVector objectClasses = computeDataClasses(object);
     if(Types.isS4(object)) {
       SEXP objectClassesS4 = S4.computeDataClassesS4(context, objectClasses.getElementAsString(0));
       if (objectClassesS4 instanceof StringVector) {
@@ -336,12 +336,9 @@ public class S3 {
    * Computes the class list used for normal S3 Dispatch. Note that this
    * is different than the class() function
    */
-  public static StringVector computeDataClasses(Context context, SEXP exp) {
+  public static StringVector computeDataClasses(SEXP exp) {
 
-    /*
-     * Make sure we're dealing with the evaluated expression
-     */
-    exp = exp.force(context);
+    assert !(exp instanceof Promise);
 
     SEXP classAttribute = exp.getAttribute(Symbols.CLASS);
 
@@ -382,7 +379,7 @@ public class S3 {
    * @param generic the name of the generic function to dispatch, for example, "as.character" or "print"
    * @param group the name of the group the generic belongs to, or {@code null} if the generic does not belong to a group
    * @param argumentNames the (expanded) names of the arguments.
-   * @param arguments the (expanded) and promised arguments to the function.
+   * @param arguments the (expanded) and evaluated arguments to the function.
    * @return
    */
   public static SEXP tryDispatchFromPrimitive(Context context,
@@ -419,13 +416,13 @@ public class S3 {
 
     int nargs;
     if (isOps) {
-      nargs = argumentNames.length;
+      nargs = arguments.length;
     } else {
       nargs = 1;
     }
 
     for (int k = 0; k < nargs; k++) {
-      SEXP argument = arguments[k].force(context);
+      SEXP argument = arguments[k];
       if(Types.isS4(argument)) {
         return S4.tryS4DispatchFromPrimitive(context, rho, generic, group, call, argumentNames, arguments);
       }
@@ -438,8 +435,8 @@ public class S3 {
     Environment definitionEnvironment = context.getBaseEnvironment();
 
 
-    SEXP left = arguments[0].force(context);
-    StringVector leftClasses = computeDataClasses(context, left);
+    SEXP left = arguments[0];
+    StringVector leftClasses = computeDataClasses(left);
 
     S3DispatchMetadata dispatchTable = new S3DispatchMetadata(definitionEnvironment, generic, leftClasses);
 
@@ -473,9 +470,9 @@ public class S3 {
 
       dispatchTable.method2 = "";
 
-      SEXP right = arguments[1].force(context);
+      SEXP right = arguments[1];
       if(right.isObject()) {
-        StringVector rightClasses = computeDataClasses(context, right);
+        StringVector rightClasses = computeDataClasses(right);
         Function rightMethod = findMethod(context, definitionEnvironment, rho, generic, group, rightClasses, false, dispatchTable);
 
         if(leftMethod != null && rightMethod != null && rightMethod != leftMethod) {
@@ -506,31 +503,43 @@ public class S3 {
       return null;
     }
 
+    repromiseArguments(rho, arguments, call);
+
 
     if(isOps) {
 
       /*
        * Ops functions drop their names
        */
-      Arrays.fill(argumentNames, null);
-
-
-    } else if("Summary".equals(group)) {
-
-      // When dispatching to S3 summary methods, we pretend that the summary
-      // builtin has an extra na.rm argument with default value false.
-      boolean naRmSupplied = false;
-      int numArgs = argumentNames.length;
-      for (int i = 0; i < numArgs; i++) {
-        if("na.rm".equals(argumentNames[i])) {
-          naRmSupplied = true;
-        }
+      if(argumentNames == null) {
+        argumentNames = new String[arguments.length];
+      } else {
+        Arrays.fill(argumentNames, null);
       }
-      if(!naRmSupplied) {
-        argumentNames = Arrays.copyOf(argumentNames, numArgs + 1);
-        arguments = Arrays.copyOf(arguments, numArgs + 1);
-        argumentNames[numArgs] = "na.rm";
-        arguments[numArgs] = LogicalVector.FALSE;
+
+    } else {
+
+      if(argumentNames == null) {
+        argumentNames = retrieveArgumentNamesFromCall(rho, call, arguments.length);
+      }
+
+      if("Summary".equals(group)) {
+
+        // When dispatching to S3 summary methods, we pretend that the summary
+        // builtin has an extra na.rm argument with default value false.
+        boolean naRmSupplied = false;
+        int numArgs = argumentNames.length;
+        for (int i = 0; i < numArgs; i++) {
+          if("na.rm".equals(argumentNames[i])) {
+            naRmSupplied = true;
+          }
+        }
+        if(!naRmSupplied) {
+          argumentNames = Arrays.copyOf(argumentNames, numArgs + 1);
+          arguments = Arrays.copyOf(arguments, numArgs + 1);
+          argumentNames[numArgs] = "na.rm";
+          arguments[numArgs] = LogicalVector.FALSE.promise();
+        }
       }
     }
 
@@ -549,12 +558,69 @@ public class S3 {
 
     FunctionCall fakeCall = new FunctionCall(dispatchTable.getMethodSymbol(), call.getArguments());
 
+
     /*
      * Finally we are ready to call.
      */
     return leftMethod.applyPromised(fakeContext, rho, fakeCall, argumentNames, arguments, dispatchTable);
   }
 
+
+  /**
+   * By the time that {@link #tryDispatchFromPrimitive(Context, Environment, FunctionCall, String, String, String[], SEXP[])}
+   * has been called, we have already evaluated the arguments. But when we dispatch to a closure, we need to provide
+   * an array of promises. We can retrieve the original symbols from the {@code call} object.
+
+   */
+  private static void repromiseArguments(Environment rho, SEXP[] evaluatedArguments, FunctionCall call) {
+
+    int argumentIndex = 0;
+    PairList argument = call.getArguments();
+
+    while(argument instanceof PairList.Node) {
+      PairList.Node argumentNode = (PairList.Node) argument;
+      if(argumentNode.getValue() == Symbols.ELLIPSES) {
+        PairList expando = (PromisePairList) rho.getEllipsesVariable();
+        while(expando instanceof PromisePairList.Node) {
+          PromisePairList.Node expandoNode = (PromisePairList.Node) expando;
+          evaluatedArguments[argumentIndex] = new Promise(expandoNode.getValue(), evaluatedArguments[argumentIndex]);
+          argumentIndex++;
+          expando = expandoNode.getNext();
+        }
+      } else {
+        evaluatedArguments[argumentIndex] = new Promise(argumentNode.getValue(), evaluatedArguments[argumentIndex]);
+        argumentIndex++;
+      }
+      argument = argumentNode.getNext();
+    }
+  }
+
+  private static String[] retrieveArgumentNamesFromCall(Environment rho, FunctionCall call, int length) {
+    String[] names = new String[length];
+
+
+    int argumentIndex = 0;
+    PairList argument = call.getArguments();
+
+    while(argument instanceof PairList.Node) {
+      PairList.Node argumentNode = (PairList.Node) argument;
+      if(argumentNode.getValue() == Symbols.ELLIPSES) {
+        PairList expando = (PromisePairList) rho.getEllipsesVariable();
+        while(expando instanceof PromisePairList.Node) {
+          PromisePairList.Node expandoNode = (PromisePairList.Node) expando;
+          names[argumentIndex] = expandoNode.hasTag() ? expandoNode.getName() : null;
+          argumentIndex++;
+          expando = expandoNode.getNext();
+        }
+      } else {
+        names[argumentIndex] = argumentNode.hasTag() ? argumentNode.getName() : null;
+        argumentIndex++;
+      }
+      argument = argumentNode.getNext();
+    }
+    return names;
+
+  }
 
   public static Environment findMethodTable(Context context, Environment definitionEnvironment) {
     SEXP table = definitionEnvironment.getVariableUnsafe(METHODS_TABLE).force(context);

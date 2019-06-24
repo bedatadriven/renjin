@@ -20,6 +20,7 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.aot.ClosureEmitContext;
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.FunctionLoader;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.SexpExpr;
 import org.renjin.compiler.ir.ValueBounds;
@@ -32,14 +33,14 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.*;
 
-import java.util.Map;
-
 public class DynamicCall implements Expression {
 
+  private final FunctionLoader functionLoader;
   private final FunctionCall call;
   private final String functionName;
 
-  public DynamicCall(FunctionCall call, String functionName) {
+  public DynamicCall(FunctionLoader functionLoader, FunctionCall call, String functionName) {
+    this.functionLoader = functionLoader;
     this.call = call;
     this.functionName = functionName;
   }
@@ -73,8 +74,8 @@ public class DynamicCall implements Expression {
   }
 
   @Override
-  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
-    throw new UnsupportedOperationException("TODO");
+  public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
+    return ValueBounds.UNBOUNDED;
   }
 
   @Override
@@ -92,16 +93,16 @@ public class DynamicCall implements Expression {
     };
   }
 
+  @Override
+  public void emitExecute(EmitContext emitContext, InstructionAdapter mv) {
+    writeCall(emitContext, mv);
+    mv.pop();
+  }
+
   private void writeCall(EmitContext context, InstructionAdapter mv) {
 
     // First find function
-    mv.visitVarInsn(Opcodes.ALOAD, context.getContextVarIndex());
-    mv.visitVarInsn(Opcodes.ALOAD, context.getEnvironmentVarIndex());
-    mv.aconst(functionName);
-    mv.invokevirtual(Type.getInternalName(Context.class), "evaluateFunction",
-          Type.getMethodDescriptor(Type.getType(Function.class),
-              Type.getType(Environment.class),
-              Type.getType(String.class)), false);
+    functionLoader.loadFunction(context, mv);
 
     // Now we need to invoke:
     //   SEXP applyPromised(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch);
@@ -126,6 +127,7 @@ public class DynamicCall implements Expression {
             Type.getType(DispatchTable.class)));
   }
 
+
   private void loadArgumentValues(EmitContext context, InstructionAdapter mv) {
 
     int numArguments = call.getArguments().length();
@@ -144,7 +146,7 @@ public class DynamicCall implements Expression {
 
   }
 
-  private void loadArgumentPromise(EmitContext context, InstructionAdapter mv, SEXP argumentValue) {
+  static void loadArgumentPromise(EmitContext context, InstructionAdapter mv, SEXP argumentValue) {
     if(argumentValue instanceof Symbol) {
       loadSymbolPromise(context, mv, (Symbol)argumentValue);
     } else {
@@ -156,16 +158,16 @@ public class DynamicCall implements Expression {
     }
   }
 
-  private void loadSymbolPromise(EmitContext context, InstructionAdapter mv, Symbol symbol) {
+  static void loadSymbolPromise(EmitContext context, InstructionAdapter mv, Symbol symbol) {
     ClosureEmitContext closureEmitContext = (ClosureEmitContext) context;
     closureEmitContext.loadSymbolPromise(symbol, mv);
   }
 
   private void loadArgumentNames(EmitContext context, InstructionAdapter mv) {
-    if(!anyNamedArguments()) {
-      loadEmptyNamesArray(context, mv);
-
-    } else {
+//    if(!anyNamedArguments()) {
+//      loadEmptyNamesArray(context, mv);
+//
+//    } else {
       // Maybe maintain a pool of argument names?
       mv.iconst(call.getArguments().length());
       mv.newarray(Type.getType(String.class));
@@ -179,7 +181,7 @@ public class DynamicCall implements Expression {
         }
         i++;
       }
-    }
+//    }
   }
 
   private void loadEmptyNamesArray(EmitContext context, InstructionAdapter mv) {

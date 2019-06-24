@@ -22,6 +22,7 @@ import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.invoke.codegen.OverloadComparator;
+import org.renjin.invoke.codegen.WrapperGenerator2;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Primitives;
 import org.renjin.repackaged.guava.collect.Iterables;
@@ -63,6 +64,7 @@ public class AnnotationBasedSpecializer implements BuiltinSpecializer {
     return genericGroup;
   }
 
+
   private static String findGenericGroup(List<JvmMethod> methods) {
     for (JvmMethod method : methods) {
       if(method.isGroupGeneric()) {
@@ -95,7 +97,7 @@ public class AnnotationBasedSpecializer implements BuiltinSpecializer {
     List<ValueBounds> arguments = ArgumentBounds.withoutNames(namedArguments);
     JvmMethod method = selectOverload(namedArguments);
     if(method == null) {
-      return new WrapperApplyCall(primitive, namedArguments);
+      return new BuiltinWrapperCall(primitive.name, -1);
     }
     
     if(method.isDataParallel()) {
@@ -104,6 +106,26 @@ public class AnnotationBasedSpecializer implements BuiltinSpecializer {
       return new StaticMethodCall(method).furtherSpecialize(arguments);
     }
   }
+
+  @Override
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> argumentTypes, int forwardedArgumentIndex) {
+    // There might be SOMETHING we could do here with a bit more thought...
+    return new BuiltinWrapperCall(primitive.name, forwardedArgumentIndex);
+  }
+
+  @Override
+  public Specialization trySpecializeMaybeGeneric(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
+
+    boolean varArgs = methods.stream().anyMatch(m -> m.acceptsArgumentList());
+
+    if(varArgs) {
+      return new BuiltinWrapperCall(primitive.name, -1);
+    } else {
+      return new FixedArityGenericBuiltinCall("org/renjin/primitives/Builtins",
+          WrapperGenerator2.toJavaMethod(primitive.name));
+    }
+  }
+
 
   private JvmMethod selectOverload(List<ArgumentBounds> argumentTypes) {
     for (JvmMethod method : methods) {

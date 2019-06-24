@@ -25,6 +25,7 @@ import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.primitives.combine.Combine;
+import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;
 
@@ -124,7 +125,7 @@ public class CombineSpecializer implements Specializer, BuiltinSpecializer {
     }
 
     @Override
-    public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+    public CompiledSexp getCompiledExpr(EmitContext emitContext, FunctionCall call, List<IRArgument> arguments) {
       throw new UnsupportedOperationException("TODO");
     }
 

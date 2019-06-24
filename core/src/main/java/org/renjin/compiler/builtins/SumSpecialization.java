@@ -27,6 +27,7 @@ import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.primitives.Summary;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.FunctionCall;
 
 import java.util.List;
 
@@ -52,7 +53,7 @@ public class SumSpecialization implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, FunctionCall call, List<IRArgument> arguments) {
 
     CompiledSexp argument = arguments.get(0).getExpression().getCompiledExpr(emitContext);
 

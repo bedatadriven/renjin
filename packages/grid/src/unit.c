@@ -43,7 +43,7 @@ SEXP unit(double value, int unit)
     setAttrib(u, install("valid.unit"), units);
     setAttrib(u, install("data"), R_NilValue);
     PROTECT(classname = mkString("unit"));
-    classgets(u, classname);
+    u = classgets(u, classname);
     UNPROTECT(3);
     return u;
 }

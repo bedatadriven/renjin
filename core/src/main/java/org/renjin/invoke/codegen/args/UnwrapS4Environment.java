@@ -21,7 +21,6 @@ package org.renjin.invoke.codegen.args;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JVar;
-import org.renjin.invoke.codegen.ApplyMethodContext;
 import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.invoke.model.JvmMethod.Argument;
 import org.renjin.sexp.Environment;
@@ -52,8 +51,8 @@ public class UnwrapS4Environment extends ArgConverterStrategy {
   }
 
   @Override
-  public JExpression convertArgument(ApplyMethodContext method, JExpression sexp) {
-    return method.getCodeModel()
+  public JExpression convertArgument(JCodeModel codeModel, JVar contextVar, JVar environmentRho, JExpression sexp) {
+    return codeModel
         .ref(WrapperRuntime.class)
         .staticInvoke("unwrapEnvironmentSuperClass")
         .arg(sexp);

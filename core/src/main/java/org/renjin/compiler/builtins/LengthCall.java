@@ -26,6 +26,7 @@ import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.FunctionCall;
 
 import java.util.List;
 
@@ -52,7 +53,7 @@ public class LengthCall implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, FunctionCall call, List<IRArgument> arguments) {
     CompiledSexp vector = arguments.get(0).getExpression().getCompiledExpr(emitContext);
     return new ScalarExpr(VectorType.INT) {
       @Override

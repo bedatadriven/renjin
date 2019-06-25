@@ -130,10 +130,14 @@ public class Closure extends AbstractSEXP implements Function {
         }
       }
     }
-    return applyPromised(context, rho, call, argumentNames.toArray(new String[0]), arguments.toArray(new SEXP[0]), null);
+    ArgList argList = new ArgList(
+        argumentNames.toArray(new String[0]),
+        arguments.toArray(new SEXP[0]));
+
+    return applyPromised(context, rho, argList, call, null);
   }
 
-  public SEXP applyPromised(Context callingContext, Environment callingEnvironment, FunctionCall call, String[] argNames, SEXP[] args, DispatchTable dispatch) {
+  public SEXP applyPromised(Context callingContext, Environment callingEnvironment, ArgList arguments, FunctionCall call, DispatchTable dispatch) {
 
     if(this.matcher == null) {
       this.matcher = new ArgumentMatcher(getFormals());
@@ -142,7 +146,7 @@ public class Closure extends AbstractSEXP implements Function {
       this.frameSymbols = matcher.getFormalNameArray();
     }
 
-    MatchedArguments matching = matcher.match(argNames, args);
+    MatchedArguments matching = matcher.match(arguments.names, arguments.values);
     SEXP[] matchedArguments = new SEXP[matcher.getFormalCount()];
 
     int numFormals = matching.getFormalCount();

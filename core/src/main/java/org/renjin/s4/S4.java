@@ -18,6 +18,7 @@
  */
 package org.renjin.s4;
 
+import org.renjin.eval.ArgList;
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchTable;
 import org.renjin.invoke.annotations.Current;
@@ -109,7 +110,10 @@ public class S4 {
       dispatchTable = generateCallMetaData(context, selectedMethod, signature, opName);
     }
 
-    return function.applyPromised(context, rho, call, arguments.getArgumentNames(), arguments.getPromisedArguments(), dispatchTable);
+    return function.applyPromised(context, rho,
+        new ArgList(arguments.getArgumentNames(), arguments.getPromisedArguments()),
+        call,
+        dispatchTable);
   }
 
   private static boolean dispatchWithoutMeta(String opName, SEXP source, RankedMethod rank) {

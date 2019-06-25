@@ -20,10 +20,7 @@
 
 package org.renjin.primitives.special;
 
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
-import org.renjin.eval.MatchedArguments;
-import org.renjin.eval.S3DispatchMetadata;
+import org.renjin.eval.*;
 import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.primitives.Contexts;
 import org.renjin.primitives.S3;
@@ -166,9 +163,9 @@ public class UseMethod extends SpecialFunction {
     return method.applyPromised(
         context,
         callingContext.getCallingEnvironment(),
+        new ArgList(previousArguments.getActualNames(),
+            previousArguments.getActualValues()),
         newCall,
-        previousArguments.getActualNames(),
-        previousArguments.getActualValues(),
         dispatchTable);
   }
 

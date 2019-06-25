@@ -20,10 +20,7 @@ package org.renjin.primitives;
 
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
-import org.renjin.eval.MatchedArguments;
-import org.renjin.eval.S3DispatchMetadata;
+import org.renjin.eval.*;
 import org.renjin.invoke.annotations.ArgumentList;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
@@ -242,7 +239,7 @@ public class S3 {
 
     FunctionCall newCall = new FunctionCall(nextTable.getMethodSymbol(), previousCall.getArguments());
 
-    return nextMethod.applyPromised(context, rho, newCall, updatedNames, updatedArguments, nextTable);
+    return nextMethod.applyPromised(context, rho, new ArgList(updatedNames, updatedArguments), newCall, nextTable);
   }
 
 
@@ -562,9 +559,8 @@ public class S3 {
     /*
      * Finally we are ready to call.
      */
-    return leftMethod.applyPromised(fakeContext, rho, fakeCall, argumentNames, arguments, dispatchTable);
+    return leftMethod.applyPromised(fakeContext, rho, new ArgList(argumentNames, arguments), fakeCall, dispatchTable);
   }
-
 
   /**
    * By the time that {@link #tryDispatchFromPrimitive(Context, Environment, FunctionCall, String, String, String[], SEXP[])}

@@ -160,6 +160,18 @@ public class FunctionCall extends PairList.Node {
     return Null.INSTANCE;
   }
 
+  public int findEllipsisArgumentIndex() {
+    int index = 0;
+    for (PairList.Node node : getArguments().nodes()) {
+      if(node.getValue() == Symbols.ELLIPSES) {
+        return index;
+      }
+      index++;
+    }
+
+    return -1;
+  }
+
   public static class Builder extends PairList.Builder {
 
     public Builder add(SEXP tag, SEXP s) {

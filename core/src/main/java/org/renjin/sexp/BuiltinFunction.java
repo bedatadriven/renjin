@@ -18,6 +18,7 @@
  */
 package org.renjin.sexp;
 
+import org.renjin.eval.ArgList;
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
@@ -93,14 +94,14 @@ public abstract class BuiltinFunction extends PrimitiveFunction {
   }
 
   @Override
-  public final SEXP applyPromised(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
-    int nargs = promisedArguments.length;
+  public final SEXP applyPromised(Context context, Environment rho, ArgList arguments, FunctionCall call, DispatchTable dispatch) {
+    int nargs = arguments.size();
     SEXP[] evaluated = new SEXP[nargs];
     for (int i = 0; i < nargs; i++) {
-      evaluated[i] = promisedArguments[i].force(context);
+      evaluated[i] = arguments.values[i].force(context);
     }
     try {
-      return applyEvaluated(context, rho, call, argumentNames, evaluated);
+      return applyEvaluated(context, rho, call, arguments.names, evaluated);
     } catch (EvalException e) {
       throw e;
     } catch (Throwable throwable) {

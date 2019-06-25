@@ -37,7 +37,7 @@ public class ClosureCompilerTest {
 
   @Before
   public void setUp() {
-    session = new SessionBuilder().build();
+    session = new SessionBuilder().withoutBasePackage().build();
   }
 
   @Test
@@ -57,7 +57,15 @@ public class ClosureCompilerTest {
   }
 
   @Test
-  public void lengthTest() {
+  public void lengthTest() throws IllegalAccessException {
+
+    eval("g <- function(a, b) a * b");
+
+    compileFunction("f <- function(...) {",
+        "    g(...)",
+        "}\n");
+
+    assertThat(eval("f(2, 42)"), equalTo(DoubleVector.valueOf(84)));
 
   }
 

@@ -266,6 +266,7 @@ public class StaticMethodCall implements Specialization {
       } else {
         CompiledSexp compiledArg = arguments.get(positionalArgument).getExpression().getCompiledExpr(emitContext);
         compiledArg.loadAsArgument(emitContext, mv, argument.getClazz());
+        positionalArgument++;
       }
     }
 

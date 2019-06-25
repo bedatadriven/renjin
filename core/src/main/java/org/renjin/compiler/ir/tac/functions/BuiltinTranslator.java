@@ -25,9 +25,7 @@ import org.renjin.compiler.ir.tac.expressions.BuiltinCall;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.statements.ExprStatement;
 import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.PairList;
 import org.renjin.sexp.PrimitiveFunction;
-import org.renjin.sexp.Symbols;
 
 import java.util.List;
 
@@ -53,15 +51,7 @@ class BuiltinTranslator extends FunctionCallTranslator {
     if(context.isEllipsesArgumentKnown()) {
       return -1;
     }
-    int index = 0;
-    for (PairList.Node node : call.getArguments().nodes()) {
-      if(node.getValue() == Symbols.ELLIPSES) {
-        return index;
-      }
-      index++;
-    }
-
-    return -1;
+    return call.findEllipsisArgumentIndex();
   }
 
   @Override

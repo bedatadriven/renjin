@@ -18,6 +18,7 @@
  */
 package org.renjin.invoke.reflection;
 
+import org.renjin.eval.ArgList;
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchTable;
 import org.renjin.sexp.*;
@@ -59,7 +60,7 @@ public class MethodFunction extends AbstractSEXP implements Function {
   }
 
   @Override
-  public SEXP applyPromised(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
+  public SEXP applyPromised(Context context, Environment rho, ArgList arguments, FunctionCall call, DispatchTable dispatch) {
     throw new UnsupportedOperationException("TODO");
   }
 

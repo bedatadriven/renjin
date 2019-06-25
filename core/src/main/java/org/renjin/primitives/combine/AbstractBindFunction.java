@@ -18,6 +18,7 @@
  */
 package org.renjin.primitives.combine;
 
+import org.renjin.eval.ArgList;
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
@@ -152,7 +153,9 @@ public abstract class AbstractBindFunction extends SpecialFunction {
     DispatchTable dispatch = null;
 
 
-    return foundFunction.applyPromised(context, rho, call, promisedArgumentNames, promisedArguments, dispatch);
+    return foundFunction.applyPromised(context, rho,
+        new ArgList(promisedArgumentNames, promisedArguments),
+        call, dispatch);
   }
 
   /**

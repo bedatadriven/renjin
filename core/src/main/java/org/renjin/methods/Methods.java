@@ -18,6 +18,7 @@
  */
 package org.renjin.methods;
 
+import org.renjin.eval.ArgList;
 import org.renjin.eval.Context;
 import org.renjin.eval.Context.Type;
 import org.renjin.eval.DispatchTable;
@@ -565,7 +566,10 @@ public class Methods {
     // the original arguments passed to the caller of standardGeneric()
     FunctionCall call = new FunctionCall(function, context.getCall().getArguments());
 
-    return function.applyPromised(context, context.getCallingEnvironment(), call, arguments.getArgumentNames(), arguments.getPromisedArguments(), dispatchTable);
+    return function.applyPromised(context, context.getCallingEnvironment(),
+        new ArgList(arguments.getArgumentNames(), arguments.getPromisedArguments()),
+        call,
+        dispatchTable);
   }
 
   public static void coerce(Context context, CallingArguments arguments, RankedMethod method) {

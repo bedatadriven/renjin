@@ -67,7 +67,7 @@ public final class Internal {
     // Not dispatching from S3
     S3DispatchMetadata dispatch = null;
 
-    return primitive.applyPromised(context, (Environment)env, (FunctionCall)call, argumentNames, arguments, dispatch);
+    return primitive.applyPromised(context, (Environment)env, (FunctionCall)call, , argumentNames, dispatch);
   }
 
 

@@ -24,7 +24,7 @@ import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.SEXP;
 
-public interface CompiledSexp {
+public interface CompiledSexp extends SexpLoader {
 
   /**
    * Writes the bytecode to load this expression onto the stack as an {@code SEXP} object.

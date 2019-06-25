@@ -18,6 +18,7 @@
  */
 package org.renjin.sexp;
 
+import org.renjin.eval.ArgList;
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
@@ -48,7 +49,7 @@ public abstract class SpecialFunction extends PrimitiveFunction {
   }
 
   @Override
-  public final SEXP applyPromised(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch) {
+  public final SEXP applyPromised(Context context, Environment rho, ArgList arguments, FunctionCall call, DispatchTable dispatch) {
 
     // Discard promised arguments, apply non-standard evaluation
     return apply(context, rho, call);

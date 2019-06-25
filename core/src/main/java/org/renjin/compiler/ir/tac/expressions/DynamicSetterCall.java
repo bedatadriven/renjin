@@ -1,11 +1,14 @@
 package org.renjin.compiler.ir.tac.expressions;
 
+import org.renjin.compiler.codegen.ArgListGen;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.FunctionLoader;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.SexpExpr;
+import org.renjin.compiler.codegen.expr.SexpLoader;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
+import org.renjin.eval.ArgList;
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchTable;
 import org.renjin.primitives.special.AssignLeftFunction;
@@ -14,17 +17,21 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.*;
 
+import java.util.List;
+
 public class DynamicSetterCall implements Expression {
   private final FunctionCall call;
   private final FunctionLoader functionLoader;
   private final String functionName;
   private final Expression rhs;
+  private final int forwardedArgumentIndex;
 
   public DynamicSetterCall(FunctionCall call, FunctionLoader functionLoader, String functionName, Expression rhs) {
     this.call = call;
     this.functionLoader = functionLoader;
     this.functionName = functionName;
     this.rhs = rhs;
+    this.forwardedArgumentIndex = call.findEllipsisArgumentIndex();
   }
 
 
@@ -74,7 +81,6 @@ public class DynamicSetterCall implements Expression {
 
   private void writeCall(EmitContext context, InstructionAdapter mv) {
 
-    functionLoader.loadFunction(context, mv);
 
     // Store the RHS in a temporary variable, we need it twice
     int rhsVar = context.getLocalVarAllocator().reserve(Type.getType(SEXP.class));
@@ -82,17 +88,36 @@ public class DynamicSetterCall implements Expression {
     rhs.getCompiledExpr(context).loadSexp(context, mv);
     mv.visitVarInsn(Opcodes.ASTORE, rhsVar);
 
-    // Now we need to invoke:
-    //   SEXP applyPromised(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch);
+    functionLoader.loadFunction(context, mv);
+
+
+    // Now we need to invoke applyPromised:
+    // Context context, Environment rho, ArgList arguments, FunctionCall call, DispatchTable dispatch
     mv.visitVarInsn(Opcodes.ALOAD, context.getContextVarIndex());
     mv.visitVarInsn(Opcodes.ALOAD, context.getEnvironmentVarIndex());
+
+    // Load the arguments, with the additional value argument at the end
+    List<String> argumentNames = DynamicCall.argumentNames(call);
+    List<SexpLoader> promisedArguments = DynamicCall.argumentPromises(call);
+
+    argumentNames.add("value");
+    promisedArguments.add((c, m) -> mv.visitVarInsn(Opcodes.ALOAD, rhsVar));
+
+    ArgListGen argListGen = new ArgListGen(context, mv)
+        .names(argumentNames)
+        .values(promisedArguments);
+
+    if(forwardedArgumentIndex == -1) {
+      argListGen.load();
+    } else {
+      // We need the Environment for this call as well
+      mv.dup();
+      argListGen.expandLoad(forwardedArgumentIndex);
+    }
 
     // When invoking the setter, we have to create a new call object
     // that includes the evaluated value of rhs
     loadSetterCall(context, mv, rhsVar);
-
-    loadArgumentNames(context, mv);
-    loadArgumentValues(context, mv, rhsVar);
 
     // Dispatch table is empty
     mv.aconst(null);
@@ -101,9 +126,8 @@ public class DynamicSetterCall implements Expression {
         Type.getMethodDescriptor(Type.getType(SEXP.class),
             Type.getType(Context.class),
             Type.getType(Environment.class),
+            Type.getType(ArgList.class),
             Type.getType(FunctionCall.class),
-            Type.getType(String[].class),
-            Type.getType(SEXP[].class),
             Type.getType(DispatchTable.class)));
   }
 
@@ -117,48 +141,6 @@ public class DynamicSetterCall implements Expression {
         Type.getMethodDescriptor(Type.getType(FunctionCall.class),
             Type.getType(FunctionCall.class),
             Type.getType(SEXP.class)), false);
-  }
-
-  private void loadArgumentValues(EmitContext context, InstructionAdapter mv, int rhsVar) {
-
-    int numArguments = call.getArguments().length() + 1;
-
-    mv.iconst(numArguments);
-    mv.newarray(Type.getType(SEXP.class));
-
-    int i = 0;
-    for (SEXP argumentValue : call.getArguments().values()) {
-      mv.dup();
-      mv.iconst(i);
-      DynamicCall.loadArgumentPromise(context, mv, argumentValue);
-      mv.visitInsn(Opcodes.AASTORE);
-      i++;
-    }
-
-    mv.dup();
-    mv.iconst(i);
-    mv.visitVarInsn(Opcodes.ALOAD, rhsVar);
-    mv.visitInsn(Opcodes.AASTORE);
-
-  }
-
-  private void loadArgumentNames(EmitContext context, InstructionAdapter mv) {
-    mv.iconst(call.getArguments().length() + 1);
-    mv.newarray(Type.getType(String.class));
-    int i = 0;
-    for (PairList.Node node : call.getArguments().nodes()) {
-      if(node.hasTag()) {
-        mv.dup();
-        mv.iconst(i);
-        mv.aconst(node.getName());
-        mv.visitInsn(Opcodes.AASTORE);
-      }
-      i++;
-    }
-    mv.dup();
-    mv.iconst(i);
-    mv.aconst("value");
-    mv.visitInsn(Opcodes.AASTORE);
   }
 
   @Override

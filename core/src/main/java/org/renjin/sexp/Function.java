@@ -18,6 +18,7 @@
  */
 package org.renjin.sexp;
 
+import org.renjin.eval.ArgList;
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchTable;
 
@@ -64,13 +65,13 @@ public interface Function extends SEXP, Recursive {
    *
    * @param context the context from which this function is being called
    * @param rho the function call's environment
+   * @param arguments the named arguments, promised in the caller's environment
    * @param call the original function call
-   * @param argumentNames the names of the arguments
-   * @param promisedArguments an array of the arguments, promised in the caller's environment
-   * @param dispatch
+   * @param dispatch the information used to dispatch the call via S3 or S4, or {@code null} if not dispatched via
+   *                 UseMethod, NextMethod or standard
    * @return the function's result
    */
-  SEXP applyPromised(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch);
+  SEXP applyPromised(Context context, Environment rho, ArgList arguments, FunctionCall call, DispatchTable dispatch);
 
 
 }

@@ -38,11 +38,13 @@ public class ArgList {
     //             These arguments need to be moved over.
     //             From forwardedIndex -> (forwardedIndex + numForwardedArgs)
 
-    int moveStart = forwardedIndex;
+
     int moveCount = numFixedArgs - forwardedIndex;
     if(moveCount > 0) {
-      System.arraycopy(expandedNames, forwardedIndex, names, moveStart, moveCount);
-      System.arraycopy(expandedValues, forwardedIndex, values, moveStart, moveCount);
+      int moveFrom = forwardedIndex;
+      int moveTo = forwardedIndex + numForwardedArgs;
+      System.arraycopy(names, moveFrom, expandedNames, moveTo, moveCount);
+      System.arraycopy(values, moveFrom, expandedValues, moveTo, moveCount);
     }
     this.names = expandedNames;
     this.values = expandedValues;
@@ -167,10 +169,16 @@ public class ArgList {
 
     argList.insert(forwardedIndex, numForwardedArgs);
 
-    return expandInto(argList, forwardedIndex, expando);
+    expandInto(argList, forwardedIndex, expando);
+
+    for (int i = 0; i < argList.values.length; i++) {
+      assert argList.values[i] != null;
+    }
+
+    return argList;
   }
 
-  private static ArgList expandInto(ArgList argList, int forwardedIndex, PairList expando) {
+  private static void expandInto(ArgList argList, int forwardedIndex, PairList expando) {
     int argIndex = forwardedIndex;
     while (expando instanceof PairList.Node) {
       PairList.Node expandNode = (PairList.Node) expando;
@@ -179,7 +187,6 @@ public class ArgList {
       expando = expandNode.getNext();
       argIndex++;
     }
-    return argList;
   }
 
 }

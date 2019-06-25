@@ -347,23 +347,25 @@ public class OperatorsWriter {
     JVar nargs = method.body().decl(codeModel.INT, "nargs", argListVar.invoke("size"));
 
     // Check for S3 dispatch
-    JExpression anyArguments = nargs.gt(lit(0));
-    JExpression object = argListVar.ref("values").component(lit(0));
-    JInvocation isObject = object.invoke("isObject");
+    if(overload.isGeneric()) {
+      JExpression anyArguments = nargs.gt(lit(0));
+      JExpression object = argListVar.ref("values").component(lit(0));
+      JInvocation isObject = object.invoke("isObject");
 
-    JBlock ifObject = method.body()._if( anyArguments.cand(isObject))._then();
-    JVar genericResult = ifObject.decl(codeModel.ref(SEXP.class), "generic",
-        codeModel.ref(S3.class).staticInvoke("tryDispatchFromPrimitive")
-            .arg(contextVar)
-            .arg(rhoVar)
-            .arg(callVar)
-            .arg(primitive.getName())
-            .arg(genericGroup(primitive))
-            .arg(argListVar.ref("names"))
-            .arg(argListVar.ref("values")));
-    ifObject._if(genericResult.ne(JExpr._null()))
-        ._then()
-        ._return(genericResult);
+      JBlock ifObject = method.body()._if(anyArguments.cand(isObject))._then();
+      JVar genericResult = ifObject.decl(codeModel.ref(SEXP.class), "generic",
+          codeModel.ref(S3.class).staticInvoke("tryDispatchFromPrimitive")
+              .arg(contextVar)
+              .arg(rhoVar)
+              .arg(callVar)
+              .arg(primitive.getName())
+              .arg(genericGroup(primitive))
+              .arg(argListVar.ref("names"))
+              .arg(argListVar.ref("values")));
+      ifObject._if(genericResult.ne(JExpr._null()))
+          ._then()
+          ._return(genericResult);
+    }
 
     // First find all the positional arguments that proceed the argument list
     int positionalArgumentCount = 0;
@@ -435,10 +437,11 @@ public class OperatorsWriter {
       defaultBranch = conditional._else();
     }
 
-    defaultBranch.invoke(varArgBuilder, "add")
-        .arg(argListVar.ref("names").component(i))
-        .arg(argListVar.ref("values").component(i));
-
+    JVar argName = defaultBranch.decl(codeModel.ref(String.class), "name", argListVar.ref("names").component(i));
+    JExpression argValue = argListVar.ref("values").component(i);
+    JConditional named = defaultBranch._if(argName.eq(JExpr._null()));
+    named._then().invoke(varArgBuilder, "add").arg(argValue);
+    named._else().invoke(varArgBuilder, "add").arg(argName).arg(argValue);
 
     // Finally invoke the whole mess
     JInvocation invocation = codeModel.ref(overload.getDeclaringClass())

@@ -51,6 +51,8 @@ public class BracketTranslator extends FunctionCallTranslator {
         } else {
           return builder.translateExpression(context, arg.getValue());
         }
+
+        statementIndex++;
       }
       throw new Error("unreachable");
     }

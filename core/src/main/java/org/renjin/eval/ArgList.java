@@ -38,7 +38,7 @@ public class ArgList {
     //             These arguments need to be moved over.
     //             From forwardedIndex -> (forwardedIndex + numForwardedArgs)
 
-    int moveStart = forwardedIndex + numForwardedArgs;
+    int moveStart = forwardedIndex;
     int moveCount = numFixedArgs - forwardedIndex;
     if(moveCount > 0) {
       System.arraycopy(expandedNames, forwardedIndex, names, moveStart, moveCount);

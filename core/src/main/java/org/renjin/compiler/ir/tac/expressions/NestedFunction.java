@@ -26,6 +26,8 @@ import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.Closure;
+import org.renjin.sexp.Environment;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 
@@ -63,10 +65,19 @@ public class NestedFunction implements Expression {
     return new SexpExpr() {
       @Override
       public void loadSexp(EmitContext context, InstructionAdapter mv) {
-        mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(RuntimeException.class));
+
+        mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(Closure.class));
         mv.dup();
-        mv.invokespecial(Type.getInternalName(RuntimeException.class), "<init>", "()V", false);
-        mv.visitInsn(Opcodes.ATHROW);
+        mv.visitVarInsn(Opcodes.ALOAD, emitContext.getEnvironmentVarIndex());
+        emitContext.constantSexp(formals).loadSexp(emitContext, mv);
+        mv.checkcast(Type.getType(PairList.class));
+        emitContext.constantSexp(body).loadSexp(emitContext, mv);
+
+        mv.invokespecial(Type.getInternalName(Closure.class), "<init>",
+            Type.getMethodDescriptor(Type.VOID_TYPE,
+              Type.getType(Environment.class),
+              Type.getType(PairList.class),
+              Type.getType(SEXP.class)), false);
       }
     };
   }

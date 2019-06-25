@@ -203,18 +203,39 @@ public final class FunctionEnvironment extends Environment {
   }
 
 
-
+  /**
+   * Access an index frame variable from the function environment, searching parent
+   * environments if necessary.
+   *
+   * <p>If no binding is found, an EvalException is thrown.</p>
+   * @param index the index of the variable, assigned at compile time.
+   * @return the bound value
+   * @throws EvalException if there is no binding
+   */
   public SEXP get(Context context, int index) {
     SEXP value = locals[index];
     if(value != null) {
       return value.force(context);
     }
     Symbol symbol = (Symbol) localNames[index];
+
+    if(overflow != null) {
+      value = overflow.get(symbol);
+      if(value != null) {
+        return value.force(context);
+      }
+    }
+
+    if(symbol.isDispatchMetadata() && dispatchTable != null) {
+      return dispatchTable.get(symbol);
+    }
+
     value = getParent().findVariable(context, symbol);
+
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException("object '" + symbol + "' not found.");
     }
-    return value;
+    return value.force(context);
   }
 
   private int indexOf(Symbol name) {

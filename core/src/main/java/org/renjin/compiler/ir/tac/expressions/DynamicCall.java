@@ -27,7 +27,6 @@ import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchTable;
-import org.renjin.eval.Support;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -164,10 +163,6 @@ public class DynamicCall implements Expression {
   }
 
   private void loadArgumentNames(EmitContext context, InstructionAdapter mv) {
-//    if(!anyNamedArguments()) {
-//      loadEmptyNamesArray(context, mv);
-//
-//    } else {
       // Maybe maintain a pool of argument names?
       mv.iconst(call.getArguments().length());
       mv.newarray(Type.getType(String.class));
@@ -181,12 +176,6 @@ public class DynamicCall implements Expression {
         }
         i++;
       }
-//    }
-  }
-
-  private void loadEmptyNamesArray(EmitContext context, InstructionAdapter mv) {
-    mv.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(Support.class), "UNNAMED_ARGUMENTS_" + call.getArguments().length(),
-        Type.getDescriptor(String[].class));
   }
 
   private boolean anyNamedArguments() {

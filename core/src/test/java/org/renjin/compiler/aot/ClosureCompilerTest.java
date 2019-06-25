@@ -18,7 +18,7 @@
  */
 package org.renjin.compiler.aot;
 
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Test;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
@@ -27,28 +27,47 @@ import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.sexp.*;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-@Ignore
 public class ClosureCompilerTest {
+
+  private Session session;
+
+  @Before
+  public void setUp() {
+    session = new SessionBuilder().build();
+  }
 
   @Test
   public void simpleTest() throws InvocationTargetException, IllegalAccessException {
 
-    Session session = new SessionBuilder().build();
-    session.getTopLevelContext().evaluate(RParser.parseSource("g <- function(a, b) a * b\n"));
+    eval("g <- function(a, b) a * b");
 
-    ExpressionVector source = RParser.parseSource(Joiner.on('\n').join(
-        "f <- function(x) {",
+    compileFunction("f <- function(x) {",
         "  if(x > 10) {",
         "    g(b=x,a=2)",
         "  } else {",
         "    sqrt(x)",
         "  }",
-        "}\n"), "test.R");
+        "}\n");
+
+    assertThat(eval("f(42)"), equalTo(DoubleVector.valueOf(84)));
+  }
+
+  @Test
+  public void lengthTest() {
+
+  }
+
+  private SEXP eval(final String source) {
+    return session.getTopLevelContext().evaluate(RParser.parseSource(source + "\n"));
+  }
+
+  private void compileFunction(String... lines) throws IllegalAccessException {
+
+    ExpressionVector source = RParser.parseSource(Joiner.on('\n').join(lines), "test.R");
 
     session.getTopLevelContext().evaluate(source);
     Closure closure = (Closure) session.getTopLevelContext().evaluate(Symbol.get("f"));
@@ -57,9 +76,6 @@ public class ClosureCompilerTest {
 
     closure.compiledBody = compiler.getHandle().loadAndGetHandle();
 
-    SEXP result = session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("f"), DoubleVector.valueOf(42)));
-
-    assertThat(result, equalTo(DoubleVector.valueOf(84)));
   }
 
   @Test
@@ -76,22 +92,5 @@ public class ClosureCompilerTest {
     FunctionCall result = (FunctionCall) session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("f")));
   }
 
-  @Test
-  public void scaleTest() throws InvocationTargetException, IllegalAccessException {
-
-    Session session = new SessionBuilder().build();
-    Closure closure = (Closure) session.getTopLevelContext().evaluate(Symbol.get("scale.default"));
-
-    ClosureCompiler compiler = new ClosureCompiler(session.getTopLevelContext(), closure);
-
-    Method method = compiler.getHandle().loadAndReflect();
-
-    DoubleVector x = new DoubleArrayVector(1, 2, 3);
-
-    SEXP result = (SEXP) method.invoke(null, session.getTopLevelContext(), session.getGlobalEnvironment(), new SEXP[]{x, LogicalVector.TRUE, LogicalVector.FALSE});
-
-    System.out.println(result);
-
-  }
 
 }

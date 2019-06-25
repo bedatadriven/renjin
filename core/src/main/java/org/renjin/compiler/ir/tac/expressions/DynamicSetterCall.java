@@ -156,7 +156,7 @@ public class DynamicSetterCall implements Expression {
       i++;
     }
     mv.dup();
-    mv.iconst(i + 1);
+    mv.iconst(i);
     mv.aconst("value");
     mv.visitInsn(Opcodes.AASTORE);
   }

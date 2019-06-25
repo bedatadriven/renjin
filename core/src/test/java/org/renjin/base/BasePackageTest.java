@@ -489,13 +489,6 @@ public class BasePackageTest extends EvalTestCase {
     assertThat(eval("rownames(m)"), elementsIdenticalTo(c("Yes","No")));
   }
 
-  @Test
-  @Ignore("todo")
-  public void kendallCor() throws IOException {
-
-
-
-  }
 
   @Test
   public void inOpWithNA() throws IOException {

@@ -87,12 +87,15 @@ public class BasePackageCompiler {
     }
   }
 
-  private static void evalSource(Context evalContext, File source) {
+  private static void evalSource(Context evalContext, File source) throws IOException {
+    FileReader reader = new FileReader(source);
     try {
-      SEXP expr = RParser.parseSource(Files.asCharSource(source, Charsets.UTF_8), source.getName());
+      SEXP expr = RParser.parseAllSource(reader);
       evalContext.evaluate(expr);
     } catch(Exception e) {
       throw new RuntimeException("Error evaluating " + source.getName() + ": " + e.getMessage(), e);
+    } finally {
+      reader.close();
     }
   }
 

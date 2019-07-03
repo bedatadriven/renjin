@@ -18,17 +18,11 @@
 #
 
 
-# This needs to be evaluated BEFORE the normal
-
-# Replace as.character() builtin with regular R function
-# GNU R implements as.character() with very weird S3 dispatch
-# that is better implemented here. That keeps the compiler simpler and requires
-# hard-coding fewer exceptions
 
 
-as.character.default <- function(x = NULL)
-    as.vector(x, mode = "character")
-
-
-as.character <- function(x, ...)
-    UseMethod("as.character")
+as.list.environment <- function(x, all.names=FALSE, sorted=FALSE, ...) {
+    names <- ls(envir = x, all.names = all.names, sorted = sorted)
+    list <- lapply(names, function(n) x[[n]])
+    names(list) <- names
+    list
+}

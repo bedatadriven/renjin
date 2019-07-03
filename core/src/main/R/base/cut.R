@@ -1,7 +1,7 @@
 #  File src/library/base/R/cut.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2014 The R Core Team
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ cut.default <-
 	nb <- as.integer(breaks + 1) # one more than #{intervals}
 	dx <- diff(rx <- range(x, na.rm = TRUE))
 	if(dx == 0) {
-            dx <- abs(rx[1L])
+            dx <- if(rx[1L] != 0) abs(rx[1L]) else 1
             breaks <- seq.int(rx[1L] - dx/1000, rx[2L] + dx/1000,
                               length.out = nb)
         } else {
@@ -67,42 +67,6 @@ cut.default <-
 }
 
 ## called from image.default and for use in packages.
-.bincode <- function(x, breaks, right = TRUE, include.lowest = FALSE) {
-    code <- rep.int(NA_integer_, times=length(x))
-    n <- length(breaks)
-    if(n == 1) {
-        if(include.lowest) {
-            code[ x == breaks ] <- 1L
-        }
-    } else if(n >= 2) {
-        if(right) {
+.bincode <- function(x, breaks, right = TRUE, include.lowest = FALSE)
+    .Internal(bincode(x, breaks, right, include.lowest))
 
-            # Open on the left, closed on the right
-
-            if(include.lowest) {
-                code[ x >= breaks[1] & x <= breaks[2] ] <- 1L
-            } else {
-                code[ x >  breaks[1] & x <= breaks[2] ] <- 1L
-            }
-
-            for(i in seq(from=2, n-1)) {
-                code[ x > breaks[i] & x <= breaks[i+1] ] <- i
-            }
-
-        } else {
-
-            # Closed on the left, open on the right
-
-            for(i in seq(from=1, n-2)) {
-                code[ x >= breaks[i] & x < breaks[i+1] ] <- i
-            }
-
-            if(include.lowest) {
-                code[ x >= breaks[n-1] & x <= breaks[n] ] <- n-1L
-            } else {
-                code[ x >= breaks[n-1] & x < breaks[n] ] <- n-1L
-            }
-        }
-    }
-    code
-}

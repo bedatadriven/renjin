@@ -886,6 +886,7 @@ public class Primitives {
     f("strptime", Time.class, 11);
     f("Date2POSIXlt", Time.class, 11);
     f("POSIXlt2Date", Time.class, 11);
+    f("OlsonNames", Time.class, 11);
 
 
 /* Connections */

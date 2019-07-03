@@ -29,6 +29,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Implementation of date time-related functions.
@@ -194,7 +195,20 @@ public class Time {
     
     return result.build();
   }
-  
+
+  @Internal("OlsonNames")
+  public static StringVector OlsonNames() {
+    Set<String> zoneIds= ZoneId.getAvailableZoneIds();
+
+    StringVector.Builder result = new StringVector.Builder();
+
+    for (String zone : zoneIds) {
+      result.add(zone);
+    }
+
+    return result.build();
+  }
+
   /**
    * Creates a {@link ZoneId} instance from an R timezone string.
    * 

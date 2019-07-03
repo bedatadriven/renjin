@@ -42,6 +42,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.Math.floor;
+
 public class System {
 
   private static final double MILLISECONDS_PER_SECOND = 1000d;
@@ -388,7 +390,7 @@ public class System {
   }
   
   @Internal("system")
-  public static SEXP system(@Current Context context, String command, int flag, SEXP stdin, SEXP stdout, SEXP stderr) throws IOException, InterruptedException {
+  public static SEXP system(@Current Context context, String command, int flag, SEXP stdin, SEXP stdout, SEXP stderr, double timeout) throws IOException, InterruptedException {
     boolean invisible = (flag >= 20 && flag < 29);
     boolean minimized = (flag >= 10 && flag < 19);
     
@@ -401,7 +403,11 @@ public class System {
       builder.directory(localDir);
     }
     Process process = builder.start();
-    process.waitFor();
+    if(floor(timeout) > 0) {
+      process.waitFor((long)timeout, TimeUnit.SECONDS);
+    } else {
+      process.waitFor();
+    }
     
     int exitValue = process.exitValue();
     return new IntArrayVector(exitValue);

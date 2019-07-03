@@ -1,5 +1,7 @@
 #  File src/library/base/R/getenv.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2014 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 Sys.getenv <- function(x = NULL, unset = "", names = NA)
 {
@@ -25,11 +27,16 @@ Sys.getenv <- function(x = NULL, unset = "", names = NA)
 	    n[i] <- x[[i]][1L]
 	    v[i] <- paste(x[[i]][-1L], collapse = "=")
 	}
-        if (!identical(names, FALSE)) v <- structure(v, names = n)
-	v[sort.list(n)]
+	if (isFALSE(names))
+	    v[sort.list(n)]
+	else { # with names
+	    v <- structure(v, names = n)
+	    structure(class = "Dlist", # with nice print method
+		      v[sort.list(n)])
+	}
     } else {
         v <- .Internal(Sys.getenv(as.character(x), as.character(unset)))
-	if (isTRUE(names) || (length(x) > 1L && !identical(names, FALSE)))
+	if (isTRUE(names) || (length(x) > 1L && !isFALSE(names)))
             structure(v, names = x)
         else v
     }

@@ -1,5 +1,7 @@
 #  File src/library/base/R/message.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 simpleMessage <-
 function(message, call = NULL)
@@ -40,7 +42,7 @@ function(..., domain = NULL, appendLF = TRUE)
     }
     defaultHandler <- function(c) {
         ## Maybe use special connection here?
-        cat(conditionMessage(c), file=stderr(), sep="")
+        cat(conditionMessage(c), file=stderr(), sep = "")
     }
     withRestarts({
         signalCondition(cond)
@@ -62,7 +64,7 @@ function(..., domain = NULL, appendLF = TRUE)
             args <- .Internal(gettext(domain, unlist(args)))
         paste(args, collapse = "")
     } else ""
-    if(appendLF) paste(msg, "\n", sep = "") else msg
+    if(appendLF) paste0(msg, "\n") else msg
 }
 
 .packageStartupMessage <- function (message, call = NULL)

@@ -1,5 +1,7 @@
 #  File src/library/base/R/mode.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 mode <- function(x) {
     if(is.expression(x)) return("expression")
@@ -23,8 +25,8 @@ mode <- function(x) {
 		      "call"))
     if(is.name(x)) "name" else
     switch(tx <- typeof(x),
-	   double=, integer= "numeric",# 'real=' dropped, 2000/Jan/14
-	   closure=, builtin=, special= "function",
+	   double =, integer = "numeric", # 'real=' dropped, 2000/Jan/14
+	   closure =, builtin =, special = "function",
 	   ## otherwise
 	   tx)
 }
@@ -33,11 +35,11 @@ mode <- function(x) {
 {
     if (storage.mode(x) == value) return(x)
     if(is.factor(x)) stop("invalid to change the storage mode of a factor")
-    mde <- paste("as.",value,sep="")
     atr <- attributes(x)
     isSingle <- !is.null(attr(x, "Csingle"))
     setSingle <- value == "single"
-    x <- eval(call(mde,x), parent.frame())
+    mde <- get(paste0("as.",value), mode = "function", envir = parent.frame())
+    x <- mde(x)
     attributes(x) <- atr
     ## this avoids one copy
     if(setSingle != isSingle)
@@ -47,7 +49,7 @@ mode <- function(x) {
 
 storage.mode <- function(x)
     switch(tx <- typeof(x),
-	   closure=, builtin=, special= "function",
+	   closure = , builtin = , special = "function",
 	   ## otherwise
 	   tx)
 

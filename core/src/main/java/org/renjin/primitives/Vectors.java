@@ -80,20 +80,6 @@ public class Vectors {
     return exp.length();
   }
 
-  @Generic
-  @Builtin("as.character")
-  public static StringVector asCharacter(PairList.Node source) {
-    return (StringVector) convertToStringVector(null, new StringVector.Builder(), source.toVector());
-  }
-  
-  @Generic
-  @Builtin("as.character")
-  public static StringVector asCharacter() {
-    return StringArrayVector.EMPTY;
-  }
-
-  @Generic
-  @Builtin("as.character")
   public static StringVector asCharacter(@Current Context context, Vector source) {
     if(source instanceof StringVector) {
       return (StringVector) source.setAttributes(AttributeMap.EMPTY);
@@ -120,27 +106,6 @@ public class Vectors {
       }
     }
     return builder.build();
-  }
-
-  @Generic
-  @Builtin("as.character")
-  public static StringVector asCharacter(Symbol symbol) {
-    return StringVector.valueOf(symbol.getPrintName());
-  }
-
-  @Generic
-  @Builtin("as.character")
-  public static StringVector asCharacter(ExternalPtr<?> ptr) {
-    Object instance = ptr.getInstance();
-    if (StringConverter.accept(instance.getClass())) {
-      return (StringVector) StringConverter.INSTANCE
-          .convertToR((String) instance);
-    } else if (StringArrayConverter.accept(instance.getClass())) {
-      return (StringVector) StringArrayConverter.INSTANCE
-          .convertToR(instance);
-    } else {
-      return StringArrayVector.valueOf(ptr.getInstance().toString());
-    }
   }
 
   @Generic
@@ -659,8 +624,27 @@ public class Vectors {
 
   @Generic
   @Internal("as.vector")
+  public static SEXP asVector(@Current Context context, ExternalPtr<?> ptr, String mode) {
+    if(mode.equals("character")) {
+      Object instance = ptr.getInstance();
+      if (StringConverter.accept(instance.getClass())) {
+        return (StringVector) StringConverter.INSTANCE
+            .convertToR((String) instance);
+      } else if (StringArrayConverter.accept(instance.getClass())) {
+        return (StringVector) StringArrayConverter.INSTANCE
+            .convertToR(instance);
+      } else {
+        return StringArrayVector.valueOf(ptr.getInstance().toString());
+      }
+    } else {
+      throw new EvalException("cannot coerce type '" + ptr.getTypeName() + "' to vector of type 'character'");
+    }
+  }
+
+  @Generic
+  @Internal("as.vector")
   public static SEXP asVector(@Current Context context, PairList x, String mode) {
-    
+
     // Exceptionally, as.vector(x, 'pairlist') 
     // preserves *all* attributes
     if("pairlist".equals(mode) || "any".equals(mode)) {

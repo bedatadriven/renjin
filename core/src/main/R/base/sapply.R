@@ -1,5 +1,7 @@
 #  File src/library/base/R/sapply.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ##' "Simplify" a list of commonly structured components into an array.
 ##'
@@ -24,14 +26,14 @@
 ##' @return x itself, or an array if the simplification "is sensible"
 simplify2array <- function(x, higher = TRUE)
 {
-    if(length(common.len <- unique(unlist(lapply(x, length)))) > 1L)
+    if(length(common.len <- unique(lengths(x))) > 1L)
         return(x)
     if(common.len == 1L)
         unlist(x, recursive = FALSE)
     else if(common.len > 1L) {
         n <- length(x)
         ## make sure that array(*) will not call rep() {e.g. for 'call's}:
-        r <- as.vector(unlist(x, recursive = FALSE))
+	r <- unlist(x, recursive = FALSE, use.names = FALSE)
         if(higher && length(c.dim <- unique(lapply(x, dim))) == 1 &&
            is.numeric(c.dim <- c.dim[[1L]]) &&
            prod(d <- c(c.dim, n)) == length(r)) {
@@ -46,7 +48,7 @@ simplify2array <- function(x, higher = TRUE)
 
         } else if(prod(d <- c(common.len, n)) == length(r))
             array(r, dim = d,
-                  dimnames= if(!(is.null(n1 <- names(x[[1L]])) &
+                  dimnames = if(!(is.null(n1 <- names(x[[1L]])) &
                   is.null(n2 <- names(x)))) list(n1,n2))
         else x
     }
@@ -59,7 +61,7 @@ sapply <- function(X, FUN, ..., simplify = TRUE, USE.NAMES = TRUE)
     answer <- lapply(X = X, FUN = FUN, ...)
     if(USE.NAMES && is.character(X) && is.null(names(answer)))
 	names(answer) <- X
-    if(!identical(simplify, FALSE) && length(answer))
+    if(!isFALSE(simplify) && length(answer))
 	simplify2array(answer, higher = (simplify == "array"))
     else answer
 }

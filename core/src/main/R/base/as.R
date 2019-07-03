@@ -1,5 +1,7 @@
 #  File src/library/base/R/as.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2014 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 as.single <- function(x,...) UseMethod("as.single")
 as.single.default <- function(x,...)
@@ -22,6 +24,7 @@ as.single.default <- function(x,...)
 # preserve the semantics that for a call with an object argument
 # dispatching is done first on as.character and then on as.vector.
 as.character.default <- function(x,...) .Internal(as.vector(x, "character"))
+### FIXME: why are we not doing this for all atomic vector types?
 
 as.expression <- function(x,...) UseMethod("as.expression")
 as.expression.default <- function(x,...) .Internal(as.vector(x, "expression"))
@@ -33,15 +36,15 @@ as.list.default <- function (x, ...)
 
 as.list.function <- function (x, ...) c(formals(x), list(body(x)))
 
-## FIXME:  Really the above  as.vector(x, "list")  should work for data.frames!
+## FIXME: as.vector(., "list")  should work for data.frames!
 as.list.data.frame <- function(x,...) {
     x <- unclass(x)
     attr(x,"row.names") <- NULL
     x
 }
 
-as.list.environment <- function(x, all.names=FALSE, ...)
-    .Internal(env2list(x, all.names))
+as.list.environment <- function(x, all.names=FALSE, sorted=FALSE, ...)
+    .Internal(env2list(x, all.names, sorted))
 
 ## NB: as.vector is used for several other as.xxxx, including
 ## as.expression, as.list, as.pairlist, as.single, as.symbol.
@@ -76,5 +79,4 @@ as.symbol <- function(x) .Internal(as.vector(x, "symbol"))
 as.name <- as.symbol
 ## would work too: as.name <- function(x) .Internal(as.vector(x, "name"))
 
-## as.call <- function(x) stop("type call cannot be assigned")
-as.qr <- function(x) stop("you cannot be serious")
+as.qr <- function(x) stop("you cannot be serious", domain = NA)

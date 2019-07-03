@@ -1,5 +1,7 @@
 #  File src/library/base/R/zzz.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,10 +14,10 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ## top-level assignments that need to be copied to baseloader.R
-as.numeric <- as.real <- as.double
+as.numeric <- as.double
 is.name <- is.symbol
 
 
@@ -33,7 +35,7 @@ is.name <- is.symbol
     graphicsGenerics <- c("contour", "hist", "identify", "image",
         "lines", "pairs", "plot", "points", "text")
 
-    statsGenerics <- c( "add1", "AIC", "anova", "biplot", "coef",
+    statsGenerics <- c("add1", "AIC", "anova", "biplot", "coef",
         "confint", "deviance", "df.residual", "drop1", "extractAIC",
         "fitted", "formula", "logLik", "model.frame", "model.matrix",
         "predict", "profile", "qqnorm", "residuals", "se.contrast",
@@ -47,9 +49,15 @@ is.name <- is.symbol
     tmp
 })
 
+###--- Arguments (for printing and QC analysis) for the .Primitive functions ----
+
+## 1) .ArgsEnv : The non-generics .Primitives :
+
 .ArgsEnv <- new.env(hash = TRUE, parent = emptyenv())
 
 assign("%*%", function(x, y) NULL, envir = .ArgsEnv)
+assign("...length", function() NULL, envir = .ArgsEnv)
+assign("...elt", function(n) NULL, envir = .ArgsEnv)
 assign(".C", function(.NAME, ..., NAOK = FALSE, DUP = TRUE, PACKAGE,
                       ENCODING) NULL,
        envir = .ArgsEnv)
@@ -57,9 +65,14 @@ assign(".Fortran",
        function(.NAME, ..., NAOK = FALSE, DUP = TRUE, PACKAGE, ENCODING) NULL,
        envir = .ArgsEnv)
 assign(".Call", function(.NAME, ..., PACKAGE) NULL, envir = .ArgsEnv)
+assign(".Call.graphics", function(.NAME, ..., PACKAGE) NULL, envir = .ArgsEnv)
 assign(".External", function(.NAME, ..., PACKAGE) NULL, envir = .ArgsEnv)
+assign(".External2", function(.NAME, ..., PACKAGE) NULL, envir = .ArgsEnv)
+assign(".External.graphics", function(.NAME, ..., PACKAGE) NULL,
+       envir = .ArgsEnv)
 assign(".Internal", function(call) NULL, envir = .ArgsEnv)
 assign(".Primitive", function(name) NULL, envir = .ArgsEnv)
+assign(".isMethodsDispatchOn", function(onOff = NULL) NULL, envir = .ArgsEnv)
 assign(".primTrace", function(obj) NULL, envir = .ArgsEnv)
 assign(".primUntrace", function(obj) NULL, envir = .ArgsEnv)
 assign(".subset", function(x, ...) NULL, envir = .ArgsEnv)
@@ -83,6 +96,7 @@ assign("enc2native", function(x) NULL, envir = .ArgsEnv)
 assign("enc2utf8", function(x) NULL, envir = .ArgsEnv)
 assign("environment<-", function(fun, value) NULL, envir = .ArgsEnv)
 assign("expression", function(...) NULL, envir = .ArgsEnv)
+assign("forceAndCall", function(n, FUN, ...) NULL, envir = .ArgsEnv)
 assign("gc.time", function(on = TRUE) NULL, envir = .ArgsEnv)
 assign("globalenv", function() NULL, envir = .ArgsEnv)
 assign("interactive", function() NULL, envir = .ArgsEnv)
@@ -104,19 +118,19 @@ assign("is.null", function(x) NULL, envir = .ArgsEnv)
 assign("is.object", function(x) NULL, envir = .ArgsEnv)
 assign("is.pairlist", function(x) NULL, envir = .ArgsEnv)
 assign("is.raw", function(x) NULL, envir = .ArgsEnv)
-assign("is.real", function(x) NULL, envir = .ArgsEnv)
 assign("is.recursive", function(x) NULL, envir = .ArgsEnv)
 assign("is.single", function(x) NULL, envir = .ArgsEnv)
 assign("is.symbol", function(x) NULL, envir = .ArgsEnv)
+assign("isS4", function(object) NULL, envir = .ArgsEnv)
 assign("list", function(...) NULL, envir = .ArgsEnv)
 assign("lazyLoadDBfetch", function(key, file, compressed, hook) NULL,
        envir = .ArgsEnv)
 assign("missing", function(x) NULL, envir = .ArgsEnv)
 assign("nargs", function() NULL, envir = .ArgsEnv)
-assign("nzchar", function(x) NULL, envir = .ArgsEnv)
+assign("nzchar", function(x, keepNA=FALSE) NULL, envir = .ArgsEnv)
 assign("oldClass", function(x) NULL, envir = .ArgsEnv)
 assign("oldClass<-", function(x, value) NULL, envir = .ArgsEnv)
-assign("on.exit", function(expr = NULL, add = FALSE) NULL, envir = .ArgsEnv)
+assign("on.exit", function(expr = NULL, add = FALSE, after = TRUE) NULL, envir = .ArgsEnv)
 assign("pos.to.env", function(x) NULL, envir = .ArgsEnv)
 assign("proc.time", function() NULL, envir = .ArgsEnv)
 assign("quote", function(expr) NULL, envir = .ArgsEnv)
@@ -132,9 +146,11 @@ assign("unclass", function(x) NULL, envir = .ArgsEnv)
 assign("untracemem", function(x) NULL, envir = .ArgsEnv)
 
 
+## 2) .GenericArgsEnv : The generic .Primitives :
+
 .S3PrimitiveGenerics <-
-  c("as.character", "as.complex", "as.double", "as.environment",
-    "as.integer", "as.logical", "as.numeric", "as.raw", "as.real",
+  c("anyNA", "as.character", "as.complex", "as.double", "as.environment",
+    "as.integer", "as.logical", "as.numeric", "as.raw",
     "c", "dim", "dim<-", "dimnames", "dimnames<-",
     "is.array", "is.finite",
     "is.infinite", "is.matrix", "is.na", "is.nan", "is.numeric",
@@ -143,7 +159,7 @@ assign("untracemem", function(x) NULL, envir = .ArgsEnv)
 
 .GenericArgsEnv <- local({
     env <- new.env(hash = TRUE, parent = emptyenv())
-    ## those with different arglists are overridden below.
+    ## those with different arglists are overridden below
     for(f in .S3PrimitiveGenerics) {
         fx <- function(x) {}
         body(fx) <- substitute(UseMethod(ff), list(ff=f))
@@ -157,6 +173,7 @@ assign("untracemem", function(x) NULL, envir = .ArgsEnv)
                "exp", "expm1", "log1p", "log10", "log2",
                "cos", "sin", "tan", "acos", "asin", "atan", "cosh", "sinh",
                "tanh", "acosh", "asinh", "atanh",
+	       "cospi", "sinpi", "tanpi",
                "gamma", "lgamma", "digamma", "trigamma",
                "cumsum", "cumprod", "cummax", "cummin")) {
         body(fx) <- substitute(UseMethod(ff), list(ff=f))
@@ -186,6 +203,9 @@ assign("untracemem", function(x) NULL, envir = .ArgsEnv)
         environment(fx) <- .BaseNamespaceEnv
         assign(f, fx, envir = env)
     }
+    fx <- function(x, recursive = FALSE) UseMethod("anyNA")
+    environment(fx) <- .BaseNamespaceEnv
+    assign("anyNA", fx, envir = env)
     env
 })
 ### do these outside to get the base namespace as the environment.
@@ -201,7 +221,9 @@ assign("as.integer", function(x, ...) UseMethod("as.integer"),
 assign("as.logical", function(x, ...) UseMethod("as.logical"),
        envir = .GenericArgsEnv)
 #assign("as.raw", function(x) UseMethod("as.raw"), envir = .GenericArgsEnv)
-assign("c", function(..., recursive = FALSE) UseMethod("c"),
+## Conceptually, this is the argument list of  *default* method, not the generic :
+## assign("c", function(..., recursive = FALSE, use.names = TRUE) UseMethod("c"),
+assign("c", function(...) UseMethod("c"),
        envir = .GenericArgsEnv)
 #assign("dimnames", function(x) UseMethod("dimnames"), envir = .GenericArgsEnv)
 assign("dim<-", function(x, value) UseMethod("dim<-"), envir = .GenericArgsEnv)
@@ -225,41 +247,385 @@ assign("signif", function(x, digits=6) UseMethod("signif"),
 assign("trunc", function(x, ...) UseMethod("trunc"), envir = .GenericArgsEnv)
 #assign("xtfrm", function(x) UseMethod("xtfrm"), envir = .GenericArgsEnv)
 
-## make these the same object as as.double
+## make this the same object as as.double
 assign("as.numeric", get("as.double", envir = .GenericArgsEnv),
        envir = .GenericArgsEnv)
-assign("as.real", get("as.double", envir = .GenericArgsEnv),
-       envir = .GenericArgsEnv)
 
-
-# Renjin added from Common.R
-# NOTE(ab) these seem pretty essential to the language so it's not clear to me why
-# they should be in (nominally) configurable system profile
-.GlobalEnv <- globalenv()
-.AutoloadEnv <- as.environment(2)
-assign(".Autoloaded", NULL, envir = .AutoloadEnv)
-T <- TRUE
-F <- FALSE
-R.version <- structure(R.Version(), class = "simple.list")
-version <- R.version            # for S compatibility
-
-.onLoad <- function() {
-	
-	options(keep.source = interactive())
-	options(warn = 0)
-	options(timeout = 60)
-	options(encoding = "native.enc")
-	options(show.error.messages = TRUE)
-	## keep in sync with PrintDefaults() in  ../../main/print.c :
-	options(scipen = 0)
-	options(max.print = 99999)# max. #{entries} in internal printMatrix()
-	options(add.smooth = TRUE)# currently only used in 'plot.lm'
-	options(stringsAsFactors = TRUE)
-	if(!interactive() && is.null(getOption("showErrorCalls")))
-		options(showErrorCalls = TRUE)
-
-
-    makeActiveBinding(".Options", function() {
-     as.pairlist(options())
-    }, baseenv())
-}
+## Keep this in sync with
+##   tools:::.make_S3_methods_table_for_base()
+## for computing the methods table and
+##   tools:::.deparse_S3_methods_table_for_base()
+## for obtaining the representation used.
+.S3_methods_table <-
+matrix(c("!", "hexmode",
+         "!", "octmode",
+         "$", "DLLInfo",
+         "$", "data.frame",
+         "$", "package_version",
+         "$<-", "data.frame",
+         "&", "hexmode",
+         "&", "octmode",
+         "*", "difftime",
+         "+", "Date",
+         "+", "POSIXt",
+         "-", "Date",
+         "-", "POSIXt",
+         "/", "difftime",
+         "[", "AsIs",
+         "[", "DLLInfoList",
+         "[", "Date",
+         "[", "Dlist",
+         "[", "POSIXct",
+         "[", "POSIXlt",
+         "[", "data.frame",
+         "[", "difftime",
+         "[", "factor",
+         "[", "hexmode",
+         "[", "listof",
+         "[", "noquote",
+         "[", "numeric_version",
+         "[", "octmode",
+         "[", "simple.list",
+         "[", "table",
+         "[", "warnings",
+         "[<-", "Date",
+         "[<-", "POSIXct",
+         "[<-", "POSIXlt",
+         "[<-", "data.frame",
+         "[<-", "factor",
+         "[<-", "numeric_version",
+         "[[", "Date",
+         "[[", "POSIXct",
+         "[[", "POSIXlt",
+         "[[", "data.frame",
+         "[[", "factor",
+         "[[", "numeric_version",
+         "[[<-", "data.frame",
+         "[[<-", "factor",
+         "[[<-", "numeric_version",
+         "|", "hexmode",
+         "|", "octmode",
+         "Math", "Date",
+         "Math", "POSIXt",
+         "Math", "data.frame",
+         "Math", "difftime",
+         "Math", "factor",
+         "Ops", "Date",
+         "Ops", "POSIXt",
+         "Ops", "data.frame",
+         "Ops", "difftime",
+         "Ops", "factor",
+         "Ops", "numeric_version",
+         "Ops", "ordered",
+         "Summary", "Date",
+         "Summary", "POSIXct",
+         "Summary", "POSIXlt",
+         "Summary", "data.frame",
+         "Summary", "difftime",
+         "Summary", "factor",
+         "Summary", "numeric_version",
+         "Summary", "ordered",
+         "all.equal", "POSIXt",
+         "all.equal", "character",
+         "all.equal", "default",
+         "all.equal", "envRefClass",
+         "all.equal", "environment",
+         "all.equal", "factor",
+         "all.equal", "formula",
+         "all.equal", "language",
+         "all.equal", "list",
+         "all.equal", "numeric",
+         "all.equal", "raw",
+         "anyDuplicated", "array",
+         "anyDuplicated", "data.frame",
+         "anyDuplicated", "default",
+         "anyDuplicated", "matrix",
+         "anyNA", "POSIXlt",
+         "anyNA", "numeric_version",
+         "aperm", "default",
+         "aperm", "table",
+         "as.Date", "POSIXct",
+         "as.Date", "POSIXlt",
+         "as.Date", "character",
+         "as.Date", "default",
+         "as.Date", "factor",
+         "as.Date", "numeric",
+         "as.POSIXct", "Date",
+         "as.POSIXct", "POSIXlt",
+         "as.POSIXct", "default",
+         "as.POSIXct", "numeric",
+         "as.POSIXlt", "Date",
+         "as.POSIXlt", "POSIXct",
+         "as.POSIXlt", "character",
+         "as.POSIXlt", "default",
+         "as.POSIXlt", "factor",
+         "as.POSIXlt", "numeric",
+         "as.array", "default",
+         "as.character", "Date",
+         "as.character", "POSIXt",
+         "as.character", "condition",
+         "as.character", "default",
+         "as.character", "error",
+         "as.character", "factor",
+         "as.character", "hexmode",
+         "as.character", "numeric_version",
+         "as.character", "octmode",
+         "as.character", "srcref",
+         "as.data.frame", "AsIs",
+         "as.data.frame", "Date",
+         "as.data.frame", "POSIXct",
+         "as.data.frame", "POSIXlt",
+         "as.data.frame", "array",
+         "as.data.frame", "character",
+         "as.data.frame", "complex",
+         "as.data.frame", "data.frame",
+         "as.data.frame", "default",
+         "as.data.frame", "difftime",
+         "as.data.frame", "factor",
+         "as.data.frame", "integer",
+         "as.data.frame", "list",
+         "as.data.frame", "logical",
+         "as.data.frame", "matrix",
+         "as.data.frame", "model.matrix",
+         "as.data.frame", "noquote",
+         "as.data.frame", "numeric",
+         "as.data.frame", "numeric_version",
+         "as.data.frame", "ordered",
+         "as.data.frame", "raw",
+         "as.data.frame", "table",
+         "as.data.frame", "ts",
+         "as.data.frame", "vector",
+         "as.double", "POSIXlt",
+         "as.double", "difftime",
+         "as.expression", "default",
+         "as.function", "default",
+         "as.list", "Date",
+         "as.list", "POSIXct",
+         "as.list", "POSIXlt",
+         "as.list", "data.frame",
+         "as.list", "default",
+         "as.list", "environment",
+         "as.list", "factor",
+         "as.list", "function",
+         "as.list", "numeric_version",
+         "as.logical", "factor",
+         "as.matrix", "POSIXlt",
+         "as.matrix", "data.frame",
+         "as.matrix", "default",
+         "as.matrix", "noquote",
+         "as.null", "default",
+         "as.single", "default",
+         "as.table", "default",
+         "as.vector", "factor",
+         "by", "data.frame",
+         "by", "default",
+         "c", "Date",
+         "c", "POSIXct",
+         "c", "POSIXlt",
+         "c", "difftime",
+         "c", "noquote",
+         "c", "numeric_version",
+         "c", "warnings",
+         "cbind", "data.frame",
+         "chol", "default",
+         "close", "connection",
+         "close", "srcfile",
+         "close", "srcfilealias",
+         "conditionCall", "condition",
+         "conditionMessage", "condition",
+         "cut", "Date",
+         "cut", "POSIXt",
+         "cut", "default",
+         "determinant", "matrix",
+         "diff", "Date",
+         "diff", "POSIXt",
+         "diff", "default",
+         "diff", "difftime",
+         "dim", "data.frame",
+         "dimnames", "data.frame",
+         "dimnames<-", "data.frame",
+         "droplevels", "data.frame",
+         "droplevels", "factor",
+         "duplicated", "POSIXlt",
+         "duplicated", "array",
+         "duplicated", "data.frame",
+         "duplicated", "default",
+         "duplicated", "matrix",
+         "duplicated", "numeric_version",
+         "duplicated", "warnings",
+         "flush", "connection",
+         "format", "AsIs",
+         "format", "Date",
+         "format", "POSIXct",
+         "format", "POSIXlt",
+         "format", "data.frame",
+         "format", "default",
+         "format", "difftime",
+         "format", "factor",
+         "format", "hexmode",
+         "format", "libraryIQR",
+         "format", "numeric_version",
+         "format", "octmode",
+         "format", "packageInfo",
+         "format", "summaryDefault",
+         "getDLLRegisteredRoutines", "DLLInfo",
+         "getDLLRegisteredRoutines", "character",
+         "is.na", "POSIXlt",
+         "is.na", "data.frame",
+         "is.na", "numeric_version",
+         "is.na<-", "default",
+         "is.na<-", "factor",
+         "is.na<-", "numeric_version",
+         "is.numeric", "Date",
+         "is.numeric", "POSIXt",
+         "is.numeric", "difftime",
+         "isSymmetric", "matrix",
+         "julian", "Date",
+         "julian", "POSIXt",
+         "kappa", "default",
+         "kappa", "lm",
+         "kappa", "qr",
+         "labels", "default",
+         "length", "POSIXlt",
+         "length<-", "Date",
+         "length<-", "POSIXct",
+         "length<-", "POSIXlt",
+         "length<-", "difftime",
+         "length<-", "factor",
+         "levels", "default",
+         "levels<-", "factor",
+         "mean", "Date",
+         "mean", "POSIXct",
+         "mean", "POSIXlt",
+         "mean", "default",
+         "mean", "difftime",
+         "merge", "data.frame",
+         "merge", "default",
+         "months", "Date",
+         "months", "POSIXt",
+         "names", "POSIXlt",
+         "names<-", "POSIXlt",
+         "open", "connection",
+         "open", "srcfile",
+         "open", "srcfilealias",
+         "open", "srcfilecopy",
+         "pretty", "default",
+         "print", "AsIs",
+         "print", "DLLInfo",
+         "print", "DLLInfoList",
+         "print", "DLLRegisteredRoutines",
+         "print", "Date",
+         "print", "Dlist",
+         "print", "NativeRoutineList",
+         "print", "POSIXct",
+         "print", "POSIXlt",
+         "print", "by",
+         "print", "condition",
+         "print", "connection",
+         "print", "data.frame",
+         "print", "default",
+         "print", "difftime",
+         "print", "eigen",
+         "print", "factor",
+         "print", "function",
+         "print", "hexmode",
+         "print", "libraryIQR",
+         "print", "listof",
+         "print", "noquote",
+         "print", "numeric_version",
+         "print", "octmode",
+         "print", "packageInfo",
+         "print", "proc_time",
+         "print", "restart",
+         "print", "rle",
+         "print", "simple.list",
+         "print", "srcfile",
+         "print", "srcref",
+         "print", "summary.table",
+         "print", "summary.warnings",
+         "print", "summaryDefault",
+         "print", "table",
+         "print", "warnings",
+         "qr", "default",
+         "quarters", "Date",
+         "quarters", "POSIXt",
+         "range", "default",
+         "rbind", "data.frame",
+         "rep", "Date",
+         "rep", "POSIXct",
+         "rep", "POSIXlt",
+         "rep", "factor",
+         "rep", "numeric_version",
+         "rev", "default",
+         "round", "Date",
+         "round", "POSIXt",
+         "row.names", "data.frame",
+         "row.names", "default",
+         "row.names<-", "data.frame",
+         "row.names<-", "default",
+         "rowsum", "data.frame",
+         "rowsum", "default",
+         "scale", "default",
+         "seek", "connection",
+         "seq", "Date",
+         "seq", "POSIXt",
+         "seq", "default",
+         "solve", "default",
+         "solve", "qr",
+         "sort", "POSIXlt",
+         "sort", "default",
+         "split", "Date",
+         "split", "POSIXct",
+         "split", "data.frame",
+         "split", "default",
+         "split<-", "data.frame",
+         "split<-", "default",
+         "subset", "data.frame",
+         "subset", "default",
+         "subset", "matrix",
+         "summary", "Date",
+         "summary", "POSIXct",
+         "summary", "POSIXlt",
+         "summary", "connection",
+         "summary", "data.frame",
+         "summary", "default",
+         "summary", "factor",
+         "summary", "matrix",
+         "summary", "proc_time",
+         "summary", "srcfile",
+         "summary", "srcref",
+         "summary", "table",
+         "summary", "warnings",
+         "t", "data.frame",
+         "t", "default",
+         "toString", "default",
+         "transform", "data.frame",
+         "transform", "default",
+         "trunc", "Date",
+         "trunc", "POSIXt",
+         "truncate", "connection",
+         "unique", "POSIXlt",
+         "unique", "array",
+         "unique", "data.frame",
+         "unique", "default",
+         "unique", "matrix",
+         "unique", "numeric_version",
+         "unique", "warnings",
+         "units", "difftime",
+         "units<-", "difftime",
+         "weekdays", "Date",
+         "weekdays", "POSIXt",
+         "with", "default",
+         "within", "data.frame",
+         "within", "list",
+         "xtfrm", "AsIs",
+         "xtfrm", "Date",
+         "xtfrm", "POSIXct",
+         "xtfrm", "POSIXlt",
+         "xtfrm", "Surv",
+         "xtfrm", "default",
+         "xtfrm", "difftime",
+         "xtfrm", "factor",
+         "xtfrm", "numeric_version"),
+       ncol = 2L, byrow = TRUE,
+       dimnames = list(NULL, c("generic", "class")))

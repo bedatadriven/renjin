@@ -1,5 +1,7 @@
 #  File src/library/base/R/zdynvars.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2014 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ## Need to ensure this comes late enough ...
 ## Perhaps even merge it into the common profile?
@@ -41,10 +43,11 @@
         if(!missing(new)) {
             ## paths don't really need to be unique, but searching
             ## large library trees repeatedly would be inefficient.
-            ## Use normalizePath for display: but also does path.expand
+            ## Use normalizePath for display
             new <- Sys.glob(path.expand(new))
-            paths <- unique(normalizePath(c(new, .Library.site, .Library), '/'))
-            .lib.loc <<- paths[file.info(paths)$isdir %in% TRUE]
+            paths <- c(new, .Library.site, .Library)
+            paths <- paths[dir.exists(paths)]
+            .lib.loc <<- unique(normalizePath(paths, "/"))
         }
         else
             .lib.loc

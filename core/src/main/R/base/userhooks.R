@@ -1,5 +1,7 @@
 #  File src/library/base/R/userhooks.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ## presumed small
 .userHooksEnv <- new.env(hash = FALSE, parent = baseenv())
@@ -26,11 +28,7 @@ packageEvent <-
 }
 
 getHook <- function(hookName)
-{
-    if (exists(hookName, envir = .userHooksEnv, inherits = FALSE))
-        get(hookName, envir = .userHooksEnv, inherits = FALSE)
-    else list()
-}
+    get0(hookName, envir = .userHooksEnv, inherits = FALSE, ifnotfound = list())
 
 setHook <- function(hookName, value,
                     action = c("append", "prepend", "replace"))
@@ -40,7 +38,7 @@ setHook <- function(hookName, value,
     new <- switch(action,
                   "append" = c(old, value),
                   "prepend" = c(value, old),
-                  "replace" = value)
+                  "replace" = if (is.null(value) || is.list(value)) value else list(value))
     if (length(new))
         assign(hookName, new, envir = .userHooksEnv, inherits = FALSE)
     else if(exists(hookName, envir = .userHooksEnv, inherits = FALSE))

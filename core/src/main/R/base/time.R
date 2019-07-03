@@ -1,5 +1,7 @@
 #  File src/library/base/R/time.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,37 +14,46 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 system.time <- function(expr, gcFirst = TRUE)
 {
     ppt <- function(y) {
         if(!is.na(y[4L])) y[1L] <- y[1L] + y[4L]
         if(!is.na(y[5L])) y[2L] <- y[2L] + y[5L]
-        y[1L:3L]
+        paste(formatC(y[1L:3L]), collapse = " ")
     }
-    if(!exists("proc.time")) return(rep(NA_real_, 5L))
     if(gcFirst)  gc(FALSE)
     time <- proc.time()
     ## need on.exit after 'time' has been set:
     ## on some systems proc.time throws an error.
-    on.exit(cat("Timing stopped at:", ppt(proc.time() - time), "\n"))
+    on.exit(message("Timing stopped at: ", ppt(proc.time() - time)))
     expr # evaluated here because of lazy evaluation
     new.time <- proc.time()
     on.exit()
     structure(new.time - time, class="proc_time")
 }
-unix.time <- system.time
+unix.time <- function(...) {
+    .Deprecated("system.time")
+    system.time(...)
+}
 
 date <- function() .Internal(date())
 
+summary.proc_time <- function(object, ...)
+{
+    if(!is.na(object[4L]))
+        object[1L] <- object[1L] + object[4L]
+    if(!is.na(object[5L]))
+        object[2L] <- object[2L] + object[5L]
+    object <- object[1L : 3L]
+    names(object) <-
+        c(gettext("user"), gettext("system"), gettext("elapsed"))
+    object
+}
+
 print.proc_time <- function(x, ...)
 {
-    y <- x
-    if(!is.na(y[4L])) y[1L] <- y[1L] + y[4L]
-    if(!is.na(y[5L])) y[2L] <- y[2L] + y[5L]
-    y <- y[1L:3L]
-    names(y) <- c(gettext("user"), gettext("system"), gettext("elapsed"))
-    print(y, ...)
+    print(summary(x, ...))
     invisible(x)
 }

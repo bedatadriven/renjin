@@ -1,5 +1,7 @@
 #  File src/library/base/R/zapsmall.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 zapsmall <- function(x, digits = getOption("digits"))
 {
@@ -21,5 +23,5 @@ zapsmall <- function(x, digits = getOption("digits"))
     if (all(ina <- is.na(x)))
         return(x)
     mx <- max(abs(x[!ina]))
-    round(x, digits = if(mx > 0) max(0L, digits - log10(mx)) else digits)
+    round(x, digits = if(mx > 0) max(0L, digits - as.numeric(log10(mx))) else digits)
 }

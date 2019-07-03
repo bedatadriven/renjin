@@ -29,7 +29,7 @@ srcfile <- function(filename, encoding = getOption("encoding"), Enc = "unknown")
     e$filename <- filename
 
     # If filename is a URL, this will return NA
-    e$timestamp <- file.info(filename)[1,"mtime"]
+    e$timestamp <- file.mtime(filename)
 
     if (identical(encoding, "unknown")) encoding <- "native.enc"
     e$encoding <- encoding
@@ -71,11 +71,13 @@ open.srcfile <- function(con, line, ...) {
 	    olddir <- setwd(srcfile$wd)
 	    on.exit(setwd(olddir))
 	}
-	timestamp <- file.info(srcfile$filename)[1,"mtime"]
+	timestamp <- file.mtime(srcfile$filename)
 	if (!is.null(srcfile$timestamp)
 	    && !is.na(srcfile$timestamp)
 	    && ( is.na(timestamp) || timestamp != srcfile$timestamp) )
-	    warning("Timestamp of '",srcfile$filename,"' has changed", call.=FALSE)
+            warning(gettextf("Timestamp of %s has changed",
+                             sQuote(srcfile$filename)),
+                    call. = FALSE, domain = NA)
 	if (is.null(srcfile$encoding)) encoding <- getOption("encoding")
 	else encoding <- srcfile$encoding
 	# Specifying encoding below means that reads will convert to the native encoding
@@ -106,7 +108,7 @@ close.srcfile <- function(con, ...) {
 
 # srcfilecopy saves a copy of lines from a file
 
-srcfilecopy <- function (filename, lines, timestamp = Sys.time(), isFile = FALSE) {
+srcfilecopy <- function(filename, lines, timestamp = Sys.time(), isFile = FALSE) {
     stopifnot(is.character(filename), length(filename) == 1L)
 
     e <- new.env(parent=emptyenv())
@@ -155,20 +157,20 @@ srcfilealias <- function(filename, srcfile) {
     stopifnot(is.character(filename), length(filename) == 1L)
 
     e <- new.env(parent=emptyenv())
-    
+
     e$filename <- filename
     e$original <- srcfile
 
     class(e) <- c("srcfilealias", "srcfile")
     return(e)
 }
-    
-open.srcfilealias <- function(con, line, ...) 
+
+open.srcfilealias <- function(con, line, ...)
     open(con$original, line, ...)
 
 close.srcfilealias <- function(con, ...)
     close(con$original, ...)
-    
+
 .isOpen <- function(srcfile) {
     conn <- srcfile$conn
     return( !is.null(conn) && isOpen(conn) )
@@ -176,7 +178,7 @@ close.srcfilealias <- function(con, ...)
 
 getSrcLines <- function(srcfile, first, last) {
     if (first > last) return(character())
-    if (inherits(srcfile, "srcfilealias")) 
+    if (inherits(srcfile, "srcfilealias"))
     	srcfile <- srcfile$original
     if (inherits(srcfile, "srcfilecopy")) {
 	# Remove embedded newlines if we haven't done this already
@@ -201,7 +203,7 @@ getSrcLines <- function(srcfile, first, last) {
 }
 
 # a srcref gives start and stop positions of text
-# lloc entries are first_line, first_byte, last_line, last_byte, 
+# lloc entries are first_line, first_byte, last_line, last_byte,
 #  first_column, last_column, first_parse, last_parse
 # all are inclusive
 

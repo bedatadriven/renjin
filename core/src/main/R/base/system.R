@@ -1,5 +1,7 @@
 #  File src/library/base/R/windows/system.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,13 +14,34 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
+
+
+.fixupGFortranStdout <- function()
+{
+    old <- Sys.getenv("GFORTRAN_STDOUT_UNIT")
+    if (nzchar(old) && old == "-1") {
+	Sys.unsetenv("GFORTRAN_STDOUT_UNIT")
+	TRUE
+    } else
+	FALSE
+}
+
+.fixupGFortranStderr <- function()
+{
+    old <- Sys.getenv("GFORTRAN_STDERR_UNIT")
+    if (nzchar(old) && old == "-1") {
+	Sys.unsetenv("GFORTRAN_STDERR_UNIT")
+	TRUE
+    } else
+	FALSE
+}
 
 system <- function(command, intern = FALSE,
                    ignore.stdout = FALSE, ignore.stderr = FALSE,
                    wait = TRUE, input = NULL,
                    show.output.on.console = TRUE, minimized = FALSE,
-                   invisible = TRUE)
+                   invisible = TRUE, timeout = 0)
 {
     if(!is.logical(intern) || is.na(intern))
         stop("'intern' must be TRUE or FALSE")
@@ -50,20 +73,22 @@ system <- function(command, intern = FALSE,
         if(stdout == "") stdout <- TRUE
         if(!ignore.stderr && .Platform$GUI == "Rgui") stderr <- TRUE
     } else {
-        if  (wait)
-            flag <- ifelse(show.output.on.console, 2L, 1L)
-        else
-            flag <- 0L
+        flag <- if (wait) ifelse(show.output.on.console, 2L, 1L) else 0L
     }
     if (invisible) flag <- 20L + flag
     else if (minimized) flag <- 10L + flag
-    .Internal(system(command, as.integer(flag), f, stdout, stderr))
+    if (.fixupGFortranStdout())
+	on.exit(Sys.setenv(GFORTRAN_STDOUT_UNIT = "-1"), add = TRUE)
+    if (.fixupGFortranStderr())
+	on.exit(Sys.setenv(GFORTRAN_STDERR_UNIT = "-1"), add = TRUE)
+    .Internal(system(command, as.integer(flag), f, stdout, stderr, timeout))
 }
 
 system2 <- function(command, args = character(),
                     stdout = "", stderr = "", stdin = "", input = NULL,
                     env = character(),
-                    wait = TRUE, minimized = FALSE, invisible = TRUE)
+                    wait = TRUE, minimized = FALSE, invisible = TRUE,
+                    timeout = 0)
 {
     if(!is.logical(wait) || is.na(wait))
         stop("'wait' must be TRUE or FALSE")
@@ -75,7 +100,10 @@ system2 <- function(command, args = character(),
 
     if(is.null(stdout)) stdout <- FALSE
     if(is.null(stderr)) stderr <- FALSE
-
+    
+    if(length(stdout) != 1L) stop("'stdout' must be of length 1")
+    if(length(stderr) != 1L) stop("'stderr' must be of length 1")
+    
     if (!is.null(input)) {
         f <- tempfile()
         on.exit(unlink(f))
@@ -83,11 +111,16 @@ system2 <- function(command, args = character(),
         writeLines(input, f)
     } else f <- stdin
     flag <- if (isTRUE(stdout) || isTRUE(stderr)) 3L
-    else if (wait) ifelse(identical(stdout, ""), 2L, 1L)
+    else if (wait)
+        ifelse(identical(stdout, "") || identical(stderr, ""), 2L, 1L)
     else 0L
     if (invisible) flag <- 20L + flag
     else if (minimized) flag <- 10L + flag
-    .Internal(system(command, flag, f, stdout, stderr))
+    if (.fixupGFortranStdout())
+	on.exit(Sys.setenv(GFORTRAN_STDOUT_UNIT = "-1"), add = TRUE)
+    if (.fixupGFortranStderr())
+	on.exit(Sys.setenv(GFORTRAN_STDERR_UNIT = "-1"), add = TRUE) 
+    .Internal(system(command, flag, f, stdout, stderr, timeout))
 }
 
 shell <- function(cmd, shell, flag = "/c", intern = FALSE,
@@ -95,7 +128,6 @@ shell <- function(cmd, shell, flag = "/c", intern = FALSE,
 {
     if(missing(shell)) {
         shell <- Sys.getenv("R_SHELL")
-        if(!nzchar(shell)) shell <- Sys.getenv("SHELL")
         if(!nzchar(shell)) shell <- Sys.getenv("COMSPEC")
     }
     if(missing(flag) &&
@@ -120,13 +152,8 @@ shell <- function(cmd, shell, flag = "/c", intern = FALSE,
     if(intern) res else invisible(res)
 }
 
-shell.exec <- function(file) invisible(.Internal(shell.exec(file)))
+shell.exec <- function(file) .Internal(shell.exec(file))
 
-Sys.timezone <- function()
-{
-    z <- as.POSIXlt(Sys.time())
-    zz <- attr(z, "tzone")
-    if(length(zz) == 3L) zz[2 + z$isdst] else zz[1L]
-}
+## Sys.timezone() --> common function for all platforms
 
 Sys.which <- function(names) .Internal(Sys.which(as.character(names)))

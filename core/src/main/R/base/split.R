@@ -20,7 +20,7 @@ split <- function(x, f, drop = FALSE, ...) UseMethod("split")
 
 split.default <- function(x, f, drop = FALSE, sep = ".", lex.order = FALSE, ...)
 {
-    if(!missing(...)) .NotYetUsed(deparse(list(...)), error = FALSE)
+    if(!missing(...)) .NotYetUsed(deparse(...), error = FALSE)
 
     if (is.list(f))
 	f <- interaction(f, drop = drop, sep = sep, lex.order = lex.order)

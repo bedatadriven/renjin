@@ -1,5 +1,7 @@
 #  File src/library/stats/R/aggregate.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 aggregate <-
 function(x, ...)
@@ -28,7 +30,7 @@ function(x, ...)
 }
 
 aggregate.data.frame <-
-function(x, by, FUN, ..., simplify = TRUE)
+function(x, by, FUN, ..., simplify = TRUE, drop = TRUE)
 {
     if(!is.data.frame(x)) x <- as.data.frame(x)
     ## Do this here to avoid masking by non-function (could happen)
@@ -41,65 +43,96 @@ function(x, by, FUN, ..., simplify = TRUE)
     }
     if(!is.list(by))
         stop("'by' must be a list")
-    if(is.null(names(by)))
-        names(by) <- paste("Group", seq_along(by), sep = ".")
+    if(is.null(names(by)) && length(by))
+        names(by) <- paste0("Group.", seq_along(by))
     else {
         nam <- names(by)
         ind <- which(!nzchar(nam))
-        names(by)[ind] <- paste("Group", ind, sep = ".")
+        names(by)[ind] <- paste0("Group.", ind)
     }
 
-    ## Similar to interaction(drop = TRUE), but using integer arithmetic
-    ## is definitely a bad idea for boundary cases ...
-    nrx <- NROW(x)
-    grp <- double(nrx)
-    for(ind in rev(by)) {
-        if(length(ind) != nrx)
-            stop("arguments must have same length")
-        ind <- as.factor(ind)
-        grp <- grp * nlevels(ind) + (as.integer(ind) - 1L)
-    }
+    if(any(lengths(by) != NROW(x)))
+        stop("arguments must have same length")
 
     y <- as.data.frame(by, stringsAsFactors = FALSE)
-    y <- y[match(sort(unique(grp)), grp, 0L), , drop = FALSE]
-    nry <- NROW(y)
+    keep <- complete.cases(by)
+    y <- y[keep, , drop = FALSE]
+    x <- x[keep, , drop = FALSE]
+    nrx <- NROW(x)
+
+    ## Generate a group identifier vector with integers and dots.
+    ident <- function(x) {
+        y <- as.factor(x)
+        l <- length(levels(y))
+        s <- as.character(seq_len(l))
+        n <- nchar(s)
+        levels(y) <- paste0(strrep("0", n[l] - n), s)
+        y # levels used for drop = FALSE
+    }
+    grp <- lapply(y, ident)
+    multi.y <- !drop && ncol(y)
+    if(multi.y) {
+        lev <- lapply(grp, levels)
+	y <- as.list(y)
+        for (i in seq_along(y)) {
+            z <- y[[i]][match(lev[[i]], grp[[i]])]
+            if(is.factor(z) && any(keep <- is.na(z)))
+                z[keep] <- levels(z)[keep]
+            y[[i]] <- z
+        }
+        eGrid <- function(L)
+            expand.grid(L, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
+	y <- eGrid(y)
+    }
+    grp <- if(ncol(y)) {
+        names(grp) <- NULL
+	do.call(paste, c(rev(grp), list(sep = ".")))
+    } else
+	integer(nrx)
+    if(multi.y) {
+        lev <- as.list(eGrid(lev))
+        names(lev) <- NULL
+        lev <- do.call(paste, c(rev(lev), list(sep = ".")))
+    } else
+        y <- y[match(sort(unique(grp)), grp, 0L), , drop = FALSE]
     z <- lapply(x,
                 function(e) {
                     ## In case of a common length > 1, sapply() gives
                     ## the transpose of what we need ...
-                    ans <- lapply(X = split(e, grp), FUN = FUN, ...)
+		    ans <- lapply(X = unname(split(e, grp)), FUN = FUN, ...)
                     if(simplify &&
-                       length(len <- unique(sapply(ans, length))) == 1L) {
+                       length(len <- unique(lengths(ans))) == 1L) {
                         ## this used to lose classes
                         if(len == 1L) {
                             cl <- lapply(ans, oldClass)
                             cl1 <- cl[[1L]]
-                            ans <- unlist(ans, recursive = FALSE)
+			    ans <- unlist(ans, recursive = FALSE, use.names = FALSE)
                             if (!is.null(cl1) &&
-                                all(sapply(cl, function(x) identical(x, cl1))))
+                                all(vapply(cl, identical, NA, y = cl1)))
                                 class(ans) <- cl1
                         } else if(len > 1L)
-                            ans <- matrix(unlist(ans,
-                                                 recursive = FALSE),
-                                          nrow = nry,
+			    ans <- matrix(unlist(ans, recursive = FALSE, use.names = FALSE),
                                           ncol = len,
                                           byrow = TRUE,
-                                          dimnames = {
-                                              if(!is.null(nms <-
-                                                          names(ans[[1L]])))
-                                                  list(NULL, nms)
-                                              else
-                                                  NULL
-                                          })
+					  dimnames =
+					      if(!is.null(nms <- names(ans[[1L]])))
+						  list(NULL, nms) ## else NULL
+					  )
                     }
                     ans
                 })
     len <- length(y)
-    for(i in seq_along(z))
-        y[[len + i]] <- z[[i]]
+    if(multi.y) {
+	keep <- match(lev, sort(unique(grp)))
+	for(i in seq_along(z))
+	    y[[len + i]] <- if(is.matrix(z[[i]]))
+				 z[[i]][keep, , drop = FALSE]
+			    else z[[i]][keep]
+    } else
+	for(i in seq_along(z))
+	    y[[len + i]] <- z[[i]]
     names(y) <- c(names(by), names(x))
     row.names(y) <- NULL
-
     y
 }
 
@@ -115,27 +148,49 @@ function(formula, data, FUN, ..., subset, na.action = na.omit)
     if(is.matrix(eval(m$data, parent.frame())))
         m$data <- as.data.frame(data)
     m$... <- m$FUN <- NULL
-    m[[1L]] <- as.name("model.frame")
+    ## need stats:: for non-standard evaluation
+    m[[1L]] <- quote(stats::model.frame)
 
-    if(as.character(formula[[2L]] == ".")) {
+    if (formula[[2L]] == ".") {
         ## LHS is a dot, expand it ...
-        rhs <- unlist(strsplit(deparse(formula[[3L]]), " *[:+] *"))
+        ##rhs <- unlist(strsplit(deparse(formula[[3L]]), " *[:+] *"))
         ## <NOTE>
         ## Note that this will not do quite the right thing in case the
         ## RHS contains transformed variables, such that
         ##   setdiff(rhs, names(data))
         ## is non-empty ...
-        lhs <- sprintf("cbind(%s)",
-                       paste(setdiff(names(data), rhs), collapse = ","))
+        ##lhs <- sprintf("cbind(%s)",
+        ##              paste(setdiff(names(data), rhs), collapse = ","))
+        ## formula[[2L]] <- parse(text = lhs)[[1L]]
         ## </NOTE>
-        m[[2L]][[2L]] <- parse(text = lhs)[[1L]]
+
+        ## New logic May 2012 --pd
+
+        ## Dot expansion:
+        ## lhs ends up as quote(cbind(v1, v2, ....)) using all variables in
+        ## data, except those that are used on the RHS.
+
+        ## This version uses terms() to get the rhs variables, which means
+        ## that it will NOT remove a variable from the expansion if a
+        ## transformation of it is on the RHS of the formula.
+
+        rhs <- as.list(attr(terms(formula[-2L]),"variables")[-1])
+        lhs <- as.call(c(quote(cbind),
+                         setdiff(lapply(names(data), as.name),
+                                 rhs)
+                         )
+                       )
+        formula[[2L]] <- lhs
+        m[[2L]] <- formula
     }
     mf <- eval(m, parent.frame())
 
     if(is.matrix(mf[[1L]])) {
         ## LHS is a cbind() combo, convert to data frame and fix names.
+        ## Commented out May 2012 (seems to work without it) -- pd
+	##lhs <- setNames(as.data.frame(mf[[1L]]),
+	##		as.character(m[[2L]][[2L]])[-1L])
         lhs <- as.data.frame(mf[[1L]])
-        names(lhs) <- as.character(m[[2L]][[2L]])[-1L]
         aggregate.data.frame(lhs, mf[-1L], FUN = FUN, ...)
     }
     else

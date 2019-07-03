@@ -1,5 +1,7 @@
 #  File src/library/stats/R/prop.test.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 prop.test <-
 function(x, n, p = NULL, alternative = c("two.sided", "less", "greater"),
@@ -55,9 +57,9 @@ function(x, n, p = NULL, alternative = c("two.sided", "less", "greater"),
     if (is.null(p) && (k == 1))
 	p <- .5
     if (!is.null(p)) {
-	DNAME <- paste(DNAME, ", null ",
-		       ifelse(k == 1, "probability ", "probabilities "),
-		       deparse(substitute(p)), sep = "")
+	DNAME <- paste0(DNAME, ", null ",
+		       if(k == 1) "probability " else "probabilities ",
+		       deparse(substitute(p)))
 	if (length(p) != l)
 	    stop("'p' must have the same length as 'x' and 'n'")
 	p <- p[OK]
@@ -75,16 +77,15 @@ function(x, n, p = NULL, alternative = c("two.sided", "less", "greater"),
 
     correct <- as.logical(correct)
 
-    ESTIMATE <- x/n
-    names(ESTIMATE) <- if (k == 1) "p" else paste("prop", 1L:l)[OK]
+    ESTIMATE <- setNames(x/n,
+			 if (k == 1) "p" else paste("prop", 1L:l)[OK])
     NVAL <- p
     CINT <- NULL
-    YATES <- ifelse(correct && (k <= 2), .5, 0)
+    YATES <- if(correct && (k <= 2)) .5 else 0
 
     if (k == 1) {
-	z <- ifelse(alternative == "two.sided",
-		    qnorm((1 + conf.level) / 2),
-		    qnorm(conf.level))
+	z <- qnorm(if(alternative == "two.sided")
+		   (1 + conf.level) / 2 else conf.level)
 	YATES <- min(YATES, abs(x - n * p))
         z22n <- z^2 / (2 * n)
 	p.c <- ESTIMATE + YATES / n
@@ -115,12 +116,11 @@ function(x, n, p = NULL, alternative = c("two.sided", "less", "greater"),
     if (!is.null(CINT))
 	attr(CINT, "conf.level") <- conf.level
 
-    METHOD <- paste(ifelse(k == 1,
-			   "1-sample proportions test",
-			   paste(k, "-sample test for ",
-				 ifelse(is.null(p), "equality of", "given"),
-				 " proportions", sep = "")),
-		    ifelse(YATES, "with", "without"),
+    METHOD <- paste(if(k == 1) "1-sample proportions test" else
+                    paste0(k, "-sample test for ",
+                           if(is.null(p)) "equality of" else "given",
+                           " proportions"),
+		    if(YATES) "with" else "without",
 		    "continuity correction")
 
     if (is.null(p)) {

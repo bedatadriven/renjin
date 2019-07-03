@@ -1,5 +1,7 @@
 #  File src/library/stats/R/symnum.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 symnum <- function(x, cutpoints = c(  .3,  .6,	 .8,  .9, .95),
 		   symbols = if(numeric.x) c(" ", ".", ",", "+", "*", "B")
@@ -62,7 +64,7 @@ symnum <- function(x, cutpoints = c(  .3,  .6,	 .8,  .9, .95),
             else
                 stop("number of 'cutpoints' must be one more than number of symbols")
 
-	iS <- cut(x, breaks=cutpoints, include.lowest=TRUE, labels= FALSE)
+	iS <- cut(x, breaks = cutpoints, include.lowest = TRUE, labels = FALSE)
 	if(any(ii <- is.na(iS))) {
 	    ##-- can get 0, if x[i]== minc  --- only case ?
 	    iS[which(ii)[!is.na(x[ii]) & (abs(x[ii] - minc) < eps)]] <- 1#-> symbol[1L]
@@ -100,7 +102,7 @@ symnum <- function(x, cutpoints = c(  .3,  .6,	 .8,  .9, .95),
 	if((is.logical(abbr.colnames) || is.numeric(abbr.colnames))
 	   && abbr.colnames) {
 	    dimnames(ans)[[2L]] <-
-		abbreviate(dimnames(ans)[[2L]], minlength= abbr.colnames)
+		abbreviate(dimnames(ans)[[2L]], minlength = abbr.colnames)
 	    ## dropped further abbrev. depending on getOption("width")
 	}
 	else if(is.null(abbr.colnames) || is.null(dimnames(ans)[[2L]]))

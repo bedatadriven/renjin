@@ -1,5 +1,7 @@
 #  File src/library/stats/R/fisher.test.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,10 +14,11 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 fisher.test <-
 function(x, y = NULL, workspace = 200000, hybrid = FALSE,
+         hybridPars = c(expect = 5, percent = 80, Emin = 1),
          control = list(), or = 1, alternative = "two.sided",
          conf.int = TRUE, conf.level = 0.95,
          simulate.p.value = FALSE, B = 2000)
@@ -27,7 +30,7 @@ function(x, y = NULL, workspace = 200000, hybrid = FALSE,
     if(is.matrix(x)) {
         if(any(dim(x) < 2L))
             stop("'x' must have at least 2 rows and columns")
-        if(!is.numeric(x) || any(x < 0) || any(is.na(x)))
+        if(!is.numeric(x) || any(x < 0) || anyNA(x))
             stop("all entries of 'x' must be nonnegative and finite")
         if(!is.integer(x)) {
             xo <- x
@@ -35,7 +38,8 @@ function(x, y = NULL, workspace = 200000, hybrid = FALSE,
             if(any(x > .Machine$integer.max))
                 stop("'x' has entries too large to be integer")
             if(!identical(TRUE, (ax <- all.equal(xo, x))))
-                warning("'x' has been rounded to integer: ", ax)
+                warning(gettextf("'x' has been rounded to integer: %s", ax),
+                        domain = NA)
             storage.mode(x) <- "integer"
         }
     }
@@ -62,8 +66,8 @@ function(x, y = NULL, workspace = 200000, hybrid = FALSE,
 
     nr <- nrow(x)
     nc <- ncol(x)
-
-    if((nr == 2) && (nc == 2)) {
+    have.2x2 <- (nr == 2) && (nc == 2)
+    if(have.2x2) {
         alternative <- char.expand(alternative,
                                    c("two.sided", "less", "greater"))
         if(length(alternative) > 1L || is.na(alternative))
@@ -76,83 +80,56 @@ function(x, y = NULL, workspace = 200000, hybrid = FALSE,
     }
 
     PVAL <- NULL
-    if(nr != 2  ||  nc != 2) {
+    if(!have.2x2) {
         if(simulate.p.value) {
             ## we drop all-zero rows and columns
             sr <- rowSums(x)
             sc <- colSums(x)
             x <- x[sr > 0, sc > 0, drop = FALSE]
-            nr <- nrow(x)
-            nc <- ncol(x)
-            if(nr <= 1)
+            nr <- as.integer(nrow(x))
+            nc <- as.integer(ncol(x))
+            if (is.na(nr) || is.na(nc) || is.na(nr * nc))
+                stop("invalid nrow(x) or ncol(x)", domain = NA)
+            if(nr <= 1L)
                 stop("need 2 or more non-zero row marginals")
-            if(nc <= 1)
+            if(nc <= 1L)
                 stop("need 2 or more non-zero column marginals")
             METHOD <- paste(METHOD, "with simulated p-value\n\t (based on", B,
 			     "replicates)")
-            sr <- rowSums(x)
-            sc <- colSums(x)
-            n <- sum(sc)
             STATISTIC <- -sum(lfactorial(x))
-	    tmp <- .C(C_fisher_sim,
-		      as.integer(nr),
-		      as.integer(nc),
-		      as.integer(sr),
-		      as.integer(sc),
-		      as.integer(n),
-		      as.integer(B),
-		      integer(nr * nc),
-		      double(n + 1),
-		      integer(nc),
-		      results = double(B),
-		      PACKAGE = "stats")$results
+            tmp <- .Call(C_Fisher_sim, rowSums(x), colSums(x), B)
 	    ## use correct significance level for a Monte Carlo test
             almost.1 <- 1 + 64 * .Machine$double.eps
             ## PR#10558: STATISTIC is negative
 	    PVAL <- (1 + sum(tmp <= STATISTIC/almost.1)) / (B + 1)
         } else if(hybrid) {
-            PVAL <- .C(C_fexact,
-                       nr,
-                       nc,
-                       x,
-                       nr,
-                       ## Cochran condition for asym.chisq. decision:
-                       as.double(5), #  expect
-                       as.double(80),#  percnt
-                       as.double(1), #  emin
-                       double(1),    #  prt
-                       p = double(1),
-                       as.integer(workspace),
-                       mult = as.integer(mult),
-                       PACKAGE = "stats")$p
-        } else
-            PVAL <- .C(C_fexact,
-                       nr,
-                       nc,
-                       x,
-                       nr,
-                       as.double(-1),#  expect < 0 : exact
-                       as.double(100),
-                       as.double(0),
-                       double(1),#   prt
-                       p = double(1),
-                       as.integer(workspace),
-                       mult = as.integer(mult),
-                       PACKAGE = "stats")$p
+            ## Cochran condition for asym.chisq. decision is
+            ## hybridPars = c(expect = 5, percent = 80, Emin = 1),
+            if(!is.null(nhP <- names(hybridPars)) &&
+               !identical(nhP, c("expect", "percent", "Emin")))
+                stop("names(hybridPars) should be NULL or be identical to the default's")
+            stopifnot(is.double(hypp <- as.double(hybridPars)),
+                      length(hypp) == 3L,
+                      hypp[1] > 0, hypp[3] >= 0,
+                      0 <= hypp[2], hypp[2] <= 100)
+            PVAL <- .Call(C_Fexact, x, hypp, workspace, mult)
+            METHOD <- paste(METHOD, sprintf("hybrid using asym.chisq. iff (exp=%g, perc=%g, Emin=%g)",
+					    hypp[1], hypp[2], hypp[3]))
+         } else {
+            ##  expect < 0 : exact
+            PVAL <- .Call(C_Fexact, x, c(-1, 100, 0), workspace, mult)
+        }
 
         RVAL <- list(p.value = max(0, min(1, PVAL)))
-    }
-
-    if((nr == 2) && (nc == 2)) {## conf.int and more only in  2 x 2 case
+    } else { ## conf.int and more only in  2 x 2 case
         if(hybrid) warning("'hybrid' is ignored for a 2 x 2 table")
-        m <- sum(x[, 1])
-        n <- sum(x[, 2])
-        k <- sum(x[1, ])
-        x <- x[1, 1]
-        lo <- max(0, k - n)
+        m <- sum(x[, 1L])
+        n <- sum(x[, 2L])
+        k <- sum(x[1L, ])
+        x <- x[1L, 1L]
+        lo <- max(0L, k - n)
         hi <- min(k, m)
-        NVAL <- or
-        names(NVAL) <- "odds ratio"
+        NVAL <- c("odds ratio" = or)
 
         ## Note that in general the conditional distribution of x given
         ## the marginals is a non-central hypergeometric distribution H
@@ -228,8 +205,7 @@ function(x, y = NULL, workspace = 200000, hybrid = FALSE,
             else
                 1
         }
-        ESTIMATE <- mle(x)
-        names(ESTIMATE) <- "odds ratio"
+        ESTIMATE <- c("odds ratio" = mle(x))
 
         if(conf.int) {
             ## Determine confidence intervals for the odds ratio.
@@ -277,10 +253,9 @@ function(x, y = NULL, workspace = 200000, hybrid = FALSE,
                        null.value = NVAL))
     } ## end (2 x 2)
 
-    RVAL <- c(RVAL,
-              alternative = alternative,
-              method = METHOD,
-              data.name = DNAME)
-    attr(RVAL, "class") <- "htest"
-    return(RVAL)
+    structure(c(RVAL,
+                alternative = alternative,
+                method = METHOD,
+                data.name = DNAME),
+              class = "htest")
 }

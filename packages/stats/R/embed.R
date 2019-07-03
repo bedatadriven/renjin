@@ -1,9 +1,9 @@
 #  File src/library/stats/R/embed.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
 # Copyright (C) 1997-1999  Adrian Trapletti
 #
-# Rewritten to use R indexing (C) 1999, 2006 R Core Development Team
+# Rewritten to use R indexing (C) 1999, 2006 R Core Team
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Library General Public
@@ -17,7 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, a copy is available at
-# http://www.r-project.org/Licenses/
+# https://www.R-project.org/Licenses/
 
 embed <- function (x, dimension = 1)
 {

@@ -1,5 +1,7 @@
 #  File src/library/stats/R/anova.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,25 +14,26 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ## utility for anova.FOO(), FOO in "lmlist", "glm", "glmlist"
 ## depending on the ordering of the models this might get called with
 ## negative deviance and df changes.
-stat.anova <- function(table, test=c("Rao","LRT","Chisq", "F", "Cp"), scale, df.scale, n)
+stat.anova <-
+    function(table, test=c("Rao","LRT","Chisq", "F", "Cp"), scale, df.scale, n)
 {
     test <- match.arg(test)
     dev.col <- match("Deviance", colnames(table))
-    if (test=="Rao") dev.col <- match("Rao", colnames(table))
+    if (test == "Rao") dev.col <- match("Rao", colnames(table))
     if (is.na(dev.col)) dev.col <- match("Sum of Sq", colnames(table))
     switch(test,
-	   "Rao"=,"LRT"=,"Chisq" = {
+	   "Rao" = ,"LRT" = ,"Chisq" = {
                dfs <- table[, "Df"]
                vals <- table[, dev.col]/scale * sign(dfs)
 	       vals[dfs %in% 0] <- NA
                vals[!is.na(vals) & vals < 0] <- NA # rather than p = 0
 	       cbind(table,
-                     "Pr(>Chi)" = pchisq(vals, abs(dfs), lower.tail=FALSE)
+                     "Pr(>Chi)" = pchisq(vals, abs(dfs), lower.tail = FALSE)
                      )
 	   },
 	   "F" = {
@@ -40,25 +43,31 @@ stat.anova <- function(table, test=c("Rao","LRT","Chisq", "F", "Cp"), scale, df.
                Fvalue[!is.na(Fvalue) & Fvalue < 0] <- NA # rather than p = 0
 	       cbind(table,
                      F = Fvalue,
-		     "Pr(>F)" = pf(Fvalue, abs(dfs), df.scale, lower.tail=FALSE)
+		     "Pr(>F)" = pf(Fvalue, abs(dfs), df.scale, lower.tail = FALSE)
                      )
 	   },
-	   "Cp" = {
-	       cbind(table, Cp = table[,"Resid. Dev"] +
-		     2*scale*(n - table[,"Resid. Df"]))
+	   "Cp" = { # depends on the type of object.
+               if ("RSS" %in% names(table)) { # an lm object
+                   cbind(table, Cp = table[, "RSS"] +
+                         2*scale*(n - table[, "Res.Df"]))
+               } else { # a glm object
+                   cbind(table, Cp = table[, "Resid. Dev"] +
+                         2*scale*(n - table[, "Resid. Df"]))
+               }
 	   })
 }
 
 printCoefmat <-
-    function(x, digits = max(3, getOption("digits") - 2),
+    function(x, digits = max(3L, getOption("digits") - 2L),
 	     signif.stars = getOption("show.signif.stars"),
              signif.legend = signif.stars,
-	     dig.tst = max(1, min(5, digits - 1)),
-	     cs.ind = 1:k, tst.ind = k+1, zap.ind = integer(0),
+	     dig.tst = max(1L, min(5L, digits - 1L)),
+	     cs.ind = 1:k, tst.ind = k+1, zap.ind = integer(),
 	     P.values = NULL,
-	     has.Pvalue = nc >= 4 && substr(colnames(x)[nc], 1, 3) == "Pr(",
+	     has.Pvalue = nc >= 4L && length(cn <- colnames(x)) &&
+		 substr(cn[nc], 1L, 3L) %in% c("Pr(", "p-v"),
              eps.Pvalue = .Machine$double.eps,
-	     na.print = "NA", ...)
+	     na.print = "NA", quote = FALSE, right = TRUE, ...)
 {
     ## For printing ``coefficient matrices'' as they are in summary.xxx(.) where
     ## xxx in {lm, glm, aov, ..}. (Note: summary.aov(.) gives a class "anova").
@@ -103,16 +112,15 @@ printCoefmat <-
 	    ## #{digits} BEFORE decimal point -- for min/max. value:
 	    digmin <- 1 + if(length(acs <- acs[ia & acs != 0]))
 		floor(log10(range(acs[acs != 0], finite = TRUE))) else 0
-            Cf[,cs.ind] <- format(round(coef.se, max(1,digits-digmin)),
-                                  digits=digits)
+            Cf[,cs.ind] <- format(round(coef.se, max(1L, digits - digmin)),
+                                  digits = digits)
         }
     }
     if(length(tst.ind))
-	Cf[, tst.ind]<- format(round(xm[, tst.ind], digits = dig.tst),
-                               digits = digits)
-    if(any(r.ind <- !((1L:nc) %in%
-                      c(cs.ind, tst.ind, if(has.Pvalue) nc))))
-	for(i in which(r.ind)) Cf[, i] <- format(xm[, i], digits=digits)
+	Cf[, tst.ind] <- format(round(xm[, tst.ind], digits = dig.tst),
+                                digits = digits)
+    if(any(r.ind <- !((1L:nc) %in% c(cs.ind, tst.ind, if(has.Pvalue) nc))))
+	for(i in which(r.ind)) Cf[, i] <- format(xm[, i], digits = digits)
     ok[, tst.ind] <- FALSE
     okP <- if(has.Pvalue) ok[, -nc] else ok
     ## we need to find out where Cf is zero.  We can't use as.numeric
@@ -125,7 +133,7 @@ printCoefmat <-
     if(length(not.both.0 <- which(x0 & !is.na(x0)))) {
 	## not.both.0==TRUE:  xm !=0, but Cf[] is: --> fix these:
 	Cf[okP][not.both.0] <- format(xm[okP][not.both.0],
-                                      digits = max(1, digits-1))
+                                      digits = max(1L, digits - 1L))
     }
     if(any(ina)) Cf[ina] <- na.print
     if(P.values) {
@@ -146,13 +154,18 @@ printCoefmat <-
 	    }
 	} else signif.stars <- FALSE
     } else signif.stars <- FALSE
-    print.default(Cf, quote = FALSE, right = TRUE, na.print=na.print, ...)
-    if(signif.stars && signif.legend)
-        cat("---\nSignif. codes: ",attr(Signif,"legend"),"\n")
+    print.default(Cf, quote = quote, right = right, na.print = na.print, ...)
+    if(signif.stars && signif.legend) {
+	if((w <- getOption("width")) < nchar(sleg <- attr(Signif,"legend")))# == 46
+	    sleg <- strwrap(sleg, width = w - 2, prefix = "  ")
+	##"FIXME": Double space __ is for reproducibility, rather than by design
+	cat("---\nSignif. codes:  ", sleg, sep = "",
+	    fill = w+4 + max(nchar(sleg,"bytes") - nchar(sleg)))# +4: "---"
+    }
     invisible(x)
 }
 
-print.anova <- function(x, digits = max(getOption("digits") - 2, 3),
+print.anova <- function(x, digits = max(getOption("digits") - 2L, 3L),
                         signif.stars = getOption("show.signif.stars"), ...)
 {
     if (!is.null(heading <- attr(x, "heading")))

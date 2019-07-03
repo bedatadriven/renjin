@@ -1,11 +1,12 @@
 #  File src/library/stats/R/runmed.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
+#  Copyright (C) 2003-2017 The R Foundation
+
 #  Copyright (C) 1995 Berwin A. Turlach
 #  Ported to R, added interface to Stuetzle's code and further enhanced
 #  by Martin Maechler,
 #  Copyright (C) 1996-2002 Martin Maechler
-#  Copyright (C) 2003 The R Foundation
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -18,16 +19,16 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 
 runmed <- function(x, k, endrule = c("median","keep","constant"),
                    algorithm = NULL, print.level = 0)
 {
     n <- as.integer(length(x))
-    if(is.na(n)) stop("invalid value of length(x)")
+    if(is.na(n)) stop(gettextf("invalid value of %s", "length(x)"), domain = NA)
     k <- as.integer(k)
-    if(is.na(k)) stop("invalid value of 'k'")
+    if(is.na(k)) stop(gettextf("invalid value of %s", "'k'"), domain = NA)
     if(k < 0L) stop("'k' must be positive")
     if(k %% 2L == 0L)
         warning(gettextf("'k' must be odd!  Changing 'k' to %d",
@@ -109,7 +110,7 @@ smoothEnds <- function(y, k = 3)
         if (k >= 3L) {
             for (i in 3:k) {
                 j <- 2L*i - 1L
-                sm  [i]   <- med.odd( y [1L:j] ,     j) #- left border
+                sm  [i]    <- med.odd( y[1L:j]      , j) #- left border
                 sm[n-i+1L] <- med.odd( y[(n+1L-j):n], j) #- right border
             }
         }
@@ -118,6 +119,6 @@ smoothEnds <- function(y, k = 3)
     ##--- For the very first and last pt.:  Use Tukey's end-point rule: ---
     ## Ysm[1L]:= Median(Ysm[2L],X1,Z_0), where Z_0 is extrapol. from Ysm[2L],Ysm[3L]
     sm[1L] <- med3(y[1L], sm [2L] , 3*sm [2L]  - 2*sm [3L])
-    sm[n] <- med3(y[n], sm[n-1L], 3*sm[n-1L] - 2*sm[n-2L])
+    sm[n]  <- med3(y[n],  sm[n-1L], 3*sm[n-1L] - 2*sm[n-2L])
     sm
 }

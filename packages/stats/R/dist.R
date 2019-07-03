@@ -1,5 +1,7 @@
 #  File src/library/stats/R/dist.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,9 +14,9 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
-dist <- function(x, method="euclidean", diag=FALSE, upper=FALSE, p=2)
+dist <- function(x, method = "euclidean", diag = FALSE, upper = FALSE, p = 2)
 {
     ## account for possible spellings of euclid?an
     if(!is.na(pmatch(method, "euclidian")))
@@ -28,51 +30,30 @@ dist <- function(x, method="euclidean", diag=FALSE, upper=FALSE, p=2)
     if(method == -1)
 	stop("ambiguous distance method")
 
-    N <- nrow(x <- as.matrix(x))
-
-    if(ncol(x) == 1 && method == 1) {
-      d <- Distance$euclideanDistance(x)
-    } else {
-      d <- .C("R_distance",
-        x = as.double(x),
-        nr = N,
-        nc=  ncol(x),
-        d = double(N*(N - 1)/2),
-        diag  = as.integer(FALSE),
-        method= as.integer(method),
-        p = as.double(p),
-        DUP = FALSE, NAOK=TRUE, PACKAGE="stats")$d
-    }
-    attr(d, "Size") <- N
-    attr(d, "Labels") <- dimnames(x)[[1L]]
-    attr(d, "Diag") <- diag
-    attr(d, "Upper") <- upper
-    attr(d, "method") <- METHODS[method]
-    if(method == 6) attr(d, "p") <- p
-    attr(d, "call") <- match.call()
-    class(d) <- "dist"
-    return(d)
+    x <- as.matrix(x)
+    N  <- nrow(x)
+    attrs <- if(method == 6L)
+        list(Size = N, Labels =  dimnames(x)[[1L]], Diag = diag,
+             Upper = upper, method = METHODS[method],
+             p = p, call = match.call(), class = "dist")
+    else
+        list(Size = N, Labels =  dimnames(x)[[1L]], Diag = diag,
+             Upper = upper, method = METHODS[method],
+             call = match.call(), class = "dist")
+    .Call(C_Cdist, x, method, attrs, p)
 }
 
 format.dist <- function(x, ...) format(as.vector(x), ...)
 
 as.matrix.dist <- function(x, ...)
 {
-    length <- attr(x, "Size")
-    # Try first to simple unwrap the deferred calculation returned by
-    # dist()
-    df <- Distance$toMatrix(x)
-    if(is.null(df)) {
-        df <- matrix(0, length, length)
-        df[row(df) > col(df)] <- x
-        df <- df + t(df)
-    }
+    size <- attr(x, "Size")
+    df <- matrix(0, size, size)
+    df[row(df) > col(df)] <- x
+    df <- df + t(df)
     labels <- attr(x, "Labels")
-    dimnames(df) <- if(is.null(labels)) {
-        list(seq_len(length), seq_len(length)) 
-    } else {
-        list(labels,labels)
-    }
+    dimnames(df) <-
+	if(is.null(labels)) list(seq_len(size), seq_len(size)) else list(labels,labels)
     df
 }
 
@@ -114,7 +95,7 @@ print.dist <-
 {
     if(length(x)) {
 	if(is.null(diag))
-	    diag <-	 if(is.null(a <- attr(x, "Diag"))) FALSE else a
+	    diag <- if(is.null(a <- attr(x, "Diag"))) FALSE else a
 	if(is.null(upper))
 	    upper <- if(is.null(a <- attr(x,"Upper"))) FALSE else a
 
@@ -131,7 +112,7 @@ print.dist <-
 	print(if(diag || upper) cf else cf[-1, -attr(x, "Size"), drop = FALSE],
 	      quote = FALSE, right = right, ...)
     } else {
-	cat(data.class(x),"(0)\n", sep='')
+	cat(data.class(x),"(0)\n", sep = "")
     }
     invisible(x)
 }

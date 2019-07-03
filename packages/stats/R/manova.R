@@ -1,5 +1,7 @@
 #  File src/library/stats/R/manova.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,21 +14,21 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 manova <- function(...)
 {
     Call <- fcall <- match.call()
-    fcall[[1L]] <- as.name("aov")
+    fcall[[1L]] <- quote(stats::aov)
     result <- eval(fcall, parent.frame())
     if(inherits(result, "aovlist")) {
         for(i in seq_along(result)) {
-            if(!inherits(result[[i]], "maov")) stop("need multiple response")
+            if(!inherits(result[[i]], "maov")) stop("need multiple responses")
             class(result[[i]]) <- c("manova", oldClass(result[[i]]))
         }
         attr(result, "call") <- Call
     } else {
-        if(!inherits(result, "maov")) stop("need multiple response")
+        if(!inherits(result, "maov")) stop("need multiple responses")
         class(result) <- c("manova", oldClass(result))
         result$call <- Call
     }
@@ -39,7 +41,9 @@ summary.manova <-
              intercept = FALSE, tol = 1e-7, ...)
 {
     if(!inherits(object, "maov"))
-        stop("object must be of class \"manova\" or \"maov\"")
+        stop(gettextf("object must be of class %s or %s",
+                      dQuote("manova"), dQuote("maov")),
+             domain = NA)
     test <- match.arg(test)
 
     asgn <- object$assign[object$qr$pivot[1L:object$rank]]
@@ -52,7 +56,7 @@ summary.manova <-
     nmeffect <- c("(Intercept)", attr(object$terms, "term.labels"))
     resid <- as.matrix(object$residuals)
     wt <- object$weights
-    if (!is.null(wt)) resid <- resid * wt^0.5
+    if (!is.null(wt)) resid <- resid * sqrt(wt)
     nresp <- NCOL(resid)
     if(nresp <= 1) stop("need multiple responses")
 
@@ -87,16 +91,13 @@ summary.manova <-
         ss[[nt]] <- crossprod(resid)
         names(ss)[nt] <- nmrows[nt] <- "Residuals"
         ok <- df[-nt] > 0
-        eigs <- array(NA, c(nterms, nresp))
-        dimnames(eigs) <- list(nmrows[-nt], NULL)
-        stats <- matrix(NA, nt, 5)
-        dimnames(stats) <-  list(nmrows,
-                                 c(test, "approx F", "num Df", "den Df",
-                                   "Pr(>F)"))
-        sc <- sqrt(diag(ss[[nt]]))
-        ## Let us try to distnguish bad scaling and near-perfect fit
-        sss <- sc^2
-        for(i in seq_len(nterms)[ok]) sss <- sss +  diag(ss[[i]])
+        eigs <- array(NA, c(nterms, nresp), dimnames =
+                          list(nmrows[-nt], NULL))
+        stats <- matrix(NA, nt, 5, dimnames = list(nmrows, c(test,
+                                       "approx F", "num Df", "den Df", "Pr(>F)")))
+        sc <- sqrt(sss <- diag(ss[[nt]]))
+        ## Let us try to distinguish bad scaling and near-perfect fit
+        for(i in seq_len(nterms)[ok]) sss <- sss + diag(ss[[i]])
         sc[sc < sqrt(sss)*1e-6] <- 1
         D <- diag(1/sc)
         rss.qr <- qr(D %*% ss[[nt]] %*% D, tol=tol)
@@ -106,17 +107,17 @@ summary.manova <-
         if(!is.null(rss.qr))
             for(i in seq_len(nterms)[ok]) {
                 A1 <- qr.coef(rss.qr, D %*% ss[[i]] %*% D)
-                eigs[i, ] <- Re(eigen(A1, symmetric = FALSE)$values)
-                stats[i, 1L:4] <-
+                eigs[i, ] <- Re(eigen(A1, symmetric = FALSE, only.values = TRUE)$values)
+                stats[i, 1L:4L] <-
                     switch(test,
-                           "Pillai" = Pillai(eigs[i,  ], df[i], df[nt]),
-                           "Wilks" = Wilks(eigs[i,  ], df[i], df[nt]),
-                           "Hotelling-Lawley" = HL(eigs[i,  ], df[i], df[nt]),
-                           "Roy" = Roy(eigs[i,  ], df[i], df[nt]))
-                ok <- stats[, 2] >= 0 & stats[, 3] > 0 & stats[, 4] > 0
+			   "Pillai" = 		Pillai(eigs[i, ], df[i], df[nt]),
+			   "Wilks" = 		Wilks (eigs[i, ], df[i], df[nt]),
+			   "Hotelling-Lawley" = HL    (eigs[i, ], df[i], df[nt]),
+			   "Roy" =		Roy   (eigs[i, ], df[i], df[nt]))
+                ok <- stats[, 2L] >= 0 & stats[, 3L] > 0 & stats[, 4L] > 0
                 ok <- !is.na(ok) & ok
-                stats[ok, 5] <- pf(stats[ok, 2], stats[ok, 3], stats[ok, 4],
-                                   lower.tail = FALSE)
+                stats[ok, 5L] <- pf(stats[ok, 2L], stats[ok, 3L], stats[ok, 4L],
+                                    lower.tail = FALSE)
 
             }
         x <- list(row.names = nmrows, SS = ss,

@@ -1,5 +1,7 @@
 #  File src/library/stats/R/pairwise.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,14 +14,14 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 pairwise.t.test <-
 function(x, g, p.adjust.method = p.adjust.methods, pool.sd = !paired,
          paired = FALSE, alternative = c("two.sided", "less", "greater"), ...)
 {
     if (paired & pool.sd)
-        stop("Pooling of SD is incompatible with paired tests")
+        stop("pooling of SD is incompatible with paired tests")
     DNAME <- paste(deparse(substitute(x)), "and", deparse(substitute(g)))
     g <- factor(g)
     p.adjust.method <- match.arg(p.adjust.method)
@@ -45,7 +47,7 @@ function(x, g, p.adjust.method = p.adjust.methods, pool.sd = !paired,
         }
     } else {
         METHOD <- if (paired) "paired t tests"
-        else "t tests with non-pooled SD"
+		  else "t tests with non-pooled SD"
         compare.levels <- function(i, j) {
             xi <- x[as.integer(g) == i]
             xj <- x[as.integer(g) == j]
@@ -118,12 +120,11 @@ function (x, n, p.adjust.method = p.adjust.methods, ...)
 pairwise.table <-
 function(compare.levels, level.names, p.adjust.method)
 {
-    ix <- seq_along(level.names)
-    names(ix) <- level.names
+    ix <- setNames(seq_along(level.names), level.names)
     pp <- outer(ix[-1L], ix[-length(ix)],function(ivec, jvec)
           sapply(seq_along(ivec), function(k) {
-              i<-ivec[k]
-              j<-jvec[k]
+              i <- ivec[k]
+              j <- jvec[k]
               if (i > j) compare.levels(i, j) else NA
           }))
     pp[lower.tri(pp, TRUE)] <- p.adjust(pp[lower.tri(pp, TRUE)],
@@ -132,13 +133,13 @@ function(compare.levels, level.names, p.adjust.method)
 }
 
 print.pairwise.htest <-
-function(x, ...)
+function(x, digits = max(1L, getOption("digits") - 5L), ...)
 {
     cat("\n\tPairwise comparisons using", x$method, "\n\n")
     cat("data: ", x$data.name, "\n\n")
-    pp <- format.pval(x$p.value, 2, na.form="-")
+    pp <- format.pval(x$p.value, digits=digits, na.form="-")
     attributes(pp) <- attributes(x$p.value)
-    print(pp, quote=FALSE)
+    print(pp, quote=FALSE, ...)
     cat("\nP value adjustment method:", x$p.adjust.method, "\n")
     invisible(x)
 }

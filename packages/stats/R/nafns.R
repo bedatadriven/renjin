@@ -1,5 +1,7 @@
 #  File src/library/stats/R/nafns.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2013 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 na.pass <- function(object, ...) object
 na.action <- function(object, ...) UseMethod("na.action")
@@ -59,7 +61,7 @@ na.omit.data.frame <- function(object, ...)
 {
     ## Assuming a data.frame like object
     n <- length(object)
-    omit <- FALSE
+    omit <- logical(nrow(object))
     vars <- seq_len(n)
     for(j in vars) {
 	x <- object[[j]]
@@ -75,8 +77,8 @@ na.omit.data.frame <- function(object, ...)
     }
     xx <- object[!omit, , drop = FALSE]
     if (any(omit > 0L)) {
-	temp <- seq(omit)[omit]
-	names(temp) <- attr(object, "row.names")[omit]
+	temp <- setNames(seq(omit)[omit],
+			 attr(object, "row.names")[omit])
 	attr(temp, "class") <- "omit"
 	attr(xx, "na.action") <- temp
     }
@@ -113,7 +115,7 @@ na.exclude.data.frame <- function(object, ...)
 {
     ## Assuming a data.frame like object
     n <- length(object)
-    omit <- FALSE
+    omit <- logical(nrow(object))
     vars <- seq_len(n)
     for(j in vars) {
 	x <- object[[j]]
@@ -129,8 +131,8 @@ na.exclude.data.frame <- function(object, ...)
     }
     xx <- object[!omit, , drop = FALSE]
     if (any(omit > 0L)) {
-	temp <- seq(omit)[omit]
-	names(temp) <- attr(object, "row.names")[omit]
+	temp <- setNames(seq(omit)[omit],
+			 attr(object, "row.names")[omit])
 	attr(temp, "class") <- "exclude"
 	attr(xx, "na.action") <- temp
     }

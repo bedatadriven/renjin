@@ -323,6 +323,7 @@ static SEXP ColumnNames(SEXP x)
 	return VECTOR_ELT(dn, 1);
 }
 
+// called from R as  .Externals2(C_modelmatrix, t, data)
 SEXP modelmatrix(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP expr, factors, terms, vars, vnames, assign;
@@ -341,8 +342,7 @@ SEXP modelmatrix(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     /* Get the "terms" structure and extract */
     /* the intercept and response attributes. */
-
-    terms = CAR(args);
+    terms = CAR(args); // = 't' in R's calling code
 
     intrcept = asLogical(getAttrib(terms, install("intercept")));
     if (intrcept == NA_INTEGER)
@@ -477,7 +477,8 @@ SEXP modelmatrix(SEXP call, SEXP op, SEXP args, SEXP rho)
     PROTECT(contr1 = allocVector(VECSXP, nVar));
     PROTECT(contr2 = allocVector(VECSXP, nVar));
 
-    PROTECT(expr = Rf_lang3(R_NilValue, R_NilValue, R_NilValue));
+    PROTECT(expr = allocList(3));
+    SET_TYPEOF(expr, LANGSXP);
     SETCAR(expr, install("contrasts"));
     SETCADDR(expr, allocVector(LGLSXP, 1));
 
@@ -787,8 +788,7 @@ static SEXP ExpandDots(SEXP object, SEXP value)
 	    }
 	    else if (length(object) == 3) {
 		SETCADR(object, ExpandDots(CADR(object), value));
-		SETCADDR(object, lang2(parenSymbol,
-                         ExpandDots(CADDR(object), value)));
+		SETCADDR(object, ExpandDots(CADDR(object), value));
 	    }
 	    else goto badformula;
 	}
@@ -1650,9 +1650,10 @@ static int TermCode(SEXP termlist, SEXP thisterm, int whichbit, SEXP term)
 
 SEXP termsform(SEXP args)
 {
-    SEXP head, a, ans, v, pattern, formula, varnames, term, termlabs, ord;
+    SEXP a, ans, v, pattern, formula, varnames, term, termlabs, ord;
     SEXP specials, t, data, rhs, call;
-    int i, j, k, l, n, keepOrder, allowDot;
+    R_xlen_t i, j, k, l, n;
+    int keepOrder, allowDot;
 
     Rboolean hadFrameNames = FALSE;
 
@@ -1720,12 +1721,13 @@ SEXP termsform(SEXP args)
     if (allowDot == NA_LOGICAL) allowDot = 0;
 
     if (specials == R_NilValue) {
-	head = allocList(8);
+	a = allocList(8);
+	SET_ATTRIB(ans, a);
     }
     else {
-	head = allocList(9);
+	a = allocList(9);
+	SET_ATTRIB(ans, a);
     }
-    a = head;
 
     /* Step 1: Determine the ``variables'' in the model */
     /* Here we create an expression of the form */
@@ -1998,7 +2000,6 @@ SEXP termsform(SEXP args)
     SET_OBJECT(ans, 1);
 
     SETCDR(a, R_NilValue);  /* truncate if necessary */
-    SET_ATTRIB(ans, head);
 
     UNPROTECT(5);
     return ans;

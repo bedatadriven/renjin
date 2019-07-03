@@ -165,7 +165,7 @@ SEXP call_dqagi(SEXP);
 SEXP call_dqags(SEXP);
 
 SEXP Rsm(SEXP x, SEXP stype, SEXP send);
-SEXP tukeyline(SEXP x, SEXP y, SEXP call);
+SEXP tukeyline(SEXP x, SEXP y, SEXP iter, SEXP call);
 SEXP runmed(SEXP x, SEXP stype, SEXP sk, SEXP end, SEXP print_level);
 SEXP influence(SEXP mqr, SEXP do_coef, SEXP e, SEXP stol);
 
@@ -192,6 +192,7 @@ SEXP pRho(SEXP q, SEXP sn, SEXP lower);
 SEXP SWilk(SEXP x);
 
 SEXP bw_den(SEXP nbin, SEXP sx);
+SEXP bw_den_binned(SEXP sx);
 SEXP bw_ucv(SEXP sn, SEXP sd, SEXP cnt, SEXP sh);
 SEXP bw_bcv(SEXP sn, SEXP sd, SEXP cnt, SEXP sh);
 SEXP bw_phi4(SEXP sn, SEXP sd, SEXP cnt, SEXP sh);

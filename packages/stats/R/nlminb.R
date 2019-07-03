@@ -1,5 +1,7 @@
 #  File src/library/stats/R/nlminb.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ##' used here and in nls(... algorithm = "port")
 port_msg <- function(iv1) {
@@ -60,9 +62,7 @@ port_v_nms <-
       FLSTGD = 12L, GTSLST = 14L,
       PLSTGD = 15L, RADFAC = 16L, DSTSAV = 18L)
 port_get_named_v <- function(v) {
-    v <- v[port_v_nms]
-    names(v) <- names(port_v_nms)
-    v
+    setNames(v[port_v_nms], names(port_v_nms))
 }
 
 
@@ -71,8 +71,7 @@ nlminb <-
              scale = 1, control = list(), lower =  - Inf, upper = Inf)
 {
     ## Establish the working vectors and check and set options
-    par <- as.double(start)
-    names(par) <- names(start)
+    par <- setNames(as.double(start), names(start))
     n <- length(par)
     iv <- integer(78 + 3 * n)
     v <- double(130 + (n * (n + 27)) / 2)
@@ -80,12 +79,14 @@ nlminb <-
     if (length(control)) {
  	nms <- names(control)
 	if (!is.list(control) || is.null(nms))
-	    stop("control argument must be a named list")
+	    stop("'control' argument must be a named list")
 	pos <- pmatch(nms, names(port_cpos))
 	if (any(nap <- is.na(pos))) {
-	    warning(paste("unrecognized control element(s) named `",
-			  paste(nms[nap], collapse = ", "),
-			  "' ignored", sep = ""))
+            warning(sprintf(ngettext(length(nap),
+                                     "unrecognized control element named %s ignored",
+                                     "unrecognized control elements named %s ignored"),
+                            paste(sQuote(nms[nap]), collapse = ", ")),
+                    domain = NA)
 	    pos <- pos[!nap]
 	    control <- control[!nap]
 	}
@@ -107,18 +108,18 @@ nlminb <-
         grad <- quote(gradient(.par, ...))
         if (!is.null(hessian)) {
             if (is.logical(hessian))
-                stop("Logical `hessian' argument not allowed.  See documentation.")
+                stop("logical 'hessian' argument not allowed.  See documentation.")
             hess <- quote(hessian(.par, ...))
         }
     }
     if (any(lower != -Inf) || any(upper != Inf)) {
-        low <- rep(as.double(lower), length.out = length(par))
-        upp <- rep(as.double(upper), length.out = length(par))
+        low <- rep_len(as.double(lower), length(par))
+        upp <- rep_len(as.double(upper), length(par))
     } else low <- upp <- numeric()
 
     ## Do the optimization
     .Call(C_port_nlminb, obj, grad, hess, rho, low, upp,
-          d = rep(as.double(scale), length.out = length(par)), iv, v)
+          d = rep_len(as.double(scale), length(par)), iv, v)
 
     iv1 <- iv[1L]
     list(par = get(".par", envir = rho),

@@ -1,5 +1,7 @@
 #  File src/library/stats/R/princomp-add.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2014 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 predict.princomp <- function(object, newdata, ...)
 {
@@ -42,7 +44,7 @@ summary.princomp <- function(object, loadings = FALSE, cutoff = 0.1, ...)
 }
 
 print.summary.princomp <-
-    function(x, digits = 3, loadings = x$print.loadings, cutoff = x$cutoff,
+    function(x, digits = 3L, loadings = x$print.loadings, cutoff = x$cutoff,
              ...)
 {
     vars <- x$sdev^2
@@ -55,7 +57,7 @@ print.summary.princomp <-
         cat("\nLoadings:\n")
         cx <- format(round(x$loadings, digits = digits))
         cx[abs(x$loadings) < cutoff] <-
-            paste(rep(" ", nchar(cx[1,1], type="w")), collapse="")
+            strrep(" ", nchar(cx[1,1], type="w"))
         print(cx, quote = FALSE, ...)
     }
     invisible(x)
@@ -88,4 +90,4 @@ function(x, npcs = min(10, length(x$sdev)),
     invisible()
 }
 
-loadings <- function(x) x$loadings
+loadings <- function(x, ...) x$loadings

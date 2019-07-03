@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1995-2015	The R Core Team
+ *  Copyright (C) 1995-2017	The R Core Team
  *  Copyright (C) 2003		The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -62,6 +62,7 @@ SEXP cov(SEXP x, SEXP y, SEXP na_method, SEXP kendall)
 		    }
 
 #define ANS(I,J)  ans[I + J * ncx]
+#define CLAMP(X)  (X >= 1. ? 1. : (X <= -1. ? -1. : X))
 
 /* Note that "if (kendall)" and	 "if (cor)" are used inside a double for() loop;
    which makes the code better readable -- and is hopefully dealt with
@@ -126,8 +127,8 @@ SEXP cov(SEXP x, SEXP y, SEXP na_method, SEXP kendall)
 			    ysd /= n1;					\
 			    sum /= n1;					\
 			}						\
-			sum /= (SQRTL(xsd) * SQRTL(ysd));	       	\
-			if(sum > 1.) sum = 1.;				\
+			sum /= (SQRTL(xsd) * SQRTL(ysd));		\
+			sum = CLAMP(sum);				\
 		    }							\
 		}							\
 		else if(!kendall)					\
@@ -177,7 +178,7 @@ static void cov_pairwise2(int n, int ncx, int ncy, double *x, double *y,
 #define COV_ini_0				\
     LDOUBLE sum, tmp, xxm, yym;			\
     double *xx, *yy;				\
-    int i, j, k, n1=-1/* -Wall */
+    R_xlen_t i, j, k, n1=-1/* -Wall */
 
 #define COV_n_le_1(_n_,_k_)			\
     if (_n_ <= 1) {/* too many missing */	\
@@ -267,7 +268,7 @@ cov_complete1(int n, int ncx, double *x, double *xm,
 		sum = 0.;
 		for (k = 0 ; k < n ; k++)
 		    if (ind[k] != 0)
-			sum += (xx[k] - xxm) * (yy[k] - yym);
+			sum += (LDOUBLE)(xx[k] - xxm) * (yy[k] - yym);
 		ANS(j,i) = ANS(i,j) = (double)(sum / n1);
 	    }
 	}
@@ -297,8 +298,7 @@ cov_complete1(int n, int ncx, double *x, double *xm,
 		}
 		else {
 		    sum = ANS(i,j) / (xm[i] * xm[j]);
-		    if(sum > 1.) sum = 1.;
-		    ANS(j,i) = ANS(i,j) = (double)sum;
+		    ANS(j,i) = ANS(i,j) = (double)CLAMP(sum);
 		}
 	    }
 	    ANS(i,i) = 1.0;
@@ -336,7 +336,7 @@ cov_na_1(int n, int ncx, double *x, double *xm,
 			yym = xm[j];
 			sum = 0.;
 			for (k = 0 ; k < n ; k++)
-			    sum += (xx[k] - xxm) * (yy[k] - yym);
+			    sum += (LDOUBLE)(xx[k] - xxm) * (yy[k] - yym);
 			ANS(j,i) = ANS(i,j) = (double)(sum / n1);
 		    }
 	    }
@@ -367,8 +367,7 @@ cov_na_1(int n, int ncx, double *x, double *xm,
 		}
 		else {
 		    sum = ANS(i,j) / (xm[i] * xm[j]);
-		    if(sum > 1.) sum = 1.;
-		    ANS(j,i) = ANS(i,j) = (double)sum;
+		    ANS(j,i) = ANS(i,j) = (double)CLAMP(sum);
 		}
 	    }
 	    ANS(i,i) = 1.0;
@@ -398,7 +397,7 @@ cov_complete2(int n, int ncx, int ncy, double *x, double *y,
 		sum = 0.;
 		for (k = 0 ; k < n ; k++)
 		    if (ind[k] != 0)
-			sum += (xx[k] - xxm) * (yy[k] - yym);
+			sum += (LDOUBLE)(xx[k] - xxm) * (yy[k] - yym);
 		ANS(i,j) = (double)(sum / n1);
 	    }
 	}
@@ -427,7 +426,7 @@ cov_complete2(int n, int ncx, int ncy, double *x, double *y,
 		xxm = _X_##m [i];					\
 		for (k = 0 ; k < n ; k++)				\
 		    if (ind[k] != 0)					\
-			sum += (xx[k] - xxm) * (xx[k] - xxm);		\
+			sum += (LDOUBLE)(xx[k] - xxm) * (xx[k] - xxm);	\
 		sum /= n1;						\
 	    }								\
 	    else { /* Kendall's tau */					\
@@ -451,7 +450,7 @@ cov_complete2(int n, int ncx, int ncy, double *x, double *y,
 		}
 		else {
 		    ANS(i,j) /= (xm[i] * ym[j]);
-		    if(ANS(i,j) > 1.) ANS(i,j) = 1.;
+		    ANS(i,j) = CLAMP(ANS(i,j));
 		}
     }/* cor */
 
@@ -487,7 +486,7 @@ cov_na_2(int n, int ncx, int ncy, double *x, double *y,
 			yym = ym[j];
 			sum = 0.;
 			for (k = 0 ; k < n ; k++)
-			    sum += (xx[k] - xxm) * (yy[k] - yym);
+			    sum += (LDOUBLE)(xx[k] - xxm) * (yy[k] - yym);
 			ANS(i,j) = (double)(sum / n1);
 		    }
 	    }
@@ -517,7 +516,7 @@ cov_na_2(int n, int ncx, int ncy, double *x, double *y,
 		if(!kendall) {						\
 		    xxm = _X_##m [i];					\
 		    for (k = 0 ; k < n ; k++)				\
-			sum += (xx[k] - xxm) * (xx[k] - xxm);		\
+			sum += (LDOUBLE)(xx[k] - xxm) * (xx[k] - xxm);	\
 		    sum /= n1;						\
 		}							\
 		else { /* Kendall's tau */				\
@@ -542,7 +541,7 @@ cov_na_2(int n, int ncx, int ncy, double *x, double *y,
 			}
 			else {
 			    ANS(i,j) /= (xm[i] * ym[j]);
-			    if(ANS(i,j) > 1.) ANS(i,j) = 1.;
+			    ANS(i,j) = CLAMP(ANS(i,j));
 			}
 		    }
 	    }

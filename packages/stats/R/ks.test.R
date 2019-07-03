@@ -1,5 +1,7 @@
 #  File src/library/stats/R/ks.test.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ks.test <-
     function(x, y, ..., alternative = c("two.sided", "less", "greater"),
@@ -42,10 +44,10 @@ ks.test <-
         z <- cumsum(ifelse(order(w) <= n.x, 1 / n.x, - 1 / n.y))
         if(length(unique(w)) < (n.x + n.y)) {
             if (exact) {
-                warning("cannot compute exact p-values with ties")
+                warning("cannot compute exact p-value with ties")
                 exact <- FALSE
             } else
-                warning("p-values will be approximate in the presence of ties")
+                warning("p-value will be approximate in the presence of ties")
             z <- z[c(which(diff(sort(w)) != 0), n.x + n.y)]
             TIES <- TRUE
         }
@@ -58,11 +60,7 @@ ks.test <-
                                  "less" = "the CDF of x lies below that of y",
                                  "greater" = "the CDF of x lies above that of y")
         if(exact && (alternative == "two.sided") && !TIES)
-            PVAL <- 1 - .C(C_psmirnov2x,
-                           p = as.double(STATISTIC),
-                           as.integer(n.x),
-                           as.integer(n.y),
-                           PACKAGE = "stats")$p
+            PVAL <- 1 - .Call(C_pSmirnov2x, STATISTIC, n.x, n.y)
     } else { ## one-sample case
         if(is.character(y)) # avoid matching anything in this function
             y <- get(y, mode = "function", envir = parent.frame())
@@ -82,8 +80,7 @@ ks.test <-
                             "less" = max(x))
         if(exact) {
             PVAL <- 1 - if(alternative == "two.sided")
-                .C(C_pkolmogorov2x, p = as.double(STATISTIC),
-                   as.integer(n), PACKAGE = "stats")$p
+                .Call(C_pKolmogorov2x, STATISTIC, n)
             else {
                 pkolmogorov1x <- function(x, n) {
                     ## Probability function for the one-sided
@@ -121,9 +118,7 @@ ks.test <-
             p <- rep(0, length(x))
             p[is.na(x)] <- NA
             IND <- which(!is.na(x) & (x > 0))
-            if(length(IND))
-                p[IND] <- .C(C_pkstwo, length(x[IND]), p = x[IND],
-                             as.double(tol), PACKAGE = "stats")$p
+            if(length(IND)) p[IND] <- .Call(C_pKS2, p = x[IND], tol)
             p
         }
         ## <FIXME>

@@ -1,7 +1,8 @@
 #  File src/library/stats/R/TukeyHSD.R
-#  Part of the R package, http://www.R-project.org
-#  Copyright 2000-2001  Douglas M. Bates <bates@stat.wisc.edu>
-#  Modified for base R 2002 B. D. Ripley
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 2000-2001  Douglas M. Bates
+#  Copyright (C) 2002-2015  The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,7 +15,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ###
 ###               Tukey multiple comparisons for R
@@ -31,7 +32,8 @@ TukeyHSD.aov <-
     mm <- model.tables(x, "means")
     if(is.null(mm$n))
         stop("no factors in the fitted model")
-    tabs <- mm$tables[-1L]
+    tabs <- mm$tables
+    if(names(tabs)[1L] == "Grand mean") tabs <- tabs[-1L]
     tabs <- tabs[which]
     ## mm$n need not be complete -- factors only -- so index by names
     nn <- mm$n[names(tabs)]
@@ -43,15 +45,14 @@ TukeyHSD.aov <-
         tabs <- tabs[!nn_na]
         nn <- nn[!nn_na]
     }
-    out <- vector("list", length(tabs))
-    names(out) <- names(tabs)
-    MSE <- sum(resid(x)^2)/x$df.residual
+    out <- setNames(vector("list", length(tabs)), names(tabs))
+    MSE <- sum(x$residuals^2)/x$df.residual
     for (nm in names(tabs)) {
         tab <- tabs[[nm]]
         means <- as.vector(tab)
-        nms <- if(length(d <- dim(tab)) > 1L) {
+        nms <- if(length(dim(tab)) > 1L) {
             dn <- dimnames(tab)
-            apply(do.call("expand.grid", dn), 1L, paste, collapse=":")
+            apply(do.call("expand.grid", dn), 1L, paste, collapse = ":")
         } else names(tab)
         n <- nn[[nm]]
         ## expand n to the correct length if necessary
@@ -68,32 +69,33 @@ TukeyHSD.aov <-
         width <- qtukey(conf.level, length(means), x$df.residual) *
             sqrt((MSE/2) * outer(1/n, 1/n, "+"))[keep]
         est <- center/(sqrt((MSE/2) * outer(1/n, 1/n, "+"))[keep])
-        pvals <- ptukey(abs(est),length(means),x$df.residual,lower.tail=FALSE)
+        pvals <- ptukey(abs(est), length(means), x$df.residual,
+                        lower.tail = FALSE)
         dnames <- list(NULL, c("diff", "lwr", "upr","p adj"))
         if (!is.null(nms)) dnames[[1L]] <- outer(nms, nms, paste, sep = "-")[keep]
         out[[nm]] <- array(c(center, center - width, center + width,pvals),
-                           c(length(width), 4), dnames)
+                           c(length(width), 4L), dnames)
     }
-    class(out) <- c("multicomp", "TukeyHSD")
+    class(out) <- c("TukeyHSD", "multicomp") # multicomp is historical
     attr(out, "orig.call") <- x$call
     attr(out, "conf.level") <- conf.level
     attr(out, "ordered") <- ordered
     out
 }
 
-print.TukeyHSD <- function(x, digits=getOption("digits"), ...)
+print.TukeyHSD <- function(x, digits = getOption("digits"), ...)
 {
     cat("  Tukey multiple comparisons of means\n")
     cat("    ", format(100*attr(x, "conf.level"), 2),
-        "% family-wise confidence level\n", sep="")
+        "% family-wise confidence level\n", sep = "")
     if (attr(x, "ordered"))
         cat("    factor levels have been ordered\n")
-    cat("\nFit: ", deparse(attr(x, "orig.call"), 500), "\n\n", sep="")
+    cat("\nFit: ", deparse(attr(x, "orig.call"), 500L), "\n\n", sep = "")
     xx <- unclass(x)
     attr(xx, "orig.call") <- attr(xx, "conf.level") <- attr(xx, "ordered") <- NULL
     xx[] <- lapply(xx, function(z, digits)
                {z[, "p adj"] <- round(z[, "p adj"], digits); z},
-                   digits=digits)
+                   digits = digits)
     print.default(xx, digits, ...)
     invisible(x)
 }
@@ -101,22 +103,23 @@ print.TukeyHSD <- function(x, digits=getOption("digits"), ...)
 plot.TukeyHSD <- function (x, ...)
 {
     for (i in seq_along(x)) {
-        xi <- x[[i]][, -4, drop=FALSE] # drop p-values
-        yvals <- nrow(xi):1
+        xi <- x[[i]][, -4L, drop = FALSE] # drop p-values
+        yvals <- nrow(xi):1L
         dev.hold(); on.exit(dev.flush())
-        plot(c(xi[, "lwr"], xi[, "upr"]), rep.int(yvals, 2), type = "n",
-             axes = FALSE, xlab = "", ylab = "", ...)
+        ## xlab, main are set below, so block them from ...
+        plot(c(xi[, "lwr"], xi[, "upr"]), rep.int(yvals, 2L), type = "n",
+             axes = FALSE, xlab = "", ylab = "", main = NULL, ...)
         axis(1, ...)
-        axis(2, at = nrow(xi):1, labels = dimnames(xi)[[1L]],
-             srt = 0, ...)
+        axis(2, at = nrow(xi):1, labels = dimnames(xi)[[1L]], srt = 0, ...)
         abline(h = yvals, lty = 1, lwd = 0.5, col = "lightgray")
         abline(v = 0, lty = 2, lwd = 0.5, ...)
         segments(xi[, "lwr"], yvals, xi[, "upr"], yvals, ...)
-        segments(as.vector(xi), rep.int(yvals - 0.1, 3), as.vector(xi),
-                 rep.int(yvals + 0.1, 3), ...)
-        title(main = paste(format(100 * attr(x, "conf.level"),
-              2), "% family-wise confidence level\n", sep = ""),
+        segments(as.vector(xi), rep.int(yvals - 0.1, 3L), as.vector(xi),
+                 rep.int(yvals + 0.1, 3L), ...)
+        title(main = paste0(format(100 * attr(x, "conf.level"), digits = 2L),
+                            "% family-wise confidence level\n"),
               xlab = paste("Differences in mean levels of", names(x)[i]))
         box()
+	dev.flush(); on.exit()
     }
 }

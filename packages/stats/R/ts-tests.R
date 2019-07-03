@@ -1,5 +1,7 @@
 #  File src/library/stats/R/ts-tests.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 Box.test <- function (x, lag = 1, type=c("Box-Pierce", "Ljung-Box"), fitdf=0)
 {
@@ -22,7 +24,7 @@ Box.test <- function (x, lag = 1, type=c("Box-Pierce", "Ljung-Box"), fitdf=0)
     type <- match.arg(type)
     cor <- acf (x, lag.max = lag, plot = FALSE, na.action = na.pass)
     n <- sum(!is.na(x))
-    PARAMETER <- lag-fitdf
+    PARAMETER <- c(df = lag-fitdf)
     obs <- cor$acf[2:(lag+1)]
     if (type=="Box-Pierce")
     {
@@ -37,7 +39,6 @@ Box.test <- function (x, lag = 1, type=c("Box-Pierce", "Ljung-Box"), fitdf=0)
         PVAL <- 1-pchisq(STATISTIC, lag-fitdf)
     }
     names(STATISTIC) <- "X-squared"
-    names(PARAMETER) <- "df"
     structure(list(statistic = STATISTIC,
                    parameter = PARAMETER,
                    p.value = PVAL,
@@ -55,21 +56,16 @@ PP.test <- function (x, lshort = TRUE)
     yt <- z[,1]
     yt1 <- z[,2]
     n <- length (yt)
-    tt <- (1L:n)-n/2
-    res <- lm (yt~1+tt+yt1)
+    u <- (1L:n)-n/2
+    res <- lm(yt ~ 1 + u + yt1)
     if (res$rank < 3)
         stop ("singularities in regression")
-    res.sum <- summary (res)
-    tstat <- (res.sum$coefficients[3,1]-1)/res.sum$coefficients[3,2]
+    cf <- coef(summary(res))
+    tstat <- (cf[3,1] - 1) / cf[3,2]
     u <- residuals (res)
     ssqru <- sum(u^2)/n
-    if (lshort)
-        l <- trunc(4*(n/100)^0.25)
-    else
-        l <- trunc(12*(n/100)^0.25)
-    ssqrtl <- .C ("R_pp_sum", as.vector(u,mode="double"), as.integer(n),
-                  as.integer(l), trm=as.double(ssqru), PACKAGE="stats")
-    ssqrtl <- ssqrtl$trm
+    l <- if (lshort) trunc(4*(n/100)^0.25) else trunc(12*(n/100)^0.25)
+    ssqrtl <- ssqru + .Call(C_pp_sum, u, l)
     n2 <- n^2
     trm1 <- n2*(n2-1)*sum(yt1^2)/12
     trm2 <- n*sum(yt1*(1L:n))^2

@@ -1,5 +1,7 @@
 #  File src/library/stats/R/poisson.tests.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 
 poisson.test <- function(x, T = 1, r = 1, alternative =
@@ -41,7 +43,7 @@ poisson.test <- function(x, T = 1, r = 1, alternative =
         stop("not enough data")
 
     if (k > 2L)
-        stop("The case k > 2 is unimplemented")
+        stop("the case k > 2 is unimplemented")
 
     if(!missing(r) && (length(r) > 1 || is.na(r) || r < 0 ))
         stop ("'r' must be a single positive number")
@@ -54,12 +56,9 @@ poisson.test <- function(x, T = 1, r = 1, alternative =
                            alternative=alternative, conf.level=conf.level)
 
         RVAL$data.name <- DNAME
-        RVAL$statistic <- x[1L]
-        RVAL$parameter <- sum(x) * r * T[1L]/sum(T * c(1, r))
-        names(RVAL$statistic) <- c("count1")
-        names(RVAL$parameter) <- c("expected count1")
-        RVAL$estimate <- (x[1L]/T[1L])/(x[2L]/T[2L])
-        names(RVAL$estimate) <- "rate ratio"
+        RVAL$statistic <- c(count1 = x[1L])
+        RVAL$parameter <- c("expected count1" = sum(x) * r * T[1L]/sum(T * c(1, r)))
+        RVAL$estimate  <- c("rate ratio" = (x[1L]/T[1L])/(x[2L]/T[2L]))
         pp <- RVAL$conf.int
         RVAL$conf.int <- pp/(1 - pp)*T[2L]/T[1L]
         names(r) <- "rate ratio"

@@ -1,5 +1,7 @@
 #  File src/library/stats/R/ecdf.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 #### Empirical Cumulative Distribution Functions :  "ecdf"
 ##--  inherit from  "stepfun"
@@ -33,9 +35,9 @@ ecdf <- function (x)
     rval
 }
 
-print.ecdf <- function (x, digits= getOption("digits") - 2, ...)
+print.ecdf <- function (x, digits = getOption("digits") - 2L, ...)
 {
-    numform <- function(x) paste(formatC(x, digits=digits), collapse=", ")
+    numform <- function(x) paste(formatC(x, digits = digits), collapse = ", ")
     cat("Empirical CDF \nCall: ")
     print(attr(x, "call"), ...)
     n <- length(xx <- environment(x)$"x")
@@ -48,7 +50,8 @@ print.ecdf <- function (x, digits= getOption("digits") - 2, ...)
 
 summary.ecdf <- function(object, ...)
 {
-    header <- paste("Empirical CDF:	 ", environment(object)$"n",
+    n <- length(eval(expression(x), envir = environment(object)))
+    header <- paste("Empirical CDF:	 ", n,
                     "unique values with summary\n")
     structure(summary(knots(object), ...),
               header = header, class = "summary.ecdf")
@@ -57,7 +60,7 @@ summary.ecdf <- function(object, ...)
 print.summary.ecdf <- function(x, ...)
 {
     cat(attr(x, "header"))
-    y <- unclass(x); attr(y, "header") <- NULL
+    y <- x; attr(y, "header") <- NULL; class(y) <- "summaryDefault"
     print(y, ...)
     invisible(x)
 }
@@ -74,7 +77,8 @@ plot.ecdf <- function(x, ..., ylab="Fn(x)", verticals = FALSE,
     abline(h = c(0,1), col = col.01line, lty = 2)
 }
 
+utils::globalVariables("y", add = TRUE)
 quantile.ecdf <- function (x, ...)
     ## == quantile( sort( <original sample> ) ) :
-    quantile(evalq(rep.int(x, diff(c(0,round(nobs*y)))), environment(x)), ...)
+    quantile(evalq(rep.int(x, diff(c(0, round(nobs*y)))), environment(x)), ...)
 

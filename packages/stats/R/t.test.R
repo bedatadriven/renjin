@@ -1,5 +1,7 @@
 #  File src/library/stats/R/t.test.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 t.test <- function(x, ...) UseMethod("t.test")
 
@@ -42,19 +44,18 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
     }
     else {
 	dname <- deparse(substitute(x))
-	if( paired ) stop("'y' is missing for paired test")
+	if (paired) stop("'y' is missing for paired test")
 	xok <- !is.na(x)
 	yok <- NULL
     }
     x <- x[xok]
-    if( paired ) {
+    if (paired) {
 	x <- x-y
 	y <- NULL
     }
     nx <- length(x)
     mx <- mean(x)
     vx <- var(x)
-    estimate <- mx
     if(is.null(y)) {
         if(nx < 2) stop("not enough 'x' observations")
 	df <- nx-1
@@ -62,8 +63,9 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
         if(stderr < 10 *.Machine$double.eps * abs(mx))
             stop("data are essentially constant")
 	tstat <- (mx-mu)/stderr
-	method <- ifelse(paired,"Paired t-test","One Sample t-test")
-	names(estimate) <- ifelse(paired,"mean of the differences","mean of x")
+	method <- if(paired) "Paired t-test" else "One Sample t-test"
+	estimate <-
+	    setNames(mx, if(paired)"mean of the differences" else "mean of x")
     } else {
 	ny <- length(y)
         if(nx < 1 || (!var.equal && nx < 2))
@@ -113,9 +115,9 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
     names(mu) <- if(paired || !is.null(y)) "difference in means" else "mean"
     attr(cint,"conf.level") <- conf.level
     rval <- list(statistic = tstat, parameter = df, p.value = pval,
-	       conf.int=cint, estimate=estimate, null.value = mu,
-	       alternative=alternative,
-	       method=method, data.name=dname)
+	       conf.int = cint, estimate = estimate, null.value = mu,
+	       alternative = alternative,
+	       method = method, data.name = dname)
     class(rval) <- "htest"
     return(rval)
 }
@@ -130,7 +132,8 @@ function(formula, data, subset, na.action, ...)
     m <- match.call(expand.dots = FALSE)
     if(is.matrix(eval(m$data, parent.frame())))
         m$data <- as.data.frame(data)
-    m[[1L]] <- as.name("model.frame")
+    ## need stats:: for non-standard evaluation
+    m[[1L]] <- quote(stats::model.frame)
     m$... <- NULL
     mf <- eval(m, parent.frame())
     DNAME <- paste(names(mf), collapse = " by ")
@@ -139,8 +142,7 @@ function(formula, data, subset, na.action, ...)
     g <- factor(mf[[-response]])
     if(nlevels(g) != 2L)
         stop("grouping factor must have exactly 2 levels")
-    DATA <- split(mf[[response]], g)
-    names(DATA) <- c("x", "y")
+    DATA <- setNames(split(mf[[response]], g), c("x", "y"))
     y <- do.call("t.test", c(DATA, list(...)))
     y$data.name <- DNAME
     if(length(y$estimate) == 2L)

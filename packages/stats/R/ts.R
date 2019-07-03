@@ -1,5 +1,7 @@
 #  File src/library/stats/R/ts.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 start	  <- function(x, ...) UseMethod("start")
 end	  <- function(x, ...) UseMethod("end")
@@ -22,9 +24,9 @@ window	  <- function(x, ...) UseMethod("window")
 cycle     <- function(x, ...) UseMethod("cycle")
 deltat    <- function(x, ...) UseMethod("deltat")
 
-ts <- function(data = NA, start = 1, end = numeric(0), frequency = 1,
+ts <- function(data = NA, start = 1, end = numeric(), frequency = 1,
 	       deltat = 1, ts.eps  =  getOption("ts.eps"),
-               class = if(nseries > 1) c("mts", "ts") else "ts",
+	       class = if(nseries > 1) c("mts", "ts", "matrix") else "ts",
                names = if(!is.null(dimnames(data))) colnames(data)
                else paste("Series", seq(nseries))
                )
@@ -67,16 +69,16 @@ ts <- function(data = NA, start = 1, end = numeric(0), frequency = 1,
     if(nobs != ndata)
 	data <-
 	    if(NCOL(data) == 1) {
-		if(ndata < nobs) rep(data, length.out = nobs)
+		if(ndata < nobs) rep_len(data, nobs)
 		else if(ndata > nobs) data[1L:nobs]
 	    } else {
-		if(ndata < nobs) data[rep(1L:ndata, length.out = nobs), ]
+		if(ndata < nobs) data[rep_len(1L:ndata, nobs), ]
 		else if(ndata > nobs) data[1L:nobs, ]
 	    }
     ## FIXME: The following "attr<-"() calls C tspgets() which uses a
     ##  	fixed equivalent of ts.eps := 1e-5
     attr(data, "tsp") <- c(start, end, frequency) #-- order is fixed
-    if(!is.null(class) && class != "none") attr(data, "class") <- class
+    if(!is.null(class) && class[[1]] != "none") attr(data, "class") <- class
     ## if you alter the return structure, you also need to alter
     ## newBasic in methods/R/RClassUtils.R.  So please don't.
     data
@@ -88,10 +90,13 @@ tsp <- function(x) attr(x, "tsp")
 {
     cl <- oldClass(x)
     attr(x, "tsp") <- value # does error-checking internally
-    if (inherits(x, "ts") && is.null(value))
-        class(x) <- if(!identical(cl,"ts")) cl["ts" != cl]
-    else if (inherits(x, "mts") && is.null(value))
-        class(x) <- if(!identical(cl,"mts")) cl["mts" != cl]
+    if (is.null(value)) {
+        if (inherits(x, "ts"))
+	    cl <- cl["ts" != cl]
+        if (inherits(x, "mts"))
+	    cl <- cl["mts" != cl]
+        class(x) <- cl
+    }
     x
 }
 
@@ -115,17 +120,17 @@ as.ts.default <- function(x, ...)
 
 .cbind.ts <- function(sers, nmsers, dframe = FALSE, union = TRUE)
 {
-    nulls <- sapply(sers, is.null)
+    nulls <- vapply(sers, is.null, NA)
     sers <- sers[!nulls]
     nser <- length(sers)
     if(nser == 0L) return(NULL)
     if(nser == 1L)
         if(dframe) return(as.data.frame(sers[[1L]])) else return(sers[[1L]])
-    tsser <-  sapply(sers, function(x) length(tsp(x)) > 0L)
+    tsser <- vapply(sers, function(x) length(tsp(x)) > 0L, NA)
     if(!any(tsser))
         stop("no time series supplied")
     sers <- lapply(sers, as.ts)
-    nsers <- sapply(sers, NCOL)
+    nsers <- vapply(sers, NCOL, 1)
     tsps <- sapply(sers[tsser], tsp)
     freq <- mean(tsps[3,])
     if(max(abs(tsps[3,] - freq)) > getOption("ts.eps")) {
@@ -145,7 +150,7 @@ as.ts.default <- function(x, ...)
     p <- c(st, en, freq)
     n <- round(freq * (en - st) + 1)
     if(any(!tsser)) {
-        ln <- sapply(sers[!tsser], NROW)
+        ln <- vapply(sers[!tsser], NROW, 1)
         if(any(ln != 1 && ln != n))
             stop("non-time series not of the correct length")
         for(i in (1L:nser)[!tsser]) {
@@ -154,8 +159,7 @@ as.ts.default <- function(x, ...)
         tsps <- sapply(sers, tsp)
     }
     if(dframe) {
-        x <- vector("list", nser)
-        names(x) <- nmsers
+	x <- setNames(vector("list", nser), nmsers)
     } else {
         ns <- sum(nsers)
         x <- matrix(, n, ns)
@@ -285,7 +289,7 @@ na.omit.ts <- function(object, ...)
         tsp(object) <- c(tm[st], tm[en], xfreq)
         if(!is.null(cl)) class(object) <- cl
     }
-    if(any(is.na(object))) stop("time series contains internal NAs")
+    if(anyNA(object)) stop("time series contains internal NAs")
     object
 }
 
@@ -349,17 +353,13 @@ cycle.ts <- function (x, ...) as.ts(cycle.default(x, ...))
 
 print.ts <- function(x, calendar, ...)
 {
-    x.orig <- x
     x <- as.ts(x)
-    fr.x <- frequency(x)
-    if(missing(calendar))
-	calendar <- any(fr.x == c(4,12)) && length(start(x)) == 2L
     ## sanity check
     Tsp <- tsp(x)
     if(is.null(Tsp)) {
-        warning("series is corrupt, with no 'tsp' attribute")
-        print(unclass(x))
-        return(invisible(x))
+	warning("series is corrupt, with no 'tsp' attribute")
+	print(unclass(x), ...)
+	return(invisible(x))
     }
     nn <- 1 + round((Tsp[2L] - Tsp[1L]) * Tsp[3L])
     if(NROW(x) != nn) {
@@ -367,17 +367,38 @@ print.ts <- function(x, calendar, ...)
                          NROW(x), nn), domain=NA, call.=FALSE)
         calendar <- FALSE
     }
-    if(!calendar)
-        header <- function(x) {
-            if((fr.x <- frequency(x))!= 1)
-                cat("Time Series:\nStart =", deparse(start(x)),
-                    "\nEnd =", deparse(end(x)),
-                    "\nFrequency =", deparse(fr.x), "\n")
-            else
-                cat("Time Series:\nStart =", format(tsp(x)[1L]),
-                    "\nEnd =", format(tsp(x)[2L]),
-                    "\nFrequency =", deparse(fr.x), "\n")
-        }
+    fr.x <- frequency(x)
+    if(missing(calendar))
+	calendar <- any(fr.x == c(4,12)) && length(start(x)) == 2L
+    if(!calendar) {
+        if(fr.x != 1)
+            cat("Time Series:\nStart =", deparse(start(x)),
+                "\nEnd =", deparse(end(x)),
+                "\nFrequency =", deparse(fr.x), "\n")
+        else
+            cat("Time Series:\nStart =", format(tsp(x)[1L]),
+                "\nEnd =", format(tsp(x)[2L]),
+                "\nFrequency =", deparse(fr.x), "\n")
+    }
+    print(.preformat.ts(x, calendar, ...), quote = FALSE, right = TRUE, ...)
+    invisible(x)
+}
+
+## To be used in a  format.ts():
+.preformat.ts <- function(x, calendar, ...)
+{
+    fr.x <- frequency(x)
+    if(missing(calendar))
+	calendar <- any(fr.x == c(4,12)) && length(start(x)) == 2L
+    ## sanity check
+    Tsp <- tsp(x)
+    if(is.null(Tsp)) stop("series is corrupt, with no 'tsp' attribute")
+    nn <- 1 + round((Tsp[2L] - Tsp[1L]) * Tsp[3L])
+    if(NROW(x) != nn) {
+        warning(gettextf("series is corrupt: length %d with 'tsp' implying %d",
+                         NROW(x), nn), domain=NA, call.=FALSE)
+        calendar <- FALSE
+    }
     if(NCOL(x) == 1) { # could be 1-col matrix
         if(calendar) {
             if(fr.x > 1) {
@@ -385,7 +406,7 @@ print.ts <- function(x, calendar, ...)
                     if(fr.x == 12) month.abb
                     else if(fr.x == 4) {
                         c("Qtr1", "Qtr2", "Qtr3", "Qtr4")
-                    } else paste("p", 1L:fr.x, sep = "")
+                    } else paste0("p", 1L:fr.x)
                 if(NROW(x) <= fr.x && start(x)[1L] == end(x)[1L]) {
                     ## not more than one period
                     dn1 <- start(x)[1L]
@@ -406,30 +427,26 @@ print.ts <- function(x, calendar, ...)
                 names(x) <- tx
             }
         } else { ##-- no 'calendar' --
-            header(x)
             attr(x, "class") <- attr(x, "tsp") <- attr(x, "na.action") <- NULL
         }
     } else { # multi-column matrix
-	if(calendar && fr.x > 1) {
-	    tm <- time(x)
-	    t2 <- 1 + round(fr.x*((tm+0.001) %%1))
-	    p1 <- format(floor(zapsmall(tm)))# yr
-	    rownames(x) <-
+        rownames(x) <-
+	    if(calendar && fr.x > 1) {
+		tm <- time(x)
+		t2 <- 1 + round(fr.x*((tm+0.001) %%1))
+                ## protect people against themselves if they set options(digits=2)
+                p1 <- format(floor(zapsmall(tm, digits = 7))) # yr
 		if(fr.x == 12)
-		    paste(month.abb[t2], p1, sep=" ")
+		    paste(month.abb[t2], p1)
 		else
 		    paste(p1, if(fr.x == 4) c("Q1", "Q2", "Q3", "Q4")[t2]
-			      else format(t2),
-			  sep=" ")
-        } else {
-            if(!calendar) header(x)
-            rownames(x) <- format(time(x))
-        }
+			  else format(t2))
+	    } else
+		format(time(x))
         attr(x, "class") <- attr(x, "tsp") <- attr(x, "na.action") <- NULL
     }
-    NextMethod("print", x, quote = FALSE, right = TRUE, ...)
-    invisible(x.orig)
-}
+    x
+}## {.preformat.ts}
 
 plot.ts <-
     function (x, y = NULL, plot.type = c("multiple", "single"),
@@ -473,25 +490,26 @@ plot.ts <-
 	    on.exit(par(oldpar))
 	    for(i in 1L:nser) {
 		plot.default(x[, i], axes = FALSE, xlab="", ylab="",
-		     log = log, col = col, bg = bg, pch = pch, ann = ann,
-		     type = "n", ...)
-		panel(x[, i], col = col, bg = bg, pch = pch, type=type, ...)
+                             log = log, col = col, bg = bg, pch = pch, ann = ann,
+                             type = "n", ...)
+		panel(x[, i], col = col, bg = bg, pch = pch,
+		      cex = cex, lwd = lwd, lty = lty, type = type, ...)
 		if(frame.plot) box(...)
 		y.side <- if (i %% 2 || !yax.flip) 2 else 4
 		do.xax <- i %% nr == 0 || i == nser
 		if(axes) {
 		    axis(y.side, xpd = NA, cex.axis = cex.axis,
-                         col.axis = col.axis, font.axis = font.axis)
+			 col.axis = col.axis, font.axis = font.axis, ...)
 		    if(do.xax)
 			axis(1, xpd = NA, cex.axis = cex.axis,
-                             col.axis = col.axis, font.axis = font.axis)
+			     col.axis = col.axis, font.axis = font.axis, ...)
 		}
 		if(ann) {
 		    mtext(nm[i], y.side, line=3, cex=cex.lab, col=col.lab,
                           font=font.lab, ...)
 		    if(do.xax)
 			mtext(xlab, side=1, line=3, cex=cex.lab, col=col.lab,
-                          font=font.lab, ...)
+			      font=font.lab, ...)
 		}
 	    }
 	    if(ann && !is.null(main)) {
@@ -512,32 +530,36 @@ plot.ts <-
 		xy <- ts.intersect(x, y)
 		xy <- xy.coords(xy[,1], xy[,2], xlabel, ylabel, log)
 	    } else
-	    xy <- xy.coords(x, y, xlabel, ylabel, log)
+		xy <- xy.coords(x, y, xlabel, ylabel, log)
 	    xlab <- if (missing(xlab)) xy$xlab else xlab
 	    ylab <- if (missing(ylab)) xy$ylab else ylab
 	    xlim <- if (is.null(xlim)) range(xy$x[is.finite(xy$x)]) else xlim
 	    ylim <- if (is.null(ylim)) range(xy$y[is.finite(xy$y)]) else ylim
-	    n <- length(xy $ x)		  #-> default for xy.l(ines|abels)
+	    n <- length(xy $ x)
 	    if(missing(xy.labels)) xy.labels <- (n <= 150)
-	    if(!is.logical(xy.labels)) {
-		if(!is.character(xy.labels))
-		    stop("'xy.labels' must be logical or character")
-		do.lab <- TRUE
-	    } else do.lab <- xy.labels
+	    do.lab <-
+		if(is.logical(xy.labels))
+		    xy.labels
+		else {
+		    if(!is.character(xy.labels))
+			stop("'xy.labels' must be logical or character")
+		    TRUE
+		}
+	    ptype <- if(do.lab) "n" else if(missing(type)) "p" else type
 
             dev.hold(); on.exit(dev.flush())
-	    ptype <-
-		if(do.lab) "n" else if(missing(type)) "p" else type
 	    plot.default(xy, type = ptype,
 			 xlab = xlab, ylab = ylab,
 			 xlim = xlim, ylim = ylim, log = log, col = col, bg = bg,
-			 pch = pch, axes = axes, frame.plot = frame.plot,
+			 pch=pch, cex=cex, lty=lty, lwd=lwd,
+                         axes = axes, frame.plot = frame.plot,
 			 ann = ann, main = main, ...)
 	    if(missing(xy.lines)) xy.lines <- do.lab
 	    if(do.lab)
 		text(xy, labels =
 		     if(is.character(xy.labels)) xy.labels
-		     else if(all(tsp(x) == tsp(y))) formatC(time(x), width = 1)
+		     else if(all(tsp(x) == tsp(y)))
+                         formatC(unclass(time(x)), width = 1)
 		     else seq_along(xy$x),
 		     col = col, cex = cex)
 	    if(xy.lines)
@@ -557,10 +579,10 @@ plot.ts <-
 	    k <- ncol(x)
 	    tx <- time(x)
 	    xy <- xy.coords(x = matrix(rep.int(tx, k), ncol = k),
-			    y = x, log=log)
+			    y = x, log = log, setLab = FALSE)
 	    xy$x <- tx
 	}
-	else xy <- xy.coords(x, NULL, log=log)
+	else xy <- xy.coords(x, NULL, log = log, setLab = FALSE)
 	if(is.null(xlim)) xlim <- range(xy$x)
 	if(is.null(ylim)) ylim <- range(xy$y[is.finite(xy$y)])
 	plot.new()
@@ -573,11 +595,13 @@ plot.ts <-
 			      lwd = lwd[(i-1L) %% length(lwd) + 1L],
 			      bg  = bg [(i-1L) %% length(bg) + 1L],
 			      pch = pch[(i-1L) %% length(pch) + 1L],
+			      cex = cex[(i-1L) %% length(cex) + 1L],
 			      type = type)
 	}
 	else {
 	    lines.default(xy$x, x, col = col[1L], bg = bg, lty = lty[1L],
-			  lwd = lwd[1L], pch = pch[1L], type = type)
+			  lwd = lwd[1L], pch = pch[1L],
+			  cex = cex[1L], type = type)
 	}
 	if (ann)
 	    title(main = main, xlab = xlab, ylab = ylab, ...)
@@ -586,7 +610,8 @@ plot.ts <-
 	    axis(2, ...)
 	}
 	if (frame.plot) box(...)
-    }
+    }## {plotts}
+
     xlabel <- if (!missing(x)) deparse(substitute(x))# else NULL
     ylabel <- if (!missing(y)) deparse(substitute(y))
     plotts(x = x, y = y, plot.type = plot.type,
@@ -621,7 +646,7 @@ window.default <- function(x, start = NULL, end = NULL,
     } else {
         thin <- 1
         yfreq <- xfreq
-        warning("Frequency not changed")
+        warning("'frequency' not changed")
     }
     start <- if(is.null(start))
 	xtsp[1L]
@@ -696,7 +721,9 @@ window.ts <- function (x, ...) as.ts(window.default(x, ...))
     m <- match.call(expand.dots = FALSE)
     m$value <- NULL
     m$extend <- TRUE
-    m[[1L]] <- as.name("window")
+    m$x <- x # do not attempt to re-evaluate *tmp* in replacement call
+    ## need stats:: for non-standard evaluation
+    m[[1L]] <- quote(stats::window)
     xx <- eval.parent(m)
     xxtsp <- tsp(xx)
     start <- xxtsp[1L]; end <- xxtsp[2L]
@@ -710,10 +737,10 @@ window.ts <- function (x, ...) as.ts(window.default(x, ...))
     xxtimes <- round(xfreq * time(xx))
 
     ind <- match(xxtimes, xtimes)
-    if(any(is.na(ind))) stop("times to be replaced do not match")
+    if(anyNA(ind)) stop("times to be replaced do not match")
 
     len <- length(ind)
-    val_len <- length(value)
+    val_len <- NROW(value)
     if(!val_len) stop("no replacement values supplied")
     if(val_len > len) stop("too many replacement values supplied")
     if(val_len > 1L && (len %% val_len))
@@ -764,6 +791,7 @@ arima.sim <- function(model, n, rand.gen = rnorm,
                       start.innov = rand.gen(n.start, ...), ...)
 {
     if(!is.list(model)) stop("'model' must be list")
+    if(n <= 0L) stop("'n' must be strictly positive")
     p <- length(model$ar)
     if(p) {
         minroots <- min(Mod(polyroot(c(1, -model$ar))))
@@ -783,15 +811,17 @@ arima.sim <- function(model, n, rand.gen = rnorm,
             stop("number of differences must be a positive integer")
     }
     if(!missing(start.innov) && length(start.innov) < n.start)
-        stop(gettextf("'start.innov' is too short: need %d points", n.start),
-             domain = NA)
-    x <- ts(c(start.innov[1L:n.start], innov[1L:n]), start = 1 - n.start)
+        stop(sprintf(ngettext(n.start,
+                              "'start.innov' is too short: need %d point",
+                              "'start.innov' is too short: need %d points"),
+                     n.start), domain = NA)
+    x <- ts(c(start.innov[seq_len(n.start)], innov[1L:n]), start = 1 - n.start)
     if(length(model$ma)) {
         x <- filter(x, c(1, model$ma), sides = 1L)
         x[seq_along(model$ma)] <- 0 # rather than NA
     }
     if(length(model$ar)) x <- filter(x, model$ar, method = "recursive")
-    if(n.start > 0) x <- x[-(1L:n.start)]
+    if(n.start > 0) x <- x[-(seq_len(n.start))]
     if(d > 0) x <- diffinv(x, differences = d)
     as.ts(x)
 }

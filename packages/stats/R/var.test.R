@@ -1,5 +1,7 @@
 #  File src/library/stats/R/var.test.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 var.test <- function(x, ...) UseMethod("var.test")
 
@@ -51,8 +53,7 @@ function(x, y, ratio = 1,
     }
     ESTIMATE <- V.x / V.y
     STATISTIC <- ESTIMATE / ratio
-    PARAMETER <- c(DF.x, DF.y)
-
+    PARAMETER <- c("num df" = DF.x, "denom df" = DF.y)
     PVAL <- pf(STATISTIC, DF.x, DF.y)
     if (alternative == "two.sided") {
         PVAL <- 2 * min(PVAL, 1 - PVAL)
@@ -67,7 +68,6 @@ function(x, y, ratio = 1,
     else
         CINT <- c(0, ESTIMATE / qf(1 - conf.level, DF.x, DF.y))
     names(STATISTIC) <- "F"
-    names(PARAMETER) <- c("num df", "denom df")
     names(ESTIMATE) <- names(ratio) <- "ratio of variances"
     attr(CINT, "conf.level") <- conf.level
     RVAL <- list(statistic = STATISTIC,
@@ -93,7 +93,8 @@ function(formula, data, subset, na.action, ...)
     m <- match.call(expand.dots = FALSE)
     if(is.matrix(eval(m$data, parent.frame())))
         m$data <- as.data.frame(data)
-    m[[1L]] <- as.name("model.frame")
+    ## need stats:: for non-standard evaluation
+    m[[1L]] <- quote(stats::model.frame)
     m$... <- NULL
     mf <- eval(m, parent.frame())
     DNAME <- paste(names(mf), collapse = " by ")
@@ -102,8 +103,7 @@ function(formula, data, subset, na.action, ...)
     g <- factor(mf[[-response]])
     if(nlevels(g) != 2L)
         stop("grouping factor must have exactly 2 levels")
-    DATA <- split(mf[[response]], g)
-    names(DATA) <- c("x", "y")
+    DATA <- setNames(split(mf[[response]], g), c("x", "y"))
     y <- do.call("var.test", c(DATA, list(...)))
     y$data.name <- DNAME
     y

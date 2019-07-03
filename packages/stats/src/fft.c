@@ -123,8 +123,6 @@
  * factor any positive int n, up to 2^31 - 1.
  */
 
-#include "fft.h"
-
 static void fftmx(double *a, double *b, int ntot, int n, int nspan, int isn,
 		  int m, int kt, double *at, double *ck, double *bt, double *sk,
 		  int *np, int *nfac)
@@ -727,7 +725,13 @@ L570:
     if( nt >= 0) goto L_ord;
 } /* fftmx */
 
+static int old_n = 0;
 
+static int nfac[20];
+static int m_fac;
+static int kt;
+static int maxf;
+static int maxp;
 
 /* At the end of factorization,	 
  *	nfac[]	contains the factors,
@@ -735,7 +739,7 @@ L570:
  *	kt	contains the number of square factors  */
 
 /* non-API, but used by package RandomFields */
-void fft_factor(fft_state *pstate, int n, int *pmaxf, int *pmaxp)
+void fft_factor(int n, int *pmaxf, int *pmaxp)
 {
 /* fft_factor - factorization check and determination of memory
  *		requirements for the fft.
@@ -753,14 +757,14 @@ void fft_factor(fft_state *pstate, int n, int *pmaxf, int *pmaxp)
 	/* check series length */
 
     if (n <= 0) {
-	pstate->old_n = 0; *pmaxf = 0; *pmaxp = 0;
+	old_n = 0; *pmaxf = 0; *pmaxp = 0;
 	return;
     }
-    else pstate->old_n = n;
+    else old_n = n;
 
 	/* determine the factors of n */
 
-    pstate->m_fac = 0;
+    m_fac = 0;
     k = n;/* k := remaining unfactored factor of n */
     if (k == 1)
 	return;
@@ -770,7 +774,7 @@ void fft_factor(fft_state *pstate, int n, int *pmaxf, int *pmaxp)
     /* extract 4^2 = 16 separately
      * ==> at most one remaining factor 2^2 = 4, done below */
     while(k % 16 == 0) {
-	pstate->nfac[pstate->m_fac++] = 4;
+	nfac[m_fac++] = 4;
 	k /= 16;
     }
 
@@ -780,7 +784,7 @@ void fft_factor(fft_state *pstate, int n, int *pmaxf, int *pmaxp)
     for(j = 3; j <= sqrtk; j += 2) {
 	jj = j * j;
 	while(k % jj == 0) {
-	    pstate->nfac[pstate->m_fac++] = j;
+	    nfac[m_fac++] = j;
 	    k /= jj;
 	    kchanged = 1;
 	}
@@ -791,24 +795,24 @@ void fft_factor(fft_state *pstate, int n, int *pmaxf, int *pmaxp)
     }
 
     if(k <= 4) {
-	pstate->kt = pstate->m_fac;
-	pstate->nfac[pstate->m_fac] = k;
-	if(k != 1) pstate->m_fac++;
+	kt = m_fac;
+	nfac[m_fac] = k;
+	if(k != 1) m_fac++;
     }
     else {
 	if(k % 4 == 0) {
-	    pstate->nfac[pstate->m_fac++] = 2;
+	    nfac[m_fac++] = 2;
 	    k /= 4;
 	}
 
 	/* all square factors out now, but k >= 5 still */
 
-	pstate->kt = pstate->m_fac;
-	pstate->maxp = imax2(pstate->kt+pstate->kt+2, k-1);
+	kt = m_fac;
+	maxp = imax2(kt+kt+2, k-1);
 	j = 2;
 	do {
 	    if (k % j == 0) {
-		pstate->nfac[pstate->m_fac++] = j;
+		nfac[m_fac++] = j;
 		k /= j;
 	    }
 	    if (j > INT_MAX - 2)
@@ -818,41 +822,41 @@ void fft_factor(fft_state *pstate, int n, int *pmaxf, int *pmaxp)
 	while(j <= k);
     }
 
-    if (pstate->m_fac <= pstate->kt+1)
-	pstate->maxp = pstate->m_fac+pstate->kt+1;
-    if (pstate->m_fac+pstate->kt > 20) {		/* error - too many factors */
-	pstate->old_n = 0; *pmaxf = 0; *pmaxp = 0;
+    if (m_fac <= kt+1)
+	maxp = m_fac+kt+1;
+    if (m_fac+kt > 20) {		/* error - too many factors */
+	old_n = 0; *pmaxf = 0; *pmaxp = 0;
 	return;
     }
     else {
-	if (pstate->kt != 0) {
-	    j = pstate->kt;
+	if (kt != 0) {
+	    j = kt;
 	    while(j != 0)
-		pstate->nfac[pstate->m_fac++] = pstate->nfac[--j];
+		nfac[m_fac++] = nfac[--j];
 	}
-	pstate->maxf = pstate->nfac[pstate->m_fac-pstate->kt-1];
+	maxf = nfac[m_fac-kt-1];
 /* The last squared factor is not necessarily the largest PR#1429 */
-	if (pstate->kt > 0) pstate->maxf = imax2(pstate->nfac[pstate->kt-1], pstate->maxf);
-	if (pstate->kt > 1) pstate->maxf = imax2(pstate->nfac[pstate->kt-2], pstate->maxf);
-	if (pstate->kt > 2) pstate->maxf = imax2(pstate->nfac[pstate->kt-3], pstate->maxf);
+	if (kt > 0) maxf = imax2(nfac[kt-1], maxf);
+	if (kt > 1) maxf = imax2(nfac[kt-2], maxf);
+	if (kt > 2) maxf = imax2(nfac[kt-3], maxf);
     }
-    *pmaxf = pstate->maxf;
-    *pmaxp = pstate->maxp;
+    *pmaxf = maxf;
+    *pmaxp = maxp;
 }
+
 
-
-Rboolean fft_work(fft_state *pstate, double *a, double *b, int nseg, int n, int nspn, int isn,
+Rboolean fft_work(double *a, double *b, int nseg, int n, int nspn, int isn,
 		  double *work, int *iwork)
 {
     int nf, nspan, ntot;
 
 	/* check that factorization was successful */
 
-    if(pstate->old_n == 0) return FALSE;
+    if(old_n == 0) return FALSE;
 
 	/* check that the parameters match those of the factorization call */
 
-    if(n != pstate->old_n || nseg <= 0 || nspn <= 0 || isn == 0)
+    if(n != old_n || nseg <= 0 || nspn <= 0 || isn == 0)
 	return FALSE;
 
 	/* perform the transform */
@@ -861,9 +865,9 @@ Rboolean fft_work(fft_state *pstate, double *a, double *b, int nseg, int n, int 
     nspan = nf * nspn;
     ntot = nspan * nseg;
 
-    fftmx(a, b, ntot, nf, nspan, isn, pstate->m_fac, pstate->kt,
-	  &work[0], &work[pstate->maxf], &work[2*(size_t)pstate->maxf], &work[3*(size_t)pstate->maxf],
-	  iwork, pstate->nfac);
+    fftmx(a, b, ntot, nf, nspan, isn, m_fac, kt,
+	  &work[0], &work[maxf], &work[2*(size_t)maxf], &work[3*(size_t)maxf],
+	  iwork, nfac);
 
     return TRUE;
 }

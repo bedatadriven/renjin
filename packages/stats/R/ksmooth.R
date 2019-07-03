@@ -1,5 +1,7 @@
 #  File src/library/stats/R/ksmooth.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1998-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,36 +14,22 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ksmooth <-
-  function(x, y, kernel=c("box", "normal"), bandwidth=0.5, range.x=range(x),
-	   n.points=max(100, length(x)), x.points)
+  function(x, y, kernel = c("box", "normal"), bandwidth = 0.5,
+           range.x = range(x), n.points = max(100L, length(x)), x.points)
 {
     ## box is [-0.5, 0.5]. normal is sd = 1.4826/4
     if(missing(y) || is.null(y))
 	stop("numeric y must be supplied.\nFor density estimation use density()")
     kernel <- match.arg(kernel)
-    krn <- switch(kernel, "box" = 1, "normal" = 2)
+    krn <- switch(kernel, "box" = 1L, "normal" = 2L)
     x.points <-
 	if(missing(x.points))
 	    seq.int(range.x[1L], range.x[2L], length.out = n.points)
-	else {
-	    n.points <- length(x.points)
-	    sort(x.points)
-	}
+	else { n.points <- length(x.points); sort(x.points) }
     ord <- order(x)
-    z <- .C(C_BDRksmooth,
-	    as.double(x[ord]),
-	    as.double(y[ord]),
-	    as.integer(length(x)),
-	    xp=as.double(x.points),
-	    yp=double(n.points),
-	    as.integer(n.points),
-	    as.integer(krn),
-	    as.double(bandwidth),
-	    PACKAGE="stats"
-	    )
-    list(x=z$xp, y=z$yp)
+    .Call(C_ksmooth, x[ord], y[ord], x.points, krn, bandwidth)
 }
 

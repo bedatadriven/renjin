@@ -1,9 +1,8 @@
 #  File src/library/stats/R/nls-profile.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright 1999-1999 Saikat DebRoy <saikat$stat.wisc.edu>,
-#                      Douglas M. Bates <bates$stat.wisc.edu>,
-#  Copyright 2005-11  The R Development Core Team
+#  Copyright (C) 1999-1999 Saikat DebRoy and Douglas M. Bates
+#  Copyright (C) 1999-2011  The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,7 +15,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ###
 ### Profiling nonlinear least squares for R
@@ -32,11 +31,11 @@ profiler.nls <- function(fitted, ...)
     trace <- fitted$call$trace
     defaultPars <- fittedPars <- fittedModel$getPars()
     lower <- fitted$call$lower
-    lower <- rep(if(!is.null(lower)) as.double(lower) else Inf,
-                 length.out = length(defaultPars))
+    lower <- rep_len(if(!is.null(lower)) as.double(lower) else Inf,
+                     length(defaultPars))
     upper <- fitted$call$upper
-    upper <- rep(if(!is.null(upper)) as.double(upper) else Inf,
-                 length.out = length(defaultPars))
+    upper <- rep_len(if(!is.null(upper)) as.double(upper) else Inf,
+                     length(defaultPars))
     defaultVary <- rep.int(TRUE, length(defaultPars))
     S.hat <- deviance(fitted) # need to allow for weights
     s2.hat <- summary(fitted)$sigma^2
@@ -138,9 +137,9 @@ profile.nls <-
     pars <- prof$getFittedPars()
     npar <- length(pars)  # less in a partially linear model
     lower <- fitted$call$lower
-    lower <- rep(if(!is.null(lower)) as.double(lower) else -Inf, length.out = npar)
+    lower <- rep_len(if(!is.null(lower)) as.double(lower) else -Inf, npar)
     upper <- fitted$call$upper
-    upper <- rep(if(!is.null(upper)) as.double(upper) else Inf, length.out = npar)
+    upper <- rep_len(if(!is.null(upper)) as.double(upper) else Inf, npar)
     if(is.character(which)) which <- match(which, names(pars), 0)
     which <- which[which >= 1 & which <= npar]
     ## was 'npar' - length(which) would have made more sense

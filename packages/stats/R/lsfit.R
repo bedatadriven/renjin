@@ -1,5 +1,7 @@
 #  File src/library/stats/R/lsfit.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,9 +14,10 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
-lsfit <- function(x, y, wt=NULL, intercept=TRUE, tolerance=1e-07, yname=NULL)
+lsfit <- function(x, y, wt = NULL, intercept = TRUE, tolerance = 1e-07,
+                  yname = NULL)
 {
     ## find names of x variables (design matrix)
 
@@ -22,8 +25,8 @@ lsfit <- function(x, y, wt=NULL, intercept=TRUE, tolerance=1e-07, yname=NULL)
     y <- as.matrix(y)
     xnames <- colnames(x)
     if( is.null(xnames) ) {
-	if(ncol(x)==1) xnames <- "X"
-	else xnames <- paste("X", 1L:ncol(x), sep="")
+	if(ncol(x) == 1L) xnames <- "X"
+	else xnames <- paste0("X", 1L:ncol(x))
     }
     if( intercept ) {
 	x <- cbind(1, x)
@@ -32,16 +35,19 @@ lsfit <- function(x, y, wt=NULL, intercept=TRUE, tolerance=1e-07, yname=NULL)
 
     ## find names of y variables (responses)
 
-    if(is.null(yname) && ncol(y) > 1) yname <- paste("Y", 1L:ncol(y), sep="")
+    if(is.null(yname) && ncol(y) > 1) yname <- paste0("Y", 1L:ncol(y))
 
     ## remove missing values
 
     good <- complete.cases(x, y, wt)
     dimy <- dim(as.matrix(y))
     if( any(!good) ) {
-	warning(gettextf("%d missing values deleted", sum(!good)), domain = NA)
-	x <- as.matrix(x)[good, ]
-	y <- as.matrix(y)[good, ]
+        warning(sprintf(ngettext(sum(!good),
+                                 "%d missing value deleted",
+                                 "%d missing values deleted"),
+                        sum(!good)), domain = NA)
+	x <- as.matrix(x)[good, , drop=FALSE]
+	y <- as.matrix(y)[good, , drop=FALSE]
 	wt <- wt[good]
     }
 
@@ -53,66 +59,58 @@ lsfit <- function(x, y, wt=NULL, intercept=TRUE, tolerance=1e-07, yname=NULL)
     ncy <- NCOL(y)
     nwts <- length(wt)
     if(nry != nrx)
-        stop(gettextf("'X' matrix has %d responses, 'Y' has %d responses",
-                      nrx, nry), domain = NA)
+        stop(sprintf(paste0(ngettext(nrx,
+                       "'X' matrix has %d case (row)",
+                       "'X' matrix has %d cases (rows)"),
+              ", ",
+              ngettext(nry,
+                       "'Y' has %d case (row)",
+                       "'Y' has %d cases (rows)")),
+                       nrx, nry),
+                       domain = NA)
     if(nry < ncx)
-        stop(gettextf("%d responses, but only %d variables", nry, ncx),
+        stop(sprintf(paste0(ngettext(nry,
+                              "only %d case",
+                              "only %d cases"),
+                     ", ",
+                     ngettext(ncx,
+                              "but %d variable",
+                              "but %d variables")),
+                     nry, ncx),
              domain = NA)
-
     ## check weights if necessary
-
     if( !is.null(wt) ) {
 	if(any(wt < 0)) stop("negative weights not allowed")
 	if(nwts != nry)
             stop(gettextf("number of weights = %d should equal %d (number of responses)", nwts, nry), domain = NA)
-	wtmult <- wt^0.5
-	if( any(wt==0) ) {
-	    xzero <- as.matrix(x)[wt==0, ]
-	    yzero <- as.matrix(y)[wt==0, ]
+	wtmult <- sqrt(wt)
+	if(any(wt == 0)) {
+	    xzero <- as.matrix(x)[wt == 0, ]
+	    yzero <- as.matrix(y)[wt == 0, ]
 	}
 	x <- x*wtmult
 	y <- y*wtmult
-	invmult <- 1/ifelse(wt==0, 1, wtmult)
+	invmult <- 1/ifelse(wt == 0, 1, wtmult)
     }
 
-    ## call linpack
+    # Here y is a matrix, so z$residuals and z$effects will be
+    z <- .Call(C_Cdqrls, x, y, tolerance, FALSE)
 
-    storage.mode(x) <- "double"
-    storage.mode(y) <- "double"
-    z <- .Fortran("dqrls",
-		  qr=x,
-		  n=nrx,
-		  p=ncx,
-		  y=y,
-		  ny=ncy,
-		  tol=tolerance,
-		  coefficients=mat.or.vec(ncx, ncy),
-		  residuals=mat.or.vec(nrx, ncy),
-		  effects=mat.or.vec(nrx, ncy),
-		  rank=integer(1L),
-		  pivot=as.integer(1L:ncx),
-		  qraux=double(ncx),
-		  work=double(2*ncx),
-                  PACKAGE="base")
-
-    ## dimension and name output from linpack
-
-    resids <- array(NA, dim=dimy)
+    resids <- array(NA, dim = dimy)
     dim(z$residuals) <- c(nry, ncy)
     if(!is.null(wt)) {
-	if(any(wt==0)) {
-	    if(ncx==1) fitted.zeros <- xzero * z$coefficients
+	if(any(wt == 0)) {
+	    if(ncx == 1L) fitted.zeros <- xzero * z$coefficients
 	    else fitted.zeros <- xzero %*% z$coefficients
-	    z$residuals[wt==0, ] <- yzero - fitted.zeros
+	    z$residuals[wt == 0, ] <- yzero - fitted.zeros
 	}
 	z$residuals <- z$residuals*invmult
     }
     resids[good, ] <- z$residuals
     if(dimy[2L] == 1 && is.null(yname)) {
-	resids <- as.vector(resids)
+	resids <- drop(resids)
 	names(z$coefficients) <- xnames
-    }
-    else {
+    } else {
 	colnames(resids) <- yname
 	colnames(z$effects) <- yname
 	dim(z$coefficients) <- c(ncx, ncy)
@@ -120,10 +118,10 @@ lsfit <- function(x, y, wt=NULL, intercept=TRUE, tolerance=1e-07, yname=NULL)
     }
     z$qr <- as.matrix(z$qr)
     colnames(z$qr) <- xnames
-    output <- list(coefficients=z$coefficients, residuals=resids)
+    output <- list(coefficients = z$coefficients, residuals = resids)
 
-    ## if X matrix was collinear, then the columns would have been
-    ## pivoted hence xnames need to be corrected
+    ## if X matrix was collinear, then the columns may have been
+    ## pivoted hence xnames may need to be corrected
 
     if( z$rank != ncx ) {
 	xnames <- xnames[z$pivot]
@@ -141,10 +139,11 @@ lsfit <- function(x, y, wt=NULL, intercept=TRUE, tolerance=1e-07, yname=NULL)
 
     ## return rest of output
 
-    rqr <- list(qt=z$effects, qr=z$qr, qraux=z$qraux, rank=z$rank,
-		pivot=z$pivot, tol=z$tol)
+    ## Neither qt nor tol are documented to be there.
+    rqr <- list(qt = drop(z$effects), qr = z$qr, qraux = z$qraux, rank = z$rank,
+		pivot = z$pivot, tol = z$tol)
     oldClass(rqr) <- "qr"
-    output <- c(output, list(intercept=intercept, qr=rqr))
+    output <- c(output, list(intercept = intercept, qr = rqr))
     return(output)
 }
 
@@ -168,7 +167,7 @@ ls.diag <- function(ls.out)
     if( !is.null(ls.out$wt) ) {
 	if( any(ls.out$wt[good] == 0) )
 	    warning("observations with 0 weight not used in calculating standard deviation")
-	resids <- resids * ls.out$wt[good]^0.5
+	resids <- resids * sqrt(ls.out$wt[good])
     }
 
     ## initialize
@@ -187,12 +186,12 @@ ls.diag <- function(ls.out)
 
     ## calculate diagnostics
 
-    stddev <- (colSums(as.matrix(resids^2))/(n - p))^0.5
+    stddev <- sqrt(colSums(as.matrix(resids^2))/(n - p))
     stddevmat <- matrix(stddev, nrow=sum(good), ncol=ncol(resids), byrow=TRUE)
-    stdres[good, ] <- resids/((1-hatdiag[good])^0.5 * stddevmat)
-    studres[good, ] <- (stdres[good, ]*stddevmat)/
-        (((n-p)*stddevmat^2 - resids^2/(1-hatdiag[good]))/(n-p-1))^0.5
-    dfits[good, ] <- (hatdiag[good]/(1-hatdiag[good]))^0.5 * studres[good, ]
+    stdres[good, ] <- resids/(sqrt(1-hatdiag[good]) * stddevmat)
+    studres[good, ] <- (stdres[good, ]*stddevmat) /
+        sqrt(((n-p)*stddevmat^2 - resids^2/(1-hatdiag[good]))/(n-p-1))
+    dfits[good, ] <- sqrt(hatdiag[good]/(1-hatdiag[good])) * studres[good, ]
     Cooks[good, ] <- ((stdres[good, ]^2 * hatdiag[good])/p)/(1-hatdiag[good])
     if(ncol(resids)==1 && is.null(yname)) {
 	stdres <- as.vector(stdres)
@@ -215,8 +214,8 @@ ls.diag <- function(ls.out)
 
     ## calculate correlation matrix
 
-    cormat <- covmat.scaled/
-	(outer(diag(covmat.scaled), diag(covmat.scaled))^0.5)
+    cormat <- covmat.scaled /
+	sqrt(outer(diag(covmat.scaled), diag(covmat.scaled)))
 
     ## calculate standard error
 
@@ -229,7 +228,7 @@ ls.diag <- function(ls.out)
 		cov.scaled=covmat.scaled, cov.unscaled=covmat.unscaled))
 }
 
-ls.print <- function(ls.out, digits=4, print.it=TRUE)
+ls.print <- function(ls.out, digits = 4L, print.it = TRUE)
 {
     ## calculate residuals to be used
 
@@ -237,9 +236,9 @@ ls.print <- function(ls.out, digits=4, print.it=TRUE)
     if( !is.null(ls.out$wt) ) {
 	if(any(ls.out$wt == 0))
 	    warning("observations with 0 weights not used")
-	resids <- resids * ls.out$wt^0.5
+	resids <- resids * sqrt(ls.out$wt)
     }
-    n <- apply(resids, 2L, length)-colSums(is.na(resids))
+    n <- apply(resids, 2L, length) - colSums(is.na(resids))
     lsqr <- ls.out$qr
     p <- lsqr$rank
 
@@ -247,7 +246,7 @@ ls.print <- function(ls.out, digits=4, print.it=TRUE)
 
     if(ls.out$intercept) {
 	if(is.matrix(lsqr$qt))
-	    totss <- colSums(lsqr$qt[-1, ]^2)
+	    totss <- colSums(lsqr$qt[-1L, ]^2)
 	else totss <- sum(lsqr$qt[-1L]^2)
 	degfree <- p - 1
     } else {
@@ -301,17 +300,17 @@ ls.print <- function(ls.out, digits=4, print.it=TRUE)
 	if(print.it) {
 	    if(m.y>1)
 		cat("Response:", Ynames[i], "\n\n")
-	    cat(paste("Residual Standard Error=",
-                      format(round(resse[i], digits)), "\nR-Square=",
-                      format(round(rsquared[i], digits)), "\nF-statistic (df=",
-		      format(degfree), ", ", format(n[i]-p), ")=",
-		      format(round(fstat[i], digits)), "\np-value=",
-		      format(round(pvalue[i], digits)), "\n\n", sep=""))
+	    cat(paste0("Residual Standard Error=",
+                       format(round(resse[i], digits)), "\nR-Square=",
+                       format(round(rsquared[i], digits)), "\nF-statistic (df=",
+                       format(degfree), ", ", format(n[i]-p), ")=",
+                       format(round(fstat[i], digits)), "\np-value=",
+                       format(round(pvalue[i], digits)), "\n\n"))
 	    print(round(coef.table[[i]], digits))
 	    cat("\n\n")
 	}
     }
     names(coef.table) <- Ynames
 
-    invisible(list(summary=summary, coef.table=coef.table))
+    invisible(list(summary = summary, coef.table = coef.table))
 }

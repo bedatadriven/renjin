@@ -1,5 +1,7 @@
 #  File src/library/stats/R/median.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,15 +14,16 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
-median <- function(x, na.rm=FALSE) UseMethod("median")
+median <- function(x, na.rm=FALSE, ...) UseMethod("median")
 
-median.default <- function(x, na.rm = FALSE)
+median.default <- function(x, na.rm = FALSE, ...)
 {
     if(is.factor(x) || is.data.frame(x)) stop("need numeric data")
-    ## all other objects only need sort() & mean() to be working
+    ## all other objects only need is.na(), sort() & mean() to be working
     if(length(names(x))) names(x) <- NULL # for e.g., c(x = NA_real_)
+##    if(na.rm) x <- x[!is.na(x)] else if(anyNA(x)) return(x[FALSE][NA])
     if(na.rm) x <- x[!is.na(x)] else if(any(is.na(x))) return(x[FALSE][NA])
     n <- length(x)
     if (n == 0L) return(x[FALSE][NA])

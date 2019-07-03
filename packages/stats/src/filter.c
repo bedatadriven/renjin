@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
 
- *  Copyright (C) 1999-2015   The R Core Team
+ *  Copyright (C) 1999-2016   The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,14 +15,12 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, a copy is available at
- *  http://www.r-project.org/Licenses/.
+ *  https://www.R-project.org/Licenses/.
  */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
-/* do this first to get the right options for math.h */
-#include <R_ext/Arith.h>
 
 #include <R.h>
 #include "ts.h"
@@ -90,32 +88,21 @@ SEXP rfilter(SEXP x, SEXP filter, SEXP out)
 {
    if (TYPEOF(x) != REALSXP || TYPEOF(filter) != REALSXP
        || TYPEOF(out) != REALSXP) error("invalid input");
-       
     R_xlen_t nx = XLENGTH(x), nf = XLENGTH(filter);
-    double sum, tmp, *rx = REAL(x), *rf = REAL(filter);
-
-    // SHOULD NOT assume that we can modify the contents of 
-    // an incoming SEXP !! 
-    SEXP out_copy = duplicate(out);
-    double *r = REAL(out_copy);
+    double sum, tmp, *r = REAL(out), *rx = REAL(x), *rf = REAL(filter);
 
     for(R_xlen_t i = 0; i < nx; i++) {
-        sum = rx[i];
-        for (R_xlen_t j = 0; j < nf; j++) {
-            tmp = r[nf + i - j - 1];
-            
-            if(my_isok(tmp)) {
-                sum += tmp * rf[j];
-            } else { 
-                r[nf + i] = NA_REAL; 
-                goto bad3; 
-            }
-        }
-	    r[nf + i] = sum;
-        bad3:
-	        continue;
+	sum = rx[i];
+	for (R_xlen_t j = 0; j < nf; j++) {
+	    tmp = r[nf + i - j - 1];
+	    if(my_isok(tmp)) sum += tmp * rf[j];
+	    else { r[nf + i] = NA_REAL; goto bad3; }
+	}
+	r[nf + i] = sum;
+    bad3:
+	continue;
     }
-    return out_copy;
+    return out;
 }
 
 /* now allows missing values */

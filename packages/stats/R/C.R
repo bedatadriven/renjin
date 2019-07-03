@@ -1,5 +1,8 @@
 #  File src/library/stats/R/C.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1998 B. D. Ripley
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +15,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 C <- function(object, contr, how.many, ...)
 {
@@ -33,7 +36,7 @@ C <- function(object, contr, how.many, ...)
 		if(is.ordered(object)) contr.poly else contr.treatment
 	    else oc[1 + is.ordered(object)]
     }
-    if(missing(how.many) && !length(list(...)))
+    if(missing(how.many) && missing(...))
 	contrasts(object) <- contr
     else {
 	if(is.character(contr)) contr <- get(contr, mode = "function")

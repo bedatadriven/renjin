@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1999-2013  The R Core Team
+ *  Copyright (C) 1999-2017  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,6 +35,8 @@
 
 SEXP getListElement(SEXP list, char *str)
 {
+    if (!isNewList(list))
+	error(_("invalid argument type"));
     SEXP elmt = R_NilValue, names = getAttrib(list, R_NamesSymbol);
     int i;
 
@@ -119,7 +121,7 @@ static void fmingr(int n, double *p, double *df, void *ex)
     } else { /* numerical derivatives */
 	PROTECT(x = allocVector(REALSXP, n));
 	setAttrib(x, R_NamesSymbol, OS->names);
-	SET_NAMED(x, 2); // in case f tries to change it
+	ENSURE_NAMEDMAX(x); // in case f tries to change it
 	for (i = 0; i < n; i++) REAL(x)[i] = p[i] * (OS->parscale[i]);
 	SETCADR(OS->R_fcall, x);
 	if(OS->usebounds == 0) {

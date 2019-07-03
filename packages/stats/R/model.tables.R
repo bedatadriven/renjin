@@ -1,5 +1,8 @@
 #  File src/library/stats/R/model.tables.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright     1998 B. D. Ripley
+#  Copyright (C) 1998-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +15,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 model.tables <- function(x, ...) UseMethod("model.tables")
 
@@ -27,9 +30,9 @@ model.tables.aov <- function(x, type = "effects", se = FALSE, cterms, ...)
     if(is.null(x$call)) stop("this fit does not inherit from \"lm\"")
     mf <- model.frame(x)
     factors <- attr(prjs, "factors")
-    dn.proj <- as.list(names(factors))
+    nf <- names(factors)
+    dn.proj <- setNames(as.list(nf), nf)
     m.factors <- factors
-    names(m.factors) <- names(dn.proj) <- names(factors)
     t.factor <- attr(prjs, "t.factor")
     vars <- colnames(t.factor)
     which <- match(vars, names(dn.proj))
@@ -63,7 +66,7 @@ model.tables.aov <- function(x, type = "effects", se = FALSE, cterms, ...)
 	    message("Design is unbalanced - use se.contrast() for se's")
 	    se <- FALSE
 	} else se.tables <- se.aov(x, n, type = type)
-    if(type == "means") {
+    if(type == "means" && "(Intercept)" %in% colnames(prjs)) {
 	gmtable <- mean(prjs[,"(Intercept)"])
 	class(gmtable) <- "mtable"
 	tables <- c("Grand mean" = gmtable, tables)
@@ -107,7 +110,7 @@ model.tables.aovlist <- function(x, type = "effects", se = FALSE, ...)
     factors <- lapply(prjs, attr, "factors")
     dn.proj <- unlist(lapply(factors, names), recursive = FALSE)
     m.factors <- unlist(factors, recursive = FALSE)
-    dn.strata <- rep.int(names(factors), unlist(lapply(factors, length)))
+    dn.strata <- rep.int(names(factors), lengths(factors))
     names(dn.strata) <- names(m.factors) <- names(dn.proj) <- unlist(dn.proj)
     t.factor <- attr(prjs, "t.factor")
     efficiency <- FALSE
@@ -202,8 +205,7 @@ se.aovlist <- function(object, dn.proj, dn.strata, factors, mf, efficiency, n,
 make.tables.aovproj <-
     function(proj.cols, mf.cols, prjs, mf, fun = "mean", prt = FALSE, ...)
 {
-    tables <- vector(mode = "list", length = length(proj.cols))
-    names(tables) <- names(proj.cols)
+    tables <- setNames(vector("list", length(proj.cols)), names(proj.cols))
     for(i in seq_along(tables)) {
 	terms <- proj.cols[[i]]
         terms <- terms[terms %in% colnames(prjs)]
@@ -223,8 +225,7 @@ make.tables.aovprojlist <-
     function(proj.cols, strata.cols, model.cols, projections, model, eff,
 	     fun = "mean", prt = FALSE, ...)
 {
-    tables <- vector(mode = "list", length = length(proj.cols))
-    names(tables) <- names(proj.cols)
+    tables <- setNames(vector("list", length(proj.cols)), names(proj.cols))
     if(!missing(eff)) {
 	for(i in seq_along(tables)) {
 	    terms <- proj.cols[[i]]
@@ -303,16 +304,16 @@ replications <- function(formula, data = NULL, na.action)
     labels <- attr(formula, "term.labels")
     vars <- as.character(attr(formula, "variables"))[-1L]
     if(is.null(data)) {
-	v <- c(as.name("data.frame"), attr(formula, "variables"))
+	v <- c(quote(data.frame), attr(formula, "variables"))
 	data <- eval(as.call(v), parent.frame())
     }
     if(!is.function(na.action)) stop("na.action must be a function")
     data <- na.action(data)
     class(data) <- NULL
     n <- length(o)
-    z <- vector("list", n)
-    names(z) <- labels
+    z <- setNames(vector("list", n), labels)
     dummy <- numeric(.row_names_info(data, 2L))
+    data <- lapply(data, function(x) if (is.character(x)) as.factor(x) else x)
     notfactor <- !sapply(data, function(x) inherits(x, "factor"))
     balance <- TRUE
     for(i in seq_len(n)) {
@@ -320,8 +321,9 @@ replications <- function(formula, data = NULL, na.action)
 	if(o[i] < 1 || substring(l, 1L, 5L) == "Error") { z[[l]] <- NULL; next }
 	select <- vars[f[, i] > 0]
 	if(any(nn <- notfactor[select])) {
-	    warning("non-factors ignored: ",
-                    paste(names(nn), collapse = ", "))
+            warning(gettextf("non-factors ignored: %s",
+                             paste(names(nn), collapse = ", ")),
+                    domain = NA)
 	    next
 	}
 	if(length(select))
@@ -336,7 +338,7 @@ replications <- function(formula, data = NULL, na.action)
     if(balance) unlist(z) else z
 }
 
-print.tables_aov <- function(x, digits = 4, ...)
+print.tables_aov <- function(x, digits = 4L, ...)
 {
     tables.aov <- x$tables
     n.aov <- x$n
@@ -374,7 +376,8 @@ print.tables_aov <- function(x, digits = 4, ...)
 		    c(list(format(c(rownames(table), rep.int("rep", dim.t[1L])))),
                       dimnames(table)[-1L])
 		ctable <- eval(parse(text = paste(
-				     "ctable[as.numeric(t(matrix(seq(nrow(ctable)),ncol=2)))", paste(rep.int(", ", d - 2), collapse = " "), "]")))
+				     "ctable[as.numeric(t(matrix(seq(nrow(ctable)),ncol=2)))", paste(rep.int(", ", d - 2), collapse = " "), "]"),
+                                     keep.source = FALSE))
 		names(dimnames(ctable)) <- names(dimnames(table))
 		class(ctable) <- "mtable"
 		print.mtable(ctable, digits = digits, ...)
@@ -480,8 +483,8 @@ model.frame.aovlist <- function(formula, data = NULL, ...)
     args$formula <- form
     env <- environment(Terms)
     if (is.null(env)) env <- parent.frame()
-    fcall <- c(list(as.name("model.frame")), args)
-#    do.call("model.frame", args)
+    ## need stats:: for non-standard evaluation
+    fcall <- c(list(quote(stats::model.frame)), args)
     eval(as.call(fcall), env)
 }
 

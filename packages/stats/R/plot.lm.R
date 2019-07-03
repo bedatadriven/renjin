@@ -1,5 +1,7 @@
 #  File src/library/stats/R/plot.lm.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 plot.lm <-
 function (x, which = c(1L:3L,5L), ## was which = 1L:4L,
@@ -26,13 +28,13 @@ function (x, which = c(1L:3L,5L), ## was which = 1L:4L,
 	  id.n = 3, labels.id = names(residuals(x)), cex.id = 0.75,
 	  qqline = TRUE, cook.levels = c(0.5, 1.0),
 	  add.smooth = getOption("add.smooth"),
-	  label.pos = c(4,2), cex.caption = 1)
+	  label.pos = c(4,2), cex.caption = 1, cex.oma.main = 1.25)
 {
     dropInf <- function(x, h) {
 	if(any(isInf <- h >= 1.0)) {
-	    warning("Not plotting observations with leverage one:\n  ",
-		    paste(which(isInf), collapse=", "),
-                    call.=FALSE)
+            warning(gettextf("not plotting observations with leverage one:\n  %s",
+                             paste(which(isInf), collapse=", ")),
+                    call. = FALSE, domain = NA)
 	    x[isInf] <- NaN
 	}
 	x
@@ -58,12 +60,14 @@ function (x, which = c(1L:3L,5L), ## was which = 1L:4L,
     n <- length(r)
     if (any(show[2L:6L])) {
 	s <- if (inherits(x, "rlm")) x$s
-        else if(isGlm) sqrt(summary(x)$dispersion)
-        else sqrt(deviance(x)/df.residual(x))
-	hii <- lm.influence(x, do.coef = FALSE)$hat
+	     else if(isGlm) sqrt(summary(x)$dispersion)
+	     else sqrt(deviance(x)/df.residual(x))
+	hii <- (infl <- influence(x, do.coef = FALSE))$hat
 	if (any(show[4L:6L])) {
-	    cook <- if (isGlm) cooks.distance(x)
-            else cooks.distance(x, sd = s, res = r)
+	    cook <-
+		if (isGlm)
+		    cooks.distance (x, infl = infl)
+		else cooks.distance(x, infl = infl, sd = s, res = r, hat = hii)
 	}
     }
     if (any(show[2L:3L])) {
@@ -125,7 +129,7 @@ function (x, which = c(1L:3L,5L), ## was which = 1L:4L,
     if (show[1L]) {
 	ylim <- range(r, na.rm=TRUE)
 	if(id.n > 0)
-	    ylim <- extendrange(r= ylim, f = 0.08)
+	    ylim <- extendrange(r = ylim, f = 0.08)
         dev.hold()
 	plot(yh, r, xlab = l.fit, ylab = "Residuals", main = main,
 	     ylim = ylim, type = "n", ...)
@@ -170,7 +174,7 @@ function (x, which = c(1L:3L,5L), ## was which = 1L:4L,
 	    text.id(yhn0[show.rs], sqrtabsr[show.rs], show.rs)
         dev.flush()
     }
-    if (show[4L]) {
+    if (show[4L]) { ## Cook's Distances
 	if(id.n > 0) {
 	    show.r <- order(-cook)[iid]# index of largest 'id.n' ones
 	    ymx <- cook[show.r[1L]] * 1.075
@@ -192,7 +196,7 @@ function (x, which = c(1L:3L,5L), ## was which = 1L:4L,
  	rsp <- dropInf( r.w/(s * sqrt(1 - hii)), hii )
 	ylim <- range(rsp, na.rm = TRUE)
 	if (id.n > 0) {
-	    ylim <- extendrange(r= ylim, f = 0.08)
+	    ylim <- extendrange(r = ylim, f = 0.08)
 	    show.rsp <- order(-cook)[iid]
 	}
         do.plot <- TRUE
@@ -206,27 +210,19 @@ function (x, which = c(1L:3L,5L), ## was which = 1L:4L,
             facvars <- names(dcl)[dcl %in% c("factor", "ordered")]
             mf <- model.frame(x)[facvars]# better than x$model
             if(ncol(mf) > 0) {
-                ## now re-order the factor levels *along* factor-effects
-                ## using a "robust" method {not requiring dummy.coef}:
-                effM <- mf
-                for(j in seq_len(ncol(mf)))
-                    effM[, j] <- sapply(split(yh, mf[, j]), mean)[mf[, j]]
-                ord <- do.call(order, effM)
-                dm <- data.matrix(mf)[ord, , drop = FALSE]
+                dm <- data.matrix(mf)
                 ## #{levels} for each of the factors:
                 nf <- length(nlev <- unlist(unname(lapply(x$xlevels, length))))
                 ff <- if(nf == 1) 1 else rev(cumprod(c(1, nlev[nf:2])))
                 facval <- (dm-1) %*% ff
                 xx <- facval # for use in do.plot section.
-
                 dev.hold()
                 plot(facval, rsp, xlim = c(-1/2, sum((nlev-1) * ff) + 1/2),
                      ylim = ylim, xaxt = "n",
                      main = main, xlab = "Factor Level Combinations",
                      ylab = ylab5, type = "n", ...)
-                grp_means <- sapply(split(yh ,mf[, 1L]), mean)
                 axis(1, at = ff[1L]*(1L:nlev[1L] - 1/2) - 1/2,
-                     labels = x$xlevels[[1L]][order(grp_means)])
+                     labels = x$xlevels[[1L]])
                 mtext(paste(facvars[1L],":"), side = 1, line = 0.25, adj=-.05)
                 abline(v = ff[1L]*(0:nlev[1L]) - 1/2, col="gray", lty="F4")
                 panel(facval, rsp, ...)
@@ -234,9 +230,9 @@ function (x, which = c(1L:3L,5L), ## was which = 1L:4L,
                 dev.flush()
             }
 	    else { # no factors
-		message("hat values (leverages) are all = ",
-                        format(mean(r.hat)),
-			"\n and there are no factor predictors; no plot no. 5")
+                message(gettextf("hat values (leverages) are all = %s\n and there are no factor predictors; no plot no. 5",
+                                 format(mean(r.hat))),
+                        domain = NA)
                 frame()
                 do.plot <- FALSE
             }
@@ -255,7 +251,7 @@ function (x, which = c(1L:3L,5L), ## was which = 1L:4L,
             if (one.fig)
                 title(sub = sub.caption, ...)
             if(length(cook.levels)) {
-                p <- length(coef(x))
+                p <- x$rank # not length(coef(x))
                 usr <- par("usr")
                 hh <- seq.int(min(r.hat[1L], r.hat[2L]/100), usr[2L],
                               length.out = 101)
@@ -268,9 +264,8 @@ function (x, which = c(1L:3L,5L), ## was which = 1L:4L,
                        lty = 2, col = 2, bty = "n")
                 xmax <- min(0.99, usr[2L])
                 ymult <- sqrt(p*(1-xmax)/xmax)
-                aty <- c(-sqrt(rev(cook.levels))*ymult,
-                         sqrt(cook.levels)*ymult)
-                axis(4, at = aty,
+                aty <- sqrt(cook.levels)*ymult
+                axis(4, at = c(-rev(aty), aty),
                      labels = paste(c(rev(cook.levels), cook.levels)),
                      mgp = c(.25,.25,0), las = 2, tck = 0,
                      cex.axis = cex.id, col.axis = 2)
@@ -300,7 +295,7 @@ function (x, which = c(1L:3L,5L), ## was which = 1L:4L,
 	axis(1, at = athat/(1-athat), labels = paste(athat))
 	if (one.fig)
 	    title(sub = sub.caption, ...)
-	p <- length(coef(x))
+	p <- x$rank
 	bval <- pretty(sqrt(p*cook/g), 5)
 
 	usr <- par("usr")
@@ -308,14 +303,14 @@ function (x, which = c(1L:3L,5L), ## was which = 1L:4L,
 	ymax <- usr[4L]
 	for(i in seq_along(bval)) {
 	    bi2 <- bval[i]^2
-	    if(ymax > bi2*xmax) {
+	    if(p*ymax > bi2*xmax) {
 		xi <- xmax + strwidth(" ")/3
-		yi <- bi2*xi
+		yi <- bi2*xi/p
 		abline(0, bi2, lty = 2)
 		text(xi, yi, paste(bval[i]), adj = 0, xpd = TRUE)
 	    } else {
 		yi <- ymax - 1.5*strheight(" ")
-		xi <- yi/bi2
+		xi <- p*yi/bi2
 		lines(c(0, xi), c(0, yi), lty = 2)
 		text(xi, ymax-0.8*strheight(" "), paste(bval[i]),
 		     adj = 0.5, xpd = TRUE)
@@ -333,6 +328,6 @@ function (x, which = c(1L:3L,5L), ## was which = 1L:4L,
     }
 
     if (!one.fig && par("oma")[3L] >= 1)
-	mtext(sub.caption, outer = TRUE, cex = 1.25)
+	mtext(sub.caption, outer = TRUE, cex = cex.oma.main)
     invisible()
 }

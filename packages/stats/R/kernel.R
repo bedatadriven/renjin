@@ -1,5 +1,5 @@
 #  File src/library/stats/R/kernel.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,22 +12,22 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
+## Copyright (C) 1999-2018  The R Core Team
 ## Copyright (C) 1997-1999  Adrian Trapletti
-## Copyright (C) 1999-2010  The R Development Core Team
 ## This version distributed under LGPL (version 2 or later)
 
 
 kernel <- function (coef, m = 2, r, name="unknown")
 {
     mkName <- function(name, args)
-        paste(name,"(", paste(args, collapse=","), ")", sep="")
+        paste0(name,"(", paste(args, collapse=","), ")")
 
     modified.daniell.kernel <- function (m)
     {
         if(length(m) == 1L)
-            k <- kernel(c(rep(1, m), 0.5)/(2*m), m)
+            k <- kernel(c(rep_len(1, m), 0.5)/(2*m), m)
         else {
             k <- Recall(m[1L])
             for(i in 2L:length(m)) k <- kernapply(k,  Recall(m[i]))
@@ -39,7 +39,7 @@ kernel <- function (coef, m = 2, r, name="unknown")
     daniell.kernel <- function (m)
     {
         if(length(m) == 1L)
-            k <- kernel(rep(1/(2*m+1),m+1), m)
+            k <- kernel(rep_len(1/(2*m+1),m+1), m)
         else {
             k <- Recall(m[1L])
             for(i in 2L:length(m)) k <- kernapply(k,  Recall(m[i]))
@@ -75,7 +75,7 @@ kernel <- function (coef, m = 2, r, name="unknown")
     }
 
     if(!missing(m))
-	if(!is.numeric(m) || length(m) < 1L || m != round(m) || any(m < 0L))
+	if(!is.numeric(m) || length(m) < 1L || any(m != round(m)) || any(m < 0L))
 	    stop("'m' must be numeric with non-negative integers")
 
     if(is.character(coef)) {
@@ -101,18 +101,19 @@ kernel <- function (coef, m = 2, r, name="unknown")
     }
 }
 
-print.tskernel <- function (x, digits = max(3,getOption("digits")-3), ...)
+print.tskernel <- function (x, digits = max(3L, getOption("digits") - 3L), ...)
 {
     m <- x$m
     y <- x[i <- -m:m]
     cat(attr(x, "name"), "\n")
-    cat(paste("coef[", format(i), "] = ", format(y, digits = digits), sep = ""),
+    cat(paste0("coef[", format(i), "] = ", format(y, digits = digits)),
         sep = "\n")
     invisible(x)
 }
 
 plot.tskernel <-
-    function(x, type = "h", xlab = "k", ylab = "W[k]", main=attr(x,"name"), ...)
+    function(x, type = "h", xlab = "k", ylab = "W[k]",
+             main = attr(x,"name"), ...)
 {
     i <- -x$m:x$m
     plot(i, x[i], type = type, xlab = xlab, ylab = ylab, main = main, ...)
@@ -159,7 +160,7 @@ kernapply.vector <- function (x, k, circular = FALSE, ...)
     else
     {
         n <- length(x)
-        w <- c(k[0L:m], rep(0,n-2L*m-1L), k[-m:-1L])
+        w <- c(k[0L:m], rep_len(0,n-2L*m-1L), k[-m:-1L])
         y <- fft(fft(x)*fft(w), inverse = TRUE)/n
         if (is.numeric(x)) y <- Re(y)
         if (circular)
@@ -195,10 +196,9 @@ kernapply.tskernel <- function (x, k, ...)
     if (!is.tskernel(k))
         stop ("'k' is not a kernel")
     n <- k$m
-    xx <- c(rep(0,n), x[-x$m:x$m], rep(0,n))
+    xx <- c(rep_len(0,n), x[-x$m:x$m], rep_len(0,n))
     coef <- kernapply(xx, k, circular = TRUE)
-    m <- length(coef)%/%2L
-    kernel(coef[(m+1L):length(coef)],m,
-           paste("Composite(", attr(x, "name"), ",",
-                 attr(k, "name"), ")", sep=""))
+    m <- length(coef) %/% 2L
+    kernel(coef[(m+1L):length(coef)], m,
+           paste0("Composite(", attr(x, "name"), ",", attr(k, "name"), ")"))
 }

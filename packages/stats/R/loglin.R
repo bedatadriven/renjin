@@ -1,5 +1,7 @@
 #  File src/library/stats/R/loglin.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2013 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,10 +14,10 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 loglin <- function(table, margin, start = rep(1, length(table)), fit =
-                   FALSE, eps = 0.1, iter = 20, param = FALSE, print =
+                   FALSE, eps = 0.1, iter = 20L, param = FALSE, print =
                    TRUE) {
     rfit <- fit
 
@@ -23,7 +25,7 @@ loglin <- function(table, margin, start = rep(1, length(table)), fit =
     nvar <- length(dtab)
 
     ncon <- length(margin)
-    conf <- matrix(0, nrow = nvar, ncol = ncon)
+    conf <- matrix(0L, nrow = nvar, ncol = ncon)
     nmar <- 0
     varnames <- names(dimnames(table))
     for (k in seq_along(margin)) {
@@ -33,6 +35,8 @@ loglin <- function(table, margin, start = rep(1, length(table)), fit =
             tmp <- match(tmp, varnames)
             margin[[k]] <- tmp
         }
+        if (!is.numeric(tmp) || any(is.na(tmp) | tmp <= 0))
+            stop("'margin' must contain names or numbers corresponding to 'table'")
         conf[seq_along(tmp), k] <- tmp
         nmar <- nmar + prod(dtab[tmp])
     }
@@ -40,35 +44,7 @@ loglin <- function(table, margin, start = rep(1, length(table)), fit =
     ntab <- length(table)
     if (length(start) != ntab ) stop("'start' and 'table' must be same length")
 
-    storage.mode(conf) <- "integer"
-    ## NOTE: We make no use of the arguments locmar, nmar, marg, nu, and
-    ## u.  It might make sense to eliminate them and simplify the underlying C
-    ## code accordingly.
-    z <- .C(C_loglin,
-            as.integer(nvar),
-            as.integer(dtab),
-            as.integer(ncon),
-            conf,
-            as.integer(ntab),
-            as.double(table),
-            fit = as.double(start),
-            locmar = integer(ncon),
-            as.integer(nmar),
-            marginals = double(nmar),
-            as.integer(ntab),
-            u = double(ntab),
-            as.double(eps),
-            as.integer(iter),
-            dev = double(iter),
-            nlast = integer(1L),
-            ifault = integer(1L),
-            PACKAGE = "stats")
-    switch(z$ifault,
-           stop("this should not happen"),
-           stop("this should not happen"),
-           warning("algorithm did not converge"),
-           stop("incorrect specification of 'table' or 'start'")
-           )
+    z <- .Call(C_LogLin, dtab, conf, table, start, nmar, eps, iter)
 
     if (print)
         cat(z$nlast, "iterations: deviation", z$dev[z$nlast], "\n")

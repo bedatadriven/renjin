@@ -1,5 +1,7 @@
 #  File src/library/stats/R/princomp.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 princomp <- function(x, ...) UseMethod("princomp")
 
@@ -24,7 +26,8 @@ princomp.formula <- function(formula, data = NULL, subset, na.action, ...)
     cl <- match.call()
     mf <- match.call(expand.dots = FALSE)
     mf$... <- NULL
-    mf[[1L]] <- as.name("model.frame")
+    ## need stats:: for non-standard evaluation
+    mf[[1L]] <- quote(stats::model.frame)
     mf <- eval.parent(mf)
     ## this is not a `standard' model-fitting function,
     ## so no need to consider contrasts or levels
@@ -48,12 +51,11 @@ princomp.formula <- function(formula, data = NULL, subset, na.action, ...)
 
 princomp.default <-
     function(x, cor = FALSE, scores = TRUE, covmat = NULL,
-             subset = rep(TRUE, nrow(as.matrix(x))), ...)
+             subset = rep_len(TRUE, nrow(as.matrix(x))), fix_sign = TRUE, ...)
 {
+    chkDots(...)
     cl <- match.call()
     cl[[1L]] <- as.name("princomp")
-    if(!missing(x) && !missing(covmat))
-        warning("both 'x' and 'covmat' were supplied: 'x' will be ignored")
     z <- if(!missing(x)) as.matrix(x)[subset, , drop = FALSE]
     if (is.list(covmat)) {
         if(any(is.na(match(c("cov", "n.obs"), names(covmat)))))
@@ -62,6 +64,8 @@ princomp.default <-
         n.obs <- covmat$n.obs
         cen <- covmat$center
     } else if(is.matrix(covmat)) {
+	if(!missing(x)) ## warn only here; x is used for scores when we have 'cen'
+	    warning("both 'x' and 'covmat' were supplied: 'x' will be ignored")
         cv <- covmat
         n.obs <- NA
         cen <- NULL
@@ -78,7 +82,7 @@ princomp.default <-
     if (cor) {
         sds <- sqrt(diag(cv))
         if(any(sds == 0))
-            stop("cannot use cor=TRUE with a constant variable")
+            stop("cannot use 'cor = TRUE' with a constant variable")
         cv <- cv/(sds %o% sds)
     }
     edc <- eigen(cv, symmetric = TRUE)
@@ -90,24 +94,30 @@ princomp.default <-
         else
             ev[neg] <- 0
     }
-    cn <- paste("Comp.", 1L:ncol(cv), sep = "")
+    cn <- paste0("Comp.", 1L:ncol(cv))
     names(ev) <- cn
     dimnames(edc$vectors) <- if(missing(x))
         list(dimnames(cv)[[2L]], cn) else list(dimnames(x)[[2L]], cn)
     sdev <- sqrt(ev)
-    sc <- if (cor) sds else rep(1, ncol(cv))
-    names(sc) <- colnames(cv)
+    sc <- setNames(if (cor) sds else rep.int(1, ncol(cv)),
+		   colnames(cv))
+    fix <- if(fix_sign) function(A) {
+        mysign <- function(x) ifelse(x < 0, -1, 1)
+        A[] <- apply(A, 2L, function(x) x*mysign(x[1L]))
+        A
+    } else identity
+    ev <- fix(edc$vectors)
     scr <- if (scores && !missing(x) && !is.null(cen))
-        scale(z, center = cen, scale = sc) %*% edc$vectors
+        scale(z, center = cen, scale = sc) %*% ev
     if (is.null(cen)) cen <- rep(NA_real_, nrow(cv))
     edc <- list(sdev = sdev,
-                loadings = structure(edc$vectors, class="loadings"),
+                loadings = structure(ev, class = "loadings"),
                 center = cen, scale = sc, n.obs = n.obs,
                 scores = scr, call = cl)
     ## The Splus function also return list elements factor.sdev,
     ## correlations and coef, but these are not documented in the help.
     ## coef seems to equal load.  The Splus function also returns list
-    ## element terms which is not supported here.
+    ## element 'terms' which is not supported here.
     class(edc) <- "princomp"
     edc
 }

@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2005   The R Development Core Team.
+ *  Copyright (C) 2005-2017  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -14,11 +14,13 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, a copy is available at
- *  http://www.r-project.org/Licenses/
+ *  https://www.R-project.org/Licenses/
  */
 
 #ifndef R_STATS_H
 #define R_STATS_H
+
+/* definitions not involving SEXPs, plus _() */
 
 #ifdef ENABLE_NLS
 #include <libintl.h>
@@ -27,31 +29,28 @@
 #define _(String) (String)
 #endif
 
-void R_approx(double *, double *, int *, double *, int *,
-	      int *, double *, double *, double *);
-void R_approxfun(double *, double *, int *, double *, int *,
-	      int *, double *, double *, double *);
-void R_approxtest(double *, double *, int *, int *, double *);
-void band_ucv_bin(int *, int *, double *, int *, double *, double *);
-void band_bcv_bin(int *, int *, double *, int *, double *, double *);
-void band_phi4_bin(int *, int *, double *, int *, double *, double *);
-void band_phi6_bin(int *, int *, double *, int *, double *, double *);
-void band_den_bin(int *, int *, double *, int *, double *, double *);
-void loglin(int *nvar, int *dim, int *ncon, int *config, int *ntab,
-	    double *table, double *fit, int *locmar, int *nmar, double *marg,
-	    int *nu, double *u, double *maxdev, int *maxit,
-	    double *dev, int *nlast, int *ifault);
-SEXP lowess(SEXP x, SEXP y, SEXP sf, SEXP siter, SEXP sdelta);
+#include <R_ext/RS.h>
+void
+F77_NAME(hclust)(int *n, int *len, int *iopt, int *ia, int *ib,
+		 double *crit, double *membr, int *nn,
+		 double *disnn, int *flag, double *diss);
 
-void massdist(double *x, double *xmass, int *nx, double *xlow, double *xhigh,
-	      double *y, int *ny);
-void spline_coef(int *method, int *n, double *x, double *y,
-		 double *b, double *c, double *d, double *e);
-void spline_eval(int *method, int *nu, double *u, double *v,
-		 int *n, double *x, double *y,
-		 double *b, double *c, double *d);
+void
+F77_NAME(hcass2)(int *n, int *ia, int *ib, int *iorder, int *iia, int *iib);
 
-void F77_NAME(lminfl)(double *x, int *ldx, int *n, int *k, int *docoef,
-		      double *qraux, double *resid, double *hat,
-		      double *coef, double *sigma, double *tol);
+void
+F77_NAME(kmns)(double *a, int *m, int *n, double *c, int *k,
+	       int *ic1, int *ic2, int *nc, double * an1, double *an2,
+	       int *ncp, double *d, int *itran,
+	       int *live, int *iter, double *wss, int *ifault);
+
+
+void rcont2(int *nrow, int *ncol, int *nrowt, int *ncolt, int *ntotal,
+	    double *fact, int *jwork, int *matrix);
+
+double R_zeroin2(double ax, double bx, double fa, double fb, 
+		 double (*f)(double x, void *info), void *info, 
+		 double *Tol, int *Maxit);
+
+
 #endif

@@ -1,5 +1,8 @@
 #  File src/library/stats/R/cpgram.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1994-9  W. N. Venables and B. D. Ripley
+#  Copyright (C) 1999-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,12 +15,14 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
-## from MASS library: (C) 1994-9 W. N. Venables and B. D. Ripley
+## from MASS package
 
-cpgram <- function(ts, taper=0.1,
-		   main=paste("Series: ", deparse(substitute(ts))), ci.col="blue")
+cpgram <-
+    function(ts, taper = 0.1,
+             main = paste("Series: ", deparse(substitute(ts))),
+             ci.col = "blue")
 {
     main
     if(NCOL(ts) > 1)

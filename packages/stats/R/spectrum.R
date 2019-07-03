@@ -1,5 +1,8 @@
 #  File src/library/stats/R/spectrum.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1994-9 W. N. Venables and B. D. Ripley
+#  Copyright (C) 1999-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,10 +15,10 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ## based on code by Martyn Plummer, plus kernel code by Adrian Trapletti
-spectrum<- function (x, ..., method = c("pgram", "ar"))
+spectrum <- function (x, ..., method = c("pgram", "ar"))
 {
     switch(match.arg(method),
 	   pgram = spec.pgram(x, ...),
@@ -40,7 +43,7 @@ spec.taper <- function (x, p = 0.1)
         m <- floor(nr * p[i])
         if(m == 0) next
         w <- 0.5 * (1 - cos(pi * seq.int(1, 2 * m - 1, by = 2)/(2 * m)))
-        x[, i] <- c(w, rep(1, nr - 2 * m), rev(w)) * x[, i]
+        x[, i] <- c(w, rep_len(1, nr - 2 * m), rev(w)) * x[, i]
     }
     attributes(x) <- a
     x
@@ -58,7 +61,7 @@ spec.ar <- function(x, n.freq, order = NULL, plot = TRUE,
         x <- ar(x, is.null(order), order, na.action=na.action, method=method)
     } else { ## result of ar()
         cn <- match(c("ar", "var.pred", "order"), names(x))
-        if(any(is.na(cn)))
+        if(anyNA(cn))
             stop("'x' must be a time series or an ar() fit")
         series <- x$series
         xfreq <- x$frequency
@@ -79,7 +82,7 @@ spec.ar <- function(x, n.freq, order = NULL, plot = TRUE,
     } else .NotYetImplemented()
     spg.out <- list(freq = freq*xfreq, spec = spec, coh = coh, phase = phase,
                     n.used = nrow(x), series = series,
-                    method = paste("AR (", order, ") spectrum ", sep="")
+                    method = paste0("AR (", order, ") spectrum ")
                     )
     class(spg.out) <- "spec"
     if(plot) {
@@ -212,12 +215,14 @@ plot.spec <-
     log <- match.arg(log)
     m <- match.call()
     if(plot.type == "coherency") {
-        m[[1L]] <- as.name("plot.spec.coherency")
+        ## need stats:: for non-standard evaluation
+        m[[1L]] <- quote(stats::plot.spec.coherency)
         m$plot.type <- m$log <- m$add <- NULL
         return(eval(m, parent.frame()))
     }
     if(plot.type == "phase") {
-        m[[1L]] <- as.name("plot.spec.phase")
+        ## need stats:: for non-standard evaluation
+        m[[1L]] <- quote(stats::plot.spec.phase)
         m$plot.type <- m$log <- m$add <- NULL
         return(eval(m, parent.frame()))
     }
@@ -251,9 +256,10 @@ plot.spec <-
                 lines(rep(conf.x, 2), conf.y + conf.lim, col=ci.col)
                 lines(conf.x + c(-0.5, 0.5) * x$bandwidth, rep(conf.y, 2),
                       col=ci.col)
-                ci.text <- paste(", ", round(100*ci, 2),  "% C.I. is (",
-                                 paste(format(conf.lim, digits = 3),
-                                       collapse = ","), ")dB", sep="")
+                ci.text <- paste0(", ", round(100*ci, 2),  "% C.I. is (",
+                                  paste(format(conf.lim, digits = 3),
+                                        collapse = ","),
+                                  ")dB")
             } else {
                 ci.text <- ""
                 conf.y <- max(x$spec) / conf.lim[2L]
@@ -268,8 +274,8 @@ plot.spec <-
                           else "from specified model",
                           x$method, sep = "\n")
         if (is.null(sub) && is.numeric(x$bandwidth))
-             sub <- paste("bandwidth = ", format(x$bandwidth, digits = 3),
-                          ci.text, sep="")
+             sub <- paste0("bandwidth = ", format(x$bandwidth, digits = 3),
+                           ci.text)
         title(main = main, sub = sub)
     }
     invisible(x)

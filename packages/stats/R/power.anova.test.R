@@ -1,5 +1,7 @@
 #  File src/library/stats/R/power.anova.test.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 power.anova.test <-
 function (groups = NULL, n = NULL, between.var = NULL, within.var = NULL,
@@ -52,7 +54,7 @@ function (groups = NULL, n = NULL, between.var = NULL, within.var = NULL,
     else if (is.null(sig.level))
 	sig.level <- uniroot(function(sig.level) eval(p.body) - power,
 			     c(1e-10, 1 - 1e-10))$root
-    else stop("internal error")
+    else stop("internal error", domain = NA)
     NOTE <- "n is number in each group"
     METHOD <- "Balanced one-way analysis of variance power calculation"
     structure(list(groups = groups, n = n, between.var = between.var,

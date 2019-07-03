@@ -1,5 +1,7 @@
 #  File src/library/stats/R/lm.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 
 lm <- function (formula, data, subset, weights, na.action,
@@ -25,10 +27,11 @@ lm <- function (formula, data, subset, weights, na.action,
     cl <- match.call()
     mf <- match.call(expand.dots = FALSE)
     m <- match(c("formula", "data", "subset", "weights", "na.action", "offset"),
-	       names(mf), 0L)
+               names(mf), 0L)
     mf <- mf[c(1L, m)]
     mf$drop.unused.levels <- TRUE
-    mf[[1L]] <- as.name("model.frame")
+    ## need stats:: for non-standard evaluation
+    mf[[1L]] <- quote(stats::model.frame)
     mf <- eval(mf, parent.frame())
     if (method == "model.frame")
 	return(mf)
@@ -50,11 +53,13 @@ lm <- function (formula, data, subset, weights, na.action,
 
     if (is.empty.model(mt)) {
 	x <- NULL
-	z <- list(coefficients = if (is.matrix(y))
-                  matrix(,0,3) else numeric(), residuals = y,
+	z <- list(coefficients = if(is.matrix(y)) matrix(NA_real_, 0, ncol(y))
+				 else numeric(),
+		  residuals = y,
 		  fitted.values = 0 * y, weights = w, rank = 0L,
-		  df.residual = if(!is.null(w)) sum(w != 0) else
-                  if (is.matrix(y)) nrow(y) else length(y))
+		  df.residual = if(!is.null(w)) sum(w != 0)
+				else if(is.matrix(y)) nrow(y)
+				else length(y))
         if(!is.null(offset)) {
             z$fitted.values <- offset
             z$residuals <- y - offset
@@ -107,51 +112,40 @@ lm.fit <- function (x, y, offset = NULL, method = "qr", tol = 1e-07,
     if(method != "qr")
 	warning(gettextf("method = '%s' is not supported. Using 'qr'", method),
                 domain = NA)
-    dots <- list(...)
-    if(length(dots) > 1L)
-	warning("extra arguments ", paste(sQuote(names(dots)), sep=", "),
-                " are disregarded.", domain = NA)
-    else if(length(dots) == 1L)
-	warning("extra argument ", sQuote(names(dots)),
-                " is disregarded.", domain = NA)
-    storage.mode(x) <- "double"
-    storage.mode(y) <- "double"
-    z <- .Fortran("dqrls",
-		  qr = x, n = n, p = p,
-		  y = y, ny = ny,
-		  tol = as.double(tol),
-		  coefficients = mat.or.vec(p, ny),
-		  residuals = y, effects = y,rank = integer(1L),
-		  pivot = 1L:p, qraux = double(p), work = double(2*p),
-                  PACKAGE="base")
+    chkDots(...)
+    z <- .Call(C_Cdqrls, x, y, tol, FALSE)
     if(!singular.ok && z$rank < p) stop("singular fit encountered")
     coef <- z$coefficients
     pivot <- z$pivot
     ## careful here: the rank might be 0
     r1 <- seq_len(z$rank)
-    dn <- colnames(x); if(is.null(dn)) dn <- paste("x", 1L:p, sep="")
+    dn <- colnames(x); if(is.null(dn)) dn <- paste0("x", 1L:p)
     nmeffects <- c(dn[pivot[r1]], rep.int("", n - z$rank))
     r2 <- if(z$rank < p) (z$rank+1L):p else integer()
     if (is.matrix(y)) {
 	coef[r2, ] <- NA
-	coef[pivot, ] <- coef
+	if(z$pivoted) coef[pivot, ] <- coef
 	dimnames(coef) <- list(dn, colnames(y))
 	dimnames(z$effects) <- list(nmeffects, colnames(y))
     } else {
 	coef[r2] <- NA
-	coef[pivot] <- coef
+        ## avoid copy
+	if(z$pivoted) coef[pivot] <- coef
 	names(coef) <- dn
 	names(z$effects) <- nmeffects
     }
     z$coefficients <- coef
     r1 <- y - z$residuals ; if(!is.null(offset)) r1 <- r1 + offset
+    ## avoid unnecessary copy
+    if(z$pivoted) colnames(z$qr) <- colnames(x)[z$pivot]
     qr <- z[c("qr", "qraux", "pivot", "tol", "rank")]
-    colnames(qr$qr) <- colnames(x)[qr$pivot]
     c(z[c("coefficients", "residuals", "effects", "rank")],
       list(fitted.values = r1, assign = attr(x, "assign"),
 	   qr = structure(qr, class="qr"),
 	   df.residual = n - z$rank))
 }
+
+.lm.fit <- function(x, y, tol = 1e-07) .Call(C_Cdqrls, x, y, tol, check=TRUE)
 
 lm.wfit <- function (x, y, w, offset = NULL, method = "qr", tol = 1e-7,
                      singular.ok = TRUE, ...)
@@ -171,13 +165,7 @@ lm.wfit <- function (x, y, w, offset = NULL, method = "qr", tol = 1e-7,
     if(method != "qr")
 	warning(gettextf("method = '%s' is not supported. Using 'qr'", method),
                 domain = NA)
-    dots <- list(...)
-    if(length(dots) > 1L)
-	warning("extra arguments ", paste(sQuote(names(dots)), sep=", "),
-                " are disregarded.", domain = NA)
-    else if(length(dots) == 1L)
-	warning("extra argument ", sQuote(names(dots)),
-                " is disregarded.", domain = NA)
+    chkDots(...)
     x.asgn <- attr(x, "assign")# save
     zero.weights <- any(w == 0)
     if (zero.weights) {
@@ -200,32 +188,28 @@ lm.wfit <- function (x, y, w, offset = NULL, method = "qr", tol = 1e-7,
                     fitted.values = 0 * y, weights = w, rank = 0L,
                     df.residual = length(y)))
     }
-    storage.mode(y) <- "double"
+    if (n == 0) { # all cases have weight zero
+        return(list(coefficients = rep(NA_real_, p), residuals = y,
+                    fitted.values = 0 * y, weights = w, rank = 0L,
+                    df.residual = 0L))
+    }
     wts <- sqrt(w)
-    z <- .Fortran("dqrls",
-		  qr = x * wts, n = n, p = p,
-		  y  = y * wts, ny = ny,
-		  tol = as.double(tol),
-		  coefficients = mat.or.vec(p, ny), residuals = y,
-		  effects = mat.or.vec(n, ny),
-		  rank = integer(1L), pivot = 1L:p, qraux = double(p),
-		  work = double(2 * p),
-                  PACKAGE="base")
+    z <- .Call(C_Cdqrls, x * wts, y * wts, tol, FALSE)
     if(!singular.ok && z$rank < p) stop("singular fit encountered")
     coef <- z$coefficients
     pivot <- z$pivot
     r1 <- seq_len(z$rank)
-    dn <- colnames(x); if(is.null(dn)) dn <- paste("x", 1L:p, sep="")
+    dn <- colnames(x); if(is.null(dn)) dn <- paste0("x", 1L:p)
     nmeffects <- c(dn[pivot[r1]], rep.int("", n - z$rank))
     r2 <- if(z$rank < p) (z$rank+1L):p else integer()
     if (is.matrix(y)) {
 	coef[r2, ] <- NA
-	coef[pivot, ] <- coef
+	if(z$pivoted) coef[pivot, ] <- coef
 	dimnames(coef) <- list(dn, colnames(y))
 	dimnames(z$effects) <- list(nmeffects,colnames(y))
     } else {
 	coef[r2] <- NA
-	coef[pivot] <- coef
+	if(z$pivoted) coef[pivot] <- coef
 	names(coef) <- dn
 	names(z$effects) <- nmeffects
     }
@@ -254,8 +238,8 @@ lm.wfit <- function (x, y, w, offset = NULL, method = "qr", tol = 1e-7,
     }
     if(!is.null(offset))
         z$fitted.values <- z$fitted.values + offset
+    if(z$pivoted) colnames(z$qr) <- colnames(x)[z$pivot]
     qr <- z[c("qr", "qraux", "pivot", "tol", "rank")]
-    colnames(qr$qr) <- colnames(x)[qr$pivot]
     c(z[c("coefficients", "residuals", "fitted.values", "effects",
 	  "weights", "rank")],
       list(assign = x.asgn,
@@ -263,14 +247,14 @@ lm.wfit <- function (x, y, w, offset = NULL, method = "qr", tol = 1e-7,
 	   df.residual = n - z$rank))
 }
 
-print.lm <- function(x, digits = max(3, getOption("digits") - 3), ...)
+print.lm <- function(x, digits = max(3L, getOption("digits") - 3L), ...)
 {
     cat("\nCall:\n",
-	paste(deparse(x$call), sep="\n", collapse = "\n"), "\n\n", sep="")
+	paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n\n", sep = "")
     if(length(coef(x))) {
         cat("Coefficients:\n")
-        print.default(format(coef(x), digits=digits),
-                      print.gap = 2, quote = FALSE)
+        print.default(format(coef(x), digits = digits),
+                      print.gap = 2L, quote = FALSE)
     } else cat("No coefficients\n")
     cat("\n")
     invisible(x)
@@ -292,16 +276,17 @@ summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
             r <- sqrt(w) * r
         }
         resvar <- rss/rdf
-        ans <- z[c("call", "terms")]
+        ans <- z[c("call", "terms", if(!is.null(z$weights)) "weights")]
         class(ans) <- "summary.lm"
         ans$aliased <- is.na(coef(object))  # used in print method
         ans$residuals <- r
         ans$df <- c(0L, n, length(ans$aliased))
-        ans$coefficients <- matrix(NA, 0L, 4L)
-        dimnames(ans$coefficients)<-
-            list(NULL, c("Estimate", "Std. Error", "t value", "Pr(>|t|)"))
+        ans$coefficients <- matrix(NA_real_, 0L, 4L, dimnames =
+			list(NULL, c("Estimate", "Std. Error", "t value", "Pr(>|t|)")))
         ans$sigma <- sqrt(resvar)
         ans$r.squared <- ans$adj.r.squared <- 0
+        ans$cov.unscaled <- matrix(NA_real_, 0L, 0L)
+        if (correlation) ans$correlation <- ans$cov.unscaled
         return(ans)
     }
     if (is.null(z$terms))
@@ -312,7 +297,6 @@ summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
     n <- NROW(Qr$qr)
     if(is.na(z$df.residual) || n - p != z$df.residual)
         warning("residual degrees of freedom in object suggest this is not an \"lm\" fit")
-    p1 <- 1L:p
     ## do not want missing values substituted here
     r <- z$residuals
     f <- z$fitted.values
@@ -330,18 +314,21 @@ summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
         r <- sqrt(w) * r
     }
     resvar <- rss/rdf
+    ## see thread at https://stat.ethz.ch/pipermail/r-help/2014-March/367585.html
+    if (is.finite(resvar) &&
+        resvar < (mean(f)^2 + var(f)) * 1e-30)  # a few times .Machine$double.eps^2
+        warning("essentially perfect fit: summary may be unreliable")
+    p1 <- 1L:p
     R <- chol2inv(Qr$qr[p1, p1, drop = FALSE])
     se <- sqrt(diag(R) * resvar)
     est <- z$coefficients[Qr$pivot[p1]]
     tval <- est/se
-    ans <- z[c("call", "terms")]
+    ans <- z[c("call", "terms", if(!is.null(z$weights)) "weights")]
     ans$residuals <- r
     ans$coefficients <-
-	cbind(est, se, tval, 2*pt(abs(tval), rdf, lower.tail = FALSE))
-    dimnames(ans$coefficients)<-
-	list(names(z$coefficients)[Qr$pivot[p1]],
-	     c("Estimate", "Std. Error", "t value", "Pr(>|t|)"))
-    ans$aliased <- is.na(coef(object))  # used in print method
+	cbind(Estimate = est, "Std. Error" = se, "t value" = tval,
+	      "Pr(>|t|)" = 2*pt(abs(tval), rdf, lower.tail = FALSE))
+    ans$aliased <- is.na(z$coefficients)  # used in print method
     ans$sigma <- sqrt(resvar)
     ans$df <- c(p, rdf, NCOL(Qr$qr))
     if (p != attr(z$terms, "intercept")) {
@@ -364,24 +351,24 @@ summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
 }
 
 print.summary.lm <-
-    function (x, digits = max(3, getOption("digits") - 3),
+    function (x, digits = max(3L, getOption("digits") - 3L),
               symbolic.cor = x$symbolic.cor,
-	      signif.stars= getOption("show.signif.stars"),	...)
+	      signif.stars = getOption("show.signif.stars"),	...)
 {
     cat("\nCall:\n", # S has ' ' instead of '\n'
-	paste(deparse(x$call), sep="\n", collapse = "\n"), "\n\n", sep="")
+	paste(deparse(x$call), sep="\n", collapse = "\n"), "\n\n", sep = "")
     resid <- x$residuals
     df <- x$df
     rdf <- df[2L]
-    cat(if(!is.null(x$w) && diff(range(x$w))) "Weighted ",
-        "Residuals:\n", sep="")
+    cat(if(!is.null(x$weights) && diff(range(x$weights))) "Weighted ",
+        "Residuals:\n", sep = "")
     if (rdf > 5L) {
 	nam <- c("Min", "1Q", "Median", "3Q", "Max")
 	rq <- if (length(dim(resid)) == 2L)
 	    structure(apply(t(resid), 1L, quantile),
 		      dimnames = list(nam, dimnames(resid)[[2L]]))
 	else  {
-            zz <- zapsmall(quantile(resid), digits + 1)
+            zz <- zapsmall(quantile(resid), digits + 1L)
             structure(zz, names = nam)
         }
 	print(rq, digits = digits, ...)
@@ -389,7 +376,8 @@ print.summary.lm <-
     else if (rdf > 0L) {
 	print(resid, digits = digits, ...)
     } else { # rdf == 0 : perfect fit!
-	cat("ALL", df[1L], "residuals are 0: no residual degrees of freedom!\n")
+	cat("ALL", df[1L], "residuals are 0: no residual degrees of freedom!")
+        cat("\n")
     }
     if (length(x$aliased) == 0L) {
         cat("\nNo Coefficients\n")
@@ -399,27 +387,30 @@ print.summary.lm <-
                 " not defined because of singularities)\n", sep = "")
         else cat("\nCoefficients:\n")
         coefs <- x$coefficients
-        if(!is.null(aliased <- x$aliased) && any(aliased)) {
+        if(any(aliased <- x$aliased)) {
             cn <- names(aliased)
             coefs <- matrix(NA, length(aliased), 4, dimnames=list(cn, colnames(coefs)))
             coefs[!aliased, ] <- x$coefficients
         }
 
-        printCoefmat(coefs, digits=digits, signif.stars=signif.stars, na.print="NA", ...)
+        printCoefmat(coefs, digits = digits, signif.stars = signif.stars,
+                     na.print = "NA", ...)
     }
     ##
     cat("\nResidual standard error:",
-	format(signif(x$sigma, digits)), "on", rdf, "degrees of freedom\n")
-    if(nzchar(mess <- naprint(x$na.action))) cat("  (",mess, ")\n", sep="")
+	format(signif(x$sigma, digits)), "on", rdf, "degrees of freedom")
+    cat("\n")
+    if(nzchar(mess <- naprint(x$na.action))) cat("  (",mess, ")\n", sep = "")
     if (!is.null(x$fstatistic)) {
-	cat("Multiple R-squared:", formatC(x$r.squared, digits=digits))
-	cat(",\tAdjusted R-squared:",formatC(x$adj.r.squared,digits=digits),
-	    "\nF-statistic:", formatC(x$fstatistic[1L], digits=digits),
+	cat("Multiple R-squared: ", formatC(x$r.squared, digits = digits))
+	cat(",\tAdjusted R-squared: ",formatC(x$adj.r.squared, digits = digits),
+	    "\nF-statistic:", formatC(x$fstatistic[1L], digits = digits),
 	    "on", x$fstatistic[2L], "and",
 	    x$fstatistic[3L], "DF,  p-value:",
 	    format.pval(pf(x$fstatistic[1L], x$fstatistic[2L],
-                           x$fstatistic[3L], lower.tail = FALSE), digits=digits),
-	    "\n")
+                           x$fstatistic[3L], lower.tail = FALSE),
+                        digits = digits))
+        cat("\n")
     }
     correl <- x$correlation
     if (!is.null(correl)) {
@@ -479,27 +470,46 @@ simulate.lm <- function(object, nsim = 1, seed = NULL, ...)
         RNGstate <- structure(seed, kind = as.list(RNGkind()))
         on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
     }
+    fam <- if(isGlm <- inherits(object, "glm")) object$family$family else "gaussian"
     ftd <- fitted(object)             # == napredict(*, object$fitted)
-    nm <- names(ftd)
+    isMlm <- identical(fam, "gaussian") && is.matrix(ftd)
+    nm <- if(isMlm) dimnames(ftd) else names(ftd)
+    if(isMlm) ## Not hard. Biggest question: how exactly the data frame should look
+	stop("simulate() is not yet implemented for multivariate lm()")
     n <- length(ftd)
     ntot <- n * nsim
-    fam <- if(inherits(object, "glm")) object$family$family else "gaussian"
     val <- switch(fam,
                   "gaussian" = {
                       vars <- deviance(object)/ df.residual(object)
-                      if (!is.null(object$weights)) vars <- vars/object$weights
-                      ftd + rnorm(ntot, sd = sqrt(vars))
+                      if(isMlm) {
+                          ## _TODO_
+                          ## weights ==> "vars / weights" as matrix with  dim(ftd)
+                      } else {
+                          if(isGlm) {
+                              if(!is.null(object$prior.weights))
+                                  vars <- vars/object$prior.weights
+                          } else # lm()
+                              if(!(is.null(w <- object$weights) ||
+                                   (length(w) == 1L && w == 1)))
+                                  vars <- vars/w
+                          ftd + rnorm(ntot, sd = sqrt(vars))
+                      }
                   },
                   if(!is.null(object$family$simulate))
                       object$family$simulate(object, nsim)
-                  else stop("family '", fam, "' not implemented"))
+                  else stop(gettextf("family '%s' not implemented", fam),
+                            domain = NA)
+                  )
 
-    if(!is.list(val)) {
+    if(isMlm) {
+        ## _TODO_
+    } else if(!is.list(val)) {
         dim(val) <- c(n, nsim)
         val <- as.data.frame(val)
     } else
         class(val) <- "data.frame"
-    names(val) <- paste("sim", seq_len(nsim), sep="_")
+    ## isMlm: conceptually, each "sim_i" could be a *matrix* [unusually]
+    names(val) <- paste0("sim_", seq_len(nsim))
     if (!is.null(nm)) row.names(val) <- nm
     attr(val, "seed") <- RNGstate
     val
@@ -525,14 +535,21 @@ model.frame.lm <- function(formula, ...)
     dots <- list(...)
     nargs <- dots[match(c("data", "na.action", "subset"), names(dots), 0)]
     if (length(nargs) || is.null(formula$model)) {
+        ## mimic lm(method = "model.frame")
         fcall <- formula$call
-        fcall$method <- "model.frame"
-        fcall[[1L]] <- as.name("lm")
+        m <- match(c("formula", "data", "subset", "weights", "na.action",
+                     "offset"), names(fcall), 0L)
+        fcall <- fcall[c(1L, m)]
+        fcall$drop.unused.levels <- TRUE
+        ## need stats:: for non-standard evaluation
+        fcall[[1L]] <- quote(stats::model.frame)
+        fcall$xlev <- formula$xlevels
+        ## We want to copy over attributes here, especially predvars.
+        fcall$formula <- terms(formula)
         fcall[names(nargs)] <- nargs
-#	env <- environment(fcall$formula)  # always NULL
         env <- environment(formula$terms)
 	if (is.null(env)) env <- parent.frame()
-        eval(fcall, env, parent.frame())
+        eval(fcall, env) # 2-arg form as env is an environment
     }
     else formula$model
 }
@@ -553,8 +570,10 @@ case.names.lm <- function(object, full = FALSE, ...)
 
 anova.lm <- function(object, ...)
 {
-    if(length(list(object, ...)) > 1L)
-	return(anova.lmlist(object, ...))
+    ## Do not copy this: anova.lmlist is not an exported object.
+    ## See anova.glm for further comments.
+    if(length(list(object, ...)) > 1L) return(anova.lmlist(object, ...))
+
     if(!inherits(object, "lm"))
 	warning("calling anova.lm(<fake-lm-object>) ...")
     w <- object$weights
@@ -571,7 +590,7 @@ anova.lm <- function(object, ...)
         nmeffects <- c("(Intercept)", attr(object$terms, "term.labels"))
         tlabels <- nmeffects[1 + unique(asgn)]
         ss <- c(unlist(lapply(split(comp^2,asgn), sum)), ssr)
-        df <- c(unlist(lapply(split(asgn,  asgn), length)), dfr)
+        df <- c(lengths(split(asgn,  asgn)), dfr)
     } else {
         ss <- ssr
         df <- dfr
@@ -587,7 +606,7 @@ anova.lm <- function(object, ...)
     if(attr(object$terms,"intercept")) table <- table[-1, ]
     structure(table, heading = c("Analysis of Variance Table\n",
 		     paste("Response:", deparse(formula(object)[[2L]]))),
-	      class= c("anova", "data.frame"))# was "tabular"
+	      class = c("anova", "data.frame"))# was "tabular"
 }
 
 anova.lmlist <- function (object, ..., scale = 0, test = "F")
@@ -598,9 +617,9 @@ anova.lmlist <- function (object, ..., scale = 0, test = "F")
     sameresp <- responses == responses[1L]
     if (!all(sameresp)) {
 	objects <- objects[sameresp]
-	warning("models with response ",
-                deparse(responses[!sameresp]),
-                " removed because response differs from ", "model 1")
+        warning(gettextf("models with response %s removed because response differs from model 1",
+                         sQuote(deparse(responses[!sameresp]))),
+                domain = NA)
     }
 
     ns <- sapply(objects, function(x) length(x$residuals))
@@ -627,8 +646,8 @@ anova.lmlist <- function (object, ..., scale = 0, test = "F")
                             c("Res.Df", "RSS", "Df", "Sum of Sq"))
 
     title <- "Analysis of Variance Table\n"
-    topnote <- paste("Model ", format(1L:nmodels),": ",
-		     variables, sep="", collapse="\n")
+    topnote <- paste0("Model ", format(1L:nmodels), ": ", variables,
+                      collapse = "\n")
 
     ## calculate test statistic if needed
 
@@ -638,7 +657,7 @@ anova.lmlist <- function (object, ..., scale = 0, test = "F")
 	table <- stat.anova(table = table, test = test,
 			    scale = scale,
                             df.scale = resdf[bigmodel],
-			    n = length(objects[bigmodel$residuals]))
+			    n = length(objects[[bigmodel]]$residuals))
     }
     structure(table, heading = c(title, topnote),
               class = c("anova", "data.frame"))
@@ -689,13 +708,12 @@ predict.lm <-
     interval <- match.arg(interval)
     if (interval == "prediction") {
         if (missing(newdata))
-            warning("Predictions on current data refer to _future_ responses\n")
-        if (missing(newdata) && missing(weights))
-        {
+            warning("predictions on current data refer to _future_ responses\n")
+        if (missing(newdata) && missing(weights)) {
             w <-  weights.default(object)
             if (!is.null(w)) {
                 weights <- w
-                warning("Assuming prediction variance inversely proportional to weights used for fitting\n")
+                warning("assuming prediction variance inversely proportional to weights used for fitting\n")
             }
         }
         if (!missing(newdata) && missing(weights) && !is.null(object$weights) && missing(pred.var))
@@ -713,10 +731,11 @@ predict.lm <-
 
     type <- match.arg(type)
     if(se.fit || interval != "none") {
+        ## w is needed for interval = "confidence"
+        w <- object$weights
 	res.var <-
 	    if (is.null(scale)) {
 		r <- object$residuals
-		w <- object$weights
 		rss <- sum(if(is.null(w)) r^2 else r^2 * w)
 		df <- object$df.residual
 		rss/df
@@ -751,10 +770,6 @@ predict.lm <-
 	asgn <- split(order(aa), aaa)
 	if (hasintercept) {
 	    asgn$"(Intercept)" <- NULL
-	    if(!mmDone) {
-                mm <- model.matrix(object)
-                mmDone <- TRUE
-            }
 	    avx <- colMeans(mm)
 	    termsconst <- sum(avx[piv] * beta[piv])
 	}

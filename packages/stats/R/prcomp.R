@@ -1,5 +1,7 @@
 #  File src/library/stats/R/prcomp.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,31 +14,41 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 prcomp <- function (x, ...) UseMethod("prcomp")
 
 prcomp.default <-
-    function(x, retx = TRUE, center = TRUE, scale. = FALSE, tol = NULL, ...)
+    function(x, retx = TRUE, center = TRUE, scale. = FALSE, tol = NULL,
+             rank. = NULL, ...)
 {
+    chkDots(...)
     x <- as.matrix(x)
     x <- scale(x, center = center, scale = scale.)
     cen <- attr(x, "scaled:center")
     sc <- attr(x, "scaled:scale")
     if(any(sc == 0))
         stop("cannot rescale a constant/zero column to unit variance")
-    s <- svd(x, nu = 0)
-    s$d <- s$d / sqrt(max(1, nrow(x) - 1))
+    n <- nrow(x)
+    p <- ncol(x)
+    k <- if(!is.null(rank.)) {
+	     stopifnot(length(rank.) == 1, is.finite(rank.), as.integer(rank.) > 0)
+	     min(as.integer(rank.), n, p)
+	     ## Note that La.svd() *still* needs a (n x p) and a (p x p) auxiliary
+	 } else
+	     min(n, p)
+    s <- svd(x, nu = 0, nv = k)
+    j <- seq_len(k)
+    s$d <- s$d / sqrt(max(1, n - 1))
     if (!is.null(tol)) {
         ## we get rank at least one even for a 0 matrix.
         rank <- sum(s$d > (s$d[1L]*tol))
-        if (rank < ncol(x)) {
-            s$v <- s$v[, 1L:rank, drop = FALSE]
-            s$d <- s$d[1L:rank]
+        if (rank < k) {
+            j <- seq_len(k <- rank)
+            s$v <- s$v[,j , drop = FALSE]
         }
     }
-    dimnames(s$v) <-
-        list(colnames(x), paste("PC", seq_len(ncol(s$v)), sep = ""))
+    dimnames(s$v) <- list(colnames(x), paste0("PC", j))
     r <- list(sdev = s$d, rotation = s$v,
               center = if(is.null(cen)) FALSE else cen,
               scale = if(is.null(sc)) FALSE else sc)
@@ -53,7 +65,8 @@ prcomp.formula <- function (formula, data = NULL, subset, na.action, ...)
     cl <- match.call()
     mf <- match.call(expand.dots = FALSE)
     mf$... <- NULL
-    mf[[1L]] <- as.name("model.frame")
+    ## need stats:: for non-standard evaluation
+    mf[[1L]] <- quote(stats::model.frame)
     mf <- eval.parent(mf)
     ## this is not a `standard' model-fitting function,
     ## so no need to consider contrasts or levels
@@ -79,9 +92,10 @@ plot.prcomp <- function(x, main = deparse(substitute(x)), ...)
     screeplot.default(x, main = main, ...)
 
 print.prcomp <- function(x, print.x = FALSE, ...) {
-    cat("Standard deviations:\n")
+    cat(sprintf("Standard deviations (1, .., p=%d):\n", length(x$sdev)))
     print(x$sdev, ...)
-    cat("\nRotation:\n")
+    d <- dim(x$rotation)
+    cat(sprintf("\nRotation (n x k) = (%d x %d):\n", d[1], d[2]))
     print(x$rotation, ...)
     if (print.x && length(x$x)) {
         cat("\nRotated variables:\n")
@@ -92,27 +106,37 @@ print.prcomp <- function(x, print.x = FALSE, ...) {
 
 summary.prcomp <- function(object, ...)
 {
+    chkDots(...)
     vars <- object$sdev^2
     vars <- vars/sum(vars)
     importance <- rbind("Standard deviation" = object$sdev,
                         "Proportion of Variance" = round(vars, 5),
                         "Cumulative Proportion" = round(cumsum(vars), 5))
-    colnames(importance) <- colnames(object$rotation)
+    k <- ncol(object$rotation)
+    colnames(importance) <- c(colnames(object$rotation), rep("", length(vars) - k))
     object$importance <- importance
     class(object) <- "summary.prcomp"
     object
 }
 
 print.summary.prcomp <-
-function(x, digits = max(3, getOption("digits") - 3), ...)
+function(x, digits = max(3L, getOption("digits") - 3L), ...)
 {
-    cat("Importance of components:\n")
-    print(x$importance, digits = digits)
+    dr <- dim(x$rotation); k <- dr[2]
+    p <- length(x$sdev)
+    if(k < p) {
+	cat(sprintf("Importance of first k=%d (out of %d) components:\n", k, p))
+	print(x$importance[, 1:k, drop=FALSE], digits = digits, ...)
+    } else {
+	cat("Importance of components:\n")
+	print(x$importance, digits = digits, ...)
+    }
     invisible(x)
 }
 
 predict.prcomp <- function(object, newdata, ...)
 {
+    chkDots(...)
     if (missing(newdata)) {
         if(!is.null(object$x)) return(object$x)
         else stop("no scores are available: refit with 'retx=TRUE'")

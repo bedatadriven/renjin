@@ -1,5 +1,7 @@
 #  File src/library/stats/R/fivenum.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,13 +14,15 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 fivenum <- function(x, na.rm=TRUE)
 {
     xna <- is.na(x)
-    if(na.rm) x <- x[!xna]
-    else if(any(xna)) return(rep.int(NA,5))
+    if(any(xna)) {
+        if(na.rm) x <- x[!xna]
+        else return(rep.int(NA,5))
+    }
     x <- sort(x)
     n <- length(x)
     if(n == 0) rep.int(NA,5)

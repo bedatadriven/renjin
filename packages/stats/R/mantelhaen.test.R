@@ -1,5 +1,7 @@
 #  File src/library/stats/R/mantelhaen.test.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2013 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 mantelhaen.test <-
 function(x, y = NULL, z = NULL,
@@ -22,19 +24,15 @@ function(x, y = NULL, z = NULL,
     DNAME <- deparse(substitute(x))
     if(is.array(x)) {
         if(length(dim(x)) == 3L) {
-            if(any(is.na(x)))
-                stop("NAs are not allowed")
-            if(any(dim(x) < 2L))
-                stop("each dimension in table must be >= 2")
+            if(anyNA(x)) stop("NAs are not allowed")
+            if(any(dim(x) < 2L)) stop("each dimension in table must be >= 2")
         }
         else
             stop("'x' must be a 3-dimensional array")
     }
     else {
-        if(is.null(y))
-            stop("if 'x' is not an array, 'y' must be given")
-        if(is.null(z))
-            stop("if 'x' is not an array, 'z' must be given")
+        if(is.null(y)) stop("if 'x' is not an array, 'y' must be given")
+        if(is.null(z)) stop("if 'x' is not an array, 'z' must be given")
         if(any(diff(c(length(x), length(y), length(z))) != 0L ))
             stop("'x', 'y', and 'z' must have the same length")
         DNAME <- paste(DNAME, "and", deparse(substitute(y)), "and",
@@ -63,8 +61,7 @@ function(x, y = NULL, z = NULL,
             conf.level < 0 || conf.level > 1))
             stop("'conf.level' must be a single number between 0 and 1")
 
-        NVAL <- 1
-        names(NVAL) <- "common odds ratio"
+        NVAL <- c("common odds ratio" = 1)
 
         if(!exact) {
             ## Classical Mantel-Haenszel 2 x 2 x K test
@@ -72,7 +69,7 @@ function(x, y = NULL, z = NULL,
             s.y <- apply(x, c(2L, 3L), sum)
             n <- as.double(apply(x, 3L, sum)) # avoid overflows below
             DELTA <- sum(x[1, 1, ] - s.x[1, ] * s.y[1, ] / n)
-            YATES <- ifelse(correct && (abs(DELTA) >= .5), .5, 0)
+	    YATES <- if(correct && (abs(DELTA) >= .5)) .5 else 0
             STATISTIC <- ((abs(DELTA) - YATES)^2 /
                           sum(apply(rbind(s.x, s.y), 2L, prod)
                               / (n^2 * (n - 1))))
@@ -88,23 +85,23 @@ function(x, y = NULL, z = NULL,
             names(STATISTIC) <- "Mantel-Haenszel X-squared"
             names(PARAMETER) <- "df"
             METHOD <- paste("Mantel-Haenszel chi-squared test",
-                            ifelse(YATES, "with", "without"),
+                            if(YATES) "with" else "without",
                             "continuity correction")
-            s.diag <- sum(x[1, 1, ] * x[2, 2, ] / n)
-            s.offd <- sum(x[1, 2, ] * x[2, 1, ] / n)
+            s.diag <- sum(x[1L, 1L, ] * x[2L, 2L, ] / n)
+            s.offd <- sum(x[1L, 2L, ] * x[2L, 1L, ] / n)
             ## Mantel-Haenszel (1959) estimate of the common odds ratio.
             ESTIMATE <- s.diag / s.offd
             ## Robins et al. (1986) estimate of the standard deviation
             ## of the log of the Mantel-Haenszel estimator.
             sd <-
-                sqrt(  sum((x[1,1,] + x[2,2,]) * x[1,1,] * x[2,2,]
+                sqrt(  sum((x[1L,1L,] + x[2L,2L,]) * x[1L,1L,] * x[2L,2L,]
                            / n^2)
                      / (2 * s.diag^2)
-                     + sum((  (x[1,1,] + x[2,2,]) * x[1,2,] * x[2,1,]
-                            + (x[1,2,] + x[2,1,]) * x[1,1,] * x[2,2,])
+                     + sum((  (x[1L,1L,] + x[2L,2L,]) * x[1L,2L,] * x[2L,1L,]
+                            + (x[1L,2L,] + x[2L,1L,]) * x[1L,1L,] * x[2L,2L,])
                            / n^2)
                      / (2 * s.diag * s.offd)
-                     + sum((x[1,2,] + x[2,1,]) * x[1,2,] * x[2,1,]
+                     + sum((x[1L,2L,] + x[2L,1L,]) * x[1L,2L,] * x[2L,1L,]
                            / n^2)
                      / (2 * s.offd^2))
             CINT <-
@@ -132,10 +129,11 @@ function(x, y = NULL, z = NULL,
 
             METHOD <- paste("Exact conditional test of independence",
                             "in 2 x 2 x k tables")
-            m <- apply(x, c(2L, 3L), sum)[1, ]
-            n <- apply(x, c(2L, 3L), sum)[2, ]
-            t <- apply(x, c(1L, 3L), sum)[1, ]
-            s <- sum(x[1, 1, ])
+            mn <- apply(x, c(2L, 3L), sum)
+            m <- mn[1L, ]
+            n <- mn[2L, ]
+            t <- apply(x, c(1L, 3L), sum)[1L, ]
+            s <- sum(x[1L, 1L, ])
             lo <- sum(pmax(0, t - n))
             hi <- sum(pmin(m, t))
 
@@ -143,12 +141,8 @@ function(x, y = NULL, z = NULL,
             ## Density of the *central* product hypergeometric
             ## distribution on its support: store for once as this is
             ## needed quite a bit.
-            dc <- .C(C_d2x2xk,
-                     as.integer(K),
-                     as.double(m),
-                     as.double(n),
-                     as.double(t),
-                     d = double(hi - lo + 1))$d
+
+            dc <- .Call(C_d2x2xk, K, m, n, t, hi - lo + 1L)
             logdc <- log(dc)
 
             dn2x2xk <- function(ncp) {
@@ -254,9 +248,7 @@ function(x, y = NULL, z = NULL,
                                c(ncp.L(s, alpha), ncp.U(s, alpha))
                            })
 
-            STATISTIC <- s
-            names(STATISTIC) <- "S"
-
+            STATISTIC <- c(S = s)
             RVAL <- list(statistic = STATISTIC,
                          p.value = PVAL)
         }

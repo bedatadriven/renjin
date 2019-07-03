@@ -1,5 +1,7 @@
 #  File src/library/stats/R/expand.model.frame.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 expand.model.frame <- function(model, extras,
                                envir=environment(formula(model)),
@@ -35,11 +37,11 @@ expand.model.frame <- function(model, extras,
     if (!na.expand){
         naa <- model$call$na.action
         subset <- model$call$subset
-        rval <- eval(call("model.frame",ff, data = data, subset = subset, 
+        rval <- eval(call("model.frame",ff, data = data, subset = subset,
                       na.action = naa),envir )
     } else {
         subset <- model$call$subset
-        rval <- eval(call("model.frame",ff, data = data, subset = subset, 
+        rval <- eval(call("model.frame",ff, data = data, subset = subset,
                           na.action = I), envir)
         oldmf <- model.frame(model)
         keep <- match(rownames(oldmf), rownames(rval))

@@ -1,5 +1,7 @@
 #  File src/library/stats/R/quantile.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 quantile <- function(x, ...) UseMethod("quantile")
 
@@ -24,13 +26,16 @@ quantile.default <-
              type = 7, ...)
 {
     if(is.factor(x)) {
-        if(!is.ordered(x) || ! type %in% c(1L, 3L))
+	if(is.ordered(x)) {
+	   if(!any(type == c(1L, 3L)))
+	       stop("'type' must be 1 or 3 for ordered factors")
+	} else
             stop("factors are not allowed")
         lx <- levels(x)
     } else lx <- NULL
     if (na.rm)
 	x <- x[!is.na(x)]
-    else if (any(is.na(x)))
+    else if (anyNA(x))
 	stop("missing values and NaN's not allowed if 'na.rm' is FALSE")
     eps <- 100*.Machine$double.eps
     if (any((p.ok <- !is.na(probs)) & (probs < -eps | probs > 1+eps)))
@@ -48,23 +53,22 @@ quantile.default <-
             lo <- floor(index)
             hi <- ceiling(index)
             x <- sort(x, partial = unique(c(lo, hi)))
-            i <- index > lo
             qs <- x[lo]
-            i <- seq_along(i)[i & !is.na(i)]
-            h <- (index - lo)[i]
-##          qs[i] <- qs[i] + .minus(x[hi[i]], x[lo[i]]) * (index[i] - lo[i])
-            qs[i] <- ifelse(h == 0, qs[i], (1 - h) * qs[i] + h * x[hi[i]])
+	    i <- which(index > lo & x[hi] != qs) # '!=' for '>' working w/ complex
+	    h <- (index - lo)[i] # > 0	by construction
+##	    qs[i] <- qs[i] + .minus(x[hi[i]], x[lo[i]]) * (index[i] - lo[i])
+##	    qs[i] <- ifelse(h == 0, qs[i], (1 - h) * qs[i] + h * x[hi[i]])
+	    qs[i] <- (1 - h) * qs[i] + h * x[hi[i]]
         } else {
             if (type <= 3) {
                 ## Types 1, 2 and 3 are discontinuous sample qs.
                 nppm <- if (type == 3) n * probs - .5 # n * probs + m; m = -0.5
                 else n * probs          # m = 0
                 j <- floor(nppm)
-                switch(type,
-                       h <- ifelse(nppm > j, 1, 0), # type 1
-                       h <- ifelse(nppm > j, 1, 0.5), # type 2
-                       h <- ifelse((nppm == j) &
-                                   ((j %% 2L) == 0L), 0, 1)) # type 3
+		h <- switch(type,
+			    (nppm > j),		# type 1
+			    ((nppm > j) + 1)/2, # type 2
+			    (nppm != j) | ((j %% 2L) == 1L)) # type 3
             } else {
                 ## Types 4 through 9 are continuous sample qs.
                 switch(type - 3,
@@ -79,7 +83,7 @@ quantile.default <-
                 nppm <- a + probs * (n + 1 - a - b) # n*probs + m
                 j <- floor(nppm + fuzz) # m = a + probs*(1 - a - b)
                 h <- nppm - j
-                h <- ifelse(abs(h) < fuzz, 0, h)
+                if(any(sml <- abs(h) < fuzz)) h[sml] <- 0
             }
             x <- sort(x, partial =
                       unique(c(1, j[j>0L & j<=n], (j+1)[j>0L & j<n], n))
@@ -90,7 +94,7 @@ quantile.default <-
             ## also h*x might be invalid ... e.g. Dates and ordered factors
             qs <- x[j+2L]
             qs[h == 1] <- x[j+3L][h == 1]
-            other <- (h > 0) & (h < 1)
+	    other <- (0 < h) & (h < 1) & (x[j+2L] != x[j+3L]) # '!=' for '<' in complex case
             if(any(other)) qs[other] <- ((1-h)*x[j+2L] + h*x[j+3L])[other]
         }
     } else {
@@ -99,11 +103,7 @@ quantile.default <-
     if(is.character(lx))
         qs <- factor(qs, levels = seq_along(lx), labels = lx, ordered = TRUE)
     if(names && np > 0L) {
-	dig <- max(2L, getOption("digits"))
-	names(qs) <- paste(## formatC is slow for long probs
-			   if(np < 100) formatC(100*probs, format = "fg", width = 1, digits = dig)
-			   else format(100 * probs, trim = TRUE, digits = dig),
-			   "%", sep = "")
+	names(qs) <- format_perc(probs)
     }
     if(na.p) { # do this more elegantly (?!)
         o.pr[p.ok] <- qs
@@ -111,6 +111,20 @@ quantile.default <-
         names(o.pr)[p.ok] <- names(qs)
         o.pr
     } else qs
+}
+
+##' Formatting() percentages the same way as quantile(*, names=TRUE).
+##' Should be exported
+##' (and format.pval() moved to stats; both documented on same page)
+format_perc <- function(x, digits = max(2L, getOption("digits")),
+			probability = TRUE, use.fC = length(x) < 100, ...)
+{
+    if(length(x)) {
+	if(probability) x <- 100 * x
+	paste0(if(use.fC) ## formatC is slow for long x
+		   formatC(x, format = "fg", width = 1, digits=digits)
+	       else format(x, trim = TRUE, digits=digits, ...), "%")
+    } else character(0)
 }
 
 IQR <- function (x, na.rm = FALSE, type = 7)

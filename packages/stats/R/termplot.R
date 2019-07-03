@@ -1,5 +1,7 @@
 #  File src/library/stats/R/termplot.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2014 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,19 +14,19 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
-termplot <- function(model, data = NULL,envir = environment(formula(model)),
+termplot <- function(model, data = NULL, envir = environment(formula(model)),
                      partial.resid = FALSE,
 		     rug = FALSE, terms = NULL, se = FALSE,
                      xlabs = NULL, ylabs = NULL,
                      main = NULL, col.term = 2, lwd.term = 1.5,
                      col.se = "orange", lty.se = 2, lwd.se = 1,
-                     col.res= "gray", cex = 1, pch = par("pch"),
-                     col.smth = "darkred",lty.smth = 2,span.smth = 2/3,
+                     col.res = "gray", cex = 1, pch = par("pch"),
+                     col.smth = "darkred", lty.smth = 2, span.smth = 2/3,
                      ask = dev.interactive() && nb.fig < n.tms,
                      use.factor.levels = TRUE, smooth = NULL,
-                     ylim = "common", ...)
+                     ylim = "common", plot = TRUE, transform.x = FALSE, ...)
 {
     which.terms <- terms
     terms <- ## need if(), since predict.coxph() has non-NULL default terms :
@@ -33,22 +35,21 @@ termplot <- function(model, data = NULL,envir = environment(formula(model)),
 	else
 	    predict(model, type = "terms", se.fit = se, terms = terms)
     n.tms <- ncol(tms <- as.matrix(if(se) terms$fit else terms))
-##     if(inherits(model, "gam")) {
-##         m.nms <- names(model$model)
-##         for(j in seq_along(model$smooth)) {
-##             sj <- model$smooth[[j]]
-##             names(model$model)[m.nms == sj[["term"]]] <- sj[["label"]]
-##         }
-##     }
+    transform.x <- rep_len(transform.x, n.tms)
+
     mf <- model.frame(model)
     if (is.null(data))
         data <- eval(model$call$data, envir)
     if (is.null(data))
         data <- mf
+    ## maybe rather use naresid() as for factor variables.
     use.rows <- if (NROW(tms) < NROW(data))
         match(rownames(tms), rownames(data)) ## else NULL
     nmt <- colnames(tms)
-    cn <- parse(text = nmt)
+    if (any(grepl(":", nmt, fixed = TRUE)))
+        warning("'model' appears to involve interactions: see the help page",
+                domain = NA, immediate. = TRUE)
+    cn <- parse(text = nmt, keep.source = FALSE)
     ## Defaults:
     if (!is.null(smooth))
       smooth <- match.fun(smooth)
@@ -60,12 +61,13 @@ termplot <- function(model, data = NULL,envir = environment(formula(model)),
         main <- if(main) deparse(model$call, 500) else ""
     else if(!is.character(main))
         stop("'main' must be TRUE, FALSE, NULL or character (vector).")
-    main <- rep(main, length.out = n.tms) # recycling
+    main <- rep_len(main, n.tms) # recycling
     pf <- envir
-    carrier <- function(term) { # used for non-factor ones
-	if (length(term) > 1L)
-	    carrier(term[[2L]])
-	else
+    carrier <- function(term, transform) { # used for non-factor ones
+	if (length(term) > 1L){
+	    if (transform) tms[,i]
+	    else carrier(term[[2L]], transform)
+	} else
 	    eval(term, data, enclos = pf)
     }
     carrier.name <- function(term){
@@ -74,14 +76,62 @@ termplot <- function(model, data = NULL,envir = environment(formula(model)),
 	else
 	    as.character(term)
     }
-    if (is.null(xlabs))
-        xlabs <- unlist(lapply(cn,carrier.name))
 
+    in.mf <- nmt %in% names(mf)
+    is.fac <- sapply(nmt, function(i) i %in% names(mf) && is.factor(mf[, i]))
+
+    if (!plot) {
+        outlist <- vector("list", sum(in.mf))
+        for (i in 1L:n.tms) {
+            if (!in.mf[i]) next
+            ## add element to output list
+            ## ww = index to rows in the data, selecting one of each unique
+            ##        predictor value
+            if (is.fac[i]) {
+                ## PR#15344
+                xx <- mf[, nmt[i]]
+                if (!is.null(use.rows)) xx <- xx[use.rows]
+                ## "nomatch' in case there is a level not in the data
+                ww <- match(levels(xx), xx, nomatch = 0L)
+            }
+            else {
+                xx <- carrier(cn[[i]], transform.x[i])
+                if (!is.null(use.rows)) xx <- xx[use.rows]
+                ww <- match(sort(unique(xx)), xx)
+            }
+            outlist[[i]] <- if (se)
+                data.frame(x = xx[ww], y = tms[ww, i],
+                           se = terms$se.fit[ww, i], row.names = NULL)
+            else data.frame(x = xx[ww], y = tms[ww, i], row.names = NULL)
+        }
+        attr(outlist, "constant") <- attr(terms, "constant")
+        ## might be on the fit component.
+        if (se && is.null(attr(outlist, "constant")))
+            attr(outlist, "constant") <- attr(terms$fit, "constant")
+        names(outlist) <- sapply(cn, carrier.name)[in.mf]
+        return(outlist)
+    }
+    ## Defaults:
+    if (!is.null(smooth))
+      smooth <- match.fun(smooth)
+    if (is.null(ylabs))
+	ylabs <- paste("Partial for",nmt)
+    if (is.null(main))
+        main <- ""
+    else if(is.logical(main))
+        main <- if(main) deparse(model$call, 500) else ""
+    else if(!is.character(main))
+        stop("'main' must be TRUE, FALSE, NULL or character (vector).")
+    main <- rep_len(main, n.tms) # recycling
+
+    if (is.null(xlabs)){
+        xlabs <- unlist(lapply(cn,carrier.name))
+	if(any(transform.x)) xlabs <- ifelse(transform.x, lapply(cn, deparse), xlabs)
+    }
     if (partial.resid || !is.null(smooth)){
 	pres <- residuals(model, "partial")
         if (!is.null(which.terms)) pres <- pres[, which.terms, drop = FALSE]
-      }
-    is.fac <- sapply(nmt, function(i) is.factor(mf[, i]))
+    }
 
     se.lines <- function(x, iy, i, ff = 2) {
         tt <- ff * terms$se.fit[iy, i]
@@ -120,13 +170,14 @@ termplot <- function(model, data = NULL,envir = environment(formula(model)),
             if (rug)
                 ylims[1L] <- ylims[1L] - 0.07*diff(ylims)
         }
+        if (!in.mf[i]) next
 	if (is.fac[i]) {
-	    ff <- mf[,nmt[i]]
+	    ff <- mf[, nmt[i]]
             if (!is.null(model$na.action))
-              ff <- naresid(model$na.action, ff)
+                ff <- naresid(model$na.action, ff)
 	    ll <- levels(ff)
 	    xlims <- range(seq_along(ll)) + c(-.5, .5)
-            xx <- as.numeric(ff) ##need if rug or partial
+            xx <- as.numeric(ff) ## needed if rug or partial
 	    if(rug) {
 		xlims[1L] <- xlims[1L] - 0.07*diff(xlims)
 		xlims[2L] <- xlims[2L] + 0.03*diff(xlims)
@@ -138,14 +189,14 @@ termplot <- function(model, data = NULL,envir = environment(formula(model)),
             else
                 axis(1)
 	    for(j in seq_along(ll)) {
-		ww <- which(ff==ll[j])[c(1,1)]
-		jf <- j + c(-.4, .4)
-		lines(jf,tms[ww, i], col = col.term, lwd = lwd.term, ...)
+		ww <- which(ff == ll[j])[c(1, 1)]
+		jf <- j + c(-0.4, 0.4)
+		lines(jf, tms[ww, i], col = col.term, lwd = lwd.term, ...)
 		if(se) se.lines(jf, iy = ww, i = i)
 	    }
 	}
 	else { ## continuous carrier
-	    xx <- carrier(cn[[i]])
+	    xx <- carrier(cn[[i]], transform.x[i])
             if (!is.null(use.rows)) xx <- xx[use.rows]
 	    xlims <- range(xx, na.rm = TRUE)
 	    if(rug)

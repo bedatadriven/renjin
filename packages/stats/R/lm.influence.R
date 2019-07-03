@@ -1,9 +1,11 @@
 #  File src/library/stats/R/lm.influence.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2 of the License, or
+#  the Free Software Foundation; either version 3 of the License, or
 #  (at your option) any later version.
 #
 #  This program is distributed in the hope that it will be useful,
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ### "lm"  *and*	 "glm"	 leave-one-out influence measures
 
@@ -48,32 +50,20 @@ lm.influence <- function (model, do.coef = TRUE)
         n <- length(wt.res) # drops 0 wt, may drop NAs
         sigma <- sqrt(deviance(model)/df.residual(model))
         res <- list(hat = rep(0, n), coefficients = matrix(0, n, 0),
-                    sigma = rep(sigma, n), wt.res = e)
+                    sigma = rep(sigma, n))
     } else {
         ## if we have a point with hat = 1, the corresponding e should be
         ## exactly zero.  Protect against returning Inf by forcing this
         e[abs(e) < 100 * .Machine$double.eps * median(abs(e))] <- 0
         mqr <- qr.lm(model)
         n <- as.integer(nrow(mqr$qr))
-        k <- as.integer(mqr$rank)
+        if (is.na(n)) stop("invalid model QR matrix")
         ## in na.exclude case, omit NAs; also drop 0-weight cases
         if(NROW(e) != n)
             stop("non-NA residual length does not match cases used in fitting")
         do.coef <- as.logical(do.coef)
-        res <- .Fortran(C_lminfl,
-                        mqr$qr,
-                        n,
-                        n,
-                        k,
-                        as.integer(do.coef),
-                        mqr$qraux,
-                        wt.res = e,
-                        hat = double(n),
-                        coefficients= if(do.coef) matrix(0, n, k) else double(),
-                        sigma = double(n),
-                        tol = 10 * .Machine$double.eps,
-                        DUP = FALSE, PACKAGE="stats"
-                        )[c("hat", "coefficients", "sigma","wt.res")]
+        tol <- 10 * .Machine$double.eps
+        res <- .Call(C_influence, mqr, do.coef, e, tol)
         if(!is.null(model$na.action)) {
             hat <- naresid(model$na.action, res$hat)
             hat[is.na(hat)] <- 0       # omitted cases have 0 leverage
@@ -88,12 +78,10 @@ lm.influence <- function (model, do.coef = TRUE)
             res$sigma <- sigma
         }
     }
-    res$wt.res <- naresid(model$na.action, res$wt.res)
+    res$wt.res <- naresid(model$na.action, e)
     res$hat[res$hat > 1 - 10*.Machine$double.eps] <- 1 # force 1
     names(res$hat) <- names(res$sigma) <- names(res$wt.res)
-    if(!do.coef) ## drop it
-	res$coefficients <- NULL
-    else {
+    if(do.coef) {
         rownames(res$coefficients) <- names(res$wt.res)
         colnames(res$coefficients) <- names(coef(model))[!is.na(coef(model))]
     }
@@ -113,18 +101,17 @@ influence.glm <- function(model, do.coef = TRUE, ...) {
 }
 
 hatvalues <- function(model, ...) UseMethod("hatvalues")
-hatvalues.lm <- function(model, infl = lm.influence(model, do.coef=FALSE), ...)
-{
-    hat <- infl$hat
-    names(hat) <- names(infl$wt.res)
-    hat
-}
+hatvalues.lm <- function(model, infl = lm.influence(model, do.coef=FALSE), ...) infl$hat
 
 rstandard <- function(model, ...) UseMethod("rstandard")
 rstandard.lm <- function(model, infl = lm.influence(model, do.coef=FALSE),
-                         sd = sqrt(deviance(model)/df.residual(model)), ...)
+                         sd = sqrt(deviance(model)/df.residual(model)),
+                         type = c("sd.1", "predictive"), ...)
 {
-    res <- infl$wt.res / (sd * sqrt(1 - infl$hat))
+    type <- match.arg(type)
+    res <- infl$wt.res / switch(type,
+				"sd.1" = c(outer(sqrt(1 - infl$hat), sd)),
+				"predictive" = 1 - infl$hat)
     res[is.infinite(res)] <- NaN
     res
 }
@@ -214,7 +201,7 @@ function(model, infl = lm.influence(model, do.coef=FALSE),
 	 hat = infl$hat, ...)
 {
     p <- model$rank
-    res <- ((res/(sd * (1 - hat)))^2 * hat)/p
+    res <- ((res/c(outer(1 - hat, sd)))^2 * hat)/p
     res[is.infinite(res)] <- NaN
     res
 }
@@ -258,7 +245,7 @@ influence.measures <- function(model)
     h <- infl$hat
     dfbetas <- infl$coefficients / outer(infl$sigma, sqrt(diag(xxi)))
     vn <- variable.names(model); vn[vn == "(Intercept)"] <- "1_"
-    colnames(dfbetas) <- paste("dfb",abbreviate(vn),sep=".")
+    colnames(dfbetas) <- paste0("dfb.", abbreviate(vn))
     ## Compatible to dffits():
     dffits <- e*sqrt(h)/(si*(1-h))
     if(any(ii <- is.infinite(dffits))) dffits[ii] <- NaN
@@ -278,7 +265,7 @@ influence.measures <- function(model)
     ans
 }
 
-print.infl <- function(x, digits = max(3, getOption("digits") - 4), ...)
+print.infl <- function(x, digits = max(3L, getOption("digits") - 4L), ...)
 {
     ## `x' : as the result of  influence.measures(.)
     cat("Influence measures of\n\t", deparse(x$call),":\n\n")
@@ -289,7 +276,8 @@ print.infl <- function(x, digits = max(3, getOption("digits") - 4), ...)
     invisible(x)
 }
 
-summary.infl <- function(object, digits = max(2, getOption("digits") - 5), ...)
+summary.infl <-
+    function(object, digits = max(2L, getOption("digits") - 5L), ...)
 {
     ## object must be as the result of	influence.measures(.)
     is.inf <- object$is.inf
@@ -306,8 +294,8 @@ summary.infl <- function(object, digits = max(2, getOption("digits") - 5), ...)
 	dimnames(imat)[[1L]] <- rownam[is.star]
 	chmat <- format(round(imat, digits = digits))
 	cat("\n")
-	print(array(paste(chmat,c("","_*")[1+is.inf], sep=''),
-		    dimnames = dimnames(imat), dim=dim(imat)),
+	print(array(paste0(chmat, c("", "_*")[1L + is.inf]),
+		    dimnames = dimnames(imat), dim = dim(imat)),
 	      quote = FALSE)
 	invisible(imat)
     } else {

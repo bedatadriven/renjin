@@ -1,5 +1,7 @@
 #  File src/library/stats/R/factanal.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ## Hmm, MM thinks diag(.) needs checking { diag(vec) when length(vec)==1 !}
 ## However, MM does not understand that factor analysis
@@ -67,7 +69,8 @@ factanal <-
             names(mf)[names(mf) == "x"] <- "formula"
             mf$factors <- mf$covmat <- mf$scores <- mf$start <-
                 mf$rotation <- mf$control <- mf$... <- NULL
-            mf[[1L]] <- as.name("model.frame")
+            ## need stats:: for non-standard evaluation
+            mf[[1L]] <- quote(stats::model.frame)
             mf <- eval.parent(mf)
             na.act <- attr(mf, "na.action")
             if (.check_vars_numeric(mf))
@@ -91,8 +94,10 @@ factanal <-
     if(p < 3) stop("factor analysis requires at least three variables")
     dof <- 0.5 * ((p - factors)^2 - p - factors)
     if(dof < 0)
-        stop(gettextf("%d factors is too many for %d variables", factors, p),
-             domain = NA)
+        stop(sprintf(ngettext(factors,
+                              "%d factor is too many for %d variables",
+                              "%d factors are too many for %d variables"),
+                     factors, p), domain = NA)
     sds <- sqrt(diag(cv))
     cv <- cv/(sds %o% sds)
 
@@ -108,10 +113,12 @@ factanal <-
     }
     start <- as.matrix(start)
     if(nrow(start) != p)
-        stop(gettextf("'start' must have %d rows", p), domain = NA)
+    stop(sprintf(ngettext(p,
+                       "'start' must have %d row",
+                       "'start' must have %d rows"),
+                 p), domain = NA)
     nc <- ncol(start)
     if(nc < 1) stop("no starting values supplied")
-
     best <- Inf
     for (i in 1L:nc) {
         nfit <- factanal.fit.mle(cv, factors, start[, i],
@@ -124,7 +131,11 @@ factanal <-
             best <- fit$criteria[1L]
         }
     }
-    if(best == Inf) stop("unable to optimize from these starting value(s)")
+    if(best == Inf)
+        stop(ngettext(nc,
+                      "unable to optimize from this starting value",
+                      "unable to optimize from these starting values"),
+             domain = NA)
     load <- fit$loadings
     if(rotation != "none") {
         rot <- do.call(rotation, c(list(load), cn$rotate))
@@ -211,11 +222,10 @@ factanal.fit.mle <-
                  q = factors, S = cmat)
     Lambda <- FAout(res$par, cmat, factors)
     dimnames(Lambda) <- list(dimnames(cmat)[[1L]],
-                             paste("Factor", 1L:factors, sep = ""))
+                             paste0("Factor", 1L:factors))
     p <- ncol(cmat)
     dof <- 0.5 * ((p - factors)^2 - p - factors)
-    un <- res$par
-    names(un) <- colnames(cmat)
+    un <- setNames(res$par, colnames(cmat))
     class(Lambda) <- "loadings"
     ans <- list(converged = res$convergence == 0,
                 loadings = Lambda, uniquenesses = un,
@@ -226,7 +236,7 @@ factanal.fit.mle <-
     ans
 }
 
-print.loadings <- function(x, digits = 3, cutoff = 0.1, sort = FALSE, ...)
+print.loadings <- function(x, digits = 3L, cutoff = 0.1, sort = FALSE, ...)
 {
     Lambda <- unclass(x)
     p <- nrow(Lambda)
@@ -238,10 +248,9 @@ print.loadings <- function(x, digits = 3, cutoff = 0.1, sort = FALSE, ...)
         Lambda <- Lambda[order(mx, 1L:p),]
     }
     cat("\nLoadings:\n")
-    fx <- format(round(Lambda, digits))
-    names(fx) <- NULL
+    fx <- setNames(format(round(Lambda, digits)), NULL)
     nc <- nchar(fx[1L], type="c")
-    fx[abs(Lambda) < cutoff] <- paste(rep(" ", nc), collapse = "")
+    fx[abs(Lambda) < cutoff] <- strrep(" ", nc)
     print(fx, quote = FALSE, ...)
     vx <- colSums(x^2)
     varex <- rbind("SS loadings" = vx)
@@ -267,7 +276,7 @@ print.factanal <- function(x, digits = 3, ...)
       tmat <- solve(x$rotmat)
       R <- tmat %*% t(tmat)
       factors <- x$factors
-      rownames(R) <- colnames(R) <- paste("Factor", 1:factors, sep="")
+      rownames(R) <- colnames(R) <- paste0("Factor", 1:factors)
 
                                         # the following line changed by Ulrich Keller, 9 Sept 2008
       if (TRUE != all.equal(c(R), c(diag(factors)))){

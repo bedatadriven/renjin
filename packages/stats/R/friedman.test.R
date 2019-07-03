@@ -1,5 +1,7 @@
 #  File src/library/stats/R/friedman.test.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 friedman.test <- function(y, ...) UseMethod("friedman.test")
 
@@ -25,12 +27,12 @@ function(y, groups, blocks, ...)
         blocks <- factor(c(row(y)))
     }
     else {
-        if (any(is.na(groups)) || any(is.na(blocks)))
-            stop("NA's are not allowed in groups or blocks")
+        if (anyNA(groups) || anyNA(blocks))
+            stop("NA's are not allowed in 'groups' or 'blocks'")
         if (any(diff(c(length(y), length(groups), length(blocks))) != 0L))
-            stop("y, groups and blocks must have the same length")
-        DNAME <- paste(DNAME, ", ", deparse(substitute(groups)),
-                       " and ", deparse(substitute(blocks)), sep = "")
+            stop("'y', 'groups' and 'blocks' must have the same length")
+        DNAME <- paste0(DNAME, ", ", deparse(substitute(groups)),
+                        " and ", deparse(substitute(blocks)))
         if (any(table(groups, blocks) != 1))
             stop("not an unreplicated complete block design")
         groups <- factor(groups)
@@ -44,11 +46,13 @@ function(y, groups, blocks, ...)
     }
 
     k <- nlevels(groups)
-    y <- matrix(unlist(split(y, blocks)), ncol = k, byrow = TRUE)
+    ## <FIXME split.matrix>
+    y <- matrix(unlist(split(c(y), blocks)), ncol = k, byrow = TRUE)
     y <- y[complete.cases(y), ]
     n <- nrow(y)
     r <- t(apply(y, 1L, rank))
-    TIES <- tapply(r, row(r), table)
+    ## <FIXME split.matrix>
+    TIES <- tapply(c(r), row(r), table)
     STATISTIC <- ((12 * sum((colSums(r) - n * (k + 1) / 2)^2)) /
                   (n * k * (k + 1)
                    - (sum(unlist(lapply(TIES, function (u) {u^3 - u}))) /
@@ -86,7 +90,8 @@ function(formula, data, subset, na.action, ...)
     m$formula <- formula
     if(is.matrix(eval(m$data, parent.frame())))
         m$data <- as.data.frame(data)
-    m[[1L]] <- as.name("model.frame")
+    ## need stats:: for non-standard evaluation
+    m[[1L]] <- quote(stats::model.frame)
     mf <- eval(m, parent.frame())
     DNAME <- paste(names(mf), collapse = " and ")
     names(mf) <- NULL

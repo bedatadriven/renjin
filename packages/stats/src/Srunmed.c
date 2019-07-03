@@ -2,7 +2,7 @@
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995--2002 Martin Maechler <maechler@stat.math.ethz.ch>
  *  Copyright (C) 2003       The R Foundation
- *  Copyright (C) 2012-2013  The R Core Team
+ *  Copyright (C) 2012-2016  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,13 +16,12 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, a copy is available at
- *  http://www.r-project.org/Licenses/
+ *  https://www.R-project.org/Licenses/
  */
 
-#include <R.h>
 #include "modreg.h"
 
-#include "Trunmed.c.inc"
+#include "Trunmed.c"
 
 static void Srunmed(double* y, double* smo, R_xlen_t n, int bw,
 		    int end_rule, int debug)

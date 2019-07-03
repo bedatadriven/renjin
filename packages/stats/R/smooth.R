@@ -1,5 +1,7 @@
 #  File src/library/stats/R/smooth.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,41 +14,25 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ## do.ends = TRUE  is compatible with older behavior in R
 ## --------------  but *NOT*  with Colin Goodalls "smoother" "spl()"
 
 smooth <- function(x, kind = c("3RS3R", "3RSS", "3RSR", "3R", "3", "S"),
                    twiceit = FALSE,
-                   endrule = "Tukey", do.ends = FALSE)
+                   endrule = c("Tukey", "copy"), do.ends = FALSE)
 {
-    if(!is.numeric(x))
-	stop("attempt to smooth non-numeric values")
-    if(any(is.na(x)))
-	stop("attempt to smooth NA values")
+    if(!is.numeric(x)) stop("attempt to smooth non-numeric values")
+    if(anyNA(x)) stop("attempt to smooth NA values")
+    endrule <- match.arg(endrule)
     rules <- c("copy","Tukey")#- exact order matters!
-    if(is.na(iend <- pmatch(endrule, rules)))
-        stop("wrong endrule")
-    n <- length(x)
+    if(is.na(iend <- pmatch(endrule, rules))) stop("invalid 'endrule' argument")
     kind <- match.arg(kind)
-    if(substr(kind ,1L, 3L) == "3RS" && !do.ends)
-        iend <- -iend
-    else if(kind == "S")
-        iend <- as.logical(do.ends)
-    ## same number and type of arguments for all:
-    smo <- .C(paste("Rsm", kind, sep="_"),
-              as.double(x),
-              y = double(n),
-              n, iend,
-              iter = integer(1L),
-              DUP=FALSE,
-	      PACKAGE = "stats")[c("y","iter")]
-
-    if(any(kind == c("R", "S"))) { # `iter' really was `changed'
-        smo$iter <- as.logical(smo$iter)
-        names(smo)[names(smo) == "iter"] <- "changed"
-    }
+    if(substr(kind, 1L, 3L) == "3RS" && !do.ends) iend <- -iend
+    else if(kind == "S") iend <- as.logical(do.ends)
+    type <- match(kind, c("3RS3R", "3RSS", "3RSR", "3R", "3", "S"))
+    smo <- .Call(C_Rsm, as.double(x), type, iend)
 
     if(twiceit) {
         ## c2 <- match.call() and re-call with twiceit = FALSE
@@ -54,7 +40,7 @@ smooth <- function(x, kind = c("3RS3R", "3RSS", "3RSR", "3R", "3", "S"),
                     endrule = endrule, do.ends = do.ends)
         smo$y <- smo$y + r
         if(!is.null(smo$iter))
-            smo$iter <- smo$iter + attr(r,"iter")
+            smo$iter <- smo$iter + attr(r, "iter")
         if(!is.null(smo$changed))
             smo$changed <- smo$changed || attr(r,"changed")
     }

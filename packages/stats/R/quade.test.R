@@ -1,5 +1,7 @@
 #  File src/library/stats/R/quade.test.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 quade.test <- function(y, ...) UseMethod("quade.test")
 
@@ -21,25 +23,29 @@ function(y, groups, blocks, ...)
 {
     DNAME <- deparse(substitute(y))
     if(is.matrix(y)) {
-        groups <- factor(c(col(y)))
-        blocks <- factor(c(row(y)))
+        d <- dim(y)
+        groups <- factor(.col(d))
+        blocks <- factor(.row(d))
     }
     else {
-        if(any(is.na(groups)) || any(is.na(blocks)))
+        if(anyNA(groups) || anyNA(blocks))
             stop("NA's are not allowed in 'groups' or 'blocks'")
         if(any(diff(c(length(y), length(groups), length(blocks))) != 0L))
             stop("'y', 'groups' and 'blocks' must have the same length")
-        DNAME <- paste(DNAME, ", ",
-                       deparse(substitute(groups)), " and ",
-                       deparse(substitute(blocks)), sep = "")
+        DNAME <- paste0(DNAME, ", ",
+                        deparse(substitute(groups)), " and ",
+                        deparse(substitute(blocks)))
         if(any(table(groups, blocks) != 1))
             stop("not an unreplicated complete block design")
-        groups <- factor(groups)
-        blocks <- factor(blocks)
+        ord <- order(groups)
+        y <- y[ord]
+        groups <- factor(groups[ord])
+        blocks <- factor(blocks[ord])
     }
     k <- nlevels(groups)
     b <- nlevels(blocks)
-    y <- matrix(unlist(split(y, blocks)), ncol = k, byrow = TRUE)
+    ## <FIXME split.matrix>
+    y <- matrix(unlist(split(c(y), blocks)), ncol = k, byrow = TRUE)
     y <- y[complete.cases(y), ]
 #    n <- nrow(y)
     r <- t(apply(y, 1L, rank))
@@ -92,7 +98,8 @@ function(formula, data, subset, na.action, ...)
     m$formula <- formula
     if(is.matrix(eval(m$data, parent.frame())))
         m$data <- as.data.frame(data)
-    m[[1L]] <- as.name("model.frame")
+    ## need stats:: for non-standard evaluation
+    m[[1L]] <- quote(stats::model.frame)
     mf <- eval(m, parent.frame())
     DNAME <- paste(names(mf), collapse = " and ")
     names(mf) <- NULL

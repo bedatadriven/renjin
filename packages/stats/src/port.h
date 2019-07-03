@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2005   The R Development Core Team.
+ *  Copyright (C) 2005-2016   The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, a copy is available at
- *  http://www.r-project.org/Licenses/
+ *  https://www.R-project.org/Licenses/
  */
 
 #ifndef PORT_PORT_H
@@ -23,10 +23,12 @@
 /* Header file for the C utilities to accompany the Fortran
  * optimization routines for the port library.
  *
- * Copyright (C) 2005-5  the R Development Core Team
+ * Copyright (C) 2005-5  the R Core Team
  * Licensed under the GNU General Public License, version 2 or later.
  */
 
+#include <math.h>
+#include <string.h> // for memmove, memcpy, strcmp
 #include <Rinternals.h>
 #include <R_ext/RS.h>
 

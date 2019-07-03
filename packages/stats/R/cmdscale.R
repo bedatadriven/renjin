@@ -1,5 +1,7 @@
 #  File src/library/stats/R/cmdscale.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -17,7 +19,7 @@
 cmdscale <- function (d, k = 2, eig = FALSE, add = FALSE, x.ret = FALSE,
 		      list. = eig || add || x.ret)
 {
-    if (any(is.na(d)))
+    if (anyNA(d))
 	stop("NA values not allowed in 'd'")
     if(!list.) {
 	if (eig)  warning(  "eig=TRUE is disregarded when list.=FALSE")

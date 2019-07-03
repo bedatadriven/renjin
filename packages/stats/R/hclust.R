@@ -1,5 +1,7 @@
 #  File src/library/stats/R/hclust.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ## Hierarchical clustering, on raw input data; we will use Euclidean
 ## distance.  A range of criteria are supported; also there is a
@@ -27,32 +29,42 @@
 ##
 ## Clustering Methods:
 ##
-## 1. Ward's minimum variance or error sum of squares method.
+## 1. Ward's minimum variance or error sum of squares method (using raw d) -> "ward.D"
 ## 2. single linkage or nearest neighbor method.
 ## 3. complete linkage or diameter.
 ## 4. average linkage, group average, or UPGMA method.
 ## 5. McQuitty's or WPGMA method.
 ## 6. median, Gower's or WPGMC method.
 ## 7. centroid or UPGMC method (7).
+## 8. Ward's ... "correct" method using d^2 (in Fortran) -> "ward.D2"
 ##
 ## Original author: F. Murtagh, May 1992
 ## R Modifications: Ross Ihaka, Dec 1996
 ##		    Friedrich Leisch, Apr 1998, Jun 2000
+## "ward.D" and "ward.D2" from suggestions by Pierre Legendre,
+## by Martin Maechler, mostly in the Fortran part.
 
 hclust <- function(d, method="complete", members=NULL)
 {
-    METHODS <- c("ward", "single",
-                 "complete", "average", "mcquitty",
-                 "median", "centroid")
-    method <-  pmatch(method, METHODS)
-    if(is.na(method))
-	stop("invalid clustering method")
-    if(method == -1)
-	stop("ambiguous clustering method")
+    ## order of METHODS --> i.meth -> Fortran's  iOpt  codes
+    METHODS <- c("ward.D", "single", # 1, 2,
+                 "complete", "average", "mcquitty", # 3, 4, 5,
+                 "median", "centroid", "ward.D2") # 6, 7, 8
+    if(method == "ward") { # do not deprecate earlier than 2015!
+	message("The \"ward\" method has been renamed to \"ward.D\"; note new \"ward.D2\"")
+	method <- "ward.D"
+    }
+    i.meth <-  pmatch(method, METHODS)
+    if(is.na(i.meth))
+        ## TODO: use gettextf() [-> translation string change]
+	stop("invalid clustering method", paste("", method))
+    if(i.meth == -1)
+	stop("ambiguous clustering method", paste("", method))
 
     n <- as.integer(attr(d, "Size"))
     if(is.null(n))
 	stop("invalid dissimilarities")
+    if(is.na(n) || n > 65536L) stop("size cannot be NA nor exceed 65536")
     if(n < 2)
         stop("must have n >= 2 objects to cluster")
     len <- as.integer(n*(n-1)/2)
@@ -65,10 +77,11 @@ hclust <- function(d, method="complete", members=NULL)
     else if(length(members) != n)
         stop("invalid length of members")
 
+    storage.mode(d) <- "double"
     hcl <- .Fortran(C_hclust,
 		    n = n,
 		    len = len,
-		    method = as.integer(method),
+		    method = as.integer(i.meth),
 		    ia = integer(n),
 		    ib = integer(n),
 		    crit = double(n),
@@ -76,69 +89,84 @@ hclust <- function(d, method="complete", members=NULL)
 		    nn = integer(n),
 		    disnn = double(n),
 		    flag = logical(n),
-		    diss = as.double(d), PACKAGE="stats")
+		    diss = d)
 
     ## 2nd step: interpret the information that we now have
     ## as merge, height, and order lists.
 
     hcass <- .Fortran(C_hcass2,
-		      n = as.integer(n),
-		      ia = as.integer(hcl$ia),
-		      ib = as.integer(hcl$ib),
-  		      order = integer(n),
+		      n = n, # checked above.
+		      ia = hcl$ia,
+		      ib = hcl$ib,
+		      order = integer(n),
 		      iia = integer(n),
-		      iib = integer(n), PACKAGE="stats")
+		      iib = integer(n))
 
-    tree <- list(merge = cbind(hcass$iia[1L:(n-1)], hcass$iib[1L:(n-1)]),
-		 height= hcl$crit[1L:(n-1)],
-		 order = hcass$order,
-		 labels=attr(d, "Labels"),
-                 method=METHODS[method],
-                 call = match.call(),
-                 dist.method = attr(d, "method"))
-    class(tree) <- "hclust"
-    tree
+    structure(list(merge = cbind(hcass$iia[1L:(n-1)], hcass$iib[1L:(n-1)]),
+		   height = hcl$crit[1L:(n-1)],
+		   order = hcass$order,
+		   labels = attr(d, "Labels"),
+		   method = METHODS[i.meth],
+		   call = match.call(),
+		   dist.method = attr(d, "method")),
+	      class = "hclust")
+}
+
+##' @title Check hclust() object for validity
+##' @param x "hclust" object
+##' @param merge (= x$merge, passing it may save memory)
+##' @param order logical indicating if 'x$order' should be checked, too
+##' @return character vector with message or TRUE
+##' @author Martin Maechler
+.validity.hclust <- function(x, merge = x$merge, order = TRUE) {
+    if (!is.matrix(merge) || ncol(merge) != 2)
+	return("invalid dendrogram")
+    ## merge should be integer but might not be after dump/restore.
+    if (any(as.integer(merge) != merge))
+	return("'merge' component in dendrogram must be integer")
+    n1 <- nrow(merge) # == #{obs} - 1
+    n <- n1+1L
+    if(length(x$height) != n1) return("'height' is of wrong length")
+    if(order && length(x$order ) != n ) return("'order' is of wrong length")
+    if(identical(sort(as.integer(merge)), c(-(n:1L), +seq_len(n-2L))))
+	TRUE
+    else
+	"'merge' matrix has invalid contents"
 }
 
 plot.hclust <-
-    function (x, labels = NULL, hang = 0.1,
+    function (x, labels = NULL, hang = 0.1, check = TRUE,
               axes = TRUE, frame.plot = FALSE, ann = TRUE,
               main = "Cluster Dendrogram",
               sub = NULL, xlab = NULL, ylab = "Height", ...)
 {
     merge <- x$merge
-    if (!is.matrix(merge) || ncol(merge) != 2)
-	stop("invalid dendrogram")
-    ## merge should be integer but might not be after dump/restore.
-    if (any(as.integer(merge) != merge))
-        stop("'merge' component in dendrogram must be integer")
+    if(check && !isTRUE(msg <- .validity.hclust(x,merge)))
+	stop(msg)
     storage.mode(merge) <- "integer"
-    n <- nrow(merge)
+    n1 <- nrow(merge) # == #{obs} - 1
+    n <- n1+1L
     height <- as.double(x$height)
     labels <-
 	if(missing(labels) || is.null(labels)) {
-	    if (is.null(x$labels))
-		paste(1L:(n+1))
-	    else
-		as.character(x$labels)
+	    as.character(if(is.null(x$labels)) seq_len(n) else x$labels)
 	} else {
 	    if(is.logical(labels) && !labels)# FALSE
-		character(n+1)
+		character(n)
 	    else
 		as.character(labels)
 	}
 
     dev.hold(); on.exit(dev.flush())
     plot.new()
-    .Internal(dend.window(n, merge, height,                 hang, labels, ...))
-    .Internal(dend       (n, merge, height, order(x$order), hang, labels, ...))
+    graphics:::plotHclust(n1, merge, height, order(x$order), hang, labels, ...)
     if(axes)
         axis(2, at=pretty(range(height)), ...)
     if (frame.plot)
         box(...)
     if (ann) {
         if(!is.null(cl <- x$call) && is.null(sub))
-            sub <- paste(deparse(cl[[1L]])," (*, \"", x$method,"\")",sep="")
+            sub <- paste0(deparse(cl[[1L]])," (*, \"", x$method,"\")")
         if(is.null(xlab) && !is.null(cl))
             xlab <- deparse(cl[[2L]])
         title(main = main, sub = sub, xlab = xlab, ylab = ylab, ...)
@@ -146,23 +174,6 @@ plot.hclust <-
     invisible()
 }
 
-## For S ``compatibility'': was in cluster just as
-## plclust <- plot.hclust ## .Alias
-plclust <- function(tree, hang = 0.1, unit = FALSE, level = FALSE, hmin = 0,
-                    square = TRUE, labels = NULL, plot. = TRUE,
-                    axes = TRUE, frame.plot = FALSE, ann = TRUE,
-                    main = "", sub = NULL, xlab = NULL, ylab = "Height")
-{
-    if(!missing(level) && level)	.NotYetUsed("level", error = FALSE)
-    if(!missing(hmin) && hmin != 0)	.NotYetUsed("hmin",  error = FALSE)
-    if(!missing(square) && !square)	.NotYetUsed("square",error = FALSE)
-    if(!missing(plot.) && !plot.)	.NotYetUsed("plot.", error = TRUE)
-    if(!missing(hmin)) tree$height <- pmax(tree$height, hmin)
-    if(unit) tree$height <- rank(tree$height)
-    plot.hclust(x = tree, labels = labels, hang = hang,
-                axes = axes, frame.plot = frame.plot, ann = ann,
-                main = main, sub = sub, xlab = xlab, ylab = ylab)
-}
 
 
 as.hclust <- function(x, ...) UseMethod("as.hclust")
@@ -170,10 +181,12 @@ as.hclust <- function(x, ...) UseMethod("as.hclust")
 as.hclust.default <- function(x, ...) {
     if(inherits(x, "hclust")) x
     else
-	stop(gettext("argument 'x' cannot be coerced to class \"hclust\""),
+	stop(gettextf("argument 'x' cannot be coerced to class %s",
+                      dQuote("hclust")),
              if(!is.null(oldClass(x)))
              gettextf("\n Consider providing an as.hclust.%s() method",
-                      oldClass(x)[1L]), domain = NA)
+                      oldClass(x)[1L]),
+             domain = NA)
 }
 
 as.hclust.twins <- function(x, ...)
@@ -193,7 +206,7 @@ as.hclust.twins <- function(x, ...)
 print.hclust <- function(x, ...)
 {
     if(!is.null(x$call))
-        cat("\nCall:\n",deparse(x$call),"\n\n",sep="")
+        cat("\nCall:\n", deparse(x$call), "\n\n", sep = "")
     if(!is.null(x$method))
         cat("Cluster method   :", x$method, "\n")
     if(!is.null(x$dist.method))
@@ -215,8 +228,8 @@ function(x)
     out <- matrix(0, nrow = nobs, ncol = nobs)
     for(i in 1 : (nobs - 1)) {
         inds <- x$merge[i,]
-        ids1 <- if(inds[1L] < 0) -inds[1L] else ilist[[inds[1L]]]
-        ids2 <- if(inds[2L] < 0) -inds[2L] else ilist[[inds[2L]]]
+        ids1 <- if(inds[1L] < 0L) -inds[1L] else ilist[[inds[1L]]]
+        ids2 <- if(inds[2L] < 0L) -inds[2L] else ilist[[inds[2L]]]
         ilist[[i]] <- c(ids1, ids2)
         out[cbind(rep.int(ids1, rep.int(length(ids2), length(ids1))),
                   rep.int(ids2, length(ids1)))] <- x$height[i]
@@ -250,15 +263,14 @@ function(x)
     lens <- sapply(children, attr, "Size")
     m <- matrix(attr(x, "height"), sum(lens), sum(lens))
     ## This seems a bit slower:
-    ##    inds <- split(seq(length = sum(lens)),
+    ##    inds <- split(seq(length.out = sum(lens)),
     ##                  rep.int(seq_along(lens), lens))
     ##    for(i in seq_along(inds))
     ##         m[inds[[i]], inds[[i]]] <- as.matrix(children[[i]])
     hi <- cumsum(lens)
-    lo <- c(0, hi[-length(hi)]) + 1
+    lo <- c(0L, hi[-length(hi)]) + 1L
     for(i in seq_along(x))
         m[lo[i] : hi[i], lo[i] : hi[i]] <- as.matrix(children[[i]])
-    rownames(m) <- colnames(m) <-
-        unlist(sapply(children, attr, "Labels"))
+    rownames(m) <- colnames(m) <- unlist(lapply(children, attr, "Labels"))
     as.dist(m)
 }

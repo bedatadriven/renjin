@@ -1,5 +1,7 @@
 #  File src/library/stats/R/bartlett.test.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 bartlett.test <- function(x, ...) UseMethod("bartlett.test")
 
@@ -46,7 +48,7 @@ function(x, g, ...)
 
     if (LM) {
         n <- sapply(x, function(obj) obj$df.resid)
-        v <- sapply(x, function(obj) sum(obj$residuals^2))
+        v <- sapply(x, function(obj) sum(obj$residuals^2))/n
     } else {
         n <- sapply(x, "length") - 1
         if (any(n <= 0))
@@ -80,8 +82,11 @@ function(formula, data, subset, na.action, ...)
     m <- match.call(expand.dots = FALSE)
     if(is.matrix(eval(m$data, parent.frame())))
         m$data <- as.data.frame(data)
-    m[[1L]] <- as.name("model.frame")
+    ## need stats:: for non-standard evaluation
+    m[[1L]] <- quote(stats::model.frame)
     mf <- eval(m, parent.frame())
+    if(length(mf) != 2L)
+        stop("'formula' should be of the form response ~ group")
     DNAME <- paste(names(mf), collapse = " by ")
     names(mf) <- NULL
     y <- do.call("bartlett.test", as.list(mf))

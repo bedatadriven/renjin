@@ -1,5 +1,7 @@
 #  File src/library/stats/R/stepfun.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2014 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ## Constructor for  Step Functions:
 
@@ -55,34 +57,33 @@ knots.stepfun <- function(Fn, ...) eval(expression(x), envir=environment(Fn))
 print.stepfun <- function (x, digits = getOption("digits") - 2, ...)
 {
     numform <- function(x) paste(formatC(x, digits = digits), collapse=", ")
-    i1 <- function(n) 1L:min(3, n)
-    i2 <- function(n) if(n >= 4) max(4, n-1):n else integer()
+    i1 <- function(n) 1L:min(3L, n)
+    i2 <- function(n) if(n >= 4L) max(4L, n-1L):n else integer()
     cat("Step function\nCall: ")
     print(attr(x, "call"), ...)
     env <- environment(x)
     n <- length(xx <- eval(expression(x), envir = env))
     cat(" x[1:", n, "] = ", numform(xx[i1(n)]),
-	if(n > 3) ", ", if(n > 5) " ..., ", numform(xx[i2(n)]), "\n", sep = "")
+	if(n > 3L) ", ", if(n > 5L) " ..., ", numform(xx[i2(n)]), "\n", sep = "")
     y <- eval(expression(c(yleft, y)), envir = env)
-    cat(n+1, " plateau levels = ", numform(y[i1(n+1)]),
-	if(n+1 > 3) ", ", if(n+1 > 5) " ..., ", numform(y[i2(n+1)]), "\n",
+    cat(n+1L, " plateau levels = ", numform(y[i1(n+1L)]),
+	if(n+1L > 3L) ", ", if(n+1L > 5L) " ..., ", numform(y[i2(n+1L)]), "\n",
 	sep = "")
     invisible(x)
 }
 
 summary.stepfun <- function(object, ...)
 {
-    n <- eval(expression(n), envir = environment(object))
-    if(!is.integer(n) || n < 1) stop("not a valid step function")
-    ## n <- n-1
+    n <- length(eval(expression(x), envir = environment(object)))
+    if(!is.integer(n) || n < 1L) stop("not a valid step function")
     cat("Step function with continuity 'f'=",
 	format(eval(expression(f), envir = environment(object))),
-	", ", n, if(n <= 6) "knots at\n" else "knots with summary\n")
-    summ <- if(n>6) summary else function(x) x
+	", ", n, if(n <= 6L) "knots at\n" else "knots with summary\n")
+    summ <- if(n > 6L) summary else function(x) x
     print(summ(knots(object)))
-    cat(if(n>6) "\n" else "  ", "and	", n+1,
-        " plateau levels (y) ", if(n <= 6) "at\n" else "with summary\n",
-        sep="")
+    cat(if(n > 6L) "\n" else "  ", "and	", n+1L,
+        " plateau levels (y) ", if(n <= 6L) "at\n" else "with summary\n",
+        sep  = "")
     print(summ(eval(expression(c(yleft,y)), envir = environment(object))))
     invisible()
 }
@@ -130,15 +131,15 @@ plot.stepfun <-
 
     } else dr <- diff(xlim)
 
-    knF <- knF[xlim[1L]-dr <= knF & knF <= xlim[2L]+dr]
+    xval <- xval[xlim[1L]-dr <= xval & xval <= xlim[2L]+dr]
 
     ## Careful for heights of horizontals -- these depend on f
-    ti <- c(xlim[1L]-dr, knF, xlim[2L]+dr)
+    ti <- c(xlim[1L]-dr, xval, xlim[2L]+dr)
     ti.l <- ti[-length(ti)]
     ti.r <- ti[-1L]
     y <- x(0.5*(ti.l + ti.r))
     n <- length(y)
-    Fn.kn <- x(knF)
+    Fn.kn <- x(xval)
 
     ##------------------------ Plotting ----------------------------
 
@@ -148,15 +149,15 @@ plot.stepfun <-
 	segments(ti.l, y, ti.r, y, col=col.hor, lty=lty, lwd=lwd, ...)
     else {
         if(missing(ylim)) ylim <- range(c(y,Fn.kn))
-	plot(NA,NA, type="n", xlim=xlim, ylim=ylim,
-	     xlab=xlab, ylab=ylab, main= main, ...)
-	segments(ti.l, y, ti.r, y, col=col.hor, lty=lty, lwd=lwd)
+	plot(NA, NA, type = "n", xlim = xlim, ylim = ylim,
+	     xlab = xlab, ylab = ylab, main = main, ...)
+	segments(ti.l, y, ti.r, y, col = col.hor, lty = lty, lwd = lwd)
     }
     if(do.points)
-	points(knF, Fn.kn, pch=pch, col=col.points, cex=cex.points)
+	points(xval, Fn.kn, pch = pch, col = col.points, cex = cex.points)
 
     if(verticals)
-	segments(knF, y[-n], knF, y[-1L], col=col.vert, lty=lty, lwd=lwd)
+	segments(xval, y[-n], xval, y[-1L], col = col.vert, lty = lty, lwd = lwd)
     invisible(list(t = ti, y = y))
 }
 

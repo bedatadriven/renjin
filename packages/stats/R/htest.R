@@ -1,5 +1,7 @@
 #  File src/library/stats/R/htest.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,27 +14,27 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
-print.htest <- function(x, digits = 4, quote = TRUE, prefix = "", ...)
+print.htest <- function(x, digits = getOption("digits"), prefix = "\t", ...)
 {
     cat("\n")
-    cat(strwrap(x$method, prefix = "\t"), sep="\n")
+    cat(strwrap(x$method, prefix = prefix), sep = "\n")
     cat("\n")
-    cat("data: ", x$data.name, "\n")
+    cat("data:  ", x$data.name, "\n", sep = "")
     out <- character()
     if(!is.null(x$statistic))
 	out <- c(out, paste(names(x$statistic), "=",
-			    format(round(x$statistic, 4))))
+			    format(signif(x$statistic, max(1L, digits - 2L)))))
     if(!is.null(x$parameter))
 	out <- c(out, paste(names(x$parameter), "=",
-			    format(round(x$parameter, 3))))
+			    format(signif(x$parameter, max(1L, digits - 2L)))))
     if(!is.null(x$p.value)) {
-	fp <- format.pval(x$p.value, digits = digits)
+	fp <- format.pval(x$p.value, digits = max(1L, digits - 3L))
 	out <- c(out, paste("p-value",
 			    if(substr(fp, 1L, 1L) == "<") fp else paste("=",fp)))
     }
-    cat(strwrap(paste(out, collapse = ", ")), sep="\n")
+    cat(strwrap(paste(out, collapse = ", ")), sep = "\n")
     if(!is.null(x$alternative)) {
 	cat("alternative hypothesis: ")
 	if(!is.null(x$null.value)) {
@@ -42,24 +44,25 @@ print.htest <- function(x, digits = 4, quote = TRUE, prefix = "", ...)
 			   two.sided = "not equal to",
 			   less = "less than",
 			   greater = "greater than")
-		cat("true", names(x$null.value), "is", alt.char,
-		    x$null.value, "\n")
+		cat("true ", names(x$null.value), " is ", alt.char, " ",
+		    x$null.value, "\n", sep = "")
 	    }
 	    else {
-		cat(x$alternative, "\nnull values:\n")
-		print(x$null.value, ...)
+		cat(x$alternative, "\nnull values:\n", sep = "")
+		print(x$null.value, digits=digits, ...)
 	    }
 	}
-	else cat(x$alternative, "\n")
+	else cat(x$alternative, "\n", sep = "")
     }
     if(!is.null(x$conf.int)) {
 	cat(format(100 * attr(x$conf.int, "conf.level")),
-	    "percent confidence interval:\n",
-	    format(c(x$conf.int[1L], x$conf.int[2L])), "\n")
+	    " percent confidence interval:\n", " ",
+	    paste(format(c(x$conf.int[1L], x$conf.int[2L])), collapse = " "),
+            "\n", sep = "")
     }
     if(!is.null(x$estimate)) {
 	cat("sample estimates:\n")
-	print(x$estimate, ...)
+	print(x$estimate, digits=digits, ...)
     }
     cat("\n")
     invisible(x)

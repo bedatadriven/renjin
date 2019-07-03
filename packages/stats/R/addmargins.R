@@ -1,5 +1,7 @@
 #  File src/library/stats/R/addmargins.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 2004-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,22 +14,22 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 addmargins <-
     function(A, margin = seq_along(dim(A)), FUN = sum, quiet = FALSE)
 {
-### The workhorse for this margin-expansion is the function
-### expand.one, which is defined and called at the bottom.
-###
-### All this initial stuff is just to check consistency of
-### specifications, and form maximally sensible margin names
-###
-### BxC, August 2003
-###	 Sept	2003: Single margins caused crash. Fixed.
-### Duncan Murdoch, Feb 2004: Machinery to derive functionnames
-###			      from unnamed lists
-###-------------------------------------------------------------
+    ## The workhorse for this margin-expansion is the function
+    ## expand.one, which is defined and called at the bottom.
+    ##
+    ## All this initial stuff is just to check consistency of
+    ## specifications, and form maximally sensible margin names
+    ##
+    ## BxC, August 2003
+    ##	 Sept	2003: Single margins caused crash. Fixed.
+    ## Duncan Murdoch, Feb 2004: Machinery to derive functionnames
+    ##			      from unnamed lists
+    ##-------------------------------------------------------------
 
     if(is.null(dim(A))) stop("'A' must be an array or table")
     ## How many dimensions of A, and how many sides do we touch?
@@ -42,8 +44,7 @@ addmargins <-
     ## length as the margins vector.
     if (length(FUN) == 1 && !is.list(FUN)) {
 	fname <- if (!miss.FUN) deparse(substitute(FUN)) else "Sum"
-	FUN <- list(FUN)
-	names(FUN) <- fname
+	FUN <- setNames(list(FUN), fname)
     }
 
     if (!miss.FUN) {
@@ -75,7 +76,8 @@ addmargins <-
 	if(length(FUN) == 1L)
 	    FUN <- rep(FUN, n.sid)
 	else
-	    stop(gettextf("length of FUN, %d,\n does not match the length of the margins, %d",
+	    stop(gettextf(
+		"length of FUN, %d,\n does not match the length of the margins, %d",
 			  length(FUN), n.sid), domain = NA)
     }
 
@@ -96,13 +98,12 @@ addmargins <-
 	    fnames[[i]][blank] <- seq_along(blank)[blank]
 	    if (topname == "") {
 		fnames[[i]][blank] <-
-		    paste("Margin ", margin[i], ".", fnames[[i]][blank],
-			  sep = "")
+		    paste0("Margin ", margin[i], ".", fnames[[i]][blank])
 	    } else {
-		fnames[[i]] <- paste(topname, ".", fnames[[i]], sep = "")
+		fnames[[i]] <- paste0(topname, ".", fnames[[i]])
 	    }
-	} else
-	    if (fnames[[i]] == "") fnames[[i]] <- paste("Margin", margin[i])
+	} else if (fnames[[i]] == "")
+            fnames[[i]] <- paste("Margin", margin[i])
     }
 
     ## So finally we have the relevant form of FUN and fnames to pass
@@ -117,7 +118,7 @@ addmargins <-
 	## BxC, August 2003
 
 	## Make sure that FUN is a list
-	if(class(FUN) != "list") FUN <- list(FUN)
+	if(!inherits(FUN, "list")) FUN <- list(FUN)
 
 	## Useful constants
 	d <- dim(A)
@@ -127,8 +128,10 @@ addmargins <-
 	## Define the dimensions of the new table with the margins
 	newdim <- d
 	newdim[margin] <- newdim[margin] + n.mar
-	newdimnames <- dimnames(A)
-	newdimnames[[margin]] <- c(newdimnames[[margin]], fnames)
+	if(is.null(dnA <- dimnames(A))) dnA <- vector("list", n.dim)
+	dnA[[margin]] <-
+	    c(if(is.null(dnA[[margin]])) rep("", d[[margin]]) else dnA[[margin]],
+	      fnames)
 
 	## Number of elements in the expanded array
 	n.new <- prod(newdim)
@@ -137,7 +140,7 @@ addmargins <-
 	## where the original table values goes, as a logical vector
 	skip <- prod(d[1L:margin])
 	runl <- skip / d[margin]
-	apos <- rep(c(rep(TRUE, skip), rep(FALSE, n.mar*runl)),
+	apos <- rep(c(rep_len(TRUE, skip), rep_len(FALSE, n.mar*runl)),
 		    n.new/(skip+n.mar*runl))
 
 	## Define a vector to hold all the values of the new table
@@ -148,26 +151,23 @@ addmargins <-
 
 	## Then sucessively compute and fill in the required margins
 	for(i in 1L:n.mar) {
-	    mtab <- if(n.dim > 1) {
-		apply(A, (1L:n.dim)[-margin], FUN[[i]])
-	    } else FUN[[i]](A)
+	    mtab <- if(n.dim > 1)
+			apply(A, (1L:n.dim)[-margin], FUN[[i]])
+		    else
+			FUN[[i]](A)
 	    ## Vector the same length as the number of margins
-	    select <- rep(FALSE, n.mar)
+	    select <- rep_len(FALSE, n.mar)
 	    ## The position of the current margin
 	    select[i] <- TRUE
 	    ## Expand that to a vector the same length as the entire new matrix
-	    mpos <- rep(c(rep(FALSE, skip), rep(select, each=runl)),
+	    mpos <- rep(c(rep_len(FALSE, skip), rep(select, each=runl)),
 			prod(dim(A))/skip)
 	    ## Fill the marginal table in there
 	    values[mpos] <- as.vector(mtab)
 	}
 
-	## Then define the new table with contents and margins
-	##
-	new.A <- array(values, dim=newdim, dimnames=newdimnames)
-	if(inherits(A, "table")) # result shall be table, too
-	    class(new.A) <- c("table", class(new.A))
-	new.A
+	## the new table with contents and margins
+	array(values, dim=newdim, dimnames=dnA)
     }
 
     ## Once defined, we can use the expand.one function repeatedly
@@ -175,13 +175,16 @@ addmargins <-
     for(i in 1L:n.sid)
 	new.A <- expand.one(A = new.A, margin = margin[i], FUN = FUN[[i]],
 			    fnames = fnames[[i]])
+    if(inherits(A, "table")) # result shall be table, too
+        class(new.A) <- c("table", class(new.A))
 
     ## Done! Now print it.
     ##
-    if(!quiet && !miss.FUN  && n.sid > 1) {
+    if(!quiet && !miss.FUN && n.sid > 1) {
 	cat("Margins computed over dimensions\nin the following order:\n")
-	for(i in 1L:n.sid)
-	    cat(paste(i), ": ", names(dimnames(A))[margin[i]], "\n", sep="")
+        ## FIXME: what is paste(i) supposed to do?
+	for(i in seq_len(n.sid))
+	    cat(paste(i), ": ", names(dimnames(A))[margin[i]], "\n", sep = "")
     }
     new.A
 }

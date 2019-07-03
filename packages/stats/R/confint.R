@@ -1,5 +1,8 @@
 #  File src/library/stats/R/confint.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 2003-2018 The R Core Team
+#  Copyright (C) 1994-2003 W. N. Venables and B. D. Ripley
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +15,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 confint <- function(object, parm, level = 0.95, ...) UseMethod("confint")
 
@@ -25,26 +28,39 @@ format.perc <- function(probs, digits)
 confint.lm <- function(object, parm, level = 0.95, ...)
 {
     cf <- coef(object)
-    pnames <- names(cf)
+    ses <- sqrt(diag(vcov(object))) # gives NA for aliased parms
+    pnames <- names(ses) # ok for "mlm", too
+    if(is.matrix(cf)) cf <- setNames(as.vector(cf), pnames) # for "mlm"
     if(missing(parm)) parm <- pnames
     else if(is.numeric(parm)) parm <- pnames[parm]
+    ## else 'parm' must contain parameter names matching those in 'pnames'
     a <- (1 - level)/2
     a <- c(a, 1 - a)
     fac <- qt(a, object$df.residual) # difference from default method
     pct <- format.perc(a, 3)
-    ci <- array(NA, dim = c(length(parm), 2L),
-		dimnames = list(parm, pct))
-    ses <- sqrt(diag(vcov(object)))[parm] # gives NA for aliased parms
-    ci[] <- cf[parm] + ses %o% fac
+    ci <- array(NA_real_,
+                dim = c(length(parm), 2L), dimnames = list(parm, pct))
+    ci[] <- cf[parm] + ses[parm] %o% fac
     ci
 }
 
-
+## loading the MASS namespace will overwrite these in the registry.
+## stub is a specialized version of MASS:::confint.xxx with specific message
 confint.glm <- function(object, parm, level = 0.95, ...)
-    try(MASS:::confint.glm(object, parm, level, ...))
+{
+    if(!requireNamespace("MASS", quietly = TRUE))
+        stop("package 'MASS' must be installed")
+    confint.glm <- get("confint.glm", asNamespace("MASS"), inherits = FALSE)
+    confint.glm(object, parm, level, ...)
+}
 
 confint.nls <- function(object, parm, level = 0.95, ...)
-    try(MASS:::confint.nls(object, parm, level, ...))
+{
+    if(!requireNamespace("MASS", quietly = TRUE))
+        stop("package 'MASS' must be installed")
+    confint.nls <- get("confint.nls", asNamespace("MASS"), inherits = FALSE)
+    confint.nls(object, parm, level, ...)
+}
 
 confint.default <- function (object, parm, level = 0.95, ...)
 {
@@ -61,4 +77,4 @@ confint.default <- function (object, parm, level = 0.95, ...)
     ses <- sqrt(diag(vcov(object)))[parm]
     ci[] <- cf[parm] + ses %o% fac
     ci
-}	
+}

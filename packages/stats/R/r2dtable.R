@@ -1,5 +1,7 @@
 #  File src/library/stats/R/r2dtable.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2013 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,19 +14,17 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 r2dtable <- function(n, r, c)
 {
     if(length(n) == 0L || (n < 0) || is.na(n))
 	stop("invalid argument 'n'")
-    if((length(r) <= 1L) || any(r < 0) || any(is.na(r)))
+    if((length(r) <= 1L) || any(r < 0) || anyNA(r))
 	stop("invalid argument 'r'")
-    if((length(c) <= 1L) || any(c < 0) || any(is.na(c)))
+    if((length(c) <= 1L) || any(c < 0) || anyNA(c))
 	stop("invalid argument 'c'")
     if(sum(r) != sum(c))
 	stop("arguments 'r' and 'c' must have the same sums")
-    .Call("R_r2dtable",
-	  as.integer(n), as.integer(r), as.integer(c),
-          PACKAGE = "base")
+    .Call(C_r2dtable, as.integer(n), as.integer(r), as.integer(c))
 }

@@ -1,5 +1,7 @@
 #  File src/library/stats/R/p.adjust.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,20 +14,20 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 p.adjust.methods <-
     c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr", "none")
 
 p.adjust <- function(p, method = p.adjust.methods, n = length(p))
 {
-    ## Methods 'Hommel', 'BH', 'BY' and speed improvements contributed by
-    ## Gordon Smyth <smyth@wehi.edu.au>.
+    ## Methods 'Hommel', 'BH', 'BY' and speed improvements
+    ## contributed by Gordon Smyth
     method <- match.arg(method)
     if(method == "fdr") method <- "BH"	# back compatibility
     nm <- names(p)
-    p <- as.numeric(p); names(p) <- nm
-    p0 <- p
+    p <- as.numeric(p)
+    p0 <- setNames(p, nm)
     if(all(nna <- !is.na(p))) nna <- TRUE
     p <- p[nna]
     lp <- length(p)

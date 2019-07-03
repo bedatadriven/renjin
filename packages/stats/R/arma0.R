@@ -1,5 +1,7 @@
 #  File src/library/stats/R/arma0.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1999-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 arima0 <- function(x, order = c(0, 0, 0),
                    seasonal = list(order = c(0, 0, 0), period = NA),
@@ -103,12 +105,12 @@ arima0 <- function(x, order = c(0, 0, 0),
     class(xreg) <- NULL
     if(include.mean && (nd == 0)) {
         if(is.matrix(xreg) && is.null(colnames(xreg)))
-            colnames(xreg) <- paste("xreg", 1L:ncxreg, sep = "")
-        xreg <- cbind(intercept = rep(1, n), xreg = xreg)
+            colnames(xreg) <- paste0("xreg", 1L:ncxreg)
+        xreg <- cbind(intercept = rep_len(1, n), xreg = xreg)
         ncxreg <- ncxreg + 1
     }
 
-    if (is.null(fixed)) fixed <- rep(NA_real_, narma + ncxreg)
+    if (is.null(fixed)) fixed <- rep_len(NA_real_, narma + ncxreg)
     else if(length(fixed) != narma + ncxreg) stop("wrong length for 'fixed'")
     mask <- is.na(fixed)
     if(!any(mask)) stop("all parameters were fixed")
@@ -123,17 +125,17 @@ arima0 <- function(x, order = c(0, 0, 0),
         xreg <- as.matrix(xreg)
         if(qr(na.omit(xreg))$rank < ncol(xreg)) stop("'xreg' is collinear")
         if(is.null(cn <- colnames(xreg)))
-            cn <- paste("xreg", 1L:ncxreg, sep = "")
+            cn <- paste0("xreg", 1L:ncxreg)
     }
-    if(any(is.na(x)) || (ncxreg && any(is.na(xreg))))
+    if(anyNA(x) || (ncxreg && anyNA(xreg)))
         ## only exact recursions handle NAs
         if(method == "ML" && delta >= 0) {
             warning("NAs present: setting 'delta' to -1")
             delta <- -1
         }
 
-    init0 <- rep(0, narma)
-    parscale <- rep(1, narma)
+    init0 <- rep_len(0, narma)
+    parscale <- rep_len(1, narma)
     if (ncxreg) {
         orig.xreg <- (ncxreg == 1) || any(!mask[narma + 1L:ncxreg])
         if(!orig.xreg) {
@@ -187,7 +189,8 @@ arima0 <- function(x, order = c(0, 0, 0),
     res <- optim(init[mask], arma0f, method = "BFGS",
                  hessian = TRUE, control = optim.control)
     if((code <- res$convergence) > 0)
-        warning("possible convergence problem: optim gave code=", code)
+        warning(gettextf("possible convergence problem: optim gave code = %d",
+                         code), domain = NA)
     coef <- res$par
 
     if(transform.pars) {
@@ -207,10 +210,10 @@ arima0 <- function(x, order = c(0, 0, 0),
     class(resid) <- "ts"
     n.used <- sum(!is.na(resid))
     nm <- NULL
-    if(arma[1L] > 0) nm <- c(nm, paste("ar", 1L:arma[1L], sep = ""))
-    if(arma[2L] > 0) nm <- c(nm, paste("ma", 1L:arma[2L], sep = ""))
-    if(arma[3L] > 0) nm <- c(nm, paste("sar", 1L:arma[3L], sep = ""))
-    if(arma[4L] > 0) nm <- c(nm, paste("sma", 1L:arma[4L], sep = ""))
+    if(arma[1L] > 0) nm <- c(nm, paste0("ar", 1L:arma[1L]))
+    if(arma[2L] > 0) nm <- c(nm, paste0("ma", 1L:arma[2L]))
+    if(arma[3L] > 0) nm <- c(nm, paste0("sar", 1L:arma[3L]))
+    if(arma[4L] > 0) nm <- c(nm, paste0("sma", 1L:arma[4L]))
     fixed[mask] <- coef
     if(ncxreg > 0) {
         nm <- c(nm, cn)
@@ -237,14 +240,14 @@ arima0 <- function(x, order = c(0, 0, 0),
     res
 }
 
-print.arima0 <- function(x, digits = max(3, getOption("digits") - 3),
+print.arima0 <- function(x, digits = max(3L, getOption("digits") - 3L),
                          se = TRUE, ...)
 {
     cat("\nCall:", deparse(x$call, width.cutoff = 75L), "", sep = "\n")
     cat("Coefficients:\n")
     coef <- round(x$coef, digits = digits)
     if (se && nrow(x$var.coef)) {
-        ses <- rep(0, length(coef))
+        ses <- rep_len(0, length(coef))
         ses[x$mask] <- round(sqrt(diag(x$var.coef)), digits = digits)
         coef <- matrix(coef, 1, dimnames = list(NULL, names(coef)))
         coef <- rbind(coef, s.e. = ses)
@@ -256,17 +259,17 @@ print.arima0 <- function(x, digits = max(3, getOption("digits") - 3),
             format(x$sigma2, digits = digits),
             ":  log likelihood = ", format(round(x$loglik,2)),
             ",  aic = ", format(round(x$aic,2)),
-            "\n", sep="")
+            "\n", sep = "")
     else
         cat("\nsigma^2 estimated as ",
             format(x$sigma2, digits = digits),
             ":  part log likelihood = ", format(round(x$loglik,2)),
-            "\n", sep="")
+            "\n", sep = "")
     invisible(x)
 }
 
 predict.arima0 <-
-    function(object, n.ahead = 1, newxreg = NULL, se.fit=TRUE, ...)
+    function(object, n.ahead = 1L, newxreg = NULL, se.fit=TRUE, ...)
 {
     myNCOL <- function(x) if(is.null(x)) 0 else NCOL(x)
     data <- eval.parent(parse(text = object$series))
@@ -283,8 +286,8 @@ predict.arima0 <-
     narma <- sum(arma[1L:4L])
     if(length(coefs) > narma) {
         if(names(coefs)[narma+1] == "intercept") {
-            xreg <- cbind(intercept = rep(1, n), xreg)
-            newxreg <- cbind(intercept = rep(1, n.ahead), newxreg)
+            xreg <- cbind(intercept = rep_len(1, n), xreg)
+            newxreg <- cbind(intercept = rep_len(1, n.ahead), newxreg)
             ncxreg <- ncxreg+1
         }
         data <- data - as.matrix(xreg) %*% coefs[-(1L:narma)]
@@ -302,7 +305,7 @@ predict.arima0 <-
             warning("seasonal MA part of model is not invertible")
     }
     storage.mode(data) <- "double"
-    G <- .Call(C_setup_starma, as.integer(arma), data, n, rep(0., n),
+    G <- .Call(C_setup_starma, as.integer(arma), data, n, rep_len(0., n),
                0., -1., 0., 0.)
     on.exit(.Call(C_free_starma, G))
     .Call(C_Starma_method, G, TRUE)
@@ -322,7 +325,7 @@ arima0.diag <- function(...) .Defunct()
 tsdiag.Arima <- tsdiag.arima0 <- function(object, gof.lag = 10, ...)
 {
     ## plot standardized residuals, acf of residuals, Ljung-Box p-values
-    oldpar<- par(mfrow = c(3, 1))
+    oldpar <- par(mfrow = c(3, 1))
     on.exit(par(oldpar))
     rs <- object$residuals
     stdres <- rs/sqrt(object$sigma2)

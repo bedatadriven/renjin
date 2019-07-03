@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2004   The R Development Core Team.
+ *  Copyright (C) 2004   The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -14,10 +14,9 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, a copy is available at
- *  http://www.r-project.org/Licenses/
+ *  https://www.R-project.org/Licenses/
  */
 
-#include <R.h>
 #include "modreg.h" /* for declarations for registration */
 
 void kmeans_Lloyd(double *x, int *pn, int *pp, double *cen, int *pk, int *cl,
@@ -144,3 +143,20 @@ void kmeans_MacQueen(double *x, int *pn, int *pp, double *cen, int *pk,
 	}
     }
 }
+
+// tracing for  kmeans() in  ./kmns.f
+
+void F77_SUB(kmns1)(int *k, int *it, int *indx) {
+    Rprintf("KMNS(*, k=%d): iter=%3d, indx=%d\n", *k, *it, *indx);
+}
+
+void F77_SUB(kmnsqpr)(int *istep, int *icoun, int *NCP, int *k, int *trace)
+{
+    Rprintf(" QTRAN(): istep=%d, icoun=%d", *istep, *icoun);
+    if(*trace >= 2) {
+	Rprintf(", NCP[1:%d]=", k[0]);
+	for(int i=0; i < k[0]; i++) Rprintf(" %d", NCP[i]);
+    }
+    Rprintf("\n");
+}
+

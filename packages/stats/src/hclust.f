@@ -23,17 +23,17 @@ C  F. Murtagh, ESA/ESO/STECF, Garching, February 1986.       C
 C  Modifications for R: Ross Ihaka, Dec 1996                 C
 C                       Fritz Leisch, Jun 2000               C
 C  all vars declared:   Martin Maechler, Apr 2001            C
-C  PR#4195 fixed by BDR Nov 2003                             C
-C  The code tried to update DISTNN(I2) on the fly,           C
-C  but since it recalculated all the others it might as      C
-C  well recalculate that one too.                            C
+C                                                            C
+c- R Bug PR#4195 fixed "along" qclust.c, given in the report C
+C- Testing: --> "hclust" in ../../../../tests/reg-tests-1b.R C
+C  "ward.D2" (iOpt = 8): Martin Maechler, Mar 2014           C
 C------------------------------------------------------------C
       SUBROUTINE HCLUST(N,LEN,IOPT,IA,IB,CRIT,MEMBR,NN,DISNN,
      X                  FLAG,DISS)
 c Args
       INTEGER N, LEN, IOPT
       INTEGER IA(N),IB(N), NN(N)
-      LOGICAL FLAG(N)
+      LOGICAL FLAG(N), isWard
       DOUBLE PRECISION CRIT(N), MEMBR(N),DISS(LEN), DISNN(N)
 c Var
       INTEGER IM, JJ, JM, I, NCL, J, IND, I2, J2, K, IND1, IND2
@@ -59,6 +59,13 @@ C        MEMBR(I)=1.
          FLAG(I)=.TRUE.
       end do
       NCL=N
+
+      IF (iOpt .eq. 8) THEN ! Ward "D2" ---> using *squared* distances
+         do I=1,LEN
+            DISS(I)=DISS(I)*DISS(I)
+         end do
+      ENDIF
+
 C
 C  Carry out an agglomeration - first create list of NNs
 C  Note NN and DISNN are the nearest neighbour and its distance
@@ -97,6 +104,9 @@ C
       J2=MAX0(IM,JM)
       IA(N-NCL)=I2
       IB(N-NCL)=J2
+C     WARD'S "D1", or "D2" MINIMUM VARIANCE METHOD -- iOpt = 1 or 8.
+      isWard = (iOpt .eq. 1 .or. iOpt .eq. 8)
+      IF (iOpt .eq. 8) DMIN = dsqrt(DMIN)
       CRIT(N-NCL)=DMIN
       FLAG(J2)=.FALSE.
 C
@@ -117,62 +127,67 @@ C
             ENDIF
             D12=DISS(IOFFST(N,I2,J2))
 C
-C     WARD'S MINIMUM VARIANCE METHOD - IOPT=1.
-C
-            IF (IOPT.EQ.1) THEN
+C     WARD'S "D1", or "D2" MINIMUM VARIANCE METHOD - IOPT=8.
+            IF (isWard) THEN
                DISS(IND1)=(MEMBR(I2)+MEMBR(K))*DISS(IND1)+
      X              (MEMBR(J2)+MEMBR(K))*DISS(IND2) - MEMBR(K)*D12
                DISS(IND1)=DISS(IND1) / (MEMBR(I2)+MEMBR(J2)+MEMBR(K))
-            ENDIF
 C
 C     SINGLE LINK METHOD - IOPT=2.
-C
-            IF (IOPT.EQ.2) THEN
+            ELSEIF (IOPT.EQ.2) THEN
                DISS(IND1)=MIN(DISS(IND1),DISS(IND2))
-            ENDIF
 C
 C     COMPLETE LINK METHOD - IOPT=3.
-C
-            IF (IOPT.EQ.3) THEN
+            ELSEIF (IOPT.EQ.3) THEN
                DISS(IND1)=MAX(DISS(IND1),DISS(IND2))
-            ENDIF
 C
 C     AVERAGE LINK (OR GROUP AVERAGE) METHOD - IOPT=4.
-C
-            IF (IOPT.EQ.4) THEN
-               DISS(IND1)=(MEMBR(I2)*DISS(IND1)+MEMBR(J2)*DISS(IND2))/
-     X              (MEMBR(I2)+MEMBR(J2))
-            ENDIF
+            ELSEIF (IOPT.EQ.4) THEN
+               DISS(IND1)= (MEMBR(I2)*DISS(IND1)+MEMBR(J2)*DISS(IND2))
+     X                      / (MEMBR(I2)+MEMBR(J2))
 C
 C     MCQUITTY'S METHOD - IOPT=5.
+            ELSEIF (IOPT.EQ.5) THEN
+               DISS(IND1)=(DISS(IND1)+DISS(IND2)) / 2
 C
-            IF (IOPT.EQ.5) THEN
-               DISS(IND1)=0.5D0*DISS(IND1)+0.5D0*DISS(IND2)
-            ENDIF
+C     MEDIAN (GOWER'S) METHOD aka "Weighted Centroid" - IOPT=6.
+            ELSEIF (IOPT.EQ.6) THEN
+               DISS(IND1)= ((DISS(IND1)+DISS(IND2)) - D12/2) / 2
 C
-C     MEDIAN (GOWER'S) METHOD - IOPT=6.
-C
-            IF (IOPT.EQ.6) THEN
-               DISS(IND1)=0.5D0*DISS(IND1)+0.5D0*DISS(IND2)-0.25D0*D12
-            ENDIF
-C
-C     CENTROID METHOD - IOPT=7.
-C
-            IF (IOPT.EQ.7) THEN
+C     Unweighted CENTROID METHOD - IOPT=7.
+            ELSEIF (IOPT.EQ.7) THEN
                DISS(IND1)=(MEMBR(I2)*DISS(IND1)+MEMBR(J2)*DISS(IND2)-
      X              MEMBR(I2)*MEMBR(J2)*D12/(MEMBR(I2)+MEMBR(J2)))/
      X              (MEMBR(I2)+MEMBR(J2))
             ENDIF
+
 C
-         end if
-      end do
+            IF (I2 .lt. K) THEN
+               IF (DISS(IND1) .LT. DMIN) THEN
+                  DMIN=DISS(IND1)
+                  JJ=K
+               ENDIF
+            else  ! i2 > k
+c	     FIX: the rest of the else clause is a fix by JB to ensure
+c            correct nearest neighbours are found when a non-monotone
+c            clustering method (e.g. the centroid methods) are used
+               if(DISS(IND1) .lt. DISNN(K)) then ! find nearest neighbour of i2
+                  DISNN(K) = DISS(IND1)
+                  NN(K) = I2
+               end if
+            ENDIF
+         ENDIF
+      END DO
       MEMBR(I2)=MEMBR(I2)+MEMBR(J2)
+      DISNN(I2)=DMIN
+      NN(I2)=JJ
 C
-C  Update list of NNs
+C  Update list of NNs insofar as this is required.
 C
       DO I=1,N-1
-         if (FLAG(I)) then
-C                     (Redetermine NN of I:)
+         IF (FLAG(I) .AND.
+     X        ((NN(I).EQ.I2) .OR. (NN(I).EQ.J2))) THEN
+C     (Redetermine NN of I:)
             DMIN=INF
             DO J=I+1,N
                if (FLAG(J)) then
@@ -205,11 +220,12 @@ C  onto vector.
       IOFFST=J+(I-1)*N-(I*(I+1))/2
       RETURN
       END
+
 C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++C
 C                                                               C
 C  Given a HIERARCHIC CLUSTERING, described as a sequence of    C
 C  agglomerations, prepare the seq. of aggloms. and "horiz."    C
-C  order of objects for plotting the dend rogram using S routine C
+C  order of objects for plotting the dendrogram using S routine C
 C  'plclust'.                                                   C
 C                                                               C
 C  Parameters:                                                  C
@@ -218,7 +234,7 @@ C  IA, IB:       vectors of dimension N defining the agglomer-  C
 C                 ations.                                       C
 C  IIA, IIB:     used to store IA and IB values differently     C
 C                (in form needed for S command 'plclust'        C
-C  IORDER:       "horiz." order of objects for dend rogram       C
+C  IORDER:       "horiz." order of objects for dendrogram       C
 C                                                               C
 C  F. Murtagh, ESA/ESO/STECF, Garching, June 1991               C
 C                                                               C

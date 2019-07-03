@@ -30,7 +30,7 @@ public abstract class BuiltinFunction extends PrimitiveFunction {
   public static final String IMPLICIT_CLASS = "function";
   
   private final String name;
-  
+
   public BuiltinFunction(String name) {
     this.name = name;
   }
@@ -39,7 +39,11 @@ public abstract class BuiltinFunction extends PrimitiveFunction {
   public String getName() {
     return name;
   }
-  
+
+  private boolean isEmptyArgumentAllowed() {
+    return name.charAt(0) == '[';
+  }
+
   @Override
   public final String getTypeName() {
     return TYPE_NAME;
@@ -82,7 +86,12 @@ public abstract class BuiltinFunction extends PrimitiveFunction {
           argumentNames.add(null);
         }
         if(value == Symbol.MISSING_ARG) {
-          arguments.add(Symbol.MISSING_ARG);
+          if(isEmptyArgumentAllowed()) {
+            arguments.add(Symbol.MISSING_ARG);
+          } else {
+            int argumentNumber = arguments.size() + 1;
+            throw new EvalException("argument " + argumentNumber + " is empty");
+          }
         } else {
           arguments.add(Promise.repromise(rho, value));
         }

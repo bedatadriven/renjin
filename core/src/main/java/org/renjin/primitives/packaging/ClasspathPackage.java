@@ -67,43 +67,30 @@ public class ClasspathPackage extends FileBasedPackage {
   }
 
   @Override
-  public FileObject resolvePackageRoot(FileSystemManager fileSystemManager) throws FileSystemException {
-    // Find the URL where the package is located
-    String qualifiedName = qualifyResourceName("environment");
-    String uri = "res:" + qualifiedName;
-
-    FileObject environmentFileObject;
-    try {
-      environmentFileObject = fileSystemManager.resolveFile(uri);
-    } catch (FileSystemException e) {
-      throw new FileSystemException("Exception locating package resource '" + uri + "' using the provided VirtualFileSystem, " +
-          "check your Renjin Session configuration.", e);
-    }
-
-    if(!environmentFileObject.exists()) {
-      throw new FileSystemException("Could not locate resource '" + uri + "' using the provided VirtualFileSystem, " +
-          "check your Renjin Session configuration.");
-    }
-
-    return environmentFileObject.getParent();
+  public String getPackageRootUri(FileSystemManager fileSystemManager) {
+    return "classpath:///" + packageRoot();
   }
 
   @Override
   public FileObject resolvePackageResource(FileSystemManager fileSystemManager, String resourceName) throws FileSystemException {
     // Find the URL where the package is located
     String qualifiedName = qualifyResourceName(resourceName);
-    String uri = "res:" + qualifiedName;
+    String uri = "classpath:///" + qualifiedName;
 
     return fileSystemManager.resolveFile(uri);
   }
 
   private String qualifyResourceName(String name) {
     return
-        getName().getGroupId().replace('.', '/') +
+        packageRoot() +
+            "/" +
+            name;
+  }
+
+  private String packageRoot() {
+    return getName().getGroupId().replace('.', '/') +
         "/" +
-        getName().getPackageName() +
-        "/" +
-        name;
+        getName().getPackageName();
   }
 
   @Override

@@ -57,10 +57,9 @@ public class ClosureCompilerTest {
 
     closure.compiledBody = compiler.getHandle().loadAndGetHandle();
 
-
     SEXP result = session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("f"), DoubleVector.valueOf(42)));
 
-    assertThat(result, equalTo(DoubleVector.valueOf(28)));
+    assertThat(result, equalTo(DoubleVector.valueOf(84)));
   }
 
   @Test

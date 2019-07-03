@@ -35,7 +35,7 @@ public class ClasspathFileProviderTest {
   public void nonAsciiCharacterTest() throws IOException {
 
     FileSystemManager fsm = FileSystemUtils.getMinimalFileSystemManager(getClass().getClassLoader());
-    FileObject resourceObject = fsm.resolveFile("res:téléchargements.txt");
+    FileObject resourceObject = fsm.resolveFile("classpath:///téléchargements.txt");
     assertThat(resourceObject.exists(), equalTo(true));
 
     String content;

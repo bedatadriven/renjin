@@ -18,7 +18,6 @@
  */
 package org.renjin.packaging;
 
-import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.eval.Context;
@@ -58,7 +57,7 @@ public class InitializingPackage extends Package {
   }
 
   @Override
-  public FileObject resolvePackageRoot(FileSystemManager fileSystemManager) throws FileSystemException {
-    return fileSystemManager.toFileObject(packageRoot);
+  public String getPackageRootUri(FileSystemManager fileSystemManager) throws FileSystemException {
+    return fileSystemManager.toFileObject(packageRoot).getURL().toString();
   }
 }

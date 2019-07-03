@@ -100,7 +100,7 @@ public abstract class Package {
    * 
    * @return a VFS {@link FileObject} pointing to the root of the package
    */
-  public FileObject resolvePackageRoot(FileSystemManager fileSystemManager) throws FileSystemException {
+  public String getPackageRootUri(FileSystemManager fileSystemManager) throws FileSystemException {
     throw new EvalException("Cannot access package root");
   }
 
@@ -111,6 +111,6 @@ public abstract class Package {
    * @throws FileSystemException
    */
   public FileObject resolvePackageResource(FileSystemManager fileSystemManager, String resourceName) throws FileSystemException {
-    return resolvePackageRoot(fileSystemManager).resolveFile(resourceName);
+    return  fileSystemManager.resolveFile(getPackageRootUri(fileSystemManager) + resourceName);
   }
 }

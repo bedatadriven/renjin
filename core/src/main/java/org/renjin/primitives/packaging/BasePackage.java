@@ -18,7 +18,6 @@
  */
 package org.renjin.primitives.packaging;
 
-import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.eval.Context;
@@ -49,7 +48,7 @@ public class BasePackage extends Package {
   }
 
   @Override
-  public FileObject resolvePackageRoot(FileSystemManager fileSystemManager) throws FileSystemException {
-    return fileSystemManager.resolveFile("res:org/renjin/base/DESCRIPTION").getParent();
+  public String getPackageRootUri(FileSystemManager fileSystemManager) throws FileSystemException {
+    return "classpath:///org/renjin/base";
   }
 }

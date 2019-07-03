@@ -43,7 +43,6 @@ public class FastJarFileSystem extends AbstractFileSystem implements FileSystem 
   private final File file;
   private boolean exists;
   private JarFile jarFile;
-  private NonExistentJarFileObject nonExistentJarFileObject;
 
   public FastJarFileSystem(final FileName rootName,
       final FileObject parentLayer,

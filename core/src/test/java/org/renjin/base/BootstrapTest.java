@@ -20,6 +20,8 @@
 
 package org.renjin.base;
 
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.junit.Before;
 import org.junit.Test;
 import org.renjin.eval.Session;
@@ -32,6 +34,7 @@ import org.renjin.sexp.SEXP;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class BootstrapTest {
 
@@ -52,6 +55,12 @@ public class BootstrapTest {
   public void list() {
     eval(" f<- function(...) list(...) ");
     eval("f(1,2,3)");
+  }
+
+  @Test
+  public void vfs() throws FileSystemException {
+    FileObject fileObject = session.resolveFile("classpath:///org/renjin/sexp/SEXP.class");
+    assertTrue(fileObject.exists());
   }
 
   @Test

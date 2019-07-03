@@ -599,6 +599,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
 
   @Test
+  public void complexMath() throws Exception {
+    compileAndTest("complex_div.c");
+  }
+
+  @Test
   public void doubleComplex() throws Exception {
     Class clazz = compile("double_complex.f");
 

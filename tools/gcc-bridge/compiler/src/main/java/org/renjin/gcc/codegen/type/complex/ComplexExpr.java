@@ -18,6 +18,7 @@
  */
 package org.renjin.gcc.codegen.type.complex;
 
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.expr.*;
@@ -30,6 +31,7 @@ import org.renjin.gcc.codegen.type.primitive.PrimitiveExpr;
 import org.renjin.gcc.codegen.type.primitive.RealExpr;
 import org.renjin.gcc.codegen.type.record.ProvidedPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
+import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
@@ -37,6 +39,7 @@ import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRealType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
+import org.renjin.gcc.runtime.Complex;
 import org.renjin.repackaged.asm.Type;
 
 import static org.renjin.gcc.codegen.expr.Expressions.*;
@@ -209,8 +212,38 @@ public class ComplexExpr implements NumericExpr {
   }
 
   @Override
-  public NumericExpr divide(GExpr operand) {
-    throw new UnsupportedOperationException("TODO");
+  public NumericExpr divide(MethodGenerator mv, GExpr operand) {
+    ComplexExpr divisor = (ComplexExpr) operand;
+    Type type = divisor.getComponentType();
+
+    JExpr a = this.getRealJExpr();
+    JExpr b = this.getImaginaryJExpr();
+    JExpr c = divisor.getRealGExpr().jexpr();
+    JExpr d = divisor.getImaginaryJExpr();
+
+    LocalVarAllocator.LocalVar rr = mv.getLocalVarAllocator().reserve(type);
+    LocalVarAllocator.LocalVar ri = mv.getLocalVarAllocator().reserve(type);
+
+    if(type == Type.DOUBLE_TYPE) {
+      a.load(mv);
+      b.load(mv);
+      c.load(mv);
+      d.load(mv);
+      mv.invokestatic(Complex.class, "divideReal", "(DDDD)D");
+      rr.store(mv);
+
+      a.load(mv);
+      b.load(mv);
+      c.load(mv);
+      d.load(mv);
+      mv.invokestatic(Complex.class, "divideImaginary", "(DDDD)D");
+      ri.store(mv);
+
+    } else {
+      throw new InternalCompilerException("Complex division for type: " + type.getDescriptor());
+    }
+
+    return new ComplexExpr(rr, ri);
   }
 
   @Override

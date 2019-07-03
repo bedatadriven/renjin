@@ -19,34 +19,49 @@
 package org.renjin.gnur;
 
 
-import org.apache.commons.math.special.Erf;
-import org.renjin.gcc.Gcc;
-import org.renjin.gcc.GccException;
+import io.airlift.airline.*;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gnur.api.Error;
-import org.renjin.gnur.api.*;
-import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.repackaged.guava.io.Files;
+import org.renjin.gcc.gimple.GimpleParser;
 
+import javax.inject.Inject;
 import java.io.File;
-import java.util.Date;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Compiles the native code of a GNU R package, applying required code transformations
+ * for compatibility with Renjin.
+ */
+@Command(name = "compile")
 public class GnurSourcesCompiler {
 
+  @Inject
+  public HelpOption helpOption;
+
+  @Option(name = "--package", required = true, description = "The package of the compiled sources")
   private String packageName;
+
+  @Option(name = "--class", required = true, description = "The name of the trampoline class")
   private String className;
+
+  @Option(name = "--verbose")
   private boolean verbose = true;
-  private List<File> sources = Lists.newArrayList();
-  private File gimpleDirectory = new File("target/gimple");
-  private File workDirectory;
-  private File outputDirectory = new File("target/classes");
-  private List<File> includeDirs = Lists.newArrayList();
-  private ClassLoader linkClassLoader = getClass().getClassLoader();
-  private File loggingDir;
-  private File homeDirectory;
+
+  @Option(name = "--transform-global-variables", description = "Transform global variables to session-scoped variables.")
   private boolean transformGlobalVariables;
+
+  @Option(name = "--output-dir", required = true, description = "The directory into which class files will be written")
+  private File outputDirectory = new File("build/classes");
+
+  @Option(name = "--input-dir", required = true, description = "The directory containing the .gimple files to compile")
+  private File gimpleDirectory = new File("build/gimple");
+
+  @Option(name = "--logging-dir", description = "The directory to which compilation logs should be written")
+  private File loggingDir;
+
+  private ClassLoader linkClassLoader = getClass().getClassLoader();
 
   public void setPackageName(String packageName) {
     this.packageName = packageName;
@@ -68,194 +83,88 @@ public class GnurSourcesCompiler {
     this.verbose = verbose;
   }
 
-  public void setWorkDirectory(File workDir) {
-    this.workDirectory = workDir;
-  }
-
-  /**
-   * Sets the directory that contains a modified R home directory, with C headers and other
-   * resources expected by packages.
-   *
-   * @param homeDir
-   */
-  public void setHomeDirectory(File homeDir) {
-    this.homeDirectory = homeDir;
-  }
-
   public void setLoggingDir(File loggingDir) {
     this.loggingDir = loggingDir;
-  }
-
-  public void addSources(File src) {
-    if(src.exists() && src.listFiles() != null) {
-      for(File file : src.listFiles()) {
-        if(isSourceFile(file.getName())) {
-          sources.add(file);
-        }
-      }
-    }
   }
 
   public void setTransformGlobalVariables(boolean transformGlobalVariables) {
     this.transformGlobalVariables = transformGlobalVariables;
   }
 
-  private boolean isSourceFile(String name) {
-    return name.endsWith(".c") || name.endsWith(".cpp") ||
-            name.toLowerCase().endsWith(".f") || name.toLowerCase().endsWith(".f90") ||
-            name.toLowerCase().endsWith(".f95") || name.toLowerCase().endsWith(".f03") ||
-            name.toLowerCase().endsWith(".for");
-  }
-
-  public void setLinkClassLoader(ClassLoader linkClassLoader) {
-    this.linkClassLoader = linkClassLoader;
-  }
-
   public void compile() throws Exception {
 
-    if(!sources.isEmpty()) {
+    List<GimpleCompilationUnit> units = new ArrayList<>();
 
-      workDirectory.mkdirs();
-      gimpleDirectory.mkdirs();
+    collectGimple(gimpleDirectory, units);
 
-      if(checkUpToDate()) {
-        return;
-      }
+    GimpleCompiler compiler = new GimpleCompiler();
+    compiler.setOutputDirectory(outputDirectory);
+    compiler.setPackageName(packageName);
+    compiler.setClassName(className);
+    compiler.setVerbose(verbose);
 
-      List<GimpleCompilationUnit> units = Lists.newArrayList();
+    compiler.setLinkClassLoader(linkClassLoader);
+    compiler.addMathLibrary();
 
-      Gcc gcc = new Gcc(getWorkDirectory());
-      gcc.extractPlugin();
-      gcc.addIncludeDirectory(new File(homeDirectory, "include"));
-      for (File includeDir : includeDirs) {
-        gcc.addIncludeDirectory(includeDir);
-      }
-      gcc.setGimpleOutputDir(gimpleDirectory);
+    setupCompiler(compiler);
 
-      for(File sourceFile : sources) {
-        GimpleCompilationUnit unit;
-        try {
-          unit = gcc.compileToGimple(sourceFile, "-std=gnu99");
-        } catch(Exception e) {
-          throw new GccException("Error compiling " + sourceFile + " to gimple: " + e.getMessage(), e);
-        }
-
-        try {
-          units.add(unit);
-        } catch(Exception e) {
-          throw new RuntimeException("Exception parsing unit output of " + sourceFile, e);
-        }
-      }
-      
-      File jimpleOutput = new File("target/jimple");
-      jimpleOutput.mkdirs();
-
-      GimpleCompiler compiler = new GimpleCompiler();
-      compiler.setOutputDirectory(outputDirectory);
-      compiler.setPackageName(packageName);
-      compiler.setClassName(className);
-      compiler.setVerbose(verbose);
-
-      compiler.setLinkClassLoader(linkClassLoader);
-      compiler.addMathLibrary();
-
-      setupCompiler(compiler);
-
-      if(transformGlobalVariables) {
-        compiler.addPlugin(new GlobalVarPlugin(compiler.getPackageName()));
-      }
-
-      compiler.setLoggingDirectory(loggingDir);
-
-      compiler.compile(units);
+    if (transformGlobalVariables) {
+      compiler.addPlugin(new GlobalVarPlugin(compiler.getPackageName()));
     }
+
+    compiler.setLoggingDirectory(loggingDir);
+
+    compiler.compile(units);
   }
 
-  public static void setupCompiler(GimpleCompiler compiler) throws ClassNotFoundException {
-    Class distributionsClass = Class.forName("org.renjin.stats.internals.Distributions");
-    compiler.addReferenceClass(distributionsClass);
-    compiler.addMethod("Rf_dbeta", distributionsClass, "dbeta");
-    compiler.addMethod("Rf_pbeta", distributionsClass, "pbeta");
-    compiler.addMethod("erf", Erf.class, "erf");
-    compiler.addMethod("erfc", Erf.class, "erfc");
-    compiler.addReferenceClass(Arith.class);
-    compiler.addReferenceClass(Callbacks.class);
-    compiler.addReferenceClass(Defn.class);
-    compiler.addReferenceClass(Error.class);
-    compiler.addReferenceClass(eventloop.class);
-    compiler.addReferenceClass(Fileio.class);
-    compiler.addReferenceClass(GetText.class);
-    compiler.addReferenceClass(GetX11Image.class);
-    compiler.addReferenceClass(Internal.class);
-    compiler.addReferenceClass(Parse.class);
-    compiler.addReferenceClass(Print.class);
-    compiler.addReferenceClass(PrtUtil.class);
-    compiler.addReferenceClass(QuartzDevice.class);
-    compiler.addReferenceClass(R.class);
-    compiler.addReferenceClass(R_ftp_http.class);
-    compiler.addReferenceClass(Random.class);
-    compiler.addReferenceClass(Rconnections.class);
-    compiler.addReferenceClass(Rdynload.class);
-    compiler.addReferenceClass(RenjinDebug.class);
-    compiler.addReferenceClass(Rgraphics.class);
-    compiler.addReferenceClass(Riconv.class);
-    compiler.addReferenceClass(Rinterface.class);
-    compiler.addReferenceClass(Rinternals.class);
-    compiler.addReferenceClass(Rinternals2.class);
-    compiler.addReferenceClass(rlocale.class);
-    compiler.addReferenceClass(Rmath.class);
-    compiler.addReferenceClass(RStartup.class);
-    compiler.addReferenceClass(S.class);
-    compiler.addReferenceClass(Startup.class);
-    compiler.addReferenceClass(stats_package.class);
-    compiler.addReferenceClass(stats_stubs.class);
-    compiler.addReferenceClass(Utils.class);
-
-    compiler.addReferenceClass(Rdynload.class);
-    compiler.addReferenceClass(RenjinFiles.class);
-
+  public static void setupCompiler(GimpleCompiler compiler) {
     compiler.addTransformer(new SetTypeRewriter());
     compiler.addTransformer(new MutationRewriter());
 
   }
 
-  private boolean checkUpToDate() {
-    if(sourcesLastModified() < classLastModified()) {
-      System.out.println(packageName + "." + className + "  is up to date, skipping GNU R sources compilation");
-      return true;
-    } else { 
-      return false;
-    }
-  }
+  private void collectGimple(File dir, List<GimpleCompilationUnit> gimpleFiles) throws IOException {
 
-  private long classLastModified() {
-    File classFile = new File(outputDirectory.getAbsolutePath() + File.separator +
-        packageName.replace('.', File.separatorChar) +
-        File.separator + className + ".class");
-    System.out.println("class file (" + classFile.getAbsolutePath() + ") last modified on " + new Date(classFile.lastModified()));
-    return classFile.lastModified();
-  }
+    GimpleParser parser = new GimpleParser();
 
-  private long sourcesLastModified() {
-    long lastModified = 0;
-    for(File source: sources) {
-      if(source.lastModified() > lastModified) {
-        lastModified = source.lastModified();
+    File[] files = dir.listFiles();
+    if(files != null) {
+      for (File file : files) {
+        if(file.getName().endsWith(".gimple")) {
+          try {
+            gimpleFiles.add(parser.parse(file));
+          } catch (IOException e) {
+            throw new IOException("Failed to parse gimple file " + file, e);
+          }
+        } else if(file.isDirectory()) {
+          collectGimple(file, gimpleFiles);
+        }
       }
     }
-    System.out.println("sources last modified: " + lastModified);
-
-    return lastModified;
   }
 
-  private File getWorkDirectory() {
-    if(workDirectory == null) {
-      workDirectory = Files.createTempDir();
+  public static void main(String[] args) throws Exception {
+
+    SingleCommand<GnurSourcesCompiler> command =
+        SingleCommand.singleCommand(GnurSourcesCompiler.class);
+
+    GnurSourcesCompiler compiler;
+    try {
+      compiler = command.parse(args);
+    } catch (ParseException e) {
+      System.err.println(e.getMessage());
+      System.err.println();
+      Help.help(command.getCommandMetadata());
+
+      System.exit(-1);
+      return;
     }
-    return workDirectory;
-  }
 
-  public void addIncludeDir(File includeDirectory) {
-    includeDirs.add(includeDirectory);
+    if(compiler.helpOption.showHelpIfRequested()) {
+      return;
+    }
+
+    compiler.compile();
+
   }
 }

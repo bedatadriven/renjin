@@ -29,3 +29,11 @@ dependencies {
 
     testCompile project(':packages:hamcrest')
 }
+
+compileNamespace {
+    defaultPackages = []
+}
+
+testPackage {
+    defaultPackages = []
+}

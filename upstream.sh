@@ -7,6 +7,12 @@ SRC=$ROOT/src
 # Require some merging as Renjin makes a few changes
 cp -r $SRC/include/* ./tools/gnur-installation/src/main/resources/include/
 
+
+# Packages
+PACK
+for
+
+
 # grDevices
 # ~~~
 # This is a difficult merge as we are combining C and Java Code

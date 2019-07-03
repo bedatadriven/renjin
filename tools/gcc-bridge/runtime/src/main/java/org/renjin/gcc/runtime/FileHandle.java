@@ -67,7 +67,7 @@ public interface FileHandle {
 
   void seekCurrent(long offset) throws IOException;
 
-  void seekEnd(long offset);
+  void seekEnd(long offset) throws IOException;
 
   boolean isEof();
 

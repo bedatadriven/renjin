@@ -8,3 +8,11 @@ dependencies {
     compile project(':packages:datasets')
     testCompile project(':packages:hamcrest')
 }
+
+compileNamespace {
+    defaultPackages = []
+}
+
+testPackage {
+    defaultPackages = []
+}

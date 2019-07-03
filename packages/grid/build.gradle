@@ -1,5 +1,5 @@
-apply from: '../../gradle/package.gradle'
 
+apply from: '../../gradle/package.gradle'
 
 dependencies {
     compile project(':core')
@@ -7,4 +7,12 @@ dependencies {
     compile project(':packages:graphics')
 
     testCompile project(':packages:hamcrest')
+}
+
+compileNamespace {
+    defaultPackages = []
+}
+
+testPackage {
+    defaultPackages = []
 }

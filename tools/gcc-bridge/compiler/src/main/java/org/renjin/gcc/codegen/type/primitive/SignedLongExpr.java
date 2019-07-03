@@ -60,7 +60,7 @@ public class SignedLongExpr extends AbstractIntExpr {
   }
 
   @Override
-  public SignedLongExpr divide(GExpr operand) {
+  public SignedLongExpr divide(MethodGenerator mv, GExpr operand) {
     return lift(Expressions.divide(jexpr(), jexpr(operand)));
   }
 

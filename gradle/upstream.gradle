@@ -1,0 +1,65 @@
+
+def root = rootProject.file("../R-3.5.3")
+def src = "$root/src"
+
+
+
+// Headers
+// Require some merging as Renjin makes a few changes
+//cp -r $SRC/include/* ./tools/gnur-installation/src/main/resources/include/
+
+
+task mergeHeaders {
+    doFirst {
+        copy {
+            from "$src/include"
+            into project('tools:gnur-installation').file("src/main/resources/include")
+        }
+    }
+}
+
+task mergePackages {
+    doFirst {
+        def packages = [
+            "compiler", "datasets", "graphics", "grDevices",
+            "grid", "methods", "parallel", "splines",
+            "stats", "stats4", "tools", "utils"
+            ];
+
+        packages.forEach { pkg ->
+
+            copy {
+                into rootProject.file("packages/$pkg")
+                from("$src/library/${pkg}") {
+//                    include 'src/**.*'
+//                    include 'R/**.*'
+                    include 'DESCRIPTION'
+                    include 'NAMESPACE'
+//                    include 'data'
+//                    include 'tests'
+                }
+            }
+
+        }
+    }
+}
+//# Packages
+//PACK
+//for
+//
+//
+//# grDevices
+//# ~~~
+//# This is a difficult merge as we are combining C and Java Code
+//# As well as some sources from src/main that we migrate to the grDevices module
+//
+//GRDC=packages/grDevices/src/main/c
+//cp $SRC/main/g_*                        $GRDC
+//cp $SRC/main/devices.c                  $GRDC/main-devices.c
+//cp $SRC/main/graphics.c                 $GRDC/main-graphics.c
+//cp $SRC/main/plot.c                     $GRDC/main-plot.c
+//cp $SRC/main/plotmath.c                 $GRDC/main-plotmath.c
+//cp $SRC/main/xspline.c                  $GRDC/main-xspline.h
+//cp $SRC/main/grDevices/src/*.c          $GRDC/
+//cp $SRC/main/grDevices/src/grDevices.h  $GRDC/
+//

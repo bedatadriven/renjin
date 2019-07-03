@@ -1,11 +1,15 @@
 ## Namespace for package 'parallel'
+useDynLib("parallel", .registration = TRUE, .fixes = "C_")
 
 export(nextRNGStream, nextRNGSubStream, clusterSetRNGStream)
 
-export(mccollect, mcparallel, mc.reset.stream, mcaffinity)
+if(tools:::.OStype() == "unix") {
+    export(mccollect, mcparallel, mc.reset.stream, mcaffinity)
+}
 
 export(clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
        clusterExport, clusterMap, clusterSplit, detectCores,
+       getDefaultCluster,
        makeCluster, makeForkCluster, makePSOCKcluster, mcMap,
        mclapply, mcmapply, parApply, parCapply, parLapply,
        parLapplyLB, parRapply, parSapply, parSapplyLB, pvec,

@@ -213,11 +213,7 @@ public class NativeSourceBuilder {
     compiler.setClassName(findLibraryName());
     compiler.setLoggingDirectory(buildContext.getCompileLogDir());
 
-    try {
-      GnurSourcesCompiler.setupCompiler(compiler);
-    } catch (ClassNotFoundException e) {
-      throw new BuildException("Failed to setup Gimple Compiler", e);
-    }
+    GnurSourcesCompiler.setupCompiler(compiler);
 
     if(transformGlobalVariables) {
       compiler.addPlugin(new GlobalVarPlugin(compiler.getPackageName()));

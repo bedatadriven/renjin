@@ -107,6 +107,10 @@ public class RenjinFiles {
     throw new UnsupportedOperationException("pclose");
   }
 
+  public static Ptr fopen64(Ptr filename, Ptr mode) {
+    return fopen(filename, mode);
+  }
+
   public static Ptr fopen(Ptr filename, Ptr mode) {
     String modeString = nullTerminatedString(mode);
 
@@ -157,8 +161,9 @@ public class RenjinFiles {
     return fileObject;
   }
 
-  public static void unlink(Ptr fname) {
-    throw new UnimplementedGnuApiMethod("unlink");
+  public static void unlink(Ptr fname) throws FileSystemException {
+    FileObject fileObject = Native.currentContext().resolveFile(nullTerminatedString(fname));
+    fileObject.delete();
   }
 
   public static Ptr realpath(Ptr path, Ptr resolvedPath) {
@@ -177,7 +182,6 @@ public class RenjinFiles {
     throw new UnimplementedGnuApiMethod("getcwd");
   }
 
-
   private static FileHandle fopen(FileObject fileObject, String mode) throws IOException {
     switch (mode) {
       case "r":
@@ -187,6 +191,9 @@ public class RenjinFiles {
       case "w":
       case "wb":
         return new OutputStreamHandle(fileObject.getContent().getOutputStream());
+
+      case "w+b":
+        return new OutputStreamHandle(fileObject.getContent().getOutputStream(true));
 
       default:
         throw new UnsupportedOperationException("mode: " + mode);

@@ -93,7 +93,8 @@ task buildSymbols(type: JavaExec) {
     args 'org.renjin.gnur.api.stats_package'
     args 'org.renjin.gnur.api.stats_stubs'
     args 'org.renjin.gnur.api.Utils'
-
+    
+    args 'org.apache.commons.math.special.Erf'
     args 'org.renjin.stats.internals.Distributions'
 
     args 'org.renjin.gnur.api.Stubs'

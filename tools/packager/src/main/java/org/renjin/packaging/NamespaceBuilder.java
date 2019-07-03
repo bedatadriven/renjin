@@ -41,11 +41,18 @@ import org.renjin.sexp.*;
 
 import java.io.*;
 import java.time.ZonedDateTime;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Evaluates a package's sources
  */
 public class NamespaceBuilder {
+
+  static {
+    // Silence warnings about not being able to load native libs
+    Logger.getLogger("com.github.fommil.netlib").setLevel(Level.SEVERE);
+  }
 
   private PackageSource source;
   private BuildContext buildContext;
@@ -146,7 +153,7 @@ public class NamespaceBuilder {
 
   private void evaluateSources(Context context, Environment namespaceEnvironment)  {
     for(File sourceFile : source.getSourceFiles()) {
-      System.err.println("Evaluating '" + sourceFile + "'");
+      System.out.println("Evaluating '" + sourceFile + "'");
       try {
         FileReader reader = new FileReader(sourceFile);
         SEXP expr = RParser.parseAllSource(reader);
@@ -155,8 +162,8 @@ public class NamespaceBuilder {
         context.evaluate(expr, namespaceEnvironment);
 
       } catch (EvalException e) {
-        System.out.println("ERROR: " + e.getMessage());
-        e.printRStackTrace(System.out);
+        System.err.println("ERROR: " + e.getMessage());
+        e.printRStackTrace(System.err);
         throw new RuntimeException("Error evaluating package source: " + sourceFile.getName(), e);
       } catch (Exception e) {
         throw new RuntimeException("Exception evaluating " + sourceFile.getName(), e);
@@ -174,8 +181,8 @@ public class NamespaceBuilder {
         context.evaluate(FunctionCall.newCall(onLoad, nameArgument, nameArgument), namespaceEnvironment);
       } catch (Exception e) {
         if(e instanceof EvalException) {
-          System.out.println("ERROR: " + e.getMessage());
-          ((EvalException) e).printRStackTrace(System.out);
+          System.err.println("ERROR: " + e.getMessage());
+          ((EvalException) e).printRStackTrace(System.err);
         }
         throw new RuntimeException("Exception evaluating .onLoad() method", e);
       }

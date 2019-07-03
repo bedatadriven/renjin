@@ -1,119 +1,259 @@
 
-sourceSets {
-    main {
-        output.dir("$buildDir/namespace", builtBy: 'compileNamespace')
-    }
-}
-
 configurations {
+    gimple
     packager
 }
 
 dependencies {
+    gimple project(':tools:gnur-compiler')
     packager project(':tools:packager')
-    compile project(':core')
-
-    testCompile project(':packages:hamcrest')
 }
 
 
-task compileNamespace(type: JavaExec, dependsOn: [ ':tools:gcc-bridge:compiler:compilePlugin', ':tools:packager:build', 'processResources' ]) {
+def homeDir = rootProject.file("tools/gnur-installation/src/main/resources")
 
-    dependsOn 'compileJava'
-    dependsOn 'processResources'
+sourceSets {
+    main {
+        output.dir("$buildDir/native", builtBy: 'compileGimple')
+        output.dir("$buildDir/resources", builtBy: 'copyPackageResources')
+        output.dir("$buildDir/namespace", builtBy: 'compileNamespace')
+    }
+}
 
-    inputs.file 'NAMESPACE'
-    if(project.file('src/main/c').exists()) {
-        inputs.dir 'src/main/c'
-    } else {
-        inputs.dir 'src'
-    }
-    if(project.file('src/main/R').exists()) {
-        inputs.dir 'src/main/R'
-    }
-    if(project.file('src/main/data').exists()) {
-        inputs.dir 'src/main/data'
-    }
-    inputs.dir gnuHomeDir
-    outputs.dir "$buildDir/namespace"
+def File nativeSourceDir = project.file('src')
 
-    classpath configurations.packager
-    classpath tasks.getByName('compileJava').destinationDir
-    classpath tasks.getByName('processResources').destinationDir
-    classpath sourceSets.main.compileClasspath
-    classpath "$buildDir/namespace"
+task make(dependsOn: [':tools:gcc-bridge:compiler:compilePlugin'] ) {
+
+    onlyIf {
+        nativeSourceDir.exists()
+    }
+
+    def File outputDir = project.file("$buildDir/gimple")
+
+    inputs.dir homeDir
+    inputs.dir {
+        nativeSourceDir
+    }
+    outputs.dir {
+        outputDir
+    }
 
     doFirst {
 
-
-        environment "PACKAGE_GROUP_ID", project.group
-        environment "R_HOME", gnuHomeDir
-        environment "GCC_BRIDGE_PLUGIN", gccBridgePlugin
-        environment "SOOT_CLASSPATH", (sourceSets.main.output + sourceSets.main.compileClasspath)
-                .filter({it.exists()})
-                .getAsPath()
-
-//        environment "GCC_BRIDGE_IGNORE_ERRORS", "TRUE"
-
-
-        // For now, only transform global variables of grDevices and graphics packages
-        if(project.name == "grDevices" || project.name == "graphics") {
-            environment "TRANSFORM_GLOBAL_VARIABLES", "TRUE"
+        // First remove all the existing .o, .so, and .gimple files
+        delete fileTree("src").matching {
+            include "**/*.o"
+            include "**/*.so"
+            include "**/*.gimple"
         }
 
-        if(project.hasProperty("compileDebug")) {
-            jvmArgs "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8000"
+        // Now we can re-run make
+
+        def makeVars = new File("$nativeSourceDir/Makevars.renjin")
+        if (!makeVars.exists()) {
+            makeVars = new File("$nativeSourceDir/Makevars")
         }
 
-        main = 'org.renjin.packaging.CorePackageBuilder'
+        def makeconfFile = new File("$homeDir/etc/Makeconf")
+        def shlibMk = new File("$homeDir/share/make/shlib.mk")
+
+        project.exec {
+            executable = 'make'
+
+            logging.captureStandardOutput LogLevel.DEBUG
+            logging.captureStandardError LogLevel.INFO
+
+            if (makeVars.exists()) {
+                args '-f', makeVars.absolutePath
+            }
+
+            args '-f', makeconfFile.absolutePath
+            args '-f', shlibMk.absolutePath
+
+            args "SHLIB='${project.name}.so'"
+
+            if (!(makeVars.exists() && makeVars.readLines().grep(~/^OBJECTS\s*=.*/))) {
+                def objectFiles = [];
+                nativeSourceDir.eachFileMatch(~/.*\.(c|f|f77|f90|f95|f03|for|cpp|cxx|cc)$/) { file ->
+                    objectFiles.add(file.name.replaceFirst(~/\.[^.]+$/, '.o'))
+                }
+                args "OBJECTS=${objectFiles.join(' ')}"
+            }
+
+            args "BRIDGE_PLUGIN=${gccBridgePlugin}"
+
+            // TODO CXX11
+            // TODO include dependency headers
+
+            environment 'R_VERSION', '3.5.3'
+            environment 'R_HOME', homeDir.absolutePath
+            environment 'R_INCLUDE_DIR', "${homeDir.absolutePath}/include"
+            environment 'R_SHARE_DIR', "${homeDir.absolutePath}/share"
+            environment 'R_PACKAGE_NAME', project.name
+            environment 'R_INSTALL_PACKAGE', project.name
+            environment 'MAKE', 'make'
+            environment 'R_UNZIPCMD', '/usr/bin/unzip'
+            environment 'R_GZIPCMD', '/usr/bin/gzip'
+
+            workingDir nativeSourceDir
+        }
+
+        // Reset the output directory
+        delete outputDir
+        mkdir outputDir
+
+        // Now copy ONLY the gimple into the output directory
+        copy {
+            into outputDir
+            from('src') {
+                include '**/*.gimple'
+            }
+        }
+
+        // Cleanup the leftovers
+        delete fileTree("src").matching {
+            include "**/*.o"
+            include "**/*.so"
+            include "**/*.gimple"
+        }
     }
 }
 
-task testPackage(type: JavaExec) {
 
-    def testDir = project.file('src/test/R')
-    if(!testDir.exists()) {
-        testDir = project.file('tests')
+task compileGimple(type: JavaExec) {
+
+    onlyIf {
+        nativeSourceDir.exists()
+    }
+    dependsOn 'make'
+    dependsOn 'compileJava'
+    dependsOn 'processResources'
+
+    main = 'org.renjin.gnur.GnurSourcesCompiler'
+    classpath configurations.gimple
+    classpath configurations.compile
+    classpath configurations.compileOnly
+    classpath tasks.getByName('compileJava').destinationDir
+    classpath tasks.getByName('processResources').destinationDir
+
+    args '--package', "${project.group}.${project.name}"
+    args '--class', project.name
+    args '--input-dir', "$buildDir/gimple"
+    args '--output-dir', "$buildDir/native"
+
+    inputs.dir "$buildDir/gimple"
+    outputs.dir "$buildDir/native"
+
+    if(project.name == 'grDevices' || project.name == 'graphics') {
+        args '--transform-global-variables'
     }
 
-    inputs.dir testDir
+    doFirst {
+        delete "$buildDir/native"
+        mkdir "$buildDir/native"
+    }
+}
+
+task copyPackageResources(type: Copy) {
+    from (projectDir) {
+        include 'DESCRIPTION'
+        include 'NAMESPACE'
+    }
+    from 'inst'
+    into("$buildDir/resources/${project.group.replace('.', '/')}/${project.name}")
+
+}
+
+task compileNamespace(type: JavaExec) {
+
+    ext {
+        defaultPackages = [ 'methods', 'datasets', 'utils', 'grDevices', 'graphics', 'stats' ]
+    }
+
+    dependsOn 'compileGimple'
+    dependsOn 'copyPackageResources'
+    dependsOn 'compileJava'
+    dependsOn 'processResources'
+
+    main = 'org.renjin.packaging.GnurPackageBuilder'
+
+    if(nativeSourceDir.exists()) {
+        classpath "$buildDir/native"
+        inputs.dir "$buildDir/native"
+    }
+
+    classpath "$buildDir/resources"
+    classpath tasks.getByName('compileJava').destinationDir
+    classpath tasks.getByName('processResources').destinationDir
+    classpath configurations.compile
+    classpath configurations.compileOnly
+    classpath configurations.packager
+
+
+    inputs.dir "$buildDir/resources"
+    inputs.file 'DESCRIPTION'
+    inputs.file 'NAMESPACE'
+    outputs.dir "$buildDir/namespace"
+
+    args '--groupId', project.group
+    args '--name', project.name
+    args '--home', homeDir.absolutePath
+
+    logging.captureStandardOutput LogLevel.INFO
+    logging.captureStandardError LogLevel.WARN
+
+    doFirst {
+
+        println "dofirst"
+
+        args "--default-packages=${defaultPackages.join(',')}"
+
+        classpath "$buildDir/namespace"
+
+        delete "$buildDir/namespace"
+        mkdir "$buildDir/namespace"
+    }
+}
+
+
+task testPackage(type: JavaExec) {
+
+
+    def testDir = project.file('tests')
+
+    onlyIf {
+        testDir.exists()
+    }
+
+    inputs.dir {
+        testDir
+    }
+
+    ext {
+        defaultPackages = [ 'methods', 'datasets', 'utils', 'grDevices', 'graphics', 'stats' ]
+    }
 
     outputs.upToDateWhen { true }
 
-    onlyIf { testDir.exists() }
+    main = 'org.renjin.packaging.test.TestMain'
 
     classpath configurations.packager
     classpath configurations.testRuntime
     classpath sourceSets.main.output
+    args "--name=${project.name}"
+    args "--report-dir=$buildDir/renjin-test-reports"
 
-    environment "TEST_REPORT_DIR", "$buildDir/renjin-test-reports"
-    environment "DEFAULT_PACKAGES", "methods,datasets,utils,grDevices,graphics,stats"
-    environment "IGNORE_MISSING_DEFAULT_PACKAGES", "TRUE"
-
-    args testDir
 
     if (project.hasProperty('debugTests')) {
         jvmArgs '-Xdebug', '-Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=y'
     }
 
-    main = 'org.renjin.packaging.test.Main'
-
     doFirst {
+        args "--default-packages=${defaultPackages.join(',')}"
+        args testDir
         workingDir testDir
     }
 }
 
-
 test.dependsOn 'testPackage'
 
-task cleanGimple {
-    doFirst {
-        delete fileTree('src/main/c') {
-            include '**/*.gimple'
-            include '**/*.so'
-            include '**/*.o'
-        }
-    }
-}
-
-clean.dependsOn 'cleanGimple'

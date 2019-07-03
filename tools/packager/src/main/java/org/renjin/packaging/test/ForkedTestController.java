@@ -58,7 +58,7 @@ public class ForkedTestController {
   }
 
   public void setNamespaceUnderTest(String namespace) {
-    this.environmentVariables.put(TestExecutor.NAMESPACE_UNDER_TEST, namespace);
+    this.environmentVariables.put(ForkMain.NAMESPACE_UNDER_TEST, namespace);
   }
 
   /**
@@ -74,12 +74,12 @@ public class ForkedTestController {
 
   public void setTestReportDirectory(File testReportDirectory) {
     this.testReportsDirectory = testReportDirectory;
-    this.environmentVariables.put(TestExecutor.TEST_REPORT_DIR, testReportDirectory.getAbsolutePath());
+    this.environmentVariables.put(ForkMain.TEST_REPORT_DIR, testReportDirectory.getAbsolutePath());
   }
 
   public void setDefaultPackages(List<String> packages) {
     if(packages != null) {
-      this.environmentVariables.put(TestExecutor.DEFAULT_PACKAGES, Joiner.on(",").join(packages));
+      this.environmentVariables.put(ForkMain.DEFAULT_PACKAGES, Joiner.on(",").join(packages));
     }
   }
 

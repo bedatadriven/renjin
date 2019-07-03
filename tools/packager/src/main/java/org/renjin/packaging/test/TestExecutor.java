@@ -35,8 +35,6 @@ import org.renjin.repl.JlineRepl;
 import org.renjin.sexp.*;
 
 import java.io.*;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -47,9 +45,7 @@ public class TestExecutor {
 
   private static final int MAX_DEFAULT_BYTES = 50 * 1024;
 
-  public static final String NAMESPACE_UNDER_TEST = "NAMESPACE_UNDER_TEST";
-  public static final String TEST_REPORT_DIR = "TEST_REPORT_DIR";
-  public static final String DEFAULT_PACKAGES = "DEFAULT_PACKAGES";
+
   public static final String IGNORE_MISSING_DEFAULT_PACKAGES = "IGNORE_MISSING_DEFAULT_PACKAGES";
   public static final String OUTPUT_LIMIT = "OUTPUT_LIMIT";
 
@@ -61,35 +57,22 @@ public class TestExecutor {
 
   private TestListener listener;
 
-  public TestExecutor(TestListener listener) {
+  public TestExecutor(String namespaceUnderTest, List<String> defaultPackageList,
+                      TestListener listener, File testReportDirectory) {
     this.listener = listener;
-    namespaceUnderTest = System.getenv(NAMESPACE_UNDER_TEST);
-    if(Strings.isNullOrEmpty(namespaceUnderTest)) {
-      namespaceUnderTest = CorePackageBuilder.packageNameFromWorkingDirectory();
+    this.namespaceUnderTest = namespaceUnderTest;
+    if(Strings.isNullOrEmpty(this.namespaceUnderTest)) {
+      this.namespaceUnderTest = CorePackageBuilder.packageNameFromWorkingDirectory();
     }
-    testReportDirectory = new File(System.getenv(TEST_REPORT_DIR));
-    if(Strings.isNullOrEmpty(System.getenv(DEFAULT_PACKAGES))) {
-      defaultPackages = Collections.emptyList();
-    } else {
-      defaultPackages = Arrays.asList(System.getenv(DEFAULT_PACKAGES).split(","));
-      for (String defaultPackage : defaultPackages) {
-        listener.debug("Default package: " + defaultPackage);
-      }
-    }
+    this.testReportDirectory = testReportDirectory;
+    this.defaultPackages = defaultPackageList;
 
-    ignoreMissingDefaultPackages = "TRUE".equals(System.getenv(IGNORE_MISSING_DEFAULT_PACKAGES));
-    
+
     if(!Strings.isNullOrEmpty(System.getenv(OUTPUT_LIMIT))) {
       maxOutputBytes = Integer.parseInt(System.getenv(OUTPUT_LIMIT));
     } else {
       maxOutputBytes = MAX_DEFAULT_BYTES;
     }
-  }
-
-  public TestExecutor(String namespaceUnderTest, List<String> defaultPackages, File testReportDirectory) {
-    this.namespaceUnderTest = namespaceUnderTest;
-    this.testReportDirectory = testReportDirectory;
-    this.defaultPackages = defaultPackages;
   }
 
 
@@ -185,7 +168,7 @@ public class TestExecutor {
       session.getOptions().set("device", graphicsDevice(session, sourceFile));
 
       // Examples assume that the package is already on the search path
-      if (sourceFile.getName().endsWith(".Rd")) {
+      if (!Strings.isNullOrEmpty(namespaceUnderTest) && sourceFile.getName().endsWith(".Rd")) {
         loadLibrary(session, namespaceUnderTest, testOutput);
       }
 

@@ -1,0 +1,4 @@
+Package: hamcrest
+Version: 3.5.3
+Priority: base
+Title: Hamcrest assertion library

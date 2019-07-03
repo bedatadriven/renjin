@@ -65,6 +65,8 @@ apply from: "./gradle/libraries.gradle"
 apply from: "./gradle/java.gradle"
 //apply from: "./gradle/sonar.gradle"
 
+apply from: "./gradle/upstream.gradle"
+
 // Defines the version based on our major version and the environment
 
 //ext.majorVersion = "4.0.1"

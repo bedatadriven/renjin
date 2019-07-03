@@ -501,14 +501,6 @@ public class Stdlib {
     return snprintf(string, Integer.MAX_VALUE, format, arguments);
   }
 
-  /**
-   * Chnaged
-   * @param string
-   * @param limit
-   * @param format
-   * @param arguments
-   * @return
-   */
   @Deprecated
   public static int snprintf(BytePtr string, int limit, BytePtr format, Object... arguments) {
     return sprintf(string, limit, format, f -> new FormatArrayInput(arguments));
@@ -567,9 +559,25 @@ public class Stdlib {
     }
   }
 
+  public static int __isoc99_sscanf(Ptr str, Ptr format, Object... arguments) {
+    return sscanf(str, format, arguments);
+  }
+
   public static int sscanf(Ptr str, Ptr format, Object... arguments) {
     Formatter formatter = new Formatter(nullTerminatedString(format), Formatter.Mode.SCAN);
     return formatter.scan(new ByteCharIterator(str), arguments);
+  }
+
+  public static int __isoc99_fscanf(Ptr fileHandle, Ptr format, Object... args) {
+    return fscanf(fileHandle, format, args);
+  }
+
+  public static int fscanf(Ptr fileHandle, Ptr format, Object... args) {
+    FileHandle h = (FileHandle) fileHandle.getArray();
+    Formatter formatter = new Formatter(nullTerminatedString(format), Formatter.Mode.SCAN);
+    try(FileHandleCharIterator it = new FileHandleCharIterator(h)) {
+      return formatter.scan(it, args);
+    }
   }
 
   public static int tolower(int c) {
@@ -805,6 +813,15 @@ public class Stdlib {
         try {
           return new RecordUnitPtr<>(new FileHandleImpl(new RandomAccessFile(filenameString, "rw")));
         } catch (FileNotFoundException e) {
+          return BytePtr.NULL;
+        }
+      case "w+b":
+        try {
+          RandomAccessFile raf = new RandomAccessFile(filenameString, "rw");
+          raf.seek(raf.length());
+          return new RecordUnitPtr<>(new FileHandleImpl(raf));
+
+        } catch (IOException e) {
           return BytePtr.NULL;
         }
       default:
@@ -1220,4 +1237,11 @@ public class Stdlib {
     throw new UnsupportedOperationException("strerror");
   }
 
+  public static Ptr dngettext (Ptr domainname, Ptr __msgid1, Ptr __msgid2, long n) {
+    if(n > 1) {
+      return __msgid2;
+    } else {
+      return __msgid1;
+    }
+  }
 }

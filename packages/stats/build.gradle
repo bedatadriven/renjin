@@ -31,3 +31,11 @@ dependencies {
 
     testCompile project(':packages:hamcrest')
 }
+
+compileNamespace {
+    defaultPackages = [ 'grDevices', 'graphics', 'utils' ]
+}
+
+testPackage {
+    defaultPackages = [ 'stats', 'grDevices', 'graphics', 'utils' ]
+}

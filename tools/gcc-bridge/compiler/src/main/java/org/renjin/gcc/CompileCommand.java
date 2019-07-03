@@ -19,9 +19,9 @@
 package org.renjin.gcc;
 
 
-import io.airlift.command.Arguments;
-import io.airlift.command.Command;
-import io.airlift.command.Option;
+import io.airlift.airline.Arguments;
+import io.airlift.airline.Command;
+import io.airlift.airline.Option;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.repackaged.guava.collect.Lists;
 

@@ -5,3 +5,11 @@ apply from: '../../gradle/package.gradle'
 dependencies {
     compile project(':core')
 }
+
+compileNamespace {
+    defaultPackages = []
+}
+
+testPackage {
+    defaultPackages = []
+}

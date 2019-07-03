@@ -108,7 +108,6 @@ public class GimpleCompiler  {
     addReferenceClass(Mathlib.class);
     addReferenceClass(Std.class);
     addReferenceClass(PosixThreads.class);
-    addMethod("*__isoc99_sscanf", Stdlib.class, "sscanf");
   }
 
 

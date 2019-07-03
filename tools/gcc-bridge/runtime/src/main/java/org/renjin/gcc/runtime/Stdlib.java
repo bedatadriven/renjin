@@ -21,7 +21,6 @@ package org.renjin.gcc.runtime;
 import org.renjin.gcc.annotations.Struct;
 import org.renjin.gcc.format.*;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.invoke.MethodHandle;
@@ -800,30 +799,27 @@ public class Stdlib {
     String filenameString = nullTerminatedString(filename);
     String modeString = nullTerminatedString(mode);
 
+    try {
+      return new RecordUnitPtr<>(openFile(filenameString, modeString));
+    } catch (IOException e) {
+      return BytePtr.NULL;
+    }
+  }
+
+  public static FileHandleImpl openFile(String filenameString, String modeString) throws IOException {
     switch (modeString) {
       case "r":
       case "rb":
-        try {
-          return new RecordUnitPtr<>(new FileHandleImpl(new RandomAccessFile(filenameString, "r")));
-        } catch (FileNotFoundException e) {
-          return BytePtr.NULL;
-        }
+        return new FileHandleImpl(new RandomAccessFile(filenameString, "r"));
       case "w":
       case "wb":
-        try {
-          return new RecordUnitPtr<>(new FileHandleImpl(new RandomAccessFile(filenameString, "rw")));
-        } catch (FileNotFoundException e) {
-          return BytePtr.NULL;
-        }
-      case "w+b":
-        try {
-          RandomAccessFile raf = new RandomAccessFile(filenameString, "rw");
-          raf.seek(raf.length());
-          return new RecordUnitPtr<>(new FileHandleImpl(raf));
+        return new FileHandleImpl(new RandomAccessFile(filenameString, "rw"));
 
-        } catch (IOException e) {
-          return BytePtr.NULL;
-        }
+      case "w+b":
+        RandomAccessFile raf = new RandomAccessFile(filenameString, "rw");
+        raf.seek(raf.length());
+        return new FileHandleImpl(raf);
+
       default:
         throw new UnsupportedOperationException("Not implemented. Mode = " + modeString);
     }
@@ -916,6 +912,9 @@ public class Stdlib {
     return bytesRead / size;
   }
 
+  /**
+   * sets the file position to the beginning of the file of the given stream.
+   */
   public static void rewind(Ptr stream) throws IOException {
     FileHandle handle = (FileHandle) stream.getArray();
     handle.rewind();

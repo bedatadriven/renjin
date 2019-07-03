@@ -7,6 +7,7 @@ dependencies {
     compile project(':packages:graphics')
 
     testCompile project(':packages:hamcrest')
+    testCompile project(':packages:utils')
 }
 
 compileNamespace {
@@ -14,5 +15,5 @@ compileNamespace {
 }
 
 testPackage {
-    defaultPackages = []
+    defaultPackages = ['grDevices', 'graphics', 'utils']
 }

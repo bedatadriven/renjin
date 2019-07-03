@@ -3,12 +3,12 @@ package org.renjin.packaging;
 class SimpleLogger implements BuildLogger {
   @Override
   public void info(String message) {
-    System.err.println("[INFO] " + message);
+    System.out.println("[INFO] " + message);
   }
 
   @Override
   public void debug(String message) {
-    System.err.println("[DEBUG] " + message);
+    System.out.println("[DEBUG] " + message);
   }
 
   @Override

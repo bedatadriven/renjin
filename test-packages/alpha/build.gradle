@@ -9,3 +9,17 @@ dependencies {
     testCompile project(':script-engine')
     testCompile project(':packages:hamcrest')
 }
+
+sourceSets {
+    main.java.srcDirs = ['java']
+    main.resources.srcDirs = ['javaResources']
+    test.java.srcDirs = ['javaTest']
+}
+
+compileNamespace {
+    defaultPackages = []
+}
+
+testPackage {
+    defaultPackages = []
+}

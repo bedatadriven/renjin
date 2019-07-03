@@ -14,5 +14,5 @@ compileNamespace {
 }
 
 testPackage {
-    defaultPackages = []
+    defaultPackages = [ 'methods' ]
 }

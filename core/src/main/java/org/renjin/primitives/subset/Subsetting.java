@@ -262,6 +262,9 @@ public class Subsetting {
                                @ArgumentList(allowMissing = true) ListVector argumentList) {
 
     SEXP replacementExp = argumentList.getElementAsSEXP(argumentList.length() - 1);
+    if(replacementExp instanceof PairList.Node) {
+      replacementExp = ((PairList.Node) replacementExp).toVector();
+    }
     if(!(replacementExp instanceof Vector)) {
       throw new EvalException("incompatible types (from %s to %s) in subassignment type fix",
               replacementExp.getTypeName(), source.getTypeName());

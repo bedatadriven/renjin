@@ -38,6 +38,7 @@ ext {
 
 allprojects {
     group = 'org.renjin'
+    version = '3.5'
 }
 
 subprojects {
@@ -46,33 +47,29 @@ subprojects {
         exclude group: 'org.slf4j', module: 'slf4j-simple'
     }
 }
-//apply plugin: 'org.owasp.dependencycheck'
-//dependencyCheck {
-//  suppressionFile = rootProject.file("gradle/owasp-false-positives.xml")
-//  skipConfigurations = ['gwtSdk', 'devServer', 'closureCompiler']
-// failBuildOnCVSS = 1
-//}
 
+
+ext.majorVersion = "3.5.0"
+if(System.getenv("BUILD_NUMBER")) {
+    ext.buildNumber = System.getenv("BUILD_NUMBER")
+} else {
+    ext.buildNumber = "dev"
+}
+
+allprojects {
+  project.version = "${majorVersion}.${buildNumber}"
+}
 
 // Define common configuration properties and
 // apply cross-project processes.
 
-//apply from: "./gradle/buildNumber.gradle"
 apply from: "./gradle/libraries.gradle"
-//apply from: "./gradle/license.gradle"
-//apply from: './gradle/database.gradle'
-//apply from: "./gradle/environment.gradle"
 apply from: "./gradle/java.gradle"
-//apply from: "./gradle/sonar.gradle"
-
+apply from: "./gradle/maven.gradle"
 apply from: "./gradle/upstream.gradle"
 
 // Defines the version based on our major version and the environment
 
-//ext.majorVersion = "4.0.1"
-//allprojects {
-//  project.version = "${majorVersion}.${buildNumber}"
-//}
 
 subprojects {
     

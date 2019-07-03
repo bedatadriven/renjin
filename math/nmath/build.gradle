@@ -10,8 +10,7 @@ compileGimple {
     packageName = 'org.renjin.nmath'
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
+sourcesJar {
     from('src/main/c') {
         into 'org/renjin/nmath'
     }

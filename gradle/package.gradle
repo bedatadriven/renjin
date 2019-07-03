@@ -259,3 +259,11 @@ task testPackage(type: JavaExec) {
 
 test.dependsOn 'testPackage'
 
+sourcesJar {
+    from('src') {
+        into "${project.group}/${project.name}".replace('.', '/')
+    }
+    from('R') {
+        into "${project.group}/${project.name}".replace('.', '/')
+    }
+}

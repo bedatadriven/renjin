@@ -30,8 +30,7 @@ compileGimple {
     className = 'Lapack'
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
+sourcesJar {
     from('src/main/fortran') {
         into 'org/renjin/math'
     }

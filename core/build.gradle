@@ -104,3 +104,12 @@ task writeVersionData {
         versionFile.text = "renjin.display.version=${project.version}\n"
     }
 }
+
+sourcesJar {
+    from('src/main/R/base') {
+        into 'org/renjin/base'
+    }
+    from('src/main/R/renjinBase.R') {
+        into 'org/renjin/base'
+    }
+}

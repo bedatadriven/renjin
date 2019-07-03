@@ -1,0 +1,25 @@
+
+subprojects {
+
+    apply plugin: 'maven-publish'
+
+    task sourcesJar(type: Jar) {
+        from sourceSets.main.allJava
+        archiveClassifier = 'sources'
+    }
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                from components.java
+                artifact sourcesJar
+            }
+        }
+
+        repositories {
+            maven {
+                url = "gcs://renjinci-m2/"
+            }
+        }
+    }
+}

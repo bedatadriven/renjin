@@ -27,7 +27,6 @@ import org.renjin.invoke.codegen.WrapperGenerator2;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.combine.ColumnBindFunction;
 import org.renjin.primitives.combine.Combine;
-import org.renjin.primitives.combine.CombineFunction;
 import org.renjin.primitives.combine.RowBindFunction;
 import org.renjin.primitives.files.Files;
 import org.renjin.primitives.io.Cat;
@@ -181,8 +180,6 @@ public class Primitives {
     add(new ReturnFunction());
     add(new UseMethod());
     add(new MissingFunction());
-
-    add(new CombineFunction());
 
     f("stop", Conditions.class, 1);
     f("warning", Warning.class, 111);

@@ -64,6 +64,11 @@ task generateWrappers(type: JavaExec) {
 
     main = 'org.renjin.invoke.codegen.WrapperGenerator2'
     args wrapperOutputDir
+
+    doFirst {
+        delete wrapperOutputDir
+        delete "$build/wrappers-sources"
+    }
 }
 
 

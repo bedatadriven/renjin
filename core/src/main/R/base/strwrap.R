@@ -1,5 +1,7 @@
 #  File src/library/base/R/strwrap.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 strtrim <- function(x, width)
 {
@@ -25,16 +27,25 @@ function(x, width = 0.9 * getOption("width"), indent = 0, exdent = 0,
          prefix = "", simplify = TRUE, initial = prefix)
 {
     if(!is.character(x)) x <- as.character(x)
+
     ## Useful variables.
-    indentString <- paste(rep.int(" ", indent), collapse = "")
-    exdentString <- paste(rep.int(" ", exdent), collapse = "")
+    indentString <- strrep(" ", indent)
+    exdentString <- strrep(" ", exdent)
     y <- list()                         # return value
-    UB <- TRUE
-    ## input need not be valid in this locale, e.g. from write.dcf
-    ## but if x has UTF-8 encoding we want to preserve it, so
-    if(all(Encoding(x) == "UTF-8")) UB <- FALSE
-    z <- lapply(strsplit(x, "\n[ \t\n]*\n", useBytes = UB),
-                strsplit, "[ \t\n]", useBytes = UB)
+
+    ## We use strsplit() to tokenize input into paras and words, and
+    ## hence need to tweak how it handles/transforms encodings.  To
+    ## preserve encodings, it seems "best" to canonicalize to UTF-8
+    ## (ensuring valid UTF-8), and at the end convert back to latin1
+    ## where we originally had latin1.
+    enc <- Encoding(x)
+    x <- enc2utf8(x)
+    if(any(ind <- !validEnc(x)))
+        x[ind] <- iconv(x[ind], "UTF-8", "UTF-8", sub = "byte")
+
+    z <- lapply(strsplit(x, "\n[ \t\n]*\n", perl = TRUE),
+                strsplit, "[ \t\n]", perl = TRUE)
+
     ## Now z[[i]][[j]] is a character vector of all "words" in
     ## paragraph j of x[i].
 
@@ -44,7 +55,7 @@ function(x, width = 0.9 * getOption("width"), indent = 0, exdent = 0,
             ## Format paragraph j in x[i].
             words <- z[[i]][[j]]
             nc <- nchar(words, type="w")
-	    if(any(is.na(nc))) {
+	    if(anyNA(nc)) {
 		## use byte count as a reasonable substitute
 		nc0 <- nchar(words, type="b")
 		nc[is.na(nc)] <- nc0[is.na(nc)]
@@ -112,15 +123,13 @@ function(x, width = 0.9 * getOption("width"), indent = 0, exdent = 0,
             }
 
             nBlocks <- length(upperBlockIndex)
-            s <- paste(c(initial, rep.int(prefix, nBlocks - 1L)),
-                       c(indentString, rep.int(exdentString, nBlocks - 1L)),
-                       sep = "")
+	    s <- paste0(c(initial, rep.int(prefix, nBlocks - 1L)),
+			c(indentString, rep.int(exdentString, nBlocks - 1L)))
             initial <- prefix
             for(k in seq_len(nBlocks))
-                s[k] <- paste(s[k], paste(words[lowerBlockIndex[k] :
-                                                upperBlockIndex[k]],
-                                          collapse = " "),
-                              sep = "")
+		s[k] <- paste0(s[k], paste(words[lowerBlockIndex[k] :
+						 upperBlockIndex[k]],
+					   collapse = " "))
 
             yi <- c(yi, s, prefix)
         }
@@ -128,6 +137,18 @@ function(x, width = 0.9 * getOption("width"), indent = 0, exdent = 0,
             c(y, list(yi[-length(yi)]))
         else
             c(y, "")
+    }
+
+    if(length(pos <- which(enc == "latin1"))) {
+        y[pos] <-
+            lapply(y[pos],
+                   function(s) {
+                       e <- Encoding(s)
+                       if(length(p <- which(e == "UTF-8")))
+                           s[p] <- iconv(s[p], "UTF-8", "latin1",
+                                         sub = "byte")
+                       s
+                   })
     }
 
     if(simplify) y <- as.character(unlist(y))
@@ -139,7 +160,7 @@ function(x, y, style = c("table", "list"),
          width = 0.9 * getOption("width"), indent = NULL)
 {
     if(is.list(x)) {
-        if(length(x) == 2L && diff(vapply(x, length, 1L)) == 0L) {
+        if(length(x) == 2L && diff(lengths(x)) == 0L) {
             y <- x[[2L]]; x <- x[[1L]]
         }
         else
@@ -166,41 +187,43 @@ function(x, y, style = c("table", "list"),
 
     if(is.null(indent))
         indent <- switch(style, table = width / 3, list = width / 9)
-    if(indent > 0.5 * width)
-        stop("incorrect values of 'indent' and 'width'")
+    ## change 2017-03-12 suggeested by Bill Dunlap
+    ## https://stat.ethz.ch/pipermail/r-devel/2017-March/073873.html
+    ## if(indent > 0.5 * width)
+    ##    warning("'indent' is too large for 'width' and will be reduced")
+    indent <- min(indent, 0.5*width)
 
-    indentString <- paste(rep.int(" ", indent), collapse = "")
+    indentString <- strrep(" ", indent)
 
     if(style == "table") {
         i <- (nchar(x, type="w") > indent - 3L)
         if(any(i))
-            x[i] <- paste(x[i], "\n", indentString, sep = "")
+            x[i] <- paste0(x[i], "\n", indentString)
         i <- !i
         if(any(i))
             x[i] <- formatC(x[i], width = indent, flag = "-")
         y <- lapply(strwrap(y, width = width - indent,
                             simplify = FALSE),
                     paste,
-                    collapse = paste("\n", indentString, sep = ""))
-        r <- paste(x, unlist(y), sep = "")
+                    collapse = paste0("\n", indentString))
+        r <- paste0(x, unlist(y))
     }
     else if(style == "list") {
-        y <- strwrap(paste(x, ": ", y, sep = ""), exdent = indent,
+        y <- strwrap(paste0(x, ": ", y), exdent = indent,
                      width = width, simplify = FALSE)
         r <- unlist(lapply(y, paste, collapse = "\n"))
     }
     r
 }
 
-trimws <- function(x, which = c("both", "left", "right"),
-                   whitespace = "[ \t\r\n]")
+trimws <-
+function(x, which = c("both", "left", "right"))
 {
     which <- match.arg(which)
     mysub <- function(re, x) sub(re, "", x, perl = TRUE)
-    switch(which,
-           "left" = mysub(paste0("^", whitespace, "+"), x),
-           "right"= mysub(paste0(whitespace, "+$"), x),
-           "both" = mysub(paste0(whitespace, "+$"),
-                          mysub(paste0("^", whitespace, "+"), x)))
+    if(which == "left")
+        return(mysub("^[ \t\r\n]+", x))
+    if(which == "right")
+        return(mysub("[ \t\r\n]+$", x))
+    mysub("[ \t\r\n]+$", mysub("^[ \t\r\n]+", x))
 }
-

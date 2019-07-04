@@ -356,8 +356,11 @@ public class FunctionGenerator implements InvocationStrategy {
           try {
             lhs.store(mv, exprFactory.findGenerator(decl.getValue()));
           } catch (Exception e) {
-            throw new InternalCompilerException(String.format("static variable: %s in %s",
+            throw new InternalCompilerException(String.format(
+                "static variable initalization `%s` for variable %s of type %s in %s",
+                decl.getValue().toString(),
                 decl.getName(),
+                decl.getType().toString(),
                 function.getMangledName()), e);
           }
         }

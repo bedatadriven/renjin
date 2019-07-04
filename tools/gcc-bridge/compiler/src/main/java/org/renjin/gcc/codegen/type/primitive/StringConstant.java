@@ -38,7 +38,11 @@ public class StringConstant implements JExpr {
   public int getLength() {
     return constant.length();
   }
-  
+
+  public String getConstant() {
+    return constant;
+  }
+
   @Nonnull
   @Override
   public Type getType() {

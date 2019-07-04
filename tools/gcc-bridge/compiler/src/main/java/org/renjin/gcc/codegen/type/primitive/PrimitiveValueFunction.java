@@ -18,7 +18,10 @@
  */
 package org.renjin.gcc.codegen.type.primitive;
 
+import com.google.common.base.Charsets;
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.array.FatArrayExpr;
+import org.renjin.gcc.codegen.expr.ConstantValue;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
@@ -33,6 +36,7 @@ import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.Double96Ptr;
 import org.renjin.repackaged.asm.Type;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -87,6 +91,19 @@ public class PrimitiveValueFunction implements ValueFunction {
 
   @Override
   public List<JExpr> toArrayValues(GExpr expr) {
+    // Special case for Fortran array initialization
+    if(type == PrimitiveType.UINT8) {
+      if (expr instanceof FatArrayExpr) {
+        FatArrayExpr arrayExpr = (FatArrayExpr) expr;
+        StringConstant stringConstant = (StringConstant) arrayExpr.getArray();
+        byte[] bytes = stringConstant.getConstant().getBytes(Charsets.US_ASCII);
+        List<JExpr> byteExprs = new ArrayList<>();
+        for (int i = 0; i < bytes.length; i++) {
+          byteExprs.add(new ConstantValue(Type.BYTE_TYPE, bytes[i]));
+        }
+        return byteExprs;
+      }
+    }
     PrimitiveExpr primitiveExpr = (PrimitiveExpr) expr;
     return Collections.singletonList(primitiveExpr.jexpr());
   }

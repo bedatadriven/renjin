@@ -1,18 +1,18 @@
 
-def aetherVersion = '1.0.2.v20150114'
-def mavenVersion = '3.1.0'
-def wagonVersion = '1.0'
+def aetherVersion = "1.0.2.v20150114"
+def mavenVersion = "3.1.0"
+def wagonVersion = "1.0"
 
 dependencies {
-    compile project(':core')
-    compile 'org.eclipse.aether:aether-api:${aetherVersion}'
-    compile 'org.eclipse.aether:aether-spi:${aetherVersion}'
-    compile 'org.eclipse.aether:aether-util:${aetherVersion}'
-    compile 'org.eclipse.aether:aether-impl:${aetherVersion}'
-    compile 'org.eclipse.aether:aether-transport-file:${aetherVersion}'
-    compile 'org.eclipse.aether:aether-connector-basic:${aetherVersion}'
-    compile 'org.eclipse.aether:aether-transport-http:${aetherVersion}'
-    compile 'org.apache.maven:maven-aether-provider:${mavenVersion}'
-    compile 'org.apache.maven:maven-settings-builder:${mavenVersion}'
-    compile 'org.json:json:20180130'
+    compile project(":core")
+    compile "org.eclipse.aether:aether-api:${aetherVersion}"
+    compile "org.eclipse.aether:aether-spi:${aetherVersion}"
+    compile "org.eclipse.aether:aether-util:${aetherVersion}"
+    compile "org.eclipse.aether:aether-impl:${aetherVersion}"
+    compile "org.eclipse.aether:aether-transport-file:${aetherVersion}"
+    compile "org.eclipse.aether:aether-connector-basic:${aetherVersion}"
+    compile "org.eclipse.aether:aether-transport-http:${aetherVersion}"
+    compile "org.apache.maven:maven-aether-provider:${mavenVersion}"
+    compile "org.apache.maven:maven-settings-builder:${mavenVersion}"
+    compile "org.json:json:20180130"
 }

@@ -8,6 +8,7 @@ dependencies {
 
     testCompile project(':packages:hamcrest')
     testCompile project(':packages:utils')
+    testCompile project(':packages:stats')
 }
 
 compileNamespace {

@@ -89,6 +89,11 @@ SEXP rfilter(SEXP x, SEXP filter, SEXP out)
    if (TYPEOF(x) != REALSXP || TYPEOF(filter) != REALSXP
        || TYPEOF(out) != REALSXP) error("invalid input");
     R_xlen_t nx = XLENGTH(x), nf = XLENGTH(filter);
+
+    if(NAMED(out)) {
+        out = duplicate(out);
+    }
+
     double sum, tmp, *r = REAL(out), *rx = REAL(x), *rf = REAL(filter);
 
     for(R_xlen_t i = 0; i < nx; i++) {

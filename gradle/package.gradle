@@ -197,7 +197,12 @@ task compileNamespace(type: JavaExec) {
 
 
     inputs.dir "$buildDir/resources"
-    inputs.dir "R"
+    if(project.file("R").exists()) {
+        inputs.dir "R"
+    }
+    if(project.file("data").exists()) {
+        inputs.dir "data"
+    }
     inputs.file 'DESCRIPTION'
     inputs.file 'NAMESPACE'
     outputs.dir "$buildDir/namespace"

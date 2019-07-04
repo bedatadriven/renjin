@@ -11,7 +11,7 @@ dependencies {
 }
 
 compileNamespace {
-    defaultPackages = []
+    defaultPackages = ['grDevices', 'graphics', 'stats', 'methods']
 }
 
 testPackage {

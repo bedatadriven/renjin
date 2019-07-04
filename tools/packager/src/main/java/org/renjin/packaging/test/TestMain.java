@@ -41,6 +41,12 @@ import java.util.logging.Logger;
 @Command(name = "test")
 public class TestMain {
 
+  static {
+    // Silence warnings about not being able to load native libs
+    Logger.getLogger("com.github.fommil.netlib").setLevel(Level.SEVERE);
+  }
+
+
   @Option(name = "--name", description = "The name of the package")
   private String packageName;
 

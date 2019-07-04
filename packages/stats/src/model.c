@@ -477,8 +477,7 @@ SEXP modelmatrix(SEXP call, SEXP op, SEXP args, SEXP rho)
     PROTECT(contr1 = allocVector(VECSXP, nVar));
     PROTECT(contr2 = allocVector(VECSXP, nVar));
 
-    PROTECT(expr = allocList(3));
-    SET_TYPEOF(expr, LANGSXP);
+    PROTECT(expr = Rf_lang3(R_NilValue, R_NilValue, R_NilValue));
     SETCAR(expr, install("contrasts"));
     SETCADDR(expr, allocVector(LGLSXP, 1));
 
@@ -788,7 +787,8 @@ static SEXP ExpandDots(SEXP object, SEXP value)
 	    }
 	    else if (length(object) == 3) {
 		SETCADR(object, ExpandDots(CADR(object), value));
-		SETCADDR(object, ExpandDots(CADDR(object), value));
+		SETCADDR(object, lang2(parenSymbol,
+                         ExpandDots(CADDR(object), value)));
 	    }
 	    else goto badformula;
 	}

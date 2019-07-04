@@ -50,5 +50,5 @@ function(file = "", what = double(), nmax = -1L, n = -1L, sep = "",
     .Internal(scan(file, what, nmax, sep, dec, quote, skip, nlines,
                    na.strings, flush, fill, strip.white, quiet,
                    blank.lines.skip, multi.line, comment.char,
-                   allowEscapes, encoding))#, skipNul))   # skipNull !=essential & !=implemented yet
+                   allowEscapes, encoding, skipNul))
 }

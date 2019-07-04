@@ -53,7 +53,8 @@ public class Scan {
                             boolean multiLine,
                             String commentChar,
                             boolean allowEscapes,
-                            String encoding) throws IOException {
+                            String encoding,
+                            boolean skipNul) throws IOException {
     
     
     PushbackBufferedReader lineReader;
@@ -99,6 +100,9 @@ public class Scan {
       }
       if(!Strings.isNullOrEmpty(commentChar) && line.startsWith(commentChar)) {
         continue;
+      }
+      if(skipNul) {
+        line = line.replace("\u0000", "");
       }
       scanner.read(line);
     }

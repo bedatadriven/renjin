@@ -1,5 +1,7 @@
 #  File src/library/base/R/connections.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2019 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,43 +14,44 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 stdin <- function() .Internal(stdin())
 stdout <- function() .Internal(stdout())
 stderr <- function() .Internal(stderr())
 
 isatty <- function(con) {
-    .Internal(isatty(con))
+    if (!inherits(con, "terminal")) FALSE
+    else .Internal(isatty(con))
 }
 
 readLines <- function(con = stdin(), n = -1L, ok = TRUE, warn = TRUE,
-                      encoding = "unknown")
+                      encoding = "unknown", skipNul = FALSE)
 {
     if(is.character(con)) {
         con <- file(con, "r")
         on.exit(close(con))
     }
-    .Internal(readLines(con, n, ok, warn, encoding))
+    .Internal(readLines(con, n, ok, warn, encoding, skipNul))
 }
 
 
 writeLines <- function(text, con = stdout(), sep = "\n", useBytes = FALSE)
 {
+    if(!is.character(text))
+        stop("can only write character objects")
     if(is.character(con)) {
         con <- file(con, "w")
         on.exit(close(con))
     }
-    invisible(.Internal(writeLines(text, con, sep, useBytes)))
+    .Internal(writeLines(text, con, sep, useBytes))
 }
 
 open <- function(con, ...)
     UseMethod("open")
 
 open.connection <- function(con, open = "r", blocking = TRUE, ...)
-{
-    invisible(.Internal(open(con, open, blocking)))
-}
+    .Internal(open(con, open, blocking))
 
 isOpen <- function(con, rw = "")
 {
@@ -66,17 +69,18 @@ close <- function(con, ...)
     UseMethod("close")
 
 close.connection <- function (con, type = "rw", ...)
-    invisible(.Internal(close(con, type)))
+    .Internal(close(con, type))
 
 flush <- function(con) UseMethod("flush")
 
 flush.connection <- function (con)
-    invisible(.Internal(flush(con)))
+    .Internal(flush(con))
 
 file <- function(description = "", open = "", blocking = TRUE,
-                 encoding = getOption("encoding"), raw = FALSE)
-    .Internal(file(description, open, blocking, encoding, raw))
-
+                 encoding = getOption("encoding"), raw = FALSE,
+                 method = getOption("url.method", "default")) {
+    .Internal(file(description, open, blocking, encoding, method, raw))
+}
 pipe <- function(description, open = "", encoding = getOption("encoding"))
     .Internal(pipe(description, open, encoding))
 
@@ -85,8 +89,12 @@ fifo <- function(description, open = "", blocking = FALSE,
     .Internal(fifo(description, open, blocking, encoding))
 
 url <- function(description, open = "", blocking = TRUE,
-                encoding = getOption("encoding"))
-    .Internal(url(description, open, blocking, encoding))
+                encoding = getOption("encoding"),
+                method = getOption("url.method", "default"))
+{
+    method <- match.arg(method, c("default", "internal", "libcurl", "wininet"))
+    .Internal(url(description, open, blocking, encoding, method))
+}
 
 gzfile <- function(description, open = "",
                    encoding = getOption("encoding"), compression = 6)
@@ -151,15 +159,36 @@ truncate.connection <- function(con, ...)
     .Internal(truncate(con))
 }
 
-pushBack <- function(data, connection, newLine = TRUE, encoding = c("bytes", "UTF-8"))
-    invisible(.Internal(pushBack(data, connection, newLine)))
+pushBack <- function(data, connection, newLine = TRUE,
+                     encoding = c("", "bytes", "UTF-8"))
+{
+    # match.arg doesn't work on "" default
+    if (length(encoding) > 1L) encoding <- encoding[1]
+    if (nzchar(encoding)) encoding <- match.arg(encoding)
+    type <- match(encoding, c("", "bytes", "UTF-8"))
+    .Internal(pushBack(data, connection, newLine, type))
+}
 
 pushBackLength <- function(connection)
     .Internal(pushBackLength(connection))
 
+clearPushBack <- function(connection)
+    .Internal(clearPushBack(connection))
+
 print.connection <- function(x, ...)
 {
-    print(unlist(summary(x)))
+    usumm <- tryCatch(unlist(summary(x)), error = function(e) {})
+    ## could also show  as.numeric(x) {as str() currently does}
+    if(is.null(usumm)) {
+	cl <- oldClass(x); cl <- cl[cl != "connection"]
+	cat("A connection, ",
+	    if(length(cl)) paste0("specifically, ",
+				  paste(sQuote(cl), collapse=", "), ", "),
+	    "but invalid.\n", sep = "")
+    } else {
+	cat("A connection with") # {newline from print() below}
+	print(cbind(` ` = usumm), ...)
+    }
     invisible(x)
 }
 
@@ -251,16 +280,16 @@ writeChar <- function(object, con, nchars = nchar(object, type="chars"),
     .Internal(writeChar(object, con, as.integer(nchars), eos, useBytes))
 }
 
-gzcon <- function(con, level = 6, allowNonCompressed = TRUE)
-    .Internal(gzcon(con, level, allowNonCompressed))
+gzcon <- function(con, level = 6, allowNonCompressed = TRUE, text = FALSE)
+    .Internal(gzcon(con, level, allowNonCompressed, text))
 
 socketSelect <- function(socklist, write = FALSE, timeout = NULL) {
     if (is.null(timeout))
         timeout <- -1
     else if (timeout < 0)
-        stop("supplied timeout must be NULL or a non-negative number")
+        stop("'timeout' must be NULL or a non-negative number")
     if (length(write) < length(socklist))
-        write <- rep(write, length.out = length(socklist))
+        write <- rep_len(write, length(socklist))
     .Internal(sockSelect(socklist, write, timeout))
 }
 

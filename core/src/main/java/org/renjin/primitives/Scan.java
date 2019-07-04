@@ -62,7 +62,7 @@ public class Scan {
       if(fileName.length() == 0) {
         lineReader = context.getSession().getConnectionTable().getStdin().getReader();
       } else {
-        SEXP fileConn = Connections.file(context,fileName,"o",true,encoding,false);
+        SEXP fileConn = Connections.file(context,fileName,"o",true,encoding,null, false);
         lineReader = Connections.getConnection(context, fileConn).getReader();
       }
     } else {

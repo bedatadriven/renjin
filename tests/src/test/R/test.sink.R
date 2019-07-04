@@ -53,3 +53,11 @@ test.sink.number <- function() {
     assertThat(sink.number(), identicalTo(0L))
 }
 
+test.sink.more128 <- function() {
+
+    for(i in 1:129) {
+        sink('toto.out',type='output')
+        1+1
+        sink(type = 'output')
+    }
+}

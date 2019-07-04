@@ -113,13 +113,16 @@ public class Connections {
    * 
    * @param encoding
    *          the character to encoding, if the file is to be opened as text
+   * @param method "wininet" or "internal" or "libcurl" : ignored.
    * @return an external reference object which inherits from the (S3) class
    *         "connection"
    * @throws IOException 
    */
   @Internal
   public static IntVector file(@Current final Context context,
-                               final String path, String open, boolean blocking, String encoding,
+                               final String path, String open, boolean blocking,
+                               String encoding,
+                               String method,
                                boolean raw) throws IOException {
 
     if(path.isEmpty()) {
@@ -131,7 +134,7 @@ public class Connections {
     } else if(STD_ERR.equals(path)) {
       return stderr(context);
     } else if (path.startsWith("http://") || path.startsWith("https://")) {
-      return url(context, path, open, blocking, encoding);
+      return url(context, path, open, blocking, encoding, method);
     } else {
       return newConnection(context, open, new FileConnection(context.resolveFile(path), RCharsets.getByName(encoding)));
     }
@@ -139,7 +142,7 @@ public class Connections {
   
   @Internal
   public static IntVector url(@Current final Context context,
-      final String description, String open, boolean blocking, String encoding) throws IOException {
+      final String description, String open, boolean blocking, String encoding, String method) throws IOException {
   
     return newConnection(context, open, new UrlConnection(new URL(description), RCharsets.getByName(encoding)));
   }
@@ -240,12 +243,15 @@ public class Connections {
 
   @Internal("readLines")
   public static StringVector readLines(@Current Context context, SEXP connection, int numLines, boolean ok, 
-      boolean warn, String encoding) throws IOException {
+      boolean warn, String encoding, boolean skipNuls) throws IOException {
     
     PushbackBufferedReader reader = getConnection(context, connection).getReader();
     StringVector.Builder lines = new StringVector.Builder();
     String line;
     while((line=reader.readLine())!=null) {
+      if(skipNuls) {
+        line = line.replace("\u0000", "");
+      }
       lines.add(line);
       if(numLines > 0 && lines.length() == numLines) {
         break;
@@ -368,9 +374,18 @@ public class Connections {
     //TODO: handle rw parameter
     return getConnection(context, conn).isOpen();
   }
-  
+
+  /**
+   *
+   * @param context
+   * @param data
+   * @param connection
+   * @param newLine true if a new line should be appended to the text pushed back.
+   * @param type ignored, as all character vectors in Renjin are unicode.
+   * @throws IOException
+   */
   @Internal
-  public static void pushBack(@Current Context context, Vector data, SEXP connection, boolean newLine) throws IOException {
+  public static void pushBack(@Current Context context, Vector data, SEXP connection, boolean newLine, int type) throws IOException {
     PushbackBufferedReader reader = getConnection(context, connection).getReader();
     String suffix = newLine ? "\n" : "";
     for(int i=data.length()-1;i>=0;--i) {

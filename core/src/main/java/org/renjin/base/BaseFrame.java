@@ -102,7 +102,7 @@ public class BaseFrame implements Frame {
   }
 
   private void installPlatform(Session session) {
-    loaded.put(Symbol.get(".Library"), StringVector.valueOf(session.getHomeDirectory() + "/library"));
+    loaded.put(Symbol.get(".Library"), StringVector.valueOf(session.getHomeDirectory()));
     loaded.put(Symbol.get(".Library.site"), StringVector.EMPTY);
     
     loaded.put(Symbol.get(".Platform"), ListVector.newNamedBuilder()

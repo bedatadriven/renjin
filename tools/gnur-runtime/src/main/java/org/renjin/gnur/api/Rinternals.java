@@ -1935,16 +1935,11 @@ public final class Rinternals {
   }
 
   public static SEXP R_lsInternal(SEXP env, boolean allNames) {
-    return Environments.ls((Environment) env, allNames);
+    return Environments.ls((Environment) env, allNames, false);
   }
 
   public static SEXP R_lsInternal3(SEXP env, boolean allNames, boolean sorted) {
-    StringVector names = Environments.ls((Environment) env, allNames);
-    if(sorted) {
-      return Sort.sort(names, false);
-    } else {
-      return names;
-    }
+    return Environments.ls((Environment) env, allNames, sorted);
   }
 
   public static SEXP Rf_match(SEXP p0, SEXP p1, int p2) {

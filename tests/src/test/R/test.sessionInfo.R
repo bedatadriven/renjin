@@ -18,7 +18,10 @@
 #
 
 library(utils)
-
-si <- sessionInfo()
-
-print(si)
+print(.Library)
+print(file.path(.Library, "base"))
+print(packageDescription("base"))
+#
+#si <- sessionInfo()
+#
+#print(si)

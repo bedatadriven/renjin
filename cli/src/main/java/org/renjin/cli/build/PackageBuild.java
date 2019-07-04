@@ -176,9 +176,10 @@ public class PackageBuild implements BuildContext {
   }
 
   @Override
-  public String getCompileClasspath() {
-    return "";
+  public String getSootClasspath() {
+    throw new UnsupportedOperationException("TODO");
   }
+
 
   @Override
   public Map<String, String> getPackageGroupMap() {

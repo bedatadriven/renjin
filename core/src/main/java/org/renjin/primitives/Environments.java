@@ -23,8 +23,10 @@ import org.renjin.eval.EvalException;
 import org.renjin.eval.FinalizationClosure;
 import org.renjin.invoke.annotations.*;
 import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Ordering;
 import org.renjin.sexp.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -139,15 +141,21 @@ public final class Environments {
   }
 
   @Internal
-  public static StringVector ls(Environment environment, boolean allNames) {
-    StringVector.Builder names = new StringVector.Builder();
+  public static StringVector ls(Environment environment, boolean allNames, boolean sorted) {
+
+    List<String> names = new ArrayList<>();
 
     for (Symbol name : environment.getSymbolNames()) {
       if (allNames || !name.getPrintName().startsWith(".")) {
         names.add(name.getPrintName());
       }
     }
-    return names.build();
+
+    if(sorted) {
+      names.sort(Ordering.natural());
+    }
+
+    return new StringArrayVector(names.toArray(new String[0]));
   }
 
   @Internal

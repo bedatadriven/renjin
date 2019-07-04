@@ -1,7 +1,7 @@
 #  File src/library/utils/R/tar.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2014 The R Core Team
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 untar <- function(tarfile, files = NULL, list = FALSE, exdir = ".",
                   compressed = NA, extras = NULL, verbose = FALSE,
@@ -32,21 +32,27 @@ untar <- function(tarfile, files = NULL, list = FALSE, exdir = ".",
     if (!nzchar(TAR) || TAR == "internal")
         return(untar2(tarfile, files, list, exdir))
 
+    ## The ability of external tar commands to handle compressed tarfiles
+    ## automagically varies and is poorly documented.
+    ## E.g. macOS says its tar handles bzip2 but does not mention xz nor lzma.
+    ## (And it supports -J and --lzma flags not mentioned by man tar.)
+    ##
+    ## These days it might be better to give up trying to detect for
+    ## ourselves and rely on the external tar to do so.
+    ##
     cflag <- ""
     if (is.character(compressed)) {
         ## Any tar which supports -J does not need it for extraction
-        switch(match.arg(compressed, c("gzip", "bzip2", "xz")),
-               "gzip" = "z", "bzip2" = "j", "xz" = "J")
+        cflag <- switch(match.arg(compressed, c("gzip", "bzip2", "xz")),
+                        "gzip" = "z", "bzip2" = "j", "xz" = "J")
     } else if (is.logical(compressed)) {
         if (is.na(compressed)) {
             magic <- readBin(tarfile, "raw", n = 3L)
             if(all(magic[1:2] == c(0x1f, 0x8b))) cflag <- "z"
             else if(all(magic[1:2] == c(0x1f, 0x9d))) cflag <- "z" # compress
             else if(rawToChar(magic[1:3]) == "BZh") cflag <- "j"
-            else if(rawToChar(magic[1:5]) == "\xFD7zXZ") cflag <- "J"
-        } else if (compressed) cflag <- "z"
+       } else if (compressed) cflag <- "z"
     } else stop("'compressed' must be logical or character")
-    if (!restore_times) cflag <- paste0(cflag, "m")
 
     gzOK <- .Platform$OS.type == "windows"
     if (!gzOK ) {
@@ -68,20 +74,22 @@ untar <- function(tarfile, files = NULL, list = FALSE, exdir = ".",
     }
     if (!gzOK && cflag == "j" && nzchar(ZIP <- Sys.getenv("R_BZIPCMD"))) {
         TAR <- paste(ZIP,  "-dc", shQuote(tarfile), "|", TAR)
-        tarfile < "-"
+        tarfile <- "-"
         cflag <- ""
     }
-    if (cflag == "J") {
+    if (cflag == "J" && nzchar(Sys.which("xz"))) {
         TAR <- paste("xz -dc", shQuote(tarfile), "|", TAR)
-        tarfile < "-"
+        tarfile <- "-"
         cflag <- ""
     }
     if (list) {
+        ## TAR might be a command+flags or piped commands, so don't quote it
         cmd <- paste0(TAR, " -", cflag, "tf ", shQuote(tarfile))
         if (length(extras)) cmd <- paste(cmd, extras, collapse = " ")
         if (verbose) message("untar: using cmd = ", sQuote(cmd), domain = NA)
         system(cmd, intern = TRUE)
     } else {
+        if (!restore_times) cflag <- paste0(cflag, "m")
         cmd <- paste0(TAR, " -", cflag, "xf ", shQuote(tarfile))
         if (!missing(exdir)) {
             if (!dir.exists(exdir)) {
@@ -140,7 +148,7 @@ untar2 <- function(tarfile, files = NULL, list = FALSE, exdir = ".",
 
     ## A tar file is a set of 512 byte records,
     ## a header record followed by file contents (zero-padded).
-    ## See http://en.wikipedia.org/wiki/Tar_%28file_format%29
+    ## See https://en.wikipedia.org/wiki/Tar_%28file_format%29
     if(is.character(tarfile) && length(tarfile) == 1L) {
         con <- gzfile(path.expand(tarfile), "rb") # reads compressed formats
         on.exit(close(con))
@@ -245,7 +253,7 @@ untar2 <- function(tarfile, files = NULL, list = FALSE, exdir = ".",
                             warn1 <- c(warn1, "restoring symbolic link as a file copy")
                    } else {
                        mydir.create(dirname(name))
-                       od <- setwd(dirname(name))
+                       od0 <- setwd(dirname(name))
                        nm <- basename(name)
                        unlink(nm)
                        if(!file.symlink(name2, nm)) { # will give a warning
@@ -255,7 +263,7 @@ untar2 <- function(tarfile, files = NULL, list = FALSE, exdir = ".",
                            else
                                warning(gettextf("failed to copy %s to %s", sQuote(from), sQuote(name)), domain = NA)
                        }
-                       setwd(od)
+                       setwd(od0)
                    }
                 }
             }
@@ -331,7 +339,16 @@ tar <- function(tarfile, files = NULL,
 {
     if(is.character(tarfile)) {
         if(nzchar(tar) && tar != "internal") {
-            ## FIXME: could pipe through gzip etc: might be safer for xz
+            ## Assume external command will expand directories,
+            ## so keep command-line as simple as possible
+            ## But files = '.' will not work as tarfile would be included.
+            if(is.null(files)) {
+                files <- list.files(all.files = TRUE, full.names = TRUE,
+                                    include.dirs = TRUE)
+                files <- setdiff(files, c("./.", "./.."))
+            }
+
+            ## Could pipe through gzip etc: might be safer for xz
             ## as -J was lzma in GNU tar 1.20:21
             flags <- switch(match.arg(compression),
                             "none" = "-cf",
@@ -340,21 +357,37 @@ tar <- function(tarfile, files = NULL,
                             "xz" = "-Jcf")
 
             if (grepl("darwin", R.version$os)) {
-                ## precaution for Mac OS X to omit resource forks
-                ## we can't tell the running OS version from R.version$os
-                ## but at least it will not be older
-                tar <- paste("COPYFILE_DISABLE=1", tar) # >= 10.5, Leopard
-                if (grepl("darwin8", R.version$os)) # 10.4, Tiger
-                    tar <- paste("COPY_EXTENDED_ATTRIBUTES_DISABLE=1", tar)
+                ## Precaution for macOS to omit resource forks
+                ## This is supposed to work for  >= 10.5 (Leopard).
+                tar <- paste("COPYFILE_DISABLE=1", tar)
             }
             if (is.null(extra_flags)) extra_flags <- ""
-            ## 'tar' might be a command + flags, so don't quote it
-            cmd <- paste(tar, extra_flags, flags, shQuote(tarfile),
-                         paste(shQuote(files), collapse=" "))
+            ## precaution added in R 3.5.0 for over-long command lines
+            nc <- nchar(ff <- paste(shQuote(files), collapse=" "))
+            ## -T is not supported by Solaris nor Heirloom Toolchest's tar
+            if(nc > 1000 &&
+               any(grepl("(GNU tar|libarchive)",
+                         tryCatch(system(paste(tar, "--version"), intern = TRUE),
+                                  error = function(e) "")))) {
+                tf <- tempfile("Rtar"); on.exit(unlink(tf))
+                writeLines(files, tf)
+                cmd <- paste(tar, extra_flags, flags, shQuote(tarfile),
+                             "-T", shQuote(tf))
+            } else {
+                ## 'tar' might be a command + flags, so don't quote it
+                cmd <- paste(tar, extra_flags, flags, shQuote(tarfile), ff)
+            }
             return(invisible(system(cmd)))
         }
+
+### ----- from here on, using internal code -----
+        ## must do this before tarfile is created
+        if(is.null(files)) files <- "."
+        files <- list.files(files, recursive = TRUE, all.files = TRUE,
+                            full.names = TRUE, include.dirs = TRUE)
+
         con <- switch(match.arg(compression),
-                      "none" =    file(tarfile, "wb"),
+                      "none" =  file(tarfile, "wb"),
                       "gzip" =  gzfile(tarfile, "wb", compression = compression_level),
                       "bzip2" = bzfile(tarfile, "wb", compression = compression_level),
                       "xz" =    xzfile(tarfile, "wb", compression = compression_level))
@@ -362,6 +395,7 @@ tar <- function(tarfile, files = NULL,
     } else if(inherits(tarfile, "connection")) con <- tarfile
     else stop("'tarfile' must be a character string or a connection")
 
+    ## (Comment from 2013)
     ## FIXME: eventually we should use the pax extension, but
     ## that was first supported in R 2.15.3.
     GNUname <- function(name, link = FALSE)
@@ -382,9 +416,6 @@ tar <- function(tarfile, files = NULL,
         if(ssize > size) writeBin(raw(ssize - size), con)
     }
     warn1 <- character()
-
-    files <- list.files(files, recursive = TRUE, all.files = TRUE,
-                        full.names = TRUE, include.dirs = TRUE)
 
     invalid_uid <- invalid_gid <- FALSE
     for (f in unique(files)) {

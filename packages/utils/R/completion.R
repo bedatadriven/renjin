@@ -1,8 +1,8 @@
 #  File src/library/utils/R/completion.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
 # Copyright     2006 Deepayan Sarkar
-#           (C) 2006-2015  The R Core Team
+#           (C) 2006-2017  The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 
 
@@ -371,7 +371,12 @@ specialOpCompletionsHelper <- function(op, suffix, prefix)
            "::" = {
                if (.CompletionEnv$settings[["ns"]])
                {
-                   nse <- tryCatch(getNamespaceExports(prefix), error = function(e)e)
+                   nse <- tryCatch(unique(c(getNamespaceExports(prefix),
+                                            if(prefix != "base")
+                                                names(getNamespaceInfo(prefix,
+                                                                       "lazydata"))
+                                            )),
+                                   error = identity)
                    if (inherits(nse, "error")) ## nothing else to do
                        suffix
                    else
@@ -899,6 +904,11 @@ fileCompletions <- function(token)
     ## are included.  Get 'correct' partial file name by looking back
     ## to begin quote
     pfilename <- correctFilenameToken()
+    
+    ## This may come from an illegal string like "C:\Prog".  Try to parse it:
+    pfilename <- try(eval(parse(text = paste0('"', token, '"'))), silent = TRUE)
+    if (inherits(pfilename, "try-error"))
+    	return(character())
 
     ## Sys.glob doesn't work without expansion.  Is that intended?
     pfilename.expanded <- path.expand(pfilename)
@@ -925,6 +935,11 @@ fileCompletions <- function(token)
     ## need to delete extra part
     if (pfilename != token)
         comps <- substring(comps, nchar(pfilename) - nchar(token) + 1L, 1000L)
+        
+    ## In Win32, we often have backslashes in names. Also possible on 
+    ## Unix, though unlikely.  Add escapes for those and for quotes.
+    comps <- gsub("([\\\\'\"])", "\\\\\\1", comps)
+    
     comps
 }
 

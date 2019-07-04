@@ -1,7 +1,7 @@
-#  File src/library/utils/R/packages2.R
-#  Part of the R package, http://www.R-project.org
+#  File src/library/utils/R/hasName.R
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,16 +14,8 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
+# "hasName(x, name)" is defined to be the same as "name %in% names(x)"
 
-packageName <- function(env = parent.frame()) {
-    if (!is.environment(env)) stop("'env' must be an environment")
-    env <- topenv(env)
-    if (exists(".packageName", envir = env, inherits = FALSE))
-	get(".packageName", envir = env, inherits = FALSE)
-    else if (identical(env, .BaseNamespaceEnv))
-	"base"
-    else
-	NULL
-}
+hasName <- function(x, name) match(name, names(x), nomatch = 0L) > 0L

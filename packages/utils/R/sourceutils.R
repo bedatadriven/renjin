@@ -1,7 +1,7 @@
 #  File src/library/utils/R/sourceutils.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 removeSource <- function(fn) {
     stopifnot(is.function(fn))
@@ -26,12 +26,12 @@ removeSource <- function(fn) {
     recurse <- function(part) {
         if (is.name(part)) return(part)  # handles missing arg, PR#15957
         attr(part, "srcref") <- NULL
-        attr(body(fn), "wholeSrcref") <- NULL
-        attr(body(fn), "srcfile") <- NULL
-        if (is.language(part) && is.recursive(part)) {
-            for (i in seq_along(part))
-            	part[[i]] <- recurse(part[[i]])
-        }
+        attr(part, "wholeSrcref") <- NULL
+        attr(part, "srcfile") <- NULL
+	if (is.language(part) && is.recursive(part)) {
+	    for (i in seq_along(part))
+		part[i] <- list(recurse(part[[i]])) # recurse(*) may be NULL
+	}
         part
     }
     body(fn) <- recurse(body(fn))
@@ -62,9 +62,9 @@ getSrcDirectory <- function(x, unique=TRUE) {
 getSrcref <- function(x) {
     if (inherits(x, "srcref")) return(x)
     if (!is.null(srcref <- attr(x, "srcref"))) return(srcref)
-    if (is.function(x) && !is.null(srcref <- getSrcref(body(x)))) 
+    if (is.function(x) && !is.null(srcref <- getSrcref(body(x))))
 	return(srcref)
-    if (methods::is(x, "MethodDefinition")) 
+    if (methods::is(x, "MethodDefinition"))
 	return(getSrcref(unclass(methods::unRematchDefinition(x))))
     NULL
 }
@@ -116,7 +116,40 @@ substr_with_tabs <- function(x, start, stop, tabsize = 8) {
 }
 
 getParseData <- function(x, includeText = NA) {
-    stop("getParseData() is not currently supported by Renjin")
+    if (inherits(x, "srcfile"))
+	srcfile <- x
+    else
+	srcfile <- getSrcfile(x)
+
+    if (is.null(srcfile))
+    	return(NULL)
+    else
+    	data <- srcfile$parseData
+    if (!is.null(data)) {
+        tokens <- attr(data, "tokens")
+        data <- t(unclass(data))
+        colnames(data) <- c( "line1", "col1",
+		 	     "line2", "col2",
+		 	     "terminal", "token.num", "id", "parent" )
+    	data <- data.frame(data[, -c(5,6), drop = FALSE], token = tokens,
+    	                   terminal = as.logical(data[,"terminal"]),
+    	                   text = attr(data, "text"),
+    			   stringsAsFactors = FALSE)
+    	o <- order(data[,1], data[,2], -data[,3], -data[,4])
+    	data <- data[o,]
+    	rownames(data) <- data$id
+    	attr(data, "srcfile") <- srcfile
+    	if (isTRUE(includeText)) gettext <- which(!nzchar(data$text))
+        else if (is.na(includeText)) gettext <- which(!nzchar(data$text) & data$terminal)
+        else {
+            gettext <- integer(0)
+            data$text <- NULL
+        }
+
+        if (length(gettext))
+	    data$text[gettext] <- getParseText(data, data$id[gettext])
+    }
+    data
 }
 
 getParseText <- function(parseData, id) {
@@ -127,7 +160,7 @@ getParseText <- function(parseData, id) {
     	text <- character(nrow(d))
     	blank <- seq_along(text)
     } else
-    	blank <- which(!nzchar(text) | (d$token == "STR_CONST" & grepl("^[[]", text)))
+    	blank <- which(!nzchar(text) | (d$token == "STR_CONST" & startsWith(text, "[")))
     for (i in blank) {
 	lines <- getSrcLines(srcfile, d$line1[i], d$line2[i])
         n <- length(lines)

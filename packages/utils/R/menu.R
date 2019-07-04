@@ -1,7 +1,7 @@
 #  File src/library/utils/R/menu.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2012 The R Core Team
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,18 +14,18 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 menu <- function(choices, graphics = FALSE, title = NULL)
 {
     if(!interactive()) stop("menu() cannot be used non-interactively")
     if(isTRUE(graphics)) {
         if(.Platform$OS.type == "windows" || .Platform$GUI == "AQUA"
-           ## Tk might not require X11 on Mac OS X, but if DISPLAY is set
+           ## Tk might not require X11 on macOS, but if DISPLAY is set
            ## this will work for Aqua Tcl/Tk.
            ## OTOH, we do want to check Tk works!
            || (capabilities("tcltk") && capabilities("X11") &&
-               suppressWarnings(tcltk:::.TkUp))) {
+               suppressWarnings(tcltk::.TkUp))) {
             res <- select.list(choices, multiple = FALSE, title = title,
                                graphics = TRUE)
             return(match(res, choices, nomatch = 0L))
@@ -35,15 +35,15 @@ menu <- function(choices, graphics = FALSE, title = NULL)
     if(length(title) && nzchar(title[1L])) cat(title[1L], "\n")
     op <- paste0(format(seq_len(nc)), ": ", choices)
     if(nc > 10L) {
-        fop <- format(op)
-        nw <- nchar(fop[1L], "w") + 2
+        fop <- format(op) # => same nchar() for all
+        nw <- nchar(fop[1L], "w") + 2L
         ncol <- getOption("width") %/% nw  # might be 0
         if(ncol > 1L)
-            op <- paste0(fop, c(rep("  ", ncol - 1), "\n"), collapse="")
-        cat("", op, "", sep="\n")
-    } else cat("", op, "", sep="\n")
+	    op <- paste0(fop, c(rep("  ", min(nc, ncol) - 1L), "\n"), collapse="")
+    }
+    cat("", op, "", sep="\n")
     repeat {
-	ind <- Interactive$menu(as.character(choices))
+	ind <- .Call(C_menu, as.character(choices))
 	if(ind <= nc) return(ind)
 	cat(gettext("Enter an item from the menu, or 0 to exit\n"))
     }

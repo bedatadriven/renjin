@@ -1,7 +1,7 @@
 #  File src/library/utils/R/data.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2014 The R Core Team
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 data <-
 function(..., list = character(), package = NULL, lib.loc = NULL,
@@ -45,7 +45,7 @@ function(..., list = character(), package = NULL, lib.loc = NULL,
         paths <- c(path.package(package, TRUE),
                    if(!length(package)) getwd(), # ignored if NULL
                    paths)
-    paths <- unique(paths[file.exists(paths)])
+    paths <- unique(normalizePath(paths[file.exists(paths)]))
 
     ## Find the directories with a 'data' subdirectory.
     paths <- paths[dir.exists(file.path(paths, "data"))]

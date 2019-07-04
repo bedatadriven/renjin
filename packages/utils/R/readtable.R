@@ -26,17 +26,36 @@ function(file, sep = "", quote = "\"'", skip = 0,
     }
     if(!inherits(file, "connection"))
         stop("'file' must be a character string or connection")
-    Tables$countfields(file, sep, quote, skip, blank.lines.skip,
+    .External(C_countfields, file, sep, quote, skip, blank.lines.skip,
               comment.char)
 }
 
-
 type.convert <-
-function(x, na.strings = "NA", as.is = FALSE, dec = ".",
-	 numerals = c("allow.loss", "warn.loss", "no.loss"))
-    Tables$typeconvert(x, na.strings, as.is, dec,
-               match.arg(numerals))
+function(x, ...)
+    UseMethod("type.convert")
 
+type.convert.default <-
+function(x, na.strings = "NA", as.is = FALSE, dec = ".",
+         numerals = c("allow.loss", "warn.loss", "no.loss"), ...)
+{
+    if(is.array(x))
+        storage.mode(x) <- "character"
+    else
+        x <- as.character(x)
+
+    Tables$typeconvert(x, na.strings, as.is, dec,
+                   match.arg(numerals))
+}
+
+type.convert.list <-
+function(x, ...)
+{
+    for(i in seq_along(x))
+        x[[i]] <- type.convert(x[[i]], ...)
+    x
+}
+
+type.convert.data.frame <- type.convert.list
 
 read.table <-
 function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
@@ -104,7 +123,7 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
                                       blank.lines.skip = blank.lines.skip,
                                       comment.char = comment.char,
                                       allowEscapes = allowEscapes,
-				                      encoding = encoding,
+				      encoding = encoding,
                                       skipNul = skipNul))
         cols <- max(col1, col)
 
@@ -210,8 +229,8 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
     for (i in (1L:cols)[do]) {
         data[[i]] <-
             if (is.na(colClasses[i]))
-                type.convert(data[[i]], as.is = as.is[i], dec = dec,
-			     numerals = numerals, na.strings = character(0L))
+                type.convert(data[[i]], as.is = as.is[i], dec=dec,
+			     numerals=numerals, na.strings = character(0L))
         ## as na.strings have already been converted to <NA>
             else if (colClasses[i] == "factor") as.factor(data[[i]])
             else if (colClasses[i] == "Date") as.Date(data[[i]])

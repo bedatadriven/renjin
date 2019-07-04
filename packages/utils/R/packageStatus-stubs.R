@@ -25,6 +25,24 @@ summary.packageStatus <- function(object, ...)
     stop("Not supported. Renjin does not maintain a local package repository")
 }
 
+print.packageStatus <- function(object, ...)
+{
+    stop("Not supported. Renjin does not maintain a local package repository")
+
+}
+
+upgrade.packageStatus <- function(object, ...)
+{
+    stop("Not supported. Renjin does not maintain a local package repository")
+}
+
+
+print.summary.packageStatus <- function(object, ...)
+{
+    stop("Not supported. Renjin does not maintain a local package repository")
+
+}
+
 
 upgrade <- function(object, ...)
     UseMethod("upgrade")

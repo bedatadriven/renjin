@@ -1,7 +1,7 @@
 #  File src/library/utils/R/help.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 help <-
 function(topic, package = NULL, lib.loc = NULL,
@@ -23,15 +23,14 @@ function(topic, package = NULL, lib.loc = NULL,
          help_type = getOption("help_type"))
 {
     types <- c("text", "html", "pdf")
+    help_type <- if(!length(help_type)) "text"
+		 else match.arg(tolower(help_type), types)
     if(!missing(package)) # Don't check for NULL; may be nonstandard eval
         if(is.name(y <- substitute(package)))
             package <- as.character(y)
-
     ## If no topic was given ...
     if(missing(topic)) {
         if(!is.null(package)) {	# "Help" on package.
-            help_type <- if(!length(help_type)) "text"
-            else match.arg(tolower(help_type), types)
             ## Carter Butts and others misuse 'help(package=)' in startup
             if (interactive() && help_type == "html") {
                 port <- tools::startDynamicHelp(NA)
@@ -55,8 +54,7 @@ function(topic, package = NULL, lib.loc = NULL,
     }
 
     ischar <- tryCatch(is.character(topic) && length(topic) == 1L,
-                       error = identity)
-    if(inherits(ischar, "error")) ischar <- FALSE
+                       error = function(e) FALSE)
     ## if this was not a length-one character vector, try for the name.
     if(!ischar) {
         ## the reserved words that could be parsed as a help arg:
@@ -69,16 +67,12 @@ function(topic, package = NULL, lib.loc = NULL,
         topic <- stopic
     }
 
-    help_type <- if(!length(help_type)) "text"
-    else match.arg(tolower(help_type), types)
-
     paths <- index.search(topic,
                           find.package(if (is.null(package)) loadedNamespaces() else package,
 			               lib.loc, verbose = verbose))
-    tried_all_packages <- FALSE
-    if(!length(paths)
-       && is.logical(try.all.packages) && !is.na(try.all.packages)
-       && try.all.packages && is.null(package) && is.null(lib.loc)) {
+    try.all.packages <- !length(paths) && is.logical(try.all.packages) &&
+        !is.na(try.all.packages) && try.all.packages && is.null(package) && is.null(lib.loc)
+    if(try.all.packages) {
         ## Try all the remaining packages.
         for(lib in .libPaths()) {
             packages <- .packages(TRUE, lib)
@@ -86,15 +80,12 @@ function(topic, package = NULL, lib.loc = NULL,
             paths <- c(paths, index.search(topic, file.path(lib, packages)))
         }
         paths <- paths[nzchar(paths)]
-        tried_all_packages <- TRUE
     }
 
-    paths <- unique(paths)
-    attributes(paths) <-
-        list(call = match.call(), topic = topic,
-             tried_all_packages = tried_all_packages, type = help_type)
-    class(paths) <- "help_files_with_topic"
-    paths
+    structure(unique(paths),
+	      call = match.call(), topic = topic,
+	      tried_all_packages = try.all.packages, type = help_type,
+	      class = "help_files_with_topic")
 }
 
 print.help_files_with_topic <- function(x, ...)
@@ -145,10 +136,10 @@ print.help_files_with_topic <- function(x, ...)
                       browser)
         } else {
             writeLines(c(strwrap(msg), "",
-                         paste(" ",
-                               formatDL(c(gettext("Package"), basename(paths)),
-                                        c(gettext("Library"), dirname(paths)),
-                                        indent = 22))))
+                         paste0("  ",
+                                formatDL(c(gettext("Package"), basename(paths)),
+                                         c(gettext("Library"), dirname(paths)),
+                                         indent = 22))))
         }
     } else {
         if(length(paths) > 1L) {
@@ -167,7 +158,7 @@ print.help_files_with_topic <- function(x, ...)
             txt <- formatDL(c("Package", basename(paths)),
                             c("Library", dirname(paths)),
                             indent = 22L)
-            writeLines(c(strwrap(msg), "", paste(" ", txt), ""))
+            writeLines(c(strwrap(msg), "", paste0("  ", txt), ""))
             if(interactive()) {
                 fp <- file.path(paths, "Meta", "Rd.rds")
                 tp <- basename(p)
@@ -254,7 +245,7 @@ print.help_files_with_topic <- function(x, ...)
     cat("\\end{document}\n", file = texfile, append = TRUE)
     helper <- if (exists("offline_help_helper", envir = .GlobalEnv))
         get("offline_help_helper", envir = .GlobalEnv)
-    else utils:::offline_help_helper
+    else offline_help_helper
     if (has_figure) helper(texfile, type, texinputs)
     else helper(texfile, type)
     invisible()
@@ -269,7 +260,7 @@ print.help_files_with_topic <- function(x, ...)
         stop(gettextf("invalid %s argument", sQuote("file")), domain = NA)
     pkgname <- basename(dirpath)
     RdDB <- file.path(path, pkgname)
-    if(!file.exists(paste(RdDB, "rdx", sep = ".")))
+    if(!file.exists(paste0(RdDB, ".rdx")))
         stop(gettextf("package %s exists but was not installed under R >= 2.10.0 so help cannot be accessed", sQuote(pkgname)), domain = NA)
     tools:::fetchRdDB(RdDB, basename(file))
 }

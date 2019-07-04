@@ -1,7 +1,7 @@
 #  File src/library/utils/R/summRprof.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 # The profile file always starts with a single header line followed by stack lines
 #   If the header contains "memory profiling", the stack lines have memory info
@@ -112,7 +112,7 @@ summaryRprof <-
        chunk <- strsplit(chunk, " ")
        if (line.profiling)
            chunk <- lapply(chunk, function(x) {
-           	locations <- !grepl("^\"", x)
+           	locations <- !startsWith(x, '"')
            	if (lines != "hide") {
            	    fnum <- sub("#.*", "", x[locations])
            	    lnum <- sub(".*#", "", x[locations])
@@ -205,6 +205,8 @@ Rprof_memory_summary <- function(filename, chunksize = 5000,
                          "match.length")
        memstuff <- substr(chunk, 2L, memprefix-1L)
        memcounts <- rbind(t(sapply(strsplit(memstuff, ":"), as.numeric)))
+       ## convert to bytes
+       memcounts <- cbind(memcounts[, 1L:2L, drop = FALSE] * 8, memcounts[, 3L:4L, drop = FALSE])
 
        chunk <- substr(chunk, memprefix+1, nchar(chunk,  "c"))
        if(any((nc <- nchar(chunk,  "c")) == 0L)) {
@@ -263,7 +265,7 @@ Rprof_memory_summary <- function(filename, chunksize = 5000,
     names(memcounts) <- c("vsize.small", "vsize.large", "nodes", "duplications")
     if (!aggregate) {
         rownames(memcounts) <- (1L:nrow(memcounts))*sample.interval
-        names(labels) <- paste("stack", label, sep = ":")
+        names(labels) <- paste0("stack:", label)
         memcounts <- cbind(memcounts, labels)
     }
 

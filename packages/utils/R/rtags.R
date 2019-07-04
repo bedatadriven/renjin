@@ -1,5 +1,5 @@
 #  File src/library/tools/R/rtags.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
 #  Copyright (C) 1995-2013, 2015 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 
 
@@ -23,7 +23,7 @@
 ### parser.  Support for vi-style tags could be useful, but it needs
 ### the tags file needs to be sorted, making file-by-file processing
 ### difficult. It may be easier to write a script to convert an etags
-### format file (see http://http://en.wikipedia.org/wiki/Ctags).
+### format file (see http://https://en.wikipedia.org/wiki/Ctags).
 
 
 

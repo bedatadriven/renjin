@@ -1,5 +1,5 @@
 #  File src/library/utils/R/widgets.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
 #  Copyright (C) 1995-2012 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 select.list <-
     function(choices, preselect = NULL, multiple = FALSE, title = NULL,
@@ -27,11 +27,11 @@ select.list <-
         if (.Platform$OS.type == "windows" || .Platform$GUI == "AQUA")
         return(.External2(C_selectlist, choices, preselect, multiple, title))
         ## must be Unix here
-        ## Tk might not require X11 on Mac OS X, but if DISPLAY is set
+        ## Tk might not require X11 on macOS, but if DISPLAY is set
         ## this will work for Aqua Tcl/Tk.
         ## OTOH, we do want to check Tk works!
         else if(graphics && capabilities("tcltk") &&
-                capabilities("X11") && suppressWarnings(tcltk:::.TkUp))
+                capabilities("X11") && suppressWarnings(tcltk::.TkUp))
             return(tcltk::tk_select.list(choices, preselect, multiple, title))
     }
     ## simple text-based alternatives.
@@ -52,8 +52,8 @@ select.list <-
             nw <- nchar(fop[1L], "w") + 2L
             ncol <- getOption("width") %/% nw
             if(ncol > 1L)
-                op <- paste(fop, c(rep("  ", ncol - 1L), "\n"),
-                            sep = "", collapse="")
+                op <- paste0(fop, c(rep("  ", ncol - 1L), "\n"),
+                             collapse = "")
             cat("", op, sep = "\n")
         } else cat("", op, "", sep = "\n")
         cat(gettext("Enter one or more numbers separated by spaces, or an empty line to cancel\n"))
@@ -69,8 +69,6 @@ select.list <-
     }
 }
 
-# Stubbed out for Renjin 
+flush.console <- function() invisible(.Call(C_flushconsole))
 
-flush.console <- function() invisible(NULL)
-
-process.events <- function() invisible(NULL)
+process.events <- function() invisible(.Call(C_processevents))

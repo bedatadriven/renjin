@@ -1,5 +1,5 @@
 #  File src/library/utils/R/adist.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
 #  Copyright (C) 1995-2012 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 adist <-
 function(x, y = NULL, costs = NULL, counts = FALSE, fixed = TRUE,
@@ -37,9 +37,9 @@ function(x, y = NULL, costs = NULL, counts = FALSE, fixed = TRUE,
         names(y) <- nmy
     }
 
-    if(!identical(fixed, FALSE) && !identical(partial, TRUE)) {
+    if(!isFALSE(fixed) && !isTRUE(partial)) {
         ex <- Encoding(x)
-        useBytes <- identical(useBytes, TRUE) || any(ex == "bytes")
+        useBytes <- isTRUE(useBytes) || any(ex == "bytes")
         if(!is.null(y)) {
             ey <- Encoding(y)
             useBytes <- useBytes || any(ey == "bytes")
@@ -52,7 +52,7 @@ function(x, y = NULL, costs = NULL, counts = FALSE, fixed = TRUE,
                 lapply(y, bytesToInt)
             }
         } else {
-            ignore.case <- identical(ignore.case, TRUE)
+            ignore.case <- isTRUE(ignore.case)
             x <- if(ignore.case) {
                 lapply(tolower(enc2utf8(x)), utf8ToInt)
             } else {

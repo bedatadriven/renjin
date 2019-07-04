@@ -1,7 +1,7 @@
 #  File src/library/utils/R/indices.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 packageDescription <-
     function(pkg, lib.loc = NULL, fields = NULL, drop = TRUE, encoding = "")
@@ -29,7 +29,9 @@ packageDescription <-
     ## the loaded packages/namespaces are searched before the libraries.
     pkgpath <-
 	if(is.null(lib.loc)) {
-	    if(isNamespaceLoaded(pkg))
+	    if(pkg == "base")
+		file.path(.Library, "base")
+	    else if(isNamespaceLoaded(pkg))
 		getNamespaceInfo(pkg, "path")
 	    else if((envname <- paste0("package:", pkg)) %in% search()) {
 		attr(as.environment(envname), "path")
@@ -78,11 +80,22 @@ packageDescription <-
             ## Determine encoding and re-encode if necessary and possible.
             if (missing(encoding) && Sys.getlocale("LC_CTYPE") == "C")
                 encoding <- "ASCII//TRANSLIT"
-            ## might have an invalid encoding ...
-            newdesc <- try(lapply(desc, iconv, from = enc, to = encoding))
-            if(!inherits(newdesc, "try-error")) desc <- newdesc
-            else
-                warning("'DESCRIPTION' file has an 'Encoding' field and re-encoding is not possible", call. = FALSE)
+	    if(encoding != enc) { # try to translate from 'enc' to 'encoding' --------
+		## might have an invalid encoding ...
+		newdesc <- try(lapply(desc, iconv, from = enc, to = encoding))
+		dOk <- function(nd) !inherits(nd, "error") && !anyNA(nd)
+		ok <- dOk(newdesc)
+		if(!ok) # try again
+		    ok <- dOk(newdesc <- try(lapply(desc, iconv, from = enc,
+						    to = paste0(encoding,"//TRANSLIT"))))
+		if(!ok) # try again
+		    ok <- dOk(newdesc <- try(lapply(desc, iconv, from = enc,
+						    to = "ASCII//TRANSLIT", sub = "?")))
+		if(ok)
+		    desc <- newdesc
+		else
+		    warning("'DESCRIPTION' file has an 'Encoding' field and re-encoding is not possible", call. = FALSE)
+	    }
         }
         if(!is.null(fields)){
             ok <- names(desc) %in% fields
@@ -140,20 +153,44 @@ maintainer <- function(pkg)
 
 packageVersion <- function(pkg, lib.loc = NULL)
 {
-    if(pkg %in% c("base", "stats", "graphics", "grDevices", "datasets", "grid", "hamcrest",
-                    "methods", "parallel", "splines", "stats4", "tools","utils")) {
-
-
-        rv <- R.Version()
-        pv <- package_version(sprintf("%d.%s", rv$major, rv$minor))
-        return(pv)
-    }
-
     res <- suppressWarnings(packageDescription(pkg, lib.loc=lib.loc,
                                                fields = "Version"))
     if (!is.na(res)) package_version(res) else
     stop(gettextf("package %s not found", sQuote(pkg)), domain = NA)
 }
+
+##' Auxiliary: generalize extraction from "Built"
+asDateBuilt <- function(built) {
+    as.Date(strsplit(built, split="; ", fixed=TRUE)[[1L]][[3L]],
+            format = "%Y-%m-%d")
+}
+
+packageDate <- function(pkg, lib.loc = NULL,
+	date.fields = c("Date", "Packaged", "Date/Publication", "Built"),
+        tryFormats = c("%Y-%m-%d", "%Y/%m/%d", "%D", "%m/%d/%y"),
+	desc = packageDescription(pkg, lib.loc=lib.loc, fields=date.fields))
+{
+    useDesc <- is.list(desc) && length(names(desc)) >= 1
+    for (fld in date.fields) {
+	res <- if(useDesc) {
+		   r <- desc[[fld]]
+		   if(is.null(r)) NA_character_ else r
+	       } else
+		   packageDescription(pkg, lib.loc=lib.loc, fields = fld)
+	res <- if(fld == "Built" && !is.na(res))
+		   tryCatch(asDateBuilt(res),
+			    error = function(e) {
+				warning("Invalid \"Built\": ", conditionMessage(e))
+				NA_character_
+			    })
+	       else as.Date(res, tryFormats=tryFormats,
+			    optional = TRUE)# NA instead of errror
+	if (!is.na(res))
+	    break
+    }
+    if(is.na(res)) res else structure(res, field = fld) # NA or 'Date' object
+}
+
 
 ## used with firstOnly = TRUE for example()
 ## used with firstOnly = FALSE in help()

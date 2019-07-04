@@ -1,7 +1,7 @@
 #   File src/library/utils/R/Sweave.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ### The drivers are now in SweaveDrivers.R
 
@@ -417,7 +417,7 @@ SweaveHooks <- function(options, run = FALSE, envir = .GlobalEnv)
 }
 
 ### For R CMD xxxx ------------------------------------------
-.Sweave <- function(args = NULL)
+.Sweave <- function(args = NULL, no.q = interactive())
 {
     options(warn = 1)
     if (is.null(args)) {
@@ -447,11 +447,15 @@ SweaveHooks <- function(options, run = FALSE, envir = .GlobalEnv)
             '                  "no" (default), "qpdf", "gs", "gs+qpdf", "both"',
             "  --compact       same as --compact=qpdf",
             "",
-            "Report bugs at bugs.r-project.org .",
+            "Report bugs at <https://bugs.R-project.org>.",
             sep = "\n")
     }
-    do_exit <- function(status = 0L)
-        q("no", status = status, runLast = FALSE)
+    do_exit <-
+	if(no.q)
+	    function(status = 0L) (if(status) stop else message)(
+		".Sweave() exit status ", status)
+	else
+	    function(status = 0L) q("no", status = status, runLast = FALSE)
 
     if (!length(args)) {
         Usage()
@@ -528,7 +532,7 @@ SweaveHooks <- function(options, run = FALSE, envir = .GlobalEnv)
 	## .build_packages() ...
 	message("Compacting PDF document")
 	if(compact %in% c("gs", "gs+qpdf", "both")) {
-	    gs_cmd <- tools:::find_gs_cmd(Sys.getenv("R_GSCMD", ""))
+	    gs_cmd <- tools::find_gs_cmd(Sys.getenv("R_GSCMD", ""))
 	    gs_quality <- "ebook"
 	} else {
 	    gs_cmd <- ""
@@ -547,7 +551,7 @@ SweaveHooks <- function(options, run = FALSE, envir = .GlobalEnv)
     do_exit()
 }
 
-.Stangle <- function(args = NULL)
+.Stangle <- function(args = NULL, no.q = interactive())
 {
     options(warn = 1)
     if (is.null(args)) {
@@ -568,17 +572,20 @@ SweaveHooks <- function(options, run = FALSE, envir = .GlobalEnv)
             "  --encoding=enc  assume encoding 'enc' for file",
             "  --options=      comma-separated list of Stangle options",
             "",
-            "Report bugs at bugs@r-project.org .",
+            "Report bugs at <https://bugs.R-project.org>.",
             sep = "\n")
     }
-    do_exit <- function(status = 0L)
-        q("no", status = status, runLast = FALSE)
+    do_exit <-
+	if(no.q)
+	    function(status = 0L) (if(status) stop else message)(
+		".Stangle() exit status ", status)
+	else
+	    function(status = 0L) q("no", status = status, runLast = FALSE)
 
     if (!length(args)) {
         Usage()
         do_exit(1L)
     }
-
     file <- character()
     encoding <- options <- ""
     engine <- NULL

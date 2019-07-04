@@ -1,7 +1,7 @@
 #  File src/library/utils/R/frametools.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,11 +14,11 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 stack <- function(x, ...) UseMethod("stack")
 
-stack.data.frame <- function(x, select, ...)
+stack.data.frame <- function(x, select, drop=FALSE, ...)
 {
     if (!missing(select)) {
 	nl <- as.list(1L:ncol(x))
@@ -26,26 +26,32 @@ stack.data.frame <- function(x, select, ...)
 	vars <- eval(substitute(select),nl, parent.frame())
         x <- x[, vars, drop=FALSE]
     }
-    keep <- unlist(lapply(x, is.vector))
-    if(!sum(keep)) stop("no vector columns were selected")
-    if(!all(keep))
-        warning("non-vector columns will be ignored")
+    keep <- vapply(x, is.vector, NA)
+    if(!any(keep)) stop("no vector columns were selected")
+    if(!all(keep)) warning("non-vector columns will be ignored")
     x <- x[, keep, drop = FALSE]
-    ## need to avoid promotion to factors
+    ind <- rep(factor(names(x), unique(names(x))), lengths(x))
+    if (drop) {
+        ind <- droplevels(ind)
+    }
     data.frame(values = unlist(unname(x)),
-               ind = factor(rep.int(names(x), lengths(x))),
+               ind,
                stringsAsFactors = FALSE)
 }
 
-stack.default <- function(x, ...)
+stack.default <- function(x, drop=FALSE, ...)
 {
     x <- as.list(x)
     keep <- unlist(lapply(x, is.vector))
     if(!sum(keep)) stop("at least one vector element is required")
     if(!all(keep)) warning("non-vector elements will be ignored")
     x <- x[keep]
+    ind <- rep(factor(names(x), unique(names(x))), lengths(x))
+    if (drop) {
+        ind <- droplevels(ind)
+    }
     data.frame(values = unlist(unname(x)),
-               ind = factor(rep.int(names(x), lengths(x))),
+               ind,
                stringsAsFactors = FALSE)
 }
 

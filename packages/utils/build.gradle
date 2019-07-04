@@ -4,6 +4,8 @@ apply from: '../../gradle/package.gradle'
 
 dependencies {
     compile project(':core')
+    compile project(':packages:tools')
+    
     testCompile project(':packages:hamcrest')
 }
 

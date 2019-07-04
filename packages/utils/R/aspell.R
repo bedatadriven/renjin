@@ -1,7 +1,7 @@
 #  File src/library/utils/R/aspell.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 aspell <-
 function(files, filter, control = list(), encoding = "unknown",
@@ -78,7 +78,7 @@ function(files, filter, control = list(), encoding = "unknown",
     else if(!is.function(filter))
         stop("Invalid 'filter' argument.")
 
-    encoding <- rep(encoding, length.out = length(files))
+    encoding <- rep_len(encoding, length(files))
 
     verbose <- getOption("verbose")
 
@@ -207,8 +207,7 @@ function(files, filter, control = list(), encoding = "unknown",
 
 	## Look at words not in dictionary with suggestions.
 
-	ind <- grepl("^&", lines)
-	if(any(ind)) {
+	if(any(ind <- startsWith(lines, "&"))) {
 	    info <- strsplit(lines[ind], ": ", fixed = TRUE)
 	    one <- strsplit(sapply(info, `[`, 1L), " ",  fixed = TRUE)
 	    two <- strsplit(sapply(info, `[`, 2L), ", ", fixed = TRUE)
@@ -223,8 +222,7 @@ function(files, filter, control = list(), encoding = "unknown",
 	    db <- rbind(db, db1)
 	}
 	## Looks at words not in dictionary with no suggestions.
-	ind <- grepl("^#", lines)
-	if(any(ind)) {
+	if(any(ind <- startsWith(lines, "#"))) {
 	    one <- strsplit(lines[ind], " ", fixed = TRUE)
 	    db1 <- data.frame(Original =
 			      as.character(sapply(one, `[`, 2L)),
@@ -268,8 +266,7 @@ function(x, sort = TRUE, verbose = FALSE, indent = 2L, ...)
                    from,
                    split(x$Suggestions, x$Original)))
     } else {
-        sep <- sprintf("\n%s",
-                       paste(rep.int(" ", indent), collapse = ""))
+        sep <- sprintf("\n%s", strrep(" ", indent))
         paste(names(from),
               sapply(from, paste, collapse = sep),
               sep = sep)
@@ -336,8 +333,7 @@ function(dictionaries, dirnames = character())
     dirnames <- c(file.path(R.home("share"), "dictionaries"), dirnames)
 
     ## For now, all dictionary files should be .rds files.
-    ind <- !grepl("\\.rds$", dictionaries)
-    if(any(ind))
+    if(any(ind <- !endsWith(dictionaries, ".rds")))
         dictionaries[ind] <- sprintf("%s.rds", dictionaries[ind])
 
     out <- character(n)
@@ -354,7 +350,6 @@ function(dictionaries, dirnames = character())
         out[pos] <- find_files_in_directories(dictionaries[pos],
                                               dirnames)
     }
-
     out
 }
 
@@ -540,8 +535,13 @@ function(dir, drop = c("\\author", "\\references"),
         ## </FIXME>
     }
 
+    macros <- tools::loadPkgRdMacros(dir,
+                                     macros = file.path(R.home("share"), 
+                                                        "Rd", "macros",
+                                                        "system.Rd"))
+
     aspell(files,
-           filter = list("Rd", drop = drop),
+           filter = list("Rd", drop = drop, macros = macros),
            control = control,
            encoding = encoding,
            program = program,
@@ -727,7 +727,7 @@ function(ifile, encoding = "unknown", ignore = character())
                 col1 <- which(ptab == col1) + 1L
             }
             substring(lines[line1], col1) <- texts[1L]
-            pos <- seq(from = 2, length.out = n - 2)
+            pos <- seq(from = 2L, length.out = n - 2L)
             if(length(pos))
                 lines[line1 + pos - 1] <- texts[pos]
             if(length(ptab <- tab[[as.character(line2)]])) {
@@ -737,10 +737,7 @@ function(ifile, encoding = "unknown", ignore = character())
         }
     }
 
-    for(re in ignore[nzchar(ignore)])
-        lines <- blank_out_regexp_matches(lines, re)
-
-    lines
+    blank_out_ignores_in_lines(lines, ignore)
 }
 
 get_parse_data_for_message_strings <-
@@ -775,6 +772,8 @@ function(file, encoding = "unknown")
     calls <- getParseText(pd, ids)
 
     table <- pd[pd$token == "STR_CONST", ]
+    ## Could have run into truncation ...
+    table$text <- getParseText(table, table$id)
     pos <- match(gpids(table$id), ids)
     ind <- !is.na(pos)
     table <- split(table[ind, ], factor(pos[ind], seq_along(ids)))
@@ -918,11 +917,11 @@ function (ifile, encoding = "unknown", ignore = character())
         out <- character(length(s))
         i <- 1L
         out[i] <- blank_out_regexp_matches(s[i], "^msgid[ \t]+\"")
-        while(grepl("^\"", s[i <- i + 1L]))
+        while(startsWith(s[i <- i + 1L], '"'))
             out[i] <- sub("^\"", " ", s[i])
         if(grepl("^msgid_plural[ \t]", s[i])) {
             out[i] <- blank_out_regexp_matches(s[i], "^msgid_plural[ \t]+\"")
-            while(grepl("^\"", s[i <- i + 1L]))
+            while(startsWith(s[i <- i + 1L], '"'))
                 out[i] <- sub("^\"", " ", s[i])
         }
         out
@@ -939,10 +938,7 @@ function (ifile, encoding = "unknown", ignore = character())
     ## blanks, similar to what the R text filter does.
     ## </FIXME>
 
-    for(re in ignore[nzchar(ignore)])
-        lines <- blank_out_regexp_matches(lines, re)
-
-    lines
+    blank_out_ignores_in_lines(lines, ignore)
 }
 
 ## For spell-checking all pot files in a package.
@@ -1057,9 +1053,7 @@ function(ifile, encoding, keep = c("Title", "Description"),
     ind <- !ind
     lines[ind] <- lapply(lines[ind], paste0, " ")
     lines <- unlist(lines, use.names = FALSE)
-    for(re in ignore[nzchar(ignore)])
-        lines <- blank_out_regexp_matches(lines, re)
-    lines
+    blank_out_ignores_in_lines(lines, ignore)
 }
 
 ## For spell-checking package DESCRIPTION files.
@@ -1075,6 +1069,28 @@ function(dir, ignore = character(),
     if(is.na(encoding <- meta["Encoding"]))
         encoding <- "unknown"
 
+    ## Allow providing package defaults but make this controllable via
+    ##   _R_ASPELL_USE_DEFAULTS_FOR_PACKAGE_DESCRIPTION_
+    ## to safeguard against possible mis-use for CRAN incoming checks.
+    defaults <-
+        Sys.getenv("_R_ASPELL_USE_DEFAULTS_FOR_PACKAGE_DESCRIPTION_",
+                   "TRUE")
+    defaults <- if(tools:::config_val_to_logical(defaults)) {
+                    .aspell_package_defaults(dir, encoding)$description
+                } else NULL
+    if(!is.null(defaults)) {
+        if(!is.null(d <- defaults$ignore))
+            ignore <- d
+        if(!is.null(d <- defaults$control))
+            control <- d
+        if(!is.null(d <- defaults$program))
+            program <- d
+        if(!is.null(d <- defaults$dictionaries)) {
+            dictionaries <-
+                aspell_find_dictionaries(d, file.path(dir, ".aspell"))
+        }
+    }
+    
     program <- aspell_find_program(program)
 
     aspell(files,
@@ -1085,6 +1101,48 @@ function(dir, ignore = character(),
            dictionaries = dictionaries)
 }
 
+## Spell-checking Markdown files.
+
+aspell_filter_db$md <-
+function(ifile, encoding = "UTF-8")
+{
+    x <- readLines(ifile, encoding = encoding, warn = FALSE)
+    n <- nchar(x)
+    y <- strrep(rep.int(" ", length(x)), n)
+    ## Determine positions of 'texts' along the lines of
+    ## spelling::parse_text_md () by Jeroen Ooms.
+    md <- commonmark::markdown_xml(x, extensions = TRUE,
+                                   sourcepos = TRUE)
+    doc <- xml2::xml_ns_strip(xml2::read_xml(md))
+    pos <- strsplit(xml2::xml_attr(xml2::xml_find_all(doc,
+                                                      "//text[@sourcepos]"),
+                                   "sourcepos"),
+                    "[:-]")
+    ## Now use the following idea.
+    ## Each elt of pos now has positions for l1:c1 to l2:c2.
+    ## If l1 < l2
+    ##   Lines in (l1, l2) are taken as a whole
+    ##   Line l1 from c1 to nchar for l1
+    ##   Line l2 from  1 to c1
+    ## otherwise
+    ##   Line l1 from c1 to c2.
+    for(p in pos) {
+        p <- as.integer(p)
+        ## Legibility ...
+        l1 <- p[1L]; c1 <- p[2L]; l2 <- p[3L]; c2 <- p[4L]
+        if(l1 < l2) {
+            w <- seq(l1 + 1L, l2 - 1L)
+            if(length(w))
+                y[w] <- x[w]
+            substring(y[l1], c1, n[l1]) <- substring(x[l1], c1, n[l1])
+            substring(y[l2], 1L, c2) <- substring(x[l2], 1L, c2)
+        } else {
+            substring(y[l1], c1, c2) <- substring(x[l1], c1, c2)
+        }
+    }
+    y
+}
+    
 ## For spell checking packages.
 
 aspell_package <-
@@ -1165,17 +1223,27 @@ function(dir, encoding = "unknown")
 ## Utilities.
 
 blank_out_regexp_matches <-
-function(s, re)
+function(s, re, ...)
 {
-    m <- gregexpr(re, s)
-    regmatches(s, m) <- Map(blanks, lapply(regmatches(s, m), nchar))
+    m <- gregexpr(re, s, ...)
+    regmatches(s, m) <-
+        Map(function(n) strrep(" ", n),
+            lapply(regmatches(s, m), nchar))
     s
 }
 
-blanks <-
-function(n) {
-    vapply(Map(rep.int, rep.int(" ", length(n)), n, USE.NAMES = FALSE),
-           paste, "", collapse = "")
+blank_out_ignores_in_lines <-
+function(lines, ignore)
+{
+    args <- list()
+    if(is.list(ignore)) {
+        args <- ignore[-1L]
+        ignore <- ignore[[1L]]
+    }
+    for(re in ignore[nzchar(ignore)])
+        lines <- do.call(blank_out_regexp_matches,
+                         c(list(lines, re), args))
+    lines
 }
 
 find_files_in_directories <-

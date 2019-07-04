@@ -1,5 +1,5 @@
 #  File src/library/utils/R/write.table.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
 #  Copyright (C) 1995-2012 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 write.table <-
 function (x, file = "", append = FALSE, quote = TRUE, sep = " ",
@@ -120,8 +120,8 @@ function (x, file = "", append = FALSE, quote = TRUE, sep = " ",
 	if(append)
 	    warning("appending column names to file")
 	if(quoteC)
-	    col.names <- paste("\"", gsub('"', qstring, col.names),
-                               "\"", sep = "")
+	    col.names <- paste0("\"", gsub('"', qstring, col.names),
+                                "\"")
         writeLines(paste(col.names, collapse = sep), file, sep = eol)
     }
 
@@ -136,8 +136,8 @@ function (x, file = "", append = FALSE, quote = TRUE, sep = " ",
             if(is.object(z) && !is.factor(z)) as.character(z) else z
         })
     }
-    WriteTable$write(as.data.frame(x), file, nrow(x), p, rnames, sep, eol,
-                         na, dec, as.integer(quote), qmethod != "double")
+    invisible(WriteTable$write(as.data.frame(x), file, nrow(x), p, rnames, sep, eol,
+                         na, dec, as.integer(quote), qmethod != "double"))
 }
 
 write.csv <- function(...)

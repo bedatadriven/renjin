@@ -1,5 +1,5 @@
 #  File src/library/utils/R/RSiteSearch.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 RSiteSearch <- function(string,
                         restrict = c("functions", "vignettes", "views"),
@@ -45,7 +45,7 @@ RSiteSearch <- function(string,
 			    "size:descending"	 = "field:size:descending"))
 
     ## we know this is a http:// URL, so encoding should be safe.
-    ## it seems that firefox on Mac OS needs it for {...}
+    ## it seems that firefox on macOS needs it for {...}
     ## OTOH, Namazu does not decode in, say, sort=date:late.
     qstring <- paste(string, mpp, format, sortby, restr, sep = "&")
     browseURL(qstring)

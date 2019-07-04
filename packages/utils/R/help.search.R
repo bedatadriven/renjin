@@ -1,7 +1,7 @@
 #  File src/library/utils/R/help.search.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 .hsearch_db <-
 local({
@@ -43,7 +43,14 @@ function(hDB, path, pkg)
 	base[, "LibPath"] <- path
 	id <- as.character(1:nrow(vDB) + NROW(hDB[[1L]]))
 	base[, "ID"] <- id
-	base[, "Name"] <- sub("\\.[^.]*$", "", basename(vDB$File))
+	base[, "Name"] <- tools::file_path_sans_ext(basename(vDB$PDF))
+        ## As spotted by Henrik Bengtsson <henrik.bengtsson@gmail.com>,
+        ## using tools::file_path_sans_ext(basename(vDB$File) does not
+        ## work as intended, as non-Sweave vignettes could have nested
+        ## extensions (e.g., 'foo.tex.rsp' or 'foo.pdf.asis').
+        ## The docs say that the 'name' is the "base of the vignette
+        ## filename", which can be interpreted as above for the case of
+        ## nested extensions (and in fact, tools:::httpd() does so).
 	base[, "Topic"] <- base[, "Name"]
 	base[, "Title"] <- vDB$Title
 	base[, "Type"] <- "vignette"
@@ -374,6 +381,10 @@ function(package = NULL, lib.loc = NULL,
             flush.console()
         }
 
+        want_type_help <- any(types == "help")
+        want_type_demo <- any(types == "demo")
+        want_type_vignette <- any(types == "vignette")
+
 	if(!is.null(package)) {
 	    packages_in_hsearch_db <- package
             package_paths <- NULL
@@ -431,6 +442,9 @@ function(package = NULL, lib.loc = NULL,
 	dbMat <- vector("list", length(packages_in_hsearch_db) * 4L)
 	dim(dbMat) <- c(length(packages_in_hsearch_db), 4L)
 
+        ## Empty hsearch index:
+        hDB0 <- tools:::.build_hsearch_index(NULL)
+
 	for(p in packages_in_hsearch_db) {
             if(incr && np %% incr == 0L) {
                 message(".", appendLF = FALSE, domain = NA)
@@ -455,40 +469,46 @@ function(package = NULL, lib.loc = NULL,
 	    ## We always load hsearch.rds to establish the format,
 	    ## sometimes vignette.rds.
 
-	    if(file.exists(hs_file <- file.path(path, "Meta", "hsearch.rds"))) {
-		hDB <- readRDS(hs_file)
-		if(!is.null(hDB)) {
-		    ## Fill up possibly missing information.
-		    if(is.na(match("Encoding", colnames(hDB[[1L]]))))
-			hDB[[1L]] <- cbind(hDB[[1L]], Encoding = "")
-                    ## <FIXME>
-                    ## Transition fro old-style to new-style colnames.
-                    ## Remove eventually.
-                    for(i in seq_along(hDB)) {
-                        colnames(hDB[[i]]) <-
-                            tools:::hsearch_index_colnames[[i]]
+            hDB <- NULL
+            if(want_type_help) {
+                if(file.exists(hs_file <-
+                    file.path(path, "Meta", "hsearch.rds"))) {
+                    hDB <- readRDS(hs_file)
+                    if(!is.null(hDB)) {
+                        ## Fill up possibly missing information.
+                        if(is.na(match("Encoding", colnames(hDB[[1L]]))))
+                            hDB[[1L]] <- cbind(hDB[[1L]], Encoding = "")
+                        ## <FIXME>
+                        ## Transition fro old-style to new-style colnames.
+                        ## Remove eventually.
+                        for(i in seq_along(hDB)) {
+                            colnames(hDB[[i]]) <-
+                                tools:::hsearch_index_colnames[[i]]
+                        }
+                        ## </FIXME>
+                    } else if(verbose >= 2L) {
+                        message(gettextf("package %s has empty hsearch data - strangely",
+                                         sQuote(p)),
+                                domain = NA)
+                        flush.console()
                     }
-                    ## </FIXME>
-		    nh <- NROW(hDB[[1L]])
-		    hDB[[1L]] <- cbind(hDB[[1L]],
-		                       Type = rep("help", nh))
-		    if (nh)
-		    	hDB[[1L]][, "LibPath"] <- path
-		    if ("vignette" %in% types)
-		    	hDB <- merge_vignette_index(hDB, path, p)
-		    if ("demo" %in% types)
-		    	hDB <- merge_demo_index(hDB, path, p)
-		    ## Put the hsearch index for the np-th package into the
-		    ## np-th row of the matrix used for aggregating.
-		    dbMat[np, seq_along(hDB)] <- hDB
-		} else if(verbose >= 2L) {
-		    message(gettextf("package %s has empty hsearch data - strangely",
-                                     sQuote(p)), domain = NA)
-                    flush.console()
-                }
-	    }
-	    else if(!is.null(package))
-                warning("no hsearch.rds meta data for package ", p, domain = NA)
+                } else if(!is.null(package))
+                      warning("no hsearch.rds meta data for package ", p,
+                              domain = NA)
+            }
+            if(is.null(hDB))
+                hDB <- hDB0
+            nh <- NROW(hDB[[1L]])
+            hDB[[1L]] <- cbind(hDB[[1L]], Type = rep("help", nh))
+            if(nh)
+                hDB[[1L]][, "LibPath"] <- path
+            if(want_type_vignette)
+                hDB <- merge_vignette_index(hDB, path, p)
+            if(want_type_demo)
+                hDB <- merge_demo_index(hDB, path, p)
+            ## Put the hsearch index for the np-th package into the
+            ## np-th row of the matrix used for aggregating.
+            dbMat[np, seq_along(hDB)] <- hDB
 	}
 
 	if(verbose >= 2L)  {
@@ -498,12 +518,6 @@ function(package = NULL, lib.loc = NULL,
             flush.console()
             ## DEBUG save(dbMat, file="~/R/hsearch_dbMat.rda", compress=TRUE)
         }
-
-	## workaround methods:::rbind() misbehavior:
-	if(.isMethodsDispatchOn()) {
-	    bind_was_on <- methods:::bind_activation(FALSE)
-	    if(bind_was_on) on.exit(methods:::bind_activation(TRUE))
-	}
 
 	## Create the global base, aliases, keywords and concepts tables
 	## via calls to rbind() on the columns of the matrix used for
@@ -559,9 +573,12 @@ function(package = NULL, lib.loc = NULL,
 	bad_IDs <-
 	    unlist(sapply(db,
 			  function(u)
-			  u[rowSums(is.na(nchar(u, "c", TRUE))) > 0, "ID"]))
+                              u[rowSums(is.na(nchar(u, "chars",
+                                                    allowNA = TRUE,
+                                                    keepNA = FALSE))) > 0,
+                                "ID"]))
         ## FIXME: drop this fallback
-	if(length(bad_IDs)) { ## try latin1
+	if(length(bad_IDs)) {           # try latin1
             for(i in seq_along(db)) {
                 ind <- db[[i]][, "ID"] %in% bad_IDs
                 db[[i]][ind, ] <- iconv(db[[i]][ind, ], "latin1", "")
@@ -569,13 +586,26 @@ function(package = NULL, lib.loc = NULL,
             bad_IDs <-
                 unlist(sapply(db,
                               function(u)
-                              u[rowSums(is.na(nchar(u, "c", TRUE))) > 0, "ID"]))
+                                  u[rowSums(is.na(nchar(u, "chars",
+                                                        allowNA = TRUE,
+                                                        keepNA = FALSE))) > 0,
+                                    "ID"]))
         }
 	## If there are any invalid multi-byte character data
 	## left, we simple remove all Rd objects with at least one
 	## invalid entry, and warn.
         if(length(bad_IDs)) {
 	    warning("removing all entries with invalid multi-byte character data")
+	    for(i in seq_along(db)) {
+		ind <- db[[i]][, "ID"] %in% bad_IDs
+		db[[i]] <- db[[i]][!ind, ]
+	    }
+	}
+
+        ## Drop entries without topic as these cannot be accessed.
+        ## (These come from help pages without \alias.)
+        bad_IDs <- db$Base[is.na(db$Base[, "Topic"]), "ID"]
+        if(length(bad_IDs)) {
 	    for(i in seq_along(db)) {
 		ind <- db[[i]][, "ID"] %in% bad_IDs
 		db[[i]] <- db[[i]][!ind, ]

@@ -1,5 +1,5 @@
 #  File src/library/utils/R/relist.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
 #  Copyright (C) 1995-2013 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 # relist.R -- an inverse operator to unlist
 # written by Andrew Clausen <clausen@econ.upenn.edu> in 2007
@@ -122,10 +122,10 @@ relist.list <- function(flesh, skeleton=attr(flesh, "skeleton"))
     ind <- 1L
     result <- skeleton
     for (i in seq_along(skeleton)) {
-	length <- length(unlist(result[[i]]))
+	size <- length(unlist(result[[i]]))
 	result[[i]] <-
-	    relist(flesh[seq.int(ind, length.out = length)], result[[i]])
-	ind <- ind + length
+	    relist(flesh[seq.int(ind, length.out = size)], result[[i]])
+	ind <- ind + size
     }
     result
 }
@@ -142,10 +142,10 @@ relist.matrix <- function(flesh, skeleton=attr(flesh, "skeleton"))
     ind <- 1L
     for (j in seq_len(m))
 	for (i in seq_len(n)) {
-	    length <- length(unlist(skeleton[[i, j]]))
-	    result[[i, j]] <- relist(flesh[seq.int(ind, length.out = length)],
+	    size <- length(unlist(skeleton[[i, j]]))
+	    result[[i, j]] <- relist(flesh[seq.int(ind, length.out = size)],
 				     skeleton[[i, j]])
-	    ind <- ind + length
+	    ind <- ind + size
 	}
     result
 }

@@ -1,7 +1,7 @@
 #  File src/library/utils/R/question.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2014 The R Core Team
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 `?` <-
 function(e1, e2)
@@ -33,7 +33,7 @@ function(e1, e2)
 	    is.call(te <- topicExpr[[2L]]) && te[[1L]] == "?") {
 	    cat("Contacting Delphi...")
 	    flush.console()
-	    Sys.sleep(2+rpois(1,2))
+	    Sys.sleep(2 + stats::rpois(1,2))
 	    cat("the oracle is unavailable.\nWe apologize for any inconvenience.\n")
 	    return(invisible())
 	}
@@ -114,15 +114,24 @@ function(expr, envir, doEval = TRUE)
     }
 
     f <- expr[[1L]]                     # the function specifier
-    where <- topenv(envir)              # typically .GlobalEnv
+    if (is.call(f) && (f[[1L]] == "::" || f[[1L]] == ":::")) {
+	package <- f[[2L]]
+	where <- paste0("package:", package)
+	if (!(where %in% search()))
+	    where <- NULL
+	f <- f[[3L]]
+    } else {
+	package <- NULL
+        where <- topenv(envir)              # typically .GlobalEnv
+    }
     if(is.name(f))
         f <- as.character(f)
-    if(!.isMethodsDispatchOn() || !methods::isGeneric(f, where = where)) {
+    if(is.null(where) || !.isMethodsDispatchOn() || !methods::isGeneric(f, where = where)) {
         if(!is.character(f) || length(f) != 1L)
             stop(gettextf("the object of class %s in the function call %s could not be used as a documentation topic",
                           dQuote(class(f)), sQuote(deparse(expr))),
                  domain = NA)
-        h <- .tryHelp(f)
+        h <- .tryHelp(f, package = package)
         if(is.null(h))
             stop(gettextf("no methods for %s and no documentation for it as a function",
                           sQuote(f)),
@@ -136,39 +145,8 @@ function(expr, envir, doEval = TRUE)
         }
         else
             fdef <- methods::getGeneric(f, where = where)
-        args <- formals(fdef)
-        call <- match.call(fdef, expr, expand.dots=FALSE)
-        args[names(call[-1L])] <- call[-1L]
-        if ("..." %in% names(call))
-            args$... <- args$...[[1L]]
-        ## make the signature
-        sigNames <- fdef@signature
-        sigClasses <- rep.int("missing", length(sigNames))
-        names(sigClasses) <- sigNames
-        for(arg in sigNames) {
-            argExpr <- methods::elNamed(args, arg)
-            if(!missing(argExpr) && !is.null(argExpr)) {
-                simple <- (is.character(argExpr) || is.name(argExpr))
-                ## TODO:  ideally, if doEval is TRUE, we would like to
-                ## create the same context used by applyClosure in
-                ## eval.c, but then skip the actual evaluation of the
-                ## body.  If we could create this environment then
-                ## passing it to selectMethod is closer to the semantics
-                ## of the "real" function call than the code below.
-                ## But, seems to need a change to eval.c and a flag to
-                ## the evaluator.
-                if(doEval || !simple) {
-                    argVal <- try(eval(argExpr, envir))
-                    if(methods::is(argVal, "try-error"))
-                        stop(gettextf("error in trying to evaluate the expression for argument %s (%s)",
-                                      sQuote(arg), deparse(argExpr)),
-                             domain = NA)
-                    sigClasses[[arg]] <- class(argVal)[1L]
-                }
-                else
-                    sigClasses[[arg]] <- as.character(argExpr)
-            }
-        }
+        sigClasses <- .signatureFromCall(fdef, expr, envir, doEval)
+        sigNames <- names(sigClasses)
         method <- methods::selectMethod(f, sigClasses, optional=TRUE,
                                         fdef = fdef)
         if(methods::is(method, "MethodDefinition")) {
@@ -184,7 +162,7 @@ function(expr, envir, doEval = TRUE)
                              sQuote(sigFormat(sigNames, sigClasses))),
                     domain = NA)
         topic <- topicName("method", c(f, sigClasses))
-        h <- .tryHelp(topic)
+        h <- .tryHelp(topic, package = package)
         if(is.null(h))
             stop(gettextf("no documentation for function %s and signature %s",
                           sQuote(f),
@@ -205,7 +183,5 @@ function(topic, package = NULL)
     ## an error.)
     h <- tryCatch(do.call("help", list(topic, package = package)),
                   error = identity)
-    if(inherits(h, "error") || !length(h))
-        h <- NULL
-    h
+    if(inherits(h, "error") || !length(h)) NULL else h
 }

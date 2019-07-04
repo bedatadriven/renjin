@@ -1,0 +1,23 @@
+
+
+dependencies {
+    compile project(':core')
+    compile project(':repl')
+
+    compile project(':packages:stats')
+    compile project(':packages:graphics')
+    compile project(':packages:grDevices')
+    compile project(':packages:methods')
+    compile project(':packages:utils')
+    compile project(':packages:datasets')
+    compile project(':packages:stats4')
+//    compile project(':packages:compiler')
+    compile project(':packages:splines')
+    compile project(':packages:parallel')
+    compile project(':packages:hamcrest')
+
+    compile project(':tools:aether-package-loader')
+    compile project(':tools:packager')
+    
+    compile libraries.airline
+}

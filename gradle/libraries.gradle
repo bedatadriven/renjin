@@ -5,6 +5,8 @@
 // define conflict resolution rules.
 
 ext {
+    
+    netlibVersion = '1.1'
 
     libraries = [
 

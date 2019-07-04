@@ -18,6 +18,8 @@
  *
  */
 
+apply from: "../gradle/maven.gradle"
+
 dependencies {
 
     compile project(':math:appl')
@@ -50,7 +52,6 @@ sourceSets {
         output.dir versionOutputDir, builtBy: 'writeVersionData'
     }
 }
-
 
 task generateWrappers(type: JavaExec) {
     dependsOn 'writeVersionData'

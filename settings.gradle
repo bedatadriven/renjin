@@ -5,7 +5,7 @@ include 'tools:gcc-bridge:compiler'
 include 'tools:gnur-compiler'
 include 'tools:gnur-runtime'
 include 'tools:packager'
-
+include 'tools:aether-package-loader'
 
 include 'math:common'
 include 'math:nmath'
@@ -16,7 +16,8 @@ include 'math:appl'
 include 'core'
 include 'repl'
 include 'script-engine'
-
+include 'cli'
+include 'dist:generic'
 
 include 'packages:hamcrest'
 include 'packages:grDevices'
@@ -27,6 +28,10 @@ include 'packages:tools'
 include 'packages:datasets'
 include 'packages:methods'
 include 'packages:grid'
+include 'packages:stats4'
+include 'packages:splines'
+//include 'packages:compiler'
+include 'packages:parallel'
 
 include 'test-packages:alpha'
 //include 'test-packages:beta'
@@ -39,7 +44,9 @@ include 'test-packages:alpha'
 include 'test-packages:thirdparty'
 
 include 'tests'
-//
+
+include 'dist:generic'
+
 //include 'cran:Matrix'
 //include 'cran:MASS'
 //include 'cran:lattice'

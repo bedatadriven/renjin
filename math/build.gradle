@@ -1,0 +1,4 @@
+
+subprojects {
+    apply from: rootProject.file("gradle/maven.gradle")
+}

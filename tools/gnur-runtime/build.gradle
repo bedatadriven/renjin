@@ -100,7 +100,8 @@ task buildSymbols(type: JavaExec) {
     args 'org.renjin.gnur.api.Stubs'
 
     doFirst {
-        outputDir.mkdirs()
+        delete outputDir
+        mkdir outputDir
         workingDir outputDir
     }
 }

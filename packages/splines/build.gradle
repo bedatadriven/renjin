@@ -1,0 +1,18 @@
+apply from: '../../gradle/package.gradle'
+
+dependencies {
+    compile project(':core')
+    compile project(':packages:grDevices')
+    compile project(':packages:graphics')
+    compile project(':packages:stats')
+
+    testCompile project(':packages:hamcrest')
+}
+
+compileNamespace {
+    defaultPackages = []
+}
+
+testPackage {
+    defaultPackages = ['grDevices', 'graphics', 'stats']
+}

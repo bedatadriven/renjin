@@ -288,3 +288,7 @@ double rwilcox(rng_t unif_rand, double m, double n)
     return(r - n * (n - 1) / 2);
 }
 
+void wilcox_free(void)
+{
+    // RENJIN NO-OP
+}

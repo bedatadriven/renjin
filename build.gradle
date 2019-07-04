@@ -65,7 +65,6 @@ allprojects {
 
 apply from: "./gradle/libraries.gradle"
 apply from: "./gradle/java.gradle"
-apply from: "./gradle/maven.gradle"
 apply from: "./gradle/upstream.gradle"
 
 // Defines the version based on our major version and the environment

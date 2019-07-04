@@ -1,0 +1,26 @@
+
+dependencies {
+    compile project(':cli')
+    compile 'com.github.fommil.netlib:netlib-native_ref-osx-x86_64:${netlibVersion}:natives'
+    compile 'com.github.fommil.netlib:netlib-native_ref-linux-x86_64:${netlibVersion}:natives'
+    compile 'com.github.fommil.netlib:netlib-native_ref-linux-i686:${netlibVersion}:natives'
+    compile 'com.github.fommil.netlib:netlib-native_ref-win-x86_64:${netlibVersion}:natives'
+    compile 'com.github.fommil.netlib:netlib-native_ref-win-i686:${netlibVersion}:natives'
+    compile 'com.github.fommil.netlib:netlib-native_ref-linux-armhf:${netlibVersion}:natives'
+    compile 'com.github.fommil.netlib:netlib-native_system-osx-x86_64:${netlibVersion}:natives'
+    compile 'com.github.fommil.netlib:netlib-native_system-linux-x86_64:${netlibVersion}:natives'
+    compile 'com.github.fommil.netlib:netlib-native_system-linux-i686:${netlibVersion}:natives'
+    compile 'com.github.fommil.netlib:netlib-native_system-linux-armhf:${netlibVersion}:natives'
+    compile 'com.github.fommil.netlib:netlib-native_system-win-x86_64:${netlibVersion}:natives'
+    compile 'com.github.fommil.netlib:netlib-native_system-win-i686:${netlibVersion}:natives'
+}
+
+
+task distZip(type: Zip) {
+    from (configurations.compile) {
+        into 'dependencies'
+    }
+    from (project.file("src/main/scripts")) {
+        into 'bin'
+    }
+}

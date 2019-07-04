@@ -19,4 +19,9 @@ subprojects {
         testCompile libraries.hamcrest
         testCompile libraries.easymock
     }
+
+    task sourcesJar(type: Jar) {
+        from sourceSets.main.allJava
+        archiveClassifier = 'sources'
+    }
 }

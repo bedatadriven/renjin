@@ -26,10 +26,6 @@
 				   samin() */
 #include <R_ext/Applic.h>
 #include <R_ext/Print.h>	/* for Rprintf */
-#include <R_ext/Error.h>
-
-#define _(String) (String)
-
 
 static double * vect(int n)
 {
@@ -283,7 +279,7 @@ void nmmin(int n, double *Bvec, double *X, double *Fmin, optimfn fminfn,
     double oldsize;
     double **P;
     double size, step, temp, trystep;
-    char tstr[9]; // allow for 10^8 iters ...
+    char tstr[12]; // allow for 10^8 iters and pacify gcc7
     double VH, VL, VR;
 
     if (maxit <= 0) {
@@ -372,7 +368,7 @@ void nmmin(int n, double *Bvec, double *X, double *Fmin, optimfn fminfn,
 
 	    // avoid buffer overflow at 100001 iters. (PR#15240)
 	    if (trace) {
-		snprintf(tstr, 9, "%5d", funcount);
+		snprintf(tstr, 12, "%5d", funcount);
 		Rprintf("%s%s %f %f\n", action, tstr, VH, VL);
 	    }
 
@@ -641,7 +637,7 @@ void cgmin(int n, double *Bvec, double *X, double *Fmin,
 }
 
 /* include setulb() */
-#include "lbfgsb.c"
+#include "lbfgsb.h"
 
 void lbfgsb(int n, int m, double *x, double *l, double *u, int *nbd,
 	    double *Fmin, optimfn fminfn, optimgr fmingr, int *fail,
@@ -741,8 +737,8 @@ void samin(int n, double *pb, double *yb, optimfn fminfn, int maxit,
     double *p, *ptry;
 
     /* Above have: if(trace != 0) trace := REPORT control argument = STEPS */
-    //if (trace < 0)
-	//error(_("trace, REPORT must be >= 0 (method = \"SANN\")"));
+    if (trace < 0)
+	error(_("trace, REPORT must be >= 0 (method = \"SANN\")"));
 
     if(n == 0) { /* don't even attempt to optimize */
 	*yb = fminfn(n, pb, ex);

@@ -82,4 +82,12 @@ public final class Print {
   public static void R_PV(SEXP s) {
     throw new UnimplementedGnuApiMethod("R_PV");
   }
+
+  // Fortran wrappers
+
+  public static void intpr_(Ptr label, Ptr nchar, Ptr data, int labelLength) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+
 }

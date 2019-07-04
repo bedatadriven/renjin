@@ -23,8 +23,10 @@ import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.primitives.packaging.DllSymbol;
+import org.renjin.sexp.SEXP;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,9 +61,21 @@ public final class Rdynload {
         if (def.fun == null) {
           break;
         }
-        library.register(new DllSymbol(def.getName(), def.fun, convention, true));
+        library.register(new DllSymbol(def.getName(), transformMethodHandle(def.fun, convention), convention, true));
       }
     }
+  }
+
+  private static MethodHandle transformMethodHandle(MethodHandle target, DllSymbol.Convention convention) {
+    if(convention == DllSymbol.Convention.EXTERNAL) {
+      if(target.type().parameterCount() == 0) {
+        // Allow this method handle to except an additional argument that
+        // is dropped before calling the function
+        return MethodHandles.dropArguments(target, 0, SEXP.class);
+      }
+    }
+    // Otherwise no transformation required
+    return target;
   }
 
   public static boolean R_useDynamicSymbols(DllInfo info, boolean value) {

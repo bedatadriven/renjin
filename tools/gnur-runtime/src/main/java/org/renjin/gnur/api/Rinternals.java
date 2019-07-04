@@ -497,6 +497,11 @@ public final class Rinternals {
     }
   }
 
+  public static void SHALLOW_DUPLICATE_ATTRIB(SEXP to, SEXP from) {
+    ((AbstractSEXP)to).unsafeSetAttributes(from.getAttributes());
+  }
+
+
   public static int IS_S4_OBJECT(SEXP x) {
     return Types.isS4(x) ? 1 : 0;
   }
@@ -2939,6 +2944,10 @@ public final class Rinternals {
   }
 
   public static boolean Rf_isNumeric(SEXP p0) {
+    // Logical vectors treated EXCEPTIONALLY here:
+    if(p0 instanceof LogicalVector) {
+      return true;
+    }
     return Types.isNumeric(p0);
   }
 

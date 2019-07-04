@@ -92,6 +92,10 @@ public final class Utils {
     }
   }
 
+  public static void rchkusr_() {
+    R_CheckUserInterrupt();
+  }
+
   @Noop
   public static void R_CheckStack() {
     // Noop: JVM will throw a StackOverflowError for us if need be

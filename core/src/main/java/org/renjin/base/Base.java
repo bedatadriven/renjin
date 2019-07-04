@@ -21,6 +21,7 @@ package org.renjin.base;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.Types;
 import org.renjin.primitives.io.serialization.Serialization;
@@ -108,14 +109,14 @@ public class Base {
    * and NAs are (silently) ignored.
    * 
    * @param bin the integer vector to bin
-   * @param length the length of bin
    * @param nbins the number of bins
    * @param ans not used
    * @return 
    */
-  public static PairList R_tabulate(IntVector bin, int length, int nbins, SEXP ans) {
+  @Internal
+  public static IntVector tabulate(IntVector bin, int nbins) {
     int counts[] = new int[nbins];
-    for(int i=0;i!=length;++i) {
+    for(int i=0;i!=bin.length();++i) {
       if(!bin.isElementNA(i)) {
         int value = bin.getElementAsInt(i);
         if(value >= 1 && value <= nbins) {
@@ -123,7 +124,7 @@ public class Base {
         }
       }
     }
-    return PairList.Node.singleton("ans", new IntArrayVector(counts));
+    return IntArrayVector.unsafe(counts);
   }
   
   public static SEXP Rrowsum_df(ListVector x, int ncol, Vector group, SEXP ugroup, boolean naRm) {

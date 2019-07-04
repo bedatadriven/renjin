@@ -18,6 +18,7 @@
  */
 package org.renjin.primitives;
 
+import org.renjin.base.Base;
 import org.renjin.base.Lapack;
 import org.renjin.base.internals.AllNamesVisitor;
 import org.renjin.eval.Context;
@@ -1003,6 +1004,8 @@ public class Primitives {
     f("La_solve_cmplx", Lapack.class, 11);
     f("backsolve", Lapack.class, 11);
 
+
+    f("tabulate", Base.class, 11);
 
     // Build map of reserved functions
     for (Map.Entry<Symbol, PrimitiveFunction> entry : builtins.entrySet()) {

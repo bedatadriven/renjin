@@ -1,5 +1,7 @@
 #  File src/library/base/R/tabulate.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,19 +14,17 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
-tabulate <- function(bin, nbins = max(1L, bin, na.rm=TRUE))
+tabulate <- function(bin, nbins = max(1L, bin, na.rm = TRUE))
 {
     if(!is.numeric(bin) && !is.factor(bin))
 	stop("'bin' must be numeric or a factor")
+    ## avoid a copy for factors, since as.integer strips attributes
+    if (typeof(bin) != "integer") bin <- as.integer(bin)
     if (nbins > .Machine$integer.max)
         stop("attempt to make a table with >= 2^31 elements")
-    .C("R_tabulate",
-       as.integer(bin),
-       as.integer(length(bin)),
-       as.integer(nbins),
-       ans = integer(nbins),
-       NAOK = TRUE,
-       PACKAGE="base")$ans
+    nbins <- as.integer(nbins)
+    if (is.na(nbins)) stop(gettextf("invalid value of %s", "'nbins'"), domain=NA)
+    .Internal(tabulate(bin, nbins))
 }

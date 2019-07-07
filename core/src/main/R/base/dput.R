@@ -1,5 +1,7 @@
 #  File src/library/base/R/dput.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,34 +14,19 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 dput <-
-    function(x, file = "",
-             control = c("keepNA", "keepInteger", "showAttributes"))
+    function(x, file = "", ## keep in sync with deparse()  ./New-Internal.R :
+	     control = c("keepNA", "keepInteger", "niceNames", "showAttributes"))
 {
     if(is.character(file))
         if(nzchar(file)) {
             file <- file(file, "wt")
             on.exit(close(file))
         } else file <- stdout()
-    opts <- .deparseOpts(control)
-    ## FIXME: this should happen in C {deparse2() in ../../../main/deparse.c}
-    ##        but we are missing a C-level slotNames()
-    ## Fails e.g. if an S3 list-like object has S4 components
-    if(isS4(x)) {
-        clx <- class(x)
-        cat('new("', clx,'"\n', file = file, sep = '')
-	      for(n in .slotNames(clx)) {
-	          cat("    ,", n, "= ", file = file)
-	          dput(slot(x, n), file = file, control = control)
-	      }
-	      cat(")\n", file = file)
-	      invisible()
-    } else {
-        cat(deparse(x), file = file, sep = '')
-    }
+    .Internal(dput(x, file, .deparseOpts(control)))
 }
 
-dget <- function(file)
-    eval(parse(file = file))
+dget <- function(file, keep.source = FALSE)
+    eval(parse(file = file, keep.source = keep.source))

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 FINAL_NAME=$1
-ZIP_FILE=distributions/generic.zip
+ZIP_FILE=distributions/renjin.zip
 
 echo Verifying $ZIP_FILE
 

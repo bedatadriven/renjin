@@ -660,13 +660,13 @@ public class Ops  {
 
   @Deferrable
   @Builtin("!")
-  @DataParallel
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static boolean not(boolean value) {
     return !value;
   }
 
   @Builtin("!")
-  @DataParallel
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static byte not(byte value) {
     return (byte)~value;
   }

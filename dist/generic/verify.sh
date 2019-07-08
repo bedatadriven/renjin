@@ -1,17 +1,17 @@
 #!/bin/sh
 
 FINAL_NAME=$1
-ZIP_FILE=$FINAL_NAME.zip
+ZIP_FILE=distributions/generic.zip
 
 echo Verifying $ZIP_FILE
 
-if [ -d target/verify ]
+if [ -d build/verify ]
 then
-    rm -rf target/verify
+    rm -rf build/verify
 fi
 
-mkdir -p target/verify
-cd target/verify
+mkdir -p build/verify
+cd build/verify
 
 unzip ../$ZIP_FILE
 

@@ -14,7 +14,7 @@ publishing {
 
     repositories {
         maven {
-            url = "gcs://renjinci-m2/3.5-beta"
+            url = "gcs://renjinci-repo/m2/3.5-beta"
         }
     }
 }

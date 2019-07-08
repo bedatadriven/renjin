@@ -1,22 +1,27 @@
 
 dependencies {
     compile project(':cli')
-    compile 'com.github.fommil.netlib:netlib-native_ref-osx-x86_64:${netlibVersion}:natives'
-    compile 'com.github.fommil.netlib:netlib-native_ref-linux-x86_64:${netlibVersion}:natives'
-    compile 'com.github.fommil.netlib:netlib-native_ref-linux-i686:${netlibVersion}:natives'
-    compile 'com.github.fommil.netlib:netlib-native_ref-win-x86_64:${netlibVersion}:natives'
-    compile 'com.github.fommil.netlib:netlib-native_ref-win-i686:${netlibVersion}:natives'
-    compile 'com.github.fommil.netlib:netlib-native_ref-linux-armhf:${netlibVersion}:natives'
-    compile 'com.github.fommil.netlib:netlib-native_system-osx-x86_64:${netlibVersion}:natives'
-    compile 'com.github.fommil.netlib:netlib-native_system-linux-x86_64:${netlibVersion}:natives'
-    compile 'com.github.fommil.netlib:netlib-native_system-linux-i686:${netlibVersion}:natives'
-    compile 'com.github.fommil.netlib:netlib-native_system-linux-armhf:${netlibVersion}:natives'
-    compile 'com.github.fommil.netlib:netlib-native_system-win-x86_64:${netlibVersion}:natives'
-    compile 'com.github.fommil.netlib:netlib-native_system-win-i686:${netlibVersion}:natives'
+    compile "com.github.fommil.netlib:netlib-native_ref-osx-x86_64:${netlibVersion}:natives"
+    compile "com.github.fommil.netlib:netlib-native_ref-linux-x86_64:${netlibVersion}:natives"
+    compile "com.github.fommil.netlib:netlib-native_ref-linux-i686:${netlibVersion}:natives"
+    compile "com.github.fommil.netlib:netlib-native_ref-win-x86_64:${netlibVersion}:natives"
+    compile "com.github.fommil.netlib:netlib-native_ref-win-i686:${netlibVersion}:natives"
+    compile "com.github.fommil.netlib:netlib-native_ref-linux-armhf:${netlibVersion}:natives"
+    compile "com.github.fommil.netlib:netlib-native_system-osx-x86_64:${netlibVersion}:natives"
+    compile "com.github.fommil.netlib:netlib-native_system-linux-x86_64:${netlibVersion}:natives"
+    compile "com.github.fommil.netlib:netlib-native_system-linux-i686:${netlibVersion}:natives"
+    compile "com.github.fommil.netlib:netlib-native_system-linux-armhf:${netlibVersion}:natives"
+    compile "com.github.fommil.netlib:netlib-native_system-win-x86_64:${netlibVersion}:natives"
+    compile "com.github.fommil.netlib:netlib-native_system-win-i686:${netlibVersion}:natives"
 }
 
 
 task distZip(type: Zip) {
+
+    archiveFileName = "renjin.zip"
+
+    into "renjin-${project.version}"
+
     from (configurations.compile) {
         into 'dependencies'
     }
@@ -24,3 +29,30 @@ task distZip(type: Zip) {
         into 'bin'
     }
 }
+
+task verify {
+
+    dependsOn 'distZip'
+
+    inputs.file "$buildDir/distributions/renjin.zip"
+
+    doFirst {
+        project.exec {
+            commandLine 'sh', 'verify.sh', "renjin-${project.version}"
+        }
+    }
+}
+
+task publish {
+
+    dependsOn 'distZip'
+
+    doFirst {
+        project.exec {
+            commandLine 'gsutil', 'cp', "$buildDir/distributions/renjin.zip", "gs://renjinci-repo/dist/renjin-${project.version}.zip"
+        }
+    }
+}
+
+build.dependsOn 'distZip'
+check.dependsOn 'verify'

@@ -49,7 +49,7 @@ subprojects {
 }
 
 
-ext.majorVersion = "3.5.0"
+ext.majorVersion = "3.5"
 if(System.getenv("BUILD_NUMBER")) {
     ext.buildNumber = System.getenv("BUILD_NUMBER")
 } else {
@@ -57,7 +57,7 @@ if(System.getenv("BUILD_NUMBER")) {
 }
 
 allprojects {
-  project.version = "${majorVersion}.${buildNumber}"
+  project.version = "${majorVersion}-beta${buildNumber}"
 }
 
 // Define common configuration properties and

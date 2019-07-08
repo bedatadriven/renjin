@@ -97,8 +97,9 @@ public class RepFunction extends BuiltinFunction {
     if(x.length() == 0) {
       x = x.getVectorType().newBuilderWithInitialCapacity(1).addNA().build();
     }
-    
-    if(times.length() == 1) {
+    if(times.length() == 0) {
+      throw new EvalException("invalid 'times' argument");
+    } else if(times.length() == 1) {
       resultLength = x.length() * times.getElementAsInt(0);
     } else {
       resultLength = 0;

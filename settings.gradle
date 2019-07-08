@@ -42,11 +42,13 @@ include 'test-packages:alpha'
 //include 'test-packages:dynload'
 //include 'test-packages:evalOrder'
 include 'test-packages:thirdparty'
+include 'test-packages:s4test'
+include 'test-packages:s3test'
 
 include 'tests'
 
 include 'dist:generic'
-
+//
 //include 'cran:Matrix'
 //include 'cran:MASS'
 //include 'cran:lattice'

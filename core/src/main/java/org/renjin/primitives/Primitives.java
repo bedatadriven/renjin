@@ -586,7 +586,7 @@ public class Primitives {
     f("as.vector", Vectors.class, 11);
     f("paste", Text.class, 11);
     f("format", Text.class, 11);
-    f("format.info", /*formatinfo*/ null, 11);
+    f("format.info", Text.class, 11);
     f("cat", Cat.class, 111);
     add(new CallFunction());
     f("do.call", Evaluation.class, 211);

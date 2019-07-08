@@ -873,6 +873,17 @@ public class Text {
     return buildFormatResult(x, elements);
   }
 
+  @Internal("format.info")
+  @Materialize
+  public static IntVector formatInfo(DoubleVector x, SEXP digits, int nsmall) {
+    FormatInfo info = new FormatInfo(x);
+
+    return new IntArrayVector(
+        info.getWidth(),
+        info.getFractionDigits(),
+        info.getExponentDigits());
+  }
+
   @Internal
   @Materialize
   public static StringVector format(IntVector x, boolean trim, SEXP digits, int nsmall,

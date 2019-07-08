@@ -20,10 +20,12 @@ package org.renjin.gnur;
 
 import org.renjin.gnur.api.Rinternals;
 import org.renjin.gnur.api.annotations.Allocator;
+import org.renjin.gnur.api.annotations.Mutee;
 import org.renjin.gnur.api.annotations.PotentialMutator;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.SEXP;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -71,4 +73,19 @@ public class ApiOracle {
     return potentialMutators.containsKey(functionName);
   }
 
+  public int getMuteeArgumentIndex(String functionName) {
+    Method method = potentialMutators.get(functionName);
+    if(method == null) {
+      throw new IllegalStateException(functionName + " is not a @PotentialMutator");
+    }
+    for (int i = 0; i < method.getParameterCount(); i++) {
+      Annotation[] annotations = method.getParameterAnnotations()[i];
+      for (int j = 0; j < annotations.length; j++) {
+        if (annotations[j] instanceof Mutee) {
+          return i;
+        }
+      }
+    }
+    throw new IllegalStateException("One argument in " + method + " must be annotated with @Mutee");
+  }
 }

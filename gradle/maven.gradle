@@ -8,6 +8,9 @@ publishing {
     publications {
         maven(MavenPublication) {
             from components.java
+            if(project.parent.name != 'packages') {
+                artifactId "renjin-${project.name}"
+            }
             artifact sourcesJar
         }
     }

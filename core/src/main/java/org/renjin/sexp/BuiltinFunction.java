@@ -41,7 +41,7 @@ public abstract class BuiltinFunction extends PrimitiveFunction {
   }
 
   private boolean isEmptyArgumentAllowed() {
-    return name.charAt(0) == '[';
+    return name.charAt(0) == '[' || name.equals("rep");
   }
 
   @Override

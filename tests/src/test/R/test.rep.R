@@ -56,3 +56,7 @@ test.rep.missing.arg <- function() {
 
     assertThat(f(1L, 3L), identicalTo(c(1L, 1L, 1L)))
 }
+
+test.rep.empty.arg <- function() {
+    assertThat(rep(c(1,2),,3), identicalTo(c(1,2,1)))
+}

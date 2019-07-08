@@ -184,6 +184,6 @@ public class LogManager {
   }
 
   public void note(String message) {
-    warningStream.print("NOTE: " + message);
+    warningStream.println("NOTE: " + message);
   }
 }

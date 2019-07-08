@@ -65,12 +65,14 @@ public class MutationRewriter implements FunctionBodyTransformer {
           call.getSourceFile(),
           call.getLineNumber()));
     } else {
-      logManager.note(String.format("Rewriting call to %s which discards result in %s at %s:%d and cannot be rewritten",
+      call.setLhs((GimpleLValue) mutee);
+
+      logManager.note(String.format("Rewriting call to %s which discards result in %s at %s:%d: %s",
           apiMethodName,
           fn.getName(),
           call.getSourceFile(),
-          call.getLineNumber()));
-      call.setLhs((GimpleLValue) mutee);
+          call.getLineNumber(),
+          call.toString()));
     }
   }
 }

@@ -44,6 +44,9 @@ task testR(type: JavaExec) {
     main = 'org.renjin.packaging.test.TestMain'
     args "--report-dir=$buildDir/renjin-test-reports"
     args "$projectDir/src/test/R"
+
+    inputs.dir "$projectDir/src/test/R"
+    outputs.upToDateWhen { true }
 }
 
 test.dependsOn 'testR'

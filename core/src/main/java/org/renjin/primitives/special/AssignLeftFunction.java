@@ -55,7 +55,7 @@ public class AssignLeftFunction extends SpecialFunction {
     // class(x$a[3]) <- "foo"
 
     SEXP evaluatedValue = context.evaluate( value, rho);
-    SEXP rhs = new Promise(value, evaluatedValue);
+    SEXP rhs = value.repromise(evaluatedValue);
 
     while(lhs instanceof FunctionCall) {
       FunctionCall call = (FunctionCall) lhs;
@@ -69,7 +69,7 @@ public class AssignLeftFunction extends SpecialFunction {
       
       FunctionCall setterCall = new FunctionCall(setter, setterArgs);
       
-      rhs = Promise.repromise(context.evaluate(setterCall, rho));
+      rhs = context.evaluate(setterCall, rho).repromise();
 
       lhs = call.getArgument(0);
     }

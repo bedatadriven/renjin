@@ -93,7 +93,7 @@ public abstract class BuiltinFunction extends PrimitiveFunction {
             throw new EvalException("argument " + argumentNumber + " is empty");
           }
         } else {
-          arguments.add(Promise.repromise(rho, value));
+          arguments.add(value.promise(rho));
         }
       }
     }

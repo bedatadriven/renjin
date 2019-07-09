@@ -48,7 +48,7 @@ include 'test-packages:s3test'
 include 'tests'
 
 include 'dist:generic'
-//
-//include 'cran:Matrix'
-//include 'cran:MASS'
-//include 'cran:lattice'
+
+include 'cran:Matrix'
+include 'cran:MASS'
+include 'cran:lattice'

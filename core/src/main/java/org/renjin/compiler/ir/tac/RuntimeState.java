@@ -206,14 +206,14 @@ public class RuntimeState {
       if(promisedValue.isEvaluated()) {
         value = promisedValue.force(context);
 
-      } else if(promisedValue.getExpression() instanceof Symbol) {
+      } else if(promisedValue.getPromisedExpression() instanceof Symbol) {
         // For simple expressions like a Symbol, we may still be able to resolve
         // the expression without side effects....
         value = findVariableWithoutSideEffects(context,
             promisedValue.getEnvironment(),
-            (Symbol) promisedValue.getExpression(), findFunction);
+            (Symbol) promisedValue.getPromisedExpression(), findFunction);
 
-      } else if(!hasSideEffects(promisedValue.getExpression())) {
+      } else if(!hasSideEffects(promisedValue.getPromisedExpression())) {
         value = promisedValue.force(context);
 
       } else {

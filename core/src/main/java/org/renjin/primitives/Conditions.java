@@ -145,7 +145,7 @@ public class Conditions {
 
     for (int i = n - 1; i >= 0; i--) {
       context.setConditionHandler(classes.getElementAsString(i),
-          Promise.repromise(parentEnv, handlers.getElementAsSEXP(i)), calling);
+         handlers.getElementAsSEXP(i).promise(parentEnv), calling);
     }
   }
 

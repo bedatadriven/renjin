@@ -369,7 +369,7 @@ public class RDataWriter implements AutoCloseable {
       writeExp(exp.getEnvironment());
     }
     writeExp(exp.getValue() == null ? Null.INSTANCE : exp.getValue());
-    writeExp(exp.getExpression());  
+    writeExp(exp.getPromisedExpression());
   }
 
   private void writePairList(PairList.Node node) throws IOException {

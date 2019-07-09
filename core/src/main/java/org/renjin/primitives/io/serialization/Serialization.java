@@ -171,7 +171,7 @@ public class Serialization {
       public Vector apply(SEXP exp) {
         
         // make sure exp doesn't get evaled
-        Promise promisedExp = Promise.repromise(exp);
+        SEXP promisedExp =  exp.repromise();
         
         FunctionCall hookCall = FunctionCall.newCall(hookExp, promisedExp);
         SEXP result = context.evaluate(hookCall);

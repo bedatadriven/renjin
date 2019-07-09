@@ -334,9 +334,7 @@ public abstract class Environment extends AbstractSEXP implements Recursive {
   public SEXP findVariable(Context context, Symbol symbol, Predicate<SEXP> predicate, boolean inherits) {
     SEXP value = getVariable(context, symbol);
     if(value != Symbol.UNBOUND_VALUE) {
-      if(value instanceof Promise) {
-        value = value.force(context);
-      }
+      value = value.force(context);
       if(predicate.test(value)) {
         return value;
       }

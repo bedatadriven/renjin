@@ -48,9 +48,9 @@ public class DollarAssignFunction extends SpecialFunction {
       // symbol
       String[] argumentNames = new String[3];
       SEXP[] promisedArguments = new SEXP[3];
-      promisedArguments[0] = new Promise(call.getArgument(0), object);
-      promisedArguments[1] = new Promise(nameArgument, nameArgument);
-      promisedArguments[2] = new Promise(call.getArgument(2), value);
+      promisedArguments[0] = call.getArgument(0).repromise(object);
+      promisedArguments[1] = nameArgument.repromise();
+      promisedArguments[2] = call.getArgument(2).repromise(value);
       SEXP genericResult = S3.tryDispatchFromPrimitive(context, rho, call, "$<-", null, argumentNames, promisedArguments);
       if (genericResult!= null) {
         return genericResult;

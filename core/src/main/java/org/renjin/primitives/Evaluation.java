@@ -76,7 +76,7 @@ public class Evaluation {
 
   @Internal
   public static void delayedAssign(@Current Context context, String x, SEXP expr, Environment evalEnv, Environment assignEnv) {
-    assignEnv.setVariable(context, Symbol.get(x), Promise.repromise(evalEnv, expr));
+    assignEnv.setVariable(context, Symbol.get(x), expr.promise(evalEnv));
   }
 
 

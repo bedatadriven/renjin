@@ -60,7 +60,7 @@ public final class Internal {
     for (int i = 0; i < numArguments; i++) {
       PairList.Node argNode = ((PairList.Node) nextArg);
       argumentNames[i] = argNode.hasTag() ? argNode.getName() : null;
-      arguments[i] = new Promise(argNode.getValue(), argNode.getValue());
+      arguments[i] = argNode.getValue().repromise();
       nextArg = argNode.getNext();
     }
 

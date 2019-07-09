@@ -58,7 +58,7 @@ public class SubstituteFunction extends SpecialFunction {
       } else {
         PromisePairList.Node promisePairList = (PromisePairList.Node) ellipses;
         Promise promisedArg = (Promise) promisePairList.getValue();
-        expr = promisedArg.getExpression();
+        expr = promisedArg.getPromisedExpression();
       }
     } else {
       expr = exprArgument;
@@ -186,7 +186,7 @@ public class SubstituteFunction extends SpecialFunction {
 
     private SEXP unpromise(SEXP value) {
       while(value instanceof Promise) {
-        value = ((Promise) value).getExpression();
+        value = ((Promise) value).getPromisedExpression();
       } 
       return value;
     }

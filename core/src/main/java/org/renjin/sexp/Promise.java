@@ -109,7 +109,7 @@ public class Promise extends AbstractSEXP implements Recursive {
   /**
    * @return this Promise's original expression.
    */
-  public SEXP getExpression() {
+  public SEXP getPromisedExpression() {
     return expression;
   }
 
@@ -121,11 +121,6 @@ public class Promise extends AbstractSEXP implements Recursive {
       return "Evaluated{" + result + "}";
     }
   }
-
-  public static Promise repromise(SEXP value) {
-    return new Promise(value, value);
-  }
-
 
   public Environment getEnvironment() {
     return environment;
@@ -144,11 +139,4 @@ public class Promise extends AbstractSEXP implements Recursive {
     return result != null;
   }
 
-  public static Promise repromise(Environment environment, SEXP expression) {
-    if(expression instanceof Promise) {
-      return (Promise)expression;
-    } else {
-      return new Promise(environment, expression);
-    }
-  }
 }

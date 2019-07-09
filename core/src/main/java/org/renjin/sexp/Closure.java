@@ -112,7 +112,7 @@ public class Closure extends AbstractSEXP implements Function {
         if(value == Symbol.MISSING_ARG) {
           arguments.add(value);
         } else {
-          arguments.add(Promise.repromise(rho, value));
+          arguments.add(value.promise(rho));
         }
       }
     }
@@ -166,7 +166,7 @@ public class Closure extends AbstractSEXP implements Function {
       if (locals[i] == null) {
         SEXP defaultValue = matcher.getDefaultValue(i);
         if (defaultValue != Symbol.MISSING_ARG) {
-          defaultValue = Promise.repromise(functionEnvironment, defaultValue);
+          defaultValue = defaultValue.promise(functionEnvironment);
         }
         locals[i] = defaultValue;
       }

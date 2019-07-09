@@ -18,7 +18,10 @@
  */
 package org.renjin.primitives.io.serialization;
 
-import org.renjin.sexp.*;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 
 /**
  * A "null" read context which will deserialize references
@@ -36,8 +39,8 @@ public class NullReadContext implements ReadContext {
   }
 
   @Override
-  public Promise createPromise(SEXP expr, Environment environment) {
-    return Promise.repromise(Null.INSTANCE);
+  public SEXP createPromise(SEXP expr, Environment environment) {
+    return Null.INSTANCE.repromise();
   }
 
   @Override

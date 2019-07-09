@@ -128,7 +128,7 @@ public final class FunctionEnvironment extends Environment {
     if(exp instanceof Promise) {
       Promise promise = (Promise)exp;
 
-      if(promise.getExpression() instanceof Symbol) {
+      if(promise.getPromisedExpression() instanceof Symbol) {
 
         // Avoid infinite recursion in the case of circular references, for example:
         // g <- function(x, y) { missing(x) }
@@ -141,7 +141,7 @@ public final class FunctionEnvironment extends Environment {
         stack.push(promise);
         try {
           SEXP argumentValue;
-          Symbol argumentName = (Symbol) promise.getExpression();
+          Symbol argumentName = (Symbol) promise.getPromisedExpression();
           Environment argumentEnv = promise.getEnvironment();
 
           if(argumentName.isVarArgReference()) {

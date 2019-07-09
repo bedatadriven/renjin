@@ -30,7 +30,10 @@ import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.*;
 import org.renjin.parser.RParser.StatusResult;
 import org.renjin.repackaged.guava.base.Strings;
-import org.renjin.sexp.*;
+import org.renjin.sexp.ExpressionVector;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -244,7 +247,7 @@ public class JlineRepl {
       SEXP result = topLevelContext.evaluate(new ExpressionVector(exprList), topLevelContext.getGlobalEnvironment());
 
       if(!session.isInvisible()) {
-        topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), Promise.repromise(result)));
+        topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), result.repromise()));
       }
 
       session.printWarnings();

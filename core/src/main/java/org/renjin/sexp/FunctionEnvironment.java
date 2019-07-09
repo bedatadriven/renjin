@@ -348,7 +348,7 @@ public final class FunctionEnvironment extends Environment {
   public SEXP promise(int varIndex) {
     return new Promise(this, localNames[varIndex]) {
       @Override
-      protected SEXP doEval(Context context, boolean allowMissing) {
+      protected SEXP doEval(Context context) {
         return get(context, varIndex);
       }
     };

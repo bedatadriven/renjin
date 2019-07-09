@@ -20,6 +20,7 @@ package org.renjin.sexp;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.MissingArgumentException;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
 
@@ -425,7 +426,7 @@ public abstract class Environment extends AbstractSEXP implements Recursive {
     }
     PairList varArgs = (PairList) ellipses;
     if(varArgs.length() < varArgReferenceIndex) {
-      throw new EvalException("The ... list does not contain %d items", varArgReferenceIndex);
+      throw new MissingArgumentException("The ... list does not contain " + varArgReferenceIndex + " items");
     }
     return varArgs.getElementAsSEXP(varArgReferenceIndex - 1);
   }

@@ -246,10 +246,10 @@ public abstract class AbstractSEXP implements SEXP {
     return this;
   }
 
-
   @Override
-  public SEXP force(Context context, boolean allowMissing) {
-    return force(context);
+  public SEXP eval(Context context, Environment rho) {
+    context.clearInvisibleFlag();
+    return this;
   }
 
   /**

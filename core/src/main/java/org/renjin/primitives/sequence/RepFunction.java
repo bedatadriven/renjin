@@ -68,16 +68,16 @@ public class RepFunction extends BuiltinFunction {
 
     MatchedArguments matched = ARGUMENT_MATCHER.match(argumentNames, promisedArguments);
 
-    SEXP x = matched.getActualForFormal(FORMAL_X).force(context, true);
+    SEXP x = matched.getActualForFormal(FORMAL_X).force(context);
     if(x == Symbol.MISSING_ARG) {
       x = Null.INSTANCE;
     }
-    SEXP times = matched.getActualForFormal(FORMAL_TIMES, DEFAULT_TIMES_ARGUMENT).force(context, true);
+    SEXP times = matched.getActualForFormal(FORMAL_TIMES, DEFAULT_TIMES_ARGUMENT).forceOrMissing(context);
     if(times == Symbol.MISSING_ARG) {
       times = DEFAULT_TIMES_ARGUMENT;
     }
-    SEXP lengthOut = matched.getActualForFormal(FORMAL_LENGTH_OUT, Symbol.MISSING_ARG).force(context, true);
-    SEXP each = matched.getActualForFormal(FORMAL_EACH, Symbol.MISSING_ARG).force(context, true);
+    SEXP lengthOut = matched.getActualForFormal(FORMAL_LENGTH_OUT, Symbol.MISSING_ARG).forceOrMissing(context);
+    SEXP each = matched.getActualForFormal(FORMAL_EACH, Symbol.MISSING_ARG).forceOrMissing(context);
 
     return rep(
         (Vector) x,

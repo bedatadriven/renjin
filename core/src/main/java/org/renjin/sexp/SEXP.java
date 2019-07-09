@@ -19,6 +19,7 @@
 package org.renjin.sexp;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.MissingArgumentException;
 
 /**
  * Base interface for all R data types.
@@ -189,19 +190,14 @@ public interface SEXP {
    */
   SEXP force(Context context);
 
-  /**
-   * If this SEXP is a {@link Promise}, return its result, evaluating in the given context if the {@code Promise}
-   * is not yet evaluated.
-   *
-   * @param context the evaluation {@link Context} in which the unevaluated {@link Promise} should be evaluated
-   *                if is not evaluated.
-   * @param allowMissing true if missing arguments without a default value should evaluate to {@code Symbol.MISSING_ARG}.
-   *                     If false, missing arguments without default values will throw an error.
-   *
-   * @return the result of the Promise's evaluation, or this S-Expression if this is not a promise.
-   */
-  SEXP force(Context context, boolean allowMissing);
 
+  default SEXP forceOrMissing(Context context) {
+    try {
+      return force(context);
+    } catch (MissingArgumentException e) {
+      return Symbol.MISSING_ARG;
+    }
+  }
 
   /**
    * Returns true if this SEXP is equal to the {@code other} SEXP given, using the same rules as the
@@ -228,4 +224,5 @@ public interface SEXP {
   @Override
   String toString();
 
+  SEXP eval(Context context, Environment rho);
 }

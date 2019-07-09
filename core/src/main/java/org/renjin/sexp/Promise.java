@@ -77,22 +77,21 @@ public class Promise extends AbstractSEXP implements Recursive {
    */
   @Override
   public SEXP force(Context context) {
-    return force(context, false);
-  }
-
-  @Override
-  public SEXP force(Context context, boolean allowMissing) {
     if (result == null) {
-      this.result = doEval(context, allowMissing);
+      this.result = doEval(context);
     }
     return result;
   }
 
-  protected SEXP doEval(Context context, boolean allowMissing) {
-    return context.evaluate(expression, environment, allowMissing);
+  protected SEXP doEval(Context context) {
+    return context.evaluate(expression, environment);
   }
-  
-  
+
+  @Override
+  public SEXP eval(Context context, Environment rho) {
+    return force(context);
+  }
+
   public void setResult(SEXP exp) {
     this.result = exp;
   }

@@ -18,7 +18,9 @@
  */
 package org.renjin.sexp;
 
+import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.MissingArgumentException;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -311,5 +313,29 @@ public final class Symbol extends AbstractSEXP {
 
   public boolean isDispatchMetadata() {
     return hashBit == (1<<4);
+  }
+
+  @Override
+  public SEXP eval(Context context, Environment rho) {
+
+    context.clearInvisibleFlag();
+
+    if(this == Symbol.MISSING_ARG) {
+      return this;
+    }
+
+    SEXP value = rho.findVariable(context, this);
+    if(value == Symbol.UNBOUND_VALUE) {
+      throw new EvalException(String.format("object '%s' not found", getPrintName()));
+    }
+
+    if (value == Symbol.MISSING_ARG) {
+      throw new MissingArgumentException(this);
+    }
+
+    if(value instanceof Promise) {
+      value = value.force(context);
+    }
+    return value;
   }
 }

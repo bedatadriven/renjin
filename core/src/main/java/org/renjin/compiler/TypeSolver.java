@@ -250,7 +250,7 @@ public class TypeSolver {
 
 
     Expression expression = statement.getRHS();
-    ValueBounds newBounds = expression.updateTypeBounds(variableBounds);
+    ValueBounds newBounds = expression.updateTypeBounds(e -> variableBounds.getOrDefault(e, ValueBounds.UNBOUNDED));
 
     // If this changes the value of the LatticeCell of the output expression, do the following:
 

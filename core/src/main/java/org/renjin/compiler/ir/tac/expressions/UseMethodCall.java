@@ -33,7 +33,6 @@ import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.sexp.FunctionCall;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Call to UseMethod
@@ -64,7 +63,7 @@ public class UseMethodCall implements Expression {
   }
 
   @Override
-  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+  public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
 
     ValueBounds objectBounds = typeMap.get(getObjectExpr());
     
@@ -86,12 +85,12 @@ public class UseMethodCall implements Expression {
 
   @Override
   public CompiledSexp getCompiledExpr(EmitContext emitContext) {
-    return specialization.getCompiledExpr(emitContext, arguments);
+    return specialization.getCompiledExpr(emitContext, call, arguments);
   }
 
   @Override
   public void emitAssignment(EmitContext emitContext, InstructionAdapter mv, Assignment statement) {
-    specialization.emitAssignment(emitContext, mv, statement, arguments);
+    specialization.emitAssignment(emitContext, mv, statement, call, arguments);
   }
 
   @Override

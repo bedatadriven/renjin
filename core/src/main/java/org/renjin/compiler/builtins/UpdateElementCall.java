@@ -33,6 +33,7 @@ import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.primitives.subset.Subsetting;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.FunctionCall;
 
 import java.util.List;
 
@@ -84,7 +85,7 @@ public class UpdateElementCall implements Specialization {
   }
 
   @Override
-  public void emitAssignment(EmitContext emitContext, InstructionAdapter mv, Assignment statement, List<IRArgument> arguments) {
+  public void emitAssignment(EmitContext emitContext, InstructionAdapter mv, Assignment statement, FunctionCall call, List<IRArgument> arguments) {
     Expression source = arguments.get(0).getExpression();
     boolean mutableSource = emitContext.isSafelyMutable(statement, source);
 
@@ -95,7 +96,7 @@ public class UpdateElementCall implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, FunctionCall call, List<IRArgument> arguments) {
     return getCompiledExpr(emitContext, false);
   }
 

@@ -30,8 +30,6 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.*;
 
-import java.util.Map;
-
 /**
  * Element access in the form x$name
  */
@@ -56,7 +54,7 @@ public class NamedElementAccess implements Expression {
   }
 
   @Override
-  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+  public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
     
     ValueBounds argumentBounds = typeMap.get(expression);
     if(argumentBounds.isConstant()) {

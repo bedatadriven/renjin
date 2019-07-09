@@ -19,6 +19,7 @@
 package org.renjin.packaging;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.io.serialization.RDataReader;
 import org.renjin.repackaged.guava.base.Function;
 import org.renjin.sexp.*;
@@ -27,6 +28,7 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.function.Supplier;
 
 public class LazyLoadFrame {
   
@@ -114,16 +116,24 @@ public class LazyLoadFrame {
     Environment enclosingEnvironment = (Environment) readInline(context, din);
     PairList formals = (PairList)readInline(context, din);
     PairList attributes = (PairList) readInline(context, din);
+    ListVector frameVars = (ListVector)readInline(context, din);
+
     String bodyResourceName = din.readUTF();
-    SerializedPromise3 bodyPromise = new SerializedPromise3(resourceProvider, bodyResourceName);
     String compiledClassName = din.readUTF().replace('/', '.');
     String compiledMethodName = din.readUTF();
 
-//    return new CompiledClosure(enclosingEnvironment, formals, bodyPromise,
-//        AttributeMap.fromPairList(attributes),
-//        compiledClassName,
-//        compiledMethodName);
-    throw new UnsupportedOperationException("TODO");
+    Supplier<SEXP> body = () -> {
+      try(RDataReader reader = new RDataReader(context, resourceProvider.apply(bodyResourceName))) {
+        return reader.readFile();
+      } catch (IOException e) {
+        throw new EvalException(e);
+      }
+    };
+
+    return new CompiledClosurePromise(enclosingEnvironment, formals, attributes, frameVars, body,
+        compiledClassName,
+        compiledMethodName);
+
   }
 
   private static SEXP readInline(Context context, DataInputStream din) throws IOException {

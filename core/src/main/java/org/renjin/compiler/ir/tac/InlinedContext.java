@@ -19,8 +19,11 @@
 package org.renjin.compiler.ir.tac;
 
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
+import org.renjin.compiler.ir.tac.expressions.Constant;
+import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.functions.TranslationContext;
 import org.renjin.eval.MatchedArgumentPositions;
+import org.renjin.sexp.Logical;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.Symbol;
 
@@ -40,6 +43,11 @@ public class InlinedContext implements TranslationContext {
   }
 
   @Override
+  public boolean isEllipsesArgumentKnown() {
+    return true;
+  }
+
+  @Override
   public List<IRArgument> getEllipsesArguments() {
     return extraArguments;
   }
@@ -49,10 +57,10 @@ public class InlinedContext implements TranslationContext {
   }
 
   @Override
-  public boolean isMissing(Symbol name) {
+  public Expression isMissing(Symbol name) {
     for (int formalIndex = 0; formalIndex < matched.getFormalCount(); formalIndex++) {
       if(matched.getFormalSymbol(formalIndex) == name) {
-        return matched.isFormalMatched(formalIndex);
+        new Constant(Logical.valueOf(matched.isFormalMatched(formalIndex)));
       }
     }
     throw new InvalidSyntaxException("'missing' can only used for arguments");

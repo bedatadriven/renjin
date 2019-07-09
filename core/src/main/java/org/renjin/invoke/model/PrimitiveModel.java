@@ -42,6 +42,13 @@ public class PrimitiveModel {
     this.overloads = overloads;
   }
 
+
+  public PrimitiveModel(Primitives.Entry entry) {
+    this.entry = entry;
+    this.overloads = JvmMethod.findOverloads(entry.functionClass, entry.name, entry.methodName);
+  }
+
+
   public String argumentErrorMessage() {
     StringBuilder message = new StringBuilder();
     message.append("Invalid argument: %s. Expected:");
@@ -95,6 +102,35 @@ public class PrimitiveModel {
 
   public boolean isSpecial() {
     return entry.isSpecial();
+  }
+
+  /**
+   *
+   * @return the name of the generic, or null if it is not generic
+   */
+  public String getGenericName() {
+    for (JvmMethod overload : overloads) {
+      if(overload.isGeneric()) {
+        return overload.getGenericName();
+      }
+    }
+    return null;
+  }
+
+  public boolean isGeneric() {
+    return getGenericName() != null;
+  }
+
+  /**
+   * @return the name of the generic group, or null if it is not generic
+   */
+  public String getGenericGroupName() {
+    for (JvmMethod overload : overloads) {
+      if(overload.isGroupGeneric()) {
+        return overload.getGenericGroup();
+      }
+    }
+    return null;
   }
 
   public List<Integer> getArity() {
@@ -154,4 +190,5 @@ public class PrimitiveModel {
     }
     return false;
   }
+
 }

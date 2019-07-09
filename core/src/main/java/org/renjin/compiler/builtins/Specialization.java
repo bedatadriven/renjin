@@ -26,6 +26,7 @@ import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.FunctionCall;
 
 import java.util.List;
 
@@ -39,11 +40,11 @@ public interface Specialization {
    */
   boolean isPure();
 
-  CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments);
+  CompiledSexp getCompiledExpr(EmitContext emitContext, FunctionCall call, List<IRArgument> arguments);
 
-  default void emitAssignment(EmitContext emitContext, InstructionAdapter mv, Assignment statement, List<IRArgument> arguments) {
+  default void emitAssignment(EmitContext emitContext, InstructionAdapter mv, Assignment statement, FunctionCall call, List<IRArgument> arguments) {
     VariableStrategy lhs = emitContext.getVariable(statement.getLHS());
-    CompiledSexp rhs = getCompiledExpr(emitContext, arguments);
+    CompiledSexp rhs = getCompiledExpr(emitContext, call, arguments);
     lhs.store(emitContext, mv, rhs);
   }
 }

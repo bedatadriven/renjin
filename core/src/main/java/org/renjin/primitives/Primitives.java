@@ -244,7 +244,7 @@ public class Primitives {
     add(new InternalFunction());
     add(new OnExitFunction());
 
-    addInternal(new RecallFunction());
+    add(new RecallFunction());
     f("delayedAssign", Evaluation.class, 111);
     f("makeLazy", Serialization.class, 111);
     f(".Primitive", Evaluation.class, 1);

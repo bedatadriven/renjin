@@ -18,8 +18,10 @@
  */
 package org.renjin.compiler.aot;
 
+import org.renjin.compiler.codegen.ConstantBytecode;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.compiler.codegen.expr.SexpExpr;
 import org.renjin.compiler.codegen.var.LocalVarAllocator;
 import org.renjin.compiler.codegen.var.SexpLocalVar;
 import org.renjin.compiler.codegen.var.VariableStrategy;
@@ -56,6 +58,7 @@ public class ClosureEmitContext implements EmitContext {
     }
   }
 
+
   public ListVector getFrameVariableNames() {
     SEXP[] names = new SEXP[nextFrameVar];
 
@@ -68,15 +71,42 @@ public class ClosureEmitContext implements EmitContext {
     return new ListVector(names);
   }
 
+  public int getFrameVarIndex(Symbol name) {
+    for (VariableStrategy variable : variableMap.values()) {
+      if(variable instanceof FrameVariableStrategy) {
+        FrameVariableStrategy frameVariable = (FrameVariableStrategy) variable;
+        if(frameVariable.getName() == name) {
+          return frameVariable.getFrameIndex();
+        }
+      }
+    }
+    return -1;
+  }
+
   public void loadSymbolPromise(Symbol symbol, InstructionAdapter mv) {
+
+    if(symbol == Symbol.MISSING_ARG) {
+      mv.getstatic(Type.getInternalName(Symbol.class), "MISSING_ARG",
+          Type.getDescriptor(Symbol.class));
+      return;
+    }
+
     for (VariableStrategy value : variableMap.values()) {
       if(value instanceof FrameVariableStrategy) {
         FrameVariableStrategy frameVar = (FrameVariableStrategy) value;
         if(frameVar.getName() == symbol) {
           loadFrameVarPromise(frameVar, mv);
+          return;
         }
       }
     }
+
+    // Promise by name
+    mv.visitVarInsn(Opcodes.ALOAD, ENVIRONMENT_VAR_INDEX);
+    mv.aconst(symbol.getPrintName());
+    mv.invokevirtual(Type.getInternalName(FunctionEnvironment.class), "promise",
+        Type.getMethodDescriptor(Type.getType(SEXP.class), Type.getType(String.class)), false);
+
   }
 
   private void loadFrameVarPromise(FrameVariableStrategy frameVar, InstructionAdapter mv) {
@@ -118,7 +148,7 @@ public class ClosureEmitContext implements EmitContext {
 
   @Override
   public CompiledSexp getParamExpr(int parameterIndex) {
-    throw new UnsupportedOperationException("TODO");
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -134,6 +164,16 @@ public class ClosureEmitContext implements EmitContext {
 
   @Override
   public CompiledSexp constantSexp(SEXP sexp) {
-    return classBuffer.sexp(sexp);
+    if(sexp instanceof Symbol ||
+        (sexp instanceof AtomicVector && sexp.length() < 1 && sexp.getAttributes() == AttributeMap.EMPTY)) {
+      return new SexpExpr() {
+        @Override
+        public void loadSexp(EmitContext context, InstructionAdapter mv) {
+          ConstantBytecode.pushConstant(mv, sexp);
+        }
+      };
+    } else {
+      return classBuffer.sexp(sexp);
+    }
   }
 }

@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.ir.tac.expressions;
 
+import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.builtins.*;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
@@ -40,7 +41,6 @@ import org.renjin.sexp.SEXP;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Call to a builtin function
@@ -62,6 +62,10 @@ public class BuiltinCall implements CallExpression {
     this.call = call;
     this.arguments = Lists.newArrayList(arguments);
     this.specializer = BuiltinSpecializers.INSTANCE.get(primitiveName);
+
+    if(call.findEllipsisArgumentIndex() != -1) {
+      throw new UnsupportedOperationException("TODO");
+    }
   }
 
   public BuiltinCall(RuntimeState runtimeState, String primitiveName, Specializer specializer, List<IRArgument> arguments) {
@@ -97,7 +101,7 @@ public class BuiltinCall implements CallExpression {
   }
 
   @Override
-  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+  public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
     List<ArgumentBounds> argumentTypes = new ArrayList<>();
     for (IRArgument argument : arguments) {
       argumentTypes.add(new ArgumentBounds(
@@ -117,13 +121,18 @@ public class BuiltinCall implements CallExpression {
 
   @Override
   public CompiledSexp getCompiledExpr(EmitContext emitContext) {
-    return specialization.getCompiledExpr(emitContext, arguments);
+    try {
+      return specialization.getCompiledExpr(emitContext, call, arguments);
+    } catch (FailedToSpecializeException e) {
+      throw new NotCompilableException(call, "Failed to specialize");
+
+    }
   }
 
   @Override
   public void emitAssignment(EmitContext emitContext, InstructionAdapter mv, Assignment statement) {
     try {
-      specialization.emitAssignment(emitContext, mv, statement, arguments);
+      specialization.emitAssignment(emitContext, mv, statement, call, arguments);
     } catch (FailedToSpecializeException e) {
       emitUnspecializedAssigment(emitContext, mv, statement);
 //      throw new NotCompilableException(call, "Failed to specialize .Primitive(" + primitiveName + ")");
@@ -144,7 +153,8 @@ public class BuiltinCall implements CallExpression {
 
   @Override
   public void emitExecute(EmitContext emitContext, InstructionAdapter mv) {
-    throw new UnsupportedOperationException("TODO");
+    writeBuiltinCall(emitContext, mv);
+    mv.visitInsn(Opcodes.POP);
   }
 
   private void writeBuiltinCall(EmitContext context, InstructionAdapter mv) {

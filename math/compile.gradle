@@ -133,6 +133,7 @@ task compileGimple(type: JavaExec) {
         if(className) {
             args "--class=${className}"
         }
+        args "--log-dir=$buildDir/gcc-bridge-logs"
         args "--output-dir=${compiledOutputDir}"
         if(fortranDir.exists()) {
             args 'build/fortran/gimple'

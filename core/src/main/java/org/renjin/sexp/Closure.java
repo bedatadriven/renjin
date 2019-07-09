@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 
 /**
@@ -41,11 +42,11 @@ public class Closure extends AbstractSEXP implements Function {
 
   public static final String TYPE_NAME = "closure";
   private Environment enclosingEnvironment;
-  private SEXP body;
+  private Supplier<SEXP> body;
   private PairList formals;
 
   private ArgumentMatcher matcher;
-  private SEXP[] formalSymbols;
+  private SEXP[] frameSymbols;
 
   public MethodHandle compiledBody;
 
@@ -53,10 +54,21 @@ public class Closure extends AbstractSEXP implements Function {
     super(attributes);
     assert !(formals instanceof FunctionCall);
     this.enclosingEnvironment = enclosingEnvironment;
-    this.body = body;
+    this.body = () -> body;
     this.formals = formals;
   }
- 
+
+  public Closure(Environment enclosingEnvironment, PairList formals, Supplier<SEXP> body, AttributeMap attributes,
+                 MethodHandle methodHandle, SEXP[] frameSymbols) {
+    super(attributes);
+    this.enclosingEnvironment = enclosingEnvironment;
+    this.formals = formals;
+    this.body = body;
+    this.compiledBody = methodHandle;
+    this.frameSymbols = frameSymbols;
+  }
+
+
   public Closure(Environment environment, PairList formals, SEXP body) {
     this(environment, formals, body, AttributeMap.EMPTY);
   }
@@ -69,7 +81,9 @@ public class Closure extends AbstractSEXP implements Function {
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap newAttributes) {
-    return new Closure(this.enclosingEnvironment, this.formals, this.body, newAttributes);
+    return new Closure(this.enclosingEnvironment, this.formals, this.body, newAttributes,
+        compiledBody,
+        frameSymbols);
   }
 
   @Override
@@ -123,13 +137,17 @@ public class Closure extends AbstractSEXP implements Function {
 
     if(this.matcher == null) {
       this.matcher = new ArgumentMatcher(getFormals());
-      this.formalSymbols = matcher.getFormalNameArray();
+    }
+    if(frameSymbols == null) {
+      this.frameSymbols = matcher.getFormalNameArray();
     }
 
     MatchedArguments matching = matcher.match(argNames, args);
     SEXP[] matchedArguments = new SEXP[matcher.getFormalCount()];
 
-    for (int formalIndex = 0; formalIndex < matching.getFormalCount(); formalIndex++) {
+    int numFormals = matching.getFormalCount();
+
+    for (int formalIndex = 0; formalIndex < numFormals; formalIndex++) {
       if (matching.isFormalEllipses(formalIndex)) {
         matchedArguments[formalIndex] = matching.buildExtraArgumentList();
 
@@ -144,11 +162,11 @@ public class Closure extends AbstractSEXP implements Function {
       }
     }
 
-    SEXP[] locals = Arrays.copyOf(matchedArguments, matchedArguments.length);
+    SEXP[] locals = Arrays.copyOf(matchedArguments, frameSymbols.length);
 
     FunctionEnvironment functionEnvironment = new FunctionEnvironment(
         getEnclosingEnvironment(),
-        formalSymbols,
+        frameSymbols,
         matchedArguments,
         matching,
         locals,
@@ -162,7 +180,7 @@ public class Closure extends AbstractSEXP implements Function {
         this
     );
 
-    for (int i = 0; i < locals.length; i++) {
+    for (int i = 0; i < numFormals; i++) {
       if (locals[i] == null) {
         SEXP defaultValue = matcher.getDefaultValue(i);
         if (defaultValue != Symbol.MISSING_ARG) {
@@ -179,7 +197,7 @@ public class Closure extends AbstractSEXP implements Function {
         if(compiledBody != null) {
           return (SEXP)compiledBody.invokeExact(functionContext, functionEnvironment);
         } else {
-          return functionContext.evaluate(body);
+          return body.get().eval(functionContext, functionEnvironment);
         }
 
       } catch (EvalException e) {
@@ -240,7 +258,7 @@ public class Closure extends AbstractSEXP implements Function {
    * @return
    */
   public Closure setEnclosingEnvironment(Environment env) {
-    return new Closure(env, formals, body, getAttributes());
+    return new Closure(env, formals, body, getAttributes(), compiledBody, frameSymbols);
   }
 
   /**
@@ -249,7 +267,7 @@ public class Closure extends AbstractSEXP implements Function {
    * can be a single statement, a symbol or even a constant.
    */
   public SEXP getBody() {
-    return body;
+    return body.get();
   }
 
   /**
@@ -275,7 +293,7 @@ public class Closure extends AbstractSEXP implements Function {
   }
 
   public void unsafeSetBody(SEXP body) {
-    this.body = body;
+    this.body = () -> body;
   }
 
   public void unsafeSetEnclosingEnvironment(Environment v) {
@@ -316,7 +334,7 @@ public class Closure extends AbstractSEXP implements Function {
       return false;
     }
     Closure other = (Closure) obj;
-    if(!Objects.equals(body, other.body)) {
+    if(!Objects.equals(body.get(), other.body.get())) {
       return false;
     }
     if(!Objects.equals(enclosingEnvironment, other.enclosingEnvironment)) {

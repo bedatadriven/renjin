@@ -34,9 +34,7 @@ import org.renjin.invoke.model.JvmMethod;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.SEXP;
+import org.renjin.sexp.*;
 
 import java.util.*;
 
@@ -89,7 +87,7 @@ public class StaticMethodCall implements Specialization {
 
   public Specialization furtherSpecialize(List<ValueBounds> argumentBounds) {
     if (pure && ValueBounds.allConstant(argumentBounds)) {
-      return ConstantCall.evaluate(method, argumentBounds);
+      return ConstantCall.evaluate(method, argumentBounds, this);
     }
     return this;
   }
@@ -104,8 +102,18 @@ public class StaticMethodCall implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, FunctionCall call, List<IRArgument> arguments) {
 
+
+    if(method.getReturnType().equals(void.class)) {
+      return new SexpExpr() {
+        @Override
+        public void loadSexp(EmitContext context, InstructionAdapter mv) {
+          invoke(context, mv, arguments);
+          context.constantSexp(Null.INSTANCE).loadSexp(context, mv);
+        }
+      };
+    }
 
     if(SEXP.class.isAssignableFrom(method.getReturnType())) {
       return new SexpExpr() {
@@ -245,11 +253,21 @@ public class StaticMethodCall implements Specialization {
   private void invokeSimple(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
     int positionalArgument = 0;
     for (JvmMethod.Argument argument : method.getAllArguments()) {
-      if (argument.isContextual() || argument.isNamedFlag() || argument.isVarArg()) {
+      if (argument.isContextual()) {
+        if(argument.getClazz().equals(Context.class)) {
+          mv.visitVarInsn(Opcodes.ALOAD, emitContext.getContextVarIndex());
+        } else if(argument.getClazz().equals(Environment.class)) {
+          mv.visitVarInsn(Opcodes.ALOAD, emitContext.getEnvironmentVarIndex());
+        } else {
+          throw new UnsupportedOperationException("TODO: " + argument.getClazz());
+        }
+      } else if(argument.isNamedFlag() || argument.isVarArg()) {
         throw new UnsupportedOperationException("TODO");
+      } else {
+        CompiledSexp compiledArg = arguments.get(positionalArgument).getExpression().getCompiledExpr(emitContext);
+        compiledArg.loadAsArgument(emitContext, mv, argument.getClazz());
+        positionalArgument++;
       }
-      CompiledSexp compiledArg = arguments.get(positionalArgument).getExpression().getCompiledExpr(emitContext);
-      compiledArg.loadAsArgument(emitContext, mv, argument.getClazz());
     }
 
     invokeMethod(mv);

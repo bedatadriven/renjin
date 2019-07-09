@@ -18,10 +18,17 @@
  */
 package org.renjin.compiler.ir.tac.functions;
 
+import org.renjin.compiler.NotCompilableException;
+import org.renjin.compiler.codegen.FunctionLoader;
+import org.renjin.compiler.codegen.NamedFunctionLoader;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.expressions.DynamicCall;
+import org.renjin.compiler.ir.tac.expressions.DynamicSetterCall;
 import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.expressions.SimpleExpression;
 import org.renjin.compiler.ir.tac.statements.ExprStatement;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.Symbol;
 
@@ -36,17 +43,36 @@ public class DynamicCallTranslator extends FunctionCallTranslator {
   public Expression translateToExpression(IRBodyBuilder builder,
                                           TranslationContext context, FunctionCall call) {
 
-    return new DynamicCall(call, functionName(call));
+    if(call.getFunction() instanceof Symbol) {
+      String functionName = ((Symbol) call.getFunction()).getPrintName();
+      return new DynamicCall(new NamedFunctionLoader(functionName), call, functionName(call));
+    } else {
+
+      SimpleExpression functionExpr = builder.translateSimpleExpression(context, call.getFunction());
+      FunctionLoader functionLoader = (c, mv) -> {
+        functionExpr.getCompiledExpr(c).loadSexp(c, mv);
+        mv.checkcast(Type.getType(Function.class));
+      };
+
+      return new DynamicCall(functionLoader, call, "fn");
+    }
   }
 
   @Override
   public void addStatement(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
+
     builder.addStatement(new ExprStatement(translateToExpression(builder, context, call)));
   }
 
   @Override
   public Expression translateToSetterExpression(IRBodyBuilder builder, TranslationContext context, FunctionCall getterCall, Expression rhs) {
-    throw new UnsupportedOperationException("TODO");
+    if(getterCall.getFunction() instanceof Symbol) {
+      Symbol getter = (Symbol) getterCall.getFunction();
+      String setter = getter.getPrintName() + "<-";
+      return new DynamicSetterCall(getterCall, new NamedFunctionLoader(setter), setter, builder.simplify(rhs));
+    } else {
+      throw new NotCompilableException(getterCall, "Unsupported expression in complex assignment");
+    }
   }
 
   private String functionName(FunctionCall call) {

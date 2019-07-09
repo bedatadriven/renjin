@@ -22,6 +22,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.MatchedArguments;
+import org.renjin.invoke.annotations.CompilerSpecialization;
 
 import java.util.*;
 
@@ -62,6 +63,29 @@ public final class FunctionEnvironment extends Environment {
     this.matching = matching;
     this.locals = locals;
     this.dispatchTable = dispatch;
+  }
+
+  @CompilerSpecialization
+  public boolean isMissingArgument(Context context, String symbol) {
+    return isMissingArgument(context, Symbol.get(symbol));
+  }
+
+  @CompilerSpecialization
+  public boolean isMissingArgument(Context context, int i) {
+    if(matchedArguments[i] == null) {
+      return true;
+    }
+    Symbol symbol = (Symbol)localNames[i];
+    if(symbol == Symbols.ELLIPSES) {
+      return matchedArguments[i].length() == 0;
+    }
+
+    if(symbol.isVarArgReference()) {
+      return isVarArgMissing(context, symbol.getVarArgReferenceIndex());
+    }
+
+    // Otherwise need to lookup symbol further up...
+    return isArgMissing(context, this, symbol);
   }
 
   public boolean isMissingArgument(Context context, Symbol symbol) {
@@ -177,12 +201,41 @@ public final class FunctionEnvironment extends Environment {
   public SEXP getPromised(int index) {
     return locals[index];
   }
+
+
+  /**
+   * Access an index frame variable from the function environment, searching parent
+   * environments if necessary.
+   *
+   * <p>If no binding is found, an EvalException is thrown.</p>
+   * @param index the index of the variable, assigned at compile time.
+   * @return the bound value
+   * @throws EvalException if there is no binding
+   */
   public SEXP get(Context context, int index) {
     SEXP value = locals[index];
     if(value != null) {
       return value.force(context);
     }
-    throw new UnsupportedOperationException("TODO");
+    Symbol symbol = (Symbol) localNames[index];
+
+    if(overflow != null) {
+      value = overflow.get(symbol);
+      if(value != null) {
+        return value.force(context);
+      }
+    }
+
+    if(symbol.isDispatchMetadata() && dispatchTable != null) {
+      return dispatchTable.get(symbol);
+    }
+
+    value = getParent().findVariable(context, symbol);
+
+    if(value == Symbol.UNBOUND_VALUE) {
+      throw new EvalException("object '" + symbol + "' not found.");
+    }
+    return value.force(context);
   }
 
   private int indexOf(Symbol name) {
@@ -352,5 +405,9 @@ public final class FunctionEnvironment extends Environment {
         return get(context, varIndex);
       }
     };
+  }
+
+  public SEXP promise(String symbol) {
+    return new Promise(this, Symbol.get(symbol));
   }
 }

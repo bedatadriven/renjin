@@ -74,3 +74,30 @@ nchar <- function(x, type = "chars", allowNA = FALSE, keepNA = NA) {
 
 # required by apply():
 forceAndCall <- function(n, FUN, ...) FUN(...)
+
+
+setTimeLimit <- function(cpu = Inf, elapsed = Inf, transient = FALSE)
+    stop("setTimeLimit() not supported by Renjin")
+
+setSessionTimeLimit <- function(cpu = Inf, elapsed = Inf)
+    stop("setSessionTimeLimit() not supported by Renjin")
+
+icuSetCollate <- function(...)
+    stop("icuSetCollate() not supported by Renjin")
+
+icuGetCollate <- function(type = c("actual", "valid"))
+    stop("icuGetCollate() not supported by Renjin")
+
+extSoftVersion <- function() {
+    warning("Renjin does not support extSoftVersion()")
+    list()
+}
+
+libcurlVersion <- function() {
+    warning("Renjin does not use libcurl")
+    structure("0", ssl_version = "JRE", libssh_version = "",
+            protocols = c("file", "http", "https"))
+}
+
+curlGetHeaders <- function(url, redirect = TRUE, verify = TRUE)
+    stop("Renjin does not use libcurl")

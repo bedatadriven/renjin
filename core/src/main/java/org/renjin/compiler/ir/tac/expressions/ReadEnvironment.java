@@ -30,8 +30,6 @@ import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
-import java.util.Map;
-
 /**
  * Reads the initial value of a variable from the R environment
  */
@@ -51,7 +49,7 @@ public class ReadEnvironment implements Expression {
   }
 
   @Override
-  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+  public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
     return valueBounds;
   }
 

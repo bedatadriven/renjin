@@ -20,13 +20,16 @@ package org.renjin.compiler.ir.tac.functions;
 
 
 import org.renjin.compiler.ir.tac.IRArgument;
+import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.sexp.Symbol;
 
 import java.util.List;
 
 public interface TranslationContext {
-  
+
+  boolean isEllipsesArgumentKnown();
+
   List<IRArgument> getEllipsesArguments();
 
-  boolean isMissing(Symbol name);
+  Expression isMissing(Symbol name);
 }

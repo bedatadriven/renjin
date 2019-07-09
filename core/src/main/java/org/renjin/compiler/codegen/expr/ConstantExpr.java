@@ -18,7 +18,6 @@
  */
 package org.renjin.compiler.codegen.expr;
 
-import org.renjin.compiler.codegen.ConstantBytecode;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.repackaged.asm.ByteVector;
@@ -61,7 +60,7 @@ public class ConstantExpr {
       return new SexpExpr() {
         @Override
         public void loadSexp(EmitContext context, InstructionAdapter mv) {
-          ConstantBytecode.pushConstant(mv, sexp);
+          context.constantSexp(sexp).loadSexp(context, mv);
         }
       };
     }

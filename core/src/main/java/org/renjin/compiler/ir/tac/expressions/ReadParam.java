@@ -22,8 +22,6 @@ import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 
-import java.util.Map;
-
 
 public class ReadParam implements Expression {
 
@@ -45,7 +43,7 @@ public class ReadParam implements Expression {
   }
   
   @Override
-  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+  public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
     return valueBounds;
   }
 

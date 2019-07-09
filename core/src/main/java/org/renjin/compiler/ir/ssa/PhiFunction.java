@@ -23,13 +23,13 @@ import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.expressions.ValueBoundsMap;
 import org.renjin.compiler.ir.tac.expressions.Variable;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 public class PhiFunction implements Expression {
 
@@ -62,7 +62,7 @@ public class PhiFunction implements Expression {
   }
 
   @Override
-  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+  public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
     Iterator<Variable> it = arguments.iterator();
     ValueBounds bounds = it.next().updateTypeBounds(typeMap);
     

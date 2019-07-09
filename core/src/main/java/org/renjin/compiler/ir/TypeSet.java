@@ -41,10 +41,12 @@ public class TypeSet {
   public static final int FUNCTION = (1 << 10);
   public static final int ENVIRONMENT = (1 << 11);
   public static final int PAIRLIST = (1 << 12);
-  public static final int S4 = (1 << 13);
+  public static final int LANGUAGE = (1 << 13);
+  public static final int S4 = (1 << 14);
+  public static final int EXTERNAL = (1 << 15);
   public static final int ANY_ATOMIC_VECTOR = NULL | RAW | INT | LOGICAL | DOUBLE | COMPLEX | STRING;
   public static final int ANY_VECTOR = LIST | ANY_ATOMIC_VECTOR;
-  public static final int ANY_TYPE = ANY_VECTOR | PAIRLIST | ENVIRONMENT | SYMBOL | FUNCTION;
+  public static final int ANY_TYPE = ANY_VECTOR | PAIRLIST | ENVIRONMENT | SYMBOL | FUNCTION | S4 | LANGUAGE | EXTERNAL;
 
   public static final int NUMERIC = INT | DOUBLE;
 
@@ -83,7 +85,10 @@ public class TypeSet {
   }
 
   public static int of(Class type) {
-    if (type.equals(int.class)) {
+    if (type.equals(void.class)) {
+      return NULL;
+
+    } else if (type.equals(int.class)) {
       return INT;
 
     } else if(type.equals(double.class)) {
@@ -109,6 +114,9 @@ public class TypeSet {
 
     } else if (LogicalVector.class.isAssignableFrom(type)) {
       return LOGICAL;
+
+    } else if (type.equals(PairList.class)) {
+      return NULL | PAIRLIST | LANGUAGE;
 
     } else if (AtomicVector.class.isAssignableFrom(type)) {
       return ANY_ATOMIC_VECTOR;
@@ -146,6 +154,9 @@ public class TypeSet {
     } else if (type.equals(StringVector.class)) {
       return STRING;
 
+    } else if (type.equals(LogicalVector.class)) {
+      return LOGICAL;
+
     } else if(type.equals(IntVector.class)) {
       return INT;
 
@@ -162,7 +173,13 @@ public class TypeSet {
       return LIST;
 
     } else if(type.equals(PairList.class)) {
-      return PAIRLIST | NULL;
+      return PAIRLIST | NULL | LANGUAGE;
+
+    } else if (type.equals(Null.class)) {
+      return NULL;
+
+    } else if(type.equals(PairList.Node.class)) {
+      return PAIRLIST;
 
     } else if(type.equals(Vector.class)) {
       return ANY_VECTOR;
@@ -173,8 +190,20 @@ public class TypeSet {
     } else if(type.equals(Symbol.class)) {
       return SYMBOL;
 
+    } else if(Function.class.isAssignableFrom(type)) {
+      return FUNCTION;
+
+    } else if(type.equals(Environment.class)) {
+      return ENVIRONMENT;
+
+    } else if(type.equals(FunctionCall.class)) {
+      return LANGUAGE;
+
     } else if (type.equals(SEXP.class)) {
       return ANY_TYPE;
+
+    } else if (!SEXP.class.isAssignableFrom(type)) {
+      return EXTERNAL;
 
     } else {
       throw new UnsupportedOperationException("type: " + type);

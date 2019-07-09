@@ -21,19 +21,25 @@ package org.renjin.compiler.ir.tac.functions;
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.sexp.FunctionCall;
+import org.renjin.compiler.ir.tac.expressions.ReassignStatement;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
 
 
-public class ReassignLeftTranslator extends FunctionCallTranslator {
-
-
+public class ReassignLeftTranslator extends AssignLeftTranslator {
   @Override
-  public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
-    throw new NotCompilableException(call, "<<- is evil!");
-  }
+  protected void doAssignment(IRBodyBuilder builder, SEXP lhs, Expression rhs) {
+    String name;
+    if(lhs instanceof Symbol) {
+      name = ((Symbol) lhs).getPrintName();
+    } else if(lhs instanceof StringVector) {
+      name = ((StringVector) lhs).getElementAsString(0);
+    } else {
+      throw new NotCompilableException(lhs, "Invalid lhs for <<-");
+    }
 
-  @Override
-  public void addStatement(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
-    throw new NotCompilableException(call, "<<- is evil!");
+    builder.addStatement(new ReassignStatement(name, rhs));
+
   }
 }

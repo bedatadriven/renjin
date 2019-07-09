@@ -164,6 +164,7 @@ public class JvmMethod implements Comparable<JvmMethod> {
 
   public boolean isGeneric() {
     return method.getAnnotation(Generic.class) != null ||
+        method.getAnnotation(GroupGeneric.class) != null ||
         method.getDeclaringClass().getAnnotation(GroupGeneric.class) != null;
   }
   
@@ -197,8 +198,12 @@ public class JvmMethod implements Comparable<JvmMethod> {
    */
   public String getGenericName() {
     Builtin primitive = method.getAnnotation(Builtin.class);
-    if(primitive != null && primitive.value() != null) {
+    if(primitive != null && !primitive.value().isEmpty()) {
       return primitive.value();
+    }
+    Internal internal = method.getAnnotation(Internal.class);
+    if(internal != null && !internal.value().isEmpty()) {
+      return internal.value();
     }
     return method.getName();
   }

@@ -23,6 +23,7 @@ import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
+import org.renjin.sexp.FunctionCall;
 
 import java.util.List;
 
@@ -49,7 +50,7 @@ public class IsNaSpecializer implements Specializer {
       }
 
       @Override
-      public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+      public CompiledSexp getCompiledExpr(EmitContext emitContext, FunctionCall call, List<IRArgument> arguments) {
         throw new UnsupportedOperationException("TODO");
       }
     };

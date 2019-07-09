@@ -21,16 +21,18 @@ package org.renjin.compiler.ir.tac.functions;
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
-import org.renjin.compiler.ir.tac.expressions.Constant;
 import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.sexp.*;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbol;
 
 public class MissingTranslator extends FunctionCallTranslator {
   @Override
   public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, FunctionCall call) {
 
     Symbol argumentName = parseArgumentName(call);
-    return new Constant(Logical.valueOf(context.isMissing(argumentName)));
+    return context.isMissing(argumentName);
   }
 
   private Symbol parseArgumentName(FunctionCall call) {

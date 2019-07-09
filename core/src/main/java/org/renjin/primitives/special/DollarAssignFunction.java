@@ -43,22 +43,26 @@ public class DollarAssignFunction extends SpecialFunction {
     SEXP value = context.evaluate(call.getArgument(2), rho);
 
 
+    return assign(context, rho, call, object, nameArgument.getElementAsString(0), value);
+  }
+
+  public static SEXP assign(Context context, Environment rho, FunctionCall call, SEXP object, String name, SEXP value) {
     if(object.isObject()) {
       // For possible generic dispatch, repackage the name argument as character vector rather than
       // symbol
       String[] argumentNames = new String[3];
-      SEXP[] promisedArguments = new SEXP[3];
-      promisedArguments[0] = call.getArgument(0).repromise(object);
-      promisedArguments[1] = nameArgument.repromise();
-      promisedArguments[2] = call.getArgument(2).repromise(value);
-      SEXP genericResult = S3.tryDispatchFromPrimitive(context, rho, call, "$<-", null, argumentNames, promisedArguments);
+      SEXP[] promisedArgs = new SEXP[3];
+      promisedArgs[0] = object.repromise();
+      promisedArgs[1] = StringVector.valueOf(name);
+      promisedArgs[2] = value.repromise();
+
+      SEXP genericResult = S3.tryDispatchFromPrimitive(context, rho, call, "$<-", null, argumentNames, promisedArgs);
       if (genericResult!= null) {
         return genericResult;
       }
     }
 
     // If no generic function, replace the element
-    String name = nameArgument.getElementAsString(0);
     if(object instanceof PairList.Node) {
       return Subsetting.setElementByName((PairList.Node)object, name, value);
 

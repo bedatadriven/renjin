@@ -18,6 +18,7 @@
  */
 package org.renjin.packaging;
 
+import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.aot.AotBuffer;
 import org.renjin.compiler.aot.AotHandle;
 import org.renjin.compiler.aot.ClosureCompiler;
@@ -57,12 +58,12 @@ public class LazyLoadFrameBuilder3 {
     this.context = context;
     this.buffer = new AotBuffer("org.renjin.base");
   }
-  
+
   public LazyLoadFrameBuilder3 outputTo(File dir) {
     this.outputDir = dir;
     return this;
   }
-  
+
   public LazyLoadFrameBuilder3 filter(Predicate<SEXP> filter) {
     this.filter = filter;
     return this;
@@ -72,9 +73,15 @@ public class LazyLoadFrameBuilder3 {
     this.excludedSymbols = excludedSymbols;
     return this;
   }
-  
+
   public void build(Environment env) throws IOException {
 
+    if(!outputDir.exists()) {
+      boolean created = outputDir.mkdirs();
+      if(!created) {
+        throw new IOException("Could not creat " + outputDir.getAbsolutePath());
+      }
+    }
 
     // Now write an index of symbols
     File indexFile = new File(outputDir, "environment");
@@ -176,13 +183,35 @@ public class LazyLoadFrameBuilder3 {
   }
 
   private boolean compileAndSerializeClosure(DataOutputStream indexOut, Symbol symbol, Closure closure) throws IOException {
+
+
+
+    if(symbol.getPrintName().equals("NextMethod") ||
+       symbol.getPrintName().equals("attachNamespace") ||
+       symbol.getPrintName().equals("unloadNamespace") ||
+       symbol.getPrintName().equals("cbind") ||
+       symbol.getPrintName().equals("rbind") ||
+       symbol.getPrintName().equals("detach") ||
+       symbol.getPrintName().equals("determinant.matrix") ||
+       symbol.getPrintName().equals("file.link") ||
+       symbol.getPrintName().equals("grepRaw") ||
+       symbol.getPrintName().equals("shell.exec") ||
+       symbol.getPrintName().equals("importIntoEnv") ||
+       symbol.getPrintName().equals("registerS3methods") ||
+       symbol.getPrintName().startsWith(".__") ) {
+      return false;
+    }
     AotHandle handle;
     try {
       ClosureCompiler compiler = new ClosureCompiler(buffer, context, symbol, closure);
       handle = compiler.getHandle();
-    } catch (Exception e) {
+    } catch (NotCompilableException e) {
+      System.err.println("ERROR compiling " + symbol + ": " + e.getSexp());
       e.printStackTrace();
       return false;
+
+    } catch (Exception e) {
+      throw new RuntimeException("Exception compiling '" + symbol + "'", e);
     }
 
     // Write out the header
@@ -192,6 +221,7 @@ public class LazyLoadFrameBuilder3 {
     writeInlineResource(indexOut, serializeSymbol(closure.getEnclosingEnvironment()));
     writeInlineResource(indexOut, serializeSymbol(closure.getFormals()));
     writeInlineResource(indexOut, serializeSymbol(closure.getAttributes().asPairList()));
+    writeInlineResource(indexOut, serializeSymbol(handle.getLocalVars()));
 
     // Write the body of the function to an external resource file
     writeExternalResource(indexOut, symbol, serializeSymbol(closure.getBody()));

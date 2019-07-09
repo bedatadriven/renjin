@@ -28,6 +28,7 @@ import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.FunctionCall;
 
 import java.util.List;
 
@@ -58,7 +59,7 @@ public class DoubleBinaryOp implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, FunctionCall call, List<IRArgument> arguments) {
     return new ScalarExpr(VectorType.DOUBLE) {
       @Override
       public void loadScalar(EmitContext context, InstructionAdapter mv) {

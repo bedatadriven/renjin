@@ -69,7 +69,7 @@ public class FunctionCallTranslators {
       if(specials.containsKey(primitiveFunction.getName())) {
         return specials.get(primitiveFunction.getName());
       } else {
-        return new BuiltinTranslator((PrimitiveFunction) function);
+        return DynamicCallTranslator.INSTANCE;
       }
     }
   

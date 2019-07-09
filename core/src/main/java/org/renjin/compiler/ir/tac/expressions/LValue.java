@@ -22,8 +22,6 @@ import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 
-import java.util.Map;
-
 /**
  * An {@code SimpleExpression} that can be the target of an assignment.
  */
@@ -51,7 +49,7 @@ public abstract class LValue implements SimpleExpression {
   }
 
   @Override
-  public final ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+  public final ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
     ValueBounds type = typeMap.get(this);
     if(type == null) {
       valueBounds = ValueBounds.UNBOUNDED;

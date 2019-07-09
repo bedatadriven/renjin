@@ -546,6 +546,9 @@ public class GimpleCompiler  {
           case "--output-dir":
             compiler.setOutputDirectory(new File(value));
             break;
+          case "--log-dir":
+            compiler.setLoggingDirectory(new File(value));
+            break;
           default:
             throw new RuntimeException("Unknown option " + arg);
         }

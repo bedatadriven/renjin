@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.cfg;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.compiler.ir.ValueBounds;
@@ -27,6 +28,7 @@ import org.renjin.sexp.Closure;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+@Ignore
 public class InlinedFunctionTest extends EvalTestCase {
 
   

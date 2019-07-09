@@ -18,8 +18,6 @@
  */
 package org.renjin.sexp;
 
-import org.renjin.eval.Profiler;
-
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -70,10 +68,6 @@ public final class DoubleArrayVector extends DoubleVector {
 
   public DoubleArrayVector(double[] values, int length, AttributeMap attributes) {
     this(attributes);
-    if(Profiler.ENABLED) {
-      Profiler.memoryAllocated(Double.SIZE, length);
-    }
-    
     this.values = Arrays.copyOf(values, length);
   }
 
@@ -287,10 +281,6 @@ public final class DoubleArrayVector extends DoubleVector {
     @Override
     public DoubleVector build() {
       if(values.length == size) {
-        if(Profiler.ENABLED) {
-          Profiler.memoryAllocated(Double.SIZE, values.length);
-        }
-        
         // Do not make an extra copy of the array
         DoubleArrayVector vector = new DoubleArrayVector(buildAttributes());
         vector.values = values;

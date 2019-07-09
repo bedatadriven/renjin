@@ -22,7 +22,6 @@ import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 import org.renjin.aether.AetherPackageLoader;
 import org.renjin.cli.build.Builder;
-import org.renjin.eval.Profiler;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.primitives.special.ForFunction;
@@ -78,15 +77,7 @@ public class Main {
       ForFunction.COMPILE_LOOPS = true;
     }
     
-    try {
-      new Main(optionSet).run();
-    } finally {
-      if(Profiler.ENABLED) {
-        System.out.flush();
-        Profiler.dumpTotalRunningTime();
-        Profiler.dump(System.out);
-      }
-    }
+    new Main(optionSet).run();
   }
 
   public Main(OptionSet options) {
@@ -101,10 +92,6 @@ public class Main {
       initSession();
       
       this.session.setCommandLineArguments("renjin", options.getArguments());
-
-      if(options.isFlagSet(OptionSet.PROFILE)) {
-        Profiler.ENABLED = true;
-      }
 
       if(options.hasExpression()) {
         evaluateExpression(options.getExpression());

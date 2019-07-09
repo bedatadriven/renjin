@@ -18,7 +18,6 @@
  */
 package org.renjin.pipeliner;
 
-import org.renjin.eval.Profiler;
 import org.renjin.pipeliner.fusion.LoopKernelCache;
 import org.renjin.primitives.ni.DeferredNativeCall;
 import org.renjin.primitives.vector.DeferredComputation;
@@ -115,10 +114,6 @@ public class VectorPipeliner {
     // force any memoized values in the graph
     evaluate(graph);
 
-    if(Profiler.ENABLED) {
-      long time = System.nanoTime() - start;
-      Profiler.materialized(time);
-    }
   }
 
 

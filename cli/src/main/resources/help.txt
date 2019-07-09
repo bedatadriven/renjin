@@ -14,9 +14,6 @@ Options:
 
 Execution flags:
 
-  --profile             Profile the script and print summary. 
-                        Must be used with -f FILE.
-                        
   --compile-loops       Enable JIT compilation of loops (EXPERIMENTAL)
                         This is a work in progress and may still have bugs. 
 

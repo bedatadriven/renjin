@@ -19,7 +19,6 @@
 package org.renjin.sexp;
 
 import org.renjin.eval.EvalException;
-import org.renjin.eval.Profiler;
 import org.renjin.repackaged.guava.collect.Iterables;
 
 import java.util.Arrays;
@@ -32,10 +31,6 @@ public class StringArrayVector extends StringVector implements Iterable<String> 
 
   public StringArrayVector(String[] values, AttributeMap attributes) {
     super(attributes);
-    
-    if(Profiler.ENABLED) {
-      Profiler.memoryAllocated(32, values.length);
-    }
     
     this.values = Arrays.copyOf(values, values.length, String[].class);
     assert checkDims() : "dim do not match length of object";

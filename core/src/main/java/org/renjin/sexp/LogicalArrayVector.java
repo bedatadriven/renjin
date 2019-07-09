@@ -19,8 +19,6 @@
 package org.renjin.sexp;
 
 
-import org.renjin.eval.Profiler;
-
 import java.util.Arrays;
 
 public class LogicalArrayVector extends LogicalVector {
@@ -40,9 +38,6 @@ public class LogicalArrayVector extends LogicalVector {
 
   public LogicalArrayVector(int[] values, int size, AttributeMap attributes) {
     super(attributes);
-    if(Profiler.ENABLED) {
-      Profiler.memoryAllocated(Integer.SIZE, size);
-    }
     this.values = Arrays.copyOf(values, size);
   }
 
@@ -220,9 +215,6 @@ public class LogicalArrayVector extends LogicalVector {
     
     @Override
     public LogicalVector build() {
-      if(Profiler.ENABLED) {
-        Profiler.memoryAllocated(Integer.SIZE, size);
-      }
       if(values.length == size) {
         LogicalArrayVector vector = new LogicalArrayVector(buildAttributes());
         vector.values = values;

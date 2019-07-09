@@ -25,7 +25,6 @@ import org.renjin.compiler.SexpCompiler;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.eval.Profiler;
 import org.renjin.sexp.*;
 
 
@@ -56,40 +55,29 @@ public class ForFunction extends SpecialFunction {
     Vector elements = (Vector) elementsExp;
     SEXP statement = args.getElementAsSEXP(2);
 
-    boolean profiling = Profiler.ENABLED && elements.length() > COMPILE_THRESHOLD;
-    if(profiling) {
-      Profiler.loopStart(call, elements);
-    }
-
     int i = 0;
-    
-    try {
-      // Interpret the loop
-      boolean compilationFailed = false;
-      for (i = 0; i != elements.length(); ++i) {
-        try {
 
-          if (COMPILE_LOOPS && i >= WARMUP_ITERATIONS && elements.length() > COMPILE_THRESHOLD &&
-              !compilationFailed) {
+    // Interpret the loop
+    boolean compilationFailed = false;
+    for (i = 0; i != elements.length(); ++i) {
+      try {
 
-            if (tryCompileAndRun(context, rho, call, elements, i)) {
-              break;
-            } else {
-              compilationFailed = true;
-            }
+        if (COMPILE_LOOPS && i >= WARMUP_ITERATIONS && elements.length() > COMPILE_THRESHOLD &&
+            !compilationFailed) {
+
+          if (tryCompileAndRun(context, rho, call, elements, i)) {
+            break;
+          } else {
+            compilationFailed = true;
           }
-
-          rho.setVariable(context, symbol, elements.getElementAsSEXP(i));
-          context.evaluate(statement, rho);
-        } catch (BreakException e) {
-          break;
-        } catch (NextException e) {
-          // next iteration
         }
-      }
-    } finally {
-      if(profiling) {
-        Profiler.loopEnd(i);
+
+        rho.setVariable(context, symbol, elements.getElementAsSEXP(i));
+        context.evaluate(statement, rho);
+      } catch (BreakException e) {
+        break;
+      } catch (NextException e) {
+        // next iteration
       }
     }
 

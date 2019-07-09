@@ -19,6 +19,7 @@
 package org.renjin.invoke.codegen.scalars;
 
 import com.sun.codemodel.*;
+import org.renjin.invoke.annotations.CastStyle;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.sexp.IntVector;
 import org.renjin.sexp.LogicalArrayVector;
@@ -69,7 +70,11 @@ public class BooleanType extends ScalarType {
 
   @Override
   public JExpression testExpr(JCodeModel codeModel, JVar sexpVariable, JvmMethod.Argument formal) {
-    return sexpVariable._instanceof(codeModel.ref(Vector.class));
+    if(formal.getCastStyle() == CastStyle.EXPLICIT) {
+      return sexpVariable._instanceof(codeModel.ref(LogicalVector.class));
+    } else {
+      return sexpVariable._instanceof(codeModel.ref(Vector.class));
+    }
   }
 
   @Override

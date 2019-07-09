@@ -660,8 +660,15 @@ public class Ops  {
 
   @Deferrable
   @Builtin("!")
+  @DataParallel(PreserveAttributeStyle.NONE)
+  public static boolean not(double value) {
+    return value == 0.0;
+  }
+
+  @Deferrable
+  @Builtin("!")
   @DataParallel(PreserveAttributeStyle.ALL)
-  public static boolean not(boolean value) {
+  public static boolean not(@Cast(CastStyle.EXPLICIT) boolean value) {
     return !value;
   }
 
@@ -669,6 +676,16 @@ public class Ops  {
   @DataParallel(PreserveAttributeStyle.ALL)
   public static byte not(byte value) {
     return (byte)~value;
+  }
+
+  @Builtin("!")
+  @NoAttributes
+  public static LogicalVector not(Vector x) {
+    if(x.length() == 0) {
+      return LogicalVector.EMPTY;
+    } else {
+      throw new EvalException("invalid argument type");
+    }
   }
 
   @Deferrable

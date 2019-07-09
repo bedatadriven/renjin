@@ -60,6 +60,25 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
   }
 
   @Override
+  public SEXP promise(Environment rho) {
+    return this;
+  }
+
+  @Override
+  public SEXP repromise() {
+    return this;
+  }
+
+  @Override
+  public SEXP repromise(SEXP evaluatedValue) {
+    if(this == evaluatedValue) {
+      return this;
+    } else {
+      return new Promise(this, evaluatedValue);
+    }
+  }
+
+  @Override
   public String toString() {
     return "NULL";
   }

@@ -228,6 +228,13 @@ public interface SEXP {
   }
 
   /**
+   * If this is a Promise, return the unevaluated, promised expression. Otherwise, return the same object.
+   */
+  default SEXP getPromisedExpression() {
+    return this;
+  }
+
+  /**
    * Returns true if this SEXP is equal to the {@code other} SEXP given, using the same rules as the
    * builtin {@link org.renjin.primitives.Identical#identical(SEXP, SEXP)} function, namely:
    *
@@ -240,6 +247,7 @@ public interface SEXP {
    */
   @Override
   boolean equals(Object other);
+
 
   /**
    * Returns a String representation of this SEXP intended <strong>only</strong> for use in debugging.

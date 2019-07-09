@@ -186,7 +186,7 @@ public class SubstituteFunction extends SpecialFunction {
 
     private SEXP unpromise(SEXP value) {
       while(value instanceof Promise) {
-        value = ((Promise) value).getPromisedExpression();
+        value = value.getPromisedExpression();
       } 
       return value;
     }

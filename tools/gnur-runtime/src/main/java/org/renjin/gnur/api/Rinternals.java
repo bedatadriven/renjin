@@ -2469,7 +2469,7 @@ public final class Rinternals {
   }
 
   public static SEXP R_PromiseExpr(SEXP x) {
-    return ((Promise) x).getPromisedExpression();
+    return x.getPromisedExpression();
   }
 
   public static SEXP R_ClosureExpr(SEXP p0) {

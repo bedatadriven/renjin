@@ -82,6 +82,25 @@ public abstract class AbstractAtomicVector extends AbstractVector implements Ato
     }
   }
 
+  @Override
+  public SEXP promise(Environment rho) {
+    return this;
+  }
+
+  @Override
+  public SEXP repromise() {
+    return this;
+  }
+
+  @Override
+  public SEXP repromise(SEXP evaluatedValue) {
+    if(this == evaluatedValue) {
+      return this;
+    } else {
+      return new Promise(this, evaluatedValue);
+    }
+  }
+
   public final double asReal() {
     if (length() == 0) {
       return DoubleVector.NA;

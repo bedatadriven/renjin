@@ -50,7 +50,7 @@ class BindArgument {
     this.deparseLevel = deparseLevel;
     SEXP dim = vector.getAttributes().getDim();
     this.vector = vector;
-    this.expression = uneval instanceof Promise ? ((Promise) uneval).getPromisedExpression() : uneval;
+    this.expression = uneval.getPromisedExpression();
     if (dim == Null.INSTANCE || dim.length() != 2) {
       if (bindDim == MatrixDim.ROW) {
         this.rows = 1;

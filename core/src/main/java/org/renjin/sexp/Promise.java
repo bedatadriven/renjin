@@ -109,8 +109,24 @@ public class Promise extends AbstractSEXP implements Recursive {
   /**
    * @return this Promise's original expression.
    */
+  @Override
   public SEXP getPromisedExpression() {
     return expression;
+  }
+
+  @Override
+  public SEXP repromise() {
+    return this;
+  }
+
+  @Override
+  public SEXP repromise(SEXP evaluatedValue) {
+    return new Promise(getPromisedExpression(), evaluatedValue);
+  }
+
+  @Override
+  public SEXP promise(Environment rho) {
+    return this;
   }
 
   @Override

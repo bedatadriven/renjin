@@ -19,7 +19,6 @@
 package org.renjin.invoke.codegen;
 
 import org.renjin.eval.Context;
-import org.renjin.eval.MissingArgumentException;
 import org.renjin.primitives.Deparse;
 import org.renjin.sexp.*;
 
@@ -214,14 +213,6 @@ public class WrapperRuntime {
     if(argument == Symbol.MISSING_ARG) {
       return argument;
     }
-    Promise promise = (Promise) argument;
-    if(promise.isEvaluated()) {
-      return promise.getValue();
-    }
-    try {
-      return promise.force(context);
-    } catch (MissingArgumentException e) {
-      return Symbol.MISSING_ARG;
-    }
+    return argument.forceOrMissing(context);
   }
 }

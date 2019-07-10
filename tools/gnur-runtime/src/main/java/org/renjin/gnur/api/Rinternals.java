@@ -2604,17 +2604,24 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_XDRDecodeInteger");
   }
 
-  // void R_InitInPStream (R_inpstream_t stream, R_pstream_data_t data, R_pstream_format_t type, int(*inchar)(R_inpstream_t), void(*inbytes)(R_inpstream_t, void *, int), SEXP(*phook)(SEXP, SEXP), SEXP pdata)
+  public static void R_InitInPStream(Ptr stream, Ptr data, int type, int version, Ptr hook, SEXP pdata) {
+    throw new UnimplementedGnuApiMethod("R_InitInPStream");
+  }
 
-  // void R_InitOutPStream (R_outpstream_t stream, R_pstream_data_t data, R_pstream_format_t type, int version, void(*outchar)(R_outpstream_t, int), void(*outbytes)(R_outpstream_t, void *, int), SEXP(*phook)(SEXP, SEXP), SEXP pdata)
-
+  public static void R_InitOutPStream (Ptr stream, Ptr data, int type, int version, Ptr p1, Ptr p2, Ptr hook, SEXP pdata) {
+    throw new UnimplementedGnuApiMethod("R_InitOutPStream");
+  }
   // void R_InitFileInPStream (R_inpstream_t stream, FILE *fp, R_pstream_format_t type, SEXP(*phook)(SEXP, SEXP), SEXP pdata)
 
   // void R_InitFileOutPStream (R_outpstream_t stream, FILE *fp, R_pstream_format_t type, int version, SEXP(*phook)(SEXP, SEXP), SEXP pdata)
 
-  // void R_Serialize (SEXP s, R_outpstream_t ops)
+  public static void R_Serialize (SEXP s, Ptr outputStream) {
+    throw new UnimplementedGnuApiMethod("R_Serialize");
+  }
 
-  // SEXP R_Unserialize (R_inpstream_t ips)
+  public static SEXP R_Unserialize (Ptr ips) {
+    throw new UnimplementedGnuApiMethod("R_Unserialize");
+  }
 
   public static SEXP R_do_slot(SEXP obj, SEXP name) {
     Context context = Native.currentContext();

@@ -31,6 +31,9 @@ publishing {
 import org.apache.tools.ant.filters.*
 
 processResources {
+
+    inputs.property 'version', project.version
+
     filter ReplaceTokens, tokens: [
             version: project.version.toString()
     ]

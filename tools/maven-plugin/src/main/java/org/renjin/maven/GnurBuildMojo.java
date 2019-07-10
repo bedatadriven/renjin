@@ -25,6 +25,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.renjin.gcc.GimpleCompiler;
 import org.renjin.packaging.PackageBuilder;
 import org.renjin.packaging.PackageSource;
 
@@ -52,6 +53,8 @@ public class GnurBuildMojo extends AbstractMojo {
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+
+    GimpleCompiler.IGNORE_ERRORS = true;
 
     try {
       PackageSource packageSource = new PackageSource.Builder(project.getBasedir())

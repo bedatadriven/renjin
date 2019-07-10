@@ -18,13 +18,13 @@ publishing {
         }
     }
 
-    if(rootProject.hasProperty('renjinDeployPassword')) {
+    if(rootProject.hasProperty('renjinDeploymentPassword')) {
         repositories {
             maven {
                 url = "https://nexus.bedatadriven.com/content/repositories/renjin-release/"
                 credentials {
-                    username 'deploy'
-                    password rootProject.property("renjinDeployPassword")
+                    username 'deployment'
+                    password rootProject.property("renjinDeploymentPassword")
                 }
             }
         }

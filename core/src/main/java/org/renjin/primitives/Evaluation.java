@@ -415,4 +415,9 @@ public class Evaluation {
     context.warn("object '" + name.getPrintName() + "' not found");
   }
 
+  @Builtin("...elt")
+  public static SEXP getExpandoArg(@Current Environment rho, int n) {
+    return rho.findVarArg(n);
+  }
+
 }

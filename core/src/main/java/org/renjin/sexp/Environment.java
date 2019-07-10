@@ -414,10 +414,13 @@ public abstract class Environment extends AbstractSEXP implements Recursive {
   /**
    * returns varArg value at provided index
    *
-   * @param varArgReferenceIndex index of varArg to return
+   * @param varArgReferenceIndex one-based index of varArg to return
    * @return
    */
   public final SEXP findVarArg(int varArgReferenceIndex) {
+    if(varArgReferenceIndex <= 0) {
+      throw new EvalException("indexing '...' with non-positive index " + varArgReferenceIndex);
+    }
     SEXP ellipses = findVariableUnsafe(Symbols.ELLIPSES);
     if(ellipses == Symbol.UNBOUND_VALUE) {
       throw new EvalException("..%d used in an incorrect context, no ... to look in", varArgReferenceIndex);

@@ -182,7 +182,7 @@ public class Primitives {
     add(new UseMethod());
     add(new MissingFunction());
 
-    f("stop", Conditions.class, 1);
+    f("stop", Conditions.class, 11);
     f("warning", Warning.class, 111);
 
     f("gettext", Text.class, 11);
@@ -302,6 +302,7 @@ public class Primitives {
     f("row", Matrices.class, 11);
     f("col", Matrices.class, 11);
     f("c", Combine.class, 1);
+    f("...elt", Evaluation.class, 1);
     f("unlist", Combine.class, 11);
     addInternal(new ColumnBindFunction());
     addInternal(new RowBindFunction());

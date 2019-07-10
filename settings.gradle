@@ -6,6 +6,8 @@ include 'tools:gnur-compiler'
 include 'tools:gnur-runtime'
 include 'tools:packager'
 include 'tools:aether-package-loader'
+include 'tools:gnur-installation'
+include 'tools:maven-plugin'
 
 include 'math:common'
 include 'math:nmath'

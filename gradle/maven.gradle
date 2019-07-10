@@ -20,7 +20,11 @@ publishing {
 
     repositories {
         maven {
-            url = "gcs://renjinci-repo/m2/3.5-beta"
+            url = "https://nexus.bedatadriven.com/content/repositories/renjin-release/"
+            credentials {
+                username 'deploy'
+                password project.renjinDeployPassword
+            }
         }
     }
 }

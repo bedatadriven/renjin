@@ -16,25 +16,43 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.maven.test;
+package org.renjin.maven;
 
-import junit.framework.TestCase;
-import org.renjin.packaging.test.TestExecutor;
-import org.renjin.repackaged.guava.io.Files;
-import org.renjin.repackaged.guava.io.Resources;
+import org.apache.maven.artifact.handler.ArtifactHandler;
 
-import java.io.File;
-import java.util.Collections;
-import java.util.List;
 
-public class TestExecutorTest extends TestCase {
+public class HeaderArtifactHandler implements ArtifactHandler {
 
-  public void testThatExceptionsInTestShouldNotEscape() throws Exception {
-    File reportDir = Files.createTempDir();
-    List<String> defaultPackages = Collections.emptyList();
-    TestExecutor runner = new TestExecutor("base", defaultPackages, new Listener(), reportDir);
-    File testFile = new File(Resources.getResource("man/mean.Rd").getFile());
-    runner.executeTest(testFile);
+  public String getExtension() {
+    return "jar";
   }
 
+  public String getType() {
+    return "jar";
+  }
+
+  public String getClassifier() {
+    return "headers";
+  }
+
+  public String getDirectory() {
+    return "jars";
+  }
+
+  public String getPackaging() {
+    return "jars";
+  }
+
+  public boolean isIncludesDependencies() {
+    return false;
+  }
+
+  public String getLanguage() {
+    return "none";
+  }
+
+  public boolean isAddedToClasspath() {
+    return false;
+  }
+ 
 }

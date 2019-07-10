@@ -397,7 +397,7 @@ public final class Rinternals {
   }
 
   public static int TYPEOF(SEXP s) {
-    if(s == Null.INSTANCE) {
+    if(s == null || s == Null.INSTANCE) {
       return SexpType.NILSXP;
     } else if(s instanceof ExpressionVector) {
       return SexpType.EXPRSXP;
@@ -1215,6 +1215,8 @@ public final class Rinternals {
         return Vectors.asCharacter(Native.currentContext(), (Vector)p0).setAttributes(p0.getAttributes());
       case SexpType.EXPRSXP:
         return toExpressionList(p0);
+      case SexpType.VECSXP:
+        return toList(p0);
     }
     throw new UnimplementedGnuApiMethod("Rf_coerceVector: " + type);
   }
@@ -1240,6 +1242,16 @@ public final class Rinternals {
       return Vectors.asVector(((Vector) sexp), "expression");
     } else if(sexp instanceof PairList) {
       return toExpressionList(((PairList) sexp).toVector());
+    } else {
+      throw new UnsupportedOperationException("Rf_coerceVector: from: " + sexp.getTypeName() + " to EXPRSXP");
+    }
+  }
+
+  private static SEXP toList(SEXP sexp) {
+    if(sexp instanceof Vector) {
+      return Vectors.asVector(((Vector) sexp), "list");
+    } else if(sexp instanceof PairList) {
+      return ((PairList) sexp).toVector();
     } else {
       throw new UnsupportedOperationException("Rf_coerceVector: from: " + sexp.getTypeName() + " to EXPRSXP");
     }

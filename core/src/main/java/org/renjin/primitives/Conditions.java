@@ -19,11 +19,8 @@
 package org.renjin.primitives;
 
 import org.renjin.eval.*;
-import org.renjin.invoke.annotations.ArgumentList;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
-import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.sexp.*;
 
 /**
@@ -248,28 +245,9 @@ public class Conditions {
     throw e;
   }
   
-  @Builtin
-  public static void stop(@Current Context context, @ArgumentList ListVector arguments) {
-    boolean callFlag = true;
-    boolean firstArg = true;
-    StringBuilder message = new StringBuilder();
-
-    for (NamedValue namedValue : arguments.namedValues()) {
-      String name = namedValue.getName();
-      SEXP value = namedValue.getValue();
-      if("call.".equals(name)) {
-        callFlag = WrapperRuntime.convertToBooleanPrimitive(value);
-      } else if("domain".equals(name)) {
-        // ignore
-      } else if(firstArg && value.inherits("condition")) {
-        throw new UnsupportedOperationException("TODO: stop(condition)");
-      } else {
-        message.append(WrapperRuntime.convertToString(value));
-        firstArg = false;
-      }
-    }
-
-    throw new EvalException(message.toString());
+  @Internal
+  public static void stop(@Current Context context, boolean call, String message) {
+    throw new EvalException(message);
   }
   
   @Internal

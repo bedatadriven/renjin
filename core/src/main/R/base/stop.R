@@ -1,5 +1,7 @@
 #  File src/library/base/R/stop.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,41 +14,100 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
-stopifnot <- function(...)
+stop <- function(..., call. = TRUE, domain = NULL)
 {
-    n <- length(ll <- list(...))
-    if(n == 0L)
-	return(invisible())
-    mc <- match.call()
-    for(i in 1L:n)
-	if(!(is.logical(r <- ll[[i]]) && !any(is.na(r)) && all(r))) {
-	    ch <- deparse(mc[[i+1]], width.cutoff = 60L)
-	    if(length(ch) > 1L) ch <- paste(ch[1L], "....")
-	    stop(paste(ch, " is not ", if(length(r) > 1L)"all ", "TRUE", sep=''),
-		 call.= FALSE)
+    args <- list(...)
+    if (length(args) == 1L && inherits(args[[1L]], "condition")) {
+        cond <- args[[1L]]
+        if(nargs() > 1L)
+            warning("additional arguments ignored in stop()")
+        message <- conditionMessage(cond)
+        call <- conditionCall(cond)
+        .Internal(.signalCondition(cond, message, call))
+        .Internal(.dfltStop(message, call))
+    } else
+        .Internal(stop(call., .makeMessage(..., domain = domain)))
+}
+
+stopifnot <- function(..., exprs, local = TRUE)
+{
+    missE <- missing(exprs)
+    cl <-
+	if(missE) {  ## use '...' instead of exprs
+	    match.call()[-1L]
+	} else {
+	    if(...length())
+		stop("Must use 'exprs' or unnamed expressions, but not both")
+	    envir <- if (isTRUE(local)) parent.frame()
+		     else if(isFALSE(local)) .GlobalEnv
+		     else if (is.environment(local)) local
+		     else stop("'local' must be TRUE, FALSE or an environment")
+	    exprs <- substitute(exprs) # protect from evaluation
+	    E1 <- if(is.symbol(exprs)) exprs else exprs[[1]]
+	    if(identical(quote(`{`), E1)) # { ... }
+		do.call(expression, as.list(exprs[-1]))
+	    else if(identical(quote(expression), E1))
+		eval(exprs, envir=envir)
+	    else
+		as.expression(exprs) # or fail ..
 	}
+    Dparse <- function(call, cutoff = 60L) {
+	ch <- deparse(call, width.cutoff = cutoff)
+	if(length(ch) > 1L) paste(ch[1L], "....") else ch
+    }
+    head <- function(x, n = 6L) ## basically utils:::head.default()
+	x[seq_len(if(n < 0L) max(length(x) + n, 0L) else min(n, length(x)))]
+    abbrev <- function(ae, n = 3L)
+	paste(c(head(ae, n), if(length(ae) > n) "...."), collapse="\n  ")
+    ## benv <- baseenv()
+    for (i in seq_along(cl)) {
+	cl.i <- cl[[i]]
+	## r <- eval(cl.i, ..)   # with correct warn/err messages:
+	r <- withCallingHandlers(
+		tryCatch(if(missE) ...elt(i) else eval(cl.i, envir=envir),
+			 error = function(e) { e$call <- cl.i; stop(e) }),
+		warning = function(w) { w$call <- cl.i; w })
+	if (!(is.logical(r) && !anyNA(r) && all(r))) {
+	    msg <- ## special case for decently written 'all.equal(*)':
+		if(is.call(cl.i) && identical(cl.i[[1]], quote(all.equal)) &&
+		   (is.null(ni <- names(cl.i)) || length(cl.i) == 3L ||
+		    length(cl.i <- cl.i[!nzchar(ni)]) == 3L))
+
+		    sprintf(gettext("%s and %s are not equal:\n  %s"),
+			    Dparse(cl.i[[2]]),
+			    Dparse(cl.i[[3]]), abbrev(r))
+		else
+		    sprintf(ngettext(length(r),
+				     "%s is not TRUE",
+				     "%s are not all TRUE"),
+			    Dparse(cl.i))
+
+	    stop(simpleError(msg, call = sys.call(-1)))
+	}
+    }
     invisible()
 }
 
-warning <- function(..., call. = TRUE, immediate. = FALSE, domain = NULL)
+warning <- function(..., call. = TRUE, immediate. = FALSE,
+                    noBreaks. = FALSE, domain = NULL)
 {
     args <- list(...)
     if (length(args) == 1L && inherits(args[[1L]], "condition")) {
         cond <- args[[1L]]
         if(nargs() > 1L)
             cat(gettext("additional arguments ignored in warning()"),
-                "\n", sep="", file = stderr())
+                "\n", sep = "", file = stderr())
         message <- conditionMessage(cond)
         call <- conditionCall(cond)
         withRestarts({
                 .Internal(.signalCondition(cond, message, call))
-                .Internal(.dfltWarn(message, call, FALSE))
+                .Internal(.dfltWarn(message, call))
             }, muffleWarning = function() NULL) #**** allow simpler form??
         invisible(message)
     } else
-        .Internal(warning(as.logical(call.), as.logical(immediate.),
+        .Internal(warning(call., immediate., noBreaks.,
                           .makeMessage(..., domain = domain)))
 }
 

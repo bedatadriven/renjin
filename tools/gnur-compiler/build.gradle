@@ -23,6 +23,6 @@ dependencies {
     compile libraries.guava
     compile 'com.google.code.findbugs:jsr305:3.0.0'
     compile project(':tools:gnur-runtime')
-    compile project(':tools:gcc-bridge:compiler')
+    compile project(':tools:gcc-bridge:gcc-bridge-compiler')
     compile libraries.airline
 }

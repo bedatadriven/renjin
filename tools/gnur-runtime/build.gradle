@@ -24,7 +24,7 @@ configurations {
 
 dependencies {
 
-    gcc project(':tools:gcc-bridge:compiler')
+    gcc project(':tools:gcc-bridge:gcc-bridge-compiler')
 
     compile libraries.guava
     compile project(':math:appl')

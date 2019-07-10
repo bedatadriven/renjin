@@ -295,7 +295,7 @@ public class GlobalSymbolTable implements SymbolTable {
       globalField = new ProvidedGlobalVarField(symbol.loadField(linkClassLoader));
 
     } else if(symbol.getType() == LinkSymbol.SymbolType.GETTER) {
-      globalField = new ProvidedGlobalVarGetter(symbol.loadMethod(ClassLoader.getSystemClassLoader()));
+      globalField = new ProvidedGlobalVarGetter(symbol.loadMethod(linkClassLoader));
 
     } else {
       throw new InternalCompilerException("Found symbol of type " + symbol.getType());

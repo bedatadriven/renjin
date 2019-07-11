@@ -113,16 +113,20 @@ public class PackageBuilder {
     }
   }
 
-  private boolean isEmpty(File nativeSourceDir) {
-    if(!nativeSourceDir.exists()) {
+  private boolean isEmpty(File dir) {
+    if(!dir.exists()) {
       return true;
     }
-    File[] files = nativeSourceDir.listFiles();
+    File[] files = dir.listFiles();
     if(files == null) {
       return true;
     }
     for (File file : files) {
-      if(!file.isDirectory()) {
+      if(file.isDirectory()) {
+        if(!isEmpty(file)) {
+          return false;
+        }
+      } else {
         return false;
       }
     }

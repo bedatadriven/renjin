@@ -1217,8 +1217,17 @@ public final class Rinternals {
         return toExpressionList(p0);
       case SexpType.VECSXP:
         return toList(p0);
+      case SexpType.SYMSXP:
+        return toSymbol(p0);
     }
     throw new UnimplementedGnuApiMethod("Rf_coerceVector: " + type);
+  }
+
+  private static SEXP toSymbol(SEXP p0) {
+    if(p0 instanceof StringVector && p0.length() == 1) {
+      return Symbol.get(((StringVector) p0).getElementAsString(0));
+    }
+    throw new UnsupportedOperationException("TODO: " + p0.getTypeName());
   }
 
   private static SEXP asIntArrayVector(Vector vector) {
@@ -2050,7 +2059,9 @@ public final class Rinternals {
     }
   }
 
-  // int R_nchar (SEXP string, nchar_type type_, Rboolean allowNA, Rboolean keepNA, const char *msg_name)
+  public static int R_nchar(SEXP string, int type_, boolean allowNA, boolean keepNA, Ptr message_name) {
+    throw new UnimplementedGnuApiMethod("R_nchar");
+  }
 
   public static boolean Rf_pmatch(SEXP p0, SEXP p1, boolean p2) {
     throw new UnimplementedGnuApiMethod("Rf_pmatch");

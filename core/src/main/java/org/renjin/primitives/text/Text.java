@@ -791,7 +791,8 @@ public class Text {
    * @param minWidth the _minimum_ field width or ‘NULL’ or ‘0’
           for no restriction.
 
-   * @param zz
+   * @param just an integer to indicate the justification: 0 is left, 1
+   *             is right, 2 is centre, and 3 is none
    * @param naEncode  should ‘NA’ strings be encoded?  Note this only
           applies to elements of character vectors, not to numerical or
           logical ‘NA’s, which are always encoded as ‘"NA"’.
@@ -805,12 +806,20 @@ public class Text {
    */
   @Internal
   public static StringVector format(StringVector x, boolean trim, SEXP digits, SEXP nsmall,
-      SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
+      SEXP minWidth, int just, boolean naEncode, SEXP scientific ) {
        
     List<String> elements = formatCharacterElements(x, naEncode);
-    int width = calculateWidth(elements, minWidth);
-    elements = justify(elements, width, Justification.LEFT, naEncode);
-    
+    int width = calculateWidth(elements, minWidth, naEncode);
+    if(just == 0) {
+      elements = justify(elements, width, Justification.LEFT, naEncode);
+    } else if(just == 1) {
+      elements = justify(elements, width, Justification.RIGHT, naEncode);
+    } else if(just == 2) {
+      elements = justify(elements, width, Justification.CENTRE, naEncode);
+    } else {
+      elements = justify(elements, width, Justification.NONE, naEncode);
+    }
+
     return buildFormatResult(x, elements);
   }
 
@@ -819,7 +828,7 @@ public class Text {
       SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
        
     List<String> elements = formatLogicalElements(x);
-    int width = calculateWidth(elements, minWidth);
+    int width = calculateWidth(elements, minWidth, naEncode);
     elements = justify(elements, width, Justification.RIGHT, naEncode);
     
     return buildFormatResult(x, elements);
@@ -864,7 +873,7 @@ public class Text {
       SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
        
     List<String> elements = formatNumericalElements(x);
-    int width = calculateWidth(elements, minWidth);
+    int width = calculateWidth(elements, minWidth, naEncode);
     
     if(!trim) {
       elements = justify(elements, width, Justification.RIGHT, naEncode);
@@ -879,7 +888,7 @@ public class Text {
       SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
        
     List<String> elements = formatNumericalElements(x);
-    int width = calculateWidth(elements, minWidth);
+    int width = calculateWidth(elements, minWidth, naEncode);
     
     if(!trim) {
       elements = justify(elements, width, Justification.RIGHT, naEncode);
@@ -898,28 +907,32 @@ public class Text {
   
   
 
-  private static int calculateWidth(Iterable<String> elements, SEXP minWidth) {
+  private static int calculateWidth(Iterable<String> elements, SEXP minWidth, boolean naEncode) {
     int width = 0;
     if(minWidth != Null.INSTANCE) {
       width = ((AtomicVector)minWidth).getElementAsInt(0);
     }
 
     for(String element : elements) {
-      width = Math.max(width, stringWidth(element));
+      width = Math.max(width, stringWidth(element, naEncode));
     }
     return width; 
   }
   
-  private static int stringWidth(String element) {
+  private static int stringWidth(String element, boolean naEncode) {
     if(StringVector.isNA(element)) {
-      return "NA".length();
+        if(naEncode) {
+          return "NA".length();
+        } else {
+          return "".length();
+        }
     } else {
       return element.length();
     }
   }
   
   enum Justification {
-    LEFT, RIGHT
+    LEFT, RIGHT, CENTRE, NONE
   }
   
   private static List<String> justify(Iterable<String> elements, int width, Justification justification, boolean naEncode) {
@@ -928,11 +941,17 @@ public class Text {
       if(StringVector.isNA(element) && !naEncode) {
         justified.add(element);
       } else {
-        String padding = padding(Math.max(0, width - stringWidth(element)));
+        int size = width - stringWidth(element, naEncode);
+        String padding = padding(Math.max(0, size));
+
         if(justification == Justification.LEFT) {
           justified.add(element + padding);
-        } else {
+        } else if(justification == Justification.RIGHT) {
           justified.add(padding + element);
+        } else if(justification == Justification.CENTRE) {
+          justified.add(padding(size/2) + element + padding(size - size/2));
+        } else {
+          justified.add(element);
         }
       }
     }

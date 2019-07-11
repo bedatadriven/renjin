@@ -78,7 +78,12 @@ public class NamespaceBuilder {
     importDependencies(context, namespace);
     loadPackageData(context, namespace);
     evaluateSources(context, namespace.getNamespaceEnvironment());
-    invokeOnLoad(context, namespace.getNamespaceEnvironment());
+
+    // The methods package, exceptionally, has a bootstrapping phase.
+    if(namespace.getName().equals("methods")) {
+      invokeOnLoad(context, namespace.getNamespaceEnvironment());
+    }
+
     serializeEnvironment(context, namespace.getNamespaceEnvironment(), environmentFile);
     writeTransformedNamespace();
     writeRequires();

@@ -54,7 +54,7 @@ public class GnurPackageBuilder implements BuildContext  {
 
     @Override
     public File getOutputDir() {
-        return new File("build/package");
+        return new File("build/namespace");
     }
 
     @Override

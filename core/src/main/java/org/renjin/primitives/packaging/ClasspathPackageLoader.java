@@ -78,7 +78,7 @@ public class ClasspathPackageLoader implements PackageLoader {
   }
 
   private Optional<Package> tryLoadFromMetaInf(String packageName) {
-    URL resource = classLoader.getResource("/META-INF/org.renjin.package/" + packageName);
+    URL resource = classLoader.getResource("META-INF/org.renjin.package/" + packageName);
     if (resource != null) {
       try {
         String fullyQualifiedName = Resources.toString(resource, Charsets.UTF_8);

@@ -72,9 +72,9 @@ public class BaseFrame implements Frame {
     if(value == null) {
       return null;
     }
-    if(value instanceof Promise) {
-      value = value.force(context);
-    }
+
+    value = value.force(context);
+
     if(value instanceof Function) {
       return (Function)value;
     } else {

@@ -20,4 +20,4 @@ atlassian-ide-plugin.xml
 *.gimple
 .Rproj.user
 out
-
+cran

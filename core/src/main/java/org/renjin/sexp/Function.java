@@ -21,6 +21,9 @@ package org.renjin.sexp;
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchTable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Superinterface for the three function-like {@code SEXP}s:
  * {@code Closure}, {@code SpecialFunction}, and {@code PrimitiveFunction}.
@@ -72,5 +75,35 @@ public interface Function extends SEXP, Recursive {
    */
   SEXP applyPromised(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch);
 
+  default SEXP expandThenApplyPromised(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments) {
+    SEXP expando = rho.getEllipsesVariable();
+    if(expando == null) {
+      return applyPromised(context, rho, call, argumentNames, promisedArguments, null);
+    }
+
+    int insertIndex = call.findEllipsisArgumentIndex();
+
+    List<String> expandedNames = new ArrayList<>();
+    List<SEXP> expandedArgs = new ArrayList<>();
+
+    for (int i = 0; i < insertIndex; i++) {
+      expandedNames.add(argumentNames[i]);
+      expandedArgs.add(promisedArguments[i]);
+    }
+
+    while(expando instanceof PromisePairList.Node) {
+      PromisePairList.Node extraNode = (PromisePairList.Node) expando;
+      expandedNames.add(extraNode.hasTag() ? extraNode.getName() : null);
+      expandedArgs.add(extraNode.getValue());
+      expando = extraNode.getNext();
+    }
+
+    for (int i = insertIndex; i < promisedArguments.length; i++) {
+      expandedNames.add(argumentNames[i]);
+      expandedArgs.add(promisedArguments[i]);
+    }
+
+    return applyPromised(context, rho, call, expandedNames.toArray(new String[0]), expandedArgs.toArray(new SEXP[0]), null);
+  }
 
 }

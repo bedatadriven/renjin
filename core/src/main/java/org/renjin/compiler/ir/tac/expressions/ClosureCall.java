@@ -36,7 +36,6 @@ import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.Symbol;
 
 import java.util.List;
-import java.util.Map;
 
 
 public class ClosureCall implements Expression {
@@ -74,7 +73,7 @@ public class ClosureCall implements Expression {
   }
 
   @Override
-  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+  public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
 
     if(inlinedFunction == null) {
       try {

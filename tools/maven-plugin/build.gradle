@@ -1,0 +1,40 @@
+
+
+dependencies {
+
+    compile project(':core')
+    compile project(':repl')
+    compile project(':tools:gnur-installation')
+    compile project(':tools:gnur-compiler')
+    compile project(':tools:packager')
+
+    compile 'org.apache.maven:maven-plugin-api:2.0'
+    compile 'org.apache.maven:maven-model:2.0'
+    compile 'org.apache.maven:maven-project:2.2.1'
+    compile 'org.apache.maven.surefire:surefire-api:2.13'
+    compile 'org.apache.maven:maven-core:3.0.4'
+    compileOnly 'org.apache.maven.plugin-tools:maven-plugin-annotations:3.4'
+
+    testCompile libraries.junit
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            pom.withXml {
+                asNode().appendNode('packaging', 'maven-plugin')
+            }
+        }
+    }
+}
+
+import org.apache.tools.ant.filters.*
+
+processResources {
+
+    inputs.property 'version', project.version
+
+    filter ReplaceTokens, tokens: [
+            version: project.version.toString()
+    ]
+}

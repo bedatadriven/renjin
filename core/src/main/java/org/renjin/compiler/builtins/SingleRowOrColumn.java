@@ -30,6 +30,7 @@ import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.primitives.subset.Subsetting;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.Symbol;
 
 import java.util.List;
@@ -105,7 +106,7 @@ public class SingleRowOrColumn implements Specialization {
   }
 
   @Override
-  public CompiledSexp getCompiledExpr(EmitContext emitContext, List<IRArgument> arguments) {
+  public CompiledSexp getCompiledExpr(EmitContext emitContext, FunctionCall call, List<IRArgument> arguments) {
 
     // Match subscripts
     Expression[] subscripts = new Expression[2];

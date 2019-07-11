@@ -28,8 +28,6 @@ import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
-import java.util.Map;
-
 
 public class ReadLoopIt implements Expression {
 
@@ -44,7 +42,7 @@ public class ReadLoopIt implements Expression {
   }
 
   @Override
-  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+  public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
     return COUNTER_BOUNDS;
   }
 

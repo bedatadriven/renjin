@@ -19,6 +19,7 @@
 package org.renjin.sexp;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.MissingArgumentException;
 
 /**
  * Base interface for all R data types.
@@ -179,6 +180,34 @@ public interface SEXP {
    */
   <S extends SEXP> S getElementAsSEXP(int index);
 
+
+  /**
+   * Evaluate this S-Expression in the given evaluation context and environment.
+   */
+  SEXP eval(Context context, Environment rho);
+
+
+  /**
+   * Create a promise to this S-Expression with the given environment.
+   * @param rho
+   * @return
+   */
+  default SEXP promise(Environment rho) {
+    return new Promise(rho, this);
+  }
+
+  /**
+   * Wrap an already-evaluated argument in a promise.
+   */
+  default SEXP repromise() {
+    return new Promise(this, this);
+  }
+
+  default SEXP repromise(SEXP evaluatedValue) {
+    return new Promise(this, evaluatedValue);
+  }
+
+
   /**
    * If this SEXP is a {@link Promise}, return its result, evaluating in the given context if the {@code Promise}
    * is not yet evaluated.
@@ -189,19 +218,21 @@ public interface SEXP {
    */
   SEXP force(Context context);
 
-  /**
-   * If this SEXP is a {@link Promise}, return its result, evaluating in the given context if the {@code Promise}
-   * is not yet evaluated.
-   *
-   * @param context the evaluation {@link Context} in which the unevaluated {@link Promise} should be evaluated
-   *                if is not evaluated.
-   * @param allowMissing true if missing arguments without a default value should evaluate to {@code Symbol.MISSING_ARG}.
-   *                     If false, missing arguments without default values will throw an error.
-   *
-   * @return the result of the Promise's evaluation, or this S-Expression if this is not a promise.
-   */
-  SEXP force(Context context, boolean allowMissing);
 
+  default SEXP forceOrMissing(Context context) {
+    try {
+      return force(context);
+    } catch (MissingArgumentException e) {
+      return Symbol.MISSING_ARG;
+    }
+  }
+
+  /**
+   * If this is a Promise, return the unevaluated, promised expression. Otherwise, return the same object.
+   */
+  default SEXP getPromisedExpression() {
+    return this;
+  }
 
   /**
    * Returns true if this SEXP is equal to the {@code other} SEXP given, using the same rules as the
@@ -216,6 +247,7 @@ public interface SEXP {
    */
   @Override
   boolean equals(Object other);
+
 
   /**
    * Returns a String representation of this SEXP intended <strong>only</strong> for use in debugging.

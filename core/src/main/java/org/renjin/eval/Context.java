@@ -26,7 +26,6 @@ import org.renjin.pipeliner.VectorPipeliner;
 import org.renjin.primitives.Primitives;
 import org.renjin.primitives.Warning;
 import org.renjin.primitives.packaging.NamespaceRegistry;
-import org.renjin.primitives.special.ControlFlowException;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -272,70 +271,21 @@ public class Context {
     }
   }
 
-  public SEXP evaluate(SEXP expression, Environment rho) {
-    return evaluate(expression, rho, false);
-  }
-
   /**
    * Evaluates the given {@code expression} in the given {@code environment}.
    *
    * @param expression the expression to evaluate
    * @param rho the environment in which to evaluate the expression
-   * @param allowMissing if {@code true}, missing arguments without defaults should evaluate to {@code Symbol.MISSING_ARG},
-   *                     otherwise they will result in an EvalException.
    * @return the result of the evaluation.
    */
-  public SEXP evaluate(SEXP expression, Environment rho, boolean allowMissing) {
-    if(expression instanceof Symbol) {
-      return evaluateSymbol((Symbol) expression, rho, allowMissing);
-    } else if(expression instanceof ExpressionVector) {
-      return evaluateExpressionVector((ExpressionVector) expression, rho);
-    } else if(expression instanceof FunctionCall) {
-      return evaluateCall((FunctionCall) expression, rho);
-    } else if(expression instanceof Promise) {
-      return expression.force(this);
-    } else if(expression != Null.INSTANCE && expression instanceof PromisePairList) {
-      throw new EvalException("'...' used in an incorrect context");
-    } else {
-      clearInvisibleFlag();
-      return expression;
-    }
+  public SEXP evaluate(SEXP expression, Environment rho) {
+    return expression.eval(this, rho);
   }
 
   public <T> T getSingleton(Class<T> clazz) {
     return session.getSingleton(clazz);
   }
 
-  private SEXP evaluateSymbol(Symbol symbol, Environment rho, boolean allowMissing) {
-    clearInvisibleFlag();
-
-    if(symbol == Symbol.MISSING_ARG) {
-      return symbol;
-    }
-
-    if(allowMissing && symbol.isVarArgReference()) {
-      if(rho.findVariable(this, Symbols.ELLIPSES) == Null.INSTANCE) {
-        return Symbol.MISSING_ARG;
-      }
-    }
-
-    SEXP value = rho.findVariable(this, symbol);
-    if(value == Symbol.UNBOUND_VALUE) {
-      throw new EvalException(String.format("object '%s' not found", symbol.getPrintName()));
-    }
-
-    if(!allowMissing) {
-      if (value == Symbol.MISSING_ARG) {
-        throw new EvalException("argument '%s' is missing, with no default", symbol.getPrintName());
-      }
-    }
-
-    if(value instanceof Promise) {
-      value = value.force(this, allowMissing);
-    }
-
-    return value;
-  }
 
   /**
    * Adds a restart object by name to this Context.
@@ -368,50 +318,6 @@ public class Context {
     }
     return Null.INSTANCE;
   }
-  
-  private SEXP evaluateExpressionVector(ExpressionVector expressionVector, Environment rho) {
-    if(expressionVector.length() == 0) {
-      setInvisibleFlag();
-      return Null.INSTANCE;
-    } else {
-      SEXP result = Null.INSTANCE;
-      for(SEXP sexp : expressionVector) {
-        result = evaluate(sexp, rho);
-      }
-      return result;
-    }
-  }
-
-  public SEXP evaluateCall(FunctionCall call, Environment rho) {
-    clearInvisibleFlag();
-
-    SEXP fn = call.getFunction();
-    Function functionExpr = evaluateFunction(rho, fn);
-
-    boolean profiling = Profiler.ENABLED && fn instanceof Symbol && !((Symbol) fn).isReservedWord();
-    if(Profiler.ENABLED && profiling) {
-      Profiler.functionStart((Symbol)fn, functionExpr);
-    }
-
-
-    try {
-      return functionExpr.apply(this, rho, call);
-    } catch (EvalException | ControlFlowException | ConditionException | Error e) {
-      throw e;
-
-    } catch (Exception e) {
-      String message = e.getMessage();
-      if(message == null) {
-        message = e.getClass().getName();
-      }
-      throw new EvalException(message, e);
-      
-    } finally {
-      if(Profiler.ENABLED && profiling) {
-        Profiler.functionEnd();
-      }
-    }
-  }
 
   /**
    * Evaluates a function reference from compiled code.
@@ -425,7 +331,7 @@ public class Context {
     return function;
   }
 
-  private Function evaluateFunction(Environment rho, SEXP functionExp) {
+  public Function evaluateFunction(Environment rho, SEXP functionExp) {
     if(functionExp instanceof Symbol) {
       Symbol symbol = (Symbol) functionExp;
       if(symbol.isReservedWord()) {

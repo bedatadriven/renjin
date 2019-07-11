@@ -44,7 +44,7 @@ public class Warning {
    * @param message the warning message
    */
   @Internal
-  public static void warning(@Current Context context, boolean call, boolean immediate, String message) {
+  public static void warning(@Current Context context, boolean call, boolean immediate, boolean noBreaks, String message) {
 
     SEXP callSexp;
     if(call) {

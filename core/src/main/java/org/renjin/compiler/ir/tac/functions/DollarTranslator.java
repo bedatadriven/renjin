@@ -25,6 +25,7 @@ import org.renjin.compiler.ir.tac.expressions.NamedElementAccess;
 import org.renjin.compiler.ir.tac.statements.ExprStatement;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbol;
 
 
@@ -42,11 +43,15 @@ public class DollarTranslator extends FunctionCallTranslator {
                                           TranslationContext context, FunctionCall call) {
     Expression object = builder.translateExpression(context, call.getArgument(0));
 
+    String name;
     SEXP nameArgument = call.getArgument(1);
-    if(!(nameArgument instanceof Symbol)) {
+    if(nameArgument instanceof Symbol) {
+      name = ((Symbol) nameArgument).getPrintName();
+    } else if(nameArgument instanceof StringVector) {
+      name = ((StringVector) nameArgument).getElementAsString(0);
+    } else {
       throw new NotCompilableException(call);
     }
-    String name = ((Symbol) nameArgument).getPrintName();
 
     return new NamedElementAccess(object, call, name);
   }

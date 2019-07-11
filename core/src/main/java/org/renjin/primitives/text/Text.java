@@ -61,7 +61,7 @@ public class Text {
       if(argument instanceof StringVector) {
         argumentVectors.add((StringVector) argument);
       } else {
-        SEXP result = context.evaluate(FunctionCall.newCall(Symbol.get("as.character"), Promise.repromise(argument)));
+        SEXP result = context.evaluate(FunctionCall.newCall(Symbol.get("as.character"), argument.repromise()));
         if(!(result instanceof StringVector)) {
           throw new EvalException("as.character() returned non-character");
         }
@@ -880,6 +880,17 @@ public class Text {
     }
     
     return buildFormatResult(x, elements);
+  }
+
+  @Internal("format.info")
+  @Materialize
+  public static IntVector formatInfo(DoubleVector x, SEXP digits, int nsmall) {
+    FormatInfo info = new FormatInfo(x);
+
+    return new IntArrayVector(
+        info.getWidth(),
+        info.getFractionDigits(),
+        info.getExponentDigits());
   }
 
   @Internal

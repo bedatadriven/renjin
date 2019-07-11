@@ -397,7 +397,7 @@ public final class Rinternals {
   }
 
   public static int TYPEOF(SEXP s) {
-    if(s == Null.INSTANCE) {
+    if(s == null || s == Null.INSTANCE) {
       return SexpType.NILSXP;
     } else if(s instanceof ExpressionVector) {
       return SexpType.EXPRSXP;
@@ -1215,8 +1215,19 @@ public final class Rinternals {
         return Vectors.asCharacter(Native.currentContext(), (Vector)p0).setAttributes(p0.getAttributes());
       case SexpType.EXPRSXP:
         return toExpressionList(p0);
+      case SexpType.VECSXP:
+        return toList(p0);
+      case SexpType.SYMSXP:
+        return toSymbol(p0);
     }
     throw new UnimplementedGnuApiMethod("Rf_coerceVector: " + type);
+  }
+
+  private static SEXP toSymbol(SEXP p0) {
+    if(p0 instanceof StringVector && p0.length() == 1) {
+      return Symbol.get(((StringVector) p0).getElementAsString(0));
+    }
+    throw new UnsupportedOperationException("TODO: " + p0.getTypeName());
   }
 
   private static SEXP asIntArrayVector(Vector vector) {
@@ -1240,6 +1251,16 @@ public final class Rinternals {
       return Vectors.asVector(((Vector) sexp), "expression");
     } else if(sexp instanceof PairList) {
       return toExpressionList(((PairList) sexp).toVector());
+    } else {
+      throw new UnsupportedOperationException("Rf_coerceVector: from: " + sexp.getTypeName() + " to EXPRSXP");
+    }
+  }
+
+  private static SEXP toList(SEXP sexp) {
+    if(sexp instanceof Vector) {
+      return Vectors.asVector(((Vector) sexp), "list");
+    } else if(sexp instanceof PairList) {
+      return ((PairList) sexp).toVector();
     } else {
       throw new UnsupportedOperationException("Rf_coerceVector: from: " + sexp.getTypeName() + " to EXPRSXP");
     }
@@ -2038,7 +2059,9 @@ public final class Rinternals {
     }
   }
 
-  // int R_nchar (SEXP string, nchar_type type_, Rboolean allowNA, Rboolean keepNA, const char *msg_name)
+  public static int R_nchar(SEXP string, int type_, boolean allowNA, boolean keepNA, Ptr message_name) {
+    throw new UnimplementedGnuApiMethod("R_nchar");
+  }
 
   public static boolean Rf_pmatch(SEXP p0, SEXP p1, boolean p2) {
     throw new UnimplementedGnuApiMethod("Rf_pmatch");
@@ -2469,7 +2492,7 @@ public final class Rinternals {
   }
 
   public static SEXP R_PromiseExpr(SEXP x) {
-    return ((Promise) x).getExpression();
+    return x.getPromisedExpression();
   }
 
   public static SEXP R_ClosureExpr(SEXP p0) {
@@ -2592,17 +2615,24 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_XDRDecodeInteger");
   }
 
-  // void R_InitInPStream (R_inpstream_t stream, R_pstream_data_t data, R_pstream_format_t type, int(*inchar)(R_inpstream_t), void(*inbytes)(R_inpstream_t, void *, int), SEXP(*phook)(SEXP, SEXP), SEXP pdata)
+  public static void R_InitInPStream(Ptr stream, Ptr data, int type, int version, Ptr hook, SEXP pdata) {
+    throw new UnimplementedGnuApiMethod("R_InitInPStream");
+  }
 
-  // void R_InitOutPStream (R_outpstream_t stream, R_pstream_data_t data, R_pstream_format_t type, int version, void(*outchar)(R_outpstream_t, int), void(*outbytes)(R_outpstream_t, void *, int), SEXP(*phook)(SEXP, SEXP), SEXP pdata)
-
+  public static void R_InitOutPStream (Ptr stream, Ptr data, int type, int version, Ptr p1, Ptr p2, Ptr hook, SEXP pdata) {
+    throw new UnimplementedGnuApiMethod("R_InitOutPStream");
+  }
   // void R_InitFileInPStream (R_inpstream_t stream, FILE *fp, R_pstream_format_t type, SEXP(*phook)(SEXP, SEXP), SEXP pdata)
 
   // void R_InitFileOutPStream (R_outpstream_t stream, FILE *fp, R_pstream_format_t type, int version, SEXP(*phook)(SEXP, SEXP), SEXP pdata)
 
-  // void R_Serialize (SEXP s, R_outpstream_t ops)
+  public static void R_Serialize (SEXP s, Ptr outputStream) {
+    throw new UnimplementedGnuApiMethod("R_Serialize");
+  }
 
-  // SEXP R_Unserialize (R_inpstream_t ips)
+  public static SEXP R_Unserialize (Ptr ips) {
+    throw new UnimplementedGnuApiMethod("R_Unserialize");
+  }
 
   public static SEXP R_do_slot(SEXP obj, SEXP name) {
     Context context = Native.currentContext();

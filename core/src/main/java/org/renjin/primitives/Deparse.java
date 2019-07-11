@@ -259,7 +259,7 @@ public class Deparse {
 
     @Override
     public void visit(Promise promise) {
-      deparse(promise.getExpression());
+      deparse(promise.getPromisedExpression());
     }
 
     @Override

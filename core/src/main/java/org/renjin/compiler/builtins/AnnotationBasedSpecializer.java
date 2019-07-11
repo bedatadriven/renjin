@@ -63,6 +63,7 @@ public class AnnotationBasedSpecializer implements BuiltinSpecializer {
     return genericGroup;
   }
 
+
   private static String findGenericGroup(List<JvmMethod> methods) {
     for (JvmMethod method : methods) {
       if(method.isGroupGeneric()) {

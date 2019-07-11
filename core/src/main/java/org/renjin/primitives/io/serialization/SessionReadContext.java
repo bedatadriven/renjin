@@ -21,7 +21,6 @@ package org.renjin.primitives.io.serialization;
 import org.renjin.eval.Context;
 import org.renjin.eval.Session;
 import org.renjin.sexp.Environment;
-import org.renjin.sexp.Promise;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
@@ -47,8 +46,8 @@ public class SessionReadContext implements ReadContext {
   }
 
   @Override
-  public Promise createPromise(SEXP expr, Environment env) {
-    return Promise.repromise(env, expr);
+  public SEXP createPromise(SEXP expr, Environment env) {
+    return expr.promise(env);
   }
 
   @Override

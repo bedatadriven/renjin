@@ -20,28 +20,39 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.aot.ClosureEmitContext;
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.FunctionLoader;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.SexpExpr;
+import org.renjin.compiler.codegen.expr.SexpLoader;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchTable;
-import org.renjin.eval.Support;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.*;
 
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DynamicCall implements Expression {
 
+  private final FunctionLoader functionLoader;
   private final FunctionCall call;
   private final String functionName;
 
-  public DynamicCall(FunctionCall call, String functionName) {
+  /**
+   * The index of the ... argument, or -1 there is none.
+   */
+  private final int forwardedArgumentIndex;
+
+  public DynamicCall(FunctionLoader functionLoader, FunctionCall call, String functionName) {
+    this.functionLoader = functionLoader;
     this.call = call;
     this.functionName = functionName;
+    this.forwardedArgumentIndex = call.findEllipsisArgumentIndex();
+
   }
 
   public String getFunctionName() {
@@ -73,8 +84,8 @@ public class DynamicCall implements Expression {
   }
 
   @Override
-  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
-    throw new UnsupportedOperationException("TODO");
+  public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
+    return ValueBounds.UNBOUNDED;
   }
 
   @Override
@@ -87,64 +98,145 @@ public class DynamicCall implements Expression {
     return new SexpExpr() {
       @Override
       public void loadSexp(EmitContext context, InstructionAdapter mv) {
-        writeCall(context, mv);
+        writeCall(emitContext, mv);
       }
     };
   }
 
-  private void writeCall(EmitContext context, InstructionAdapter mv) {
+  @Override
+  public void emitExecute(EmitContext emitContext, InstructionAdapter mv) {
+    writeCall(emitContext, mv);
+    mv.pop();
+  }
+
+  private void writeCall(EmitContext emitContext, InstructionAdapter mv) {
+    SexpLoader callLoader = (c, m) -> c.constantSexp(call).loadSexp(c, m);
+
+    writeCall(emitContext, mv,
+        functionLoader,
+        callLoader,
+        argumentNames(call),
+        argumentPromises(call),
+        forwardedArgumentIndex);
+  }
+
+  static void writeCall(EmitContext context,
+                        InstructionAdapter mv,
+                        FunctionLoader functionLoader,
+                        SexpLoader call,
+                        List<String> names,
+                        List<SexpLoader> argumentPromises,
+                        int forwardedArgumentIndex) {
 
     // First find function
-    mv.visitVarInsn(Opcodes.ALOAD, context.getContextVarIndex());
-    mv.visitVarInsn(Opcodes.ALOAD, context.getEnvironmentVarIndex());
-    mv.aconst(functionName);
-    mv.invokevirtual(Type.getInternalName(Context.class), "evaluateFunction",
-          Type.getMethodDescriptor(Type.getType(Function.class),
-              Type.getType(Environment.class),
-              Type.getType(String.class)), false);
+    functionLoader.loadFunction(context, mv);
 
     // Now we need to invoke:
     //   SEXP applyPromised(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch);
     mv.visitVarInsn(Opcodes.ALOAD, context.getContextVarIndex());
     mv.visitVarInsn(Opcodes.ALOAD, context.getEnvironmentVarIndex());
 
-    context.constantSexp(call).loadSexp(context, mv);
+    // The original call object
+    call.loadSexp(context, mv);
     mv.checkcast(Type.getType(FunctionCall.class));
 
-    loadArgumentNames(context, mv);
-    loadArgumentValues(context, mv);
+    // Argument Names
+    loadArgumentNames(mv, names);
+    loadPromises(context, mv, argumentPromises);
 
-    mv.aconst(null);
+    if(forwardedArgumentIndex == -1) {
+      // Can pass directly to applyPromised
 
-    mv.invokeinterface(Type.getInternalName(Function.class), "applyPromised",
-        Type.getMethodDescriptor(Type.getType(SEXP.class),
-            Type.getType(Context.class),
-            Type.getType(Environment.class),
-            Type.getType(FunctionCall.class),
-            Type.getType(String[].class),
-            Type.getType(SEXP[].class),
-            Type.getType(DispatchTable.class)));
-  }
+      // No Dispatch table
+      mv.aconst(null);
 
-  private void loadArgumentValues(EmitContext context, InstructionAdapter mv) {
+      mv.invokeinterface(Type.getInternalName(Function.class), "applyPromised",
+          Type.getMethodDescriptor(Type.getType(SEXP.class),
+              Type.getType(Context.class),
+              Type.getType(Environment.class),
+              Type.getType(FunctionCall.class),
+              Type.getType(String[].class),
+              Type.getType(SEXP[].class),
+              Type.getType(DispatchTable.class)));
 
-    int numArguments = call.getArguments().length();
+    } else {
 
-    mv.iconst(numArguments);
-    mv.newarray(Type.getType(SEXP.class));
+      // Otherwise need the forwarded arguments inserted first
 
-    int i = 0;
-    for (SEXP argumentValue : call.getArguments().values()) {
-      mv.dup();
-      mv.iconst(i);
-      loadArgumentPromise(context, mv, argumentValue);
-      mv.visitInsn(Opcodes.AASTORE);
-      i++;
+      mv.invokeinterface(Type.getInternalName(Function.class), "expandThenApplyPromised",
+          Type.getMethodDescriptor(Type.getType(SEXP.class),
+              Type.getType(Context.class),
+              Type.getType(Environment.class),
+              Type.getType(FunctionCall.class),
+              Type.getType(String[].class),
+              Type.getType(SEXP[].class)));
+
     }
-
   }
 
-  private void loadArgumentPromise(EmitContext context, InstructionAdapter mv, SEXP argumentValue) {
+
+  static void loadArgumentNames(InstructionAdapter mv, List<String> names) {
+    mv.iconst(names.size());
+    mv.visitTypeInsn(Opcodes.ANEWARRAY, Type.getInternalName(String.class));
+
+    for (int i = 0; i < names.size(); i++) {
+      if(names.get(i) != null) {
+        mv.visitInsn(Opcodes.DUP);
+        mv.iconst(i);
+        mv.aconst(names.get(i));
+        mv.visitInsn(Opcodes.AASTORE);
+      }
+    }
+  }
+
+  static void loadPromises(EmitContext context, InstructionAdapter mv, List<SexpLoader> argumentPromises) {
+    mv.iconst(argumentPromises.size());
+    mv.visitTypeInsn(Opcodes.ANEWARRAY, Type.getInternalName(SEXP.class));
+
+    for (int i = 0; i < argumentPromises.size(); i++) {
+      if(argumentPromises.get(i) != null) {
+        mv.visitInsn(Opcodes.DUP);
+        mv.iconst(i);
+        argumentPromises.get(i).loadSexp(context, mv);
+        mv.visitInsn(Opcodes.AASTORE);
+      }
+    }
+  }
+
+  private static boolean anyNamed(List<String> names) {
+    for (String name : names) {
+      if(name != null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  static List<String> argumentNames(FunctionCall call) {
+    List<String> names = new ArrayList<>();
+    for (PairList.Node node : call.getArguments().nodes()) {
+      if(node.getValue() != Symbols.ELLIPSES) {
+        if(!node.hasTag()) {
+          names.add(null);
+        } else {
+          names.add(node.getName());
+        }
+      }
+    }
+    return names;
+  }
+
+  static List<SexpLoader> argumentPromises(FunctionCall call) {
+    List<SexpLoader> promises = new ArrayList<>();
+    for (PairList.Node node : call.getArguments().nodes()) {
+      if(node.getValue() != Symbols.ELLIPSES) {
+        promises.add((context, mv) -> loadArgumentPromise(context, mv, node.getValue()));
+      }
+    }
+    return promises;
+  }
+
+  static void loadArgumentPromise(EmitContext context, InstructionAdapter mv, SEXP argumentValue) {
     if(argumentValue instanceof Symbol) {
       loadSymbolPromise(context, mv, (Symbol)argumentValue);
     } else {
@@ -156,44 +248,9 @@ public class DynamicCall implements Expression {
     }
   }
 
-  private void loadSymbolPromise(EmitContext context, InstructionAdapter mv, Symbol symbol) {
+  static void loadSymbolPromise(EmitContext context, InstructionAdapter mv, Symbol symbol) {
     ClosureEmitContext closureEmitContext = (ClosureEmitContext) context;
     closureEmitContext.loadSymbolPromise(symbol, mv);
-  }
-
-  private void loadArgumentNames(EmitContext context, InstructionAdapter mv) {
-    if(!anyNamedArguments()) {
-      loadEmptyNamesArray(context, mv);
-
-    } else {
-      // Maybe maintain a pool of argument names?
-      mv.iconst(call.getArguments().length());
-      mv.newarray(Type.getType(String.class));
-      int i = 0;
-      for (PairList.Node node : call.getArguments().nodes()) {
-        if(node.hasTag()) {
-          mv.dup();
-          mv.iconst(i);
-          mv.aconst(node.getName());
-          mv.visitInsn(Opcodes.AASTORE);
-        }
-        i++;
-      }
-    }
-  }
-
-  private void loadEmptyNamesArray(EmitContext context, InstructionAdapter mv) {
-    mv.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(Support.class), "UNNAMED_ARGUMENTS_" + call.getArguments().length(),
-        Type.getDescriptor(String[].class));
-  }
-
-  private boolean anyNamedArguments() {
-    for (PairList.Node node : call.getArguments().nodes()) {
-      if(node.hasTag()) {
-        return true;
-      }
-    }
-    return false;
   }
 
   @Override

@@ -22,6 +22,9 @@ import org.renjin.gcc.analysis.FunctionBodyTransformer;
 import org.renjin.gcc.gimple.GimpleBasicBlock;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
+import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.gcc.gimple.expr.GimpleLValue;
+import org.renjin.gcc.gimple.expr.GimpleVariableRef;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.logging.LogManager;
@@ -37,11 +40,7 @@ public class MutationRewriter implements FunctionBodyTransformer {
         if(statement instanceof GimpleCall) {
           GimpleCall call = (GimpleCall) statement;
           if(isDangerousMutation(call)) {
-            logManager.warning(String.format("Call to %s discards result in %s at %s:%d",
-                call.getFunctionName(),
-                fn.getName(),
-                call.getSourceFile(),
-                call.getLineNumber()));
+            rewriteDangerousMutation(logManager, fn, call);
           }
         }
       }
@@ -50,7 +49,30 @@ public class MutationRewriter implements FunctionBodyTransformer {
   }
 
   private boolean isDangerousMutation(GimpleCall call) {
-    return apiOracle.isPotentialMutator(call.getFunctionName()) &&
-        call.getLhs() == null;
+    return apiOracle.isPotentialMutator(call.getFunctionName()) && call.getLhs() == null;
+  }
+
+  private void rewriteDangerousMutation(LogManager logManager, GimpleFunction fn, GimpleCall call) {
+
+    String apiMethodName = call.getFunctionName();
+    int muteeIndex = apiOracle.getMuteeArgumentIndex(apiMethodName);
+    GimpleExpr mutee = call.getOperand(muteeIndex);
+
+    if (!(mutee instanceof GimpleVariableRef)) {
+      logManager.warning(String.format("Call to %s discards result in %s at %s:%d and cannot be rewritten",
+          apiMethodName,
+          fn.getName(),
+          call.getSourceFile(),
+          call.getLineNumber()));
+    } else {
+      call.setLhs((GimpleLValue) mutee);
+
+      logManager.note(String.format("Rewriting call to %s which discards result in %s at %s:%d: %s",
+          apiMethodName,
+          fn.getName(),
+          call.getSourceFile(),
+          call.getLineNumber(),
+          call.toString()));
+    }
   }
 }

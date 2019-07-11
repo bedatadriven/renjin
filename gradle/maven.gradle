@@ -8,13 +8,25 @@ publishing {
     publications {
         maven(MavenPublication) {
             from components.java
+            if(project.parent.name == 'gcc-bridge' && !project.name.startsWith("gcc-bridge-")) {
+                artifactId "gcc-bridge-${project.name}"
+            
+            } else if(project.parent.name != 'packages') {
+                artifactId "renjin-${project.name}"
+            }
             artifact sourcesJar
         }
     }
 
-    repositories {
-        maven {
-            url = "gcs://renjinci-m2/"
+    if(rootProject.hasProperty('renjinDeploymentPassword')) {
+        repositories {
+            maven {
+                url = "https://nexus.bedatadriven.com/content/repositories/renjin-release/"
+                credentials {
+                    username 'deployment'
+                    password rootProject.property("renjinDeploymentPassword")
+                }
+            }
         }
     }
 }

@@ -18,10 +18,12 @@
  */
 package org.renjin.compiler.aot;
 
+import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.RuntimeState;
+import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.eval.Context;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
@@ -44,8 +46,12 @@ public class ClosureCompiler {
   public ClosureCompiler(AotBuffer buffer, Context context, Symbol name, Closure closure) {
     RuntimeState runtimeState = new RuntimeState(context, closure.getEnclosingEnvironment(), rho -> false);
     IRBodyBuilder builder = new IRBodyBuilder(runtimeState);
-    IRBody body = builder.build(closure.getBody(), false);
-    System.out.println(body);
+    IRBody body = builder.build(new ClosureTranslationContext(), closure.getBody(), false);
+//    System.out.println(body);
+
+    for (Statement statement : body.getStatements()) {
+      statement.getRHS().updateTypeBounds(e -> ValueBounds.UNBOUNDED);
+    }
 
     ClassBuffer classBuffer = buffer.classBuffer(body.getSourceFile());
     ClosureEmitContext emitContext = new ClosureEmitContext(classBuffer, closure.getFormals());
@@ -77,6 +83,8 @@ public class ClosureCompiler {
       }
       mv.visitMaxs(0, emitContext.getLocalVarAllocator().getCount());
       mv.visitEnd();
+
+      return emitContext.getFrameVariableNames();
     });
   }
 

@@ -18,6 +18,9 @@
  */
 package org.renjin.sexp;
 
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+
 /**
  * Specialized PairList used in the course of argument matching.
  * (The DOTSEXP type in the original R interpreter)
@@ -28,6 +31,11 @@ public interface PromisePairList extends PairList {
 
     private Node(SEXP tag, SEXP value, PairList nextNode) {
       super(tag, value, nextNode);
+    }
+
+    @Override
+    public SEXP eval(Context context, Environment rho) {
+      throw new EvalException("'...' used in an incorrect context");
     }
 
     @Override

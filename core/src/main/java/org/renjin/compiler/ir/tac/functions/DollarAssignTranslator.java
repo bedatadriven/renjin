@@ -21,7 +21,10 @@ package org.renjin.compiler.ir.tac.functions;
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.expressions.NamedElementUpdate;
 import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 
 
 public class DollarAssignTranslator extends FunctionCallTranslator {
@@ -45,8 +48,16 @@ public class DollarAssignTranslator extends FunctionCallTranslator {
   public Expression translateToSetterExpression(IRBodyBuilder builder,
                                                 TranslationContext context, FunctionCall call, Expression rhs) {
 
-    throw new NotCompilableException(call);
-  
+    Expression object = builder.translateExpression(context, call.getArgument(0));
+
+    SEXP nameArgument = call.getArgument(1);
+    if(!(nameArgument instanceof Symbol)) {
+      throw new NotCompilableException(call);
+    }
+
+    String name = ((Symbol) nameArgument).getPrintName();
+
+    return new NamedElementUpdate(object, call, name, rhs);
   }
 
   

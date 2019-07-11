@@ -31,7 +31,6 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.*;
 
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -90,7 +89,7 @@ public class SwitchPredicate implements Expression {
   }
 
   @Override
-  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+  public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
 
     expressionBounds = expression.updateTypeBounds(typeMap);
 

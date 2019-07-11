@@ -18,6 +18,7 @@
  */
 package org.renjin.sexp;
 
+import org.renjin.eval.Context;
 import org.renjin.repackaged.guava.base.Joiner;
 
 import java.util.List;
@@ -71,6 +72,20 @@ public class ExpressionVector extends ListVector {
   @Override
   public Type getVectorType() {
     return VECTOR_TYPE;
+  }
+
+  @Override
+  public SEXP eval(Context context, Environment rho) {
+    if(length() == 0) {
+      context.setInvisibleFlag();
+      return Null.INSTANCE;
+    } else {
+      SEXP result = Null.INSTANCE;
+      for(SEXP sexp : this) {
+        result = sexp.eval(context, rho);
+      }
+      return result;
+    }
   }
 
   @Override

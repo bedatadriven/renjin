@@ -1,0 +1,21 @@
+
+
+group = 'org.renjin.test'
+
+apply from: '../../gradle/package.gradle'
+
+dependencies {
+    compile project(':packages:methods')
+    compile project(':packages:grid')
+
+    testCompile project(':packages:hamcrest')
+}
+
+
+compileNamespace {
+    defaultPackages = [ 'methods' ]
+}
+
+testPackage {
+    defaultPackages = [ 'methods' ]
+}

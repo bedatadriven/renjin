@@ -18,6 +18,7 @@
  *
  */
 
+apply from: '../gradle/maven.gradle'
 
 dependencies {
     compile project(':core')

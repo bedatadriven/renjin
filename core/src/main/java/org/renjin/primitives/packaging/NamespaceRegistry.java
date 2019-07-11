@@ -72,6 +72,10 @@ public class NamespaceRegistry {
     envirMap.put(baseNamespaceEnv, baseNamespace);
   }
 
+  public PackageLoader getPackageLoader() {
+    return loader;
+  }
+
   public Namespace getBaseNamespace() {
     return baseNamespace;
   }

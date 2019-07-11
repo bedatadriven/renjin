@@ -43,7 +43,7 @@ public class BracketTranslator extends FunctionCallTranslator {
 
         if(sourceRefVector != null) {
           IntVector sourceRef = (IntVector) sourceRefVector.get(statementIndex);
-          builder.recordLineNumber(sourceRef.getElementAsInt(0));
+          builder.recordLineNumber(sourceRef.getElementAsInt(0) + 1);
         }
 
         if(arg.hasNextNode()) {
@@ -51,6 +51,8 @@ public class BracketTranslator extends FunctionCallTranslator {
         } else {
           return builder.translateExpression(context, arg.getValue());
         }
+
+        statementIndex++;
       }
       throw new Error("unreachable");
     }

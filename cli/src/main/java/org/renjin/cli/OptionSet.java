@@ -18,10 +18,9 @@
  */
 package org.renjin.cli;
 
+import org.renjin.RenjinVersion;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.io.Resources;
-
-import org.renjin.RenjinVersion;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -34,8 +33,7 @@ public class OptionSet {
   
   
   public static final String COMPILE_LOOPS = "--compile-loops";
-  public static final String PROFILE = "--profile";
-  
+
   private String expression;
   private String file;
   
@@ -77,7 +75,6 @@ public class OptionSet {
           this.versionRequested = true;
           break;
 
-        case PROFILE:
         case COMPILE_LOOPS:
           flags.add(option);
           break;

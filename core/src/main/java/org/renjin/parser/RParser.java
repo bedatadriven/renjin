@@ -147,7 +147,7 @@ public class RParser {
     while (true) {
       
       // check to see if we are at the end of the file
-      if(yylexer.isEof()) {
+      if(isEof()) {
         return attachSrcrefs(new ExpressionVector(exprList), state.srcFile);
       }
 
@@ -173,6 +173,10 @@ public class RParser {
         return attachSrcrefs(new ExpressionVector(exprList), state.srcFile);
       }
     }
+  }
+
+  public boolean isEof() {
+    return yylexer.isEof();
   }
 
   public enum StatusResult {

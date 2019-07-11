@@ -29,6 +29,7 @@ import org.renjin.sexp.StringVector;
 public enum VectorType {
   BYTE(Type.BYTE_TYPE, Type.getType(ByteVector.class)),
   LOGICAL(Type.INT_TYPE, Type.getType(LogicalVector.class)),
+  BOOLEAN(Type.BOOLEAN_TYPE, Type.getType(LogicalVector.class)),
   INT(Type.INT_TYPE, Type.getType(IntVector.class)),
   DOUBLE(Type.DOUBLE_TYPE, Type.getType(DoubleVector.class)),
   STRING(Type.getType(String.class), Type.getType(StringVector.class));

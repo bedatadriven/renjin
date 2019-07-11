@@ -50,7 +50,7 @@ public class BuiltinCallTest {
     typeMap.put(x, scalar(TypeSet.DOUBLE));
     typeMap.put(y, scalar(TypeSet.DOUBLE));
 
-    ValueBounds bounds = call.updateTypeBounds(typeMap);
+    ValueBounds bounds = call.updateTypeBounds(e -> typeMap.get(e));
 
     System.out.println(bounds);
     
@@ -76,7 +76,7 @@ public class BuiltinCallTest {
     typeMap.put(x, scalar(TypeSet.DOUBLE));
     typeMap.put(y, scalar(TypeSet.INT));
 
-    ValueBounds bounds = call.updateTypeBounds(typeMap);
+    ValueBounds bounds = call.updateTypeBounds(e -> typeMap.get(e));
 
     System.out.println(bounds);
 

@@ -243,7 +243,7 @@ public class RDataReader implements AutoCloseable {
     if(env != Null.INSTANCE) {
       return readContext.createPromise(expr, (Environment)env);
     } else {
-      return new Promise(expr, value);
+      return expr.repromise(value);
     }
   }
 

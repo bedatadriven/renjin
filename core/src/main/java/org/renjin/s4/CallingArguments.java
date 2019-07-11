@@ -128,7 +128,7 @@ public class CallingArguments {
       String formalName = matchedArguments.getFormalName(formalIndex);
       int actualIndex = matchedArguments.getActualIndex(formalIndex);
       if(actualIndex == -1) {
-        if(formalName.equals("...")) {
+        if(!formalName.equals("...")) {
           // This formal argument was not provided by the caller
           matchedArgNames[matchedIndex] = formalName;
           matchedPromisedArgs[matchedIndex] = Symbol.MISSING_ARG;

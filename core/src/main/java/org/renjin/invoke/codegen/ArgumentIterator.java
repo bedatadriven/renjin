@@ -79,7 +79,7 @@ public class ArgumentIterator {
 
     SEXP value = nextNode().getValue();
 
-    return context.evaluate(value, rho, true);
+    return context.evaluate(value, rho);
   }
 
   public String getCurrentName() {

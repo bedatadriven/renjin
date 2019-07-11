@@ -20,6 +20,7 @@ package org.renjin.sexp;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.MissingArgumentException;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
 
@@ -333,9 +334,7 @@ public abstract class Environment extends AbstractSEXP implements Recursive {
   public SEXP findVariable(Context context, Symbol symbol, Predicate<SEXP> predicate, boolean inherits) {
     SEXP value = getVariable(context, symbol);
     if(value != Symbol.UNBOUND_VALUE) {
-      if(value instanceof Promise) {
-        value = value.force(context);
-      }
+      value = value.force(context);
       if(predicate.test(value)) {
         return value;
       }
@@ -415,17 +414,20 @@ public abstract class Environment extends AbstractSEXP implements Recursive {
   /**
    * returns varArg value at provided index
    *
-   * @param varArgReferenceIndex index of varArg to return
+   * @param varArgReferenceIndex one-based index of varArg to return
    * @return
    */
   public final SEXP findVarArg(int varArgReferenceIndex) {
+    if(varArgReferenceIndex <= 0) {
+      throw new EvalException("indexing '...' with non-positive index " + varArgReferenceIndex);
+    }
     SEXP ellipses = findVariableUnsafe(Symbols.ELLIPSES);
     if(ellipses == Symbol.UNBOUND_VALUE) {
       throw new EvalException("..%d used in an incorrect context, no ... to look in", varArgReferenceIndex);
     }
     PairList varArgs = (PairList) ellipses;
     if(varArgs.length() < varArgReferenceIndex) {
-      throw new EvalException("The ... list does not contain %d items", varArgReferenceIndex);
+      throw new MissingArgumentException("The ... list does not contain " + varArgReferenceIndex + " items");
     }
     return varArgs.getElementAsSEXP(varArgReferenceIndex - 1);
   }

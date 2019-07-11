@@ -33,7 +33,10 @@ import java.util.Optional;
 public class Namespaces {
 
   @Internal
-  public static SEXP getRegisteredNamespace(@Current Context context, @Current NamespaceRegistry registry, SEXP nameSexp) {
+  public static SEXP getRegisteredNamespace(@Current Context context, SEXP nameSexp) {
+
+    NamespaceRegistry registry = context.getNamespaceRegistry();
+
     Symbol name;
     if(nameSexp instanceof Symbol) {
       name = (Symbol) nameSexp;

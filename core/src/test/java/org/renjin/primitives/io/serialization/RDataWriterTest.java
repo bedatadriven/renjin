@@ -28,9 +28,7 @@ import org.renjin.sexp.PairList.Builder;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.zip.GZIPOutputStream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -130,16 +128,8 @@ public class RDataWriterTest extends EvalTestCase {
     eval("f <- function(x, fn = g) fn(x) ");
     
     assertReRead(topLevelContext.getEnvironment().getVariable(topLevelContext, "f"));
-  } 
-
-  @Test
-  public void attributesCompatiblityWithCR() throws IOException {
-    eval("x <- 1:10");
-    eval("attr(x,'foo') <- 'bar'");
-    
-    write("target/attributesCompatiblityWithCR.RData", eval("x"));
   }
-  
+
   @Test
   public void closureEnclosedByClosure() throws IOException {
     eval("f <- function(x) x*2 ");
@@ -148,14 +138,6 @@ public class RDataWriterTest extends EvalTestCase {
     // won't be equal with equals() because the deserialized environment's
     // identity will not be preserved
     writeAndReRead(eval("g(f)"));
-  }
-
-  private void write(String fileName, SEXP exp) throws IOException {
-    FileOutputStream fos = new FileOutputStream(fileName);
-    GZIPOutputStream zos = new GZIPOutputStream(fos);
-    RDataWriter writer = new RDataWriter(topLevelContext, zos);
-    writer.save(exp);
-    zos.close();
   }
 
   private void assertReRead(SEXP exp) throws IOException {

@@ -32,8 +32,9 @@ public class TestExecutorTest extends TestCase {
   public void testThatExceptionsInTestShouldNotEscape() throws Exception {
     File reportDir = Files.createTempDir();
     List<String> defaultPackages = Collections.emptyList();
-    TestExecutor runner = new TestExecutor("base", defaultPackages, reportDir);
+    TestExecutor runner = new TestExecutor("base", defaultPackages, new Listener(), reportDir);
     File testFile = new File(Resources.getResource("man/mean.Rd").getFile());
     runner.executeTest(testFile);
   }
+
 }

@@ -38,6 +38,7 @@ import java.io.IOException;
 
 import static org.junit.Assert.assertThat;
 
+@Ignore
 public class ForLoopCompilerTest extends EvalTestCase {
   
   @Before

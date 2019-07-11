@@ -18,8 +18,6 @@
  */
 package org.renjin.sexp;
 
-import org.renjin.eval.Profiler;
-
 import java.util.Arrays;
 
 public class IntArrayVector extends IntVector {
@@ -47,10 +45,6 @@ public class IntArrayVector extends IntVector {
 
   public IntArrayVector(int[] values, int length, AttributeMap attributes) {
     super(attributes);
-
-    if (Profiler.ENABLED) {
-      Profiler.memoryAllocated(Integer.SIZE, length);
-    }
 
     this.values = Arrays.copyOf(values, length);
   }
@@ -220,9 +214,6 @@ public class IntArrayVector extends IntVector {
 
     @Override
     public IntVector build() {
-      if(Profiler.ENABLED) {
-        Profiler.memoryAllocated(Integer.SIZE, values.length);
-      }
       if(size == values.length) {
         IntArrayVector vector = new IntArrayVector(buildAttributes());
         vector.values = values;

@@ -18,12 +18,14 @@
  */
 package org.renjin.compiler.ir.tac.functions;
 
+import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.expressions.BuiltinCall;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.statements.ExprStatement;
+import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.primitives.Primitives;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
@@ -51,6 +53,19 @@ public class InternalCallTranslator extends FunctionCallTranslator {
     Primitives.Entry entry = Primitives.getInternalEntry(internalName);
     if(entry == null) {
       throw new InvalidSyntaxException("No such .Internal function '" + internalName + "'");
+    }
+
+    PrimitiveModel model = new PrimitiveModel(entry);
+    if(model.hasVargs()) {
+      throw new NotCompilableException(call, "Unsupported var args internal: " + model.getName());
+    }
+
+    if(model.isGeneric()) {
+      throw new NotCompilableException(call, "Unsupported generic internal: " + model.getName());
+    }
+
+    if(call.findEllipsisArgumentIndex() != -1) {
+      throw new NotCompilableException(call, "Unsupported argument forwarding (...) in .Internal call");
     }
     
     List<IRArgument> internalArguments = builder.translateArgumentList(context, primitiveCall.getArguments());

@@ -76,7 +76,7 @@ public class Evaluation {
 
   @Internal
   public static void delayedAssign(@Current Context context, String x, SEXP expr, Environment evalEnv, Environment assignEnv) {
-    assignEnv.setVariable(context, Symbol.get(x), Promise.repromise(evalEnv, expr));
+    assignEnv.setVariable(context, Symbol.get(x), expr.promise(evalEnv));
   }
 
 
@@ -413,6 +413,11 @@ public class Evaluation {
       e = e.getParent();
     }
     context.warn("object '" + name.getPrintName() + "' not found");
+  }
+
+  @Builtin("...elt")
+  public static SEXP getExpandoArg(@Current Environment rho, int n) {
+    return rho.findVarArg(n);
   }
 
 }

@@ -1,0 +1,7 @@
+Package: s3test
+Title: S3 Test
+Version: 0.1
+Maintainer: BeDataDriven <info@bedatadriven.com>
+Description: Demo package to test S3 package import in Renjin.
+Suggests:
+License: GPL-2

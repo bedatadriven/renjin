@@ -19,7 +19,6 @@
 package org.renjin.sexp;
 
 import org.apache.commons.math.complex.Complex;
-import org.renjin.eval.Profiler;
 import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
 
 import java.util.Iterator;
@@ -82,6 +81,25 @@ public abstract class AbstractAtomicVector extends AbstractVector implements Ato
     }
   }
 
+  @Override
+  public SEXP promise(Environment rho) {
+    return this;
+  }
+
+  @Override
+  public SEXP repromise() {
+    return this;
+  }
+
+  @Override
+  public SEXP repromise(SEXP evaluatedValue) {
+    if(this == evaluatedValue) {
+      return this;
+    } else {
+      return new Promise(this, evaluatedValue);
+    }
+  }
+
   public final double asReal() {
     if (length() == 0) {
       return DoubleVector.NA;
@@ -100,9 +118,6 @@ public abstract class AbstractAtomicVector extends AbstractVector implements Ato
 
   @Override
   public double[] toDoubleArray() {
-    if(Profiler.ENABLED) {
-      Profiler.memoryAllocated(Double.SIZE, length());
-    }
     double [] d = new double[length()];
     for(int i=0;i!=d.length;++i) {
       d[i] = getElementAsDouble(i);
@@ -112,9 +127,6 @@ public abstract class AbstractAtomicVector extends AbstractVector implements Ato
 
   @Override
   public int[] toIntArray() {
-    if(Profiler.ENABLED) {
-      Profiler.memoryAllocated(Integer.SIZE, length());
-    }
     int[] array = new int[length()];
     for(int i=0;i!=array.length;++i) {
       array[i] = getElementAsInt(i);

@@ -24,7 +24,7 @@ import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.SEXP;
 
-public interface CompiledSexp {
+public interface CompiledSexp extends SexpLoader {
 
   /**
    * Writes the bytecode to load this expression onto the stack as an {@code SEXP} object.
@@ -64,6 +64,9 @@ public interface CompiledSexp {
       loadScalar(emitContext, mv, VectorType.DOUBLE);
     } else if(argumentClass.equals(String.class)) {
       loadScalar(emitContext, mv, VectorType.STRING);
+    } else if(argumentClass.equals(boolean.class)) {
+      loadScalar(emitContext, mv, VectorType.LOGICAL);
+
     } else {
       throw new UnsupportedOperationException("TODO: " + argumentClass.getName());
     }

@@ -22,7 +22,7 @@ sourceSets {
 
 def File nativeSourceDir = project.file('src')
 
-task make(dependsOn: [':tools:gcc-bridge:compiler:compilePlugin'] ) {
+task make(dependsOn: [':tools:gcc-bridge:gcc-bridge-compiler:compilePlugin'] ) {
 
     onlyIf {
         nativeSourceDir.exists()

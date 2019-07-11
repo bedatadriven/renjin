@@ -21,16 +21,22 @@ package org.renjin.compiler.ir.tac.expressions;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.SexpExpr;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.Closure;
+import org.renjin.sexp.Environment;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 
-import java.util.Map;
-
 public class NestedFunction implements Expression {
+
+  private static final ValueBounds BOUNDS = ValueBounds.builder()
+      .setTypeSet(TypeSet.FUNCTION)
+      .build();
+
   private final PairList formals;
   private final SEXP body;
 
@@ -45,13 +51,13 @@ public class NestedFunction implements Expression {
   }
 
   @Override
-  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
-    throw new UnsupportedOperationException("TODO");
+  public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
+    return BOUNDS;
   }
 
   @Override
   public ValueBounds getValueBounds() {
-    throw new UnsupportedOperationException("TODO");
+    return BOUNDS;
   }
 
   @Override
@@ -59,15 +65,26 @@ public class NestedFunction implements Expression {
     return new SexpExpr() {
       @Override
       public void loadSexp(EmitContext context, InstructionAdapter mv) {
-        mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(RuntimeException.class));
-        mv.visitInsn(Opcodes.ATHROW);
+
+        mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(Closure.class));
+        mv.dup();
+        mv.visitVarInsn(Opcodes.ALOAD, emitContext.getEnvironmentVarIndex());
+        emitContext.constantSexp(formals).loadSexp(emitContext, mv);
+        mv.checkcast(Type.getType(PairList.class));
+        emitContext.constantSexp(body).loadSexp(emitContext, mv);
+
+        mv.invokespecial(Type.getInternalName(Closure.class), "<init>",
+            Type.getMethodDescriptor(Type.VOID_TYPE,
+              Type.getType(Environment.class),
+              Type.getType(PairList.class),
+              Type.getType(SEXP.class)), false);
       }
     };
   }
 
   @Override
   public void setChild(int childIndex, Expression child) {
-    throw new UnsupportedOperationException("TODO");
+    throw new IndexOutOfBoundsException();
   }
 
   @Override
@@ -77,7 +94,7 @@ public class NestedFunction implements Expression {
 
   @Override
   public Expression childAt(int index) {
-    throw new UnsupportedOperationException("TODO");
+    throw new IndexOutOfBoundsException();
   }
 
   @Override

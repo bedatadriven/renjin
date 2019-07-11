@@ -21,6 +21,9 @@ package org.renjin.invoke.codegen;
 public class ArgumentException extends RuntimeException {
 
   public ArgumentException(String message) {
-    super(message);
+    super(message,
+        /* cause */ null,
+        /* enable suppression */ true,
+        /* writable stack trace */ false);
   }
 }

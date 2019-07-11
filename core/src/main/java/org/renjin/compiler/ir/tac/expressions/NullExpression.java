@@ -22,8 +22,6 @@ import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 
-import java.util.Map;
-
 
 /**
  * A nullary expression (used by the Goto statement, for example,
@@ -42,8 +40,8 @@ public class NullExpression implements Expression {
   }
 
   @Override
-  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
-    throw new UnsupportedOperationException();
+  public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
+    return ValueBounds.UNBOUNDED;
   }
 
   @Override

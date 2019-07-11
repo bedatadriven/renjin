@@ -77,7 +77,7 @@ public class TestExecutor {
 
 
   @VisibleForTesting
-  void executeTest(File testFile) throws IOException {
+  public void executeTest(File testFile) throws IOException {
     
     if (testFile.getName().toLowerCase().endsWith(".rd")) {
       executeTestFile(testFile, ExamplesParser.parseExamples(testFile));
@@ -150,7 +150,7 @@ public class TestExecutor {
   }
 
   @VisibleForTesting
-  void executeTestFile(File sourceFile, String sourceText) throws IOException {
+  public void executeTestFile(File sourceFile, String sourceText) throws IOException {
 
     listener.startFile(sourceFile);
 

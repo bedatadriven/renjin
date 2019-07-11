@@ -24,7 +24,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.renjin.gcc.Gcc;
-import org.renjin.gcc.maven.GccBridgeHelper;
 import org.renjin.gnur.GnurInstallation;
 import org.renjin.packaging.BuildContext;
 import org.renjin.packaging.BuildException;
@@ -213,6 +212,11 @@ public class MavenBuildContext implements BuildContext {
   }
 
   @Override
+  public String getSootClasspath() {
+    return getCompileClasspath();
+  }
+
+
   public String getCompileClasspath() {
 
     List<String> compileClasspathElements;

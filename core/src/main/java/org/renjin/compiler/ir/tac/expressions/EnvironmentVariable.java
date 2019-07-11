@@ -20,6 +20,8 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.Symbol;
 
 
@@ -77,5 +79,9 @@ public class EnvironmentVariable extends Variable {
     return emitContext.getVariable(this).getCompiledExpr();
   }
 
-
+  @Override
+  public void emitExecute(EmitContext emitContext, InstructionAdapter mv) {
+    getCompiledExpr(emitContext).loadSexp(emitContext, mv);
+    mv.visitInsn(Opcodes.POP);
+  }
 }

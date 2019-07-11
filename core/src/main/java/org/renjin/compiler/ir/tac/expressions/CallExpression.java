@@ -20,11 +20,17 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
+import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 public interface CallExpression extends Expression {
 
   @Override
   default CompiledSexp getCompiledExpr(EmitContext emitContext) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  default void emitExecute(EmitContext emitContext, InstructionAdapter mv) {
     throw new UnsupportedOperationException("TODO");
   }
 }

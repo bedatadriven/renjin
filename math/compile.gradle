@@ -25,7 +25,7 @@ configurations {
 }
 
 dependencies {
-    gcc project(':tools:gcc-bridge:compiler')
+    gcc project(':tools:gcc-bridge:gcc-bridge-compiler')
     gcc libraries.soot
 
     compile project(':tools:gcc-bridge:runtime')
@@ -44,7 +44,7 @@ def fortranDir = project.file('src/main/fortran')
 def cDir = project.file('src/main/c')
 
 if(fortranDir.exists()) {
-    task compileFortran(dependsOn: ':tools:gcc-bridge:compiler:compilePlugin') {
+    task compileFortran(dependsOn: ':tools:gcc-bridge:gcc-bridge-compiler:compilePlugin') {
 
         def gimpleDir = project.file('build/fortran/gimple')
         inputs.dir fortranDir
@@ -75,7 +75,7 @@ if(fortranDir.exists()) {
 }
 
 if(cDir.exists()) {
-    task compileC(dependsOn: ':tools:gcc-bridge:compiler:compilePlugin') {
+    task compileC(dependsOn: ':tools:gcc-bridge:gcc-bridge-compiler:compilePlugin') {
 
         def gimpleDir = project.file('build/c/gimple')
         inputs.dir cDir
@@ -133,6 +133,7 @@ task compileGimple(type: JavaExec) {
         if(className) {
             args "--class=${className}"
         }
+        args "--log-dir=$buildDir/gcc-bridge-logs"
         args "--output-dir=${compiledOutputDir}"
         if(fortranDir.exists()) {
             args 'build/fortran/gimple'

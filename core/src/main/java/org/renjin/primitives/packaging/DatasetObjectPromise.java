@@ -44,7 +44,7 @@ public class DatasetObjectPromise extends Promise {
   }
 
   @Override
-  protected SEXP doEval(Context context, boolean allowMissing) {
+  protected SEXP doEval(Context context) {
     try {
       return dataset.loadObject(objectName);
     } catch (IOException e) {

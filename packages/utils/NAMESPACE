@@ -2,6 +2,7 @@
 importClass(org.renjin.utils.Tables)
 importClass(org.renjin.utils.Interactive)
 importClass(org.renjin.utils.WriteTable)
+importClass(org.renjin.utils.Utils)
 
 export("?", .DollarNames, .S3methods, .romans, CRAN.packages, Rprof,
        Rprofmem, RShowDoc, RSiteSearch, URLdecode, URLencode, View,

@@ -21,7 +21,10 @@ package org.renjin.compiler.ir.tac.functions;
 import org.renjin.compiler.ir.tac.ExtraArgument;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
+import org.renjin.compiler.ir.tac.expressions.Constant;
 import org.renjin.compiler.ir.tac.expressions.EllipsesVar;
+import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.sexp.LogicalVector;
 import org.renjin.sexp.Symbol;
 
 import java.util.ArrayList;
@@ -41,6 +44,11 @@ public class LoopBodyContext implements TranslationContext {
   }
 
   @Override
+  public boolean isEllipsesArgumentKnown() {
+    return true;
+  }
+
+  @Override
   public List<IRArgument> getEllipsesArguments() {
     if(ellipses == null) {
       ellipses = runtimeState.findEllipses();
@@ -53,7 +61,7 @@ public class LoopBodyContext implements TranslationContext {
   }
 
   @Override
-  public boolean isMissing(Symbol name) {
-    return runtimeState.isMissing(name);
+  public Expression isMissing(Symbol name) {
+    return new Constant(LogicalVector.valueOf(runtimeState.isMissing(name)));
   }
 }

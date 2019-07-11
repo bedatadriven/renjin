@@ -26,8 +26,6 @@ import org.renjin.compiler.ir.tac.TreeNode;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
-import java.util.Map;
-
 
 public interface Expression extends TreeNode {
 
@@ -41,8 +39,9 @@ public interface Expression extends TreeNode {
   /**
    * Resolves and stores the type of this Expression, based on it's
    * child nodes
+   * @param typeMap
    */
-  ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap);
+  ValueBounds updateTypeBounds(ValueBoundsMap typeMap);
 
   /**
    * @return this expression's current value bounds after the last call to {@code updateTypeBounds}
@@ -67,6 +66,8 @@ public interface Expression extends TreeNode {
    * Emits the bytecode to execute this expression for side effects.
    */
   default void emitExecute(EmitContext emitContext, InstructionAdapter mv) {
-
+    if(!isPure()) {
+      throw new IllegalStateException("Missing implementation for " + getClass().getName());
+    }
   }
 }

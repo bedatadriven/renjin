@@ -77,22 +77,21 @@ public class Promise extends AbstractSEXP implements Recursive {
    */
   @Override
   public SEXP force(Context context) {
-    return force(context, false);
-  }
-
-  @Override
-  public SEXP force(Context context, boolean allowMissing) {
     if (result == null) {
-      this.result = doEval(context, allowMissing);
+      this.result = doEval(context);
     }
     return result;
   }
 
-  protected SEXP doEval(Context context, boolean allowMissing) {
-    return context.evaluate(expression, environment, allowMissing);
+  protected SEXP doEval(Context context) {
+    return expression.eval(context, environment);
   }
-  
-  
+
+  @Override
+  public SEXP eval(Context context, Environment rho) {
+    return force(context);
+  }
+
   public void setResult(SEXP exp) {
     this.result = exp;
   }
@@ -110,8 +109,24 @@ public class Promise extends AbstractSEXP implements Recursive {
   /**
    * @return this Promise's original expression.
    */
-  public SEXP getExpression() {
+  @Override
+  public SEXP getPromisedExpression() {
     return expression;
+  }
+
+  @Override
+  public SEXP repromise() {
+    return this;
+  }
+
+  @Override
+  public SEXP repromise(SEXP evaluatedValue) {
+    return new Promise(getPromisedExpression(), evaluatedValue);
+  }
+
+  @Override
+  public SEXP promise(Environment rho) {
+    return this;
   }
 
   @Override
@@ -122,11 +137,6 @@ public class Promise extends AbstractSEXP implements Recursive {
       return "Evaluated{" + result + "}";
     }
   }
-
-  public static Promise repromise(SEXP value) {
-    return new Promise(value, value);
-  }
-
 
   public Environment getEnvironment() {
     return environment;
@@ -145,11 +155,4 @@ public class Promise extends AbstractSEXP implements Recursive {
     return result != null;
   }
 
-  public static Promise repromise(Environment environment, SEXP expression) {
-    if(expression instanceof Promise) {
-      return (Promise)expression;
-    } else {
-      return new Promise(environment, expression);
-    }
-  }
 }

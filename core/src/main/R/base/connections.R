@@ -237,11 +237,16 @@ readBin <- function(con, what, n = 1L, size = NA_integer_, signed = TRUE,
         on.exit(close(con))
     }
     swap <- endian != .Platform$endian
-    if(!is.character(what) || is.na(what) ||
-       length(what) != 1L || ## hence length(what) == 1:
-       !any(what == c("numeric", "double", "integer", "int", "logical",
-	    "complex", "character", "raw")))
+    cat(sprintf("what = %s\n", deparse(what)))
+    c1 <- !is.character(what)
+    c2 <- is.na(what)
+    c3 <- length(what) != 1L  ## hence length(what) == 1:
+    c4 <- !any(what == c("numeric", "double", "integer", "int", "logical",
+          	    "complex", "character", "raw"))
+
+    if(c1 || c2 || c3 || c4)
 	what <- typeof(what)
+
     .Internal(readBin(con, what, n, size, signed, swap))
 }
 

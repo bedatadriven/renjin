@@ -21,7 +21,6 @@ package org.renjin.primitives;
 import org.renjin.base.Base;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.eval.Profiler;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
@@ -184,9 +183,6 @@ public class Native {
       }
     }
     
-    if(Profiler.ENABLED) {
-      Profiler.functionStart(Symbol.get(method.getName()), 'C');
-    }
     Context previousContext = CURRENT_CONTEXT.get();
     CURRENT_CONTEXT.set(context);
     try {
@@ -197,9 +193,6 @@ public class Native {
       throw new EvalException(e.getMessage(), e);
     } finally {
       CURRENT_CONTEXT.set(previousContext);
-      if(Profiler.ENABLED) {
-        Profiler.functionEnd();
-      }
     }
 
     ListVector.NamedBuilder builder = new ListVector.NamedBuilder();
@@ -291,9 +284,6 @@ public class Native {
     Object[] fortranArgs = new Object[fortranTypes.length];
     ListVector.NamedBuilder returnValues = ListVector.newNamedBuilder();
 
-    if(Profiler.ENABLED) {
-      Profiler.functionStart(Symbol.get(method.getName()), 'F');
-    }
 
     // For .Fortran() calls, we make a copy of the arguments, pass them by
     // reference to the fortran subroutine, and then return the modified arguments
@@ -326,9 +316,6 @@ public class Native {
       throw new EvalException("Exception thrown while executing " + method.getName(), e);
     } finally {
       CURRENT_CONTEXT.set(previousContext);
-      if(Profiler.ENABLED) {
-        Profiler.functionEnd();
-      }
     }
 
     return returnValues.build();
@@ -375,9 +362,6 @@ public class Native {
     }
     MethodHandle transformedHandle = methodHandle.asSpreader(SEXP[].class, methodHandle.type().parameterCount());
     SEXP[] arguments = toSexpArray(callArguments);
-    if(Profiler.ENABLED) {
-      Profiler.functionStart(Symbol.get(method.getName()), 'C');
-    }
     Context previousContext = CURRENT_CONTEXT.get();
     try {
       CURRENT_CONTEXT.set(context);
@@ -394,9 +378,6 @@ public class Native {
       throw new EvalException("Exception calling " +  method.getName() + " : " + e.getMessage(), e);
     } finally {
       CURRENT_CONTEXT.set(previousContext);
-      if(Profiler.ENABLED) {
-        Profiler.functionEnd();
-      }
     }
   }
 
@@ -421,10 +402,6 @@ public class Native {
 
     SEXP argumentList = new PairList.Node(StringVector.valueOf(symbol.getName()), PairList.Node.fromVector(callArguments));
 
-    if(Profiler.ENABLED) {
-      StringVector nameExp = (StringVector)((ListVector) methodExp).get("name");
-      Profiler.functionStart(Symbol.get(nameExp.getElementAsString(0)), 'C');
-    }
     Context previousContext = CURRENT_CONTEXT.get();
     try {
       CURRENT_CONTEXT.set(context);
@@ -440,9 +417,6 @@ public class Native {
       throw new EvalException("Exception calling " + methodExp + " : " + e.getMessage(), e);
     } finally {
       CURRENT_CONTEXT.set(previousContext);
-      if(Profiler.ENABLED) {
-        Profiler.functionEnd();
-      }
     }
   }
 
@@ -468,10 +442,6 @@ public class Native {
     SEXP args = new PairList.Node(methodExp, PairList.Node.fromVector(callArguments));
     SEXP rho = context.getEnvironment();
 
-    if(Profiler.ENABLED) {
-      StringVector nameExp = (StringVector)((ListVector) methodExp).get("name");
-      Profiler.functionStart(Symbol.get(nameExp.getElementAsString(0)), 'C');
-    }
     Context previousContext = CURRENT_CONTEXT.get();
     try {
       CURRENT_CONTEXT.set(context);
@@ -487,9 +457,6 @@ public class Native {
       throw new EvalException("Exception calling " + methodExp + " : " + e.getMessage(), e);
     } finally {
       CURRENT_CONTEXT.set(previousContext);
-      if(Profiler.ENABLED) {
-        Profiler.functionEnd();
-      }
     }
   }
 

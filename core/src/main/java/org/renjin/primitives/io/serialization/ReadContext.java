@@ -19,7 +19,6 @@
 package org.renjin.primitives.io.serialization;
 
 import org.renjin.sexp.Environment;
-import org.renjin.sexp.Promise;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
@@ -32,7 +31,7 @@ public interface ReadContext {
 
   Environment getBaseEnvironment();
 
-  Promise createPromise(SEXP expr, Environment environment);
+  SEXP createPromise(SEXP expr, Environment environment);
 
   Environment findNamespace(Symbol symbol);
 

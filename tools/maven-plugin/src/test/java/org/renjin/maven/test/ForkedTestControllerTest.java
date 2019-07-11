@@ -19,8 +19,8 @@
 package org.renjin.maven.test;
 
 import junit.framework.TestCase;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.SystemStreamLog;
+import org.renjin.maven.MavenBuildLogger;
 import org.renjin.packaging.test.ForkedTestController;
 import org.renjin.packaging.test.TestReporter;
 import org.renjin.repackaged.guava.base.Charsets;
@@ -50,14 +50,14 @@ public class ForkedTestControllerTest extends TestCase {
   protected void setUp() throws Exception {
     testOutputDirectory = Files.createTempDirectory("testOutput").toFile();
 
-    forkedTestController = new ForkedTestController(new SystemStreamLog());
+    forkedTestController = new ForkedTestController(new MavenBuildLogger(new SystemStreamLog()));
     forkedTestController.setClassPath(getCurrentClassPath());
     forkedTestController.setNamespaceUnderTest("base");
     forkedTestController.setTestReportDirectory(testOutputDirectory);
     
   }
 
-  public void testRdFileWithError() throws MojoExecutionException, IOException {
+  public void testRdFileWithError() throws Exception {
 
     File testFile = testFile("man/mean.Rd");
 
@@ -67,7 +67,7 @@ public class ForkedTestControllerTest extends TestCase {
     assertOutputContains(testFile, "ERROR: foo");
   }
 
-  public void testSuccessfulTests() throws MojoExecutionException, IOException {
+  public void testSuccessfulTests() throws Exception {
 
     File testFile = testFile("successful.R");
 
@@ -83,7 +83,7 @@ public class ForkedTestControllerTest extends TestCase {
     findTestCaseElement(document, "to.lower");
   }
   
-  public void testInfiniteOutput() throws MojoExecutionException, IOException {
+  public void testInfiniteOutput() throws Exception {
     File testFile = testFile("infiniteOutput.R");
 
     int outputLimit = 50 * 1024;
@@ -103,7 +103,7 @@ public class ForkedTestControllerTest extends TestCase {
     
   }
   
-  public void testTimeout() throws MojoExecutionException, IOException {
+  public void testTimeout() throws Exception {
     File timedOutFile = testFile("timeout.R");
     File successfulFile = testFile("good.R");
 
@@ -116,7 +116,7 @@ public class ForkedTestControllerTest extends TestCase {
     assertTestCaseSucceeded(successfulFile, true);
   }
   
-  public void testOutOfMemory() throws MojoExecutionException, IOException {
+  public void testOutOfMemory() throws Exception {
     File badTestFile = testFile("outOfMemory.R");
 
     forkedTestController.executeTest(badTestFile);

@@ -182,7 +182,7 @@ public class Primitives {
     add(new UseMethod());
     add(new MissingFunction());
 
-    f("stop", Conditions.class, 1);
+    f("stop", Conditions.class, 11);
     f("warning", Warning.class, 111);
 
     f("gettext", Text.class, 11);
@@ -244,7 +244,7 @@ public class Primitives {
     add(new InternalFunction());
     add(new OnExitFunction());
 
-    addInternal(new RecallFunction());
+    add(new RecallFunction());
     f("delayedAssign", Evaluation.class, 111);
     f("makeLazy", Serialization.class, 111);
     f(".Primitive", Evaluation.class, 1);
@@ -302,6 +302,7 @@ public class Primitives {
     f("row", Matrices.class, 11);
     f("col", Matrices.class, 11);
     f("c", Combine.class, 1);
+    f("...elt", Evaluation.class, 1);
     f("unlist", Combine.class, 11);
     addInternal(new ColumnBindFunction());
     addInternal(new RowBindFunction());
@@ -586,7 +587,7 @@ public class Primitives {
     f("as.vector", Vectors.class, 11);
     f("paste", Text.class, 11);
     f("format", Text.class, 11);
-    f("format.info", /*formatinfo*/ null, 11);
+    f("format.info", Text.class, 11);
     f("cat", Cat.class, 111);
     add(new CallFunction());
     f("do.call", Evaluation.class, 211);

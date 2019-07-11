@@ -42,6 +42,14 @@ public class BasePackageTest extends EvalTestCase {
 
 
   @Test
+  public void asCharacter() {
+    eval("as.vector.bar <- function(...) 98");
+    eval("y <- structure(list(1L, \"bar\"), class = \"bar\")");
+    eval("x <- as.character(y)");
+    eval("print(x)");
+  }
+
+  @Test
   public void loadBase() throws IOException {
 
     topLevelContext.init();
@@ -63,13 +71,9 @@ public class BasePackageTest extends EvalTestCase {
     assertThat( getValue( topLevelContext.getSession().getBaseNamespaceEnv(), "letters" ).length(), equalTo( 26 ));
 
   }
-
+  
   private SEXP getValue(Environment env, String name) {
-    SEXP value = env.getVariable(topLevelContext, name);
-    if(value instanceof Promise) {
-      value = value.force(topLevelContext);
-    }
-    return value;
+    return env.getVariable(topLevelContext, name).force(topLevelContext);
   }
 
   @Test
@@ -77,6 +81,12 @@ public class BasePackageTest extends EvalTestCase {
     loadBasePackage();
 
     eval(" x <- package_version('1.2-4') ");
+  }
+
+  @Test
+  public void testClassAssign() {
+    eval(" x <- 1 ");
+    eval(" class(x) <- 'foo'");
   }
 
   @Test

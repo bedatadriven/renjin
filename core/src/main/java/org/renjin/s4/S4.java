@@ -67,7 +67,7 @@ public class S4 {
                                                 SEXP[] promisedArguments) {
 
     Generic generic;
-    if(group == null) {
+    if(group == null || opName.equals("!")) {
       generic = Generic.primitive(opName, new ArrayList<>());
     } else {
       generic = Generic.primitive(opName, Collections.singletonList(group));

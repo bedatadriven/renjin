@@ -1,0 +1,20 @@
+
+//apply from: '../../gradle/maven.gradle'
+
+dependencies {
+    compile libraries.guava
+}
+sourceSets {
+    main {
+        resources {
+            srcDirs = []
+        }
+        output.dir("$buildDir/home", builtBy: 'copyHome')
+    }
+}
+
+task copyHome(type: Copy) {
+
+    from 'src/main/resources'
+    into "$buildDir/home/org/renjin/gnur"
+}

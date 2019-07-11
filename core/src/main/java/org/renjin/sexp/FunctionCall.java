@@ -18,6 +18,11 @@
  */
 package org.renjin.sexp;
 
+import org.renjin.eval.ConditionException;
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+import org.renjin.primitives.special.ControlFlowException;
+
 /**
  * Expression representing a call to an R function, consisting of
  * a function reference and a list of arguments.
@@ -62,6 +67,28 @@ public class FunctionCall extends PairList.Node {
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
+  }
+
+  @Override
+  public SEXP eval(Context context, Environment rho) {
+    context.clearInvisibleFlag();
+
+    SEXP fn = getFunction();
+    Function functionExpr = context.evaluateFunction(rho, fn);
+
+    try {
+      return functionExpr.apply(context, rho, this);
+    } catch (EvalException | ControlFlowException | ConditionException | Error e) {
+      throw e;
+
+    } catch (Exception e) {
+      String message = e.getMessage();
+      if(message == null) {
+        message = e.getClass().getName();
+      }
+      throw new EvalException(message, e);
+
+    }
   }
 
   @Override
@@ -158,6 +185,18 @@ public class FunctionCall extends PairList.Node {
       }
     }
     return Null.INSTANCE;
+  }
+
+  public int findEllipsisArgumentIndex() {
+    int index = 0;
+    for (PairList.Node node : getArguments().nodes()) {
+      if(node.getValue() == Symbols.ELLIPSES) {
+        return index;
+      }
+      index++;
+    }
+
+    return -1;
   }
 
   public static class Builder extends PairList.Builder {

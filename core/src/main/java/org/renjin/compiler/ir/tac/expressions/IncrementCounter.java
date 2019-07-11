@@ -26,8 +26,6 @@ import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
-import java.util.Map;
-
 
 /**
  * Increments a counter variable. Only used for the 
@@ -62,7 +60,7 @@ public class IncrementCounter extends SpecializedCallExpression {
   }
 
   @Override
-  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+  public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
     return getValueBounds();
   }
 

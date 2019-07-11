@@ -20,6 +20,7 @@ package org.renjin.compiler.ir.tac.functions;
 
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.IRLabel;
+import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.sexp.Symbol;
 
 import java.util.List;
@@ -46,12 +47,17 @@ public class LoopContext implements TranslationContext {
   }
 
   @Override
+  public boolean isEllipsesArgumentKnown() {
+    return parentContext.isEllipsesArgumentKnown();
+  }
+
+  @Override
   public List<IRArgument> getEllipsesArguments() {
     return parentContext.getEllipsesArguments();
   }
 
   @Override
-  public boolean isMissing(Symbol name) {
+  public Expression isMissing(Symbol name) {
     return parentContext.isMissing(name);
   }
 }

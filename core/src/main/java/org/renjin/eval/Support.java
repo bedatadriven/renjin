@@ -18,9 +18,9 @@
  */
 package org.renjin.eval;
 
+import org.renjin.invoke.annotations.CompilerSpecialization;
 import org.renjin.serialization.RDataReader;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.SEXP;
+import org.renjin.sexp.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,16 +29,7 @@ import java.io.InputStream;
  * Provides helper methods for compiled code
  */
 public class Support {
-  public static final String[] UNNAMED_ARGUMENTS_0 = {};
-  public static final String[] UNNAMED_ARGUMENTS_1 = new String[1];
-  public static final String[] UNNAMED_ARGUMENTS_2 = new String[2];
-  public static final String[] UNNAMED_ARGUMENTS_3 = new String[3];
-  public static final String[] UNNAMED_ARGUMENTS_4 = new String[3];
-  public static final String[] UNNAMED_ARGUMENTS_5 = new String[4];
 
-  public static boolean test(SEXP sexp) {
-    throw new UnsupportedOperationException("TODO");
-  }
 
   public static SEXP[] loadPool(String resourceName) throws IOException {
     InputStream poolInput = Support.class.getResourceAsStream("/" + resourceName);
@@ -50,6 +41,56 @@ public class Support {
       vector = (ListVector) reader.readFile();
     }
     return vector.toArrayUnsafe();
+  }
+
+  /**
+   * Tests whether an SEXP is true.
+   *
+   */
+  @CompilerSpecialization
+  public static int test(SEXP sexp) {
+    if (sexp instanceof AtomicVector && !(sexp instanceof StringVector)) {
+      AtomicVector vector = (AtomicVector) sexp;
+      if (vector.length() == 0) {
+        return LogicalVector.NA;
+      } else {
+        return vector.getElementAsRawLogical(0);
+      }
+    } else {
+      throw new EvalException("invalid type used in logical operator");
+    }
+  }
+
+  public boolean test(double x) {
+    if(Double.isNaN(x)) {
+      throw new EvalException("argument is not interpretable as logical");
+    }
+    return x != 0d;
+  }
+
+
+  /**
+   * Converts an SEXP expression to a boolean value used to branch during IF statments.
+   *
+   * @throws EvalException if the vector is the wrong type, NA, or zero-length
+   */
+  public static boolean testNoNA(SEXP sexp) {
+    if (sexp instanceof AtomicVector && !(sexp instanceof StringVector)) {
+      AtomicVector vector = (AtomicVector) sexp;
+      if (vector.length() == 0) {
+        throw new EvalException("argument is of length zero in if() statement");
+      } else {
+        return vector.getElementAsInt(0) != 0;
+      }
+    } else {
+      throw new EvalException("invalid type used in || or &&");
+    }
+  }
+
+  public static void checkNotNA(int branchValue) {
+    if(branchValue == IntVector.NA) {
+      throw new EvalException("if() condition is an empty vector, NA, or an invalid type");
+    }
   }
 
 }

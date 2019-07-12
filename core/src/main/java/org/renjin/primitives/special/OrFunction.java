@@ -40,19 +40,24 @@ public class OrFunction extends SpecialFunction {
   public SEXP apply(Context context, Environment rho, FunctionCall call) {
     checkArity(call, 2);
 
-    Logical x = AndFunction.checkedToLogical(context.evaluate(call.getArgument(0), rho), "invalid 'x' type in 'x || y'");
+    int x = AndFunction.test(context.evaluate(call.getArgument(0), rho), "invalid 'x' type in 'x || y'");
 
-    if (x == Logical.TRUE) {
+    boolean xna = x == LogicalVector.NA;
+
+    if (x != 0 && !xna) {
       return LogicalVector.TRUE;
     }
 
-    Logical y = AndFunction.checkedToLogical(context.evaluate(call.getArgument(1), rho), "invalid 'y' type in 'x || y'");
-    if (y == Logical.TRUE) {
+    int y = AndFunction.test(context.evaluate(call.getArgument(1), rho), "invalid 'y' type in 'x || y'");
+    boolean yna = y == LogicalVector.NA;
+
+    if (y != 0 && !yna) {
       return LogicalVector.TRUE;
     }
 
-    if (x == Logical.NA || y == Logical.NA) {
+    if (xna || yna) {
       return LogicalVector.NA_VECTOR;
+
     } else {
       return LogicalVector.FALSE;
     }

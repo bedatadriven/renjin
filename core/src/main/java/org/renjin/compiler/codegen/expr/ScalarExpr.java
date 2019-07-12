@@ -20,11 +20,16 @@ package org.renjin.compiler.codegen.expr;
 
 import org.renjin.compiler.codegen.ConstantBytecode;
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.eval.Support;
 import org.renjin.primitives.Vectors;
+import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.AttributeMap;
+import org.renjin.sexp.IntVector;
+
+import java.util.Optional;
 
 public abstract class ScalarExpr implements CompiledSexp {
 
@@ -108,6 +113,65 @@ public abstract class ScalarExpr implements CompiledSexp {
     mv.visitInsn(Opcodes.ICONST_1);
   }
 
+  @Override
+  public void jumpIf(EmitContext emitContext, InstructionAdapter mv, Label trueLabel, Optional<Label> naLabel) {
+
+    switch (type) {
+
+      case BYTE:
+      case BOOLEAN:
+        loadScalar(emitContext, mv, VectorType.BOOLEAN);
+        mv.visitJumpInsn(Opcodes.IFNE, trueLabel);
+        break;
+
+
+      case LOGICAL:
+      case INT:
+        if(naLabel.isPresent()) {
+          intJumpIf(emitContext, mv, trueLabel, naLabel.get());
+        } else {
+          intJumpIf(emitContext, mv, trueLabel);
+        }
+        break;
+
+      case DOUBLE:
+        if(naLabel.isPresent()) {
+          doubleJumpIf(emitContext, mv, trueLabel, naLabel.get());
+        } else {
+          doubleJumpIf(emitContext, mv, trueLabel);
+        }
+        break;
+
+      case STRING:
+        throw new IllegalStateException("Should not be here!");
+    }
+  }
+
+  private void doubleJumpIf(EmitContext emitContext, InstructionAdapter mv, Label trueLabel, Label label) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  private void doubleJumpIf(EmitContext emitContext, InstructionAdapter mv, Label trueLabel) {
+    loadScalar(emitContext, mv, VectorType.DOUBLE);
+    mv.invokestatic(Type.getInternalName(Support.class), "test", "(D)Z", false);
+    mv.visitJumpInsn(Opcodes.IFNE, trueLabel);
+  }
+
+  protected void intJumpIf(EmitContext emitContext, InstructionAdapter mv, Label trueLabel) {
+    loadScalar(emitContext, mv, type);
+    mv.dup();
+    mv.invokestatic(Type.getInternalName(Support.class), "checkNotNA", "(I)V", false);
+    mv.visitJumpInsn(Opcodes.IFNE, trueLabel);
+  }
+
+  private void intJumpIf(EmitContext emitContext, InstructionAdapter mv, Label trueLabel, Label naLabel) {
+    loadScalar(emitContext, mv, type);
+    mv.iconst(IntVector.NA);
+    mv.visitJumpInsn(Opcodes.IF_ICMPEQ, naLabel);
+
+    loadScalar(emitContext, mv, type);
+    mv.visitJumpInsn(Opcodes.IFNE, trueLabel);
+  }
 
   @Override
   public void loadArray(EmitContext context, InstructionAdapter mv, VectorType vectorType) {

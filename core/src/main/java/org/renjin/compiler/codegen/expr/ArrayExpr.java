@@ -19,12 +19,16 @@
 package org.renjin.compiler.codegen.expr;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.eval.Support;
+import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.IntArrayVector;
 import org.renjin.sexp.LogicalArrayVector;
+
+import java.util.Optional;
 
 public abstract class ArrayExpr implements CompiledSexp {
 
@@ -106,6 +110,12 @@ public abstract class ArrayExpr implements CompiledSexp {
     mv.visitInsn(Opcodes.ARRAYLENGTH);
   }
 
+  @Override
+  public void jumpIf(EmitContext emitContext, InstructionAdapter mv, Label trueLabel, Optional<Label> naLabel) {
+    loadArray(emitContext, mv, vectorType);
+    mv.invokestatic(Type.getInternalName(Support.class), "toBranchValue",
+        Type.getMethodDescriptor(Type.INT_TYPE, vectorType.getJvmArrayType()), false);
+  }
 
   @Override
   public CompiledSexp elementAt(EmitContext context, CompiledSexp indexExpr) {

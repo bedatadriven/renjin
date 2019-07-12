@@ -101,7 +101,6 @@
     ns <- asNamespace(pkgname)
     ## we need to exclude the registration vars
     vars <- grep("^C_", names(ns), invert = TRUE, value = TRUE)
-    tools:::makeLazyLoadDB(ns, dbbase, variables = vars)
 }
 
 ## avoid warnings from static analysis code by extra call

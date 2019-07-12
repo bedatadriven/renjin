@@ -27,6 +27,8 @@ import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
+import java.util.Optional;
+
 import static org.renjin.repackaged.asm.Opcodes.IFEQ;
 
 /**
@@ -73,7 +75,7 @@ public class EqZero extends SpecializedCallExpression {
   public CompiledSexp getCompiledExpr(EmitContext emitContext) {
     return new ConditionalExpr() {
       @Override
-      public void jumpIfTrue(EmitContext emitContext, InstructionAdapter mv, Label trueLabel) {
+      public void jumpIf(EmitContext emitContext, InstructionAdapter mv, Label trueLabel, Optional<Label> naLabel) {
         childAt(0).getCompiledExpr(emitContext).loadScalar(emitContext, mv, VectorType.INT);
         mv.visitJumpInsn(IFEQ, trueLabel);
       }

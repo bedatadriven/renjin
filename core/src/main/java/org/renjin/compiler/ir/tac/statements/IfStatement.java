@@ -26,6 +26,7 @@ import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.Logical;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import static org.renjin.repackaged.asm.Opcodes.GOTO;
 
@@ -146,7 +147,10 @@ public class IfStatement extends Statement implements BasicBlockEndingStatement 
     }
 
     CompiledSexp conditionExpr = condition.getCompiledExpr(emitContext);
-    conditionExpr.jumpIfTrue(emitContext, mv, emitContext.getBytecodeLabel(trueTarget));
+    conditionExpr.jumpIf(emitContext, mv,
+        emitContext.getBytecodeLabel(trueTarget),
+        Optional.ofNullable(naTarget).map(emitContext::getBytecodeLabel));
+
 
     mv.goTo(emitContext.getBytecodeLabel(falseTarget));
   }

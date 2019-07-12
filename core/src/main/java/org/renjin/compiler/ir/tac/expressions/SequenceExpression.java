@@ -24,10 +24,13 @@ import org.renjin.compiler.codegen.expr.VectorType;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.primitives.sequence.Sequences;
+import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.DoubleVector;
+
+import java.util.Optional;
 
 public class SequenceExpression extends SpecializedCallExpression {
  
@@ -116,6 +119,11 @@ public class SequenceExpression extends SpecializedCallExpression {
 
       @Override
       public void loadLength(EmitContext context, InstructionAdapter mv) {
+        throw new UnsupportedOperationException("TODO");
+      }
+
+      @Override
+      public void jumpIf(EmitContext emitContext, InstructionAdapter mv, Label trueLabel, Optional<Label> naLabel) {
         throw new UnsupportedOperationException("TODO");
       }
 

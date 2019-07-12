@@ -22,6 +22,8 @@ import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
+import java.util.Optional;
+
 public abstract class ConditionalExpr implements CompiledSexp {
   @Override
   public void loadSexp(EmitContext context, InstructionAdapter mv) {
@@ -49,5 +51,5 @@ public abstract class ConditionalExpr implements CompiledSexp {
   }
 
   @Override
-  public abstract void jumpIfTrue(EmitContext emitContext, InstructionAdapter mv, Label trueLabel);
+  public abstract void jumpIf(EmitContext emitContext, InstructionAdapter mv, Label trueLabel, Optional<Label> naLabel);
 }

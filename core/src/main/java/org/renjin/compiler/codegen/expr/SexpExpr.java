@@ -20,12 +20,16 @@ package org.renjin.compiler.codegen.expr;
 
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.eval.Support;
+import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
+
+import java.util.Optional;
 
 public abstract class SexpExpr implements CompiledSexp {
 
@@ -64,6 +68,40 @@ public abstract class SexpExpr implements CompiledSexp {
   public void loadLength(EmitContext context, InstructionAdapter mv) {
     loadSexp(context, mv);
     mv.invokeinterface(Type.getInternalName(SEXP.class), "length", "()I");
+  }
+
+  @Override
+  public void jumpIf(EmitContext emitContext, InstructionAdapter mv, Label trueLabel, Optional<Label> naLabel) {
+
+
+    if(naLabel.isPresent()) {
+
+      // Handle both TRUE values, and NA values.
+
+      // Check for NA
+      loadSexp(emitContext, mv);
+      mv.invokestatic(Type.getInternalName(Support.class), "test",
+          Type.getMethodDescriptor(Type.INT_TYPE, Type.getType(SEXP.class)), false);
+      mv.visitJumpInsn(Opcodes.IFLT, naLabel.get());
+
+      // Check for TRUE
+      loadSexp(emitContext, mv);
+      mv.invokestatic(Type.getInternalName(Support.class), "test",
+          Type.getMethodDescriptor(Type.INT_TYPE, Type.getType(SEXP.class)), false);
+      mv.visitJumpInsn(Opcodes.IFNE, trueLabel);
+
+
+    } else {
+
+      // Only TRUE/FALSE are permitted: throw an exception if NA
+
+      loadSexp(emitContext, mv);
+
+      mv.invokestatic(Type.getInternalName(Support.class), "testNoNA",
+          Type.getMethodDescriptor(Type.BOOLEAN_TYPE, Type.getType(SEXP.class)), false);
+
+      mv.visitJumpInsn(Opcodes.IFNE, trueLabel);
+    }
   }
 
 

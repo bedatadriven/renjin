@@ -63,6 +63,25 @@ public class ClosureCompilerTest {
   }
 
   @Test
+  public void logicalOrTest() throws IllegalAccessException {
+
+    Session session = new SessionBuilder().build();
+    ExpressionVector source = RParser.parseSource("f <- function(a, b) a || b\n", "test.R");
+
+    session.getTopLevelContext().evaluate(source);
+    Closure closure = (Closure) session.getTopLevelContext().evaluate(Symbol.get("f"));
+
+    ClosureCompiler compiler = new ClosureCompiler(session.getTopLevelContext(), closure);
+
+    closure.compiledBody = compiler.getHandle().loadAndGetHandle();
+
+    SEXP result = session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("f"), LogicalVector.EMPTY, LogicalVector.FALSE));
+
+    assertThat(result, equalTo(LogicalVector.NA));
+
+  }
+
+  @Test
   public void scaleTest() throws InvocationTargetException, IllegalAccessException {
 
     Session session = new SessionBuilder().build();

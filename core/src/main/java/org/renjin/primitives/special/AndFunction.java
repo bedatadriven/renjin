@@ -41,30 +41,30 @@ public class AndFunction extends SpecialFunction {
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call) {
     checkArity(call, 2);
-    Logical x = checkedToLogical(context.evaluate(call.getArgument(0), rho), "invalid 'x' type in 'x && y'");
+    int x = test(context.evaluate(call.getArgument(0), rho), "invalid 'x' type in 'x && y'");
 
-    if (x == Logical.FALSE) {
+    if (x == 0) {
       return LogicalVector.FALSE;
     }
 
-    Logical y = checkedToLogical(context.evaluate(call.getArgument(1), rho), "invalid 'y' type in 'x && y'");
+    int y = test(context.evaluate(call.getArgument(1), rho), "invalid 'y' type in 'x && y'");
 
-    if (y == Logical.FALSE) {
+    if (y == 0) {
       return LogicalVector.FALSE;
-    } else if (x == Logical.TRUE && y == Logical.TRUE) {
-      return LogicalVector.TRUE;
-    } else {
+    } else if(x == IntVector.NA || y == IntVector.NA) {
       return LogicalVector.NA_VECTOR;
+    } else {
+      return LogicalVector.TRUE;
     }
   }
 
-  static Logical checkedToLogical(SEXP exp, String errorMessage) {
-    if (exp instanceof AtomicVector) {
+  public static int test(SEXP exp, String errorMessage) {
+    if (exp instanceof AtomicVector && !(exp instanceof StringVector)) {
       AtomicVector vector = (AtomicVector) exp;
       if (vector.length() == 0) {
-        return Logical.NA;
+        return LogicalVector.NA;
       } else {
-        return vector.getElementAsLogical(0);
+        return vector.getElementAsRawLogical(0);
       }
     }
     throw new EvalException(errorMessage);

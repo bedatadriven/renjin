@@ -19,8 +19,11 @@
 package org.renjin.compiler.codegen.expr;
 
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+
+import java.util.Optional;
 
 import static org.renjin.compiler.codegen.BytecodeTypes.ATOMIC_VECTOR_INTERNAL_NAME;
 import static org.renjin.compiler.codegen.BytecodeTypes.SEXP_INTERNAL_NAME;
@@ -76,6 +79,11 @@ class SexpElementAt implements CompiledSexp {
   public void loadLength(EmitContext context, InstructionAdapter mv) {
     loadSexp(context, mv);
     mv.invokeinterface(SEXP_INTERNAL_NAME, "length", "()I");
+  }
+
+  @Override
+  public void jumpIf(EmitContext emitContext, InstructionAdapter mv, Label trueLabel, Optional<Label> naLabel) {
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override

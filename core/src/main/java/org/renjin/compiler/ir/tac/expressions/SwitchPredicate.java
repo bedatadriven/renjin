@@ -32,6 +32,7 @@ import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.*;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * A boolean-valued expression that supports the evaluation of R switch statements.
@@ -130,7 +131,7 @@ public class SwitchPredicate implements Expression {
   public CompiledSexp getCompiledExpr(EmitContext emitContext) {
     return new ConditionalExpr() {
       @Override
-      public void jumpIfTrue(EmitContext context, InstructionAdapter mv, Label trueLabel) {
+      public void jumpIf(EmitContext context, InstructionAdapter mv, Label trueLabel, Optional<Label> naLabel) {
 
         CompiledSexp compiledExpr = expression.getCompiledExpr(context);
 

@@ -20,9 +20,10 @@ package org.renjin.compiler.codegen.expr;
 
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.repackaged.asm.Label;
-import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.SEXP;
+
+import java.util.Optional;
 
 public interface CompiledSexp extends SexpLoader {
 
@@ -73,12 +74,10 @@ public interface CompiledSexp extends SexpLoader {
   }
 
   /**
-   * Writes the bytecode to jump to the given {@code label} if this expression is true
+   * Writes the bytecode to load this expression on the stack as an {@code int} equal to 0, 1 or NA. Empty vectors
+   * should be coerced to NA.
    */
-  default void jumpIfTrue(EmitContext emitContext, InstructionAdapter mv, Label trueLabel) {
-    loadScalar(emitContext, mv, VectorType.INT);
-    mv.visitJumpInsn(Opcodes.IFNE, trueLabel);
-  }
+  void jumpIf(EmitContext emitContext, InstructionAdapter mv, Label trueLabel, Optional<Label> naLabel);
 
   /**
    * Returns a new {@code CompiledExpr} that has the value of an element of this

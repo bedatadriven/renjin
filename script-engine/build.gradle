@@ -23,6 +23,8 @@ task combinedJavadoc(type: Javadoc) {
     classpath = sourceSets.main.compileClasspath
     destinationDir = file("${buildDir}/docs/combined")
 
+    options.addStringOption('Xdoclint:none', '-quiet')
+
     include "**/org/renjin/sexp/**.java"
     include "**/org/renjin/serialization/**.java"
     include "**/org/renjin/eval/Session*.java"
@@ -63,4 +65,5 @@ task publishJavadocSite {
     }
 }
 
+build.dependsOn 'combinedJavadocJar'
 publish.dependsOn 'publishJavadocSite'

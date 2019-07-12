@@ -35,12 +35,10 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
   /**
    * This is the internal representation R uses to
    * represent NAs: a "quiet NaN" with a payload of 1954 (0x07A2).
-   * <p/>
    * <p>The Java Language Spec is somewhat ambiguous regarding the extent to which
    * non-canonical NaNs will be preserved. What is clear though, is that signaled bit
    * (bit 12) is dropped by {@link Double#longBitsToDouble(long)}, at least on the few
    * platforms on which I have tested the Sun JDK 1.6.
-   * <p/>
    * <p>The payload, however, does appear to be preserved by the JVM.
    */
   public static final long NA_BITS = 0x7FF00000000007A2L;
@@ -52,7 +50,6 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
    * The double constant used to designate elements or values that are
    * missing in the statistical sense, or literally "Not Available". The following
    * has the relationships hold true:
-   * <p/>
    * <ul>
    * <li>isNaN(NA) is <i>true</i>
    * <li>isNA(Double.NaN) is <i>false</i>

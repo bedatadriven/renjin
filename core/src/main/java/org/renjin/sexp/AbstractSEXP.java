@@ -80,7 +80,6 @@ public abstract class AbstractSEXP implements SEXP {
 
   /**
    * Coerces this {@code SEXP} to a single logical value
-   * @return
    */
   @Override
   public Logical asLogical() {

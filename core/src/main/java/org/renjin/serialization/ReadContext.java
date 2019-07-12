@@ -16,45 +16,26 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.primitives.io.serialization;
+package org.renjin.serialization;
 
 import org.renjin.sexp.Environment;
-import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
+
 /**
- * A "null" read context which will deserialize references
- * to special environments like base and global with the
- * empty environment.
- *
- * <p>This is useful if you just want to deserialize R data
- * outside of an R {@link org.renjin.eval.Session}</p>
+ * Provides contextual information required to deserialize
+ * an R object graph
  */
-public class NullReadContext implements ReadContext {
+public interface ReadContext {
 
-  @Override
-  public Environment getBaseEnvironment() {
-    return Environment.EMPTY;
-  }
+  Environment getBaseEnvironment();
 
-  @Override
-  public SEXP createPromise(SEXP expr, Environment environment) {
-    return Null.INSTANCE.repromise();
-  }
+  SEXP createPromise(SEXP expr, Environment environment);
 
-  @Override
-  public Environment findNamespace(Symbol symbol) {
-    return Environment.EMPTY;
-  }
+  Environment findNamespace(Symbol symbol);
 
-  @Override
-  public Environment getBaseNamespaceEnvironment() {
-    return Environment.EMPTY;
-  }
+  Environment getBaseNamespaceEnvironment();
 
-  @Override
-  public Environment getGlobalEnvironment() {
-    return Environment.EMPTY;
-  }
+  Environment getGlobalEnvironment();
 }

@@ -16,40 +16,21 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.primitives.io.serialization;
+package org.renjin.serialization;
+
 
 import org.renjin.sexp.Environment;
 
 /**
- * Context for writing SEXP without an environment or session. Referencing
- * namespaces or global environments is likely to fail.
+ * Provides contextual information needed for serializing
+ * environments
  */
-public enum  HeadlessWriteContext implements WriteContext {
+public interface WriteContext {
+  public boolean isBaseEnvironment(Environment exp);
+  boolean isNamespaceEnvironment(Environment exp);
+  boolean isBaseNamespaceEnvironment(Environment ns);
+  boolean isGlobalEnvironment(Environment env);
 
-  INSTANCE;
+  String getNamespaceName(Environment ns);
 
-  @Override
-  public boolean isBaseEnvironment(Environment exp) {
-    return false;
-  }
-
-  @Override
-  public boolean isNamespaceEnvironment(Environment exp) {
-    return false;
-  }
-
-  @Override
-  public boolean isBaseNamespaceEnvironment(Environment ns) {
-    return false;
-  }
-
-  @Override
-  public boolean isGlobalEnvironment(Environment env) {
-    return false;
-  }
-
-  @Override
-  public String getNamespaceName(Environment ns) {
-    throw new UnsupportedOperationException();
-  }
 }

@@ -18,7 +18,7 @@
  */
 package org.renjin.eval;
 
-import org.renjin.primitives.io.serialization.RDataReader;
+import org.renjin.serialization.RDataReader;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;
 

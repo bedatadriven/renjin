@@ -49,7 +49,7 @@ public class PackageRepoClient {
 
     URL url = null;
     try {
-      url = new URL("http://packages.renjin.org/packages/resolve?" + queryString.toString());
+      url = new URL("https://packages.renjin.org/packages/resolve?" + queryString.toString());
     } catch (MalformedURLException e) {
       throw new IOException(e);
     }

@@ -214,7 +214,6 @@ public class AttributeMap {
   /**
    * @throws ClassCastException if the dimnames is non-null and not
    * a vector.
-   * @return
    */
   public Vector getDimNames() {
     if(dimNames == null) {
@@ -551,7 +550,6 @@ public class AttributeMap {
     /**
      * Sets a 1-dimensional {@code DIMNAMES} attribute 
      * @param names
-     * @return
      */
     public Builder setArrayNames(Vector names) {
       if(names == Null.INSTANCE) {

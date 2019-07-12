@@ -45,7 +45,7 @@ public interface Function extends SEXP, Recursive {
    * @param context the evaluation context
    * @param rho the evaluation environment
    * @param call the function call to which this function should be applied.
-   * @return
+   * @return the result of the function application
    */
   SEXP apply(Context context, Environment rho, FunctionCall call);
 

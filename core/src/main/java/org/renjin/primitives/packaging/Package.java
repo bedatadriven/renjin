@@ -33,6 +33,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Base class for R packages that have been loaded by a {@link PackageLoader}.
+ */
 public abstract class Package {
 
   private final FqPackageName name;

@@ -16,38 +16,45 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.packaging;
+package org.renjin.serialization;
 
-
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
-import org.renjin.repackaged.guava.base.Function;
-import org.renjin.serialization.RDataReader;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.Null;
-import org.renjin.sexp.Promise;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 
-import java.io.IOException;
-import java.io.InputStream;
+/**
+ * A "null" read context which will deserialize references
+ * to special environments like base and global with the
+ * empty environment.
+ *
+ * <p>This is useful if you just want to deserialize R data
+ * outside of an R {@link org.renjin.eval.Session}</p>
+ */
+public class NullReadContext implements ReadContext {
 
-public class SerializedPromise3 extends Promise {
-
-  private Function<String, InputStream> resourceProvider;
-  private String resourceName;
-
-  public SerializedPromise3(Function<String, InputStream> resourceProvider, String resourceName) {
-    super(Environment.EMPTY, Null.INSTANCE);
-    this.resourceProvider = resourceProvider;
-    this.resourceName = resourceName;
+  @Override
+  public Environment getBaseEnvironment() {
+    return Environment.EMPTY;
   }
 
   @Override
-  protected SEXP doEval(Context context) {
-    try(RDataReader reader = new RDataReader(context, resourceProvider.apply(resourceName))) {
-      return reader.readFile();
-    } catch (IOException e) {
-      throw new EvalException(e);
-    }
+  public SEXP createPromise(SEXP expr, Environment environment) {
+    return Null.INSTANCE.repromise();
+  }
+
+  @Override
+  public Environment findNamespace(Symbol symbol) {
+    return Environment.EMPTY;
+  }
+
+  @Override
+  public Environment getBaseNamespaceEnvironment() {
+    return Environment.EMPTY;
+  }
+
+  @Override
+  public Environment getGlobalEnvironment() {
+    return Environment.EMPTY;
   }
 }

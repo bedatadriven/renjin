@@ -24,14 +24,14 @@ import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.io.connections.GzFileConnection;
-import org.renjin.primitives.io.serialization.RDataReader;
-import org.renjin.primitives.io.serialization.RDataWriter;
 import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.HashMultimap;
 import org.renjin.repackaged.guava.collect.Multimap;
 import org.renjin.repackaged.guava.io.Files;
+import org.renjin.serialization.RDataReader;
+import org.renjin.serialization.RDataWriter;
 import org.renjin.sexp.*;
 import org.tukaani.xz.XZInputStream;
 

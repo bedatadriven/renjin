@@ -24,9 +24,9 @@ import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.Types;
-import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.matrix.Matrix;
 import org.renjin.primitives.matrix.MatrixBuilder;
+import org.renjin.serialization.Serialization;
 import org.renjin.sexp.*;
 
 import java.io.IOException;

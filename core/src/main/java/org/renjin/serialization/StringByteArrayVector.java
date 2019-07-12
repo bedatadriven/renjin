@@ -16,7 +16,7 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.primitives.io.serialization;
+package org.renjin.serialization;
 
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.SEXP;
@@ -31,7 +31,7 @@ import java.util.Arrays;
  * Character vector backed by a byte array and a paired list of offsets into the array. This minimizes
  * the amount of time required to read a large character vector from an RDS file.
  */
-public class StringByteArrayVector extends StringVector {
+class StringByteArrayVector extends StringVector {
 
   /**
    * The maximum size of array to allocate.

@@ -16,10 +16,9 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.primitives.io.serialization;
+package org.renjin.serialization;
 
 import org.renjin.eval.Context;
-import org.renjin.eval.Session;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
@@ -27,15 +26,6 @@ import org.renjin.sexp.Symbol;
 public class SessionReadContext implements ReadContext {
   private Context context;
 
-  /**
-   * @deprecated Use {@link SessionReadContext#SessionReadContext(Context)}  to ensure that 
-   * any code evaluated during namespace loading is evaluated within the correct context.
-   */
-  @Deprecated
-  public SessionReadContext(Session session) {
-    this(session.getTopLevelContext());
-  }
-  
   public SessionReadContext(Context context) {
     this.context = context;
   }

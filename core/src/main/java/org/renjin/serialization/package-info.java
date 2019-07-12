@@ -19,4 +19,4 @@
 /**
  * Implementation of serialization builtins, including load(), save(), loadRDS() etc.
  */
-package org.renjin.primitives.io.serialization;
+package org.renjin.serialization;

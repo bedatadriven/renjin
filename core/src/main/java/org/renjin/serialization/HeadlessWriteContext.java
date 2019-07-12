@@ -16,38 +16,40 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.packaging;
+package org.renjin.serialization;
 
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
-import org.renjin.serialization.RDataReader;
 import org.renjin.sexp.Environment;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.SEXP;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.zip.GZIPInputStream;
+/**
+ * Context for writing SEXP without an environment or session. Referencing
+ * namespaces or global environments is likely to fail.
+ */
+public enum  HeadlessWriteContext implements WriteContext {
 
+  INSTANCE;
 
-public class SerializedPromise1 extends Promise {
-
-  private byte[] bytes;
-
-  public SerializedPromise1(byte[] bytes) {
-    super(Environment.EMPTY, Null.INSTANCE);
-    this.bytes = bytes;
+  @Override
+  public boolean isBaseEnvironment(Environment exp) {
+    return false;
   }
 
   @Override
-  protected SEXP doEval(Context context) {
-    try(RDataReader reader = new RDataReader(context,
-          new GZIPInputStream(
-              new ByteArrayInputStream(bytes)))) {
-      return reader.readFile();
-    } catch (IOException e) {
-      throw new EvalException(e);
-    }
+  public boolean isNamespaceEnvironment(Environment exp) {
+    return false;
+  }
+
+  @Override
+  public boolean isBaseNamespaceEnvironment(Environment ns) {
+    return false;
+  }
+
+  @Override
+  public boolean isGlobalEnvironment(Environment env) {
+    return false;
+  }
+
+  @Override
+  public String getNamespaceName(Environment ns) {
+    throw new UnsupportedOperationException();
   }
 }

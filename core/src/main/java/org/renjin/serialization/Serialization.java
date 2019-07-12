@@ -16,7 +16,7 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.primitives.io.serialization;
+package org.renjin.serialization;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -26,7 +26,7 @@ import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.io.connections.OpenSpec;
-import org.renjin.primitives.io.serialization.RDataWriter.PersistenceHook;
+import org.renjin.serialization.RDataWriter.PersistenceHook;
 import org.renjin.sexp.*;
 
 import java.io.ByteArrayInputStream;

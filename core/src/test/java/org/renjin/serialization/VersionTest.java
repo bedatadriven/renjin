@@ -16,26 +16,19 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.primitives.io.serialization;
+package org.renjin.serialization;
 
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
-/**
- * Provides contextual information required to deserialize
- * an R object graph
- */
-public interface ReadContext {
+public class VersionTest {
 
-  Environment getBaseEnvironment();
+  @Test
+  public void pack() {
+    Version version = new Version(2,10,1);
+    assertThat( version.asPacked(), equalTo(133633));
 
-  SEXP createPromise(SEXP expr, Environment environment);
-
-  Environment findNamespace(Symbol symbol);
-
-  Environment getBaseNamespaceEnvironment();
-
-  Environment getGlobalEnvironment();
+  }
 }

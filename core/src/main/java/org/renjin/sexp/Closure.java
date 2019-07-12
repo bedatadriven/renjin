@@ -254,8 +254,6 @@ public class Closure extends AbstractSEXP implements Function {
 
   /**
    * Creates a copy of this Closure with the new enclosing environment.
-   * @param env the new enclosing environment.
-   * @return
    */
   public Closure setEnclosingEnvironment(Environment env) {
     return new Closure(env, formals, body, getAttributes(), compiledBody, frameSymbols);

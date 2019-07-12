@@ -16,27 +16,15 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.primitives.io.serialization;
+package org.renjin.serialization;
 
 import org.renjin.eval.Context;
-import org.renjin.eval.Session;
 import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.sexp.Environment;
-import org.renjin.sexp.Symbol;
-
 
 public class SessionWriteContext implements WriteContext {
   private Context context;
 
-  /**
-   * @deprecated Use {@link SessionWriteContext#SessionWriteContext(Context)} to ensure that 
-   * any code evaluated during namespace loading is evaluated within the correct context.
-   */
-  @Deprecated
-  public SessionWriteContext(Session session) {
-    this(session.getTopLevelContext());
-  }
-  
   public SessionWriteContext(Context context) {
     this.context = context;
   }

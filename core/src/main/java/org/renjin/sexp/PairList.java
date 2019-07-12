@@ -644,10 +644,9 @@ public interface PairList extends SEXP {
     }
     
     /**
-     * Replaces the 
-     * @param index
-     * @param value
-     * @return
+     * Replaces the element at index {@code index}
+     * @param index the zero-based index
+     * @param value the new value of the node.
      */
     public Builder set(int index, SEXP value) {
       if(index < 0) {
@@ -674,7 +673,6 @@ public interface PairList extends SEXP {
      * given {@code value}, or adds the 
      * @param name
      * @param value
-     * @return
      */
     public Builder set(String name, SEXP value) {
       assert name != null;

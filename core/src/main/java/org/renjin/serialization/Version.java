@@ -16,21 +16,44 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.primitives.io.serialization;
+package org.renjin.serialization;
 
+import org.renjin.RVersion;
 
-import org.renjin.sexp.Environment;
+class Version {
 
-/**
- * Provides contextual information needed for serializing
- * environments
- */
-public interface WriteContext {
-  public boolean isBaseEnvironment(Environment exp);
-  boolean isNamespaceEnvironment(Environment exp);
-  boolean isBaseNamespaceEnvironment(Environment ns);
-  boolean isGlobalEnvironment(Environment env);
+  public static final Version CURRENT = new Version(
+      RVersion.MAJOR,
+      RVersion.MINOR_1,
+      RVersion.MINOR_2);
+  
+  private int v, p, s;
+  private int packed;
 
-  String getNamespaceName(Environment ns);
+  Version(int packed) {
+    this.packed = packed;
+    v = this.packed / 65536; packed = packed % 65536;
+    p = packed / 256; packed = packed % 256;
+    s = packed;
+  }
 
+  Version(int v, int p, int s) {
+    this.v = v;
+    this.p = p;
+    this.s = s;
+    this.packed = s + (p * 256) + (v * 65536);
+  }
+
+  public boolean isExperimental() {
+    return packed < 0;
+  }
+
+  public int asPacked() {
+    return packed;
+  }
+
+  @Override
+  public String toString() {
+    return String.format("%d.%d.%d", v, p, s);
+  }
 }

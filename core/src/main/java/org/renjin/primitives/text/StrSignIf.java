@@ -16,9 +16,10 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.base;
+package org.renjin.primitives.text;
 
 
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.StringArrayVector;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Vector;
@@ -28,11 +29,14 @@ import java.text.NumberFormat;
 
 public class StrSignIf {
 
+  @Internal("formatC")
+  public static StringVector formatC(Vector x, String type, int width, int digits, String format, String flag, int iStrlen) {
+    return str_signif(x, width, digits, format, flag);
+  }
+
   /**
    *  
-   * @param x
-   * @param n
-   * @param type
+   * @param x atomic numerical or character object
    * @param width  The total field width; width < 0 means to left justify
    *    the number in this field (equivalent to flag = "-").
    *    It is possible that the result will be longer than this,
@@ -53,7 +57,7 @@ public class StrSignIf {
    *    New (Feb.98): if flag has more than one character, all are passed..
    * @return
    */
-  public static StringVector str_signif(Vector x, int width, int digits,
+  private static StringVector str_signif(Vector x, int width, int digits,
                                         String format, String flag) {
     
     NumberFormat formatter = buildFormat(digits, format, flag);

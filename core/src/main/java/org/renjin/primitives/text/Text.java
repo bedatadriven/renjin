@@ -806,7 +806,7 @@ public class Text {
    */
   @Internal
   public static StringVector format(StringVector x, boolean trim, SEXP digits, SEXP nsmall,
-      SEXP minWidth, int just, boolean naEncode, SEXP scientific ) {
+      SEXP minWidth, int just, boolean naEncode, SEXP scientific, StringVector decimalMark) {
        
     List<String> elements = formatCharacterElements(x, naEncode);
     int width = calculateWidth(elements, minWidth, naEncode);
@@ -825,7 +825,7 @@ public class Text {
 
   @Internal
   public static StringVector format(LogicalVector x, boolean trim, SEXP digits, SEXP nsmall,
-      SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
+      SEXP minWidth, int zz, boolean naEncode, SEXP scientific, StringVector decimalMark) {
        
     List<String> elements = formatLogicalElements(x);
     int width = calculateWidth(elements, minWidth, naEncode);
@@ -870,7 +870,7 @@ public class Text {
   @Internal
   @Materialize
   public static StringVector format(DoubleVector x, boolean trim, SEXP digits, int nsmall,
-      SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
+      SEXP minWidth, int zz, boolean naEncode, SEXP scientific, StringVector decimalMark) {
        
     List<String> elements = formatNumericalElements(x);
     int width = calculateWidth(elements, minWidth, naEncode);
@@ -896,7 +896,7 @@ public class Text {
   @Internal
   @Materialize
   public static StringVector format(IntVector x, boolean trim, SEXP digits, int nsmall,
-      SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
+      SEXP minWidth, int zz, boolean naEncode, SEXP scientific, StringVector decimalMark) {
        
     List<String> elements = formatNumericalElements(x);
     int width = calculateWidth(elements, minWidth, naEncode);

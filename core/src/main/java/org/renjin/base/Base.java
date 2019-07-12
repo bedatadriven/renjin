@@ -27,6 +27,7 @@ import org.renjin.primitives.Types;
 import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.matrix.Matrix;
 import org.renjin.primitives.matrix.MatrixBuilder;
+import org.renjin.primitives.text.StrSignIf;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -200,13 +201,6 @@ public class Base {
 
 
   
-  public static ListVector str_signif(Vector x, int n, String type, int width, int digits, String format, String flag, StringVector resultVector) {
-    ListVector.NamedBuilder result = new ListVector.NamedBuilder();
-    result.add("result", StrSignIf.str_signif(x, width, digits, format, flag));
-    return result.build();
-  }
-
-
   public static SEXP R_serialize(@Current Context context, SEXP object, SEXP connection, boolean ascii,
       SEXP version, SEXP refhook) throws IOException {
     return Serialization.serialize(context, object, connection, ascii, version, refhook);

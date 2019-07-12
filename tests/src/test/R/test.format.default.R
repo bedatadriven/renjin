@@ -43,3 +43,8 @@ test.formattingStringsWithPadding <- function() {
     assertThat(format(c(NA_character_, "a"), na.encode = FALSE), identicalTo(c(NA_character_, "a")))
 
 }
+
+
+test.formattingNumericValues <- function() {
+    assertThat(format(1000, big.mark = ","), identicalTo("1,000"))
+}

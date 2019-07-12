@@ -232,21 +232,16 @@ closeAllConnections <- function()
 readBin <- function(con, what, n = 1L, size = NA_integer_, signed = TRUE,
                     endian = .Platform$endian)
 {
-    if(is.character(con)) {
+   if(is.character(con)) {
         con <- file(con, "rb")
         on.exit(close(con))
     }
     swap <- endian != .Platform$endian
-    cat(sprintf("what = %s\n", deparse(what)))
-    c1 <- !is.character(what)
-    c2 <- is.na(what)
-    c3 <- length(what) != 1L  ## hence length(what) == 1:
-    c4 <- !any(what == c("numeric", "double", "integer", "int", "logical",
-          	    "complex", "character", "raw"))
-
-    if(c1 || c2 || c3 || c4)
+    if(!is.character(what) || is.na(what) ||
+       length(what) != 1L || ## hence length(what) == 1:
+       !any(what == c("numeric", "double", "integer", "int", "logical",
+	    "complex", "character", "raw")))
 	what <- typeof(what)
-
     .Internal(readBin(con, what, n, size, signed, swap))
 }
 

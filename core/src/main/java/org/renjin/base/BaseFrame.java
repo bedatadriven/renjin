@@ -166,7 +166,14 @@ public class BaseFrame implements Frame {
   }
 
   private String resolveOsName() {
-    return java.lang.System.getProperty("os.name").contains("windows") ? "windows" : "unix";
+    String os = System.getProperty("os.name");
+    if(os != null) {
+      os = os.toLowerCase();
+      if(os.contains("win")) {
+        return "windows";
+      }
+    }
+    return "unix";
   }
 
   @Override

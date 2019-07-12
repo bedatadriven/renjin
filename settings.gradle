@@ -45,6 +45,8 @@ include 'tests'
 
 include 'dist:generic'
 
+include 'appengine'
+
 
 // Ensure gcc bridge modules are uniquely named
 project(':tools:gcc-bridge:compiler').name = 'gcc-bridge-compiler'

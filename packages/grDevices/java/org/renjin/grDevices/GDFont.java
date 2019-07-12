@@ -2,7 +2,7 @@ package org.renjin.grDevices;
 
 import java.awt.*;
 
-class GDFont implements GDObject {
+public class GDFont implements GDObject {
 
   private Font font;
 

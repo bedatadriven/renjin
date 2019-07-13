@@ -18,7 +18,11 @@
  */
 package org.renjin.compiler.aot;
 
+import org.renjin.compiler.TypeSolver;
+import org.renjin.compiler.cfg.*;
+import org.renjin.compiler.codegen.VariableMapping;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.ir.ssa.SsaTransformer;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.IRLabel;
@@ -27,10 +31,7 @@ import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.eval.Context;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.FunctionEnvironment;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
 /**
  * Compiles a closure to a java method
@@ -46,12 +47,38 @@ public class ClosureCompiler {
   public ClosureCompiler(AotBuffer buffer, Context context, Symbol name, Closure closure) {
     RuntimeState runtimeState = new RuntimeState(context, closure.getEnclosingEnvironment(), rho -> false);
     IRBodyBuilder builder = new IRBodyBuilder(runtimeState);
-    IRBody body = builder.build(new ClosureTranslationContext(), closure.getBody(), false);
-//    System.out.println(body);
+    ClosureTranslationContext translationContext = new ClosureTranslationContext(closure.getBody());
+    IRBody body = builder.build(translationContext, closure.getBody(), false);
 
-    for (Statement statement : body.getStatements()) {
-      statement.getRHS().updateTypeBounds(e -> ValueBounds.UNBOUNDED);
+    ControlFlowGraph cfg = new ControlFlowGraph(body);
+
+    SsaTransformer ssaTransformer = new SsaTransformer(cfg);
+    ssaTransformer.transform();
+
+
+    UseDefMap useDefMap = new UseDefMap(cfg);
+    TypeSolver typeSolver = new TypeSolver(cfg, useDefMap);
+
+    for (Symbol symbol : translationContext.getSymbolsUsedAsFunctions()) {
+      Function function = closure.getEnclosingEnvironment().findFunction(context, symbol);
+      typeSolver.setInitialBounds(symbol, ValueBounds.constantValue(function));
     }
+
+    typeSolver.execute();
+
+    typeSolver.dumpBounds();
+
+    ConstantFolder folder = new ConstantFolder(cfg);
+    folder.fold();
+
+    DeadCodeElimination dce = new DeadCodeElimination(cfg, useDefMap, typeSolver);
+    dce.run();
+
+    ssaTransformer.removePhiFunctions(typeSolver);
+
+    VariableMapping.lowerEnvironmentVariables(cfg);
+
+    cfg.dumpBody(false);
 
     ClassBuffer classBuffer = buffer.classBuffer(body.getSourceFile());
     ClosureEmitContext emitContext = new ClosureEmitContext(classBuffer, closure.getFormals());
@@ -60,27 +87,22 @@ public class ClosureCompiler {
         Type.getType(Context.class),
         Type.getType(FunctionEnvironment.class));
 
-
     handle = buffer.newFunction(body.getSourceFile(), name.getPrintName(), methodDescriptor, mv -> {
 
-      for (int i = 0; i < body.getStatements().size(); i++) {
-
-        Label label = null;
-        for (IRLabel irLabel : body.getInstructionLabels(i)) {
-          label = emitContext.getBytecodeLabel(irLabel);
-          mv.visitLabel(label);
-        }
-        int lineNumber = body.getLineNumber(i);
-        if(lineNumber != -1) {
-          if(label == null) {
-            label = new Label();
+      for (BasicBlock basicBlock : cfg.getBasicBlocks()) {
+        if(basicBlock.isLive()) {
+          Label label = null;
+          for (IRLabel irLabel : basicBlock.getLabels()) {
+            label = emitContext.getBytecodeLabel(irLabel);
+            mv.visitLabel(label);
           }
-          mv.visitLineNumber(lineNumber, label);
+
+          for (Statement statement : basicBlock.getStatements()) {
+            statement.emit(emitContext, mv);
+          }
         }
-
-        body.getStatements().get(i).emit(emitContext, mv);
-
       }
+
       mv.visitMaxs(0, emitContext.getLocalVarAllocator().getCount());
       mv.visitEnd();
 

@@ -20,6 +20,7 @@ package org.renjin.compiler.codegen.expr;
 
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.SEXP;
 
@@ -31,6 +32,11 @@ public interface CompiledSexp extends SexpLoader {
    * Writes the bytecode to load this expression onto the stack as an {@code SEXP} object.
    */
   void loadSexp(EmitContext context, InstructionAdapter mv);
+
+  default void loadSexp(EmitContext context, InstructionAdapter mv, Type type) {
+    loadSexp(context, mv);
+    mv.checkcast(type);
+  }
 
   /**
    * Writes the bytecode to load this expression onto the stack as a scalar of

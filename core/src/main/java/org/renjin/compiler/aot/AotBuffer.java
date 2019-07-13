@@ -38,7 +38,7 @@ import static org.renjin.repackaged.asm.Opcodes.ACC_STATIC;
 
 public class AotBuffer {
 
-  private static final boolean DEBUG = false;
+  private static final boolean DEBUG = true;
   private final String packageName;
   private final Map<String, ClassBuffer> sourceMap = new HashMap<>();
 

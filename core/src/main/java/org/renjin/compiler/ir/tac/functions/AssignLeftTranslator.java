@@ -20,10 +20,7 @@ package org.renjin.compiler.ir.tac.functions;
 
 
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
-import org.renjin.compiler.ir.tac.expressions.Constant;
-import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.LValue;
-import org.renjin.compiler.ir.tac.expressions.Temp;
+import org.renjin.compiler.ir.tac.expressions.*;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.FunctionCall;
@@ -76,11 +73,11 @@ public class AssignLeftTranslator extends FunctionCallTranslator {
       lhs = call.getArgument(0);
     }
 
-    doAssignment(builder, lhs, rhs);
+    doAssignment(context, builder, lhs, rhs);
 
   }
 
-  protected void doAssignment(IRBodyBuilder builder, SEXP lhs, Expression rhs) {
+  protected void doAssignment(TranslationContext context, IRBodyBuilder builder, SEXP lhs, Expression rhs) {
 
     LValue target;
     if( lhs instanceof Symbol) {
@@ -93,6 +90,14 @@ public class AssignLeftTranslator extends FunctionCallTranslator {
 
     // make the final assignment to the target symbol
     builder.addStatement(new Assignment(target, rhs));
+
+    // If this symbol is used in a function call, we have to conditionally assign it
+    // to the starred version.
+    if(lhs instanceof Symbol && context.isUsedInFunctionCall((Symbol) lhs)) {
+      FunctionRef functionRef = new FunctionRef((Symbol) lhs);
+
+      builder.addStatement(new Assignment(functionRef, new PiFunction(functionRef, target)));
+    }
   }
 
 }

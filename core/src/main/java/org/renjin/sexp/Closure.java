@@ -46,8 +46,8 @@ public class Closure extends AbstractSEXP implements Function {
   private PairList formals;
 
   private ArgumentMatcher matcher;
-  private SEXP[] frameSymbols;
 
+  public SEXP[] frameSymbols;
   public MethodHandle compiledBody;
 
   public Closure(Environment enclosingEnvironment, PairList formals, SEXP body, AttributeMap attributes) {

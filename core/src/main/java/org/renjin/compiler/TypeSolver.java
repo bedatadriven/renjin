@@ -89,7 +89,10 @@ public class TypeSolver {
     return useDefMap.isUsed(variable);
   }
 
-  
+  public void setInitialBounds(Symbol symbol, ValueBounds bounds) {
+    this.variableBounds.put(new SsaVariable(new FunctionRef(symbol), 0), bounds);
+  }
+
   public Map<LValue, ValueBounds> getVariables() {
     Map<LValue, ValueBounds> map = new HashMap<>();
 
@@ -352,6 +355,10 @@ public class TypeSolver {
         }
       }
     }
+  }
+
+  public boolean isExecutable(FlowEdge edge) {
+    return executable.contains(edge);
   }
 
   private void checkPotentialFunctionAssignment(EnvironmentVariable variable, 

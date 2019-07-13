@@ -136,7 +136,7 @@ public class SexpCompiler {
 
   private void lowerSSA() {
 
-    DeadCodeElimination dce = new DeadCodeElimination(cfg, useDefMap);
+    DeadCodeElimination dce = new DeadCodeElimination(cfg, useDefMap, types);
     dce.run();
 
     ssaTransformer.removePhiFunctions(types);

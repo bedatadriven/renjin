@@ -19,13 +19,18 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.aot.ClosureEmitContext;
+import org.renjin.compiler.builtins.ArgumentBounds;
+import org.renjin.compiler.builtins.BuiltinSpecializers;
+import org.renjin.compiler.builtins.Specialization;
+import org.renjin.compiler.builtins.Specializer;
 import org.renjin.compiler.codegen.EmitContext;
-import org.renjin.compiler.codegen.FunctionLoader;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.SexpExpr;
 import org.renjin.compiler.codegen.expr.SexpLoader;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
+import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchTable;
 import org.renjin.repackaged.asm.Opcodes;
@@ -38,54 +43,89 @@ import java.util.List;
 
 public class DynamicCall implements Expression {
 
-  private final FunctionLoader functionLoader;
   private final FunctionCall call;
-  private final String functionName;
+  private final RuntimeState runtimeState;
+  private Expression functionExpr;
+
+  private final List<IRArgument> arguments;
 
   /**
    * The index of the ... argument, or -1 there is none.
    */
   private final int forwardedArgumentIndex;
 
-  public DynamicCall(FunctionLoader functionLoader, FunctionCall call, String functionName) {
-    this.functionLoader = functionLoader;
+  private ValueBounds bounds = ValueBounds.UNBOUNDED;
+  private Specialization specialization;
+
+  public DynamicCall(RuntimeState runtimeState, FunctionCall call, Expression functionExpr, List<IRArgument> arguments) {
+    this.runtimeState = runtimeState;
+    this.functionExpr = functionExpr;
     this.call = call;
-    this.functionName = functionName;
     this.forwardedArgumentIndex = call.findEllipsisArgumentIndex();
 
-  }
-
-  public String getFunctionName() {
-    return functionName;
+    this.arguments = arguments;
   }
 
   @Override
   public boolean isPure() {
+    if(bounds.isConstant()) {
+      return true;
+    }
     return false;
+  }
+
+  public Expression getFunctionExpr() {
+    return functionExpr;
+  }
+
+  public void setFunctionExpr(Expression functionExpr) {
+    this.functionExpr = functionExpr;
   }
 
   public IRArgument getArgument(int index) {
     throw new IllegalArgumentException();
   }
 
-  @Override
-  public void setChild(int childIndex, Expression child) {
-    throw new IllegalArgumentException();
-  }
 
   @Override
   public int getChildCount() {
-    return 0;
+    return arguments.size() + 1;
   }
 
   @Override
   public Expression childAt(int index) {
-    throw new IllegalArgumentException();
+    if(index == 0) {
+      return functionExpr;
+    } else {
+      return arguments.get(index - 1).getExpression();
+    }
+  }
+
+  @Override
+  public void setChild(int childIndex, Expression child) {
+    if(childIndex == 0) {
+      functionExpr = child;
+    } else {
+      arguments.set(childIndex - 1, arguments.get(childIndex - 1).withExpression(child));
+    }
   }
 
   @Override
   public ValueBounds updateTypeBounds(ValueBoundsMap typeMap) {
-    return ValueBounds.UNBOUNDED;
+    ValueBounds functionBounds = functionExpr.updateTypeBounds(typeMap);
+    List<ArgumentBounds> argumentBounds = ArgumentBounds.create(arguments, typeMap);
+
+    if(functionBounds.isConstant() && functionBounds.getConstantValue() instanceof BuiltinFunction) {
+      BuiltinFunction builtin = (BuiltinFunction) functionBounds.getConstantValue();
+      Specializer specializer = BuiltinSpecializers.INSTANCE.get(builtin.getName());
+      specialization = specializer.trySpecialize(runtimeState, argumentBounds);
+      bounds = specialization.getResultBounds();
+
+    } else {
+      bounds = ValueBounds.UNBOUNDED;
+    }
+
+    return bounds;
   }
 
   @Override
@@ -109,27 +149,10 @@ public class DynamicCall implements Expression {
     mv.pop();
   }
 
-  private void writeCall(EmitContext emitContext, InstructionAdapter mv) {
-    SexpLoader callLoader = (c, m) -> c.constantSexp(call).loadSexp(c, m);
-
-    writeCall(emitContext, mv,
-        functionLoader,
-        callLoader,
-        argumentNames(call),
-        argumentPromises(call),
-        forwardedArgumentIndex);
-  }
-
-  static void writeCall(EmitContext context,
-                        InstructionAdapter mv,
-                        FunctionLoader functionLoader,
-                        SexpLoader call,
-                        List<String> names,
-                        List<SexpLoader> argumentPromises,
-                        int forwardedArgumentIndex) {
+  private void writeCall(EmitContext context, InstructionAdapter mv) {
 
     // First find function
-    functionLoader.loadFunction(context, mv);
+    functionExpr.getCompiledExpr(context).loadSexp(context, mv, Type.getType(Function.class));
 
     // Now we need to invoke:
     //   SEXP applyPromised(Context context, Environment rho, FunctionCall call, String[] argumentNames, SEXP[] promisedArguments, DispatchTable dispatch);
@@ -137,12 +160,14 @@ public class DynamicCall implements Expression {
     mv.visitVarInsn(Opcodes.ALOAD, context.getEnvironmentVarIndex());
 
     // The original call object
-    call.loadSexp(context, mv);
+    context.constantSexp(call).loadSexp(context, mv);
     mv.checkcast(Type.getType(FunctionCall.class));
 
     // Argument Names
-    loadArgumentNames(mv, names);
-    loadPromises(context, mv, argumentPromises);
+    loadArgumentNames(mv, argumentNames(call));
+
+    // Need to push arguments on the stack
+    loadPromises(context, mv, argumentPromises(call));
 
     if(forwardedArgumentIndex == -1) {
       // Can pass directly to applyPromised
@@ -203,15 +228,6 @@ public class DynamicCall implements Expression {
     }
   }
 
-  private static boolean anyNamed(List<String> names) {
-    for (String name : names) {
-      if(name != null) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   static List<String> argumentNames(FunctionCall call) {
     List<String> names = new ArrayList<>();
     for (PairList.Node node : call.getArguments().nodes()) {
@@ -226,7 +242,7 @@ public class DynamicCall implements Expression {
     return names;
   }
 
-  static List<SexpLoader> argumentPromises(FunctionCall call) {
+  List<SexpLoader> argumentPromises(FunctionCall call) {
     List<SexpLoader> promises = new ArrayList<>();
     for (PairList.Node node : call.getArguments().nodes()) {
       if(node.getValue() != Symbols.ELLIPSES) {
@@ -236,15 +252,29 @@ public class DynamicCall implements Expression {
     return promises;
   }
 
-  static void loadArgumentPromise(EmitContext context, InstructionAdapter mv, SEXP argumentValue) {
-    if(argumentValue instanceof Symbol) {
-      loadSymbolPromise(context, mv, (Symbol)argumentValue);
+  void loadArgumentPromise(EmitContext context, InstructionAdapter mv, SEXP argument) {
+    int argumentIndex = 0;
+    if(argument == Symbol.MISSING_ARG) {
+      mv.getstatic(Type.getInternalName(Symbol.class), "MISSING_ARG", Type.getDescriptor(Symbol.class));
+
+    } else if(argument instanceof Symbol) {
+      loadSymbolPromise(context, mv, (Symbol) argument);
+      argumentIndex++;
+
     } else {
-      context.constantSexp(argumentValue).loadSexp(context, mv);
-      mv.visitVarInsn(Opcodes.ALOAD, context.getEnvironmentVarIndex());
-      mv.invokeinterface(Type.getInternalName(SEXP.class), "promise", Type.getMethodDescriptor(
-          Type.getType(SEXP.class),
-          Type.getType(Environment.class)));
+      IRArgument irArgument = arguments.get(argumentIndex);
+      Expression expression = irArgument.getExpression();
+      if(expression.getValueBounds().getTypeSet() == TypeSet.PROMISE) {
+        expression.getCompiledExpr(context).loadSexp(context, mv);
+      } else {
+        // We were able to conclude that this argument could be eagerly evaluated and
+        // did so. Now we have to repromise with the original expression.
+        context.constantSexp(argument).loadSexp(context, mv);
+        expression.getCompiledExpr(context).loadSexp(context, mv);
+        mv.invokeinterface(Type.getInternalName(SEXP.class), "repromise",
+            Type.getMethodDescriptor(Type.getType(SEXP.class), Type.getType(SEXP.class)));
+      }
+      argumentIndex++;
     }
   }
 
@@ -256,8 +286,10 @@ public class DynamicCall implements Expression {
   @Override
   public String toString() {
     StringBuilder s = new StringBuilder();
-    s.append("dynamic ").append(functionName).append("(");
+    s.append("call ").append(functionExpr).append("(");
     boolean needsComma = false;
+    int argumentIndex = 0;
+
     for (PairList.Node node : call.getArguments().nodes()) {
       if(needsComma) {
         s.append(", ");
@@ -266,7 +298,13 @@ public class DynamicCall implements Expression {
         s.append(node.getName()).append(" = ");
       }
       if(node.getValue() != Symbol.MISSING_ARG) {
-        s.append(node.getValue());
+        if(node.getValue() != Symbols.ELLIPSES) {
+          IRArgument argument = arguments.get(argumentIndex);
+          s.append(argument.getExpression());
+          argumentIndex ++;
+        } else {
+          s.append("...");
+        }
       }
       needsComma = true;
     }

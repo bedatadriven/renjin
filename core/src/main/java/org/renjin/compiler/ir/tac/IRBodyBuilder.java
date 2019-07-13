@@ -63,6 +63,7 @@ public class IRBodyBuilder {
   private Map<Integer, Integer> sourceLineMap = new HashMap<>();
   private Map<Symbol, EnvironmentVariable> variables = new HashMap<>();
 
+
   private RuntimeState runtimeContext;
   
   private Map<String, Integer> localVariableNames = Maps.newHashMap();
@@ -107,7 +108,7 @@ public class IRBodyBuilder {
 
     return new IRBody(statements, labels, sourceFile, sourceLineMap);
   }
-  
+
   public IRBody buildLoopBody(FunctionCall call, ValueBounds sequenceBounds) {
     statements = Lists.newArrayList();
     labels = Maps.newHashMap();

@@ -25,7 +25,8 @@ import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.Logical;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.renjin.repackaged.asm.Opcodes.GOTO;
@@ -82,17 +83,27 @@ public class IfStatement extends Statement implements BasicBlockEndingStatement 
 
   @Override
   public Iterable<IRLabel> possibleTargets() {
-    if(naTarget == null) {
-      return Arrays.asList(trueTarget, falseTarget);
-    } else {
-      return Arrays.asList(trueTarget, falseTarget, naTarget);
+    List<IRLabel> targets = new ArrayList<>(3);
+    targets.add(trueTarget);
+    if(falseTarget != null) {
+      targets.add(falseTarget);
     }
+    if(naTarget != null) {
+      targets.add(naTarget);
+    }
+    return targets;
   }
 
   @Override
   public String toString() {
-    return "if " + condition + " => TRUE:" + trueTarget + ", FALSE:" +  falseTarget +
-          ", NA:" + (naTarget == null ? "ERROR" : naTarget);
+    StringBuilder s = new StringBuilder();
+    s.append("if ").append(condition).append(" goto ").append(trueTarget);
+    s.append(" else ").append(falseTarget);
+
+    if(naTarget != null) {
+      s.append(" else na ").append(naTarget);
+    }
+    return s.toString();
   }
 
   @Override
@@ -126,6 +137,23 @@ public class IfStatement extends Statement implements BasicBlockEndingStatement 
     this.constantValue = constantValue;
   }
 
+  public GotoStatement isConstant() {
+    if(constantValue == Logical.TRUE) {
+      return new GotoStatement(trueTarget);
+    }
+    if(constantValue == Logical.FALSE) {
+      return new GotoStatement(falseTarget);
+    }
+    if(condition.getValueBounds().isConstant()) {
+      if(condition.getValueBounds().isConstantFlagEqualTo(true)) {
+        return new GotoStatement(trueTarget);
+      } else {
+        return new GotoStatement(falseTarget);
+      }
+    }
+    return null;
+  }
+
   @Override
   public void emit(EmitContext emitContext, InstructionAdapter mv) {
 
@@ -133,7 +161,7 @@ public class IfStatement extends Statement implements BasicBlockEndingStatement 
       mv.visitJumpInsn(GOTO, emitContext.getBytecodeLabel(trueTarget));
       return;
     }
-    if(constantValue == Logical.FALSE) {
+    if(constantValue == Logical.FALSE && falseTarget != null) {
       mv.visitJumpInsn(GOTO, emitContext.getBytecodeLabel(falseTarget));
       return;
     }
@@ -141,7 +169,7 @@ public class IfStatement extends Statement implements BasicBlockEndingStatement 
     if(condition.getValueBounds().isConstant()) {
       if(condition.getValueBounds().isConstantFlagEqualTo(true)) {
         mv.goTo(emitContext.getBytecodeLabel(trueTarget));
-      } else {
+      } else if (falseTarget != null){
         mv.goTo(emitContext.getBytecodeLabel(falseTarget));
       }
     }
@@ -159,4 +187,5 @@ public class IfStatement extends Statement implements BasicBlockEndingStatement 
   public boolean isPure() {
     return false;
   }
+
 }

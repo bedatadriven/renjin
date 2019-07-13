@@ -41,6 +41,8 @@ public class InvokerGenerator {
     JDefinedClass invoker = codeModel._class(  WrapperGenerator2.toFullJavaName(model.getName()) ); //Creates a new class
     invoker._extends(BuiltinFunction.class);
 
+    invoker.field(JMod.PUBLIC | JMod.STATIC, invoker, "INSTANCE", JExpr._new(invoker));
+
     JMethod defaultConstructor = invoker.constructor(JMod.PUBLIC);
     defaultConstructor.body().invoke("super").arg(JExpr.lit(model.getName()));
 

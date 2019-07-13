@@ -85,4 +85,9 @@ public abstract class SpecialFunction extends PrimitiveFunction {
     int count = call.getArguments().length();
     EvalException.check(count == expectedArguments, "invalid number of arguments");
   }
+
+  @Override
+  public String toString() {
+    return ".Primitive(\"" + getName() + "\")";
+  }
 }

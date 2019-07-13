@@ -1,10 +1,8 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.codegen.EmitContext;
-import org.renjin.compiler.codegen.FunctionLoader;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.SexpExpr;
-import org.renjin.compiler.codegen.expr.SexpLoader;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.primitives.special.AssignLeftFunction;
@@ -16,19 +14,15 @@ import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
-import java.util.List;
-
 public class DynamicSetterCall implements Expression {
   private final FunctionCall call;
-  private final FunctionLoader functionLoader;
-  private final String functionName;
+  private final Expression functionExpr;
   private final Expression rhs;
   private final int forwardedArgumentIndex;
 
-  public DynamicSetterCall(FunctionCall call, FunctionLoader functionLoader, String functionName, Expression rhs) {
+  public DynamicSetterCall(FunctionCall call, Expression functionExpr, Expression rhs) {
     this.call = call;
-    this.functionLoader = functionLoader;
-    this.functionName = functionName;
+    this.functionExpr = functionExpr;
     this.rhs = rhs;
     this.forwardedArgumentIndex = call.findEllipsisArgumentIndex();
   }
@@ -86,18 +80,21 @@ public class DynamicSetterCall implements Expression {
     mv.visitVarInsn(Opcodes.ASTORE, rhsVar);
 
     // Collect the arguments, with the additional value argument at the end
-    List<String> argumentNames = DynamicCall.argumentNames(call);
-    List<SexpLoader> promisedArguments = DynamicCall.argumentPromises(call);
-
-    argumentNames.add("value");
-    promisedArguments.add((c, m) -> mv.visitVarInsn(Opcodes.ALOAD, rhsVar));
-
-    SexpLoader setterCall = (c, m) -> loadSetterCall(c, m, rhsVar);
-
-    DynamicCall.writeCall(context, mv, functionLoader, setterCall,
-        argumentNames,
-        promisedArguments,
-        forwardedArgumentIndex);
+//    List<String> argumentNames = DynamicCall.argumentNames(call);
+//    List<SexpLoader> promisedArguments = DynamicCall.argumentPromises(call);
+//
+//    argumentNames.add("value");
+//    promisedArguments.add((c, m) -> mv.visitVarInsn(Opcodes.ALOAD, rhsVar));
+//
+//    SexpLoader setterCall = (c, m) -> loadSetterCall(c, m, rhsVar);
+//
+//    DynamicCall.writeCall(context, mv,
+//        functionExpr.getCompiledExpr(context),
+//        setterCall,
+//        argumentNames,
+//        promisedArguments,
+//        forwardedArgumentIndex);
+    throw new UnsupportedOperationException("TODO");
   }
 
   private void loadSetterCall(EmitContext context, InstructionAdapter mv, int rhsVar) {
@@ -115,7 +112,7 @@ public class DynamicSetterCall implements Expression {
   @Override
   public String toString() {
     StringBuilder s = new StringBuilder();
-    s.append("dynamic ").append(functionName + "<-").append("(");
+    s.append("dynamic ").append(functionExpr).append("<-").append("(");
     boolean needsComma = false;
     for (PairList.Node node : call.getArguments().nodes()) {
       if(needsComma) {

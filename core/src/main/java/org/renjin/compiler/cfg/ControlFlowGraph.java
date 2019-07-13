@@ -218,4 +218,19 @@ public class ControlFlowGraph implements Graph {
     }
     throw new IllegalArgumentException("No such block: " + debugId);
   }
+
+  public void dumpBody(boolean showDead) {
+    for (BasicBlock basicBlock : basicBlocks) {
+      if(basicBlock.isLive() || showDead) {
+        for (IRLabel label : basicBlock.getLabels()) {
+          System.out.println(label + ": ");
+        }
+        for (Statement statement : basicBlock.getStatements()) {
+          System.out.println("  " + statement);
+        }
+      }
+    }
+  }
+
+
 }

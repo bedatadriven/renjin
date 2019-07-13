@@ -21,6 +21,7 @@ package org.renjin.compiler.ir.tac;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.SimpleExpression;
 import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
@@ -30,12 +31,14 @@ import java.util.List;
 public class IRArgument {
 
   private String name;
+  private SEXP sexp;
   private Expression expression;
 
   public IRArgument(String name, Expression expression) {
     this.name = name;
     this.expression = expression;
   }
+
 
   public IRArgument(SEXP name, SimpleExpression expression) {
     if(name == Null.INSTANCE) {
@@ -48,17 +51,32 @@ public class IRArgument {
     this.expression = expression;
   }
 
+  public IRArgument(PairList.Node argument, SimpleExpression expression) {
+    this(argument.getRawTag(), expression);
+    this.sexp = argument.getValue();
+  }
+
   public IRArgument(Expression expression) {
     this.name = null;
     this.expression = expression;
   }
-  
+
+  public IRArgument(String name, Expression expression, SEXP sexp) {
+    this.name = name;
+    this.expression = expression;
+    this.sexp = sexp;
+  }
+
   public boolean isNamed() {
     return name != null;
   }
 
   public String getName() {
     return name;
+  }
+
+  public SEXP getSexp() {
+    return sexp;
   }
 
   public Expression getExpression() {
@@ -69,7 +87,7 @@ public class IRArgument {
     if(this.expression == expression) {
       return this;
     } else {
-      return new IRArgument(name, expression);
+      return new IRArgument(name, expression, sexp);
     }
   }
 

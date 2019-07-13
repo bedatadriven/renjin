@@ -256,6 +256,8 @@ public class SsaTransformer {
     if(rhs instanceof Variable) {
       set.add((Variable)rhs);
     } else {
+
+
       for(int i=0;i!=rhs.getChildCount();++i) {
         collectVariables(set, rhs.childAt(i));
       }

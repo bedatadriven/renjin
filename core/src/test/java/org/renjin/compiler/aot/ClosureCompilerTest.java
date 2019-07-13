@@ -18,46 +18,34 @@
  */
 package org.renjin.compiler.aot;
 
-import org.junit.Ignore;
 import org.junit.Test;
-import org.renjin.eval.Session;
-import org.renjin.eval.SessionBuilder;
+import org.renjin.EvalTestCase;
 import org.renjin.parser.RParser;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.sexp.*;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-@Ignore
-public class ClosureCompilerTest {
+public class ClosureCompilerTest extends EvalTestCase {
+
 
   @Test
-  public void simpleTest() throws InvocationTargetException, IllegalAccessException {
+  public void simpleTest() throws IllegalAccessException {
 
-    Session session = new SessionBuilder().build();
-    session.getTopLevelContext().evaluate(RParser.parseSource("g <- function(a, b) a * b\n"));
-
-    ExpressionVector source = RParser.parseSource(Joiner.on('\n').join(
+    eval("g <- function(a, b) a * b");
+    eval(
         "f <- function(x) {",
         "  if(x > 10) {",
         "    g(b=x,a=2)",
         "  } else {",
         "    sqrt(x)",
         "  }",
-        "}\n"), "test.R");
+        "}");
 
-    session.getTopLevelContext().evaluate(source);
-    Closure closure = (Closure) session.getTopLevelContext().evaluate(Symbol.get("f"));
+    compileFunctions();
 
-    ClosureCompiler compiler = new ClosureCompiler(session.getTopLevelContext(), closure);
-
-    closure.compiledBody = compiler.getHandle().loadAndGetHandle();
-
-    SEXP result = session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("f"), DoubleVector.valueOf(42)));
+    SEXP result = eval("f(42)");
 
     assertThat(result, equalTo(DoubleVector.valueOf(84)));
   }
@@ -65,38 +53,75 @@ public class ClosureCompilerTest {
   @Test
   public void logicalOrTest() throws IllegalAccessException {
 
-    Session session = new SessionBuilder().build();
-    ExpressionVector source = RParser.parseSource("f <- function(a, b) a || b\n", "test.R");
+    eval("f <- function(a, b) a || b\n");
 
-    session.getTopLevelContext().evaluate(source);
-    Closure closure = (Closure) session.getTopLevelContext().evaluate(Symbol.get("f"));
+    compileFunctions();
 
-    ClosureCompiler compiler = new ClosureCompiler(session.getTopLevelContext(), closure);
+    SEXP result = eval("f(logical(0), FALSE)");
 
-    closure.compiledBody = compiler.getHandle().loadAndGetHandle();
-
-    SEXP result = session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("f"), LogicalVector.EMPTY, LogicalVector.FALSE));
-
-    assertThat(result, equalTo(LogicalVector.NA));
-
+    assertThat(result, equalTo(LogicalVector.NA_VECTOR));
   }
 
   @Test
-  public void scaleTest() throws InvocationTargetException, IllegalAccessException {
+  public void functionResolution() throws IllegalAccessException {
 
-    Session session = new SessionBuilder().build();
-    Closure closure = (Closure) session.getTopLevelContext().evaluate(Symbol.get("scale.default"));
+    eval("f <- function(x) { sqrt <- 16; sqrt(x) + sqrt; }");
 
-    ClosureCompiler compiler = new ClosureCompiler(session.getTopLevelContext(), closure);
+    compileFunctions();
 
-    Method method = compiler.getHandle().loadAndReflect();
+    assertThat(eval("f(64)"), identicalTo(new DoubleArrayVector(24)));
+  }
 
-    DoubleVector x = new DoubleArrayVector(1, 2, 3);
+  /**
+   * There is no way to tell whether sqrt is a function or not, so we have to fall back
+   * to dynamic lookup.
+   */
+  @Test
+  public void functionResolutionBad() throws IllegalAccessException {
 
-    SEXP result = (SEXP) method.invoke(null, session.getTopLevelContext(), session.getGlobalEnvironment(), new SEXP[]{x, LogicalVector.TRUE, LogicalVector.FALSE});
+    eval("f <- function(x, y) { sqrt <- y; sqrt(x) + sqrt; }");
 
-    System.out.println(result);
+    compileFunctions();
 
+    assertThat(eval("f(64, 1)"), identicalTo(new DoubleArrayVector(9)));
+  }
+
+  @Test
+  public void compileBaseFunction() throws IllegalAccessException {
+    compileBaseFunction("readBin");
+  }
+
+  private SEXP eval(String... lines) {
+
+    ExpressionVector source = RParser.parseSource(Joiner.on("\n").join(lines) + "\n", "test.R");
+
+    return topLevelContext.evaluate(source);
+  }
+
+  private void compileFunctions() throws IllegalAccessException {
+
+    Environment global = topLevelContext.getGlobalEnvironment();
+    for (Symbol symbolName : global.getSymbolNames()) {
+      compileFunction(global, symbolName);
+    }
+  }
+
+  private void compileBaseFunction(String name) throws IllegalAccessException {
+    compileFunction(topLevelContext.getBaseEnvironment(), Symbol.get(name));
+  }
+
+  private void compileFunction(Environment env, Symbol symbolName) throws IllegalAccessException {
+    SEXP value = env.getVariableUnsafe(symbolName).force(topLevelContext);
+    if(value instanceof Closure) {
+
+      Closure closure = (Closure) value;
+
+      ClosureCompiler compiler = new ClosureCompiler(topLevelContext, closure);
+      AotHandle handle = compiler.getHandle();
+
+      closure.compiledBody = handle.loadAndGetHandle();
+      closure.frameSymbols = handle.getLocalVars().toArrayUnsafe();
+    }
   }
 
 }

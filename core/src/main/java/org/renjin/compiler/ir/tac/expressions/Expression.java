@@ -51,11 +51,20 @@ public interface Expression extends TreeNode {
 
   CompiledSexp getCompiledExpr(EmitContext emitContext);
 
+  default boolean isBlackhole() {
+    return false;
+  }
+
   /**
    * Emits the bytecode to assign this expression to the given lhs.
    *
    */
   default void emitAssignment(EmitContext emitContext, InstructionAdapter mv, Assignment statement) {
+
+    if(statement.getRHS() instanceof PiFunction) {
+      return;
+    }
+
     VariableStrategy lhs = emitContext.getVariable(statement.getLHS());
     CompiledSexp rhs = statement.getRHS().getCompiledExpr(emitContext);
 

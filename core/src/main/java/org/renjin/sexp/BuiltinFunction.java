@@ -100,4 +100,8 @@ public abstract class BuiltinFunction extends PrimitiveFunction {
     return applyPromised(context, rho, call, argumentNames.toArray(new String[0]), arguments.toArray(new SEXP[0]), null);
   }
 
+  @Override
+  public String toString() {
+    return ".Primitive(\"" + getName() + "\")";
+  }
 }

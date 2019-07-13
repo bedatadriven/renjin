@@ -85,6 +85,8 @@ public class ValueBounds {
    */
   public static final int MAYBE_ATTRIBUTES = MAYBE_CLASS | MAYBE_DIM | MAYBE_DIMNAMES | MAYBE_NAMES | MAYBE_OTHER_ATTR;
 
+
+
   /**
    * This value *definitely* has a dim attribute of length 1
    */
@@ -109,11 +111,18 @@ public class ValueBounds {
    */
   public static final int NAME_CLASS_ABSENT = 1 << 12;
 
+  /**
+   * This value is not actually a value, but a marker for a value that cannot be evaluated and must
+   * be promised for a function call.
+   */
+  public static final int PROMISE_PLACEHOLDER = 1 << 13;
+
+
 
   private static final int INTERSECT_MASK = FLAG_NO_NA | FLAG_POSITIVE | LENGTH_NON_ZERO | LENGTH_ONE | HAS_DIM |
                                             NAME_CLASS_ABSENT;
 
-  private static final int UNION_MASK = MAYBE_ATTRIBUTES;
+  private static final int UNION_MASK = MAYBE_ATTRIBUTES | PROMISE_PLACEHOLDER;
 
 
   public static final ValueBounds UNBOUNDED = new ValueBounds.Builder()
@@ -121,7 +130,17 @@ public class ValueBounds {
       .addFlags(MAYBE_ATTRIBUTES)
       .build();
 
-  
+  public static final ValueBounds PROMISED = new ValueBounds.Builder()
+      .setTypeSet(TypeSet.ANY_TYPE)
+      .addFlags(MAYBE_ATTRIBUTES)
+      .addFlags(PROMISE_PLACEHOLDER)
+      .build();
+
+  public static final ValueBounds TRUE = ValueBounds.constantValue(LogicalVector.TRUE);
+
+  public static final ValueBounds FALSE = ValueBounds.constantValue(LogicalVector.FALSE);
+
+
   /**
    * The bit set of this value's possible types.
    */
@@ -278,6 +297,10 @@ public class ValueBounds {
     
     if(isConstant()) {
       return "[const " + formatConstant(constantValue) + "]";
+    }
+
+    if (isFlagSet(PROMISE_PLACEHOLDER)) {
+      return "[promise]";
     }
     
     if(typeSet == TypeSet.ANY_TYPE) {

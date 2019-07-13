@@ -26,10 +26,7 @@ import org.renjin.compiler.ir.tac.statements.*;
 import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.repackaged.guava.collect.Lists;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents a straight-line piece of code without any jumps or jump targets.
@@ -53,6 +50,7 @@ public class BasicBlock {
   
   BasicBlock(int index) {
     this.index = index;
+    this.labels = Collections.emptySet();
   }
 
   public int getIndex() {
@@ -99,11 +97,7 @@ public class BasicBlock {
   public Set<IRLabel> getLabels() {
     return labels;
   }
-  
-  public boolean isLabeled() {
-    return !labels.isEmpty();
-  }
-  
+
   public Statement getTerminal() {
     return statements.get(statements.size() - 1);
   }

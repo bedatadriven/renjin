@@ -22,7 +22,6 @@ import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.compiler.ir.tac.expressions.Constant;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.ValueBoundsMap;
 import org.renjin.repackaged.guava.base.Strings;
@@ -80,12 +79,7 @@ public class ArgumentBounds {
 
       // Lookup the value bounds of this symbolic expression in the typeMap,
       // which tell us the bounds of this value at the *current* loop iteration of the TypeSolver
-      ValueBounds argumentBounds;
-      if(argumentExpr instanceof Constant) {
-        argumentBounds = argumentExpr.getValueBounds();
-      } else {
-        argumentBounds = typeMap.get(argumentExpr);
-      }
+      ValueBounds argumentBounds = argumentExpr.updateTypeBounds(typeMap);
       assert argumentBounds != null : "No argument bounds for " + symbolArgument.getName();
 
       result.add(new ArgumentBounds(symbolArgument.getName(), argumentExpr, argumentBounds));

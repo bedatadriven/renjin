@@ -18,7 +18,11 @@
  */
 package org.renjin.compiler.cfg;
 
+import org.renjin.compiler.TypeSolver;
+import org.renjin.compiler.ir.ssa.PhiFunction;
 import org.renjin.compiler.ir.tac.statements.Assignment;
+import org.renjin.compiler.ir.tac.statements.GotoStatement;
+import org.renjin.compiler.ir.tac.statements.IfStatement;
 import org.renjin.compiler.ir.tac.statements.Statement;
 
 import java.util.*;
@@ -27,11 +31,13 @@ public class DeadCodeElimination {
   private ControlFlowGraph cfg;
   private UseDefMap useDefMap;
   private final DominanceTree rdf;
+  private final TypeSolver types;
 
-  public DeadCodeElimination(ControlFlowGraph cfg, UseDefMap useDefMap) {
+  public DeadCodeElimination(ControlFlowGraph cfg, UseDefMap useDefMap, TypeSolver types) {
     this.cfg = cfg;
     this.useDefMap = useDefMap;
     this.rdf = new DominanceTree(new ReverseControlFlowGraph(cfg));
+    this.types = types;
   }
 
   public void run() {
@@ -75,6 +81,11 @@ public class DeadCodeElimination {
         Statement s = it.next();
         if (!live.contains(s)) {
           it.remove();
+        } else if(s instanceof IfStatement) {
+          GotoStatement constant = ((IfStatement) s).isConstant();
+          if(constant != null) {
+            it.set(constant);
+          }
         }
       }
     }
@@ -82,17 +93,30 @@ public class DeadCodeElimination {
 
   private Collection<BasicBlock> controlDependencePredecessors(BasicBlock basicBlock) {
     return rdf.getFrontier(basicBlock);
-
   }
 
   private Iterable<Statement> definers(Statement s) {
     List<Statement> definers = new ArrayList<>();
-    s.forEachVariableUsed(v -> {
-      Assignment definer = useDefMap.getDefinition(v);
-      if(definer != null) {
-        definers.add(definer);
+
+    if(s.getRHS() instanceof PhiFunction) {
+      PhiFunction phi = (PhiFunction) s.getRHS();
+      for (int i = 0; i < phi.getIncomingEdges().size(); i++) {
+        if(types.isExecutable(phi.getIncomingEdges().get(i))) {
+          Assignment definition = useDefMap.getDefinition(phi.getArgument(i));
+          if(definition != null) {
+            definers.add(definition);
+          }
+        }
       }
-    });
+    } else {
+
+      s.forEachVariableUsed(v -> {
+        Assignment definer = useDefMap.getDefinition(v);
+        if (definer != null) {
+          definers.add(definer);
+        }
+      });
+    }
     return definers;
   }
 }

@@ -32,4 +32,8 @@ public interface TranslationContext {
   List<IRArgument> getEllipsesArguments();
 
   Expression isMissing(Symbol name);
+
+  default boolean isUsedInFunctionCall(Symbol symbol) {
+    return false;
+  }
 }

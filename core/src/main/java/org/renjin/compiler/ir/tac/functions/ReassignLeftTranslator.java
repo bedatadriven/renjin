@@ -29,7 +29,7 @@ import org.renjin.sexp.Symbol;
 
 public class ReassignLeftTranslator extends AssignLeftTranslator {
   @Override
-  protected void doAssignment(IRBodyBuilder builder, SEXP lhs, Expression rhs) {
+  protected void doAssignment(TranslationContext context, IRBodyBuilder builder, SEXP lhs, Expression rhs) {
     String name;
     if(lhs instanceof Symbol) {
       name = ((Symbol) lhs).getPrintName();

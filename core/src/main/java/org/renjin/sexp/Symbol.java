@@ -69,6 +69,7 @@ public final class Symbol extends AbstractSEXP {
         "repeat",
         "next",
         "switch",
+        "return",
         "{", "(",
         "!",
         ":",

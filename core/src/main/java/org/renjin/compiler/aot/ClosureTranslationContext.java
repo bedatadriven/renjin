@@ -14,10 +14,14 @@ import org.renjin.eval.Context;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.FunctionEnvironment;
+import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ClosureTranslationContext implements TranslationContext {
 
@@ -27,6 +31,31 @@ public class ClosureTranslationContext implements TranslationContext {
       .addFlags(ValueBounds.FLAG_NO_NA)
       .build();
 
+  private final Set<Symbol> functionVariables = new HashSet<>();
+
+  public ClosureTranslationContext(SEXP body) {
+    collectFunctionVariables(body);
+  }
+
+  private void collectFunctionVariables(SEXP exp) {
+    if(exp instanceof FunctionCall) {
+      FunctionCall call = (FunctionCall) exp;
+      if(call.getFunction() instanceof Symbol) {
+        Symbol functionName = (Symbol) call.getFunction();
+        if(!functionName.isReservedWord()) {
+          functionVariables.add(functionName);
+        }
+      }
+      for (SEXP value : call.getArguments().values()) {
+        collectFunctionVariables(value);
+      }
+    }
+  }
+
+  public Set<Symbol> getSymbolsUsedAsFunctions() {
+    return functionVariables;
+  }
+
   @Override
   public boolean isEllipsesArgumentKnown() {
     return false;
@@ -35,6 +64,11 @@ public class ClosureTranslationContext implements TranslationContext {
   @Override
   public List<IRArgument> getEllipsesArguments() {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean isUsedInFunctionCall(Symbol symbol) {
+    return functionVariables.contains(symbol);
   }
 
   @Override

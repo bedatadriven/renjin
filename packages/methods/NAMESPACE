@@ -1,5 +1,3 @@
-useDynLib(methods, .registration = TRUE, .fixes = "C_")
-
 ## The methods namespace is loaded very early in the startup sequence
 ## (if in R_DEFAULT_PACKAGES), so adding other namespaces here has the
 ## undesirable effect of loading them early too (e.g. onLoad hooks are

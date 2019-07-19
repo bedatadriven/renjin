@@ -46,6 +46,8 @@ import static org.renjin.repackaged.guava.collect.Iterables.transform;
 
 public class Text {
 
+  private static final String VOWELS = "aeiouàá.ãäåèéêëìíîïòóôõöøùúûüāăąēĕėĘěĩīĭįıōŏőũūŭůűų";
+
   public static final IntVector NO_MATCH = new IntArrayVector(new int[] { -1 },
           AttributeMap.newBuilder().set("match.length", new IntArrayVector(-1)).build());
 
@@ -1150,6 +1152,114 @@ public class Text {
       return Integer.parseInt(x, base);
     }
   }
-  
-  
+
+
+  @Internal
+  @DataParallel
+  public static String abbreviate(@Recycle String in, int minlen, boolean useClasses) {
+    if(in.length() <= minlen) {
+      return in;
+    }
+
+    // The R wrapper removed leading and trailing spaces
+    StringBuilder out = new StringBuilder(in);
+
+    // The for() loops never touch the first character
+
+    // record spaces for removal later (as they act as word boundaries)
+    int nspace = 0;
+    for (int i = out.length() - 1, j = 1; i > 0; i--) {
+      if (Character.isWhitespace(out.charAt(i))) {
+        if (j != 0) {
+          out.setLength(i); // trailing space
+        } else {
+          nspace++;
+        }
+      } else {
+        j = 0;
+      }
+      if (out.length() - nspace <= minlen) {
+        return removeInternalSpaces(out, nspace, minlen);
+      }
+    }
+
+    if(useClasses) {
+      // remove l/case vowels,
+	    /// which are not at the beginning of a word but are at the end */
+      for (int i = out.length() - 1; i > 0; i--) {
+        if (isVowel(out.charAt(i)) && isEndOfWord(out, i)) {
+          out.deleteCharAt(i);
+        }
+        if (out.length() - nspace <= minlen) {
+          return removeInternalSpaces(out, nspace, minlen);
+        }
+      }
+
+      // remove those not at the beginning of a word
+      for (int i = out.length() - 1; i > 0; i--) {
+        if (isVowel(out.charAt(i)) && !isStartOfWord(out, i)) {
+          out.deleteCharAt(i);
+        }
+        if (out.length() - nspace <= minlen) {
+          return removeInternalSpaces(out, nspace, minlen);
+        }
+      }
+
+      // Now do the same for remaining l/case chars
+      for (int i = out.length() - 1; i > 0; i--) {
+        if (Character.isLowerCase(out.charAt(i)) && isEndOfWord(out, i)) {
+          out.deleteCharAt(i);
+        }
+        if (out.length() - nspace <= minlen) {
+          return removeInternalSpaces(out, nspace, minlen);
+        }
+      }
+
+      for (int i = out.length() - 1; i > 0; i--) {
+        if (Character.isLowerCase(out.charAt(i)) && !isStartOfWord(out, i)) {
+          out.deleteCharAt(i);
+        }
+        if (out.length() - nspace <= minlen) {
+          return removeInternalSpaces(out, nspace, minlen);
+        }
+      }
+    }
+
+    // all else has failed so we use brute force
+    for (int i = out.length() - 1; i > 0; i--) {
+      if (!isStartOfWord(out, i) && !Character.isWhitespace(out.charAt(i))) {
+        out.deleteCharAt(i);
+      }
+      if (out.length() - nspace <= minlen) {
+        return removeInternalSpaces(out, nspace, minlen);
+      }
+    }
+    return removeInternalSpaces(out, nspace, minlen);
+  }
+
+
+  private static boolean isVowel(char c) {
+    return VOWELS.indexOf(c) != -1;
+  }
+
+  private static boolean isEndOfWord(StringBuilder out, int i) {
+    return !Character.isWhitespace(out.charAt(i-1)) &&
+        (i+1 == out.length() || Character.isWhitespace(out.charAt(i+1)));
+  }
+
+  private static boolean isStartOfWord(StringBuilder out, int i) {
+    return Character.isWhitespace(out.charAt(i - 1));
+  }
+
+  private static String removeInternalSpaces(StringBuilder out, int nspace, int minlen) {
+    int upper = out.length();
+    if (upper > minlen) {
+      for (int i = upper - 1; i > 0; i--)
+        if (Character.isWhitespace(out.charAt(i))) {
+          out.deleteCharAt(i);
+        }
+    }
+    return out.toString();
+  }
+
 }

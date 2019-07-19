@@ -602,7 +602,7 @@ public class Primitives {
     f("substr", Text.class, 11);
     f("substr<-", Text.class, 11);
     f("strsplit", Text.class, 11);
-    f("abbreviate", /*abbrev*/ null, 11);
+    f("abbreviate", Text.class, 11);
     f("make.names", Text.class, 11);
     f("pcre_config", null, 11);
     f("grep", Text.class, 11);

@@ -91,6 +91,12 @@ public class Expressions {
     return newArray(valueType, elementLength, initialValues);
   }
 
+  /**
+   * Creates a new {@code JExpr} that generates code for a new array of length {@code arrayLength},
+   * along with elements that should be stored into the newly created array. <strong>Elements of the
+   * {@code values} array may be {@code null}, in which case the corresponding elements of the array
+   * will not be initialized.</strong>
+   */
   public static JExpr newArray(final Type componentType, final int arrayLength, final List<JExpr> values) {
     Preconditions.checkNotNull(componentType, "componentType");
     
@@ -104,10 +110,12 @@ public class Expressions {
 
     // check the types now
     for (int i = 0; i < values.size(); i++) {
-      Type elementType = values.get(i).getType();
-      if(promoteSmallInts(elementType).getSort() != promoteSmallInts(componentType).getSort()) {
-        throw new IllegalArgumentException(String.format("Invalid type at element %d: %s, expected %s",
-            i, elementType, componentType));
+      if(values.get(i) != null) {
+        Type elementType = values.get(i).getType();
+        if (promoteSmallInts(elementType).getSort() != promoteSmallInts(componentType).getSort()) {
+          throw new IllegalArgumentException(String.format("Invalid type at element %d: %s, expected %s",
+              i, elementType, componentType));
+        }
       }
     }
 
@@ -123,10 +131,12 @@ public class Expressions {
         mv.iconst(arrayLength);
         mv.newarray(componentType);
         for (int i = 0; i < values.size(); i++) {
-          mv.dup();
-          mv.iconst(i);
-          values.get(i).load(mv);
-          mv.astore(componentType);
+          if(values.get(i) != null) {
+            mv.dup();
+            mv.iconst(i);
+            values.get(i).load(mv);
+            mv.astore(componentType);
+          }
         }
       }
     };

@@ -31,6 +31,7 @@ import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.codegen.vptr.VPtrStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
+import org.renjin.gcc.gimple.expr.GimpleIntegerConstant;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Preconditions;
@@ -171,7 +172,24 @@ public class ArrayTypeStrategy implements TypeStrategy<FatArrayExpr> {
   }
 
   private void addElementConstructors(List<JExpr> values, ExprFactory exprFactory, GimpleConstructor constructor) {
+    int index = 0;
     for (GimpleConstructor.Element element : constructor.getElements()) {
+
+      if(element.getField() instanceof GimpleIntegerConstant) {
+        int elementIndex = ((GimpleIntegerConstant) element.getField()).getValue().intValue();
+        if(elementIndex < index) {
+          throw new IllegalStateException("index = " + index + ", elementIndex = " + elementIndex);
+        }
+        // Some arrays have jagged initialization (looking at you, Fortran!)
+        // so we may need to skip a few elements
+        while(index < elementIndex) {
+          for(int i = 0; i < elementValueFunction.getElementLength(); ++i) {
+            values.add(null);
+          }
+          index++;
+        }
+      }
+
       if(element.getValue() instanceof GimpleConstructor &&
           element.getValue().getType() instanceof GimpleArrayType) {
         GimpleConstructor elementConstructor = (GimpleConstructor) element.getValue();
@@ -183,6 +201,7 @@ public class ArrayTypeStrategy implements TypeStrategy<FatArrayExpr> {
         List<JExpr> arrayValues = elementValueFunction.toArrayValues(elementExpr);
         values.addAll(arrayValues);
       }
+      index++;
     }
   }
 

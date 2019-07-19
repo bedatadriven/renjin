@@ -409,8 +409,8 @@ static void dump_constructor(tree node) {
   FOR_EACH_CONSTRUCTOR_ELT (CONSTRUCTOR_ELTS (node), ix, field, val)
   {
     json_start_object();
-  
-    if (field && is_struct_init)
+
+    if (field)
       {
         json_field("field");
         dump_op(field);
@@ -553,7 +553,7 @@ static void dump_op(tree op) {
       json_real_field("value", TREE_REAL_CST(op));
       json_field("type");
       dump_type(TREE_TYPE(op));
-	    break;
+	  break;
 	    
     case COMPLEX_CST:
       json_field("real");

@@ -20,10 +20,10 @@ package org.renjin.gcc.gimple.expr;
 
 import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.repackaged.guava.base.Joiner;
-import java.util.function.Predicate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * GimpleExpr node representing the brace-enclosed initializers for a structure or an array. They contain a 
@@ -41,7 +41,13 @@ public class GimpleConstructor extends GimpleExpr {
     }
     
     public String getFieldName() {
-      return ((GimpleFieldRef) field).getName();
+      if(field instanceof GimpleFieldRef) {
+        return ((GimpleFieldRef) field).getName();
+      } else if(field instanceof GimpleIntegerConstant) {
+        return Long.toString(((GimpleIntegerConstant) field).getValue());
+      } else {
+        return "0";
+      }
     }
 
     public void setField(GimpleExpr field) {

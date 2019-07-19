@@ -1243,4 +1243,8 @@ public class Stdlib {
       return __msgid1;
     }
   }
+
+  public static boolean signbit(double x) {
+    return x < 0;
+  }
 }

@@ -213,11 +213,14 @@ public class MatrixSelection implements SelectionStrategy {
 
     int index;
     while ((index = it.next()) != IndexIterator.EOF) {
-      newNames.add(sourceNames.getElementAsString(index));
+      if (IntVector.isNA(index)) {
+        newNames.addNA();
+      } else {
+        newNames.add(sourceNames.getElementAsString(index));
+      }
     }
     return newNames.build();
   }
-
 
   @Override
   public ListVector replaceSingleListElement(ListVector source, SEXP replacement) {

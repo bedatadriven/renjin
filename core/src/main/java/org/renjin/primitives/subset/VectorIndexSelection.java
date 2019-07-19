@@ -243,8 +243,9 @@ class VectorIndexSelection implements SelectionStrategy {
       if(replacementLength == 0) {
         throw new EvalException("replacement has zero length");
       }
-      
-      builder.setFrom(index, replacements, replacementIndex++);
+      if(!IntVector.isNA(index)) {
+        builder.setFrom(index, replacements, replacementIndex++);
+      }
 
       if (replacementIndex >= replacementLength) {
         replacementIndex = 0;

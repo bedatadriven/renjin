@@ -177,6 +177,8 @@ public class Native {
         nativeArguments[i] = doublePtrFromVector(callArguments.get(i));
       } else if(callArgument instanceof StringVector) {
         nativeArguments[i] = stringPtrToCharPtrPtr(callArguments.get(i));
+      } else if(handle.type().parameterType(i).equals(SEXP.class)) {
+        nativeArguments[i] = callArguments.get(i);
       } else {
         throw new EvalException("Don't know how to marshall type " + callArguments.get(i).getClass().getName() +
             " to for C argument " +  type + " in call to " + handle);
@@ -234,8 +236,10 @@ public class Native {
       return new IntArrayVector(((IntPtr) ptr).array, inputArgument.getAttributes());
     } else if(ptr instanceof PointerPtr) {
       return new NativeStringVector((PointerPtr) ptr, inputArgument.getAttributes());
+    } else if(ptr instanceof SEXP) {
+      return (SEXP) ptr;
     } else {
-      throw new UnsupportedOperationException(ptr.toString());
+      throw new UnsupportedOperationException(ptr.getClass().getName());
     }
   }
 

@@ -321,4 +321,16 @@ public class Builtins {
     return previous;
   }
 
+  public static char __builtin_bswap16(char x) {
+    throw new UnsupportedOperationException("__builtin_bswap16");
+  }
+
+  public static int __builtin_bswap32(int x) {
+    throw new UnsupportedOperationException("__builtin_bswap32");
+  }
+
+  public static long __builtin_bswap64(long x) {
+    throw new UnsupportedOperationException("__builtin_bswap64");
+  }
+
 }

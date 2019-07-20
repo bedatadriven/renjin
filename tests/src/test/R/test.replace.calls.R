@@ -54,3 +54,22 @@ test.call.replace.pairlist <- function() {
     assertThat(class(listy), identicalTo("foo"))
     assertThat(attr(listy, 'bar'), identicalTo('baz'))
 }
+
+test.call.replace3 <- function() {
+
+
+    Call <- quote(gnls(model = weight ~ SSlogis(Time, Asym, xmid, scal), data = Soybean,
+                 weights = varPower(), na.action = na.exclude))
+
+    nlsCall <- Call[c("","model","data")]
+
+    assertThat(nlsCall, identicalTo(quote(
+        NULL(model = weight ~ SSlogis(Time, Asym, xmid, scal), data = Soybean))))
+
+    nlsCall[[1]] <- quote(stats::nls)
+    names(nlsCall)[2] <- "formula"
+
+    assertThat(nlsCall, identicalTo(quote(
+        stats::nls(formula = weight ~ SSlogis(Time, Asym, xmid, scal), data = Soybean))))
+
+}

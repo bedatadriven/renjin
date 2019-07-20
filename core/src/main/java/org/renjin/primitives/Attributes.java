@@ -243,6 +243,28 @@ public class Attributes {
                   "class '%s' has no 'names' slot; assigning a names attribute will create an invalid object", className));
         }
       }
+    } else if(exp instanceof PairList.Node) {
+
+      ListBuilder copy;
+      if(exp instanceof FunctionCall) {
+        copy = new FunctionCall.Builder();
+      } else {
+        copy = new PairList.Builder();
+      }
+
+      int nameIndex = 0;
+      for (PairList.Node node : ((PairList.Node) exp).nodes()) {
+        String name;
+        if(nameIndex < names.length()) {
+          name = names.getElementAsString(nameIndex);
+        } else {
+          name = null;
+        }
+        copy.add(name, node.getValue());
+        nameIndex++;
+      }
+
+      return copy.build();
     }
     
     if(exp.getAttributes().getDim().length() == 1) {

@@ -31,7 +31,6 @@ import java.util.Set;
 
 /**
  * Selects elements from a {@code source} expression by name.
- *
  */
 class NamedSelection implements SelectionStrategy {
   
@@ -58,7 +57,7 @@ class NamedSelection implements SelectionStrategy {
     for (int i = 0; i < selectedNames.length(); i++) {
       String selectedName = selectedNames.getElementAsString(i);
       Integer index = null;
-      if(!StringVector.isNA(selectedName)) {
+      if(!StringVector.isNA(selectedName) && !selectedName.isEmpty()) {
         index = nameMap.get(selectedName);
       }
       if(index == null) {

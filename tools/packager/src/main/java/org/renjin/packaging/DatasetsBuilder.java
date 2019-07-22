@@ -170,8 +170,11 @@ public class DatasetsBuilder {
    * @throws IOException
    */
   private void processRDataFile(File dataFile) throws IOException {
+
+    Session session = new SessionBuilder().withoutBasePackage().build();
+
     SEXP exp;
-    try(RDataReader reader = new RDataReader(DatasetsBuilder.decompress(dataFile))) {
+    try(RDataReader reader = new RDataReader(session.getTopLevelContext(), DatasetsBuilder.decompress(dataFile))) {
       exp = reader.readFile();
     }
         
@@ -180,7 +183,6 @@ public class DatasetsBuilder {
     }
     
     String logicalDatasetName = stripExtension(dataFile.getName());
-    Session session = new SessionBuilder().withoutBasePackage().build();
     writePairList(logicalDatasetName, session, (PairList)exp);
   }
 
@@ -322,7 +324,7 @@ public class DatasetsBuilder {
    * file so that it can be loaded on demand, rather than en mass
    * when a package is loaded. 
    */
-  private void writePairList(String logicalDatasetName, Session session, PairList pairList) 
+  private void writePairList(String logicalDatasetName, Session session, PairList pairList)
       throws IOException {
     
     File datasetDir = new File(dataObjectDirectory, logicalDatasetName);

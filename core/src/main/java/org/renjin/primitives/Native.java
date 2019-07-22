@@ -21,10 +21,7 @@ package org.renjin.primitives;
 import org.renjin.base.Base;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.gcc.runtime.BytePtr;
-import org.renjin.gcc.runtime.DoublePtr;
-import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.gcc.runtime.PointerPtr;
+import org.renjin.gcc.runtime.*;
 import org.renjin.invoke.annotations.*;
 import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.invoke.reflection.FunctionBinding;
@@ -179,6 +176,8 @@ public class Native {
         nativeArguments[i] = stringPtrToCharPtrPtr(callArguments.get(i));
       } else if(handle.type().parameterType(i).equals(SEXP.class)) {
         nativeArguments[i] = callArguments.get(i);
+      } else if(handle.type().parameterType(i).equals(Ptr.class)) {
+        nativeArguments[i] = new RecordUnitPtr<>(callArguments.get(i));
       } else {
         throw new EvalException("Don't know how to marshall type " + callArguments.get(i).getClass().getName() +
             " to for C argument " +  type + " in call to " + handle);
@@ -238,6 +237,8 @@ public class Native {
       return new NativeStringVector((PointerPtr) ptr, inputArgument.getAttributes());
     } else if(ptr instanceof SEXP) {
       return (SEXP) ptr;
+    } else if(ptr instanceof RecordUnitPtr) {
+      return (SEXP)((RecordUnitPtr) ptr).getArray();
     } else {
       throw new UnsupportedOperationException(ptr.getClass().getName());
     }

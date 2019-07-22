@@ -207,6 +207,15 @@ public class DoublePtr extends AbstractPtr implements Ptr {
   }
 
   @Override
+  public void setDouble(int offset, double doubleValue) {
+    if(offset % BYTES == 0) {
+      setAlignedDouble(offset / BYTES, doubleValue);
+    } else {
+      super.setDouble(offset, doubleValue);
+    }
+  }
+
+  @Override
   public byte getByte(int offset) {
     return getByteViaDouble(offset);
   }

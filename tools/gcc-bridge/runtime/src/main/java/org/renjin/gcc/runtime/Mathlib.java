@@ -323,20 +323,6 @@ public class Mathlib {
 
 
   /**
-   * Returns the error function value for x.
-   */
-  public static double erf(double x) {
-    throw new UnsupportedOperationException();
-  }
-
-  /**
-   * Returns the complementary error function value for x.
-   */
-  public static double erfc(double x) {
-    throw new UnsupportedOperationException();
-  }
-
-  /**
    * Returns the gamma function of x.
    */
   public static double tgamma(double x) {

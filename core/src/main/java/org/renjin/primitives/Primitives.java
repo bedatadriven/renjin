@@ -49,7 +49,6 @@ import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.s4.S4;
 import org.renjin.serialization.Serialization;
 import org.renjin.sexp.*;
-import org.renjin.stats.internals.CompleteCases;
 import org.renjin.stats.internals.Distributions;
 import org.renjin.stats.internals.distributions.RNG;
 import org.renjin.stats.internals.distributions.Sampling;
@@ -344,7 +343,6 @@ public class Primitives {
     f("pmatch", Match.class, 11);
     f("charmatch", Match.class, 11);
     f("match.call", Match.class, 11);
-    f("complete.cases", CompleteCases.class, 11);
 
     f("attach", Environments.class, 111);
     f("detach", Environments.class, 111);

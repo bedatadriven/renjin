@@ -18,15 +18,23 @@
  */
 package org.renjin.gcc.gimple.expr;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.renjin.gcc.gimple.type.GimpleRealType;
 
 public class GimpleRealConstant extends GimplePrimitiveConstant {
 
-  @JsonDeserialize(converter=RealValueConverter.class)
   private double value;
 
-  public GimpleRealConstant() {
+  @JsonCreator
+  public GimpleRealConstant(@JsonProperty("type") GimpleRealType type, @JsonProperty("bits") String bits, @JsonProperty("decimal") String decimal) {
+    setType(type);
+    try {
+      long longBits = Long.parseUnsignedLong(bits, 16);
+      this.value = Double.longBitsToDouble(longBits);
+    } catch (NumberFormatException e) {
+      throw new RuntimeException("Exception parsing '" + bits + "' (decimal = " + decimal + ")", e);
+    }
   }
 
   public GimpleRealConstant(GimpleRealType type, double value) {

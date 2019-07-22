@@ -26,6 +26,7 @@ public class IntPtr extends AbstractPtr implements Ptr {
   public static final int BYTES = Integer.SIZE / 8;
 
   public static final IntPtr NULL = new IntPtr();
+  public static final int UNINITIALIZED_VALUE = 0xCCCCCCCC;
 
   public final int[] array;
   public final int offset;
@@ -190,18 +191,32 @@ public class IntPtr extends AbstractPtr implements Ptr {
 
   @Override
   public int getInt() {
-    return this.array[this.offset];
+    try {
+      return this.array[this.offset];
+    } catch (ArrayIndexOutOfBoundsException ignored) {
+      return UNINITIALIZED_VALUE;
+    }
   }
 
   @Override
   public int getAlignedInt(int index) {
-    return this.array[this.offset + index];
+    try {
+      return this.array[this.offset + index];
+    } catch (ArrayIndexOutOfBoundsException ignored) {
+      return UNINITIALIZED_VALUE;
+    }
   }
 
   @Override
   public int getInt(int offset) {
     if(this.offset % BYTES == 0) {
-      return this.array[this.offset + (offset / BYTES)];
+      try {
+        return this.array[this.offset + (offset / BYTES)];
+      } catch (ArrayIndexOutOfBoundsException ignored) {
+        // Accessing a value beyond an array's bounds will not throw an error in C,
+        // so we have to do the same...
+        return UNINITIALIZED_VALUE;
+      }
     } else {
       return super.getInt(offset);
     }

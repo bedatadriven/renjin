@@ -30,6 +30,7 @@ dependencies {
     compile project(':math:appl')
 
     testCompile project(':packages:hamcrest')
+    testRuntime project(':packages:datasets')
 }
 
 compileNamespace {
@@ -37,5 +38,5 @@ compileNamespace {
 }
 
 testPackage {
-    defaultPackages = [ 'stats', 'grDevices', 'graphics', 'utils' ]
+    defaultPackages = [ 'stats', 'grDevices', 'graphics', 'utils', 'datasets' ]
 }

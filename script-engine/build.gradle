@@ -37,19 +37,22 @@ task combinedJavadoc(type: Javadoc) {
     include "**/org/renjin/grDevices/**.*"
 }
 
-
 task combinedJavadocJar(type: Jar) {
     dependsOn 'combinedJavadoc'
     from "$buildDir/docs/combined"
     archiveClassifier = 'javadoc'
 }
 
+task jarWithDependencies(type: Jar) {
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+    classifier 'jar-with-dependencies'
+}
+
 publishing {
     publications {
-        mavenJavadoc(MavenPublication) {
-            artifact(combinedJavadocJar) {
-                classifier "javadoc"
-            }
+        maven(MavenPublication) {
+            artifact jarWithDependencies
         }
     }
 }

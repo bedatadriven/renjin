@@ -41,7 +41,7 @@ class LogicalSelection implements SelectionStrategy {
   public SEXP getVectorSubset(Context context, Vector source, boolean drop) {
     LogicalSubscript subscript = new LogicalSubscript(this.mask, source.length());
     
-    return VectorIndexSelection.buildSelection(source, subscript, drop);
+    return VectorIndexSelection.buildSelection(context.materialize(source), subscript, drop);
   }
 
 

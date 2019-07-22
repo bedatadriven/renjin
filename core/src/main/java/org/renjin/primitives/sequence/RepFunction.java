@@ -80,6 +80,7 @@ public class RepFunction extends BuiltinFunction {
     SEXP each = matched.getActualForFormal(FORMAL_EACH, Symbol.MISSING_ARG).forceOrMissing(context);
 
     return rep(
+        context,
         (Vector) x,
         (Vector) times,
         lengthOut == Symbol.MISSING_ARG ? DEFAULT_LENGTH_OUT : ((Vector) lengthOut).getElementAsInt(0),
@@ -87,7 +88,7 @@ public class RepFunction extends BuiltinFunction {
   }
 
 
-  public static Vector rep(Vector x, Vector times, int lengthOut, int each) {
+  public static Vector rep(Context context, Vector x, Vector times, int lengthOut, int each) {
     int resultLength;
 
     if(x == Null.INSTANCE) {
@@ -147,6 +148,9 @@ public class RepFunction extends BuiltinFunction {
     /*
      * Go ahead and allocate and fill the memory
      */
+
+    x = context.materialize(x);
+
     Vector.Builder result = x.newBuilderWithInitialCapacity(resultLength);
     AtomicVector names = x.getNames();
     StringArrayVector.Builder resultNames = null;

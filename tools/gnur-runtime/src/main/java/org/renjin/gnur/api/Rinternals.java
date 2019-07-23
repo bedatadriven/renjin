@@ -2116,9 +2116,29 @@ public final class Rinternals {
     return vec;
   }
 
-  // void Rf_setSVector (SEXP *, int, SEXP)
-  public static void Rf_setVar(SEXP p0, SEXP p1, SEXP p2) {
-    throw new UnimplementedGnuApiMethod("Rf_setVar");
+  /**
+   * Assign a new value to bound symbol.  Note this does the "inherits"
+   * case.  I.e. it searches frame-by-frame for a symbol and binds the
+   * given value to the first symbol encountered.  If no symbol is
+   * found then a binding is created in the global environment.
+   *
+   * Changed in R 2.4.0 to look in the base environment (previously the
+   * search stopped befor the base environment, but would (and still
+   * does) assign into the base namespace if that is on the search and
+   * the symbol existed there).
+   *
+   */
+  public static void Rf_setVar(SEXP symbolSexp, SEXP value, SEXP rhoSexp) {
+    Symbol symbol = (Symbol) symbolSexp;
+    Environment rho = (Environment) rhoSexp;
+    while (rho != Environment.EMPTY) {
+      if(rho.hasVariable(symbol)) {
+        rho.setVariable(Native.currentContext(), symbol, value);
+        return;
+      }
+      rho = rho.getParent();
+    }
+    Native.currentContext().getGlobalEnvironment().setVariable(Native.currentContext(), symbol, value);
   }
 
   public static SEXP Rf_stringSuffix(SEXP p0, int p1) {

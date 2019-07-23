@@ -18,6 +18,7 @@
  */
 package org.renjin.primitives.packaging;
 
+import org.renjin.eval.Context;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 
@@ -45,20 +46,18 @@ public abstract class Dataset {
   
   /**
    * 
-   * @param name loads the object named {@code name} from the 
+   * @param name loads the object named {@code name} from the
    * dataset
-   * @return
-   * @throws IOException
    */
-  public abstract SEXP loadObject(String name) throws IOException;
+  public abstract SEXP loadObject(Context context, String name) throws IOException;
 
   /**
    * Loads all the objects in this dataset as a PairList
    */
-  public PairList loadAll() throws IOException {
+  public PairList loadAll(Context context) throws IOException {
     PairList.Builder pairList = new PairList.Builder();
     for(String objectName : getObjectNames()) {
-      pairList.add(objectName, loadObject(objectName));
+      pairList.add(objectName, loadObject(context, objectName));
     }
     return pairList.build();
   }

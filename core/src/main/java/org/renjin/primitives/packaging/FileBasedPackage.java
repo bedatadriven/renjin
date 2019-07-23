@@ -152,12 +152,12 @@ public abstract class FileBasedPackage extends Package {
     }
 
     @Override
-    public SEXP loadObject(String name) throws IOException {
+    public SEXP loadObject(Context context, String name) throws IOException {
       if(!objectNameMap.containsKey(name)) {
         throw new IllegalArgumentException(name);
       }
       try(InputStream in = getResource("data/" + objectNameMap.get(name)).openStream()) {
-        RDataReader reader = new RDataReader(in);
+        RDataReader reader = new RDataReader(context, in);
         return reader.readFile();
       }
     }

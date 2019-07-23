@@ -55,15 +55,14 @@ public class AssignLeftFunction extends SpecialFunction {
     // x$a[3] <- 4
     // class(x$a[3]) <- "foo"
 
-    SEXP evaluatedValue = context.evaluate( value, rho);
+    SEXP evaluatedValue = value.eval(context, rho);
     SEXP rhs = value.repromise(evaluatedValue);
 
     while(lhs instanceof FunctionCall) {
       FunctionCall call = (FunctionCall) lhs;
       FunctionCall setterCall = setterCall(call, rhs);
 
-      rhs = context.evaluate(setterCall, rho).repromise();
-
+      rhs = setterCall.eval(context, rho).repromise();
       lhs = call.getArgument(0);
     }
 

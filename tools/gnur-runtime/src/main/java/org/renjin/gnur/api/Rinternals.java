@@ -3208,7 +3208,9 @@ public final class Rinternals {
     }
   }
 
-  // SEXP Rf_ScalarRaw (Rbyte)
+  public static SEXP Rf_ScalarRaw (byte b) {
+    return new RawVector(b);
+  }
 
   public static SEXP Rf_ScalarReal(double p0) {
     return new DoubleArrayVector(p0);

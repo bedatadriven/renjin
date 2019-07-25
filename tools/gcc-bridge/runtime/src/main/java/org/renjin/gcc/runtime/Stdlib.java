@@ -1255,4 +1255,25 @@ public class Stdlib {
   public static boolean __signbit(double x) {
     return x < 0;
   }
+
+  /**
+   * Returns the value of an environment variable.
+   */
+  public static Ptr getenv(Ptr name) {
+    String value = System.getenv(Stdlib.nullTerminatedString(name));
+    if(value == null || value.isEmpty()) {
+      return BytePtr.NULL;
+    } else {
+      return BytePtr.nullTerminatedString(value, StandardCharsets.UTF_8);
+    }
+  }
+
+  /**
+   * This is a (deprecated) C standard library function. If a TTY is not available, the expected
+   * response is NULL, so we always return null.
+   */
+  public static Ptr getpass(Ptr prompt) {
+    return BytePtr.NULL;
+  }
+
 }

@@ -39,7 +39,7 @@ public class SimplifyTest extends EvalTestCase {
     Vector x = new DoubleSequence(AttributeMap.builder().setDim(200,40).build(), 1, 1, 8000);
     TransposingMatrix xt = new TransposingMatrix(x, AttributeMap.builder().setDim(40,200).build());
     
-    VectorPipeliner pipeliner = new VectorPipeliner(MoreExecutors.sameThreadExecutor());
+    VectorPipeliner pipeliner = new VectorPipeliner(MoreExecutors.newDirectExecutorService());
     
     Vector xts = pipeliner.simplify(xt);
     

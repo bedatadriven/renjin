@@ -128,7 +128,7 @@ public class ColSumKernelTest {
 
   private double[] compute(DeferredColSums colSums) {
     DeferredGraph graph = new DeferredGraph(colSums);
-    graph.optimize(new LoopKernelCache(MoreExecutors.sameThreadExecutor()));
+    graph.optimize(new LoopKernelCache(MoreExecutors.newDirectExecutorService()));
     FusedNode root = (FusedNode) graph.getRoot();
     root.run();
 

@@ -44,7 +44,7 @@ public class DeferredGraphTest extends EvalTestCase {
     
     DeferredGraph graph = new DeferredGraph((Vector)sum);
     graph.dumpGraph();
-    graph.optimize(new LoopKernelCache(MoreExecutors.sameThreadExecutor()));
+    graph.optimize(new LoopKernelCache(MoreExecutors.newDirectExecutorService()));
     graph.dumpGraph();
     
     

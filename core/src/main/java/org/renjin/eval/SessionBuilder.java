@@ -98,7 +98,7 @@ public class SessionBuilder {
   /**
    * Sets the {@link ExecutorService} to use for parallelizing work for this {@code Session}.
    *
-   * <p>By default, {@link MoreExecutors#sameThreadExecutor()} is called to obtain an {@code ExecutorService}
+   * <p>By default, {@link MoreExecutors#newDirectExecutorService()} is called to obtain an {@code ExecutorService}
    * instance for the new {@code Session}, but callers can provider their own {@code ExecutorService} to enable
    * multi-threading.</p>
    *
@@ -162,7 +162,7 @@ public class SessionBuilder {
       }
 
       if(executorService == null) {
-        executorService = MoreExecutors.sameThreadExecutor();
+        executorService = MoreExecutors.newDirectExecutorService();
       }
 
       Session session = new Session(fileSystemManager, classLoader, packageLoader, executorService, globalFrame);

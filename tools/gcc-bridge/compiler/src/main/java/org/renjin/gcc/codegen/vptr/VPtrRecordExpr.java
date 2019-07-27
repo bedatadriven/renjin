@@ -137,7 +137,8 @@ public class VPtrRecordExpr implements RecordExpr {
     // Handle bit fields
 
     if( type.equals(GimpleIntegerType.signed(8)) ||
-        type.equals(GimpleIntegerType.unsigned(8))) {
+        type.equals(GimpleIntegerType.unsigned(8)) ||
+        type instanceof GimpleBooleanType) {
 
       DerefExpr byteValue = new DerefExpr(
           pointer.getRef(),

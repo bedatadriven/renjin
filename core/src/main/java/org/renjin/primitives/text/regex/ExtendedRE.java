@@ -1448,7 +1448,7 @@ public class ExtendedRE implements Serializable, RE {
   @Override
   public String subst(String substituteIn, String substitution, int flags) {
     // String to return
-    StringBuffer ret = new StringBuffer();
+    StringBuilder ret = new StringBuilder();
 
     // Start at position 0 and search the whole string
     int pos = 0;
@@ -1457,38 +1457,34 @@ public class ExtendedRE implements Serializable, RE {
     // Try a match at each position
     while (pos < len && match(substituteIn, pos)) {
       // Append string before match
-      ret.append(substituteIn.substring(pos, getGroupStart(0)));
+      ret.append(substituteIn, pos, getGroupStart(0));
 
       if ((flags & REPLACE_BACKREFERENCES) != 0) {
+
         // Process backreferences
-        int lCurrentPosition = 0;
-        int lLastPosition = -2;
-        int lLength = substitution.length();
+        int substituteIndex = 0;
+        int substituteLength = substitution.length();
 
-        // R: Changed back reference character from $0 to \0
-        while ((lCurrentPosition = substitution.indexOf("\\", lCurrentPosition)) >= 0) {
-          if ((lCurrentPosition == 0 || substitution.charAt(lCurrentPosition - 1) != '\\')
-              && lCurrentPosition + 1 < lLength) {
-            char c = substitution.charAt(lCurrentPosition + 1);
-            if (c >= '0' && c <= '9') {
-              // Append everything between the last and the current $ sign
-              ret.append(substitution.substring(lLastPosition + 2, lCurrentPosition));
-
-              // Append the parenthesized expression, if present
-              String val = getParen(c - '0');
-              if (val != null) {
-                ret.append(val);
+        while(substituteIndex < substituteLength) {
+          char c = substitution.charAt(substituteIndex++);
+          if(c == '\\') {
+            if(substituteIndex < substituteLength) {
+              char d = substitution.charAt(substituteIndex++);
+              if (d >= '0' && d <= '9') {
+                // Append the parenthesized expression, if present
+                String val = getParen(d - '0');
+                if (val != null) {
+                  ret.append(val);
+                }
+              } else {
+                ret.append(d);
               }
-              lLastPosition = lCurrentPosition;
             }
+          } else {
+            ret.append(c);
           }
-
-          // Move forward, skipping past match
-          lCurrentPosition++;
         }
 
-        // Append everything after the last $ sign
-        ret.append(substitution.substring(lLastPosition + 2, lLength));
       } else {
         // Append substitution without processing backreferences
         ret.append(substitution);

@@ -447,9 +447,11 @@ public class RECompiler {
     }
 
     // Check for unterminated or empty class
-    if ((idx + 1) >= len || pattern.charAt(++idx) == ']') {
-      syntaxError("Empty or unterminated class");
+    if ((idx + 1) >= len) {
+      syntaxError("Missing ']'");
     }
+
+    idx++;
 
     // Try to build a class.  Create OP_ANYOF node
     int ret = node(ExtendedRE.OP_ANYOF, 0);
@@ -461,10 +463,14 @@ public class RECompiler {
     boolean include = true;
     boolean definingRange = false;
     int idxFirst = idx;
+    boolean firstChar = true;
     char rangeStart = Character.MIN_VALUE;
     char rangeEnd;
     RERange range = new RERange();
-    while (idx < len && pattern.charAt(idx) != ']') {
+
+    whileLoop:
+
+    while (idx < len) {
 
       switchOnCharacter:
 
@@ -488,6 +494,15 @@ public class RECompiler {
             break switchOnCharacter;
           }
 
+        case ']':
+          if(firstChar) {
+            simpleChar = ']';
+            idx++;
+            break switchOnCharacter;
+          } else {
+            break whileLoop;
+          }
+
         case '[':
           String className = posixClass();
           if (className == null) {
@@ -495,6 +510,7 @@ public class RECompiler {
             idx++;
             break switchOnCharacter;
           } else {
+            firstChar = false;
             idx += className.length() + "[::]".length();
             if (className.equals("alpha")) {
               range.include('A', 'Z', include);
@@ -558,6 +574,14 @@ public class RECompiler {
           continue;
 
         case '\\': {
+
+          // Not an escape if immediately followed by a ] bracket symbol AND end of input
+          if(idx + 2 == len && pattern.charAt(idx + 1) == ']') {
+            simpleChar = '\\';
+            idx++;
+            break switchOnCharacter;
+          }
+
           // Escape always advances the stream
           int c;
           switch (c = escape()) {
@@ -662,6 +686,8 @@ public class RECompiler {
           break;
       }
 
+      firstChar = false;
+
       // Handle simple character simpleChar
       if (definingRange) {
         // if we are defining a range make it now
@@ -677,22 +703,11 @@ public class RECompiler {
         last = CHAR_INVALID;
         definingRange = false;
       } else {
-        // SPECIAL case to match GNU R:
-        // If a blackslash preceeds a ] character, then the backslash is considered a member
-        // of the character class, and the class terminates.
-        if (simpleChar == ']') {
-          range.include('\\', include);
-          idx--; // push back the ']' character
-          break;
-
-        } else {
-
-          // If simple character and not start of range, include it
-          if (idx >= len || !(pattern.charAt(idx) == '-' && idx + 1 < len && pattern.charAt(idx + 1) != ']')) {
-            range.include(simpleChar, include);
-          }
-          last = simpleChar;
+        // If simple character and not start of range, include it
+        if (idx >= len || !(pattern.charAt(idx) == '-' && idx + 1 < len && pattern.charAt(idx + 1) != ']')) {
+          range.include(simpleChar, include);
         }
+        last = simpleChar;
       }
     }
 
@@ -792,7 +807,6 @@ public class RECompiler {
 
       // Switch on current char
       switch (pattern.charAt(idx)) {
-        case ']':
         case '^':
         case '$':
         case '.':
@@ -878,9 +892,6 @@ public class RECompiler {
 
       case '|':
         internalError();
-
-      case ']':
-        syntaxError("Mismatched class");
 
       case 0:
         syntaxError("Unexpected end of input");

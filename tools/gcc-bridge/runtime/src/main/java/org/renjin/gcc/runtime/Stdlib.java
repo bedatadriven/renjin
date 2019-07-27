@@ -467,6 +467,29 @@ public class Stdlib {
     return dest;
   }
 
+  /**
+   * Get span of character set in string
+   * Returns the length of the initial portion of str1 which consists only of characters that are part of str2.
+   *
+   * The search does not include the terminating null-characters of either strings, but ends there.
+   */
+  public static int strspn ( Ptr str1, Ptr str2 ) {
+    int len = 0;
+    while(true) {
+      byte c1 = str1.getByte(len);
+      byte c2 = str2.getByte(len);
+      if(c1 != c2) {
+        break;
+      }
+      if(c1 == 0) {
+        break;
+      }
+      len++;
+    }
+    return len;
+  }
+
+
   public static int printf(BytePtr format, Object... arguments) {
     String outputString;
 

@@ -162,6 +162,10 @@ public class GimpleCompiler  {
     this.trampolineClassName = className;
   }
 
+  public void setIgnoreErrors(boolean ignoreErrors) {
+    IGNORE_ERRORS = ignoreErrors;
+  }
+
   public void addReferenceClass(Class<?> clazz) {
     globalSymbolTable.addMethods(clazz);
 

@@ -790,6 +790,11 @@ public class Stdlib {
     return 0;
   }
 
+  public static int gettimeofday(Ptr tv, Ptr tz) {
+    throw new UnsupportedOperationException();
+  }
+
+
   @Deprecated
   public static Object fopen() {
     throw new UnsupportedOperationException("Please recompile with the latest version of Renjin.");
@@ -1274,6 +1279,52 @@ public class Stdlib {
    */
   public static Ptr getpass(Ptr prompt) {
     return BytePtr.NULL;
+  }
+
+  /**
+   * Checks if the given character is an alphanumeric character as classified by the current C locale.
+   */
+  public static int isalnum( int ch ) {
+    boolean alnum = (ch >= 'A' && ch <= 'Z') ||
+        (ch >= 'a' && ch <= 'z') ||
+        (ch >= '0' && ch <= '9');
+
+    return alnum ? 1 : 0;
+  }
+
+  /**
+   * Checks if the given character is whitespace character as classified by the currently installed C locale.
+   */
+  public static int isspace( int ch ) {
+    switch (ch) {
+      case ' ':
+      case '\f':
+      case '\n':
+      case '\r':
+      case '\t':
+      case 0x0b: // vertical tab
+        return 1;
+      default:
+        return 0;
+    }
+  }
+
+  /**
+   *  abort the program after false assertion
+   */
+  public static void __assert_fail(Ptr assertion, Ptr file, int line, Ptr function) {
+    throw new IllegalStateException(String.format("%s:%d: %s: Assertion %s failed",
+        nullTerminatedString(file), line,
+        nullTerminatedString(function),
+        nullTerminatedString(assertion)));
+  }
+
+  public static void abort() {
+    throw new RuntimeException("abort() invoked");
+  }
+
+  public static Ptr wmemcpy( Ptr dest, Ptr src, int count) {
+    throw new UnsupportedOperationException("TODO");
   }
 
 }

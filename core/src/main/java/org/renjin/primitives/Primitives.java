@@ -33,7 +33,6 @@ import org.renjin.primitives.files.Files;
 import org.renjin.primitives.io.Cat;
 import org.renjin.primitives.io.DebianControlFiles;
 import org.renjin.primitives.io.connections.Connections;
-import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.match.Duplicates;
 import org.renjin.primitives.match.Match;
 import org.renjin.primitives.matrix.Matrices;
@@ -49,8 +48,8 @@ import org.renjin.primitives.time.Time;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.s4.S4;
+import org.renjin.serialization.Serialization;
 import org.renjin.sexp.*;
-import org.renjin.stats.internals.CompleteCases;
 import org.renjin.stats.internals.Distributions;
 import org.renjin.stats.internals.distributions.RNG;
 import org.renjin.stats.internals.distributions.Sampling;
@@ -345,7 +344,6 @@ public class Primitives {
     f("pmatch", Match.class, 11);
     f("charmatch", Match.class, 11);
     f("match.call", Match.class, 11);
-    f("complete.cases", CompleteCases.class, 11);
 
     f("attach", Environments.class, 111);
     f("detach", Environments.class, 111);
@@ -604,7 +602,7 @@ public class Primitives {
     f("substr", Text.class, 11);
     f("substr<-", Text.class, 11);
     f("strsplit", Text.class, 11);
-    f("abbreviate", /*abbrev*/ null, 11);
+    f("abbreviate", Text.class, 11);
     f("make.names", Text.class, 11);
     f("pcre_config", null, 11);
     f("grep", Text.class, 11);
@@ -888,6 +886,7 @@ public class Primitives {
     f("strptime", Time.class, 11);
     f("Date2POSIXlt", Time.class, 11);
     f("POSIXlt2Date", Time.class, 11);
+    f("OlsonNames", Time.class, 11);
 
 
 /* Connections */

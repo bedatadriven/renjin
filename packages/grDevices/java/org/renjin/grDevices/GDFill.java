@@ -2,7 +2,7 @@ package org.renjin.grDevices;
 
 import java.awt.*;
 
-class GDFill implements GDObject {
+public class GDFill implements GDObject {
   private Color gc;
 
   public GDFill(int col) {

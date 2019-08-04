@@ -2,7 +2,7 @@ package org.renjin.grDevices;
 
 import java.awt.*;
 
-class GDCircle implements GDObject {
+public class GDCircle implements GDObject {
   private double x;
   private double y;
   private double r;

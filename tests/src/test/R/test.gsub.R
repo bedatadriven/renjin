@@ -24,5 +24,17 @@ test.gsub0 <- function() {
     assertThat(gsub( '^0+', '', '123'), identicalTo('123'))
     assertThat(gsub( '^0*', '', '123'), identicalTo('123'))
     assertThat(gsub( '0*', '', '12303405678'), identicalTo('123345678'))
+}
 
+test.gsub.backref <- function() {
+    assertThat(gsub(x = "az", pattern = "a([a-z])", replacement = "b\\1"), identicalTo("bz"))
+}
+
+
+test.gsub1 <- function() {
+    x <- c("[boo]")
+    chars <- c("*", ".", "?", "^", "+", "$", "|", "(", ")", "[", "]", "{", "}", "\\")
+    y <- gsub(paste0("([\\", paste0(collapse = "\\", chars), "])"), "\\\\\\1", x, perl = TRUE)
+
+    assertThat(y, identicalTo("\\[boo\\]"))
 }

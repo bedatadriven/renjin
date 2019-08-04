@@ -65,15 +65,20 @@ public final class IntVectorPtr extends AbstractPtr {
 
   @Override
   public int getAlignedInt(int index) {
-    return vector.getElementAsInt(this.offset + index);
+    try {
+      return vector.getElementAsInt(this.offset + index);
+    } catch (ArrayIndexOutOfBoundsException ignored) {
+      return IntPtr.UNINITIALIZED_VALUE;
+    }
   }
 
   @Override
   public int getInt(int offset) {
     if(offset % IntPtr.BYTES == 0) {
       return getAlignedInt(offset / IntPtr.BYTES);
+    } else {
+      return super.getInt(offset);
     }
-    return super.getInt(offset);
   }
 
   @Override

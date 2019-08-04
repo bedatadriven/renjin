@@ -29,7 +29,7 @@ import java.awt.*;
 /**
  * GDObject is an arbitrary object that can be painted
  */
-interface GDObject {
+public interface GDObject {
   void paint(Component c, GDState gs, Graphics g);
 }
 

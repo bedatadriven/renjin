@@ -8,7 +8,7 @@ import java.awt.color.ColorSpace;
 import java.awt.geom.AffineTransform;
 import java.awt.image.*;
 
-class GDRaster implements GDObject {
+public class GDRaster implements GDObject {
   private boolean interpolate;
   private Image image;
   private AffineTransform atrans;

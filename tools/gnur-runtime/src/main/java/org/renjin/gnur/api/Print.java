@@ -19,7 +19,10 @@
 // Initial template generated from Print.h from R 3.2.2
 package org.renjin.gnur.api;
 
+import org.renjin.gcc.format.FormatArrayInput;
+import org.renjin.gcc.format.VarArgsInput;
 import org.renjin.gcc.runtime.*;
+import org.renjin.primitives.Native;
 import org.renjin.sexp.SEXP;
 
 @SuppressWarnings("unused")
@@ -30,11 +33,28 @@ public final class Print {
   public static Ptr R_print = MixedPtr.malloc(13 * 4);
 
   public static void Rprintf(BytePtr format, Object... formatArgs) {
-    Stdlib.printf(format, formatArgs);
+
+    String string = Stdlib.format(format, f -> new FormatArrayInput(formatArgs));
+
+    Native.currentContext().getSession().getConnectionTable().getStdout().getPrintWriter().println(string);
   }
 
   public static void REprintf(BytePtr format, Object... formatArgs) {
-    Stdlib.printf(format, formatArgs);
+    String string = Stdlib.format(format, f -> new FormatArrayInput(formatArgs));
+
+    Native.currentContext().getSession().getConnectionTable().getStderr().getPrintWriter().println(string);
+  }
+
+  public static void Rvprintf(BytePtr format, Ptr argumentList) {
+    String string = Stdlib.format(format, f -> new VarArgsInput(f, argumentList));
+
+    Native.currentContext().getSession().getConnectionTable().getStdout().getPrintWriter().println(string);
+  }
+
+  public static void REvprintf(BytePtr format, Ptr argumentList) {
+    String string = Stdlib.format(format, f -> new VarArgsInput(f, argumentList));
+
+    Native.currentContext().getSession().getConnectionTable().getStderr().getPrintWriter().println(string);
   }
 
   public static void Rf_formatRaw(BytePtr p0, /*R_xlen_t*/ int p1, IntPtr p2) {

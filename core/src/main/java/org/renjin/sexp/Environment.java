@@ -300,7 +300,6 @@ public abstract class Environment extends AbstractSEXP implements Recursive {
    * Checks if active bindings are assigned to a given variable name
    *
    * @param symbol variable name
-   * @return
    */
   public boolean isActiveBinding(Symbol symbol) {
     return activeBindings != null && activeBindings.containsKey(symbol);
@@ -314,7 +313,6 @@ public abstract class Environment extends AbstractSEXP implements Recursive {
    * returns the active binding without invocation
    *
    * @param symbol name of active binding
-   * @return
    */
   public Closure getActiveBinding(Symbol symbol) {
     return activeBindings.get(symbol);
@@ -381,7 +379,6 @@ public abstract class Environment extends AbstractSEXP implements Recursive {
    * bindings
    *
    * @param symbol the {@code SYMSXP} that should be looked up
-   * @return
    */
   @Deprecated
   public final SEXP findVariable(Symbol symbol) {
@@ -393,7 +390,6 @@ public abstract class Environment extends AbstractSEXP implements Recursive {
    * active bindings present in the current environment (up to the environment where {@code symbol} is found)
    *
    * @param symbol the {@code SYMSXP} that should be looked up
-   * @return
    * @throws AssertionError if the symbol is an active binding
    */
   public final SEXP findVariableUnsafe(Symbol symbol) {
@@ -415,7 +411,6 @@ public abstract class Environment extends AbstractSEXP implements Recursive {
    * returns varArg value at provided index
    *
    * @param varArgReferenceIndex one-based index of varArg to return
-   * @return
    */
   public final SEXP findVarArg(int varArgReferenceIndex) {
     if(varArgReferenceIndex <= 0) {
@@ -437,7 +432,6 @@ public abstract class Environment extends AbstractSEXP implements Recursive {
    *
    * @param context
    * @param symbol the {@code SYMSXP} that should be looked up
-   * @return
    * @throws EvalException if variable is not found
    */
   public final SEXP findVariableOrThrow(Context context, Symbol symbol) {

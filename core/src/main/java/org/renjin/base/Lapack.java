@@ -724,12 +724,12 @@ public class Lapack {
     AttributeMap.Builder resultAttributes = AttributeMap.builder();
 
     if (Types.isMatrix(B)) {
-      int Bdims[] = B.getAttributes().getDimArray();
+      int[] Bdims = B.getAttributes().getDimArray();
       p = Bdims[1];
       if(p == 0) {
         throw new EvalException("no right-hand side in 'b'");
       }
-      if(Bdims[1] != n) {
+      if(Bdims[0] != n) {
         throw new EvalException(String.format("'b' (%d x %d) must be compatible with 'a' (%d x %d)",
             Bdims[0], Bdims[1], n, n));
       }
@@ -744,9 +744,13 @@ public class Lapack {
         SEXP[] Bdn = new SEXP[2];
         if (!Types.isNull(Adn)) {
           Bdn[0] = Adn.getElementAsSEXP(1);
+        } else {
+          Bdn[0] = Null.INSTANCE;
         }
         if (!Types.isNull(Bindn)) {
           Bdn[1] = Bindn.getElementAsSEXP(1);
+        } else {
+          Bdn[1] = Null.INSTANCE;
         }
         if (Bdn[0] != Null.INSTANCE || Bdn[1] != Null.INSTANCE) {
           resultAttributes.setDimNames(new ListVector(Bdn));
@@ -757,7 +761,7 @@ public class Lapack {
       if(B.length() != n) {
         throw new EvalException("'b' (%d x %d) must be compatible with 'a' (%d x %d)", B.length(), p, n, n);
       }
-      if(Types.isNull(Adn)) {
+      if(!Types.isNull(Adn)) {
         SEXP colNames = Adn.getElementAsSEXP(1);
         if(colNames instanceof StringVector) {
           resultAttributes.setNames(colNames);

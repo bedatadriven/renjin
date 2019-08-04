@@ -2,7 +2,7 @@ package org.renjin.grDevices;
 
 import java.awt.*;
 
-class GDLinePar implements GDObject {
+public class GDLinePar implements GDObject {
   private BasicStroke bs;
 
   public GDLinePar(double lwd, int lty) {

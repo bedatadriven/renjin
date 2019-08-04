@@ -52,7 +52,6 @@ public interface SEXP {
 
   /**
    * Coerces this {@code SEXP} to a single logical value
-   * @return
    */
   Logical asLogical();
 
@@ -121,7 +120,7 @@ public interface SEXP {
   String getName(int index);
   
   /**
-   * Searches the list of this expression's {@link org.renjin.primitives.Attributes#NAMES} attribute for the
+   * Searches the list of this expression's "names" attribute for the
    * provided {@code name}.
    *
    * @param name the name for which to search
@@ -189,8 +188,6 @@ public interface SEXP {
 
   /**
    * Create a promise to this S-Expression with the given environment.
-   * @param rho
-   * @return
    */
   default SEXP promise(Environment rho) {
     return new Promise(rho, this);

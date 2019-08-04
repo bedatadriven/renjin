@@ -27,8 +27,6 @@ import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.Deparse;
-import org.renjin.primitives.io.serialization.HeadlessWriteContext;
-import org.renjin.primitives.io.serialization.RDataWriter;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.packaging.NamespaceFile;
 import org.renjin.primitives.time.RDateTimeFormats;
@@ -37,6 +35,8 @@ import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.repackaged.guava.io.CharSource;
 import org.renjin.repackaged.guava.io.Files;
+import org.renjin.serialization.HeadlessWriteContext;
+import org.renjin.serialization.RDataWriter;
 import org.renjin.sexp.*;
 
 import java.io.*;

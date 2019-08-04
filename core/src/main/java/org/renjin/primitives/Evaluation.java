@@ -243,14 +243,10 @@ public class Evaluation {
 
   @Internal("do.call")
   public static SEXP doCall(@Current Context context, String what, ListVector arguments, Environment environment) {
-    Function function = environment
-            .findFunction(context, Symbol.get(what));
 
-    if(function == null) {
-      throw new EvalException("Could not find function '%s'", what);
-    }
+    FunctionCall call = new FunctionCall(Symbol.get(what), PairList.Node.fromVector(arguments));
 
-    return doCall(context, function, arguments, environment);
+    return call.eval(context, environment);
   }
 
 

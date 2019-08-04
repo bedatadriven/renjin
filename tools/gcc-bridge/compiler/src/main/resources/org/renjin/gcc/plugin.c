@@ -186,18 +186,7 @@ void json_int_field(const char *name, long value) {
   json_int(value);
 }
 
-void json_real_field(const char *name, REAL_VALUE_TYPE value) {
-  json_field(name);
-  if (REAL_VALUE_ISINF (value)) {
-    fprintf(json_f, "\"%s\"", REAL_VALUE_NEGATIVE (value) ? "-Inf" : "Inf");
-  } else if(REAL_VALUE_ISNAN (value)) {
-    fprintf(json_f, "\"%s\"", "NaN");
-  } else {
-    char string[100];
-    real_to_decimal (string, &value, sizeof (string), 0, 1);
-    fprintf(json_f, "%s", string);
-  }
-}
+
 
 void json_bool_field(const char *name, int value) {
   json_field(name);
@@ -409,8 +398,8 @@ static void dump_constructor(tree node) {
   FOR_EACH_CONSTRUCTOR_ELT (CONSTRUCTOR_ELTS (node), ix, field, val)
   {
     json_start_object();
-  
-    if (field && is_struct_init)
+
+    if (field)
       {
         json_field("field");
         dump_op(field);
@@ -486,6 +475,23 @@ static void dump_type(tree type) {
   TRACE("dump_type: exiting: %s\n", tree_code_name[TREE_CODE(type)]);
 }
 
+void dump_real_cst(tree op) {
+
+  long buf[4];
+  memset(buf, 0, sizeof(long)*4);
+
+  REAL_VALUE_TYPE r = TREE_REAL_CST(op);
+  real_to_target_fmt (buf, &r, &ieee_double_format);
+
+  json_field("bits");
+  fprintf(json_f, "\"%08x%08x\"", (int)buf[1], (int)buf[0]);
+
+  char string[100];
+  real_to_decimal (string, &r, sizeof (string), 0, 1);
+  json_field("decimal");
+  fprintf(json_f, "\"%s\"", string);
+}
+
 
 static void dump_op(tree op) {
  	REAL_VALUE_TYPE d;
@@ -550,10 +556,10 @@ static void dump_op(tree op) {
       break;
       
     case REAL_CST:
-      json_real_field("value", TREE_REAL_CST(op));
+      dump_real_cst(op);
       json_field("type");
       dump_type(TREE_TYPE(op));
-	    break;
+	  break;
 	    
     case COMPLEX_CST:
       json_field("real");

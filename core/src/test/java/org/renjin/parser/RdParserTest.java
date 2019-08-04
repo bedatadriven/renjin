@@ -20,7 +20,7 @@ package org.renjin.parser;
 
 import org.junit.Test;
 import org.renjin.EvalTestCase;
-import org.renjin.primitives.io.serialization.RDataReader;
+import org.renjin.serialization.RDataReader;
 import org.renjin.sexp.*;
 import org.renjin.sexp.PairList.Node;
 

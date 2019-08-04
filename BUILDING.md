@@ -15,8 +15,7 @@ requires GCC 4.7.x.
 Requirements
 ------------
 1. JDK 1.8 Recommended
-2. Apache Maven 3+
-3. GCC 4.7
+2. GCC 4.7
 
 ### Vagrant
 
@@ -29,7 +28,7 @@ from the root of the Renjin git repository that calls the
 [Vagrantfile](Vagrantfile):
 
     vagrant up
-    vagrant ssh -c "cd /home/ubuntu/renjin && mvn clean install"
+    vagrant ssh -c "cd /home/ubuntu/renjin && ./gradle build"
 
 Vagrant configures a shared directory on the VirtualBox guest machine
 that includes the Renjin repository, so once the initial build
@@ -50,7 +49,7 @@ as normal.
 You can install the required tools through the APT package manager. 
 A 64-bit architecture is required.
 
-    sudo apt-get install openjdk-8-jdk maven make gcc-4.7 gcc-4.7-plugin-dev gfortran-4.7 g++-4.7 gcc-4.7.multilib g++-4.7-multilib
+    sudo apt-get install openjdk-8-jdk make gcc-4.7 gcc-4.7-plugin-dev gfortran-4.7 g++-4.7 gcc-4.7.multilib g++-4.7-multilib
 
 Then build:
 

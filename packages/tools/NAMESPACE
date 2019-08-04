@@ -1,7 +1,7 @@
 
 importClass(org.renjin.tools.Md5)
 export(md5sum)
-
+export(nonS3methods)
 export(file_ext,
     file_path_as_absolute,
     file_path_sans_ext,

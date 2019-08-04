@@ -19,8 +19,8 @@
 package org.renjin.packaging;
 
 import org.renjin.eval.Context;
-import org.renjin.primitives.io.serialization.RDataWriter;
 import org.renjin.repackaged.guava.io.Files;
+import org.renjin.serialization.RDataWriter;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;

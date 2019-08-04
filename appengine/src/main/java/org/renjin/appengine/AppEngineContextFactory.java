@@ -60,7 +60,7 @@ public class AppEngineContextFactory {
       // initialize our master context here; a fresh but shallow copy will
       // be forked on each incoming request
       Session session = new SessionBuilder()
-          .withFileSystemManager(fileSystemManager)
+          .setFileSystemManager(fileSystemManager)
           .withDefaultPackages()
           .build();
 

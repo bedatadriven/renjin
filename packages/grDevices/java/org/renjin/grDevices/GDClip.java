@@ -2,7 +2,7 @@ package org.renjin.grDevices;
 
 import java.awt.*;
 
-class GDClip implements GDObject {
+public class GDClip implements GDObject {
   private double x1;
   private double y1;
   private double x2;

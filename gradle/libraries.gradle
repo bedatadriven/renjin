@@ -10,7 +10,7 @@ ext {
 
     libraries = [
 
-        guava:              "org.renjin:renjin-guava:17.0b",
+        guava:              "org.renjin:renjin-guava:28.0b",
         asm:                "org.renjin:renjin-asm:5.0.4b",
         soot:               'org.renjin:renjin-soot:2.9.198',
         airline:            'io.airlift:airline:0.8',

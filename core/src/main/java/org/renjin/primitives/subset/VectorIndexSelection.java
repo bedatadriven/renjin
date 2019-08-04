@@ -38,7 +38,7 @@ class VectorIndexSelection implements SelectionStrategy {
 
   @Override
   public SEXP getVectorSubset(Context context, Vector source, boolean drop) {
-    return buildSelection(source, new IndexSubscript(this.subscript, source.length()), drop);
+    return buildSelection(context.materialize(source), new IndexSubscript(this.subscript, source.length()), drop);
   }
 
   public static Vector buildSelection(Vector source, Subscript subscript, boolean drop) {
@@ -243,8 +243,9 @@ class VectorIndexSelection implements SelectionStrategy {
       if(replacementLength == 0) {
         throw new EvalException("replacement has zero length");
       }
-      
-      builder.setFrom(index, replacements, replacementIndex++);
+      if(!IntVector.isNA(index)) {
+        builder.setFrom(index, replacements, replacementIndex++);
+      }
 
       if (replacementIndex >= replacementLength) {
         replacementIndex = 0;

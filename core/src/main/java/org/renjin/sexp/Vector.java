@@ -120,7 +120,6 @@ public interface Vector extends SEXP {
    * of elements with the value {@code NA}.
    * 
    * @param initialSize the number of elements with which to initially populate the vector
-   * @return
    */
   Builder newBuilderWithInitialSize(int initialSize);
  
@@ -131,7 +130,6 @@ public interface Vector extends SEXP {
    * to zero.
    * 
    * @param initialCapacity
-   * @return
    */
   Builder newBuilderWithInitialCapacity(int initialCapacity);
   
@@ -159,9 +157,6 @@ public interface Vector extends SEXP {
    * Creates a new Builder which is initialized with all of this vector's elements 
    * AND it's attributes. If the given {@code type} is wider than this vector's type,
    * then that type is used.
-   * 
-   * @param type
-   * @return
    */
   Builder newCopyBuilder(Vector.Type type);
 
@@ -212,8 +207,7 @@ public interface Vector extends SEXP {
    * <li>character: java.lang.String</li>
    * </ul>
    *
-   * @param index
-   * @return
+   * @param index zero-based index of the element
    * @throws IllegalArgumentException if the index is out of bounds or
    * the element at {@code index} is NA.
    */
@@ -268,7 +262,6 @@ public interface Vector extends SEXP {
      * @param destinationIndex the index
      * @param source
      * @param sourceIndex
-     * @return
      */
     Builder setFrom(int destinationIndex, S source, int sourceIndex );
 
@@ -278,9 +271,8 @@ public interface Vector extends SEXP {
      *
      * @param destinationIndex the index of the element to set
      * @param exp the value with which to replace the element
-     * @throws IllegalArgumentException if this is an {@link AtomicVector.Builder} and {@code exp} is not
+     * @throws IllegalArgumentException if this is an atomic vector builder and {@code exp} is not
      * an {@link AtomicVector} of length 1.
-     * @return
      */
     Builder set(int destinationIndex, SEXP exp);
 
@@ -429,20 +421,13 @@ public interface Vector extends SEXP {
     /**
      * Creates a new {@code Vector} of this {@code Type} from the element at
      * {@code index} in vector.
-     * @param vector
-     * @param index
-     * @return
      */
     public abstract Vector getElementAsVector(Vector vector, int index);
 
     /**
      * Compares the two elements, coercing types to this {@code Type}.
-     * @param vector1
-     * @param index1
-     * @param vector2
-     * @param index2
+     *
      * @throws IllegalArgumentException if either of the two elements is NA or NaN
-     * @return
      */
     public abstract int compareElements(Vector vector1, int index1, Vector vector2, int index2);
 

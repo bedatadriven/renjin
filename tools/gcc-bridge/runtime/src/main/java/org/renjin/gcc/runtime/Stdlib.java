@@ -467,6 +467,29 @@ public class Stdlib {
     return dest;
   }
 
+  /**
+   * Get span of character set in string
+   * Returns the length of the initial portion of str1 which consists only of characters that are part of str2.
+   *
+   * The search does not include the terminating null-characters of either strings, but ends there.
+   */
+  public static int strspn ( Ptr str1, Ptr str2 ) {
+    int len = 0;
+    while(true) {
+      byte c1 = str1.getByte(len);
+      byte c2 = str2.getByte(len);
+      if(c1 != c2) {
+        break;
+      }
+      if(c1 == 0) {
+        break;
+      }
+      len++;
+    }
+    return len;
+  }
+
+
   public static int printf(BytePtr format, Object... arguments) {
     String outputString;
 
@@ -789,6 +812,11 @@ public class Stdlib {
 
     return 0;
   }
+
+  public static int gettimeofday(Ptr tv, Ptr tz) {
+    throw new UnsupportedOperationException();
+  }
+
 
   @Deprecated
   public static Object fopen() {
@@ -1243,4 +1271,83 @@ public class Stdlib {
       return __msgid1;
     }
   }
+
+  public static boolean signbit(double x) {
+    return x < 0;
+  }
+
+  public static boolean __signbitf(float x) {
+    return x < 0;
+  }
+
+  public static boolean __signbit(double x) {
+    return x < 0;
+  }
+
+  /**
+   * Returns the value of an environment variable.
+   */
+  public static Ptr getenv(Ptr name) {
+    String value = System.getenv(Stdlib.nullTerminatedString(name));
+    if(value == null || value.isEmpty()) {
+      return BytePtr.NULL;
+    } else {
+      return BytePtr.nullTerminatedString(value, StandardCharsets.UTF_8);
+    }
+  }
+
+  /**
+   * This is a (deprecated) C standard library function. If a TTY is not available, the expected
+   * response is NULL, so we always return null.
+   */
+  public static Ptr getpass(Ptr prompt) {
+    return BytePtr.NULL;
+  }
+
+  /**
+   * Checks if the given character is an alphanumeric character as classified by the current C locale.
+   */
+  public static int isalnum( int ch ) {
+    boolean alnum = (ch >= 'A' && ch <= 'Z') ||
+        (ch >= 'a' && ch <= 'z') ||
+        (ch >= '0' && ch <= '9');
+
+    return alnum ? 1 : 0;
+  }
+
+  /**
+   * Checks if the given character is whitespace character as classified by the currently installed C locale.
+   */
+  public static int isspace( int ch ) {
+    switch (ch) {
+      case ' ':
+      case '\f':
+      case '\n':
+      case '\r':
+      case '\t':
+      case 0x0b: // vertical tab
+        return 1;
+      default:
+        return 0;
+    }
+  }
+
+  /**
+   *  abort the program after false assertion
+   */
+  public static void __assert_fail(Ptr assertion, Ptr file, int line, Ptr function) {
+    throw new IllegalStateException(String.format("%s:%d: %s: Assertion %s failed",
+        nullTerminatedString(file), line,
+        nullTerminatedString(function),
+        nullTerminatedString(assertion)));
+  }
+
+  public static void abort() {
+    throw new RuntimeException("abort() invoked");
+  }
+
+  public static Ptr wmemcpy( Ptr dest, Ptr src, int count) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
 }

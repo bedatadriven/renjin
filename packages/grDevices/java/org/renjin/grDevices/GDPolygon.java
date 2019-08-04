@@ -4,7 +4,7 @@ import org.renjin.gcc.runtime.Ptr;
 
 import java.awt.*;
 
-class GDPolygon implements GDObject {
+public class GDPolygon implements GDObject {
   private int n;
   private int[] xi;
   private int[] yi;

@@ -1,0 +1,11 @@
+
+apply from: "../gradle/maven.gradle"
+
+
+dependencies {
+    compile project(':script-engine')
+    compileOnly 'javax.servlet:javax.servlet-api:3.0.1'
+    testCompile 'org.easymock:easymock:3.3'
+    testCompile 'javax.servlet:javax.servlet-api:3.0.1'
+
+}

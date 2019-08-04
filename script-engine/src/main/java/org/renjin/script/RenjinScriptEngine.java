@@ -21,6 +21,7 @@ package org.renjin.script;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
+import org.renjin.eval.SessionBuilder;
 import org.renjin.invoke.reflection.converters.Converters;
 import org.renjin.invoke.reflection.converters.RuntimeConverter;
 import org.renjin.parser.RParser;
@@ -45,7 +46,12 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
 
   // jsr context, which wrap renjincore context.
   private final ScriptContext scriptContext;
-  
+
+  public RenjinScriptEngine() {
+    this(new RenjinScriptEngineFactory(),
+        new SessionBuilder().withDefaultPackages().build());
+  }
+
   RenjinScriptEngine(RenjinScriptEngineFactory factory, Session session) {
     super();
     this.factory = factory;

@@ -46,7 +46,7 @@ public class DatasetObjectPromise extends Promise {
   @Override
   protected SEXP doEval(Context context) {
     try {
-      return dataset.loadObject(objectName);
+      return dataset.loadObject(context, objectName);
     } catch (IOException e) {
       throw new EvalException("Exception loading '%s' from dataset '%s'", objectName, dataset.getName());
     }

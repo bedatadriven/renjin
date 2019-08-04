@@ -24,10 +24,9 @@ import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.Types;
-import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.matrix.Matrix;
 import org.renjin.primitives.matrix.MatrixBuilder;
-import org.renjin.primitives.text.StrSignIf;
+import org.renjin.serialization.Serialization;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -111,8 +110,7 @@ public class Base {
    * 
    * @param bin the integer vector to bin
    * @param nbins the number of bins
-   * @param ans not used
-   * @return 
+   * @return
    */
   @Internal
   public static IntVector tabulate(IntVector bin, int nbins) {
@@ -198,9 +196,6 @@ public class Base {
     return val.build();
   }
 
-
-
-  
   public static SEXP R_serialize(@Current Context context, SEXP object, SEXP connection, boolean ascii,
       SEXP version, SEXP refhook) throws IOException {
     return Serialization.serialize(context, object, connection, ascii, version, refhook);

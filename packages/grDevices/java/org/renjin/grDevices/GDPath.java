@@ -5,7 +5,7 @@ import org.renjin.gcc.runtime.Ptr;
 import java.awt.*;
 import java.awt.geom.GeneralPath;
 
-class GDPath implements GDObject {
+public class GDPath implements GDObject {
 
   private GeneralPath path;
 

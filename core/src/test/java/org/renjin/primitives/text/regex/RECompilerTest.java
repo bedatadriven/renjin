@@ -169,13 +169,26 @@ public class RECompilerTest {
   }
 
   @Test
-  public void backslashInCharacterClass() throws RESyntaxException {
+  public void backslashAtEndOfCharacterClassAtEndOfInput() throws RESyntaxException {
     ExtendedRE re = new ExtendedRE("[/\\]");
 
     assertTrue(re.match("\\"));
     assertTrue(re.match("/foo/foo"));
     assertFalse(re.match("foo"));
     assertFalse(re.match(""));
+    assertFalse(re.match("]"));
+
+  }
+
+  @Test
+  public void backslashAtEndOfCharacterClassNotAtEndOfInput() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("[/\\]q]");
+
+    assertFalse(re.match("\\"));
+    assertTrue(re.match("/foo/foo"));
+    assertFalse(re.match("foo"));
+    assertFalse(re.match(""));
+    assertTrue(re.match("]"));
   }
 
   @Test(expected = RESyntaxException.class)
@@ -213,6 +226,48 @@ public class RECompilerTest {
     REPrettyPrinter prettyPrinter = new REPrettyPrinter();
     re.match("Hello World");
     System.out.println(prettyPrinter.prettyPrint(re.program));
+  }
+
+  @Test
+  public void bracketInCharacterClass1() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("[[]");
+    assertTrue(re.match("["));
+    assertFalse(re.match("]"));
+    assertFalse(re.match("]]"));
+    assertFalse(re.match("q"));
+  }
+
+
+  @Test
+  public void rightBracketInCharacterClass() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("[]]");
+    assertTrue(re.match("]"));
+    assertFalse(re.match("q"));
+  }
+
+  @Test
+  public void bracketInCharacterClass2() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("[^],]+");
+    assertTrue(re.match("qq"));
+    assertFalse(re.match("]"));
+    assertFalse(re.match(",]"));
+  }
+
+  @Test
+  public void rightBracketLiteral() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("]");
+    assertTrue(re.match("]"));
+    assertFalse(re.match("["));
+
+  }
+
+  @Test
+  public void escapeCrazyInCharacterClass() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("([\\*\\.\\?\\^\\+\\$\\|\\(\\)\\[\\]\\{\\}\\\\])");
+    assertTrue(re.match("]"));
+    assertTrue(re.match("["));
+    assertTrue(re.match("\\"));
+    assertFalse(re.match("q"));
   }
 
 }

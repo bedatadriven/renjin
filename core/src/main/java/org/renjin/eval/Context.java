@@ -214,10 +214,8 @@ public class Context {
   }
   
   /**
-   * If the S-Expression is an {@code DeferredComputation}, then it is executed with the
+   * If the S-Expression is an {@code DeferredComputation}, then it is materialized with the
    * VectorPipeliner.
-   * @param sexp
-   * @return
    */
   public SEXP materialize(SEXP sexp) {
     if(sexp instanceof Vector) {

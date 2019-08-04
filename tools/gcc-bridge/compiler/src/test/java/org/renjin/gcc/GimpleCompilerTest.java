@@ -1272,5 +1272,10 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void vsnprintf() throws Exception {
     compileAndTest("vsnprintf.c");
   }
+
+  @Test
+  public void signbit() throws Exception {
+    compileAndTest("signbit.c");
+  }
 }
 

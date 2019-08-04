@@ -2,7 +2,7 @@ package org.renjin.grDevices;
 
 import java.awt.*;
 
-class GDLine implements GDObject {
+public class GDLine implements GDObject {
   private double x1;
   private double y1;
   private double x2;

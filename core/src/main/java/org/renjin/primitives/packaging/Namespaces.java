@@ -105,7 +105,7 @@ public class Namespaces {
                                 @Current NamespaceRegistry registry,
                                 String namespaceName,
                                 String datasetName) throws IOException {
-    return registry.getNamespace(context, namespaceName).getPackage().getDataset(datasetName);
+    return registry.getNamespace(context, namespaceName).getPackage().getDataset(context, datasetName);
   }
 
   private static Namespace resolveNamespace(Context context, NamespaceRegistry registry, SEXP sexp) {

@@ -186,7 +186,6 @@ public class Session {
   /**
    * Retrieves the singleton associated with this session.
    * @param clazz
-   * @return
    */
   public <X> X getSingleton(Class<X> clazz) {
     if(clazz == NamespaceRegistry.class) {
@@ -321,7 +320,6 @@ public class Session {
    * <li>c:&#92;users&#92;owner&#92;data.txt</li>
    * </ul>
    *
-   * @return
    * @throws FileSystemException
    */
   public FileObject resolveFile(String uri) throws FileSystemException {

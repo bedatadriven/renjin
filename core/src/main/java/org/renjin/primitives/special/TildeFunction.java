@@ -30,10 +30,16 @@ public class TildeFunction extends SpecialFunction {
   @Override
   public FunctionCall apply(Context context, Environment rho, FunctionCall call) {
 
-    return new FunctionCall(call.getFunction(), call.getArguments(),
-        AttributeMap.builder()
-            .setClass("formula")
-            .set(Symbols.DOT_ENVIRONMENT, rho)
-            .build());
+    AttributeMap attributes;
+    if(call.getAttributes() == AttributeMap.EMPTY) {
+      attributes = AttributeMap.builder()
+          .setClass("formula")
+          .set(Symbols.DOT_ENVIRONMENT, rho)
+          .build();
+    } else {
+      attributes = call.getAttributes();
+    }
+
+    return new FunctionCall(call.getFunction(), call.getArguments(), attributes);
   }
 }

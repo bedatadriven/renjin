@@ -22,7 +22,6 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.invoke.reflection.converters.*;
-import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.vector.ConvertingDoubleVector;
 import org.renjin.primitives.vector.ConvertingStringVector;
 import org.renjin.repackaged.guava.base.Charsets;
@@ -316,7 +315,7 @@ public class Vectors {
 
     // Annoyingly, this function behaves a bit erraticaly
     // When "mode" 
-    
+
     if(mode.equals("any")) {
       //  if the result is atomic all attributes are removed.
       if(x instanceof AtomicVector) {
@@ -466,13 +465,13 @@ public class Vectors {
   @NoAttributes
   public static SEXP vector(String mode, int length) {
     if ("logical".equals(mode)) {
-      return new LogicalArrayVector(new int[length]);
+      return LogicalArrayVector.unsafe(new int[length]);
 
     } else if ("integer".equals(mode)) {
-      return new IntArrayVector(new int[length]);
+      return IntArrayVector.unsafe(new int[length]);
 
     } else if ("numeric".equals(mode) || "double".equals(mode)) {
-      return RepDoubleVector.createConstantVector(0, length);
+      return DoubleArrayVector.unsafe(new double[length]);
 
     } else if ("complex".equals(mode)) {
       throw new UnsupportedOperationException("implement me!");

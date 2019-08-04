@@ -1,0 +1,970 @@
+/*
+ * Renjin : JVM-based interpreter for the R language for the statistical analysis
+ * Copyright © 2010-2019 BeDataDriven Groep B.V. and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, a copy is available at
+ * https://www.gnu.org/licenses/gpl-2.0.txt
+ */
+package org.renjin.serialization;
+
+import org.apache.commons.math.complex.Complex;
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+import org.renjin.parser.NumericLiterals;
+import org.renjin.primitives.Primitives;
+import org.renjin.primitives.sequence.IntSequence;
+import org.renjin.primitives.vector.ConvertingStringVector;
+import org.renjin.primitives.vector.RowNamesVector;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.io.ByteSource;
+import org.renjin.sexp.*;
+
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.Charset;
+import java.util.List;
+
+import static org.renjin.serialization.SerializationFormat.*;
+import static org.renjin.sexp.SexpType.LANGSXP;
+import static org.renjin.sexp.SexpType.LISTSXP;
+
+/**
+ * Reads R objects from an {@code InputStream}.
+ *
+ */
+public class RDataReader implements AutoCloseable {
+
+  private InputStream conn;
+  private StreamReader in;
+
+  private int version;
+  private Version writerVersion;
+  private Version releaseVersion;
+
+  private List<SEXP> referenceTable = Lists.newArrayList();
+
+  private PersistentRestorer restorer;
+  private ReadContext readContext;
+
+  public RDataReader(Context context, InputStream conn) {
+    this.readContext = new SessionReadContext(context);
+    this.conn = conn;
+  }
+
+  public RDataReader(InputStream conn) {
+    this.readContext = new NullReadContext();
+    this.conn = conn;
+  }
+
+  public SEXP readFile() throws IOException {
+    byte streamType = readStreamType(conn);
+    in = createStreamReader(streamType, conn);
+    readAndVerifyVersion();
+    return readExp();
+  }
+
+  protected void readAndVerifyVersion() throws IOException {
+    version = in.readInt();
+    writerVersion = new Version(in.readInt());
+    releaseVersion = new Version(in.readInt());
+
+    if(version != VERSION2) {
+      if(releaseVersion.isExperimental()) {
+        throw new IOException(String.format("cannot read unreleased workspace version %d written by experimental R %s",
+            version, writerVersion));
+      } else {
+        throw new IOException(String.format("cannot read workspace version %d written by R %s; need R %s or newer",
+            version, releaseVersion, releaseVersion));
+      }
+    }
+  }
+
+  public static boolean isRDataFile(ByteSource inputSupplier) throws IOException {
+    try(InputStream in = inputSupplier.openStream()) {
+      byte streamType = readStreamType(in);
+      return streamType != -1;
+    }
+  }
+
+  public static byte readStreamType(InputStream in) throws IOException {
+    byte bytes[] = new byte[7];
+    bytes[0] = (byte) in.read();
+    bytes[1] = (byte) in.read();
+
+    if(bytes[1] == '\n') {
+      switch(bytes[0]) {
+        case XDR_FORMAT:
+        case ASCII_FORMAT:
+        case BINARY_FORMAT:
+          return bytes[0];
+        default:
+          return -1;
+      }
+    }
+    for(int i= 2;i!=7;++i) {
+      bytes[i] = (byte) in.read();
+    }
+
+    String header = new String(bytes,0,5);
+    if(header.equals(ASCII_MAGIC_HEADER)) {
+      return ASCII_FORMAT;
+    } else if(header.equals(BINARY_MAGIC_HEADER)) {
+      return BINARY_FORMAT;
+    } else if(header.equals(XDR_MAGIC_HEADER)) {
+      return XDR_FORMAT;
+    } else {
+      return -1;
+    }
+  }
+
+  private static StreamReader createStreamReader(byte type, InputStream conn) throws IOException {
+    switch(type) {
+      case XDR_FORMAT:
+      case BINARY_FORMAT:
+        return new XdrReader(conn);
+      case ASCII_FORMAT:
+        return new AsciiReader(conn);
+      default:
+        throw new IOException("Unknown format");
+    }
+  }
+
+  public SEXP readExp() throws IOException {
+
+    int flags = in.readInt();
+    switch(Flags.getType(flags)) {
+      case NILVALUE_SXP:
+        return Null.INSTANCE;
+      case EMPTYENV_SXP:
+        return Environment.EMPTY;
+      case BASEENV_SXP:
+        return readContext.getBaseEnvironment();
+      case GLOBALENV_SXP:
+        return readContext.getGlobalEnvironment();
+      case UNBOUNDVALUE_SXP:
+        return Symbol.UNBOUND_VALUE;
+      case MISSINGARG_SXP:
+        return Symbol.MISSING_ARG;
+      case BASENAMESPACE_SXP:
+        return readContext.getBaseNamespaceEnvironment();
+      case SexpType.REFSXP:
+        return readReference(flags);
+      case PERSISTSXP:
+        return readPersistentExp();
+      case SexpType.SYMSXP:
+        return readSymbol();
+      case PACKAGESXP:
+        return readPackage();
+      case NAMESPACESXP:
+        return readNamespace();
+      case SexpType.ENVSXP:
+        return readEnv(flags);
+      case LISTSXP:
+        return readPairList(flags);
+      case LANGSXP:
+        return readLangExp(flags);
+      case SexpType.CLOSXP:
+        return readClosure(flags);
+      case SexpType.PROMSXP:
+        return readPromise(flags);
+      case SexpType.DOTSXP:
+        return readDotExp(flags);
+      case SexpType.EXTPTRSXP:
+        return readExternalPointer(flags);
+      case WEAKREFSXP:
+        return readWeakReference(flags);
+      case SexpType.SPECIALSXP:
+      case SexpType.BUILTINSXP:
+        return readPrimitive(flags);
+      case SexpType.CHARSXP:
+        return readCharExp(flags);
+      case SexpType.LGLSXP:
+        return readLogical(flags);
+      case SexpType.INTSXP:
+        return readIntVector(flags);
+      case SexpType.REALSXP:
+        return readDoubleExp(flags);
+      case SexpType.CPLXSXP:
+        return readComplexExp(flags);
+      case SexpType.STRSXP:
+        return readStringVector(flags);
+      case SexpType.VECSXP:
+        return readListExp(flags);
+      case SexpType.EXPRSXP:
+        return readExpExp(flags);
+      case SexpType.BCODESXP:
+        return readBytecode(flags);
+      case CLASSREFSXP:
+        throw new IOException("this version of R cannot read class references");
+      case GENERICREFSXP:
+        throw new IOException("this version of R cannot read generic function references");
+      case SexpType.RAWSXP:
+        return rawRawVector(flags);
+      case SexpType.S4SXP:
+        return readS4XP(flags);
+      default:
+        throw new IOException(String.format("ReadItem: unknown type %d, perhaps written by later version of R",
+            Flags.getType(flags)));
+    }
+  }
+
+
+  private SEXP rawRawVector(int flags) throws IOException {
+    int length = in.readInt();
+    byte[] bytes = in.readString(length);
+    AttributeMap attributes = readAttributes(flags);
+    return new RawVector(bytes, attributes);
+  }
+
+  private SEXP readPromise(int flags) throws IOException {
+    AttributeMap attributes = readAttributes(flags);
+    SEXP env = readTag(flags);
+    SEXP value = readExp();
+    SEXP expr = readExp();
+
+    if(env != Null.INSTANCE) {
+      return readContext.createPromise(expr, (Environment)env);
+    } else {
+      return expr.repromise(value);
+    }
+  }
+
+  private SEXP readClosure(int flags) throws IOException {
+    AttributeMap attributes = readAttributes(flags);
+    Environment env = (Environment) readTag(flags);
+    PairList formals = (PairList) readExp();
+    SEXP body =  readExp();
+
+    return new Closure(env, formals, body, attributes);
+  }
+
+  private SEXP readLangExp(int flags) throws IOException {
+    AttributeMap attributes = readAttributes(flags);
+    SEXP tag = readTag(flags);
+    SEXP function = readExp();
+    PairList arguments = (PairList) readExp();
+    return new FunctionCall(function, arguments, attributes);
+  }
+
+  /**
+   * Reads a GNU R Byte code object.
+   * 
+   * <p>Renjin does not use the GNU R byte code format, but for the purpose of interoperability, 
+   * we want to be able to read in functions byte-code compiled by GNU R. Fortunately, we can do this 
+   * quite simply because the original S-Expression is retained along with the byte code as a constant
+   * pool entry.</p>
+   * 
+   */
+  private SEXP readBytecode(int flags) throws IOException {
+    int nReps = in.readInt();
+    SEXP[] reps = new SEXP[nReps];
+    return readBC1(reps);
+  }
+
+  private SEXP readBC1(SEXP[] reps) throws IOException {
+    // Read (and discard) the byte code, which is encoded as IntVector
+    SEXP code = readExp();
+
+    // Read the constant pool
+    SEXP[] constants = readBytecodeConstants(reps);
+    
+    // The original S-Expression is stored as the first entry in the constant pool.
+    return constants[0];
+  }
+
+  /**
+   * Reads the constant pool associated with a bytecode object.
+   */
+  private SEXP[] readBytecodeConstants(SEXP[] reps) throws IOException {
+    // Read the constant pool, which contains the original SEXP that we're looking for
+    int nEntries = in.readInt();
+    SEXP[] pool = new SEXP[nEntries];
+    for(int i=0; i < nEntries; ++i) {
+      int type = in.readInt();
+      switch (type) {
+        case SexpType.BCODESXP:
+          pool[i] = readBC1(reps);
+          break;
+        case LANGSXP:
+        case LISTSXP:
+        case BCREPDEF:
+        case BCREPREF:
+        case ATTRLANGSXP:
+        case ATTRLISTSXP:
+          pool[i] = readBCLang(type, reps);
+          break;
+        default:
+          pool[i] = readExp();
+      }
+    }
+    return pool;
+  }
+
+  private SEXP readBCLang(int type, SEXP[] reps) throws IOException {
+    switch (type) {
+      case BCREPREF:
+        return reps[in.readInt()];
+      
+      case BCREPDEF:
+      case LANGSXP:
+      case LISTSXP:
+      case ATTRLANGSXP:
+      case ATTRLISTSXP:
+      {
+        PairList.Node ans;
+        int pos = -1;
+        if (type == BCREPDEF) {
+          pos = in.readInt();
+          type = in.readInt();
+        }
+        
+        // Read attributes if defined
+        AttributeMap attributes;
+        switch (type) {
+          case ATTRLANGSXP:
+          case ATTRLISTSXP:
+            attributes = readAttributeValues(0);
+            break;
+          
+          default:
+            attributes = AttributeMap.EMPTY;
+            break;
+        }
+        
+        // Create either a function call or a plain pair list
+        switch (type) {
+          case ATTRLANGSXP:
+          case LANGSXP:
+            ans = new FunctionCall(Null.INSTANCE, Null.INSTANCE, attributes);
+            break;
+          case ATTRLISTSXP:
+          case LISTSXP:
+            ans = new PairList.Node(Null.INSTANCE, Null.INSTANCE, attributes, Null.INSTANCE);
+            break;
+          
+          default:
+            throw new UnsupportedOperationException("BCLang type: " + type);
+        }
+        
+        if (pos >= 0) {
+          reps[pos] = ans;
+        }
+
+        ans.setTag(readExp());
+        ans.setValue(readBCLang(in.readInt(), reps));
+        
+        SEXP next = readBCLang(in.readInt(), reps);
+        if(next != Null.INSTANCE) {
+          ans.setNextNode((PairList.Node) next);
+        }
+        return ans;
+      }
+
+      default:
+        return readExp();
+    }
+  }
+
+  private SEXP readDotExp(int flags) throws IOException {
+    return PromisePairList.Builder.fromPairList(readPairList(flags));
+  }
+
+  private PairList readPairList(int flags) throws IOException {
+
+    PairList.Node head = null;
+    PairList.Node tail = null;
+
+    while(Flags.getType(flags) != NILVALUE_SXP) {
+      AttributeMap attributes = readAttributes(flags);
+      SEXP tag = readTag(flags);
+      SEXP value = readExp();
+
+      if(tag == Symbols.ROW_NAMES && RowNamesVector.isOldCompactForm(value)) {
+        value = RowNamesVector.fromOldCompactForm(value);
+      }
+
+      PairList.Node node = new PairList.Node(tag, value, attributes, Null.INSTANCE);
+      if(head == null) {
+        head = node;
+        tail = node;
+      } else {
+        tail.setNextNode(node);
+        tail = node;
+      }
+
+      // read the next element in the list
+      flags = in.readInt();
+    }
+    return head == null ? Null.INSTANCE : head;
+  }
+
+  private SEXP readTag(int flags) throws IOException {
+    return Flags.hasTag(flags) ? readExp() : Null.INSTANCE;
+  }
+
+  private AttributeMap readAttributes(int flags) throws IOException {
+    if(Flags.hasAttributes(flags)) {
+      return readAttributeValues(flags);
+    } else if(Flags.isS4(flags)) {
+      return AttributeMap.builder().setS4(true).build();
+    } else {
+      return AttributeMap.EMPTY;
+    }
+  }
+
+  private AttributeMap readAttributeValues(int flags) throws IOException {
+    PairList pairList = (PairList) readExp();
+    AttributeMap.Builder attributes = AttributeMap.builder();
+
+    for(PairList.Node node : pairList.nodes()) {
+      if(node.getTag() == Flags.OLD_S4_BIT) {
+        attributes.setS4(true);
+      } else {
+        attributes.set(node.getTag(), node.getValue());
+      }
+    }
+
+    if(Flags.isS4(flags)) {
+      attributes.setS4(true);
+    }
+
+    SEXP rns = attributes.get(Symbols.ROW_NAMES);
+      /* 
+       * There is a special case when GNU R serializes a empty 
+       * row names vector, it uses an integer vector with two entries, 
+       * first is NA, the second is the number of rows.
+       */
+    if (rns instanceof IntVector) {
+      IntVector rniv = (IntVector)rns;
+      if (rniv.length() == 2 && rniv.isElementNA(0)) {
+        ConvertingStringVector csv = new ConvertingStringVector(
+            IntSequence.fromTo(1, rniv.getElementAsInt(1)), AttributeMap.EMPTY);
+        attributes.set(Symbols.ROW_NAMES, csv);
+      }
+    }
+    return attributes.build();
+  }
+
+  private SEXP readPackage() throws IOException {
+    throw new IOException("package");
+  }
+
+  private SEXP readReference(int flags) throws IOException {
+    int i = readReferenceIndex(flags);
+    return referenceTable.get(i);
+  }
+
+  private int readReferenceIndex(int flags) throws IOException {
+    int i = Flags.unpackRefIndex(flags);
+    if (i == 0) {
+      return in.readInt() - 1;
+    } else {
+      return i - 1;
+    }
+  }
+
+  private SEXP readSymbol() throws IOException {
+
+    // always followed by a CHARSEXP
+    int flags = in.readInt();
+    if(Flags.getType(flags) != SexpType.CHARSXP) {
+      throw new IllegalStateException("Expected a CHARSXP");
+    }
+    String name;
+    int length = in.readInt();
+    if(length < 0) {
+      name = "NA";
+    } else {
+      name = new String(in.readString(length));
+    }
+    return addReadRef(Symbol.get(name));
+  }
+
+  private SEXP addReadRef(SEXP value) {
+    referenceTable.add(value);
+    return value;
+  }
+
+  private SEXP readNamespace() throws IOException {
+    StringVector name = readPersistentNamesVector();
+    SEXP namespace = readContext.findNamespace(Symbol.get(name.getElementAsString(0)));
+    if(namespace == Null.INSTANCE) {
+      throw new IllegalStateException("Cannot find namespace '" + name + "'");
+    }
+    return addReadRef( namespace );
+  }
+
+  private SEXP readEnv(int flags) throws IOException {
+
+    Environment env = Environment.createChildEnvironment(Environment.EMPTY);
+    addReadRef(env);
+
+    boolean locked = (in.readInt() == 1);
+    SEXP parent = readExp();
+    readEnvFrame(env);
+    readEnvHashTab(env);
+
+    // NB: environment's attributes is ALWAYS written,
+    // regardless of flag
+    SEXP attributes = readExp();
+
+    env.setParent( parent == Null.INSTANCE ? Environment.EMPTY : (Environment)parent );
+    env.setAttributes(AttributeMap.fromPairList((PairList) attributes));
+
+    if(locked) {
+      env.lock(false);
+    }
+
+    return env;
+  }
+
+  /**
+   * Reads an environment's hash table.
+   *
+   * <p>GNU R serializes environments with a hashtable using the same format as the in-memory layout of the
+   * hash table, which is a ListVector of the size of the hash table, with each hash entry stored as
+   * a PairList of values matching the hash.</p>
+   */
+  private void readEnvHashTab(Environment env) throws IOException {
+    int tableFlags = in.readInt();
+    if(Flags.getType(tableFlags) == NILVALUE_SXP) {
+      return;
+    }
+    if(Flags.getType(tableFlags) != SexpType.VECSXP) {
+      throw new IOException("Expected type VECSEXP for environment hashtable.");
+    }
+    int length = in.readInt();
+    for (int i = 0; i < length; i++) {
+      readEnvFrame(env);
+    }
+  }
+
+  /**
+   * Reads an environment's frame.
+   *
+   * <p>An environment's frame, or list of symbol-value bindings is stored in the same way
+   * as a pairlist, but we provided a special implementation here to handle active bindings.</p>
+   *
+   * <p>Active bindings are indicated by setting the {@link Flags#ACTIVE_BINDING_MASK} on
+   * the 32-bit head for the pairlist node that is an active binding.</p>
+   */
+  private void readEnvFrame(Environment env) throws IOException {
+
+    int flags = in.readInt();
+
+    while(Flags.getType(flags) != NILVALUE_SXP) {
+
+      if(Flags.getType(flags) != SexpType.LISTSXP) {
+        throw new IOException("Expected type LISTSXP for environment frame");
+      }
+
+      AttributeMap attributes = readAttributes(flags);
+      Symbol tag = (Symbol)readTag(flags);
+      SEXP value = readExp();
+
+      if (tag == Symbols.ROW_NAMES && RowNamesVector.isOldCompactForm(value)) {
+        value = RowNamesVector.fromOldCompactForm(value);
+      }
+      if(Flags.isActiveBinding(flags)) {
+        env.makeActiveBinding(tag, (Closure) value);
+      } else {
+        env.setVariableUnsafe(tag, value);
+      }
+
+      // read the next element in the list
+      flags = in.readInt();
+    }
+  }
+
+
+  private SEXP readS4XP(int flags) throws IOException {
+    return new S4Object(readAttributes(flags));
+  }
+
+  private SEXP readListExp(int flags) throws IOException {
+    SEXP[] values = readExpArray();
+    AttributeMap attributes = readAttributes(flags);
+    return new ListVector(values, attributes);
+  }
+
+  private SEXP readExpExp(int flags) throws IOException {
+    SEXP[] values = readExpArray();
+    AttributeMap attributes = readAttributes(flags);
+    return new ExpressionVector(values, attributes);
+  }
+
+  private SEXP[] readExpArray() throws IOException {
+    int length = in.readInt();
+    SEXP values[] = new SEXP[length];
+    for(int i=0;i!=length;++i) {
+      values[i] = readExp();
+    }
+    return values;
+  }
+
+  private SEXP readStringVector(int flags) throws IOException {
+    int length = in.readInt();
+    if(length > 100) {
+      return readStringVectorAsByteArray(length, flags);
+    } else {
+      return readStringsAsArray(length, flags);
+    }
+  }
+
+  private SEXP readStringsAsArray(int length, int flags) throws IOException {
+    StringArrayVector.Builder array = new StringArrayVector.Builder(0, length);
+    for (int i = 0; i < length; i++) {
+      // each element is encoded as a CHARSXP
+      int elementFlags = in.readInt();
+      assert Flags.getType(elementFlags) == SexpType.CHARSXP;
+
+      // inlined version of readCharSexp
+      int elementLength = in.readInt();
+      if(elementLength < 0) {
+        array.addNA();
+      } else {
+        array.add(readString(flags, elementLength));
+      }
+    }
+    return array.build().setAttributes(readAttributes(flags));
+  }
+
+  private SEXP readStringVectorAsByteArray(int length, int flags) throws IOException {
+    StringByteArrayVector.Builder builder = new StringByteArrayVector.Builder(length);
+
+    int elementFlags = 0;
+    for(int i=0;i!=length;++i) {
+      // each element is encoded as a CHARSXP
+      elementFlags = in.readInt();
+      assert Flags.getType(elementFlags) == SexpType.CHARSXP;
+      
+      // inlined version of readCharSexp
+      int elementLength = in.readInt();
+      builder.readFrom(in, elementLength);
+    }
+
+    // Assume encoding is the same for all elements
+    if(Flags.isUTF8Encoded(elementFlags)) {
+      builder.setCharset(Charsets.UTF_8);
+    } else if(Flags.isLatin1Encoded(flags)) {
+      builder.setCharset(Charset.forName("Latin1"));
+    }
+
+
+    return builder.build(readAttributes(flags));
+  }
+
+  private SEXP readComplexExp(int flags) throws IOException {
+    int length = in.readInt();
+    Complex[] values = new Complex[length];
+    for(int i=0;i!=length;++i) {
+      values[i] = new Complex(in.readDouble(), in.readDouble());
+    }
+    return new ComplexArrayVector(values, readAttributes(flags));
+  }
+
+  private SEXP readDoubleExp(int flags) throws IOException {
+    int length = in.readInt();
+    double[] values = new double[length];
+    for(int i=0;i!=length;++i) {
+      values[i] = in.readDouble();
+    }
+    return new DoubleArrayVector(values, readAttributes(flags));
+  }
+
+  private SEXP readIntVector(int flags) throws IOException {
+    int length = in.readInt();
+    IntBuffer buffer = in.readIntBuffer(length);
+    return new IntBufferVector(buffer, length, readAttributes(flags));
+  }
+
+
+  private SEXP readLogical(int flags) throws IOException {
+    int length = in.readInt();
+    int values[] = new int[length];
+    for(int i=0;i!=length;++i) {
+      values[i] = in.readInt();
+    }
+    return new LogicalArrayVector(values, readAttributes(flags));
+  }
+
+  private SEXP readCharExp(int flags) throws IOException {
+    int length = in.readInt();
+    if (length == -1) {
+      return new CHARSEXP(StringVector.NA );
+    } else  {
+      String string = readString(flags, length);
+      return new CHARSEXP(string);
+    }
+  }
+
+  private String readString(int flags, int length) throws IOException {
+    byte buf[] = in.readString(length);
+    String string;
+    if(Flags.isUTF8Encoded(flags)) {
+      string = new String(buf, "UTF8");
+    } else if(Flags.isLatin1Encoded(flags)) {
+      string = new String(buf, "Latin1");
+    } else {
+      string = new String(buf);
+    }
+    return string;
+  }
+
+  private SEXP readPrimitive(int flags) throws IOException {
+    int nameLength = in.readInt();
+    String name = new String(in.readString(nameLength));
+    PrimitiveFunction builtin = Primitives.getBuiltin(name);
+    if(builtin != null) {
+      return builtin;
+    }
+    builtin = Primitives.getInternal(Symbol.get(name));
+    if(builtin != null) {
+      return builtin;
+    }
+    throw new EvalException("Cannot read primitive '" + name + "': does not exist.");
+  }
+
+  private SEXP readWeakReference(int flags) throws IOException {
+    throw new IOException("weakRef not yet impl");
+  }
+
+  private SEXP readExternalPointer(int flags) throws IOException {
+    ExternalPtr ptr = new ExternalPtr(null);
+    addReadRef(ptr);
+    //R_SetExternalPtrAddr(s, NULL);
+    readExp(); // protected (not used)
+    readExp(); // tag (not used)
+    ptr = (ExternalPtr) ptr.setAttributes(readAttributes(flags));
+    return ptr;
+  }
+
+  private SEXP readPersistentExp() throws IOException {
+    if(restorer == null) {
+      throw new IOException("no restore method available");
+    }
+    return addReadRef( restorer.restore(readPersistentNamesVector()) );
+  }
+
+  private StringVector readPersistentNamesVector() throws IOException {
+    if(in.readInt() != 0) {
+      throw new IOException("names in persistent strings are not supported yet");
+    }
+    int len = in.readInt();
+    String values[] = new String[len];
+    for(int i=0;i!=len;++i) {
+      values[i] = ((CHARSEXP)readExp()).getValue();
+    }
+    return new StringArrayVector(values);
+  }
+
+  @Override
+  public void close() throws IOException {
+    conn.close();
+  }
+
+  interface StreamReader {
+    int readInt() throws IOException;
+    IntBuffer readIntBuffer(int size) throws IOException;
+    byte[] readString(int length) throws IOException;
+    void readFully(byte[] buffer, int offset, int length) throws IOException;
+    double readDouble() throws IOException;
+  }
+
+  private static class AsciiReader implements StreamReader {
+
+    private BufferedReader reader;
+
+    private AsciiReader(BufferedReader reader) {
+      this.reader = reader;
+    }
+
+    private AsciiReader(InputStream in) {
+      this(new BufferedReader(new InputStreamReader(in)));
+    }
+
+    public String readWord() throws IOException {
+      int codePoint;
+      do {
+        codePoint = reader.read();
+        if(codePoint == -1) {
+          throw new EOFException();
+        }
+      } while(Character.isWhitespace(codePoint));
+
+      StringBuilder sb = new StringBuilder();
+      while(!Character.isWhitespace(codePoint)) {
+        sb.appendCodePoint(codePoint);
+        codePoint = reader.read();
+      }
+      return sb.toString();
+    }
+
+    @Override
+    public int readInt() throws IOException {
+      String word = readWord();
+      if("NA".equals(word)) {
+        return IntVector.NA;
+      } else {
+        return Integer.parseInt(word);
+      }
+    }
+
+    @Override
+    public IntBuffer readIntBuffer(int size) throws IOException {
+      int[] array = new int[size];
+      for(int i=0;i!=size;++i) {
+        array[i] = readInt();
+      }
+      return IntBuffer.wrap(array);
+    }
+
+    @Override
+    public double readDouble() throws IOException {
+      String word = readWord();
+      if("NA".equals(word)){
+        return DoubleVector.NA;
+      } else if("Inf".equals(word)) {
+        return Double.POSITIVE_INFINITY;
+      } else if("-Inf".equals(word)){
+        return Double.NEGATIVE_INFINITY;
+      } else {
+        return NumericLiterals.parseDouble(word);
+      }
+    }
+
+    @Override
+    public byte[] readString(int length) throws IOException {
+      byte buf[] = null;
+      if(length > 0) {
+        buf = new byte[length];
+        int codePoint;
+        do {
+          codePoint = reader.read();
+          if(codePoint == -1) {
+            throw new EOFException();
+          }
+        } while(Character.isWhitespace(codePoint));
+        
+        for(int i = 0; i < length; i++) {
+          if(codePoint == '\\') {
+            codePoint = reader.read();
+            switch(codePoint) {
+              case 'n': buf[i] = '\n'; break;
+              case 't': buf[i] = '\t'; break;
+              case 'v': buf[i] = '\013'; break;
+              case 'b' : buf[i] = '\b'; break;
+              case 'r' : buf[i] = '\r'; break;
+              case 'f' : buf[i] = '\f'; break;
+              case 'a' : buf[i] = '\007'; break;
+              case '\\': buf[i] = '\\'; break;
+              case '?' : buf[i] = '\177'; break;
+              case '\'': buf[i] = '\''; break;
+              case '\"': buf[i] = '\"'; break; /* closing " for emacs */
+              case '0': case '1': case '2': case '3':
+              case '4': case '5': case '6': case '7':
+                int d = 0, j = 0;
+                while('0' <= codePoint && codePoint < '8' && j < 3) {
+                  d = d * 8 + (codePoint - '0');
+                  codePoint = reader.read();
+                  j++;
+                }
+                buf[i] = (byte)d;
+                continue;
+                
+              default:
+                buf[i] = (byte)codePoint;
+            }
+          } else {
+            buf[i] = (byte)codePoint;
+          }
+          codePoint = reader.read();
+          if(codePoint == -1) {
+            throw new EOFException();
+          }
+        }
+      }
+      
+      return buf;
+    }
+
+    @Override
+    public void readFully(byte[] buffer, int offset, int length) throws IOException {
+      System.arraycopy(readString(length), 0, buffer, offset, length);
+    }
+  }
+
+  private static class XdrReader implements StreamReader {
+    private final DataInputStream in;
+
+    private XdrReader(DataInputStream in) throws IOException {
+      this.in = in;
+    }
+
+    public XdrReader(InputStream conn) throws IOException {
+      this(new DataInputStream(new BufferedInputStream(conn)));
+    }
+
+    @Override
+    public int readInt() throws IOException {
+      return in.readInt();
+    }
+
+    @Override
+    public IntBuffer readIntBuffer(int size) throws IOException {
+      ByteBuffer byteBuffer = ByteBuffer.allocateDirect(size * 4);
+      ReadableByteChannel channel = Channels.newChannel(in);
+      while(byteBuffer.hasRemaining()) {
+        channel.read(byteBuffer);
+      }
+      byteBuffer = (ByteBuffer)byteBuffer.rewind();
+      byteBuffer.order(ByteOrder.BIG_ENDIAN);
+      IntBuffer intBuffer = byteBuffer.asIntBuffer();
+      assert intBuffer.limit() == size;
+      return intBuffer;
+    }
+
+    @Override
+    public byte[] readString(int length) throws IOException {
+      byte buf[] = new byte[length];
+      in.readFully(buf);
+      return buf;
+    }
+
+    @Override
+    public void readFully(byte[] buffer, int offset, int length) throws IOException {
+      in.readFully(buffer, offset, length);
+    }
+
+    @Override
+    public double readDouble() throws IOException {
+      long bits = in.readLong();
+      return Double.longBitsToDouble(bits);
+    }
+  }
+
+  /**
+   * Interface that allows Renjin containers to restore objects
+   * previously stored by {@link RDataWriter.PersistenceHook}
+   */
+  public interface PersistentRestorer {
+    SEXP restore(StringVector values);
+  }
+
+}

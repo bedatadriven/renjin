@@ -20,12 +20,12 @@ package org.renjin.primitives.packaging;
 
 import org.renjin.eval.Context;
 import org.renjin.packaging.LazyLoadFrame;
-import org.renjin.primitives.io.serialization.RDataReader;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Function;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.ImmutableList;
 import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.serialization.RDataReader;
 import org.renjin.sexp.NamedValue;
 import org.renjin.sexp.SEXP;
 
@@ -152,12 +152,12 @@ public abstract class FileBasedPackage extends Package {
     }
 
     @Override
-    public SEXP loadObject(String name) throws IOException {
+    public SEXP loadObject(Context context, String name) throws IOException {
       if(!objectNameMap.containsKey(name)) {
         throw new IllegalArgumentException(name);
       }
       try(InputStream in = getResource("data/" + objectNameMap.get(name)).openStream()) {
-        RDataReader reader = new RDataReader(in);
+        RDataReader reader = new RDataReader(context, in);
         return reader.readFile();
       }
     }

@@ -23,11 +23,11 @@ import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.expr.CompiledSexp;
 import org.renjin.compiler.codegen.expr.SexpExpr;
 import org.renjin.eval.Support;
-import org.renjin.primitives.io.serialization.HeadlessWriteContext;
-import org.renjin.primitives.io.serialization.RDataWriter;
 import org.renjin.repackaged.asm.*;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.asm.util.TraceClassVisitor;
+import org.renjin.serialization.HeadlessWriteContext;
+import org.renjin.serialization.RDataWriter;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;
 

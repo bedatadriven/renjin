@@ -24,14 +24,14 @@ import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.io.connections.GzFileConnection;
-import org.renjin.primitives.io.serialization.RDataReader;
-import org.renjin.primitives.io.serialization.RDataWriter;
 import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.HashMultimap;
 import org.renjin.repackaged.guava.collect.Multimap;
 import org.renjin.repackaged.guava.io.Files;
+import org.renjin.serialization.RDataReader;
+import org.renjin.serialization.RDataWriter;
 import org.renjin.sexp.*;
 import org.tukaani.xz.XZInputStream;
 
@@ -170,8 +170,11 @@ public class DatasetsBuilder {
    * @throws IOException
    */
   private void processRDataFile(File dataFile) throws IOException {
+
+    Session session = new SessionBuilder().withoutBasePackage().build();
+
     SEXP exp;
-    try(RDataReader reader = new RDataReader(DatasetsBuilder.decompress(dataFile))) {
+    try(RDataReader reader = new RDataReader(session.getTopLevelContext(), DatasetsBuilder.decompress(dataFile))) {
       exp = reader.readFile();
     }
         
@@ -180,7 +183,6 @@ public class DatasetsBuilder {
     }
     
     String logicalDatasetName = stripExtension(dataFile.getName());
-    Session session = new SessionBuilder().withoutBasePackage().build();
     writePairList(logicalDatasetName, session, (PairList)exp);
   }
 
@@ -322,7 +324,7 @@ public class DatasetsBuilder {
    * file so that it can be loaded on demand, rather than en mass
    * when a package is loaded. 
    */
-  private void writePairList(String logicalDatasetName, Session session, PairList pairList) 
+  private void writePairList(String logicalDatasetName, Session session, PairList pairList)
       throws IOException {
     
     File datasetDir = new File(dataObjectDirectory, logicalDatasetName);

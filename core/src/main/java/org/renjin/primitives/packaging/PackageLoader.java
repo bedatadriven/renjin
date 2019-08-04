@@ -21,6 +21,15 @@ package org.renjin.primitives.packaging;
 
 import java.util.Optional;
 
+/**
+ * Interface to a service which can load R Packages.
+ *
+ * <p>This is an extension point that allows users to customize the loading of packages
+ * in a Renjin {@link org.renjin.eval.Session}. By default, packages are loaded from the classpath
+ * using the {@link ClasspathPackageLoader}, but you can provide your own mechanism that loads
+ * packages over the network, from a specific file location (see {@link FileBasedPackage}, or
+ * something more complex.</p>
+ */
 public interface PackageLoader {
 
   /**

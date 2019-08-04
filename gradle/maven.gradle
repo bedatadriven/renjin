@@ -8,8 +8,10 @@ publishing {
     publications {
         maven(MavenPublication) {
             from components.java
-            if(project.parent.name == 'gcc-bridge' && !project.name.startsWith("gcc-bridge-")) {
-                artifactId "gcc-bridge-${project.name}"
+            if(project.parent.name == 'gcc-bridge') {
+                if(!project.name.startsWith("gcc-bridge-")) {
+                    artifactId "gcc-bridge-${project.name}"
+                }
             
             } else if(project.parent.name != 'packages') {
                 artifactId "renjin-${project.name}"

@@ -33,6 +33,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Base class for R packages that have been loaded by a {@link PackageLoader}.
+ */
 public abstract class Package {
 
   private final FqPackageName name;
@@ -68,10 +71,10 @@ public abstract class Package {
     return Collections.emptyList();
   }
 
-  public SEXP getDataset(String datasetName) throws IOException {
+  public SEXP getDataset(Context context, String datasetName) throws IOException {
     for(Dataset dataset : getDatasets()) {
       if(dataset.getName().equals(datasetName)) {
-        return dataset.loadAll();
+        return dataset.loadAll(context);
       }
     }
     return Null.INSTANCE;

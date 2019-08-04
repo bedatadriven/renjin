@@ -37,11 +37,11 @@ public class IfFunction extends SpecialFunction {
     condition = context.materialize(condition);
 
     if (asLogicalNoNA(context, call, condition)) {
-      return context.evaluate( call.getArguments().getElementAsSEXP(1), rho); /* true value */
+      return call.getArguments().getElementAsSEXP(1).eval(context, rho); /* true value */
 
     } else {
       if (call.getArguments().length() == 3) {
-        return context.evaluate( call.getArguments().getElementAsSEXP(2), rho); /* else value */
+        return call.getArguments().getElementAsSEXP(2).eval(context, rho); /* else value */
       } else {
         context.setInvisibleFlag();
         return Null.INSTANCE;   /* no else, evaluates to NULL */

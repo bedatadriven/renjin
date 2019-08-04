@@ -43,7 +43,20 @@ test.dimnames.attributes.dropped <- function() {
     cn <- c(d='z', e='q')
 
     dimnames(x) <- list(rn, cn)
+}
 
+test.call.replace <- function() {
 
+    x <- quote(c(1, 2, 3, 4, 5, z = 6))
+    names(x) <- c("", "a", "b")
 
+    assertThat(x, identicalTo(quote(c(a = 1, b = 2, 3, 4, 5, 6))))
+}
+
+test.pairlist.replace <- function() {
+
+    x <- pairlist(a = 41, b = 42, c = 43)
+    names(x) <- c("x", "y", "z")
+
+    assertThat(x, identicalTo(pairlist(x = 41, y = 42, z = 43)))
 }

@@ -5,7 +5,7 @@ import java.awt.*;
 /**
  * object storing the current graphics state
  */
-class GDState {
+public class GDState {
   private Color col;
   private Color fill;
   private Font font;

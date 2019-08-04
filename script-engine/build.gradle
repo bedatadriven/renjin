@@ -12,3 +12,61 @@ dependencies {
 }
 
 test.enabled = false
+
+
+task combinedJavadoc(type: Javadoc) {
+    source sourceSets.main.allJava
+
+    source project(':core').sourceSets.main.allJava
+    source project(':packages:grDevices').sourceSets.main.allJava
+
+    classpath = sourceSets.main.compileClasspath
+    destinationDir = file("${buildDir}/docs/combined")
+
+    options.addStringOption('Xdoclint:none', '-quiet')
+
+    include "**/org/renjin/sexp/**.java"
+    include "**/org/renjin/serialization/**.java"
+    include "**/org/renjin/eval/Session*.java"
+    include "**/org/renjin/eval/Context.java"
+    include "**/org/renjin/packaging/Package.java"
+    include "**/org/renjin/packaging/PackageLoader.java"
+    include "**/org/renjin/packaging/Classpath*.java"
+    include "**/org/renjin/packaging/FqPackageName.java"
+    include "**/org/renjin/script/*"
+    include "**/org/renjin/grDevices/**.*"
+}
+
+task combinedJavadocJar(type: Jar) {
+    dependsOn 'combinedJavadoc'
+    from "$buildDir/docs/combined"
+    archiveClassifier = 'javadoc'
+}
+
+task jarWithDependencies(type: Jar) {
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+    classifier 'jar-with-dependencies'
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifact jarWithDependencies
+        }
+    }
+}
+
+task publishJavadocSite {
+    dependsOn 'combinedJavadoc'
+    doFirst {
+        project.exec {
+            commandLine 'gsutil', '-m', '-q', 'cp', '-a', 'public-read', '-r',
+                    "$buildDir/docs/combined/*",
+                    'gs://javadoc.renjin.org/latest/'
+        }
+    }
+}
+
+build.dependsOn 'combinedJavadocJar'
+publish.dependsOn 'publishJavadocSite'

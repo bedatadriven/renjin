@@ -63,8 +63,8 @@ public interface AtomicVector extends Vector {
    * Compares two of the vector's elements.
    * @param index1 the index of the first element
    * @param index2 the index of the second element
-   * @return a negative value if element at index1 < element at index 2;
-   * a positive value if element at index1 > element at index2;
+   * @return a negative value if element at index1 &lt; element at index 2;
+   * a positive value if element at index1 &gt; element at index2;
    * zero if the element at index1 == the element at index 2
    *
    */

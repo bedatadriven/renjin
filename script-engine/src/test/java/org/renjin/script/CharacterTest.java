@@ -1,7 +1,6 @@
 package org.renjin.script;
 
 import org.junit.Test;
-import org.renjin.parser.StringLiterals;
 import org.renjin.sexp.StringVector;
 
 import javax.script.ScriptException;
@@ -26,8 +25,24 @@ public class CharacterTest {
          outSw.getBuffer().setLength(0);
          outSw.getBuffer().trimToSize();
 
+         engine.eval("cat('Hello\nWorld')");
+         assertThat(outSw.toString(), equalTo("Hello\nWorld"));
+         outSw.getBuffer().setLength(0);
+         outSw.getBuffer().trimToSize();
+
          engine.eval("print('åäö')");
          assertThat(outSw.toString(), equalTo("[1] \"åäö\"\n"));
+         outSw.getBuffer().setLength(0);
+         outSw.getBuffer().trimToSize();
+
+         engine.eval("cat('åäö')");
+         assertThat(outSw.toString(), equalTo("åäö"));
+
+         outSw.getBuffer().setLength(0);
+         outSw.getBuffer().trimToSize();
+
+         engine.eval("a <- '\u00b5';print(a)");
+         assertThat(outSw.toString(), equalTo("[1] \"µ\"\n"));
       }
    }
 
@@ -39,22 +54,4 @@ public class CharacterTest {
       assertThat(vec.asString(), equalTo("åäö"));
    }
 
-   @Test
-   public void testEscapeNonAsciiConfig() throws IOException, ScriptException {
-      StringLiterals.ESCAPE_NON_ASCII = true;
-      try (StringWriter outSw = new StringWriter();
-           PrintWriter outputWriter = new PrintWriter(outSw)) {
-         RenjinScriptEngine engine = new RenjinScriptEngine();
-         engine.getSession().setStdOut(outputWriter);
-
-         engine.eval("print('åäö')");
-         assertThat(outSw.toString(), equalTo("[1] \"\\u00e5\\u00e4\\u00f6\"\n"));
-         outSw.getBuffer().setLength(0);
-         outSw.getBuffer().trimToSize();
-
-         StringLiterals.ESCAPE_NON_ASCII = false;
-         engine.eval("print('åäö')");
-         assertThat(outSw.toString(), equalTo("[1] \"åäö\"\n"));
-      }
-   }
 }

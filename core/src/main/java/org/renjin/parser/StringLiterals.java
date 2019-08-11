@@ -24,6 +24,32 @@ import org.renjin.sexp.StringVector;
  * Formats
  */
 public class StringLiterals {
+
+
+    /** Whether to escape strings above codepoint 126 (non ascii) or not, defaults to false.
+     * Override with -D option or by setting a system variable for renjin.core.parser.escape.non.ascii
+     */
+    public static boolean ESCAPE_NON_ASCII = getPropertyOrEnv("renjin.core.parser.escape.non.ascii", "false")
+       .equalsIgnoreCase("true");
+
+    /**
+     * First check property (-D option), if that not exist then look for variable in the environment,
+     * if that does not exist either, then fallback to default.
+     * @param key the property key to look for, case sensitive
+     * @param defaultVal the fallback value if no key is defined
+     * @return the value corresponding to the property key or the defaultVal if none exist
+     */
+    private static String getPropertyOrEnv(String key, String defaultVal) {
+        String prop = System.getProperty(key);
+        if (prop == null) {
+            prop = System.getenv(key);
+        }
+        if (prop == null) {
+            return defaultVal;
+        }
+        return prop;
+    }
+
     /**
      * Formats a {@code String} as a literal
      *
@@ -66,7 +92,9 @@ public class StringLiterals {
                 buf.append("\\\"");
             } else if(codePoint == '\\') {
                 buf.append("\\\\");
-            } else if(codePoint < 32 || codePoint > 126) {
+            } else if(codePoint < 32) {
+                appendUnicodeEscape(buf, codePoint);
+            } else if (ESCAPE_NON_ASCII && codePoint  > 126) {
                 appendUnicodeEscape(buf, codePoint);
             } else {
                 buf.appendCodePoint(codePoint);

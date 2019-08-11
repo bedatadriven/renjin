@@ -27,11 +27,21 @@ public class StringLiteralsTest {
 
     @Test
     public void unicodeEscapes() {
+        // Start of Heading should be escaped
         assertThat(StringLiterals.format("\u0001", "NA"), equalTo("\"\\u0001\""));
+        // newlines should be escaped
         assertThat(StringLiterals.format("\n", "NA"), equalTo("\"\\n\""));
+        // umlauts should NOT be escaped
         assertThat(StringLiterals.format("åäö", "NA"), equalTo("\"åäö\""));
+
+        // Inverted Exclamation Mark should NOT be escaped
         assertThat(StringLiterals.format("\u00a1", "NA"), equalTo("\"\u00a1\""));
+        // Latin Small Letter O with horn (ơ) should NOT be escaped
         assertThat(StringLiterals.format("\u01a1", "NA"), equalTo("\"\u01a1\""));
+        // greek small letter omega with dasia and ypogegrammeni (ᾡ) i.e. U+1FA1 should NOT be escaped
         assertThat(StringLiterals.format("\u1fa1", "NA"), equalTo("\"\u1fa1\""));
+
+        // Codepoint 149, Message Waiting, should be escaped
+        assertThat(StringLiterals.format("\u0095", "NA"), equalTo("\"\\u0095\""));
     }
 }

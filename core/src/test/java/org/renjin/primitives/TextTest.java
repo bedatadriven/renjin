@@ -170,19 +170,16 @@ public class TextTest extends EvalTestCase {
 
   @Test
   public void split() {
-    eval("strsplit <- function (x, split, extended = TRUE, fixed = FALSE, perl = FALSE, useBytes = FALSE) " +
-        ".Internal(strsplit(x, as.character(split),  as.logical(fixed), " +
-        "as.logical(perl), as.logical(useBytes)))");
-
-    assertThat( eval("strsplit('a,b', ',')"), elementsIdenticalTo( list( c("a","b") )));
-    assertThat( eval("strsplit('the   slow lazy  dog etc', '\\\\s+')"),
+    assertThat(eval("strsplit('a,b', ',')"), elementsIdenticalTo( list( c("a","b") )));
+    assertThat(eval("strsplit('the   slow lazy  dog etc', '\\\\s+')"),
         elementsIdenticalTo( list( c("the","slow", "lazy", "dog", "etc") )));
-    assertThat( eval("strsplit(c('a b c d e', '1 2 3 4'), '\\\\s+')"),
+    assertThat(eval("strsplit(c('a b c d e', '1 2 3 4'), '\\\\s+')"),
         elementsIdenticalTo( list( c("a", "b", "c", "d", "e"), c("1","2", "3","4"))));
 
-    assertThat( eval("strsplit('abc','')"), elementsIdenticalTo( list( c("a","b","c") )));
+    assertThat(eval("strsplit('abc','')"), elementsIdenticalTo( list( c("a","b","c") )));
+    assertThat(eval("strsplit('abc', NULL)"), elementsIdenticalTo( list(c("a", "b", "c")) ));
 
-    assertThat( eval("strsplit('|ab|cf|q||','|',fixed=TRUE)"), elementsIdenticalTo( list(c("", "ab", "cf", "q", ""))));
+    assertThat(eval("strsplit('|ab|cf|q||','|',fixed=TRUE)"), elementsIdenticalTo( list(c("", "ab", "cf", "q", ""))));
   }
 
   @Test
@@ -234,8 +231,14 @@ public class TextTest extends EvalTestCase {
 
 
     assertThat( eval("format(c(1,10,1000))"), elementsIdenticalTo(c("   1", "  10", "1000")));
+    assertThat( eval("format(c(1L,10L,1000L))"), elementsIdenticalTo(c("   1", "  10", "1000")));
     assertThat( eval("format(c(1,10,1000),trim=T)"), elementsIdenticalTo(c("1", "10", "1000")));
 
+    assertThat( eval("format(1.1, decimal.mark = ',')"), elementsIdenticalTo(c("1,1")));
+
+    // justification is always "right" for logical vectors:
+    assertThat(eval("format(c(TRUE, FALSE))"), elementsIdenticalTo(c(" TRUE", "FALSE")));
+    assertThat(eval("format(c(TRUE, FALSE), justify = 'left')"), elementsIdenticalTo(c(" TRUE", "FALSE")));
   }
 
   @Test

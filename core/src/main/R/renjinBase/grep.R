@@ -17,6 +17,13 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
+# convert split=NULL to split="" to make prettyNum() happy:
+strsplit <-
+function(x, split, fixed = FALSE, perl = FALSE, useBytes = FALSE) {
+    if (is.null(split)) split <- ""
+    .Internal(strsplit(x, as.character(split), fixed, perl, useBytes))
+}
+
 
 agrepl <-
 function(pattern, x, max.distance = 0.1, costs = NULL,

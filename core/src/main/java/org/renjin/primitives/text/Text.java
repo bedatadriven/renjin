@@ -37,6 +37,7 @@ import org.renjin.sexp.*;
 
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -812,25 +813,18 @@ public class Text {
        
     List<String> elements = formatCharacterElements(x, naEncode);
     int width = calculateWidth(elements, minWidth, naEncode);
-    if(just == 0) {
-      elements = justify(elements, width, Justification.LEFT, naEncode);
-    } else if(just == 1) {
-      elements = justify(elements, width, Justification.RIGHT, naEncode);
-    } else if(just == 2) {
-      elements = justify(elements, width, Justification.CENTRE, naEncode);
-    } else {
-      elements = justify(elements, width, Justification.NONE, naEncode);
-    }
+    elements = justify(elements, width, getJustification(just), naEncode);
 
     return buildFormatResult(x, elements);
   }
 
   @Internal
   public static StringVector format(LogicalVector x, boolean trim, SEXP digits, SEXP nsmall,
-      SEXP minWidth, int zz, boolean naEncode, SEXP scientific, StringVector decimalMark) {
+      SEXP minWidth, int just, boolean naEncode, SEXP scientific, StringVector decimalMark) {
        
     List<String> elements = formatLogicalElements(x);
     int width = calculateWidth(elements, minWidth, naEncode);
+    // for logical vectors, the justification is apparently ignored and always equal to RIGHT:
     elements = justify(elements, width, Justification.RIGHT, naEncode);
     
     return buildFormatResult(x, elements);
@@ -857,7 +851,8 @@ public class Text {
    * @param minWidth the _minimum_ field width or ‘NULL’ or ‘0’
           for no restriction.
 
-   * @param zz
+   * @param just an integer to indicate the justification: 0 is left, 1
+   *             is right, 2 is centre, and 3 is none
    * @param naEncode  should ‘NA’ strings be encoded?  Note this only
           applies to elements of character vectors, not to numerical or
           logical ‘NA’s, which are always encoded as ‘"NA"’.
@@ -872,12 +867,14 @@ public class Text {
   @Internal
   @Materialize
   public static StringVector format(DoubleVector x, boolean trim, SEXP digits, int nsmall,
-      SEXP minWidth, int zz, boolean naEncode, SEXP scientific, StringVector decimalMark) {
-       
-    List<String> elements = formatNumericalElements(x);
+      SEXP minWidth, int just, boolean naEncode, SEXP scientific, StringVector decimalMark) {
+
+    char dec = decimalMark.asString().charAt(0);
+    List<String> elements = formatNumericalElements(x, nsmall, dec);
     int width = calculateWidth(elements, minWidth, naEncode);
     
     if(!trim) {
+      // for numeric vectors, the justification is apparently ignored and always equal to RIGHT:
       elements = justify(elements, width, Justification.RIGHT, naEncode);
     }
     
@@ -898,12 +895,15 @@ public class Text {
   @Internal
   @Materialize
   public static StringVector format(IntVector x, boolean trim, SEXP digits, int nsmall,
-      SEXP minWidth, int zz, boolean naEncode, SEXP scientific, StringVector decimalMark) {
-       
-    List<String> elements = formatNumericalElements(x);
+      SEXP minWidth, int just, boolean naEncode, SEXP scientific, StringVector decimalMark) {
+
+    // pass decimal mark on even if it doesn't make a lot of sense for integers:
+    char dec = decimalMark.asString().charAt(0);
+    List<String> elements = formatNumericalElements(x,0, dec);
     int width = calculateWidth(elements, minWidth, naEncode);
     
     if(!trim) {
+      // for numeric vectors, the justification is apparently ignored and always equal to RIGHT:
       elements = justify(elements, width, Justification.RIGHT, naEncode);
     }
     
@@ -947,6 +947,21 @@ public class Text {
   enum Justification {
     LEFT, RIGHT, CENTRE, NONE
   }
+
+  /**
+   * @param just integer value used by R to define the justification in format()
+   */
+  private static Justification getJustification(int just) {
+    if(just == 0) {
+      return Justification.LEFT;
+    } else if(just == 1) {
+      return Justification.RIGHT;
+    } else if(just == 2) {
+      return Justification.CENTRE;
+    } else {
+      return Justification.NONE;
+    }
+  }
   
   private static List<String> justify(Iterable<String> elements, int width, Justification justification, boolean naEncode) {
     List<String> justified = Lists.newArrayList();
@@ -979,9 +994,13 @@ public class Text {
     return sb.toString();
   }
 
-  private static List<String> formatNumericalElements(AtomicVector x) {
-    DecimalFormat format = new DecimalFormat();
-    format.setMinimumFractionDigits(0);
+  private static List<String> formatNumericalElements(AtomicVector x, int nsmall, char decimalMark) {
+    DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+    symbols.setDecimalSeparator(decimalMark);
+
+    DecimalFormat defaultFormat = new DecimalFormat();
+    DecimalFormat format = new DecimalFormat(defaultFormat.toPattern(), symbols);
+    format.setMinimumFractionDigits(nsmall);
     format.setGroupingUsed(false);
     
     List<String> strings = Lists.newArrayList();

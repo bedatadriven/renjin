@@ -46,5 +46,23 @@ test.formattingStringsWithPadding <- function() {
 
 
 test.formattingNumericValues <- function() {
+    # issue #338:
     assertThat(format(1000, big.mark = ","), identicalTo("1,000"))
+
+    assertThat(format(1.1), identicalTo("1.1"))
+    assertThat(format(0.1), identicalTo("0.1"))
+    assertThat(format(1.1, decimal.mark = ","), identicalTo("1,1"))
+    assertThat(format(1.1, nsmall = 2), identicalTo("1.10"))
+    assertThat(format(1L, nsmall = 2), identicalTo("1"))
+
+    assertThat(format(12345, digits = 4), identicalTo("12345"))
+    assertThat(format(1234.56, digits = 4, nsmall = 2), identicalTo("1234.56"))
+
+    # format() ignores justify argument when input is numeric:
+    assertThat(format(1.1, width = 4), identicalTo(" 1.1"))
+    assertThat(format(1.1, width = 4, justify = "left"), identicalTo(" 1.1"))
+
+    # failing tests:
+    #assertThat(format(1234.56, digits = 4), identicalTo("1234"))
+    #assertThat(format(1234, scientific = TRUE), identicalTo("1.234e+03"))
 }

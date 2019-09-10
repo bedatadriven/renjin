@@ -29,9 +29,6 @@ test.unique <- function() {
     assertThat( unique(c(1, NA, NA)), identicalTo(c(1, NA)) )
     assertThat( unique(c(a=1, b=2, c=1)), identicalTo(c(1,2)) )
 
-    # TODO: fix issue https://github.com/bedatadriven/renjin/issues/207
-    #assertThat( unique(c(1, NA, NA), incomparables=NA), identicalTo(c(1, NA, NA)) )
-
     df <- data.frame(
         x = c("a", "b", "c", "b"),
         y = c("x", "y", "z", "y"),
@@ -41,4 +38,18 @@ test.unique <- function() {
     assertThat( unique(df), identicalTo(df[c(1,2,3),]) )
     assertThat( unique(df, fromLast = TRUE), identicalTo(df[c(1,3,4),]) )
 
+}
+
+test.unique.incomparables <- function() {
+    assertThat( unique(c(1, NA, NA), incomparables=NA), identicalTo(c(1, NA, NA)) )
+    assertThat( unique(c(1, NA, 1, NA), incomparables=NA), identicalTo(c(1, NA, NA)) )
+    assertThat( unique(c(1, NA, 1, NA), incomparables=1), identicalTo(c(1, NA, 1)) )
+    assertThat( unique(c(1, NA, 1, NA), incomparables=c(1, NA)), identicalTo(c(1, NA, 1, NA)) )
+
+    assertThat( unique(c(TRUE, FALSE, TRUE, FALSE), incomparables = FALSE), identicalTo(c(TRUE, FALSE)))
+    assertThat( unique(c(TRUE, FALSE, TRUE, FALSE), incomparables = TRUE), identicalTo(c(TRUE, FALSE, TRUE)))
+    assertThat( unique(c(TRUE, FALSE, TRUE, FALSE), incomparables = c(FALSE, TRUE)), identicalTo(c(TRUE, FALSE, TRUE, FALSE)))
+    assertThat( unique(c(TRUE, FALSE, TRUE, FALSE), incomparables = list(TRUE)), identicalTo(c(TRUE, FALSE, TRUE)))
+    assertThat( unique(c(TRUE, FALSE, TRUE, FALSE), incomparables = list(FALSE)), identicalTo(c(TRUE, FALSE, FALSE)))
+    assertThat( unique(list(a = TRUE, b = FALSE, c = TRUE), incomparables = TRUE), identicalTo(list(TRUE, FALSE, TRUE)))
 }

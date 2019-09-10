@@ -22,3 +22,9 @@ library(hamcrest)
 test.logical.nas <- function() {
     assertThat(duplicated(c(TRUE, NA, FALSE, FALSE, NA)), identicalTo(c(FALSE, FALSE, FALSE, TRUE, TRUE)))
 }
+
+test.incomparables <- function() {
+    assertThat( duplicated(c(1, NA, NA), incomparables = NA), identicalTo(c(FALSE, FALSE, FALSE)))
+    assertThat( duplicated(c(1, NA, 1, NA), incomparables = NA), identicalTo(c(FALSE, FALSE, TRUE, FALSE)))
+    assertThat( duplicated(c(1, 2, 2, 3), incomparables = list(3)), identicalTo(c(FALSE, FALSE, TRUE, FALSE)))
+}

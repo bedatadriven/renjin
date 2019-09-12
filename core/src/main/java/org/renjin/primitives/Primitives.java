@@ -43,6 +43,7 @@ import org.renjin.primitives.sequence.Sequences;
 import org.renjin.primitives.special.*;
 import org.renjin.primitives.subset.Subsetting;
 import org.renjin.primitives.text.Text;
+import org.renjin.primitives.text.StrSignIf;
 import org.renjin.primitives.time.Time;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
@@ -585,6 +586,7 @@ public class Primitives {
     f("as.vector", Vectors.class, 11);
     f("paste", Text.class, 11);
     f("format", Text.class, 11);
+    f("formatC", StrSignIf.class, 11);
     f("format.info", Text.class, 11);
     f("cat", Cat.class, 111);
     add(new CallFunction());

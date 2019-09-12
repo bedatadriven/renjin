@@ -1,21 +1,24 @@
-# Pure R replacement for the original max.col function which calls to the C implementation R_max_col:
-max.col <- function(m, ties.method = c("random", "first", "last")) {
+#  File src/library/base/R/max.col.R
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  A copy of the GNU General Public License is available at
+#  https://www.R-project.org/Licenses/
 
-  ties.method <- match.arg(ties.method)
-
-  unname(apply(as.matrix(m), 1, function(row) {
-    maxVal <- max(row)
-
-    # max.col doesn't have the na.rm argument:
-    if (is.na(maxVal)) return(NA_integer_)
-
-    i <- which(row == maxVal)
-    # no ties:
-    if (length(i) == 1L) return(i)
-    # ties:
-    k <- switch(ties.method,
-           "random" = sample(i, 1),
-           "first" = i[1],
-           "last" = i[length(i)])
-  }))
+max.col <- function(m, ties.method = c("random", "first", "last"))
+{
+    ties.method <- match.arg(ties.method)
+    tieM <- which(ties.method == eval(formals()[["ties.method"]]))
+    .Internal(max.col(as.matrix(m), tieM))
 }

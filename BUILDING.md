@@ -28,7 +28,7 @@ from the root of the Renjin git repository that calls the
 [Vagrantfile](Vagrantfile):
 
     vagrant up
-    vagrant ssh -c "cd /home/ubuntu/renjin && ./gradle build"
+    vagrant ssh -c "cd /home/ubuntu/renjin && ./gradlew build"
 
 Vagrant configures a shared directory on the VirtualBox guest machine
 that includes the Renjin repository, so once the initial build

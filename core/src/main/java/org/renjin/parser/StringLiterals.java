@@ -24,6 +24,8 @@ import org.renjin.sexp.StringVector;
  * Formats
  */
 public class StringLiterals {
+
+
     /**
      * Formats a {@code String} as a literal
      *
@@ -66,7 +68,7 @@ public class StringLiterals {
                 buf.append("\\\"");
             } else if(codePoint == '\\') {
                 buf.append("\\\\");
-            } else if(codePoint < 32 || codePoint > 126) {
+            } else if(codePoint < 32 || (codePoint > 126 && codePoint < 160)) {
                 appendUnicodeEscape(buf, codePoint);
             } else {
                 buf.appendCodePoint(codePoint);

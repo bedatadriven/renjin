@@ -37,6 +37,12 @@ public class DuplicatedAlgorithm implements DuplicateSearchAlgorithm<LogicalVect
   }
 
   @Override
+  public void onIncomparable(int index) {
+    // incomparables are never marked as duplicate:
+    result.set(index, false);
+  }
+
+  @Override
   public Action onDuplicate(int duplicateIndex, int originalIndex) {
     result.set(duplicateIndex, true);
     return Action.CONTINUE;

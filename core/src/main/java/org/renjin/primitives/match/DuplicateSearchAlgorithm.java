@@ -30,6 +30,8 @@ interface DuplicateSearchAlgorithm<ResultType> {
   void init(Vector source);
   
   void onUnique(int index);
+
+  void onIncomparable(int index);
   
   Action onDuplicate(int duplicateIndex, int originalIndex);
   

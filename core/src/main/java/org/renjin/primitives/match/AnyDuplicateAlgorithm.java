@@ -33,6 +33,9 @@ public class AnyDuplicateAlgorithm implements DuplicateSearchAlgorithm<Integer> 
   public void onUnique(int index) { }
 
   @Override
+  public void onIncomparable(int index) { }
+
+  @Override
   public Action onDuplicate(int duplicateIndex, int originalIndex) {
     firstDuplicatedIndex = duplicateIndex+1; // result is one-based 
     return Action.STOP;

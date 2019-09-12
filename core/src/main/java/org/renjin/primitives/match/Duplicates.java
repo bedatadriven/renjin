@@ -19,18 +19,15 @@
 package org.renjin.primitives.match;
 
 import org.renjin.invoke.annotations.Internal;
+import org.renjin.primitives.Vectors;
 import org.renjin.primitives.match.DuplicateSearchAlgorithm.Action;
 import org.renjin.repackaged.guava.collect.Maps;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 import java.util.HashMap;
 
 
-
-public class Duplicates {  
+public class Duplicates {
  
   
   /**
@@ -54,7 +51,7 @@ public class Duplicates {
   }
 
   @Internal
-  public static Vector duplicated(Vector x, AtomicVector incomparables, boolean fromLast, int nmax) {
+  public static Vector duplicated(Vector x, Vector incomparables, boolean fromLast, int nmax) {
     
     return search(x, incomparables, fromLast, nmax,
         new DuplicatedAlgorithm());
@@ -73,7 +70,7 @@ public class Duplicates {
    * @return a non-negative integer (of length one).
    */
   @Internal
-  public static int anyDuplicated(Vector x, AtomicVector incomparables, boolean fromLast) {
+  public static int anyDuplicated(Vector x, Vector incomparables, boolean fromLast) {
 
     return search(x, incomparables, fromLast, IntVector.NA,
         new AnyDuplicateAlgorithm());
@@ -86,7 +83,6 @@ public class Duplicates {
       int nmax,
       DuplicateSearchAlgorithm<ResultType> algorithm) {
 
-
     algorithm.init(x);
     
     /* Maps elements -> first encountered index */
@@ -96,17 +92,45 @@ public class Duplicates {
     } else {
       seen = Maps.newHashMapWithExpectedSize(nmax);
     }
-   
+
+    /* incomparables = FALSE is a special case: */
+    boolean skipIncomparables = (incomparables instanceof AtomicVector
+            && incomparables.length() == 1
+            && incomparables.asLogical() == Logical.FALSE);
+
+    if (!skipIncomparables) {
+      if (incomparables.getVectorType() != x.getVectorType()) {
+        /* incomparables needs to be coerced to the same type as x, but not if x is a list */
+        if (x instanceof AtomicVector) {
+          incomparables = (Vector) Vectors.asVector(incomparables, x.getTypeName());
+        }
+      }
+    }
+
+    HashMap<SEXP, Integer> ignore = Maps.newHashMapWithExpectedSize(incomparables.length());
+
+    for (int i = 0; i < incomparables.length(); i++) {
+      SEXP incomparable = incomparables.getElementAsSEXP(i);
+      ignore.put(incomparable, i);
+    }
+
     for(Integer index : new IndexSequence(x, fromLast)) {
       
       SEXP element = x.getElementAsSEXP(index);
-      
+
+      if (!skipIncomparables) {
+        Integer incompIndex = ignore.get(element);
+        if (incompIndex != null) {
+          algorithm.onIncomparable(index);
+          continue;
+        }
+      }
+
       Integer originalIndex = seen.get(element);
-      
+
       if(originalIndex == null) {
         algorithm.onUnique(index);
         seen.put(element, index);
-      
       } else {
         if(algorithm.onDuplicate(index, originalIndex) == Action.STOP) {
           return algorithm.getResult();

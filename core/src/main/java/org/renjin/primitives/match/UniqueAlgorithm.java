@@ -39,6 +39,13 @@ public class UniqueAlgorithm implements DuplicateSearchAlgorithm<Vector> {
   }
 
   @Override
+  public void onIncomparable(int index) {
+    // incomparables are always included in the result:
+    unique[index] = true;
+    uniqueCount++;
+  }
+
+  @Override
   public Action onDuplicate(int duplicateIndex, int originalIndex) {
     return Action.CONTINUE;
   }

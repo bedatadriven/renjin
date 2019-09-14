@@ -21,6 +21,7 @@ package org.renjin.aether;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
@@ -43,7 +44,10 @@ import static org.junit.Assert.assertThat;
 /**
  * This test uses the {@code alpha} and {@code beta} packages in {@code test-packages} to test
  *
+ * <p>This test can only be run after the rest of the build has been published to the maven
+ * local repository, which is not always desired.</p>
  */
+@Ignore
 public class AetherTest {
 
   @Test

@@ -49,11 +49,11 @@ as normal.
 You can install the required tools through the APT package manager. 
 A 64-bit architecture is required.
 
-    sudo apt-get install openjdk-8-jdk make gcc-4.7 gcc-4.7-plugin-dev gfortran-4.7 g++-4.7 gcc-4.7.multilib g++-4.7-multilib
+    sudo apt-get install openjdk-8-jdk make gcc-4.7 gcc-4.7-plugin-dev gfortran-4.7 g++-4.7 gcc-4.7.multilib g++-4.7-multilib libz-dev
 
 Then build:
 
-    mvn clean install
+    ./gradlew test
 
 From the root of the project.
 

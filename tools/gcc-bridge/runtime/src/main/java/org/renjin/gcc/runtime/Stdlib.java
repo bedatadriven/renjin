@@ -1137,7 +1137,12 @@ public class Stdlib {
    *
    * The first byte of the guard_object is not modified by this function.
    */
+  @Deprecated
   public static int __cxa_guard_acquire(LongPtr guard_object) {
+    return __cxa_guard_acquire((Ptr)guard_object);
+  }
+
+  public static int __cxa_guard_acquire(Ptr guard_object) {
     return 1;
   }
 
@@ -1146,14 +1151,23 @@ public class Stdlib {
    * is complete. A thread-safe implementation will release the mutex acquired by __cxa_guard_acquire after setting
    * the first byte of the guard object.
    */
+  @Deprecated
   public static void __cxa_guard_release(LongPtr guard_object) {
+    __cxa_guard_release((Ptr)guard_object);
+  }
 
+  public static void __cxa_guard_release(Ptr guard_object) {
   }
 
   /**
    * Effects: This function is called if the initialization terminates by throwing an exception.
    */
+  @Deprecated
   public static void __cxa_guard_abort(LongPtr p) {
+    __cxa_guard_abort((Ptr)p);
+  }
+
+  public static void __cxa_guard_abort(Ptr p) {
 
   }
 

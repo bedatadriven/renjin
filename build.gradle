@@ -12,9 +12,9 @@ buildscript {
     maven { url "https://nexus.bedatadriven.com/content/groups/public" }
   }
   dependencies {
-    //classpath "net.ltgt.gradle:gradle-apt-plugin:0.15"
     classpath "gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.14.0"
     classpath "org.owasp:dependency-check-gradle:4.0.2"
+    classpath "com.netflix.nebula:gradle-ospackage-plugin:7.4.0"
   }
 }
 
@@ -68,7 +68,6 @@ apply from: "./gradle/java.gradle"
 apply from: "./gradle/upstream.gradle"
 
 // Defines the version based on our major version and the environment
-
 
 subprojects {
     

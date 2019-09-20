@@ -1,0 +1,39 @@
+
+apply plugin: 'nebula.deb'
+apply plugin: 'nebula.ospackage-application'
+
+applicationName = 'renjin'
+mainClassName = "org.renjin.cli.Main"
+
+dependencies {
+    compile project(':cli')
+    compile "com.github.fommil.netlib:netlib-native_ref-linux-x86_64:${netlibVersion}:natives"
+    compile "com.github.fommil.netlib:netlib-native_ref-linux-i686:${netlibVersion}:natives"
+    compile "com.github.fommil.netlib:netlib-native_ref-linux-armhf:${netlibVersion}:natives"
+    compile "com.github.fommil.netlib:netlib-native_system-linux-x86_64:${netlibVersion}:natives"
+    compile "com.github.fommil.netlib:netlib-native_system-linux-i686:${netlibVersion}:natives"
+    compile "com.github.fommil.netlib:netlib-native_system-linux-armhf:${netlibVersion}:natives"
+}
+
+
+
+ospackage {
+    packageName = 'renjin'
+    packageDescription = 'Renjin Command Line Tool'
+    release = '1'
+    os = LINUX
+    arch = 'all'
+    maintainer = 'Alex Bertram <alex@bedatadriven.com>'
+    vendor = 'BeDataDriven'
+    url = 'https://www.renjin.org'
+    link('/usr/bin/renjin', '/usr/share/renjin/bin/renjin')
+}
+
+ospackage_application {
+    prefix = '/usr/share'
+}
+
+buildDeb {
+    release = '1'
+    requires('libblas3')
+}

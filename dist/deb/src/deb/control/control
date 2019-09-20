@@ -1,9 +1,0 @@
-Package: Renjin
-Version: [[renjin.display.version]]
-Section: misc
-Priority: optional
-Architecture: all
-Depends: java6-runtime, java-wrappers, libblas3
-Maintainer: Alex Bertram <alex@bedatadriven.com>
-Description: Renjin R Interpreter
-Distribution: development

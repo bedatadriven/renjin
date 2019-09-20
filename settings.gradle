@@ -20,6 +20,7 @@ include 'repl'
 include 'script-engine'
 include 'cli'
 include 'dist:generic'
+include 'dist:linux'
 
 include 'packages:hamcrest'
 include 'packages:grDevices'

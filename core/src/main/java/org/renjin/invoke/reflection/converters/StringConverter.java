@@ -35,7 +35,7 @@ public class StringConverter extends BoxedScalarConverter<String> {
     if(clazz.isArray()) {
       return false;
     }
-    return clazz == String.class;
+    return clazz == String.class || clazz == CharSequence.class;
   }
   
   @Override

@@ -17,25 +17,28 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
+split.default <- function(x, f, drop = FALSE, sep = ".", lex.order = FALSE, ...)
+{
+    if(!missing(...)) .NotYetUsed(deparse(...), error = FALSE)
 
-library(hamcrest)
+    .split <- function(x, f) {
+        ff <- levels(f)[f]
+        sapply(levels(f), function(level) x[ff == level], simplify = FALSE)
+    }
 
-test.split <- function() {
-
-    df <- data.frame(
-        x = seq(9),
-        y = rep(1:3, each = 3)
-    )
-
-    assertThat( split(df$x, df$y), identicalTo(list("1"=1:3, "2"=4:6, "3"=7:9)) )
-
-    assertThat(
-        split(c(1,2), factor(c("a", "b"), levels = letters[1:3])),
-        identicalTo(list(a=1, b=2, c=numeric()))
-    )
-    assertThat(
-        split(c(1,2), factor(c("a", "b"), levels = letters[1:3]), drop = TRUE),
-        identicalTo(list(a=1, b=2))
-    )
-
+    if (is.list(f))
+	f <- interaction(f, drop = drop, sep = sep, lex.order = lex.order)
+    else if (!is.factor(f)) f <- as.factor(f) # docs say as.factor
+    else if (drop) f <- factor(f) # drop extraneous levels
+    storage.mode(f) <- "integer"  # some factors have had double in the past
+    if (is.null(attr(x, "class")))
+	return(.split(x, f))
+    ## else
+    lf <- levels(f)
+    y <- vector("list", length(lf))
+    names(y) <- lf
+    ind <- .split(seq_along(x), f)
+    for(k in lf) y[[k]] <- x[ind[[k]]]
+    y
 }
+

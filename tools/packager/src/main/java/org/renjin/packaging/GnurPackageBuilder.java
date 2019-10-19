@@ -23,6 +23,9 @@ public class GnurPackageBuilder implements BuildContext  {
     @Option(name = "--name", required = true, description = "The name of the package")
     private String packageName;
 
+    @Option(name = "--r-source-directory", description = "Override the location of R sources")
+    private String sourceDirectory;
+
     private PackageSource source;
 
     @Inject
@@ -93,7 +96,7 @@ public class GnurPackageBuilder implements BuildContext  {
         source = new PackageSource.Builder(new File("."))
             .setDefaultGroupId(groupId)
             .setPackageName(packageName)
-            .setSourceDir(new File("R"))
+            .setSourceDir(findRSourceDirectory())
             .setNativeSourceDir(new File("src"))
             .setDataDir(new File("data"))
             .setDescription(PackageDescription.fromFile(new File("DESCRIPTION")))
@@ -105,6 +108,14 @@ public class GnurPackageBuilder implements BuildContext  {
         builder.writePackageName();
         builder.compileNamespace();
         builder.compileDatasets();
+    }
+
+    private File findRSourceDirectory() {
+        if(this.sourceDirectory == null) {
+            return new File("R");
+        } else {
+            return new File(this.sourceDirectory);
+        }
     }
 
     @Override

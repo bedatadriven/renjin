@@ -120,12 +120,16 @@ public class GnurSourcesCompiler {
   public static void setupCompiler(GimpleCompiler compiler) {
     compiler.addTransformer(new SetTypeRewriter());
     compiler.addTransformer(new MutationRewriter());
-
   }
 
   private void collectGimple(File dir, List<GimpleCompilationUnit> gimpleFiles) throws IOException {
 
     GimpleParser parser = new GimpleParser();
+
+    if(!dir.isDirectory() && dir.getName().endsWith(".zip")) {
+      gimpleFiles.addAll(parser.parseZipFile(dir));
+      return;
+    }
 
     File[] files = dir.listFiles();
     if(files != null) {

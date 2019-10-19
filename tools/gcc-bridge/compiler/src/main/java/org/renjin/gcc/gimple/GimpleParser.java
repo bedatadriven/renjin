@@ -22,10 +22,12 @@ import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * Parses a JSON-encoded {@link GimpleCompilationUnit} emitted from our GCC plugin
@@ -65,6 +67,20 @@ public class GimpleParser {
     } finally {
       reader.close();
     }
+  }
+
+  public List<GimpleCompilationUnit> parseZipFile(File zipFile) throws IOException {
+
+    List<GimpleCompilationUnit> units = new ArrayList<>();
+    try(ZipInputStream in = new ZipInputStream(new FileInputStream(zipFile))) {
+      ZipEntry zipEntry;
+      while((zipEntry = in.getNextEntry()) != null) {
+        GimpleCompilationUnit unit = parse(new InputStreamReader(in, StandardCharsets.UTF_8));
+        unit.setSourceFile(new File(zipEntry.getName()));
+        units.add(unit);
+      }
+    }
+    return units;
   }
 
 }

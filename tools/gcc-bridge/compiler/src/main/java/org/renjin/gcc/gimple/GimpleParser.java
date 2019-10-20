@@ -18,14 +18,19 @@
  */
 package org.renjin.gcc.gimple;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * Parses a JSON-encoded {@link GimpleCompilationUnit} emitted from our GCC plugin
@@ -37,13 +42,21 @@ public class GimpleParser {
   public GimpleParser() {
     super();
 
-    SimpleModule gimpleModule = new SimpleModule("Gimple", Version.unknownVersion()).addDeserializer(GimpleOp.class,
-        new GimpleOpDeserializer());
+    // Prevent Jackson from closing our Reader when parsing zip files
+    JsonFactory jsonFactory = new MappingJsonFactory();
+    jsonFactory.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
 
-    mapper = new ObjectMapper();
+    SimpleModule gimpleModule = new SimpleModule("Gimple", Version.unknownVersion())
+        .addDeserializer(GimpleOp.class, new GimpleOpDeserializer());
+
+    mapper = new ObjectMapper(jsonFactory);
     mapper.registerModule(gimpleModule);
   }
 
+  /**
+   * Reads the compilation unit from the given {@code reader}. The {@code reader}
+   * is <strong>not</strong> closed.
+   */
   private GimpleCompilationUnit parse(Reader reader) throws IOException {
     GimpleCompilationUnit unit = mapper.readValue(reader, GimpleCompilationUnit.class);
     for (GimpleFunction function : unit.getFunctions()) {
@@ -57,14 +70,25 @@ public class GimpleParser {
   }
 
   public GimpleCompilationUnit parse(File file) throws IOException {
-    FileReader reader = new FileReader(file);
-    try {
+    try (FileReader reader = new FileReader(file)) {
       GimpleCompilationUnit unit = parse(reader);
       unit.setSourceFile(file);
       return unit;
-    } finally {
-      reader.close();
     }
+  }
+
+  public List<GimpleCompilationUnit> parseZipFile(File zipFile) throws IOException {
+
+    List<GimpleCompilationUnit> units = new ArrayList<>();
+    try(ZipInputStream in = new ZipInputStream(new FileInputStream(zipFile))) {
+      ZipEntry zipEntry;
+      while((zipEntry = in.getNextEntry()) != null) {
+        GimpleCompilationUnit unit = parse(new InputStreamReader(in, StandardCharsets.UTF_8));
+        unit.setSourceFile(new File(zipEntry.getName()));
+        units.add(unit);
+      }
+    }
+    return units;
   }
 
 }

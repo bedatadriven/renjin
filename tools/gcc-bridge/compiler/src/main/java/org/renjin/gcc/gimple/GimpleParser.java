@@ -18,7 +18,10 @@
  */
 package org.renjin.gcc.gimple;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
@@ -39,13 +42,21 @@ public class GimpleParser {
   public GimpleParser() {
     super();
 
-    SimpleModule gimpleModule = new SimpleModule("Gimple", Version.unknownVersion()).addDeserializer(GimpleOp.class,
-        new GimpleOpDeserializer());
+    // Prevent Jackson from closing our Reader when parsing zip files
+    JsonFactory jsonFactory = new MappingJsonFactory();
+    jsonFactory.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
 
-    mapper = new ObjectMapper();
+    SimpleModule gimpleModule = new SimpleModule("Gimple", Version.unknownVersion())
+        .addDeserializer(GimpleOp.class, new GimpleOpDeserializer());
+
+    mapper = new ObjectMapper(jsonFactory);
     mapper.registerModule(gimpleModule);
   }
 
+  /**
+   * Reads the compilation unit from the given {@code reader}. The {@code reader}
+   * is <strong>not</strong> closed.
+   */
   private GimpleCompilationUnit parse(Reader reader) throws IOException {
     GimpleCompilationUnit unit = mapper.readValue(reader, GimpleCompilationUnit.class);
     for (GimpleFunction function : unit.getFunctions()) {
@@ -59,13 +70,10 @@ public class GimpleParser {
   }
 
   public GimpleCompilationUnit parse(File file) throws IOException {
-    FileReader reader = new FileReader(file);
-    try {
+    try (FileReader reader = new FileReader(file)) {
       GimpleCompilationUnit unit = parse(reader);
       unit.setSourceFile(file);
       return unit;
-    } finally {
-      reader.close();
     }
   }
 

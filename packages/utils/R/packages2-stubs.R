@@ -45,3 +45,14 @@ registerNames <- function(names, package, .listFile, add = TRUE) {
     character()
 }
 
+# copied from GNU R 3.5.3:
+packageName <- function(env = parent.frame()) {
+    if (!is.environment(env)) stop("'env' must be an environment")
+    env <- topenv(env)
+    if (!is.null(pn <- get0(".packageName", envir = env, inherits = FALSE)))
+	pn
+    else if (identical(env, .BaseNamespaceEnv))
+	"base"
+    ## else NULL
+}
+

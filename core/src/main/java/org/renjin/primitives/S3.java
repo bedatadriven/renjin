@@ -125,9 +125,9 @@ public class S3 {
 
     S3DispatchMetadata nextTable = new S3DispatchMetadata(dispatchTable.getGenericDefinitionEnvironment(), generic);
 
-    if (objectArg != Null.INSTANCE) {
-      throw new UnsupportedOperationException("TODO: object arg to NextMethod");
-    }
+
+    // N.B.: As far as I can tell in GNU R, providing an explicit
+    // objectArg value has NO effect on dispatch.
 
     List<String> nextClasses = nextClasses(dispatchTable);
 

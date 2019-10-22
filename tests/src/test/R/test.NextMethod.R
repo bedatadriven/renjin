@@ -112,3 +112,39 @@ test.barbaz <- function() {
     assertTrue(bar.called)
     assertTrue(baz.called)
 }
+
+test.objectarg.has.no.effect <- function() {
+
+    foo     <- function(x) { cat("foo\n"); UseMethod('foo') }
+    foo.bar <- function(x) { cat("foo.bar\n"); NextMethod(.Generic, object = structure(44, class="baz")) }
+    foo.baz <- function(y) { cat("foo.baz\n"); y }
+    foo.default <- function(x) { cat("foo.default\n"); x }
+
+    bar <- structure(49, class=c("bar"))
+
+    assertThat(foo(bar), identicalTo(bar))
+}
+
+test.objectarg.is.not.evaled <- function() {
+
+    foo     <- function(x) { cat("foo\n"); UseMethod('foo') }
+    foo.bar <- function(x) { cat("foo.bar\n"); NextMethod(.Generic, object = stop("FOO!!!!!")) }
+    foo.baz <- function(y) { cat("foo.baz\n"); y }
+    foo.default <- function(x) { cat("foo.default\n"); x }
+
+    bar <- structure(49, class=c("bar"))
+
+    assertThat(foo(bar), identicalTo(bar))
+}
+
+
+test.extra.args <- function() {
+
+    foo     <- function(x) { cat("foo\n"); UseMethod('foo') }
+    foo.bar <- function(x) { cat("foo.bar\n"); NextMethod(.Generic, x, zz = 92) }
+    foo.default <- function(x, zz = 91) { cat("foo.default\n"); zz }
+
+    bar <- structure(49, class=c("bar"))
+
+    assertThat(foo(bar), identicalTo(92))
+}

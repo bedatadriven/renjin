@@ -724,11 +724,13 @@ public class Summary {
       // validate arguments and determine result type
       for(SEXP argument : arguments) {
         if(argument.length() == 0) {
-          throw new EvalException("cannot mix 0-length vectors with others");
-        } else if(argument instanceof DoubleVector) {
-          realResult = true;
-        } else if(! (argument instanceof LogicalVector || argument instanceof IntVector) ) {
-          throw new EvalException("cannot handle argument of type '%s'", argument.getTypeName());
+          resultLength = 0;
+        } else {
+          if (argument instanceof DoubleVector) {
+            realResult = true;
+          } else if (!(argument instanceof LogicalVector || argument instanceof IntVector)) {
+            throw new EvalException("cannot handle argument of type '%s'", argument.getTypeName());
+          }
         }
       }
     }

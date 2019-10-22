@@ -69,8 +69,6 @@ public class StdOutConnection implements Connection {
 
   /**
    * Gets the effective {@code PrintWriter}, based on the current
-   * @return
-   * @throws IOException
    */
   @Override
   public PrintWriter getPrintWriter() {

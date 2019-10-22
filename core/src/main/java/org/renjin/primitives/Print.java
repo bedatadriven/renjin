@@ -19,10 +19,7 @@
 package org.renjin.primitives;
 
 import org.renjin.eval.Context;
-import org.renjin.invoke.annotations.ArgumentList;
-import org.renjin.invoke.annotations.Current;
-import org.renjin.invoke.annotations.Generic;
-import org.renjin.invoke.annotations.Internal;
+import org.renjin.invoke.annotations.*;
 import org.renjin.parser.StringLiterals;
 import org.renjin.primitives.print.*;
 import org.renjin.primitives.vector.RowNamesVector;
@@ -32,12 +29,14 @@ import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 
 public class Print {
 
   private Print() {}
 
+  @Invisible
   @Internal("print.default")
   public static SEXP printDefault(@Current Context context, SEXP expression, SEXP digits, boolean quote, SEXP naPrint,
       SEXP printGap, SEXP right, SEXP max, SEXP useSource, SEXP noOp, boolean useS4) throws IOException {
@@ -56,7 +55,10 @@ public class Print {
           .setCharactersPerLine(80)
           .setQuote(quote);
       expression.accept(visitor);
-      context.getSession().getStdOut().print(visitor.getResult());
+
+      PrintWriter printWriter = context.getSession().getConnectionTable().getStdout().getPrintWriter();
+      printWriter.print(visitor.getResult());
+      printWriter.flush();
     }
 
     context.getSession().getStdOut().flush();
@@ -81,11 +83,52 @@ public class Print {
   }
 
   @Generic
+  @Invisible
   @Internal("print.function")
-  public static void printFunction(@Current Context context, SEXP x, boolean useSource, 
+  public static SEXP printFunction(@Current Context context, SEXP x, boolean useSource,
                                    @ArgumentList ListVector extraArguments) throws IOException {
-    context.getSession().getStdOut().println(x.toString());
-    context.getSession().getStdOut().flush();
+
+    PrintWriter pw = context.getSession().getConnectionTable().getStdout().getPrintWriter();
+
+    if(x instanceof PrimitiveFunction) {
+      PrimitiveFunction primitive = (PrimitiveFunction) x;
+      Closure primitiveDefinition = Args.findPrimitiveDefinition(context, primitive);
+      if(primitiveDefinition != null) {
+        printFormals(context, pw, primitiveDefinition);
+      } else {
+        pw.print("function(...)");
+      }
+      pw.println("  .Primitive(\"" + primitive.getName() + "\")");
+
+    } else if(x instanceof Closure) {
+      Closure closure = (Closure) x;
+      printFormals(context, pw, closure);
+      pw.println();
+      pw.print(Deparse.deparse(context, closure.getBody(), 80, true, 0, 1));
+      pw.println();
+    }
+
+    pw.flush();
+
+    return x;
+  }
+
+  private static void printFormals(Context context, PrintWriter pw, Closure closure) {
+    pw.print("function (");
+
+    boolean needsComma = false;
+    for (PairList.Node formal : closure.getFormals().nodes()) {
+      if(needsComma) {
+        pw.print(", ");
+      }
+      pw.print(formal.getTag().getPrintName());
+      if(formal.getValue() != Symbol.MISSING_ARG) {
+        pw.print(" = ");
+        pw.print(Deparse.deparse(context, formal.getValue(), 80, true, 0, 1));
+      }
+      needsComma = true;
+    }
+    pw.print(") ");
   }
 
   static class PrintingVisitor extends SexpVisitor<String> {

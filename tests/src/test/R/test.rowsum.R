@@ -31,6 +31,12 @@ test.rowsum.default <- function() {
         rowsum(matrix(c(1, 0.5, 0.1), ncol = 3, nrow = 3), group = c(1, 1, 2)),
         identicalTo(matrix(c(1.5, 0.1, 1.5, 0.1, 1.5, 0.1), ncol = 3, dimnames = list(c("1", "2"), NULL)))
     )
+
+    # ensure that integers are retained:
+    assertThat(
+        rowsum(1L, group = 1),
+        identicalTo(matrix(1L, ncol = 1, dimnames = list("1", NULL)))
+    )
 }
 
 test.rowsum.data.frame <- function() {

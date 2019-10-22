@@ -25,7 +25,9 @@ rowsum.default <- function(x, group, reorder = TRUE, na.rm = FALSE, ...)
     ugroup <- unique(group)
     if (reorder) ugroup <- sort(ugroup, na.last = TRUE, method = "quick")
 
-    res <- do.call(rbind, lapply(split(as.data.frame(x), factor(group, levels = ugroup)), colSums, na.rm = na.rm))
+    f <- factor(group, levels = ugroup)
+
+    res <- do.call(rbind, lapply(split(as.data.frame(x), f), function(x) apply(x, 2, sum, na.rm = na.rm)))
     colnames(res) <- NULL
     res
 }
@@ -40,7 +42,9 @@ rowsum.data.frame <- function(x, group, reorder = TRUE, na.rm = FALSE, ...)
 
     if (!all(sapply(x, is.numeric))) stop("non-numeric data frame in rowsum")
 
-    res <- do.call(rbind, lapply(split(x, factor(group, levels = ugroup)), colSums, na.rm = na.rm))
+    f <- factor(group, levels = ugroup)
+
+    res <- do.call(rbind, lapply(split(x, f), function(x) apply(x, 2, sum, na.rm = na.rm)))
     colnames(res) <- NULL
     res
 }

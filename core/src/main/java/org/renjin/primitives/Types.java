@@ -411,6 +411,10 @@ public class Types {
     return closure.getBody();
   }
 
+  @Internal
+  public static SEXP body(PrimitiveFunction function) {
+    return Null.INSTANCE;
+  }
 
   @Internal
   public static String typeof(SEXP exp) {

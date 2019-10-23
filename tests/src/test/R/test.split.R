@@ -28,14 +28,31 @@ test.split <- function() {
     )
 
     assertThat( split(df$x, df$y), identicalTo(list("1"=1:3, "2"=4:6, "3"=7:9)) )
-    # TODO: fix issue https://github.com/bedatadriven/renjin/issues/208
-    #assertThat(
-    #    split(c(1,2), factor(c("a", "b"), levels = letters[1:3])),
-    #    identicalTo(list(a=1, b=2, c=numeric()))
-    #)
+
+    assertThat(
+        split(c(1,2), factor(c("a", "b"), levels = letters[1:3])),
+        identicalTo(list(a=1, b=2, c=numeric()))
+    )
     assertThat(
         split(c(1,2), factor(c("a", "b"), levels = letters[1:3]), drop = TRUE),
         identicalTo(list(a=1, b=2))
     )
 
+    # 'f' longer than 'x':
+    assertThat(
+        split(1:2, 1:3),
+        identicalTo(list("1" = 1L, "2" = 2L, "3" = integer(0)))
+    )
+
+    # 'x' longer than 'f' (should also throw a warning):
+    assertThat(
+        split(1:3, 1:2),
+        identicalTo(list("1" = c(1L, 3L), "2" = 2L))
+    )
+
+    # NA in factor:
+    assertThat(
+        split(seq(5), c(1, 1, NA, 2, 2)),
+        identicalTo(list("1" = c(1L, 2L), "2" = c(4L, 5L)))
+    )
 }

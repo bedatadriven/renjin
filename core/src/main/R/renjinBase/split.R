@@ -22,8 +22,10 @@ split.default <- function(x, f, drop = FALSE, sep = ".", lex.order = FALSE, ...)
     if(!missing(...)) .NotYetUsed(deparse(...), error = FALSE)
 
     .split <- function(x, f) {
+        if (length(f) > length(x)) f <- f[seq_along(x)]
         ff <- levels(f)[f]
-        sapply(levels(f), function(level) x[ff == level], simplify = FALSE)
+        if (length(ff) < length(x)) ff <- rep_len(ff, length(x))
+        sapply(levels(f), function(level) x[sapply(ff, identical, level)], simplify = FALSE)
     }
 
     if (is.list(f))

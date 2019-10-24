@@ -60,19 +60,20 @@ public class System {
     // we'll have to see later what makes the most sense to put here,
     // whether we need to pretend to be some version of R
     return ListVector.newNamedBuilder()
-        .add("platform", "i386-pc-mingw32")
+        .add("platform", "i386-pc-linux-gnu")
         .add("arch", "i386")
-        .add("os", "mingw32")
-        .add("system", "i386, mingw32")
+        .add("os", "linux-gnu")
+        .add("system", "i386, linux-gnu")
         .add("status", "")
         .add("major", RVersion.MAJOR)
         .add("minor", RVersion.MINOR)
-        .add("year", "2009")
-        .add("month", "12")
-        .add("day", "14")
+        .add("year", "2019")
+        .add("month", "03")
+        .add("day", "11")
         .add("engine", "Renjin")
         .add("language", "R")
-        .add("svn rev", "50720")
+        .add("svn rev", "76217")
+        .add("nickname", "Great Truth")
         .add("version.string", "Renjin version " + RenjinVersion.getVersionName())
         .build();
 

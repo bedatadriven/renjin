@@ -1,5 +1,7 @@
 
 importClass(org.renjin.tools.Md5)
+export(bibstyle)
+export(getBibstyle)
 export(md5sum)
 export(nonS3methods)
 export(file_ext,

@@ -1,7 +1,7 @@
 #  File src/library/methods/R/Defunct.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2012 The R Core Team
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ## old access functions that do nothing but get a slot
 ## likely to be made defunct & disappear.
@@ -53,4 +53,11 @@ seemsS4Object <- function(object) .Defunct("isS4")
 allGenerics <- function(...)
     ## this is used nowhere, and we already have too many functions
     .Defunct("getGenerics")
+
+## Deprecated in 3.4.0, defunct in 3.5.0:
+
+bind_activation <- function(on = TRUE)
+{
+    stop("methods:::bind_activation() is defunct;\n rather provide methods for cbind2() / rbind2()")
+}
 

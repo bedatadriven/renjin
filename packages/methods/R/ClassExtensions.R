@@ -1,5 +1,5 @@
 #  File src/library/methods/R/ClassExtensions.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 .InitExtensions <- function(where) {
     ## to be called from the initialization
@@ -185,7 +185,7 @@ makeExtends <- function(Class, to,
     distance <- 1
     ##FIX ME:  when by is supplied, should use the existing extension information
     ## to compute distance
-    dataPartClass <- elNamed(slots, ".Data")
+    dataPartClass <- elNamed(slots, ".Data") # This seems to be the only elNamed that has to stay
     dataPart <- FALSE
     if(simple && !is.null(dataPartClass)) {
         if(!(is.null(getClassDef(dataPartClass)) || is.null(getClassDef(to)))) {
@@ -234,7 +234,7 @@ makeExtends <- function(Class, to,
     }
     if(is.null(replace)) {
         if(dataPart) {
-            extn <- elNamed(classDef2@contains, dataPartClass)
+            extn <- classDef2@contains[[dataPartClass]]
             if(is(extn, "SClassExtension"))
                 easy <- extn@simple
             else
@@ -383,7 +383,7 @@ makeExtends <- function(Class, to,
         if(exti@distance == 1)
             next # asserted that this was done by makeExtends
         what <- superClasses[[i]]
-        whatDef <- getClassDef(what, where)
+        whatDef <- getClassDef(what, package=packageSlot(exti))
         if(is.null(whatDef) # but shouldn't happen,
            || !isXS3Class(whatDef))
             next

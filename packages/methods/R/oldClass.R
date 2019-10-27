@@ -1,5 +1,5 @@
 #  File src/library/methods/R/oldClass.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ## assumes oldClass has been defined as a virtual class
 
@@ -184,11 +184,11 @@ setOldClass <- function(Classes, prototype = NULL,
         n1 <- names(slots1)
         bad <- character()
         for(what in n2[match(n2, n1, 0) > 0])
-          if(!extends(elNamed(slots1, what), elNamed(slots2, what))) {
+          if(!extends(slots1[[what]], slots2[[what]])) {
               message(gettextf("slot %s: class %s should extend class %s",
                                sQuote(what),
-                               dQuote(elNamed(slots1, what)),
-                               dQuote(elNamed(slots2, what))),
+                               dQuote(slots1[[what]]),
+                               dQuote(slots2[[what]])),
                       domain = NA)
               bad <- c(bad, what)
           }
@@ -273,7 +273,7 @@ S3Class <- function(object) {
 
 .addS3Class <- function(class, prototype, contains, where) {
     for(what in contains) {
-        whatDef <- getClassDef(what@superClass, where = where)
+        whatDef <- getClassDef(what@superClass, package=packageSlot(what))
         if(isXS3Class(whatDef))
           class <- c(class, attr(whatDef@prototype, ".S3Class"))
     }

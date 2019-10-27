@@ -78,8 +78,7 @@ list(
     function(funslist, f, fdef, group = list(), internal = FALSE,
              internalArgs = names(formals(deflt)))
 {
-    signature <- attr(fdef, "signature") #typically NULL, but see the case for "$"
-    deflt <- get(f, "package:base")
+    deflt <- .BaseNamespaceEnv[[f]]
     ## use the arguments of the base package function
     ##FIXME:  should also deal with the functions having ... as the first
     ## argument, but needs to create a generic with different args from the deflt
@@ -105,6 +104,10 @@ list(
     deflt <- .derivedDefaultMethod(deflt, internal = if (internal) f)
     if (internal) {
         signature <- names(formals(deflt))[1L]
+    }
+    if (typeof(signature) == "closure") {
+        stop(sprintf("trying to add '%s' in addBasicGeneric, but it has been made a closure", f))
+        signature <- NULL
     }
     funslist[[f]] <- makeGeneric(f, fdef, deflt, group = group, package = "base",
                                  signature = signature)
@@ -150,7 +153,7 @@ genericForBasic <- function(f, where = topenv(parent.frame()),
 {
     ans <- .BasicFunsList[[f]]
     ## this element may not exist (yet, during loading), don't test null
-    if(mustFind && identical(ans, FALSE))
+    if(mustFind && isFALSE(ans))
         stop(gettextf("methods may not be defined for primitive function %s in this version of R",
                       sQuote(f)),
              domain = NA)

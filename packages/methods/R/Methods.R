@@ -54,7 +54,7 @@ setGeneric <-
         }
         ## you can only conflict with a primitive if you supply
         ## useAsDefault to signal you really mean a different function
-        if(!is.function(useAsDefault) && !identical(useAsDefault, FALSE)) {
+        if(!is.function(useAsDefault) && !isFALSE(useAsDefault)) {
             msg <- gettextf("%s dispatches internally;  methods can be defined, but the generic function is implicit, and cannot be changed.", sQuote(name))
             stop(msg, domain = NA)
         }
@@ -136,7 +136,7 @@ setGeneric <-
         if(!(is.object(fdef) && is(fdef, "genericFunction"))) {
             fdeflt <-
                 if(is.function(useAsDefault)) useAsDefault
-                else if(identical(useAsDefault, FALSE)) NULL
+                else if(isFALSE(useAsDefault)) NULL
                 else if(is.function(prevDefault) &&
                         !identical(formalArgs(prevDefault), formalArgs(fdef)) &&
                         !is.primitive(prevDefault))
@@ -168,7 +168,7 @@ setGeneric <-
 	    cmp <- .identicalGeneric(fdef, implicit,
 				     allow.extra.dots =
 				     !nzchar(Sys.getenv("R_SETGENERIC_PICKY_DOTS")))
-            if(identical(cmp, TRUE)) {
+            if(isTRUE(cmp)) {
                 fdef <- implicit
             }  # go ahead silently
             else if(is.function(implicit)) {
@@ -613,7 +613,7 @@ setMethod <-
     ## assigns the methodslist object
     ## and deals with flags for primitives & for updating group members
     assignMethodsMetaData(f, whereMethods, fdef, where)
-    f
+    invisible(f)
 }
 
 removeMethod <- function(f, signature = character(), where = topenv(parent.frame())) {
@@ -795,6 +795,7 @@ dumpMethods <- function(f, file = "", signature = NULL, methods= findMethods(f, 
         dumpMethod(f, sigs[[i]], file = "", def = methods[[i]])
 }
 
+
 selectMethod <-
     ## Returns the method (a function) that R would use to evaluate a call to
     ## generic 'f' with arguments corresponding to the specified signature.
@@ -871,7 +872,7 @@ showMethods <-
 {
     if(missing(showEmpty))
 	showEmpty <- !missing(f)
-    if(identical(printTo, FALSE))
+    if(isFALSE(printTo))
         con <- textConnection(NULL, "w")
     else
         con <- printTo
@@ -918,7 +919,7 @@ showMethods <-
                               classes = classes, showEmpty = showEmpty,
                               printTo = con)
     }
-    if(identical(printTo, FALSE)) {
+    if(isFALSE(printTo)) {
         txtOut <- textConnectionValue(con)
         close(con)
         txtOut
@@ -1438,7 +1439,7 @@ registerImplicitGenerics <- function(what = .ImplicitGenericsTable(where),
 	else
 	    "<none>"
     }
-    if(identical(f2, FALSE))
+    if(isFALSE(f2))
 	return(gettext("original function is prohibited as a generic function"))
     if(!(is.function(f2) && is.function(f1)))
 	return(gettext("not both functions!"))
@@ -1543,7 +1544,7 @@ findMethods <- function(f, where, classes = character(), inherited = FALSE, pack
     if(missing(where))
       table <- get(if(inherited) ".AllMTable" else ".MTable", envir = environment(fdef))
     else {
-        if(!identical(inherited, FALSE))
+        if(!isFALSE(inherited))
           stop(gettextf("only FALSE is meaningful for 'inherited', when 'where' is supplied (got %s)", inherited), domain = NA)
         where <- as.environment(where)
         what <- .TableMetaName(f, fdef@package)

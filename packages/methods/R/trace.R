@@ -1,7 +1,7 @@
 #  File src/library/methods/R/trace.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ## some temporary (!) hooks to trace the tracing code
 .doTraceTrace <- function(on) {
@@ -38,27 +38,27 @@
 .InvalidTracedFunctions <- c("if", "where", "for", "repeat", "(", "{",
                             "next", "break", ".Call", ".Internal", ".Primitive")
 
-.TraceWithMethods <- function(what, tracer = NULL, exit = NULL, at =
-                              numeric(), print = TRUE, signature =
-                              NULL, where = .GlobalEnv, edit = FALSE,
-                              from = NULL, untrace = FALSE, classMethod = FALSE) {
-    if(is.function(where)) {
-        ## start from the function's environment:  important for
-        ## tracing from a namespace
-        if(is(where, "genericFunction"))
-            where <- parent.env(environment(where))
-        else
-            where <- environment(where)
-        fromPackage <- getPackageName(where)
-    }
-    else fromPackage <- ""
-    doEdit <- !identical(edit, FALSE)
+.TraceWithMethods <- function(what, tracer = NULL, exit = NULL, at = numeric(),
+			      print = TRUE, signature = NULL,
+			      where = .GlobalEnv, edit = FALSE, from = NULL,
+			      untrace = FALSE, classMethod = FALSE) {
+    fromPackage <-
+        if(is.function(where)) {
+            ## start from the function's environment:  important for
+            ## tracing from a namespace
+            where <- if(is(where, "genericFunction"))
+                parent.env(environment(where))
+            else
+                environment(where)
+            getPackageName(where)
+        } else ""
+    doEdit <- !isFALSE(edit)
     whereF <- NULL
     pname <- character()
     def <- NULL
     tracingWhere <- "in package"
     refCase <- isS4(where) && (is(where, "envRefClass") ||
-                       is(where, "refClassRepresentation"))
+                               is(where, "refClassRepresentation"))
     if(refCase) {
         ## some error checking
         if(!is.null(signature))
@@ -81,7 +81,8 @@
         if(!is(def, "refMethodDef")) {
             thisName <- substitute(what)
             stop(gettextf("%s is not a method for reference class %s",
-                          sQuote(as.character(if(is.symbol(thisName)) thisName else what)),
+			  sQuote(as.character(if(is.symbol(thisName)) thisName
+					      else what)),
                           dQuote(class(where))),
                  domain = NA)
         }
@@ -106,7 +107,7 @@
             else if(is.call(fname) && identical(fname[[1L]], as.name("::"))) {
                 whereF <- as.character(fname[[2L]])
                 require(whereF, character.only = TRUE)
-                whereF <- as.environment(paste("package", whereF, sep=":"))
+                whereF <- as.environment(paste0("package:", whereF))
                 pname <-  fname[[2L]]
                 what <- as.character(fname[[3L]])
             }
@@ -133,34 +134,50 @@
         temp <- .findFunEnvAndName(what, where, signature)
         whereF <- temp$whereF
         pname <- temp$pname
+        fname <- what
     }
     if(what %in% .InvalidTracedFunctions)
         stop(gettextf("tracing the internal function %s is not allowed",
-                      sQuote(what)))
+		      sQuote(what)), domain = NA)
     if(.traceTraceState) {
         message(".TraceWithMethods: after computing what, whereF", domain = NA)
         browser()
     }
-    if(nargs() == 1)
-        return(.primTrace(what)) # for back compatibility
+    if(nargs() == 1) # for back compatibility
+	return(if(untrace) .primUntrace(what) else .primTrace(what))
+## FIXME: for trace(stats:::.....)  we really want -- how can this be solved
+##    	return(if(untrace) .primUntrace(frame) else .primTrace(fname))
     if(is.null(whereF)) {
         allWhere <- findFunction(what, where = where)
         if(length(allWhere)==0)
-            stop(gettextf("no function definition for %s found",
-                          sQuote(what)),
+	    stop(gettextf("no function definition for %s found", sQuote(what)),
                  domain = NA)
         whereF <- as.environment(allWhere[[1L]])
     }
     ## detect use with no action specified (old-style R trace())
-    if(is.null(tracer) && is.null(exit) && identical(edit, FALSE))
+    if(is.null(tracer) && is.null(exit) && isFALSE(edit))
         tracer <- quote({})
     if(is.null(def))
         def <- getFunction(what, where = whereF)
-    if(is(def, "traceable") && identical(edit, FALSE) && !untrace)
+    if(is(def, "traceable") && isFALSE(edit) && !untrace)
         def <- .untracedFunction(def)
     if(!is.null(signature)) {
-        fdef <- if(is.primitive(def))  getGeneric(what, TRUE, where) else def
+        fdef <- if (!is(def, "genericFunction"))
+                    getGeneric(as.character(fname), TRUE, where)
+                else def
         def <- selectMethod(what, signature, fdef = fdef, optional = TRUE)
+        if(isRematched(def)) {
+            expr <- substitute(trace(.local, tracer = tr, at = at,
+                                     exit = ex,  print = pr,
+                                     edit = ed,
+                                     where = sys.frame(sys.nframe())),
+                               list( tr = substitute(tracer),
+                                    ex = exit, at = at, pr = print,
+                                    ed = edit))
+            at <- 3L
+            tracer <- expr
+            print <- FALSE
+        }
         if(is.null(def)) {
             warning(gettextf("cannot untrace method for %s; no method defined for this signature: %s",
                              sQuote(what),
@@ -184,6 +201,8 @@
             }
             else {
                 .primUntrace(what) # to be safe--no way to know if it's traced or not
+### or sometimes rather _FIXME_ ?
+###             .primUntrace(fname) # (rather than 'what')
                 return(what)
             }
         }
@@ -248,14 +267,26 @@
             .assignOverBinding(what, newFun, whereF, global)
         else
             assign(what, newFun, whereF)
+        if (length(pname) != 0) {
+            ## update the function also in "imports:" environments of already
+            ## loaded packages that import package pname
+
+            spname <- sub("^namespace:", "", pname)
+                # catching error in case when spname is not a name of a namespace, but
+                # e.g. a reference class
+            ipkgs <- tryCatch(getNamespaceUsers(spname), error=function(e){c()})
+            for(importingPkg in ipkgs) {
+              .updateInImportsEnv(what, newFun, importingPkg)
+            }
+        }
         if(length(grep("[^.]+[.][^.]+", what)) > 0) { #possible S3 method
             ## check for a registered version of the object
             S3MTableName <- ".__S3MethodsTable__."
-            tracedFun <- get(what, envir = whereF, inherits = TRUE)
-            if(exists(S3MTableName, envir = whereF, inherits = FALSE)) {
-                tbl <- get(S3MTableName, envir = whereF, inherits = FALSE)
-                if(exists(what, envir = tbl, inherits = FALSE))
-                    assign(what, tracedFun, envir = tbl)
+            if(!is.null(tbl <- get0(S3MTableName, envir = whereF, inherits = FALSE))) {
+                if(exists(what, envir = tbl, inherits = FALSE)) {
+		    tracedFun <- get(what, envir = whereF, inherits = TRUE)
+		    assign(what, tracedFun, envir = tbl)
+                }
             }
         }
     }
@@ -289,13 +320,17 @@
             }
         }
         else paste0(" as seen from package \"", fromPackage, "\"")
-        object <- if(refCase) "reference method" else if(is.null(signature)) "function" else "specified method for function"
+	object <- if(refCase) "reference method"
+		  else if(is.null(signature)) "function"
+		  else "specified method for function"
         object <- paste0(" ", object, " \"", what, "\" ")
         .message(action, object, location)
-        if(nameSpaceCase && !untrace && exists(what, envir = .GlobalEnv)) {
-            untcall<- paste("untrace(\"", what, "\", where = getNamespace(\"",
-                            pname, "\"))", sep="")
-            .message("Warning: Tracing only in the namespace; to untrace you will need:\n    ",untcall, "\n")
+        ## tracing methods (signature not null) works without setting where
+        if(nameSpaceCase && !untrace && is.null(signature) && exists(what, envir = .GlobalEnv)) {
+	    untcall <- paste0("untrace(\"", what,
+			      "\", where = getNamespace(\"", pname, "\"))")
+            .message("Warning: Tracing only in the namespace; to untrace you will need:\n    ",
+                     untcall, "\n")
         }
     }
     what
@@ -303,15 +338,21 @@
 
 .makeTracedFunction <- function(def, tracer, exit, at, print, doEdit) {
     switch(typeof(def),
-           builtin = , special = {
+           builtin = {
                fBody <- substitute({.prim <- DEF; .prim(...)},
                                    list(DEF = def))
                def <- eval(function(...)NULL)
                body(def, envir = .GlobalEnv) <- fBody
-               warning("making a traced version of a primitive; arguments will be treated as '...'")
+           },
+           special = {
+               fBody <- substitute({do.call(DEF, list(...))},
+                                   list(DEF = def))
+               def <- eval(function(...)NULL)
+               body(def, envir = .GlobalEnv) <- fBody
+               warning("making a traced version of a special; arguments may be altered")
            }
            )
-    if(!identical(doEdit, FALSE)) {
+    if(!isFALSE(doEdit)) {
         if(is.character(doEdit) || is.function(doEdit)) {
             editor <- doEdit
             doEdit <- TRUE
@@ -450,8 +491,8 @@ setCacheOnAssign <- function(env, onOff = cacheOnAssign(env))
         as(.Object, oldClass) <- def # to get other slots in def
     .Object@original <- def
     if(nargs() > 2) {
-        if(!is.null(elNamed(getSlots(getClass(class(def))), ".Data")))
-          def <- def@.Data
+	if(!is.null(elNamed(getSlots(getClass(class(def))), ".Data")))
+	    def <- def@.Data
         .Object@.Data <- .makeTracedFunction(def, tracer, exit, at, print, doEdit)
     }
     .Object
@@ -541,9 +582,29 @@ setCacheOnAssign <- function(env, onOff = cacheOnAssign(env))
     }
 }
 
+.getImportsEnv <- function(pkg) {
+    iname = paste0("imports:", pkg)
+    empty = emptyenv()
+    env = asNamespace(pkg)
+
+    while(!identical(env, empty)) {
+        if (identical(attr(env, "name"), iname))
+            return(env)
+        env = parent.env(env)
+    }
+    NULL
+}
+
+.updateInImportsEnv <- function(what, newFun, importingPkg) {
+    where = .getImportsEnv(importingPkg)
+    if (!is.null(where) && (what %in% names(where))) {
+        .assignOverBinding(what, newFun, where, FALSE)
+    }
+}
+
 ### finding the package name for a loaded namespace
 .searchNamespaceNames <- function(env)
-    paste("namespace", getNamespaceName(env), sep=":")
+    paste0("namespace:", getNamespaceName(env))
 
 .findFunEnvAndName <- function(what, where, signature = NULL) {
     pname <- character()
@@ -622,7 +683,8 @@ utils::globalVariables("fdef")
     allObjects <- names(env)
     allObjects <- allObjects[is.na(match(allObjects, .functionsOverriden))]
     ## counts of packaages containing objects; objects not found don't count
-    possible <- sort(table(unlist(lapply(allObjects, find))), decreasing = TRUE)
+    possible <- sort(table(unlist(lapply(allObjects, utils::find))),
+                     decreasing = TRUE)
 ##    message <- ""
     if(length(possible) == 0)
         stop("none of the objects in the source code could be found:  need to attach or specify the package")
@@ -638,7 +700,7 @@ utils::globalVariables("fdef")
                                    collapse = ", ")),
                     domain = NA)
     }
-    sub("package:","", names(possible[1L])) # the package name, or .GlobalEnv
+    .rmpkg(names(possible[1L])) # the package name, or .GlobalEnv
 }
 
 ## extract the new definitions from the source file
@@ -646,7 +708,7 @@ evalSource <- function(source, package = "", lock = TRUE, cache = FALSE) {
     if(!nzchar(package))
         envp <- .GlobalEnv # will look for the package after evaluating source
     else {
-        pstring <- paste("package",package, sep=":")
+        pstring <- paste0("package:",package)
         packageIsVisible <- pstring %in% search()
         if(packageIsVisible) {
             envp <- as.environment(pstring)
@@ -746,8 +808,8 @@ insertSource <- function(source, package = "",
         notThere <- is.na(match(functions, allObjects))
         if(any(notThere)) {
             warning(gettextf("cannot insert these (not found in source): %s",
-                    paste('"',functions[notThere],'"',
-                          sep = "", collapse = ", ")),
+                    paste0('"', functions[notThere], '"',
+                           collapse = ", ")),
                     domain = NA)
         }
     }
@@ -757,8 +819,8 @@ insertSource <- function(source, package = "",
 	    length(grep(fname, .mnames, fixed = TRUE)) == 0, NA)
         if(any(notThere)) {
             warning(gettextf("cannot insert methods for these functions (methods table not found in source): %s",
-                    paste('"',methods[notThere],'"',
-                          sep = "", collapse = ", ")),
+                    paste0('"', methods[notThere], '"',
+                           collapse = ", ")),
                     domain = NA)
             methods <- methods[!notThere]
         }

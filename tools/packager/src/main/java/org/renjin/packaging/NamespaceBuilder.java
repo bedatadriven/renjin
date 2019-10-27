@@ -20,6 +20,7 @@ package org.renjin.packaging;
 
 import org.apache.commons.vfs2.FileSystemException;
 import org.json.JSONObject;
+import org.renjin.RVersion;
 import org.renjin.RenjinVersion;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -210,7 +211,8 @@ public class NamespaceBuilder {
     ListVector.NamedBuilder metadata = new ListVector.NamedBuilder();
     metadata.add("DESCRIPTION", descriptionVector());
     metadata.add("Built", new ListVector.NamedBuilder()
-        .add("Platform", "")
+        .add("Platform", "i386-pc-linux-gnu")
+        .add("R", buildRVersion())
         .add("Date", RDateTimeFormats.forPattern("yyyy-MM-dd HH:mm:ss ZZ").format(ZonedDateTime.now()))
         .add("OStype", "unix"));
 
@@ -221,7 +223,6 @@ public class NamespaceBuilder {
     metadata.add("Suggests", packageVector("Suggests"));
     metadata.add("Imports", packageVector("Imports"));
     metadata.add("LinkingTo", packageVector("LinkingTo"));
-
 
     File metaDir = new File(buildContext.getPackageOutputDir(), "Meta");
     if(!metaDir.exists()) {
@@ -234,6 +235,13 @@ public class NamespaceBuilder {
     try(RDataWriter writer = new RDataWriter(HeadlessWriteContext.INSTANCE, new FileOutputStream(packageRdsFile))) {
       writer.serialize(metadata.build());
     }
+  }
+
+  private SEXP buildRVersion() {
+    return new ListVector.Builder()
+        .setAttribute(Symbols.CLASS, new StringArrayVector("R_system_version", "package_version", "numeric_version"))
+        .add(new IntArrayVector(RVersion.MAJOR, RVersion.MINOR_1, RVersion.MINOR_2))
+        .build();
   }
 
   private StringVector descriptionVector() {

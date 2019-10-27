@@ -24,6 +24,7 @@ import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.primitives.text.regex.RE;
 import org.renjin.primitives.text.regex.REFactory;
 import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.s4.S4;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -234,16 +235,25 @@ public class Namespace {
           }
         }
 
-
-        for (String className : entry.getClasses()) {
-          Symbol symbol = org.renjin.s4.S4.classNameMetadata(className);
-          SEXP export = importedNamespace.getExportIfExists(symbol);
-          if(export == Symbol.UNBOUND_VALUE) {
-            context.warn(String.format("Class '%s' is not exported from namespace '%s'", 
-                className, 
-                importedNamespace.getName()));
-          } else {
-            importsEnvironment.setVariableUnsafe(symbol, export);
+        if(entry.getClasses().isEmpty()) {
+          // Import all S4 classes from the given package
+          for (Symbol symbol : importedNamespace.getExports()) {
+            if(symbol.getPrintName().startsWith(S4.CLASS_PREFIX)) {
+              importsEnvironment.setVariableUnsafe(symbol, importedNamespace.getExportIfExists(symbol));
+            }
+          }
+        } else {
+          // Import only the specified classes
+          for (String className : entry.getClasses()) {
+            Symbol symbol = org.renjin.s4.S4.classNameMetadata(className);
+            SEXP export = importedNamespace.getExportIfExists(symbol);
+            if (export == Symbol.UNBOUND_VALUE) {
+              context.warn(String.format("Class '%s' is not exported from namespace '%s'",
+                  className,
+                  importedNamespace.getName()));
+            } else {
+              importsEnvironment.setVariableUnsafe(symbol, export);
+            }
           }
         }
       }

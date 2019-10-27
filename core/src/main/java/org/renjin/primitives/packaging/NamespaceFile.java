@@ -420,10 +420,9 @@ public class NamespaceFile {
    *
    */
   private void parseImportS4ClassesFrom(FunctionCall call) {
-    if(call.getArguments().length() < 2) {
-      throw new EvalException("Expected at least two arguments to importClassesFrom directive");
+    if(call.getArguments().length() == 0) {
+      throw new EvalException("Expected at least one argument to importClassesFrom directive");
     }
-
     PackageImportEntry packageImport = packageImport(call.<SEXP>getArgument(0));
 
     for(int i=1;i<call.getArguments().length();++i) {

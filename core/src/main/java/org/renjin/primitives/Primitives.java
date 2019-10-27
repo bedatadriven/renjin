@@ -771,7 +771,6 @@ public class Primitives {
     f("sink", Connections.class, 111);
     f("sink.number", Connections.class, 11);
     f("lib.fixup", Types.class, 111);
-    f("eapply", /*eapply*/ null, 10);
     f("lapply", Evaluation.class, 10);
     f("vapply", Evaluation.class, 10);
     f("mapply", Evaluation.class, 10);

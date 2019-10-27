@@ -75,6 +75,8 @@ public class NamespaceBuilder {
             buildContext.getPackageOutputDir(),
             buildContext.getClassLoader()));
 
+    writePackageRds();
+
     loadDepends(context);
     importDependencies(context, namespace);
     loadPackageData(context, namespace);
@@ -86,9 +88,7 @@ public class NamespaceBuilder {
     }
 
     serializeEnvironment(context, namespace.getNamespaceEnvironment(), environmentFile);
-    writeTransformedNamespace();
     writeRequires();
-    writePackageRds();
     writeExecuteMetadata(namespace);
   }
 

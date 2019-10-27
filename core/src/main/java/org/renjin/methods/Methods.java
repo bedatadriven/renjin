@@ -285,7 +285,7 @@ public class Methods {
   }
 
 
-  public static void do_set_prim_method(@Current Context context, PrimitiveFunction op, 
+  public static void do_set_prim_method(@Current Context context, Function op,
       String code_string, SEXP fundef, SEXP mlist) {
 
     prim_methods_t code = parseCode(code_string);
@@ -324,7 +324,7 @@ public class Methods {
       }
       return value;
     } else {
-      do_set_prim_method(context, (PrimitiveFunction)op, code_string, fundef, mlist);
+      do_set_prim_method(context, (Function) op, code_string, fundef, mlist);
       return fname;
     }
   }

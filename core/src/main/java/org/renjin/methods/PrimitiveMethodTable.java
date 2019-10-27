@@ -22,8 +22,8 @@ import org.renjin.repackaged.guava.cache.CacheBuilder;
 import org.renjin.repackaged.guava.cache.CacheLoader;
 import org.renjin.repackaged.guava.cache.LoadingCache;
 import org.renjin.sexp.Closure;
+import org.renjin.sexp.Function;
 import org.renjin.sexp.Null;
-import org.renjin.sexp.PrimitiveFunction;
 import org.renjin.sexp.SEXP;
 
 import java.util.concurrent.ExecutionException;
@@ -53,21 +53,21 @@ public class PrimitiveMethodTable {
     
   }
 
-  private LoadingCache<PrimitiveFunction, Entry> map;
+  private LoadingCache<Function, Entry> map;
   private boolean primitiveMethodsAllowed = false;
   
   public PrimitiveMethodTable() {
     this.map = CacheBuilder.newBuilder()
-        .build(new CacheLoader<PrimitiveFunction, Entry>() {
+        .build(new CacheLoader<Function, Entry>() {
 
           @Override
-          public Entry load(PrimitiveFunction key) throws Exception {
+          public Entry load(Function key) throws Exception {
             return new Entry();
           }
         });
   }
       
-  public Entry get(PrimitiveFunction fn) {
+  public Entry get(Function fn) {
     try {
       return map.get(fn);
     } catch (ExecutionException e) {

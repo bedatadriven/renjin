@@ -5,11 +5,12 @@ import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.apache.commons.vfs2.provider.AbstractFileSystem;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.Collection;
-import java.util.Enumeration;
+import java.util.*;
+import java.util.jar.JarFile;
 
 class ClassPathFileSystem extends AbstractFileSystem {
 
@@ -34,9 +35,67 @@ class ClassPathFileSystem extends AbstractFileSystem {
       return new NonExistentClassPathFileObject(name, this);
     }
 
-    // Find first non-directory file object
-    URL first = resource.nextElement();
-    return createFile(name, first);
+    // List matching files
+    List<URL> urls = new ArrayList<>();
+
+    while(resource.hasMoreElements()) {
+      URL url = resource.nextElement();
+      if (url.getProtocol().equals("file")) {
+        File file = new File(fileFromUrl(url));
+        if (file.exists() && !file.isDirectory()) {
+          return createFile(name, url);
+        }
+      }
+      urls.add(url);
+    }
+
+    // If it's a single URL, stop here
+    if(urls.size() == 1) {
+      return createFile(name, urls.get(0));
+    }
+
+    // Otherwise list the children
+    List<File> localDirs = new ArrayList<>();
+    Set<String> children = new HashSet<>();
+
+    for (URL url : urls) {
+      if (url.getProtocol().equals("file")) {
+        File file = new File(fileFromUrl(url));
+        localDirs.add(file);
+      } else if(url.getProtocol().equals("jar")) {
+        listJarFiles(url, children);
+      } else {
+        throw new UnsupportedOperationException("TODO: " + url);
+      }
+    }
+    return new CompositeClassDirectoryObject(name, this, localDirs, children);
+  }
+
+  private void listJarFiles(URL url, Set<String> children) throws IOException {
+    String path = url.getPath();
+    int sep = path.indexOf('!');
+    if(path.startsWith("file:")) {
+      String jarFilePath = path.substring("file:".length(), sep);
+      String prefix = path.substring(sep + 2) + "/";
+
+      JarFile file = new JarFile(jarFilePath);
+
+      file.stream()
+          .filter(e -> e.getName().startsWith(prefix) &&
+                       e.getName().length() > prefix.length())
+          .forEach(e -> {
+            String name = e.getName();
+            String next = name.substring(prefix.length());
+            int folderEnd = next.indexOf('/');
+            if (folderEnd == -1) {
+              children.add(next);
+            } else {
+              children.add(next.substring(0, folderEnd));
+            }
+          });
+    } else {
+      throw new UnsupportedOperationException("Todo");
+    }
   }
 
   private FileObject createFile(AbstractFileName name, URL resource) {
@@ -47,7 +106,7 @@ class ClassPathFileSystem extends AbstractFileSystem {
     }
   }
 
-  private String fileFromUrl(URL resource) {
+  static String fileFromUrl(URL resource) {
     try {
       return URLDecoder.decode(resource.getFile(), "UTF-8");
     } catch (UnsupportedEncodingException e) {

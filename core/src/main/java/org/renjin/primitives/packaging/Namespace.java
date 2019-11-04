@@ -150,16 +150,18 @@ public class Namespace {
    * to the given package environment
    *
    */
-  public void copyExportsTo(Context context, Environment packageEnv) {
+  public void copyExportsTo(Context context, Environment packageEnv, Set<Symbol> exceptions) {
     for(Symbol name : exports) {
-      if(namespaceEnvironment.isActiveBinding(name)) {
-        packageEnv.makeActiveBinding(name, namespaceEnvironment.getActiveBinding(name));
-      } else {
-        SEXP exportValue = namespaceEnvironment.findVariableUnsafe(name);
-        if(exportValue == Symbol.UNBOUND_VALUE) {
-//          context.warn(String.format("Symbol '%s' is not defined in package '%s'", name.getPrintName(), pkg.getName()));
+      if (!exceptions.contains(name)) {
+        if (namespaceEnvironment.isActiveBinding(name)) {
+          packageEnv.makeActiveBinding(name, namespaceEnvironment.getActiveBinding(name));
         } else {
-          packageEnv.setVariableUnsafe(name, exportValue);
+          SEXP exportValue = namespaceEnvironment.findVariableUnsafe(name);
+          if (exportValue == Symbol.UNBOUND_VALUE) {
+//          context.warn(String.format("Symbol '%s' is not defined in package '%s'", name.getPrintName(), pkg.getName()));
+          } else {
+            packageEnv.setVariableUnsafe(name, exportValue);
+          }
         }
       }
     }
@@ -211,7 +213,7 @@ public class Namespace {
     for (NamespaceFile.PackageImportEntry entry : file.getPackageImports()) {
       Namespace importedNamespace = registry.getNamespace(context, entry.getPackageName());
       if(entry.isAllSymbols()) {
-        importedNamespace.copyExportsTo(context, importsEnvironment);
+        importedNamespace.copyExportsTo(context, importsEnvironment, entry.getExceptions());
       } else {
         for (Symbol symbol : entry.getSymbols()) {
           SEXP export = importedNamespace.getExportIfExists(symbol);

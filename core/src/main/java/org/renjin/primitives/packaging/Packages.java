@@ -25,6 +25,7 @@ import org.renjin.invoke.annotations.Invisible;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
+import java.util.Collections;
 
 public class Packages {
 
@@ -56,7 +57,7 @@ public class Packages {
     packageEnv.setAttribute(Symbols.FQNAME,  StringVector.valueOf("package:" + namespace.getFullyQualifiedName().toString()));
 
     // Copy in the namespace's exports
-    namespace.copyExportsTo(context, packageEnv);
+    namespace.copyExportsTo(context, packageEnv, Collections.emptySet());
     
     context.setInvisibleFlag();
   }

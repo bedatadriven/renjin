@@ -96,6 +96,7 @@ public class NamespaceFile {
     private List<Symbol> symbols = Lists.newArrayList();
     private List<String> classes = Lists.newArrayList();
     private List<String> methods = Lists.newArrayList();
+    private Set<Symbol> exceptions = Collections.emptySet();
 
     public PackageImportEntry(String packageName) {
       this.packageName = packageName;
@@ -114,6 +115,10 @@ public class NamespaceFile {
      */
     public boolean isAllSymbols() {
       return allSymbols;
+    }
+
+    public Set<Symbol> getExceptions() {
+      return exceptions;
     }
 
     /**
@@ -392,8 +397,19 @@ public class NamespaceFile {
    *
    */
   private void parseImport(FunctionCall call) {
-    for (String packageName : parseNameArguments(call)) {
-      packageImport(packageName).allSymbols = true;
+    Set<Symbol> exceptions = new HashSet<>();
+    for (PairList.Node argument : call.getArguments().nodes()) {
+      if (argument.getName().equals("except")) {
+        exceptions.add(parseSymbolArgument(argument.getValue()));
+      }
+    }
+
+    for (PairList.Node argument : call.getArguments().nodes()) {
+      if(!argument.hasTag()) {
+        PackageImportEntry entry = packageImport(parseStringArgument(argument.getValue()));
+        entry.allSymbols = true;
+        entry.exceptions = exceptions;
+      }
     }
   }
 

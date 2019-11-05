@@ -93,4 +93,5 @@ comment <- function(x) {
 
 `comment<-` <- function(x, value) {
     attr(x, 'comment') <- value
+    x
 }

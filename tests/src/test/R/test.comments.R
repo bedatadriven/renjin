@@ -17,6 +17,8 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
+library(hamcrest)
+
 x <- 42
 
 comment(x) <- "the answer to life, the universe..."

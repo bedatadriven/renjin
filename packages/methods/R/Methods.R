@@ -280,7 +280,11 @@ isGeneric <-
         ## the definition of isGeneric() for a base function is that methods are defined
         ## (other than the default primitive)
         gen <- genericForBasic(f, mustFind = FALSE)
-        return(is.function(gen) && length(names(.getMethodsTable(gen))) > 1L)
+
+        # Renjin-specific: consult our internal cache rather than
+        # the methods environment table which we do not maintain.
+        return(is.function(gen) && .Internal(isPrimitiveGeneric(f)))
+
     }
     if(!is(fdef, "genericFunction"))
         return(FALSE)

@@ -857,6 +857,7 @@ public class Primitives {
     f("getClassDef", Methods.class, 11);
     f("getClass", Methods.class, 11);
     f("selectMethod", Methods.class, 11);
+    f("isPrimitiveGeneric", Methods.class, 11);
 
 /* Modelling Functionality */
 

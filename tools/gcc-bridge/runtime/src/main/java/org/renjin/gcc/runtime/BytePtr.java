@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.DoubleBuffer;
+import java.nio.ShortBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -306,18 +308,22 @@ public class BytePtr extends AbstractPtr {
 
   public static Ptr shortArrayFromResource(Class clazz, String resourceName) throws IOException {
     byte[] byteArray = byteArrayFromResource(clazz, resourceName);
-    short[] shortArray = ByteBuffer.wrap(byteArray)
+    ShortBuffer original = ByteBuffer.wrap(byteArray)
         .order(ByteOrder.LITTLE_ENDIAN) /* fixed across platforms for consistency */
-        .asShortBuffer()
+        .asShortBuffer();
+    short[] shortArray = ShortBuffer.allocate(original.capacity())
+        .put(original)
         .array();
     return new ShortPtr(shortArray);
   }
 
   public static Ptr doubleArrayFromResource(Class clazz, String resourceName) throws IOException {
     byte[] byteArray = byteArrayFromResource(clazz, resourceName);
-    double[] doubleArray = ByteBuffer.wrap(byteArray)
+    DoubleBuffer original = ByteBuffer.wrap(byteArray)
         .order(ByteOrder.LITTLE_ENDIAN) /* fixed across platforms for consistency */
-        .asDoubleBuffer()
+        .asDoubleBuffer();
+    double[] doubleArray = DoubleBuffer.allocate(original.capacity())
+        .put(original)
         .array();
     return new DoublePtr(doubleArray);
   }

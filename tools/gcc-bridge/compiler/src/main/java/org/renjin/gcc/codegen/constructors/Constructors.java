@@ -56,7 +56,7 @@ class Constructors {
       buffer.putShort(s);
     };
 
-    ByteBuffer buffer = constantArrayToBuffer(value, isElementType, converter);
+    ByteBuffer buffer = constantArrayToBuffer(value, isElementType, converter, 2);
     if (buffer == null) return null;
     LocalVar var = injectLoadableResource(mv, resourceWriter, buffer, "shortArrayFromResource");
     GimpleArrayType arrayType = (GimpleArrayType) value.getType();
@@ -71,7 +71,7 @@ class Constructors {
       buffer.putDouble(d);
     };
 
-    ByteBuffer buffer = constantArrayToBuffer(value, isElementType, converter);
+    ByteBuffer buffer = constantArrayToBuffer(value, isElementType, converter, 8);
     if (buffer == null) return null;
     LocalVar var = injectLoadableResource(mv, resourceWriter, buffer, "doubleArrayFromResource");
     GimpleArrayType arrayType = (GimpleArrayType) value.getType();
@@ -187,7 +187,8 @@ class Constructors {
   private static ByteBuffer constantArrayToBuffer(
       GimpleConstructor value,
       Predicate<GimpleType> isElementType,
-      BufferConverter converter
+      BufferConverter converter,
+      int byteSize
   ) {
     boolean isArrayType = isArrayWithType(value.getType(), isElementType);
     if (!isArrayType) {
@@ -197,7 +198,7 @@ class Constructors {
     if (elements.size() < 4000) { // only stream large arrays
       return null;
     }
-    ByteBuffer buffer = ByteBuffer.allocate(elements.size() * 2).order(ByteOrder.LITTLE_ENDIAN);
+    ByteBuffer buffer = ByteBuffer.allocate(elements.size() * byteSize).order(ByteOrder.LITTLE_ENDIAN);
     for (GimpleConstructor.Element element : elements) {
       converter.append(buffer, element);
     }

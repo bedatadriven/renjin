@@ -195,7 +195,7 @@ class Constructors {
       return null;
     }
     List<GimpleConstructor.Element> elements = value.getElements();
-    if (elements.size() < 4000) { // only stream large arrays
+    if (elements.size() < 128) { // only stream large arrays
       return null;
     }
     ByteBuffer buffer = ByteBuffer.allocate(elements.size() * byteSize).order(ByteOrder.LITTLE_ENDIAN);

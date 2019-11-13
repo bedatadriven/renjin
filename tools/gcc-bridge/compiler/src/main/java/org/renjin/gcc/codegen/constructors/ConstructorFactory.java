@@ -19,9 +19,15 @@ public class ConstructorFactory {
   }
 
   private static Constructors.ConstructorInterface[] instances = {
+      // mitigate `Method code too large` errors for large constant array expressions
       largeShortArray,
+      largeIntArray,
+      largeLongArray,
+      largeFloatArray,
       largeDoubleArray,
+      // store large string arrays either in the string pool, or in a resource for very large arrays
       stringArray,
-      charArray
+      // store char arrays as a string in the constant pool
+      charArray // n.b., this should be _after_ `largeShortArray`
   };
 }

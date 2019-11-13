@@ -21,10 +21,7 @@ package org.renjin.gcc.runtime;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.DoubleBuffer;
-import java.nio.ShortBuffer;
+import java.nio.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -317,6 +314,38 @@ public class BytePtr extends AbstractPtr {
     return new ShortPtr(shortArray);
   }
 
+  public static Ptr intArrayFromResource(Class clazz, String resourceName) throws IOException {
+    byte[] byteArray = byteArrayFromResource(clazz, resourceName);
+    IntBuffer original = ByteBuffer.wrap(byteArray)
+        .order(ByteOrder.LITTLE_ENDIAN) /* fixed across platforms for consistency */
+        .asIntBuffer();
+    int[] intArray = IntBuffer.allocate(original.capacity())
+        .put(original)
+        .array();
+    return new IntPtr(intArray);
+  }
+
+  public static Ptr longArrayFromResource(Class clazz, String resourceName) throws IOException {
+    byte[] byteArray = byteArrayFromResource(clazz, resourceName);
+    LongBuffer original = ByteBuffer.wrap(byteArray)
+        .order(ByteOrder.LITTLE_ENDIAN) /* fixed across platforms for consistency */
+        .asLongBuffer();
+    long[] longArray = LongBuffer.allocate(original.capacity())
+        .put(original)
+        .array();
+    return new LongPtr(longArray);
+  }
+
+  public static Ptr floatArrayFromResource(Class clazz, String resourceName) throws IOException {
+    byte[] byteArray = byteArrayFromResource(clazz, resourceName);
+    FloatBuffer original = ByteBuffer.wrap(byteArray)
+        .order(ByteOrder.LITTLE_ENDIAN) /* fixed across platforms for consistency */
+        .asFloatBuffer();
+    float[] floatArray = FloatBuffer.allocate(original.capacity())
+        .put(original)
+        .array();
+    return new FloatPtr(floatArray);
+  }
   public static Ptr doubleArrayFromResource(Class clazz, String resourceName) throws IOException {
     byte[] byteArray = byteArrayFromResource(clazz, resourceName);
     DoubleBuffer original = ByteBuffer.wrap(byteArray)

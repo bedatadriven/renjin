@@ -48,17 +48,17 @@ class Constructors {
    * streamed into the array at construction.
    */
 
-  static ConstructorInterface largeShortArray = (mv, resourceWriter, value) -> {
-    Predicate<GimpleType> isElementType = c -> isIntegerWithPrecision(c, 16);
+  static ConstructorInterface largeFloatArray = (mv, resourceWriter, value) -> {
+    Predicate<GimpleType> isElementType = c -> isRealWithPrecision(c, 32);
     BufferConverter converter = (buffer, element) -> {
-      GimpleIntegerConstant constant = (GimpleIntegerConstant)element.getValue();
-      short s = constant.getValue().shortValue();
-      buffer.putShort(s);
+      GimpleRealConstant constant = (GimpleRealConstant)element.getValue();
+      float f = constant.getValue().floatValue();
+      buffer.putFloat(f);
     };
 
-    ByteBuffer buffer = constantArrayToBuffer(value, isElementType, converter, 2);
+    ByteBuffer buffer = constantArrayToBuffer(value, isElementType, converter, 4, 128);
     if (buffer == null) return null;
-    LocalVar var = injectLoadableResource(mv, resourceWriter, buffer, "shortArrayFromResource");
+    LocalVar var = injectLoadableResource(mv, resourceWriter, buffer, "floatArrayFromResource");
     GimpleArrayType arrayType = (GimpleArrayType) value.getType();
     return new VArrayExpr(arrayType, new VPtrExpr(var));
   };
@@ -71,15 +71,61 @@ class Constructors {
       buffer.putDouble(d);
     };
 
-    ByteBuffer buffer = constantArrayToBuffer(value, isElementType, converter, 8);
+    ByteBuffer buffer = constantArrayToBuffer(value, isElementType, converter, 8, 128);
     if (buffer == null) return null;
     LocalVar var = injectLoadableResource(mv, resourceWriter, buffer, "doubleArrayFromResource");
     GimpleArrayType arrayType = (GimpleArrayType) value.getType();
     return new VArrayExpr(arrayType, new VPtrExpr(var));
   };
 
+  static ConstructorInterface largeShortArray = (mv, resourceWriter, value) -> {
+    Predicate<GimpleType> isElementType = c -> isIntegerWithPrecision(c, 16);
+    BufferConverter converter = (buffer, element) -> {
+      GimpleIntegerConstant constant = (GimpleIntegerConstant)element.getValue();
+      short s = constant.getValue().shortValue();
+      buffer.putShort(s);
+    };
+
+    // using a higher threshold for short arrays, as smaller arrays can be handled by the charArray implementation
+    ByteBuffer buffer = constantArrayToBuffer(value, isElementType, converter, 2, 1024);
+    if (buffer == null) return null;
+    LocalVar var = injectLoadableResource(mv, resourceWriter, buffer, "shortArrayFromResource");
+    GimpleArrayType arrayType = (GimpleArrayType) value.getType();
+    return new VArrayExpr(arrayType, new VPtrExpr(var));
+  };
+
+  static ConstructorInterface largeIntArray = (mv, resourceWriter, value) -> {
+    Predicate<GimpleType> isElementType = c -> isIntegerWithPrecision(c, 32);
+    BufferConverter converter = (buffer, element) -> {
+      GimpleIntegerConstant constant = (GimpleIntegerConstant)element.getValue();
+      int i = constant.getValue().intValue();
+      buffer.putInt(i);
+    };
+
+    ByteBuffer buffer = constantArrayToBuffer(value, isElementType, converter, 4, 128);
+    if (buffer == null) return null;
+    LocalVar var = injectLoadableResource(mv, resourceWriter, buffer, "intArrayFromResource");
+    GimpleArrayType arrayType = (GimpleArrayType) value.getType();
+    return new VArrayExpr(arrayType, new VPtrExpr(var));
+  };
+
+  static ConstructorInterface largeLongArray = (mv, resourceWriter, value) -> {
+    Predicate<GimpleType> isElementType = c -> isIntegerWithPrecision(c, 64);
+    BufferConverter converter = (buffer, element) -> {
+      GimpleIntegerConstant constant = (GimpleIntegerConstant)element.getValue();
+      long l = constant.getValue();
+      buffer.putLong(l);
+    };
+
+    ByteBuffer buffer = constantArrayToBuffer(value, isElementType, converter, 8, 128);
+    if (buffer == null) return null;
+    LocalVar var = injectLoadableResource(mv, resourceWriter, buffer, "longArrayFromResource");
+    GimpleArrayType arrayType = (GimpleArrayType) value.getType();
+    return new VArrayExpr(arrayType, new VPtrExpr(var));
+  };
+
   /**
-   * Specialised constructors for handling large string arrays
+   * Specialised constructors for handling large string and char arrays
    */
 
   static ConstructorInterface stringArray = (mv, resourceWriter, value) -> {
@@ -188,14 +234,15 @@ class Constructors {
       GimpleConstructor value,
       Predicate<GimpleType> isElementType,
       BufferConverter converter,
-      int byteSize
+      int byteSize,
+      int threshold
   ) {
     boolean isArrayType = isArrayWithType(value.getType(), isElementType);
     if (!isArrayType) {
       return null;
     }
     List<GimpleConstructor.Element> elements = value.getElements();
-    if (elements.size() < 128) { // only stream large arrays
+    if (elements.size() < threshold) { // only stream large arrays
       return null;
     }
     ByteBuffer buffer = ByteBuffer.allocate(elements.size() * byteSize).order(ByteOrder.LITTLE_ENDIAN);

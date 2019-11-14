@@ -379,8 +379,8 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     assertThat(result, equalTo(42));
 
-    result = (Integer)clazz.getMethod("testLargeShortArray").invoke(null);
-    assertTrue("Very large short arrays not handled correctly", result != 0);
+    clazz.getMethod("testLargeShortArray").invoke(null);
+    clazz.getMethod("testLargeUnsignedShortArray").invoke(null);
 
     result = (Integer)clazz.getMethod("testLargeDoubleArray").invoke(null);
     assertTrue("Very large double arrays not handled correctly", result != 0);

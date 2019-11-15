@@ -117,9 +117,9 @@ public class S3 {
     }
 
     // The caller to NextMethod() can change the generic
-
+    // But if *its* not a string, we just ignore it!
     String generic = dispatchTable.getGeneric();
-    if (genericArg != Null.INSTANCE) {
+    if (genericArg instanceof StringVector) {
       generic = genericArg.asString();
     }
 

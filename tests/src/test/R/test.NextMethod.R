@@ -149,3 +149,13 @@ test.extra.args <- function() {
 
     assertThat(foo(bar), identicalTo(92))
 }
+
+test.object.as.first.arg <- function() {
+    foo <- function(x) UseMethod("foo")
+    foo.default <- function(x) x
+    foo.baz <- function(x) {x <- 92; NextMethod(x) }
+
+    xx <- structure(list(1,2,3), class = "baz")
+
+    assertThat(foo(xx), identicalTo(92))
+}

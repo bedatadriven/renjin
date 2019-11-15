@@ -28,6 +28,7 @@ public class ConstructorFactory {
       // store large string arrays either in the string pool, or in a resource for very large arrays
       stringArray,
       // store char arrays as a string in the constant pool
-      charArray // n.b., this should be _after_ `largeShortArray`
+      charArray, // n.b., this should be _after_ `largeShortArray`
+      Constructors::int32Array2d
   };
 }

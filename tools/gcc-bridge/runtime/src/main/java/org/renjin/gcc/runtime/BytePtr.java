@@ -356,4 +356,33 @@ public class BytePtr extends AbstractPtr {
         .array();
     return new DoublePtr(doubleArray);
   }
+
+
+  public static Ptr intArrayFromResource2d(Class clazz, String resourceName) throws IOException {
+    byte[] byteArray = byteArrayFromResource(clazz, resourceName);
+    ByteBuffer buffer = ByteBuffer.wrap(byteArray)
+        .order(ByteOrder.LITTLE_ENDIAN); /* fixed across platforms for consistency */
+
+    int arrayCount = buffer.getInt();
+    int elementCount = buffer.getInt();
+
+    IntBuffer offsetBuffer = buffer.slice().asIntBuffer();
+    offsetBuffer.limit(arrayCount * IntPtr.BYTES);
+
+    buffer.position(buffer.position() + (arrayCount * IntPtr.BYTES));
+    IntBuffer elementBuffer = buffer.asIntBuffer();
+    assert elementBuffer.remaining() == elementCount;
+
+    int[] array = new int[elementCount];
+    IntBuffer.wrap(array).put(elementBuffer);
+
+    Ptr[] pointers = new Ptr[arrayCount];
+    for (int i = 0; i < arrayCount; i++) {
+      int arrayStart = offsetBuffer.get();
+      pointers[i] = new IntPtr(array, arrayStart);
+    }
+
+    return new PointerPtr(pointers);
+  }
+
 }

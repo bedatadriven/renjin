@@ -26,6 +26,7 @@ import java.util.List;
 
 class Constructors {
 
+  @FunctionalInterface
   interface ConstructorInterface {
     GExpr tryCreate(
         MethodGenerator mv,
@@ -34,6 +35,7 @@ class Constructors {
     );
   }
 
+  @FunctionalInterface
   interface BufferConverter {
     void append(ByteBuffer buffer, GimpleConstructor.Element element);
   }
@@ -58,7 +60,7 @@ class Constructors {
 
     ByteBuffer buffer = constantArrayToBuffer(value, isElementType, converter, 4, 128);
     if (buffer == null) return null;
-    LocalVar var = injectLoadableResource(mv, resourceWriter, buffer, "floatArrayFromResource");
+    LocalVar var = injectLoadableResource(mv, resourceWriter, buffer, BytePtr.class, "floatArrayFromResource");
     GimpleArrayType arrayType = (GimpleArrayType) value.getType();
     return new VArrayExpr(arrayType, new VPtrExpr(var));
   };
@@ -73,7 +75,7 @@ class Constructors {
 
     ByteBuffer buffer = constantArrayToBuffer(value, isElementType, converter, 8, 128);
     if (buffer == null) return null;
-    LocalVar var = injectLoadableResource(mv, resourceWriter, buffer, "doubleArrayFromResource");
+    LocalVar var = injectLoadableResource(mv, resourceWriter, buffer, BytePtr.class, "doubleArrayFromResource");
     GimpleArrayType arrayType = (GimpleArrayType) value.getType();
     return new VArrayExpr(arrayType, new VPtrExpr(var));
   };
@@ -89,22 +91,24 @@ class Constructors {
     // using a higher threshold for short arrays, as smaller arrays can be handled by the charArray implementation
     ByteBuffer buffer = constantArrayToBuffer(value, isElementType, converter, 2, 1024);
     if (buffer == null) return null;
-    LocalVar var = injectLoadableResource(mv, resourceWriter, buffer, "shortArrayFromResource");
+    LocalVar var = injectLoadableResource(mv, resourceWriter, buffer, BytePtr.class, "shortArrayFromResource");
     GimpleArrayType arrayType = (GimpleArrayType) value.getType();
     return new VArrayExpr(arrayType, new VPtrExpr(var));
   };
 
+  static void appendInt32(ByteBuffer buffer, GimpleConstructor.Element element) {
+    GimpleIntegerConstant constant = (GimpleIntegerConstant)element.getValue();
+    int i = constant.getValue().intValue();
+    buffer.putInt(i);
+  }
+
   static ConstructorInterface largeIntArray = (mv, resourceWriter, value) -> {
     Predicate<GimpleType> isElementType = c -> isIntegerWithPrecision(c, 32);
-    BufferConverter converter = (buffer, element) -> {
-      GimpleIntegerConstant constant = (GimpleIntegerConstant)element.getValue();
-      int i = constant.getValue().intValue();
-      buffer.putInt(i);
-    };
+    BufferConverter converter = Constructors::appendInt32;
 
     ByteBuffer buffer = constantArrayToBuffer(value, isElementType, converter, 4, 128);
     if (buffer == null) return null;
-    LocalVar var = injectLoadableResource(mv, resourceWriter, buffer, "intArrayFromResource");
+    LocalVar var = injectLoadableResource(mv, resourceWriter, buffer, BytePtr.class, "intArrayFromResource");
     GimpleArrayType arrayType = (GimpleArrayType) value.getType();
     return new VArrayExpr(arrayType, new VPtrExpr(var));
   };
@@ -119,10 +123,28 @@ class Constructors {
 
     ByteBuffer buffer = constantArrayToBuffer(value, isElementType, converter, 8, 128);
     if (buffer == null) return null;
-    LocalVar var = injectLoadableResource(mv, resourceWriter, buffer, "longArrayFromResource");
+    LocalVar var = injectLoadableResource(mv, resourceWriter, buffer, BytePtr.class, "longArrayFromResource");
     GimpleArrayType arrayType = (GimpleArrayType) value.getType();
     return new VArrayExpr(arrayType, new VPtrExpr(var));
   };
+
+  static GExpr int32Array2d(MethodGenerator mv, ResourceWriter resourceWriter, GimpleConstructor value) {
+    Predicate<GimpleType> elementPredicate = b -> isIntegerWithPrecision(b, 32);
+    if(!isArrayWithType(value.getType(), a -> isArrayWithType(a, elementPredicate))) {
+      return null;
+    }
+
+    // This is a 2d array. We will store all the elements, then the lengths.
+    ByteBuffer buffer = constant2DArrayToBuffer(value, elementPredicate, Constructors::appendInt32, 4, 128);
+    if(buffer == null) {
+      return null;
+    }
+
+    LocalVar var = injectLoadableResource(mv, resourceWriter, buffer, BytePtr.class, "intArrayFromResource2d");
+    GimpleArrayType arrayType = (GimpleArrayType) value.getType();
+    return new VArrayExpr(arrayType, new VPtrExpr(var));
+  }
+
 
   /**
    * Specialised constructors for handling large string and char arrays
@@ -252,10 +274,81 @@ class Constructors {
     return buffer;
   }
 
+
+  private static ByteBuffer constant2DArrayToBuffer(
+      GimpleConstructor value,
+      Predicate<GimpleType> isElementType,
+      BufferConverter converter,
+      int byteSize,
+      int threshold)
+  {
+
+    if (!isArrayWithType(value.getType(), outer -> isArrayWithType(outer, isElementType))) {
+      return null;
+    }
+
+    List<GimpleConstructor.Element> arrays = value.normalizeArrayElements();
+    int arrayCount = arrays.size();
+
+    // Count all the elements
+    int elementCount = 0;
+    for (GimpleConstructor.Element array : value.getElements()) {
+      if(array.getValue() instanceof GimpleConstructor) {
+        GimpleConstructor arrayConstructor = (GimpleConstructor) array.getValue();
+        GimpleArrayType arrayType = (GimpleArrayType) arrayConstructor.getType();
+        elementCount += arrayType.getElementCount();
+      }
+    }
+
+    // only stream large arrays
+    if (elementCount < threshold) {
+      return null;
+    }
+
+    // The layout for a 2d array is as follows:
+    // arrayCount [int32] - Number of arrays
+    // elementCount [int32] - Total number of elements in all arrays
+    // values [bytesize * elementCount] - Values
+    // offsets [int32 * arrayCount] - Starting offsets of the arrays within the larger array
+
+    int headerSize = 4 + 4;
+    ByteBuffer buffer = ByteBuffer
+        .allocate(headerSize +  (arrayCount * 4) + (elementCount * byteSize))
+        .order(ByteOrder.LITTLE_ENDIAN);
+
+    buffer.putInt(arrayCount);
+    buffer.putInt(elementCount);
+
+    // Write out all the offsets
+    int offset = headerSize + (arrayCount + 4);
+    for (GimpleConstructor.Element array : arrays) {
+      buffer.putInt(offset);
+      if(array.getValue() instanceof GimpleConstructor) {
+        GimpleConstructor arrayConstructor = (GimpleConstructor) array.getValue();
+        offset += arrayConstructor.getElements().size();
+      }
+    }
+
+    // Now write all the elements
+    for (GimpleConstructor.Element array : arrays) {
+      buffer.putInt(offset);
+      if(array.getValue() instanceof GimpleConstructor) {
+        GimpleConstructor arrayConstructor = (GimpleConstructor) array.getValue();
+        for (GimpleConstructor.Element valueElement : arrayConstructor.normalizeArrayElements()) {
+          converter.append(buffer, valueElement);
+        }
+      }
+    }
+
+    return buffer;
+  }
+
+
   private static LocalVar injectLoadableResource(
       MethodGenerator mv,
       ResourceWriter resourceWriter,
       ByteBuffer buffer,
+      Class<?> functionClass,
       String functionName
   ) {
     // Write resource to class
@@ -275,7 +368,7 @@ class Constructors {
         Type.getType(Class.class),
         Type.getType(String.class)
     );
-    mv.invokestatic(Type.getType(BytePtr.class), functionName, descriptor);
+    mv.invokestatic(Type.getType(functionClass), functionName, descriptor);
 
     // Save the array to a local variable
     LocalVar var = mv.getLocalVarAllocator().reserve(Type.getType(Ptr.class));

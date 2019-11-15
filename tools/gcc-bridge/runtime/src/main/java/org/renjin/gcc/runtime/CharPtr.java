@@ -122,7 +122,17 @@ public class CharPtr extends AbstractPtr {
 
   @Override
   public void setByte(int offset, byte value) {
-    throw new UnsupportedOperationException("TODO");
+    // TEMP: unsigned short arrays are being automatically typed as char arrays, and this function is called during initialisation.
+    //       Copying the short implementation for now - but this should be redone properly in the future
+    setByteViaShort(offset, value);
+    //throw new UnsupportedOperationException("TODO");
+  }
+
+  // TEMP: unsigned short arrays are being automatically typed as char arrays, and this function is called during initialisation.
+  //       Copying the short implementation for now - but this should be redone properly in the future
+  @Override
+  public void setAlignedShort(int index, short shortValue) {
+    array[this.offset + index] = (char)shortValue;
   }
 
   @Override

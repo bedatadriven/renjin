@@ -24,12 +24,15 @@ import org.renjin.invoke.annotations.Internal;
 import org.renjin.parser.NumericLiterals;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.io.connections.PushbackBufferedReader;
+import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Scan {
 
@@ -76,12 +79,14 @@ public class Scan {
     } else {
       splitter = new CharSplitter(quote, seperator);
     }
+
+    Predicate<String> naDetector = buildNaDetector(naStrings);
     
     Scanner scanner;
     if(what instanceof ListVector) {
-      scanner = new ListReader((ListVector)what, splitter, dec.charAt(0));
+      scanner = new ListReader((ListVector)what, splitter, dec.charAt(0), naDetector);
     } else {
-      scanner = new ScalarReader(getAtomicScanner(what, dec.charAt(0)), splitter);
+      scanner = new ScalarReader(getAtomicScanner(what, dec.charAt(0), naDetector), splitter);
     }
 
     String line;
@@ -109,7 +114,24 @@ public class Scan {
     return scanner.build();
   }
 
-  
+  private static Predicate<String> buildNaDetector(StringVector naStrings) {
+    if(naStrings.length() == 0) {
+      return s -> false;
+    }
+    Set<String> set = new HashSet<>();
+    for (String naString : naStrings) {
+      if(naString != null && !naString.isEmpty()) {
+        set.add(naString);
+      }
+    }
+    if(set.size() == 1) {
+      String naString = set.iterator().next();
+      return s -> naString.equals(s);
+    } else {
+      return s -> set.contains(s);
+    }
+  }
+
   interface Scanner {
     void read(String line);
     Vector build();
@@ -117,13 +139,19 @@ public class Scan {
 
   private static class StringReader implements Scanner {
     private final StringVector.Builder builder;
+    private final Predicate<String> naDetector;
 
-    private StringReader() {
+    private StringReader(Predicate<String> naDetector) {
+      this.naDetector = naDetector;
       this.builder = new StringVector.Builder();
     }
 
     public void read(String value) {
-      this.builder.add(value);
+      if(naDetector.test(value)) {
+        builder.addNA();
+      } else {
+        builder.add(value);
+      }
     }
 
     public StringVector build() {
@@ -133,16 +161,22 @@ public class Scan {
   
   private static class DoubleReader implements Scanner {
     private final char decimal;
+    private final Predicate<String> naDetector;
     private final DoubleArrayVector.Builder builder;
 
-    private DoubleReader(char decimal) {
+    private DoubleReader(char decimal, Predicate<String> naDetector) {
       this.decimal = decimal;
+      this.naDetector = naDetector;
       this.builder = new DoubleArrayVector.Builder();
     }
 
     @Override
     public void read(String line) {
-      builder.add( NumericLiterals.parseDouble(line, 0, line.length(), decimal, false) );
+      if(naDetector.test(line)) {
+        builder.addNA();
+      } else {
+        builder.add(NumericLiterals.parseDouble(line, 0, line.length(), decimal, false));
+      }
     }
 
     @Override
@@ -152,11 +186,20 @@ public class Scan {
   }
   
   private static class IntReader implements Scanner {
+    private final Predicate<String> naDetector;
     private final IntArrayVector.Builder builder = new IntArrayVector.Builder();
+
+    public IntReader(Predicate<String> naDetector) {
+      this.naDetector = naDetector;
+    }
 
     @Override
     public void read(String line) {
-      builder.add( NumericLiterals.parseInt(line));
+      if (naDetector.test(line)) {
+        builder.addNA();
+      } else {
+        builder.add(NumericLiterals.parseInt(line));
+      }
     }
 
     @Override
@@ -167,13 +210,13 @@ public class Scan {
   
   
   
-  private static Scanner getAtomicScanner(SEXP exp, char decimal) {
+  private static Scanner getAtomicScanner(SEXP exp, char decimal, Predicate<String> naDetector) {
     if(exp instanceof StringVector) {
-      return new StringReader();
+      return new StringReader(naDetector);
     } else if(exp instanceof DoubleVector) {
-      return new DoubleReader(decimal);
+      return new DoubleReader(decimal, naDetector);
     } else if(exp instanceof IntVector) {
-      return new IntReader();
+      return new IntReader(naDetector);
     } else {
       throw new UnsupportedOperationException(
           String.format("column type '%s' not implemented", exp.getTypeName()));
@@ -209,11 +252,11 @@ public class Scan {
     private StringVector names;
     private List<Scanner> columnReaders = Lists.newArrayList();
         
-    public ListReader(ListVector columns, Splitter splitter, char decimal) {
+    public ListReader(ListVector columns, Splitter splitter, char decimal, Predicate<String> naDetector) {
       this.splitter = splitter;
       this.names = (StringVector) columns.getAttribute(Symbols.NAMES);
       for(SEXP column : columns) {
-        columnReaders.add(getAtomicScanner(column, decimal));
+        columnReaders.add(getAtomicScanner(column, decimal, naDetector));
       }
     }
     

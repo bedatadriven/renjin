@@ -140,6 +140,9 @@ public class GnurSourcesCompiler {
           } catch (IOException e) {
             throw new IOException("Failed to parse gimple file " + file, e);
           }
+        } else if(file.getName().endsWith("gimple.zip")) {
+          gimpleFiles.addAll(parser.parseZipFile(file));
+
         } else if(file.isDirectory()) {
           collectGimple(file, gimpleFiles);
         }

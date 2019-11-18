@@ -271,7 +271,6 @@ public class RdParser
 
   /**
    * Instantiates the Bison-generated parser.
-   * @param yylexer The scanner that will supply tokens to the parser.
    */
   public RdParser() {
     this.yylexer = new RdLexer();
@@ -2491,6 +2490,11 @@ public class RdParser
       new Keyword( "\\S3method",LATEXMACRO2 ),
       new Keyword( "\\S4method",LATEXMACRO2 ),
       new Keyword( "\\tabular", LATEXMACRO2 ),
+      new Keyword( "\\subsection", LATEXMACRO2 ),
+
+      /* This macro takes one verbatim and one LaTeX-like argument. */
+
+//      new Keyword( "\\href",    VERBLATEX ),
 
       /* This macro takes three LaTeX-like arguments. */
 
@@ -2534,11 +2538,18 @@ public class RdParser
 
       new Keyword( "\\eqn",     VERBMACRO2 ),
       new Keyword( "\\deqn",    VERBMACRO2 ),
+      new Keyword( "\\figure",  VERBMACRO2 ),
+
 
       /* We parse IFDEF/IFNDEF as markup, not as a separate preprocessor step */
 
       new Keyword( "#ifdef",    IFDEF ),
       new Keyword( "#ifndef",   IFDEF ),
+      new Keyword( "#ifndef",   ENDIF ),
+
+//      new Keyword( "\\newcommand",  NEWCOMMAND ),
+//      new Keyword( "\\renewcommand", NEWCOMMAND ),
+
       new Keyword( "}",    ENDIF )
       /* All other markup macros are rejected. */
   };
@@ -2555,7 +2566,7 @@ public class RdParser
     }
     return UNKNOWN;
   }
-  
+
   String yytname__translations[] =
     {
       /* the left column are strings coming from bison, the right
@@ -2563,8 +2574,8 @@ public class RdParser
            The first YYENGLISH from the right column are English to be translated,
            the rest are to be copied literally.  The #if 0 block below allows xgettext
            to see these.
-       */    
-      "$undefined", "input",  
+       */
+      "$undefined", "input",
       "SECTIONHEADER","section header",
       "RSECTIONHEADER","section header",
       "VSECTIONHEADER","section header",

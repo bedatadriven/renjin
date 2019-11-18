@@ -35,6 +35,8 @@ public class ExampleParser extends SexpVisitor<String> {
       for (String line : vector) {
         code.append(line);
       }
+    } else if(tag.equals("COMMENT")) {
+      // ignore
     } else {
       throw new EvalException("Unknown tag " + tag);
     }

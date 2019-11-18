@@ -64,6 +64,11 @@ public abstract class AbstractSEXP implements SEXP {
   }
 
   @Override
+  public void unsafeSetLength(int length) {
+    throw new UnsupportedOperationException(getClass().getName() + " does not support unsafeSetLength");
+  }
+
+  @Override
   public final boolean hasAttributes() {
     return attributes != AttributeMap.EMPTY;
   }

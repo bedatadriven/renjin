@@ -533,7 +533,7 @@ public final class Rinternals {
   }
 
   public static void SETLENGTH(SEXP x, int v) {
-    throw new UnimplementedGnuApiMethod("SETLENGTH");
+    x.unsafeSetLength(v);
   }
 
   /**

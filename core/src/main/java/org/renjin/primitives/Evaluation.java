@@ -389,7 +389,17 @@ public class Evaluation {
 
   @Builtin
   public static int nargs(@Current Context context, @Current Environment environment) {
-    return Contexts.findCallingContext(context, environment).getCall().getArguments().length();
+    Context callingContext = Contexts.findCallingContext(context, environment);
+    int count = 0;
+    for (SEXP argument : callingContext.getCall().getArguments().values()) {
+      if(argument == Symbols.ELLIPSES) {
+        SEXP ellipses = callingContext.getCallingEnvironment().getEllipsesVariable();
+        count += ellipses.length();
+      } else {
+        count += 1;
+      }
+    }
+    return count;
   }
   
   @Builtin(".Primitive")

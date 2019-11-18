@@ -82,7 +82,7 @@ public class TestExecutor {
     if (isManFile(testFile)) {
       executeTestFile(testFile, ExamplesParser.parseExamples(testFile));
     } else {
-      executeTestFile(testFile, Files.toString(testFile, Charsets.UTF_8));
+      executeTestFile(testFile, Files.asCharSource(testFile, Charsets.UTF_8).read());
     }
 
     listener.done();

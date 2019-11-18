@@ -1,5 +1,6 @@
 package org.renjin.packaging.test;
 
+import org.renjin.eval.EvalException;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.SexpVisitor;
@@ -15,23 +16,27 @@ public class ExampleParser extends SexpVisitor<String> {
     String tag = ExamplesParser.getTag(list);
     if(tag.equals("\\dots")) {
       code.append("...");
-    } else {
-      // Descend into nested lists
+    } else if(tag.equals("\\dontrun") || tag.equals("\\donttest")) {
+      // ignore...
+    } else if(tag.equals("\\dontshow")) {
       for (SEXP element : list) {
-        if (element instanceof ListVector) {
-          element.accept(this);
-        }
+        element.accept(this);
       }
+    } else {
+      throw new EvalException("Unknown tag " + tag);
     }
   }
 
 
   @Override
   public void visit(StringVector vector) {
-    if(ExamplesParser.getTag(vector).equals("RCODE")) {
+    String tag = ExamplesParser.getTag(vector);
+    if(tag.equals("RCODE")) {
       for (String line : vector) {
         code.append(line);
       }
+    } else {
+      throw new EvalException("Unknown tag " + tag);
     }
   }
 

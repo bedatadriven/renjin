@@ -92,7 +92,7 @@ public class SequenceTest extends EvalTestCase {
     assertThat( eval( ".Internal(rep.int(c('a', 'b', 'c'), 2))"), elementsIdenticalTo(c("a","b","c","a","b","c")));
     assertThat( eval( ".Internal(rep.int(c('a', 'b', 'c'), 0))"), identicalTo(CHARACTER_0));
   }
-  
+
   @Test
   public void zeroLengthRep() {
     // Deferred calculation in x...

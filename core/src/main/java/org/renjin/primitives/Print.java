@@ -21,6 +21,7 @@ package org.renjin.primitives;
 import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.*;
 import org.renjin.parser.StringLiterals;
+import org.renjin.pipeliner.VectorPipeliner;
 import org.renjin.primitives.print.*;
 import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.repackaged.guava.base.Function;
@@ -48,8 +49,9 @@ public class Print {
 
       // Side affect alert!
       // Trigger any deferred computation
-      expression = context.materialize(expression);
-
+      if(VectorPipeliner.ENABLED) {
+        expression = context.materialize(expression);
+      }
 
       PrintingVisitor visitor = new PrintingVisitor(context)
           .setCharactersPerLine(80)

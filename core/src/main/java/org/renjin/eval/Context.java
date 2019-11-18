@@ -228,6 +228,9 @@ public class Context {
   }
 
   public ListVector materialize(ListVector listVector) {
+    if(!VectorPipeliner.ENABLED) {
+      return listVector;
+    }
     if(!anyDeferred(listVector)) {
       return listVector;
     }

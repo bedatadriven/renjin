@@ -24,6 +24,7 @@ import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Generic;
 import org.renjin.invoke.annotations.Internal;
+import org.renjin.pipeliner.VectorPipeliner;
 import org.renjin.primitives.Indexes;
 import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.sequence.RepLogicalVector;
@@ -201,8 +202,11 @@ public class Matrices {
                                       int numRows,
                                       int rowLength,
                                       boolean naRm) {
-    if(!naRm && x.isDeferred()) {
-      return new DeferredRowMeans(x, numRows, AttributeMap.EMPTY);
+
+    if(VectorPipeliner.ENABLED) {
+      if (!naRm && x.isDeferred()) {
+        return new DeferredRowMeans(x, numRows, AttributeMap.EMPTY);
+      }
     }
 
     double sums[] = new double[numRows];
@@ -229,7 +233,7 @@ public class Matrices {
   @Internal
   public static DoubleVector colSums(AtomicVector x, int columnLength, int numColumns, boolean naRm) {
     DeferredColSums dcs =  new DeferredColSums(x, numColumns, naRm, AttributeMap.EMPTY);
-    if (System.getProperty("renjin.disable.colsums") != null) {
+    if (!VectorPipeliner.ENABLED) {
       return (DoubleVector) dcs.forceResult();
     }
     return dcs;

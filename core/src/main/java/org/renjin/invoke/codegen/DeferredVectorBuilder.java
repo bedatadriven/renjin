@@ -22,6 +22,7 @@ import com.sun.codemodel.*;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.model.PrimitiveModel;
+import org.renjin.pipeliner.VectorPipeliner;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
@@ -188,7 +189,9 @@ public class DeferredVectorBuilder {
     // But DON'T defer if the result will be of length zero,
     // because this can be computed for free in any case
     condition = condition.cand(cycleCount.ne(lit(0)));
-    
+
+    // Runtime disabling
+    condition = codeModel.ref(VectorPipeliner.class).staticRef("ENABLED").cand(condition);
     
     JBlock ifBig = parent._if(condition)._then();
 

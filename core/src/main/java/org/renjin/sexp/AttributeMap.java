@@ -22,13 +22,8 @@ import org.renjin.eval.EvalException;
 import org.renjin.primitives.vector.ConvertingStringVector;
 import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.repackaged.guava.base.Strings;
-import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.repackaged.guava.collect.Maps;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 
 /**
@@ -50,12 +45,19 @@ public class AttributeMap {
   private SEXP dimNames = null;
   private boolean s4 = false;
 
-  private HashMap<Symbol, SEXP> map;
+  private Symbol[] attributeNames;
+  private SEXP[] attributeValues;
 
 
-  public static final AttributeMap EMPTY = new AttributeMap();
+  public static final AttributeMap EMPTY = new AttributeMap().initEmpty();
 
   private AttributeMap() {
+  }
+
+  private AttributeMap initEmpty() {
+    attributeNames = new Symbol[0];
+    attributeValues = new SEXP[0];
+    return this;
   }
 
   /**
@@ -73,23 +75,7 @@ public class AttributeMap {
    * present in the map.
    */
   public Iterable<Symbol> names() {
-    List<Symbol> list = Lists.newArrayList();
-    if(classes != null) {
-      list.add(Symbols.CLASS);
-    }
-    if(names != null) {
-      list.add(Symbols.NAMES);
-    }
-    if(dim != null) {
-      list.add(Symbols.DIM);
-    }
-    if(dimNames != null) {
-      list.add(Symbols.DIMNAMES);
-    }
-    if(map != null) {
-      list.addAll(map.keySet());
-    }
-    return list;
+    return Arrays.asList(attributeNames);
   }
 
   public PairList asPairList() {
@@ -110,41 +96,17 @@ public class AttributeMap {
   }
 
   private void addTo(ListBuilder list) {
-    if(classes != null) {
-      list.add(Symbols.CLASS, classes);
-    }
-    if(names != null) {
-      list.add(Symbols.NAMES, names);
-    }
-    if(dim != null) {
-      list.add(Symbols.DIM, dim);
-    }
-    if(dimNames != null) {
-      list.add(Symbols.DIMNAMES, dimNames);
-    }
-    if(map != null) {
-      for(Map.Entry<Symbol, SEXP> entry : map.entrySet()) {
-        list.add(entry.getKey(), entry.getValue());
-      }
+    int length = attributeNames.length;
+    for (int i = 0; i < length; i++) {
+      list.add(attributeNames[i], attributeValues[i]);
     }
   }
 
   public Map<Symbol, SEXP> toMap() {
     Map<Symbol, SEXP> map = new HashMap<>();
-    if(classes != null) {
-      map.put(Symbols.CLASS, classes);
-    }
-    if(names != null) {
-      map.put(Symbols.NAMES, names);
-    }
-    if(dim != null) {
-      map.put(Symbols.DIM, dim);
-    }
-    if(dimNames != null) {
-      map.put(Symbols.DIMNAMES, dimNames);
-    }
-    if(this.map != null) {
-      map.putAll(this.map);
+    int length = attributeNames.length;
+    for (int i = 0; i < length; i++) {
+      map.put(attributeNames[i], attributeValues[i]);
     }
     return map;
   }
@@ -158,22 +120,10 @@ public class AttributeMap {
   }
 
   public SEXP get(Symbol name) {
-    if(name == Symbols.CLASS) {
-      return classes != null ? classes : Null.INSTANCE;
-
-    } else if(name == Symbols.DIM) {
-      return dim != null ? dim : Null.INSTANCE;
-
-    } else if(name == Symbols.NAMES) {
-      return names != null ? names : Null.INSTANCE;
-
-    } else if(name == Symbols.DIMNAMES) {
-      return dimNames != null ? dimNames : Null.INSTANCE;
-
-    } else if(map != null) {
-      SEXP value = map.get(name);
-      if(value != null) {
-        return value;
+    int length = attributeNames.length;
+    for (int i = 0; i < length; i++) {
+      if(attributeNames[i] == name) {
+        return attributeValues[i];
       }
     }
     return Null.INSTANCE;
@@ -183,16 +133,19 @@ public class AttributeMap {
     return new Builder(this);
   }
 
-  public BuilderS4 copyS4() {
-    return new BuilderS4(this);
-  }
-
   public boolean hasAnyBesidesName() {
-    return map != null || classes != null|| dim != null || dimNames != null;
+    int length = attributeNames.length;
+    if(length == 0) {
+      return false;
+    }
+    if(length > 1) {
+      return true;
+    }
+    return attributeNames[0] != Symbols.NAMES;
   }
 
   public boolean hasAnyBesidesS4Flag() {
-    return map != null || classes != null|| dim != null || dimNames != null || names != null;
+    return attributeNames.length > 0;
   }
 
   private boolean hasDim() {
@@ -271,41 +224,40 @@ public class AttributeMap {
   }
 
   /**
-   * @return  a copy of this {@code AttributeMap} containing
-   * this {@code AttributeMap}'s {@code names} attribute.
-   */
-  public AttributeMap copyNames() {
-    if(names == null ) {
-      return AttributeMap.EMPTY;
-    } else {
-      AttributeMap attributes = new AttributeMap();
-      attributes.names = names;
-      return attributes;
-    }
-  }
-
-  /**
    *
    * @return a new {@code AttributeMap}, containing only the
    * this {@code AttributeMap}'s {@code dim}, {@code names}, and {@code dimnames} attributes.
    */
   public AttributeMap copyStructural() {
-    if(classes == null && map == null) {
-      return this;
-    } else if(dim != null || names != null || (map != null && map.containsKey(Symbols.DIMNAMES))) {
-      AttributeMap copy = new AttributeMap();
-      copy.dim = this.dim;
-      copy.names = this.names;
-      if(this.map != null) {
-        SEXP dimnames = map.get(Symbols.DIMNAMES);
-        if(dimnames != null) {
-          copy.map = Maps.newHashMap();
-          copy.map.put(Symbols.DIMNAMES, dimnames);
+    int newLength = 0;
+    if(dim != null) {
+      newLength++;
+    }
+    if(dimNames != null) {
+      newLength++;
+    }
+    if(names != null) {
+      newLength++;
+    }
+    if(newLength == 0) {
+      return AttributeMap.EMPTY;
+    } else {
+      AttributeMap newMap = new AttributeMap();
+      newMap.dim = dim;
+      newMap.dimNames = dimNames;
+      newMap.names = names;
+      newMap.attributeNames = new Symbol[newLength];
+      newMap.attributeValues = new SEXP[newLength];
+      int j = 0;
+      for (int i = 0; i < attributeNames.length; i++) {
+        Symbol attributeName = attributeNames[i];
+        if(attributeName == Symbols.DIM || attributeName == Symbols.DIMNAMES || attributeName == Symbols.NAMES) {
+          newMap.attributeNames[j] = attributeNames[i];
+          newMap.attributeValues[j] = attributeValues[i];
+          j++;
         }
       }
-      return copy;
-    } else {
-      return AttributeMap.EMPTY;
+      return newMap;
     }
   }
 
@@ -361,41 +313,19 @@ public class AttributeMap {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
     AttributeMap that = (AttributeMap) o;
-
-    if (classes != null ? !classes.equals(that.classes) : that.classes != null) {
-      return false;
-    }
-    if (names != null ? !names.equals(that.names) : that.names != null) {
-      return false;
-    }
-    if (dim != null ? !dim.equals(that.dim) : that.dim != null) {
-      return false;
-    }
-    if (dimNames != null ? !dimNames.equals(that.dimNames) : that.dimNames != null) {
-      return false;
-    }
-    if (this.s4 != that.s4) {
-      return false;
-    }
-    return Objects.equals(map, that.map);
-
+    return s4 == that.s4 &&
+        Arrays.equals(attributeNames, that.attributeNames) &&
+        Arrays.equals(attributeValues, that.attributeValues);
   }
 
   @Override
   public int hashCode() {
-    int result = classes != null ? classes.hashCode() : 0;
-    result = 31 * result + (names != null ? names.hashCode() : 0);
-    result = 31 * result + (dim != null ? dim.hashCode() : 0);
-    result = 31 * result + (dimNames != null ? dimNames.hashCode() : 0);
-    result = 31 * result + (map != null ? map.hashCode() : 0);
+    int result = Objects.hash(s4);
+    result = 31 * result + Arrays.hashCode(attributeNames);
+    result = 31 * result + Arrays.hashCode(attributeValues);
     return result;
   }
 
@@ -411,11 +341,12 @@ public class AttributeMap {
     private SEXP dim = null;
     private SEXP dimNames = null;
 
-    private HashMap<Symbol, SEXP> map;
-
-    private boolean empty = true;
+    private List<Symbol> attributeNames;
+    private List<SEXP> attributeValues;
 
     public Builder() {
+      this.attributeNames = new ArrayList<>();
+      this.attributeValues = new ArrayList<>();
     }
 
     private Builder(AttributeMap attributes) {
@@ -424,15 +355,18 @@ public class AttributeMap {
       this.names = attributes.names;
       this.dim = attributes.dim;
       this.dimNames = attributes.dimNames;
-      if(attributes.map != null) {
-        this.map = new HashMap<>(attributes.map);
+
+      int length = attributes.attributeNames.length;
+      this.attributeNames = new ArrayList<>(length);
+      this.attributeValues = new ArrayList<>(length);
+      for (int i = 0; i < length; i++) {
+        attributeNames.add(attributes.attributeNames[i]);
+        attributeValues.add(attributes.attributeValues[i]);
       }
-      updateEmptyFlag();
     }
 
     public Builder setS4(boolean flag) {
       this.s4 = flag;
-      updateEmptyFlag();
       return this;
     }
 
@@ -446,13 +380,14 @@ public class AttributeMap {
     public Builder setDim(SEXP value) {
       if(value instanceof Null) {
         this.dim = null;
-        updateEmptyFlag();
+        removeList(Symbols.DIM);
+
       } else {
         if (!(value instanceof Vector)) {
           throw new EvalException("Invalid dim attribute of type '%s'", value.getTypeName());
         }
         if (value instanceof IntVector) {
-          dim = (IntVector) value;
+          dim = value;
         } else {
           IntArrayVector.Builder dimVector = new IntArrayVector.Builder(0, value.length());
           for (int i = 0; i < value.length(); i++) {
@@ -460,9 +395,43 @@ public class AttributeMap {
           }
           dim = dimVector.build();
         }
-        this.empty = false;
+        updateList(Symbols.DIM, dim);
       }
       return this;
+    }
+
+    private void updateList(Symbol name, SEXP value) {
+      int sz = attributeNames.size();
+      for (int i = 0; i < sz; i++) {
+        if(attributeNames.get(i) == name) {
+          attributeValues.set(i, value);
+          return;
+        }
+      }
+      attributeNames.add(name);
+      attributeValues.add(value);
+    }
+
+    private void updateListIfNotPresent(Symbol name, SEXP value) {
+      int sz = attributeNames.size();
+      for (int i = 0; i < sz; i++) {
+        if(attributeNames.get(i) == name) {
+          return;
+        }
+      }
+      attributeNames.add(name);
+      attributeValues.add(value);
+    }
+
+    private void removeList(Symbol name) {
+      int sz = attributeNames.size();
+      for (int i = 0; i < sz; i++) {
+        if(attributeNames.get(i) == name) {
+          attributeNames.remove(i);
+          attributeValues.remove(i);
+          return;
+        }
+      }
     }
 
     /**
@@ -471,59 +440,54 @@ public class AttributeMap {
     public Builder setDim(IntVector dim) {
       assert dim != null;
       this.dim = dim;
-      this.empty = false;
+      updateList(Symbols.DIM, dim);
       return this;
     }
 
     public Builder setDim(int rows, int cols) {
-      this.dim = new IntArrayVector(rows, cols);
-      this.empty = false;
-      return this;
+      return setDim(new IntArrayVector(rows, cols));
     }
 
     public Builder setNames(StringVector names) {
       assert names != null;
       this.names = names;
-      this.empty = false;
+      updateList(Symbols.NAMES, names);
       return this;
     }
 
     public Builder setNames(SEXP names) {
       if(names == Null.INSTANCE) {
-        remove(Symbols.NAMES);
+        this.names = null;
+        removeList(Symbols.NAMES);
+        return this;
+      } else if(names instanceof StringVector) {
+        return setNames((StringVector) names);
+      } else if(names instanceof Vector) {
+        return setNames(new ConvertingStringVector((Vector) names));
       } else {
-        if(!(names instanceof StringVector)) {
-          if(names instanceof Vector) {
-            names = new ConvertingStringVector((Vector) names);
-          } else {
-            throw new EvalException("'names' vector must be a character");
-          }
-        }
-        this.names = (StringVector) names;
-        this.empty = false;
+        throw new EvalException("'names' vector must be a character");
       }
+    }
+
+    public Builder setClass(StringVector className) {
+      this.classes = className;
+      updateList(Symbols.CLASS, classes);
       return this;
     }
 
     public Builder setClass(String... classNames) {
-      this.classes = new StringArrayVector(classNames);
-      this.empty = false;
-      return this;
+      return setClass(new StringArrayVector(classNames));
     }
 
     /**
-     * Validates a {@code class} attribute value
-     *
-     * @param value the proposed {@code class} attribute
-     * @return the {@code classNames} vector, coerced to {@link StringVector} if not null.
+     * Validates and sets a {@code class} attribute value.
      */
     public Builder setClass(SEXP value) {
       if(value.length() == 0) {
         return remove(Symbols.CLASS);
+      } else {
+        return setClass(toClassVector(value));
       }
-      this.classes = toClassVector(value);
-      this.empty = false;
-      return this;
     }
     
     public Builder setDimNames(SEXP value) {
@@ -536,12 +500,13 @@ public class AttributeMap {
       if (!(value instanceof ListVector)) {
         throw new EvalException("'dimnames' must be a list");
       }
-      this.dimNames = (ListVector) value;
-      this.empty = false;
+      this.dimNames = value;
+      updateList(Symbols.DIMNAMES, value);
 
       // Arrays cannot have both dimnames and names
       if(this.dim != null && this.dim.length() == 1) {
         this.names = null;
+        removeList(Symbols.NAMES);
       }
 
       return this;
@@ -549,7 +514,6 @@ public class AttributeMap {
 
     /**
      * Sets a 1-dimensional {@code DIMNAMES} attribute 
-     * @param names
      */
     public Builder setArrayNames(Vector names) {
       if(names == Null.INSTANCE) {
@@ -585,16 +549,36 @@ public class AttributeMap {
           setDimNames(value);
 
         } else {
-          this.empty = false;
-          if(map == null) {
-            map = Maps.newHashMap();
-          }
           if(name == Symbols.ROW_NAMES) {
-            map.put(name, validateRowNames(value));
+            updateList(name, validateRowNames(value));
           } else {
-            map.put(name, value);
+            updateList(name, value);
           }
         }
+      }
+      return this;
+    }
+
+
+    public Builder setSlot(Symbol name, SEXP value) {
+      if(value == Null.INSTANCE) {
+        return remove(name);
+      } else if(name == Symbols.CLASS) {
+        // Even for S4 objects, the class attribute MUST be a string vector
+        setClass(value);
+      } else {
+        // For other attributes, we do not apply the normal constraints
+        // as S4 classes are free to define the shape of these slots.
+        if(name == Symbols.NAMES) {
+          this.names = value;
+
+        } else if(name == Symbols.DIM) {
+          this.dim = value;
+
+        } else if(name == Symbols.DIMNAMES) {
+          this.dimNames = value;
+        }
+        updateList(name, value);
       }
       return this;
     }
@@ -631,29 +615,22 @@ public class AttributeMap {
         this.dim = null;
       } else if(name == Symbols.DIMNAMES) {
         this.dimNames = null;
-      } else if(map != null) {
-        map.remove(name);
       }
-      updateEmptyFlag();
+      removeList(name);
       return this;
-    }
-
-    private void updateEmptyFlag() {
-      this.empty = (!s4 && classes == null && dim == null && dimNames == null && names == null &&
-          (map == null || map.isEmpty()));
     }
 
     public Builder removeDim() {
       dim = null;
       dimNames = null;
-      updateEmptyFlag();
+      removeList(Symbols.DIM);
+      removeList(Symbols.DIMNAMES);
       return this;
     }
 
-
     public Builder removeDimnames() {
       dimNames = null;
-      updateEmptyFlag();
+      removeList(Symbols.DIMNAMES);
       return this;
     }
 
@@ -662,16 +639,11 @@ public class AttributeMap {
     }
 
     public SEXP get(Symbol name) {
-      if(name == Symbols.CLASS) {
-        return classes;
-      } else if(name == Symbols.NAMES) {
-        return names;
-      } else if(name == Symbols.DIM) {
-        return dim;
-      } else if(name == Symbols.DIMNAMES) {
-        return dimNames;
-      } else if(map != null && map.containsKey(name)) {
-        return map.get(name);
+      int length = attributeNames.size();
+      for (int i = 0; i < length; i++) {
+        if(attributeNames.get(i) == name) {
+          return attributeValues.get(i);
+        }
       }
       return Null.INSTANCE;
     }
@@ -700,14 +672,22 @@ public class AttributeMap {
      * </ul>
      */
     public Builder combineStructuralFrom(AttributeMap other) {
-      if(empty) {
+      if(attributeNames.isEmpty()) {
         // Fast path
         this.dim = other.dim;
         this.names = other.names;
         this.dimNames = other.dimNames;
-        if(this.dim != null || this.names != null || this.dimNames != null) {
-          empty = false;
+
+        if(this.dim != null) {
+          updateList(Symbols.DIM, dim);
         }
+        if(this.names != null) {
+          updateList(Symbols.NAMES, names);
+        }
+        if(this.dimNames != null) {
+          updateList(Symbols.DIMNAMES, dimNames);
+        }
+
       } else {
         combineFrom(other, false);
       }
@@ -718,47 +698,44 @@ public class AttributeMap {
       if(other == EMPTY) {
         return this;
       }
-      
-      if(other.names != null) {
-        if(this.names == null && this.dim == null) {
-          this.names = other.names;
-        }
-      }
-      if(other.dim != null) {
-        if(this.dim == null) {
-          this.dim = other.dim;
-          this.names = null;
-          
-        } else {
-          if(!conforming((IntVector) this.dim, (IntVector) other.dim)) {
-            throw new EvalException("non-conformable arrays");
+
+      int otherLen = other.attributeNames.length;
+      for (int i = 0; i < otherLen; i++) {
+        Symbol otherName = other.attributeNames[i];
+        if(otherName == Symbols.NAMES) {
+          if(this.names == null && this.dim == null) {
+            this.names = other.attributeValues[i];
+            updateList(Symbols.NAMES, this.names);
           }
-        }
-        if(other.dimNames != null) {
-          if(this.dimNames == null) {
-            this.dimNames = other.dimNames;
-          }
-        }
-      }
-      if(all) {
-        if (other.classes != null) {
-          if (this.classes == null) {
-            this.classes = other.classes;
-          }
-        }
-        if (other.map != null) {
-          if (this.map == null) {
-            this.map = new HashMap<>(other.map);
+        } else if(otherName == Symbols.DIM) {
+          if(this.dim == null) {
+            this.dim = other.attributeValues[i];
+            updateList(Symbols.DIM, this.dim);
+            if(this.names != null) {
+              this.names = null;
+              removeList(Symbols.NAMES);
+            }
           } else {
-            for (Map.Entry<Symbol, SEXP> entry : other.map.entrySet()) {
-              if (!this.map.containsKey(entry.getKey())) {
-                this.map.put(entry.getKey(), entry.getValue());
-              }
+            if(!conforming((IntVector) this.dim, (IntVector)other.dim)) {
+              throw new EvalException("non-conformable arrays");
             }
           }
+        } else if(otherName == Symbols.DIMNAMES) {
+          if(this.dimNames == null) {
+            this.dimNames = other.dimNames;
+            updateList(Symbols.DIMNAMES, this.dimNames);
+          }
+        } else if(all) {
+          if(otherName == Symbols.CLASS) {
+            if(this.classes == null) {
+              this.classes = other.classes;
+              updateList(Symbols.CLASS, other.classes);
+            }
+          } else {
+            updateListIfNotPresent(otherName, other.attributeValues[i]);
+          }
         }
       }
-      updateEmptyFlag();
       return this;
     }
 
@@ -777,75 +754,47 @@ public class AttributeMap {
     /**
 
      * Copies all non-null attributes from {@code attributes} to this {@code Builder}
-     * @param attributes
      */
     public Builder addAllFrom(AttributeMap attributes) {
-      if(attributes.classes != null) {
-        this.classes = attributes.classes;
-        this.empty = false;
-      }
-      if(attributes.names != null) {
-        this.names = attributes.names;
-        this.empty = false;
-      }
-      if(attributes.dim != null) {
-        this.dim = attributes.dim;
-        this.empty = false;
-      }
-      if(attributes.dimNames != null) {
-        this.dimNames = attributes.dimNames;
-        this.empty = false;
-      }
-      if(attributes.s4) {
-        this.s4 = attributes.s4;
-        this.empty = false;
-      }
-      if(attributes.map != null) {
-        for(Map.Entry<Symbol, SEXP> entry : attributes.map.entrySet()) {
-          if(this.map == null) {
-            this.map = new HashMap<>();
-          }
-          this.map.put(entry.getKey(), entry.getValue());
-          this.empty = false;
-        }
-      }
-      return this;
-    }
 
-    public Builder addIfNotNull(AttributeMap source, Symbol symbol) {
-      SEXP value = source.get(symbol);
-      if(value != Null.INSTANCE) {
-        set(symbol, value);
+      this.s4 = attributes.s4;
+
+      int length = attributes.attributeNames.length;
+      for (int i = 0; i < length; i++) {
+        Symbol sourceName = attributes.attributeNames[i];
+        SEXP sourceValue = attributes.attributeValues[i];
+        if(sourceName == Symbols.NAMES) {
+          this.names = sourceValue;
+        } else if(sourceName == Symbols.DIM) {
+          this.dim = sourceValue;
+        } else if(sourceName == Symbols.DIMNAMES) {
+          this.dimNames = sourceValue;
+        } else if(sourceName == Symbols.CLASS) {
+          this.classes = (StringVector) sourceValue;
+        }
+        updateList(sourceName, sourceValue);
       }
       return this;
     }
 
     public AttributeMap build() {
-      if(empty) {
+      if(isEmpty()) {
         return AttributeMap.EMPTY;
       }
-      assert !reallyEmpty() : "empty flag is wrong";
-      
+
       AttributeMap attributes = new AttributeMap();
       attributes.classes = classes;
       attributes.dim = dim;
       attributes.dimNames = dimNames;
       attributes.s4 = this.s4;
-
-      if(names != null) {
-        attributes.names = names;
-      }
-
-      if(map != null && !map.isEmpty()) {
-        attributes.map = map;
-      }
+      attributes.names = names;
+      attributes.attributeNames = attributeNames.toArray(new Symbol[0]);
+      attributes.attributeValues = attributeValues.toArray(new SEXP[0]);
       return attributes;
-    
     }
-    
-    private boolean reallyEmpty() {
-      updateEmptyFlag();
-      return empty;
+
+    private boolean isEmpty() {
+      return !s4 && attributeNames.isEmpty();
     }
 
     public AttributeMap validateAndBuildFor(SEXP vector) {
@@ -860,29 +809,30 @@ public class AttributeMap {
      */
     public AttributeMap validateAndBuildForVectorOfLength(int length) {
 
-      if(empty) {
+      if(isEmpty()) {
         return AttributeMap.EMPTY;
       }
 
-      assert !reallyEmpty() : "empty flag is wrong";
+      validateDim(length);
 
-      AttributeMap attributes = new AttributeMap();
-      attributes.s4 = s4;
-      attributes.classes = classes;
-      attributes.dim = validateDim(length);
-      attributes.dimNames = validateDimNames();
-      attributes.names = validateNames(length);
-
-      if(map != null && !map.isEmpty()) {
-        attributes.map = map;
+      Vector validatedDimNames = validateDimNames();
+      if(validatedDimNames != null) {
+        this.dimNames = validatedDimNames;
+        updateList(Symbols.DIMNAMES, validatedDimNames);
       }
-      return attributes;
+
+      StringVector validatedNames = validateNames(length);
+      if(validatedNames != null) {
+        this.names = validatedNames;
+        updateList(Symbols.NAMES, validatedNames);
+      }
+      return build();
     }
 
-    private IntVector validateDim(int vectorLength) {
+    private void validateDim(int vectorLength) {
 
       if (dim == null) {
-        return null;
+        return;
       }
 
       int prod = 1;
@@ -898,17 +848,16 @@ public class AttributeMap {
         throw new EvalException("dims [product %d] do not match the length of object [%d]", prod, vectorLength);
       }
 
-      return (IntVector) dim;
     }
 
-    private ListVector validateDimNames() {
+    private Vector validateDimNames() {
 
       if(dimNames == null) {
         return null;
       }
       
       if(dimNames.length() == 0) {
-        return null;
+        return Null.INSTANCE;
       }
 
       if(dim == null) {
@@ -951,8 +900,9 @@ public class AttributeMap {
         throw new EvalException("'names' attribute [%d] must be the same length as the vector [%d]", 
             names.length(), vectorLength);
       }
+
+      return null;
       
-      return (StringVector) names;
     }
 
     private Vector validateNames(int dimIndex, SEXP names) {
@@ -982,210 +932,6 @@ public class AttributeMap {
       } else {
         throw new EvalException("Cannot coerce '%s' to character", sexp.getTypeName());
       }
-    }
-
-    private StringVector toClassVector(SEXP sexp) {
-      if(sexp instanceof StringVector) {
-        return (StringVector)sexp;
-      } else if(sexp instanceof Vector) {
-        return StringArrayVector.fromVector((Vector) sexp);
-      } else {
-        throw new EvalException("Cannot coerce '%s' to character", sexp.getTypeName());
-      }
-    }
-
-  }
-
-  public static Builder newBuilderS4() {
-    return new BuilderS4();
-  }
-
-  public static class BuilderS4 extends Builder {
-
-    private boolean s4 = false;
-    private StringVector classes = null;
-    private SEXP names = null;
-    private SEXP dim = null;
-    private SEXP dimNames = null;
-
-    private HashMap<Symbol, SEXP> map;
-
-    private boolean empty = true;
-
-    public BuilderS4() {
-    }
-
-    private BuilderS4(AttributeMap attributes) {
-      this.s4 = attributes.s4;
-      this.classes = attributes.classes;
-      this.names = attributes.names;
-      this.dim = attributes.dim;
-      this.dimNames = attributes.dimNames;
-      if(attributes.map != null) {
-        this.map = new HashMap<>(attributes.map);
-      }
-      updateEmptyFlag();
-    }
-
-    public BuilderS4 setS4(boolean flag) {
-      this.s4 = flag;
-      updateEmptyFlag();
-      return this;
-    }
-
-    public Builder setClass(String... classNames) {
-      this.classes = new StringArrayVector(classNames);
-      this.empty = false;
-      return this;
-    }
-
-    /**
-     * Validates a {@code class} attribute value
-     *
-     * @param value the proposed {@code class} attribute
-     * @return the {@code classNames} vector, coerced to {@link StringVector} if not null.
-     */
-    public Builder setClass(SEXP value) {
-      if(value.length() == 0) {
-        return remove(Symbols.CLASS);
-      }
-      this.classes = toClassVector(value);
-      this.empty = false;
-      return this;
-    }
-
-    public Builder set(String name, SEXP value) {
-      return set(Symbol.get(name), value);
-    }
-
-    public Builder set(Symbol name, SEXP value) {
-      if(value == Null.INSTANCE) {
-        return remove(name);
-      } else {
-
-        if(name == Symbols.CLASS) {
-          setClass(value);
-
-        } else if(name == Symbols.NAMES) {
-          this.names = value;
-          this.empty = false;
-
-        } else if(name == Symbols.DIM) {
-          this.dim = value;
-          this.empty = false;
-
-        } else if(name == Symbols.DIMNAMES) {
-          this.dimNames =  value;
-          this.empty = false;
-
-        } else {
-          this.empty = false;
-          if(map == null) {
-            map = Maps.newHashMap();
-          }
-          map.put(name, value);
-        }
-      }
-      return this;
-    }
-
-    public Builder remove(Symbol name) {
-      if(name == Symbols.CLASS) {
-        this.classes = null;
-      } else if(name == Symbols.NAMES) {
-        this.names = null;
-      } else if(name == Symbols.DIM) {
-        this.dim = null;
-      } else if(name == Symbols.DIMNAMES) {
-        this.dimNames = null;
-      } else if(map != null) {
-        map.remove(name);
-      }
-      updateEmptyFlag();
-      return this;
-    }
-
-    private void updateEmptyFlag() {
-      this.empty = (!s4 && classes == null && dim == null && dimNames == null && names == null &&
-          (map == null || map.isEmpty()));
-    }
-
-    public SEXP get(String what) {
-      return get(Symbol.get(what));
-    }
-
-    public SEXP get(Symbol name) {
-      if(name == Symbols.CLASS) {
-        return classes;
-      } else if(name == Symbols.NAMES) {
-        return names;
-      } else if(name == Symbols.DIM) {
-        return dim;
-      } else if(name == Symbols.DIMNAMES) {
-        return dimNames;
-      } else if(map != null && map.containsKey(name)) {
-        return map.get(name);
-      }
-      return Null.INSTANCE;
-    }
-
-    public AttributeMap build() {
-      if(empty) {
-        return AttributeMap.EMPTY;
-      }
-      assert !reallyEmpty() : "empty flag is wrong";
-
-      AttributeMap attributes = new AttributeMap();
-      attributes.classes = classes;
-      attributes.dim = dim;
-      attributes.dimNames = dimNames;
-      attributes.s4 = this.s4;
-
-      if(names != null) {
-        attributes.names = names;
-      }
-
-      if(map != null && !map.isEmpty()) {
-        attributes.map = map;
-      }
-      return attributes;
-
-    }
-
-    private boolean reallyEmpty() {
-      updateEmptyFlag();
-      return empty;
-    }
-
-    public AttributeMap validateAndBuildFor(SEXP vector) {
-      return validateAndBuildForVectorOfLength(vector.length());
-    }
-
-    /**
-     * Builds the new {@code AttributeMap}, validating the attributes for
-     * a SEXP of the given {@code length}
-     * @param length the length of the object
-     * @return a valid {@code AttributeMap}
-     */
-    public AttributeMap validateAndBuildForVectorOfLength(int length) {
-
-      if(empty) {
-        return AttributeMap.EMPTY;
-      }
-
-      assert !reallyEmpty() : "empty flag is wrong";
-
-      AttributeMap attributes = new AttributeMap();
-      attributes.s4 = s4;
-      attributes.classes = classes;
-      attributes.dim = dim;
-      attributes.dimNames = dimNames;
-      attributes.names = names;
-
-      if(map != null && !map.isEmpty()) {
-        attributes.map = map;
-      }
-      return attributes;
     }
 
     private StringVector toClassVector(SEXP sexp) {
@@ -1232,6 +978,8 @@ public class AttributeMap {
   public static AttributeMap dim(int row, int col) {
     AttributeMap map = new AttributeMap();
     map.dim = new IntArrayVector(row, col);
+    map.attributeNames = new Symbol[] { Symbols.DIM };
+    map.attributeValues = new SEXP[] { map.dim };
     return map;
   }
 

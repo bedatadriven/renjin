@@ -58,6 +58,10 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     assertThat(value, closeTo(12.56, 0.01));
   }
+  @Test
+  public void arrayTest() throws Exception {
+    compileAndTest("crc.c");
+  }
 
   @Test
   public void pointers() throws Exception {

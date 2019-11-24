@@ -107,7 +107,9 @@ class Constructors {
     BufferConverter converter = Constructors::appendInt32;
 
     ByteBuffer buffer = constantArrayToBuffer(value, isElementType, converter, 4, 128);
-    if (buffer == null) return null;
+    if (buffer == null) {
+      return null;
+    }
     LocalVar var = injectLoadableResource(mv, resourceWriter, buffer, BytePtr.class, "intArrayFromResource");
     GimpleArrayType arrayType = (GimpleArrayType) value.getType();
     return new VArrayExpr(arrayType, new VPtrExpr(var));
@@ -134,13 +136,13 @@ class Constructors {
       return null;
     }
 
-    // This is a 2d array. We will store all the elements, then the lengths.
+    // GCC lays out multidimensional arrays into contiguous blocks
     ByteBuffer buffer = constant2DArrayToBuffer(value, elementPredicate, Constructors::appendInt32, 4, 128);
     if(buffer == null) {
       return null;
     }
 
-    LocalVar var = injectLoadableResource(mv, resourceWriter, buffer, BytePtr.class, "intArrayFromResource2d");
+    LocalVar var = injectLoadableResource(mv, resourceWriter, buffer, BytePtr.class, "intArrayFromResource");
     GimpleArrayType arrayType = (GimpleArrayType) value.getType();
     return new VArrayExpr(arrayType, new VPtrExpr(var));
   }
@@ -286,52 +288,21 @@ class Constructors {
     if (!isArrayWithType(value.getType(), outer -> isArrayWithType(outer, isElementType))) {
       return null;
     }
-
-    List<GimpleConstructor.Element> arrays = value.normalizeArrayElements();
-    int arrayCount = arrays.size();
-
-    // Count all the elements
-    int elementCount = 0;
-    for (GimpleConstructor.Element array : value.getElements()) {
-      if(array.getValue() instanceof GimpleConstructor) {
-        GimpleConstructor arrayConstructor = (GimpleConstructor) array.getValue();
-        GimpleArrayType arrayType = (GimpleArrayType) arrayConstructor.getType();
-        elementCount += arrayType.getElementCount();
-      }
-    }
+    GimpleArrayType outerType = (GimpleArrayType) value.getType();
+    GimpleArrayType innerType = (GimpleArrayType) outerType.getComponentType();
+    int elementCount = outerType.getElementCount() * innerType.getElementCount();
 
     // only stream large arrays
     if (elementCount < threshold) {
       return null;
     }
 
-    // The layout for a 2d array is as follows:
-    // arrayCount [int32] - Number of arrays
-    // elementCount [int32] - Total number of elements in all arrays
-    // values [bytesize * elementCount] - Values
-    // offsets [int32 * arrayCount] - Starting offsets of the arrays within the larger array
-
-    int headerSize = 4 + 4;
     ByteBuffer buffer = ByteBuffer
-        .allocate(headerSize +  (arrayCount * 4) + (elementCount * byteSize))
+        .allocate(elementCount * byteSize)
         .order(ByteOrder.LITTLE_ENDIAN);
 
-    buffer.putInt(arrayCount);
-    buffer.putInt(elementCount);
-
-    // Write out all the offsets
-    int offset = headerSize + (arrayCount + 4);
-    for (GimpleConstructor.Element array : arrays) {
-      buffer.putInt(offset);
-      if(array.getValue() instanceof GimpleConstructor) {
-        GimpleConstructor arrayConstructor = (GimpleConstructor) array.getValue();
-        offset += arrayConstructor.getElements().size();
-      }
-    }
-
     // Now write all the elements
-    for (GimpleConstructor.Element array : arrays) {
-      buffer.putInt(offset);
+    for (GimpleConstructor.Element array : value.normalizeArrayElements()) {
       if(array.getValue() instanceof GimpleConstructor) {
         GimpleConstructor arrayConstructor = (GimpleConstructor) array.getValue();
         for (GimpleConstructor.Element valueElement : arrayConstructor.normalizeArrayElements()) {

@@ -61,7 +61,7 @@ class ClassPathFileObject extends AbstractFileObject  {
 
   @Override
   protected long doGetContentSize() throws Exception {
-    throw new UnsupportedOperationException();
+    return file.length();
   }
 
   @Override

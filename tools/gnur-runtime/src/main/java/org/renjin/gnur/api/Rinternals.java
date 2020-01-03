@@ -36,6 +36,7 @@ import org.renjin.primitives.special.AtFunction;
 import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.sexp.*;
 
+import java.io.IOException;
 import java.lang.System;
 import java.lang.invoke.MethodHandle;
 import java.nio.charset.StandardCharsets;
@@ -2639,15 +2640,22 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_InitInPStream");
   }
 
-  public static void R_InitOutPStream (Ptr stream, Ptr data, int type, int version, Ptr p1, Ptr p2, Ptr hook, SEXP pdata) {
-    throw new UnimplementedGnuApiMethod("R_InitOutPStream");
+  public static void R_InitOutPStream (Ptr stream, Ptr data, int type, int version, Ptr outchar, Ptr outbytes, Ptr hook, SEXP hookdata) {
+    stream.setPointer(OutPStream.DATA_OFFSET, data);
+    stream.setInt(OutPStream.TYPE_OFFSET, type);
+    stream.setInt(OutPStream.VERSION_OFFSET, version);
+    stream.setPointer(OutPStream.OUTCHAR_OFFSET, outchar);
+    stream.setPointer(OutPStream.OUTBYTES_OFFSET, outbytes);
+    stream.setPointer(OutPStream.HOOK_OFFSET, hook);
+    stream.setPointer(OutPStream.HOOK_DATA_OFFSET, new RecordUnitPtr<>(hookdata));
   }
+
   // void R_InitFileInPStream (R_inpstream_t stream, FILE *fp, R_pstream_format_t type, SEXP(*phook)(SEXP, SEXP), SEXP pdata)
 
   // void R_InitFileOutPStream (R_outpstream_t stream, FILE *fp, R_pstream_format_t type, int version, SEXP(*phook)(SEXP, SEXP), SEXP pdata)
 
-  public static void R_Serialize (SEXP s, Ptr outputStream) {
-    throw new UnimplementedGnuApiMethod("R_Serialize");
+  public static void R_Serialize (SEXP s, Ptr outputStream) throws IOException {
+    OutPStream.serialize(s, outputStream);
   }
 
   public static SEXP R_Unserialize (Ptr ips) {

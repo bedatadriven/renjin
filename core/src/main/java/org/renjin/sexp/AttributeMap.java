@@ -24,6 +24,7 @@ import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.repackaged.guava.base.Strings;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 
 
 /**
@@ -99,6 +100,12 @@ public class AttributeMap {
     int length = attributeNames.length;
     for (int i = 0; i < length; i++) {
       list.add(attributeNames[i], attributeValues[i]);
+    }
+  }
+
+  public void forEach(BiConsumer<Symbol, SEXP> consumer) {
+    for (int i = 0; i < attributeNames.length; i++) {
+      consumer.accept(attributeNames[i], attributeValues[i]);
     }
   }
 

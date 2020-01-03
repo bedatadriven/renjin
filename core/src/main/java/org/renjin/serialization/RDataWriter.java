@@ -20,6 +20,7 @@ package org.renjin.serialization;
 
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
+import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.repackaged.guava.io.LittleEndianDataOutputStream;
@@ -539,20 +540,23 @@ public class RDataWriter implements AutoCloseable {
 
   private void writeAttributes(SEXP exp) throws IOException {
 
-    PairList.Builder pairList = exp.getAttributes().asPairListBuilder();
-    if(Flags.WRITE_OLD_S4_ATTRIBUTE) {
-      if (exp.getAttributes().isS4()) {
-        pairList.add(Flags.OLD_S4_BIT, LogicalVector.TRUE);
-      }
-    }
+    if(Flags.hasAttributesToWrite(exp)) {
 
-    PairList attributes = pairList.build();
+      PairList.Builder pairList = new PairList.Builder();
+      exp.getAttributes().forEach((name, value) -> {
 
-    if(attributes != Null.INSTANCE) {
-      if(!(attributes instanceof PairList.Node)) {
-        throw new AssertionError(attributes.getClass());
-      }
-      writeExp(attributes);
+        // To preserve byte-for-byte compatibility with GNU R, we must mimic
+        // the row.names hack, where row.names can be stored as c(NA_integer_, -rows)
+
+        if (name == Symbols.ROW_NAMES && value instanceof RowNamesVector) {
+          RowNamesVector rn = (RowNamesVector) value;
+          pairList.add(Symbols.ROW_NAMES, new IntArrayVector(IntVector.NA, -rn.length()));
+        } else {
+          pairList.add(name, value);
+        }
+      });
+
+      writeExp(pairList.build());
     }
   }
 

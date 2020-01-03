@@ -42,7 +42,7 @@ public class PosixLt2DateTest extends EvalTestCase {
     // First convert date string to calendar, WITH a timezone attribute
     eval(" lt <- strptime(dateString, '%Y-%m-%d', tz='GMT') ");
     
-    assertThat(eval("lt$sec"), elementsIdenticalTo(c_i(0)));
+    assertThat(eval("lt$sec"), elementsIdenticalTo(c(0)));
     assertThat(eval("lt$min"), elementsIdenticalTo(c_i(0)));
     assertThat(eval("lt$hour"), elementsIdenticalTo(c_i(0)));
     assertThat(eval("lt$mday"), elementsIdenticalTo(c_i(1)));

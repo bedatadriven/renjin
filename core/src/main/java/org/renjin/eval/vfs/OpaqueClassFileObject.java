@@ -40,7 +40,12 @@ class OpaqueClassFileObject extends AbstractFileObject {
 
   @Override
   protected long doGetContentSize() throws Exception {
-    throw new UnsupportedOperationException();
+    URLConnection conn = resource.openConnection();
+    long length = conn.getContentLengthLong();
+    if(length < 0) {
+      throw new UnsupportedOperationException("Could not get content size from " + resource);
+    }
+    return length;
   }
 
   @Override

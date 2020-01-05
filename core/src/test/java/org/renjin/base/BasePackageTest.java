@@ -191,7 +191,7 @@ public class BasePackageTest extends EvalTestCase {
 
     loadBasePackage();
 
-    assertThat( eval(" dQuote('a') "), elementsIdenticalTo( c("\"a\"")) );
+    assertThat( eval(" dQuote('a') "), elementsIdenticalTo( c("“a”")) );
   }
 
 

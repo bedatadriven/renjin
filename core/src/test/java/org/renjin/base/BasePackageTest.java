@@ -163,15 +163,15 @@ public class BasePackageTest extends EvalTestCase {
   }
 
   @Test
-  public void oldRowNamesAreConverted() throws IOException {
+  public void oldRowNamesAreConverted() {
     
 
     eval(" xi <- list(c(55, 60, 30, 40, 11)) ");
     eval(" attr(xi, 'row.names') <- c(NA, -5) ");
     eval(" class(xi) <- 'data.frame' ");
 
-    assertThat( eval(" identical(attr(xi, 'row.names'),  c('1','2','3','4','5') ) "), elementsIdenticalTo(c(true)));
-    assertThat( eval(" identical(attributes(xi)$row.names, c('1','2','3','4','5'))"), elementsIdenticalTo(c(true)));
+    assertThat( eval(" identical(attr(xi, 'row.names'), 1:5) "), elementsIdenticalTo(c(true)));
+    assertThat( eval(" identical(attributes(xi)$row.names, 1:5)"), elementsIdenticalTo(c(true)));
     assertThat( eval(" identical(row.names(xi), c('1','2','3','4','5')) "), elementsIdenticalTo(c(true)) );
   }
 

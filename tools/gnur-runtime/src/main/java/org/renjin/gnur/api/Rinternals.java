@@ -32,8 +32,8 @@ import org.renjin.methods.Methods;
 import org.renjin.primitives.*;
 import org.renjin.primitives.match.Duplicates;
 import org.renjin.primitives.packaging.Namespaces;
+import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.primitives.special.AtFunction;
-import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -2103,7 +2103,8 @@ public final class Rinternals {
     }
     if(name == R_RowNamesSymbol) {
       if(isOldCompactForm(val) || isCompactForm(val) ) {
-        val = new RowNamesVector(Math.abs(val.getElementAsSEXP(1).asInt()));
+        int numRows = Math.abs(val.getElementAsSEXP(1).asInt());
+        val = new IntSequence(1, 1, numRows);
       }
     }
     Symbol attributeSymbol;

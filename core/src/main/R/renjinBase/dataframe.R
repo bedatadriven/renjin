@@ -26,7 +26,7 @@
 	if(type == 0) {
 		attr(x, 'row.names')
 	} else if( type >= 1L) {
-	    if (type == 1L && identical(attr(x, 'row.names'), as.character(1L:nrow(x)))) {
+	    if (type == 1L && identical(attr(x, 'row.names'), seq.int(from = 1L, nrow(x)))) {
 	        # data.matrix relies on -n being returned in case row.names is set to the default values:
 		    -length(attr(x, 'row.names'))
 	    } else {

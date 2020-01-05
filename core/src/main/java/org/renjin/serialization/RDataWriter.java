@@ -548,9 +548,8 @@ public class RDataWriter implements AutoCloseable {
         // To preserve byte-for-byte compatibility with GNU R, we must mimic
         // the row.names hack, where row.names can be stored as c(NA_integer_, -rows)
 
-        if (name == Symbols.ROW_NAMES && value instanceof RowNamesVector) {
-          RowNamesVector rn = (RowNamesVector) value;
-          pairList.add(Symbols.ROW_NAMES, new IntArrayVector(IntVector.NA, -rn.length()));
+        if (name == Symbols.ROW_NAMES && RowNamesVector.isEligibleForCompactForm(value)) {
+          pairList.add(Symbols.ROW_NAMES, new IntArrayVector(IntVector.NA, -value.length()));
         } else {
           pairList.add(name, value);
         }

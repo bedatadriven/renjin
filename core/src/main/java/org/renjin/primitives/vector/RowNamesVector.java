@@ -18,45 +18,15 @@
  */
 package org.renjin.primitives.vector;
 
+import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.repackaged.guava.base.Preconditions;
-import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Vector;
 
-public class RowNamesVector extends StringVector {
+public final class RowNamesVector {
 
-  private final int length;
-  
-  public RowNamesVector(int length, AttributeMap attributes) {
-    super(attributes);
-    this.length = length;
-  }
+  private RowNamesVector() {}
 
-  public RowNamesVector(int numRows) {
-    this(numRows, AttributeMap.EMPTY);
-  }
-
-  @Override
-  public String getElementAsString(int index) {
-    return Integer.toString(index + 1);
-  }
-
-  @Override
-  public boolean isConstantAccessTime() {
-    return true;
-  }
-
-  @Override
-  public int length() {
-    return length;
-  }
-
-  @Override
-  protected StringVector cloneWithNewAttributes(AttributeMap attributes) {
-    return new RowNamesVector(length, attributes);
-  }
-  
   /**
    * GNU R uses a peculiar scheme to compress row names in the form of 
    * ["1","2","3"].. etc. Rather than storing the whole string vector in this
@@ -77,10 +47,10 @@ public class RowNamesVector extends StringVector {
     return rowNames.length() == 2 && rowNames.isElementNA(0) && rowNames.getElementAsInt(1) > 0;
   }
   
-  public static RowNamesVector fromOldCompactForm(SEXP rowNames) {
+  public static IntSequence fromOldCompactForm(SEXP rowNames) {
     Preconditions.checkArgument(isOldCompactForm(rowNames));
     int numRows = -((Vector)rowNames).getElementAsInt(1);
-    return new RowNamesVector(numRows, AttributeMap.EMPTY);
+    return new IntSequence(1, 1, numRows);
   }
 
   public static boolean isOldCompactForm(SEXP rowNames) {
@@ -99,11 +69,12 @@ public class RowNamesVector extends StringVector {
     }
   }
 
-  public static Vector purify(SEXP sexp) {
-    if(isOldCompactForm(sexp)) {
-      return fromOldCompactForm(sexp);
-    } else {
-      return (Vector)sexp;
+  public static boolean isEligibleForCompactForm(SEXP value) {
+    if(value instanceof IntSequence) {
+      IntSequence sequence = (IntSequence) value;
+      return sequence.getFrom() == 1 &&
+             sequence.getBy() == 1;
     }
+    return false;
   }
 }

@@ -29,6 +29,7 @@ import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.io.ByteSource;
+import org.renjin.repackaged.guava.io.LittleEndianDataInputStream;
 import org.renjin.sexp.*;
 
 import java.io.*;
@@ -136,8 +137,9 @@ public class RDataReader implements AutoCloseable {
   private static StreamReader createStreamReader(byte type, InputStream conn) throws IOException {
     switch(type) {
       case XDR_FORMAT:
+        return new BinaryReader(conn, ByteOrder.BIG_ENDIAN);
       case BINARY_FORMAT:
-        return new XdrReader(conn);
+        return new BinaryReader(conn, ByteOrder.nativeOrder());
       case ASCII_FORMAT:
         return new AsciiReader(conn);
       default:
@@ -910,15 +912,17 @@ public class RDataReader implements AutoCloseable {
     }
   }
 
-  private static class XdrReader implements StreamReader {
-    private final DataInputStream in;
+  private static class BinaryReader implements StreamReader {
+    private final DataInput in;
+    private final ByteOrder byteOrder;
 
-    private XdrReader(DataInputStream in) throws IOException {
-      this.in = in;
-    }
-
-    public XdrReader(InputStream conn) throws IOException {
-      this(new DataInputStream(new BufferedInputStream(conn)));
+    public BinaryReader(InputStream in, ByteOrder byteOrder) {
+      this.byteOrder = byteOrder;
+      if(byteOrder == ByteOrder.BIG_ENDIAN) {
+        this.in = new DataInputStream(in);
+      } else {
+        this.in = new LittleEndianDataInputStream(in);
+      }
     }
 
     @Override
@@ -929,12 +933,12 @@ public class RDataReader implements AutoCloseable {
     @Override
     public IntBuffer readIntBuffer(int size) throws IOException {
       ByteBuffer byteBuffer = ByteBuffer.allocateDirect(size * 4);
-      ReadableByteChannel channel = Channels.newChannel(in);
+      ReadableByteChannel channel = Channels.newChannel((InputStream)in);
       while(byteBuffer.hasRemaining()) {
         channel.read(byteBuffer);
       }
       byteBuffer = (ByteBuffer)byteBuffer.rewind();
-      byteBuffer.order(ByteOrder.BIG_ENDIAN);
+      byteBuffer.order(byteOrder);
       IntBuffer intBuffer = byteBuffer.asIntBuffer();
       assert intBuffer.limit() == size;
       return intBuffer;
@@ -942,7 +946,7 @@ public class RDataReader implements AutoCloseable {
 
     @Override
     public byte[] readString(int length) throws IOException {
-      byte buf[] = new byte[length];
+      byte[] buf = new byte[length];
       in.readFully(buf);
       return buf;
     }

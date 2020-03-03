@@ -82,3 +82,11 @@ test.issue.257 <- function() {
     assertThat(df$quantite, identicalTo(c(1.5, 2.6, 3.8)))
 
 }
+
+
+test.tab <- function() {
+
+    df <- read.table("tables/test.tab", header=TRUE, sep=";", stringsAsFactors=FALSE)
+    assertThat(df$A, identicalTo(c(1L, NA_integer_, 2L)))
+    assertThat(df$B, identicalTo(c("x", "y", NA)))
+}

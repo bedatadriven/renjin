@@ -31,8 +31,7 @@ import org.renjin.sexp.Symbol;
 import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -137,6 +136,27 @@ public class NamespaceFileTest {
     NamespaceFile file = NamespaceFile.parseFile(context, CharSource.wrap(NAMESPACE));
 
     assertThat(file.getExportedSymbols(), Matchers.hasItem(Symbol.get(".M.classEnv")));
+  }
+
+  @Test
+  public void test() throws IOException {
+    String NAMESPACE =
+        "import(BBmisc, except = isFALSE)\n";
+
+    NamespaceFile file = NamespaceFile.parseFile(context, CharSource.wrap(NAMESPACE));
+
+    assertThat(file.getPackageImports(), hasSize(1));
+
+    NamespaceFile.PackageImportEntry entry = file.getPackageImports()
+        .stream()
+        .filter(i -> i.getPackageName().equals("BBmisc"))
+        .findAny()
+        .get();
+
+
+    assertThat(entry.getPackageName(), equalTo("BBmisc"));
+    assertThat(entry.isAllSymbols(), equalTo(true));
+    assertThat(entry.getExceptions(), contains(Symbol.get("isFALSE")));
   }
   
   @Test

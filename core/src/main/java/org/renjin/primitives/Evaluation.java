@@ -347,8 +347,20 @@ public class Evaluation {
   }
 
   @Internal
-  public static ExpressionVector parse(@Current Context context, SEXP file, SEXP maxExpressions, Vector text,
+  public static ExpressionVector parse(@Current Context context, SEXP file, SEXP maxExpressions, SEXP textSexp,
                                        String prompt, SEXP sourceFile, String encoding) throws IOException {
+
+    Vector text;
+    if(textSexp instanceof Vector) {
+      text = (Vector) textSexp;
+    } else if(textSexp instanceof Symbol) {
+      text = new StringArrayVector(((Symbol) textSexp).getPrintName());
+    } else if(textSexp instanceof PairList) {
+      text = ((PairList) textSexp).toVector();
+    } else {
+      throw new EvalException("Cannot coerce type '" + textSexp.getTypeName() + "' to vector of type 'character'");
+    }
+
     try {
       if(text != Null.INSTANCE) {
         List<CharSource> lines = Lists.newArrayList();
@@ -377,7 +389,17 @@ public class Evaluation {
 
   @Builtin
   public static int nargs(@Current Context context, @Current Environment environment) {
-    return Contexts.findCallingContext(context, environment).getCall().getArguments().length();
+    Context callingContext = Contexts.findCallingContext(context, environment);
+    int count = 0;
+    for (SEXP argument : callingContext.getCall().getArguments().values()) {
+      if(argument == Symbols.ELLIPSES) {
+        SEXP ellipses = callingContext.getCallingEnvironment().getEllipsesVariable();
+        count += ellipses.length();
+      } else {
+        count += 1;
+      }
+    }
+    return count;
   }
   
   @Builtin(".Primitive")

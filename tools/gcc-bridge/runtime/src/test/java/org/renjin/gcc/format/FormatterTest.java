@@ -126,7 +126,7 @@ public class FormatterTest {
 
     assertThat(format("%a", 1000), Matchers.equalTo("0x1.f4p+9"));
     assertThat(format("%A", 1000), Matchers.equalTo("0X1.F4P+9"));
-
+    assertThat(format("%a", -2042344), Matchers.equalTo("-0x1.f29e8p+20"));
   }
 
   @Test

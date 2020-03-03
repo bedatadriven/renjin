@@ -58,13 +58,14 @@ public class NamespaceQualifier {
     FunctionCall.Builder qualified = new FunctionCall.Builder();
     qualified.add(statement.getFunction());
 
-    Iterator<SEXP> argIt = statement.getArguments().values().iterator();
+    Iterator<PairList.Node> argIt = statement.getArguments().nodes().iterator();
     if(!argIt.hasNext()) {
       return statement;
     }
-    qualified.add(qualifyPackage(argIt.next()));
+    qualified.add(qualifyPackage(argIt.next().getValue()));
     while(argIt.hasNext()) {
-      qualified.add(argIt.next());
+      PairList.Node node = argIt.next();
+      qualified.add(node.getRawTag(), node.getValue());
     }
     return qualified.build();
   }

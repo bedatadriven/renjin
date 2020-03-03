@@ -27,6 +27,9 @@ import org.renjin.sexp.IntArrayVector;
 import org.renjin.sexp.IntVector;
 import org.renjin.util.HeapsortTandem;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 public class Sampling {
 
@@ -60,21 +63,43 @@ public class Sampling {
   }
 
 
+  /**
+   * Sample without replacement using the  Durstenfeld-Fisher-Yates algorithm.
+   */
   public static IntVector uniformSampleWithoutReplacement(Session context, int sampleSpaceSize, int sampleSize) {
     int i, j;
     int[] x = new int[sampleSpaceSize];
     IntArrayVector.Builder y = new IntArrayVector.Builder();
 
     // Initialize the sample space 0 ... sampleSpaceSize
-    for (i = 0; i < sampleSpaceSize; i++)
+    for (i = 0; i < sampleSpaceSize; i++) {
       x[i] = i;
+    }
 
     for (i = 0; i < sampleSize; i++) {
       j = (int)Math.floor(sampleSpaceSize * context.rng.unif_rand());
       y.add(x[j] + 1);
       x[j] = x[--sampleSpaceSize];
     }
-    return (y.build());
+    return y.build();
+  }
+
+  /**
+   * Modified version of the Durstenfeld-Fisher-Yatess algorithm for large sample spaces.
+   */
+  public static IntVector uniformSampleWithoutReplacementMap(Session context, int sampleSpaceSize, int sampleSize) {
+    int i, j;
+    Map<Integer, Integer> map = new HashMap<>();
+    IntArrayVector.Builder y = new IntArrayVector.Builder();
+
+    for (i = 0; i < sampleSize; i++) {
+      j = (int)Math.floor(sampleSpaceSize * context.rng.unif_rand());
+      int sampledIndex = map.getOrDefault(j, j);
+      y.add(sampledIndex + 1);
+      --sampleSpaceSize;
+      map.put(j, map.getOrDefault(sampleSpaceSize, sampleSpaceSize));
+    }
+    return y.build();
   }
 
   /**
@@ -132,8 +157,10 @@ public class Sampling {
     if(!probabilitiesGiven) {
       if (withReplacement || sampleSize == 1) {
         return uniformSampleWithReplacement(context, populationSize, sampleSize);
-      } else {
+      } else if (populationSize < 100) {
         return uniformSampleWithoutReplacement(context, populationSize, sampleSize);
+      } else {
+        return uniformSampleWithoutReplacementMap(context, populationSize, sampleSize);
       }
     }
 

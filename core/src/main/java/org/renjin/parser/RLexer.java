@@ -251,7 +251,7 @@ public class RLexer implements RParser.Lexer {
 
       case IF:
         contextStack.ifPush();
-        parseState.setEatLines(false);
+        parseState.setEatLines(true);
         break;
 
       /* Terminate any immediately preceding "if" */

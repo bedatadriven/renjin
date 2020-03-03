@@ -47,6 +47,7 @@ public class Options {
     map.put("OutDec", new StringArrayVector("."));
     map.put("encoding", new StringArrayVector("UTF8"));
     map.put("papersize", new StringArrayVector("a4"));
+    map.put("useFancyQuotes", LogicalVector.TRUE);
   }
 
   public SEXP get(String name) {

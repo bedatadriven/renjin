@@ -93,7 +93,7 @@ public class Methods {
       // For this reason we have to be careful to avoid attribute
       // validation. 
       SEXP slotValue = value == Null.INSTANCE ? Symbols.S4_NULL : value;
-      return object.setAttributes(object.getAttributes().copyS4().set(name, slotValue));
+      return object.setAttributes(object.getAttributes().copy().setS4(true).setSlot(Symbol.get(name), slotValue));
     }
   }
 
@@ -285,7 +285,7 @@ public class Methods {
   }
 
 
-  public static void do_set_prim_method(@Current Context context, PrimitiveFunction op, 
+  public static void do_set_prim_method(@Current Context context, Function op,
       String code_string, SEXP fundef, SEXP mlist) {
 
     prim_methods_t code = parseCode(code_string);
@@ -324,7 +324,7 @@ public class Methods {
       }
       return value;
     } else {
-      do_set_prim_method(context, (PrimitiveFunction)op, code_string, fundef, mlist);
+      do_set_prim_method(context, (Function) op, code_string, fundef, mlist);
       return fname;
     }
   }
@@ -428,6 +428,22 @@ public class Methods {
       throw new EvalException("ClassDefinition " + className + " is corrupted. Please rebuild package: " + classDef.getAttribute(Symbol.get("package")));
     }
     return classDef;
+  }
+
+  /**
+   * Returns true if there are any S4 methods defined for the given function in the base package. This is
+   * required for the implementation of {@code isGeneric()} in Methods.R
+   *
+   */
+  @Internal
+  public static boolean isPrimitiveGeneric(@Current Context context, String functionName) {
+
+    Generic generic = Generic.standardGeneric(context, functionName, "base");
+
+    S4MethodCache methodCache = context.getSession().getS4Cache().getS4MethodCache();
+    S4MethodTable methodTable = methodCache.getMethod(context, generic, functionName);
+
+    return !methodTable.isEmpty();
   }
 
   @Internal

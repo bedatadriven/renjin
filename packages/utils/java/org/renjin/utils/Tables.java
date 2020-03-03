@@ -32,6 +32,7 @@ import org.renjin.sexp.*;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class Tables {
@@ -107,7 +108,10 @@ public class Tables {
 
   private static Vector buildFactor(StringVector vector, Set<String> naStrings) {
     String[] strings = vector.toArray();
-    String[] unique = Arrays.stream(strings).distinct().toArray(String[]::new);
+    String[] unique = Arrays.stream(strings)
+        .filter(Objects::nonNull)
+        .distinct()
+        .toArray(String[]::new);
     Arrays.sort(unique);
 
     Map<String, Integer> codes = Maps.newHashMap();

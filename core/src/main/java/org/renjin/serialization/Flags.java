@@ -24,12 +24,13 @@ import org.renjin.sexp.*;
 class Flags {
 
 
-  public final static int MAX_PACKED_INDEX = Integer.MAX_VALUE >> 8;
+  final static int MAX_PACKED_INDEX = Integer.MAX_VALUE >> 8;
 
+  /**
+   * Early versions of Renjin used a special attribute named "__S4_BIT" to indicate
+   * that an object was an S4 object.
+   */
   static final Symbol OLD_S4_BIT = Symbol.get("__S4_BIT");
-
-  static final boolean WRITE_OLD_S4_ATTRIBUTE = true;
-
 
   private final static int IS_OBJECT_BIT_MASK = (1 << 8);
   private final static int HAS_ATTR_BIT_MASK = (1 << 9);
@@ -109,18 +110,8 @@ class Flags {
     return flags;
   }
 
-  private static boolean hasAttributesToWrite(SEXP exp) {
-    // Previous versions of Renjin used an attribute __S4_BIT to indicate
-    // that an SEXP was an S4 object. We are now correcting this representation
-    // to use the same flag bit that GNU R uses, but we don't want to make it
-    // impossible to load packages using S4 in older versions of Renjin, so we will
-    // continue to write out the attribute until the next major version change.
-
-    if(WRITE_OLD_S4_ATTRIBUTE) {
-      return exp.getAttributes() != AttributeMap.EMPTY;
-    } else {
-      return exp.getAttributes().hasAnyBesidesS4Flag();
-    }
+  static boolean hasAttributesToWrite(SEXP exp) {
+    return exp.getAttributes().hasAnyBesidesS4Flag();
   }
 
   public static int computePromiseFlags(Promise promise) {

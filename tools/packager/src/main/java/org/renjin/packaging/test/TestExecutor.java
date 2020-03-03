@@ -79,25 +79,33 @@ public class TestExecutor {
   @VisibleForTesting
   public void executeTest(File testFile) throws IOException {
     
-    if (testFile.getName().toLowerCase().endsWith(".rd")) {
+    if (isManFile(testFile)) {
       executeTestFile(testFile, ExamplesParser.parseExamples(testFile));
     } else {
-      executeTestFile(testFile, Files.toString(testFile, Charsets.UTF_8));
+      executeTestFile(testFile, Files.asCharSource(testFile, Charsets.UTF_8).read());
     }
 
     listener.done();
   }
 
+
   public void executeTestDir(File dir) throws IOException {
     File[] files = dir.listFiles();
     if(files != null) {
       for (File file : files) {
-        if(file.getName().toLowerCase().endsWith(".r") ||
-           file.getName().toLowerCase().endsWith(".rd")) {
+        if(isTestSource(file) || isManFile(file)) {
           executeTest(file);
         }
       }
     }
+  }
+
+  private boolean isTestSource(File file) {
+    return file.getName().toLowerCase().endsWith(".r");
+  }
+
+  private boolean isManFile(File testFile) {
+    return testFile.getName().toLowerCase().endsWith(".rd");
   }
 
   private PrintStream openTestOutput(File testFile) {
@@ -168,7 +176,7 @@ public class TestExecutor {
       session.getOptions().set("device", graphicsDevice(session, sourceFile));
 
       // Examples assume that the package is already on the search path
-      if (!Strings.isNullOrEmpty(namespaceUnderTest) && sourceFile.getName().endsWith(".Rd")) {
+      if (!Strings.isNullOrEmpty(namespaceUnderTest) && isManFile(sourceFile)) {
         loadLibrary(session, namespaceUnderTest, testOutput);
       }
 

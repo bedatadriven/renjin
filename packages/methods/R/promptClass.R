@@ -1,5 +1,5 @@
 #  File src/library/methods/R/promptClass.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
 #  Copyright (C) 1995-2014 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 promptClass <-
 function (clName, filename = NULL, type = "class",
@@ -68,7 +68,7 @@ function (clName, filename = NULL, type = "class",
     cleanPrompt <- function(object, name) {
         ## get the prompt() result and clean out the junk
         ## lines that prompt() creates
-        value <- prompt(object, name = name, filename = NA)
+        value <- utils::prompt(object, name = name, filename = NA)
         for(i in seq_along(value)) {
             item <- value[[i]]
             bad <- grepl("^ *%", item)
@@ -90,7 +90,7 @@ function (clName, filename = NULL, type = "class",
     if(!missing(where) && !is.na(match(clName, getClasses(where))))
       whereClass <- where
     else {
-        whereClass <- find(classMetaName(clName))
+        whereClass <- utils::find(classMetaName(clName))
         if(length(whereClass) == 0L)
             stop(gettextf("no definition of class %s found",
                           dQuote(clName)), domain = NA)

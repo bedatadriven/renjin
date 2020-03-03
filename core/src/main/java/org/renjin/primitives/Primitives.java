@@ -42,8 +42,8 @@ import org.renjin.primitives.sequence.RepFunction;
 import org.renjin.primitives.sequence.Sequences;
 import org.renjin.primitives.special.*;
 import org.renjin.primitives.subset.Subsetting;
-import org.renjin.primitives.text.Text;
 import org.renjin.primitives.text.StrSignIf;
+import org.renjin.primitives.text.Text;
 import org.renjin.primitives.time.Time;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
@@ -322,8 +322,6 @@ public class Primitives {
     f("attr", Attributes.class, 1);
     f("attr<-", Attributes.class, 3);
     f("copyDFattr", Attributes.class, 11); /* used in dataframe.R */
-    f("comment", Attributes.class, 11);
-    f("comment<-", Attributes.class, 2);
     f("levels<-", Attributes.class, 2);
     f("get", Environments.class, 11);
     f("get0", Environments.class, 11);
@@ -771,8 +769,6 @@ public class Primitives {
     f("sink", Connections.class, 111);
     f("sink.number", Connections.class, 11);
     f("lib.fixup", Types.class, 111);
-    f("pos.to.env", /*pos2env*/ null, 1);
-    f("eapply", /*eapply*/ null, 10);
     f("lapply", Evaluation.class, 10);
     f("vapply", Evaluation.class, 10);
     f("mapply", Evaluation.class, 10);
@@ -861,6 +857,7 @@ public class Primitives {
     f("getClassDef", Methods.class, 11);
     f("getClass", Methods.class, 11);
     f("selectMethod", Methods.class, 11);
+    f("isPrimitiveGeneric", Methods.class, 11);
 
 /* Modelling Functionality */
 

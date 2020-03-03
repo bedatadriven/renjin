@@ -1,7 +1,7 @@
 #  File src/library/methods/R/is.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2012 The R Core Team
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,45 +14,52 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
-is <-
+
+is <- function(object, class2)
+{
   # With two arguments, tests whether `object' can be treated as from `class2'.
   #
   # With one argument, returns all the super-classes of this object's class.
-function(object, class2)
-{
-    cl <- class(object)
-    S3Case <- length(cl) > 1L
+    class1 <- class(object)
+    S3Case <- length(class1) > 1L
     if(S3Case)
-      cl <- cl[[1L]]
+        class1 <- class1[[1L]]
     if(missing(class2))
-        return(extends(cl))
-    class1Def <- getClassDef(cl)
+        return(extends(class1))
+    class1Def <- getClassDef(class1)
     if(is.null(class1Def)) # an unregistered S3 class
-      return(inherits(object, class2))
+        return(inherits(object, class2))
     if(is.character(class2))
-      class2Def <- getClassDef(class2, .classDefEnv(class1Def))
+        class2Def <- getClassDef(class2, .classDefEnv(class1Def))
     else {
         class2Def <- class2
         class2 <- class2Def@ className
     }
-    ## S3 inheritance is applied if the object is not S4 and class2 is either a basic
-    ## class or an S3 class (registered or not)
-    S3Case <- S3Case || (is.object(object) && !isS4(object)) # first requirement
+    ## S3 inheritance is applied if the object is not S4 and class2 is either
+    ## a basic class or an S3 class (registered or not)
+    S3Case <- S3Case || (is.object(object) && !isS4(object))
     S3Case <- S3Case && (is.null(class2Def) || class2 %in% .BasicClasses ||
                          extends(class2Def, "oldClass"))
     if(S3Case)
-        return(inherits(object, class2))
-    if(.identC(cl, class2) || .identC(class2, "ANY"))
-        return(TRUE)
-    ext <- possibleExtends(cl, class2, class1Def, class2Def)
-    if(is.logical(ext))
-        ext
-    else if(ext@simple)
+        inherits(object, class2)
+    else if(.identC(class1, class2) || .identC(class2, "ANY"))
         TRUE
-    else
-       ext@test(object)
+    else { ## look for class1 in the known subclasses of class2
+        if(!is.null(contained <- class1Def@contains[[class2]]))
+            contained@simple || contained@test(object)
+        else if (is.null(class2Def))
+            FALSE
+        else if(!.identC(class(class2Def), "classRepresentation") &&
+                isClassUnion(class2Def))
+            any(c(class1, names(class1Def@contains)) %in%
+                names(class2Def@subclasses))
+        else {
+            ext <- class2Def@subclasses[[class1]]
+            !is.null(ext) && (ext@simple || ext@test(object))
+        }
+    }
 }
 
 extends <-
@@ -74,13 +81,13 @@ extends <-
         if(is.null(classDef1))
             return(class1)
         ext <- classDef1@contains
-        if(!identical(maybe, TRUE) && length(ext) > 0)
+        if(!isTRUE(maybe) && length(ext) > 0)
         {
-            noTest <- sapply(ext, function(obj)identical(body(obj@test), TRUE))
+            noTest <- vapply(ext, function(obj)isTRUE(body(obj@test)), NA)
             ext <- ext[noTest]
         }
         if(fullInfo) {
-            elNamed(ext, class1) <- TRUE
+            ext[[class1]] <- TRUE
             return(ext)
         }
         else
@@ -108,7 +115,7 @@ extends <-
         value
     else if(is.logical(value))
         value
-    else if(value@simple || identical(body(value@test), TRUE))
+    else if(value@simple || isTRUE(body(value@test)))
         TRUE
     else
         maybe
@@ -169,10 +176,10 @@ setIs <-
         obj <- extensionObject
     ## revise the superclass/subclass info in the stored class definition
     ok <- .validExtends(class1, class2, classDef,  classDef2, obj@simple)
-    if(!identical(ok, TRUE))
+    if(!isTRUE(ok))
       stop(ok)
     where2 <- .findOrCopyClass(class2, classDef2, where, "subclass")
-    elNamed(classDef2@subclasses, class1) <- obj
+    classDef2@subclasses[[class1]] <- obj
     if(doComplete)
         classDef2@subclasses <- completeSubclasses(classDef2, class1, obj, where)
     ## try to provide a valid prototype for virtual classes
@@ -244,7 +251,7 @@ setIs <-
                                  paste(n2[is.na(match(n2, n1))], collapse = ", "))))
             bad <- character()
             for(what in n2)
-                if(!extends(elNamed(slots1, what), elNamed(slots2, what)))
+                if(!extends(slots1[[what]], slots2[[what]]))
                     bad <- c(bad, what)
             if(length(bad))
                 return(c(.msg(class1, class2), ": ",
@@ -263,7 +270,7 @@ setIs <-
     superclasses <- names(contains)
     if(length(superclasses2) == 0 || length(superclasses) == 0 ||
        all(is.na(match(superclasses2, superclasses))))
-      elNamed(contains, class2) <- value
+      contains[[class2]] <- value
     else {
         sq <- seq_along(superclasses)
         before <- (sq[match(superclasses, superclasses2,0)>0])[[1]]

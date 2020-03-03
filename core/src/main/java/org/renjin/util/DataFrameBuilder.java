@@ -23,7 +23,7 @@ import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.invoke.reflection.MemberBinding;
 import org.renjin.invoke.reflection.PropertyBinding;
 import org.renjin.invoke.reflection.converters.*;
-import org.renjin.primitives.vector.RowNamesVector;
+import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.sexp.*;
 
 import java.util.ArrayList;
@@ -215,7 +215,7 @@ public class DataFrameBuilder {
     for (Column column : columns) {
       list.add(column.getName(), column.build());
     }
-    list.setAttribute(Symbols.ROW_NAMES, new RowNamesVector(numRows));
+    list.setAttribute(Symbols.ROW_NAMES, new IntSequence(1, 1, numRows));
     list.setAttribute(Symbols.CLASS, StringArrayVector.valueOf("data.frame"));
     
     return list.build();

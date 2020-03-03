@@ -19,6 +19,7 @@
 package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
+import org.renjin.pipeliner.VectorPipeliner;
 import org.renjin.sexp.*;
 
 public class IfFunction extends SpecialFunction {
@@ -34,7 +35,9 @@ public class IfFunction extends SpecialFunction {
           context.evaluate( call.getArguments().getElementAsSEXP(0), rho));
 
     // force any deferred operations
-    condition = context.materialize(condition);
+    if(VectorPipeliner.ENABLED) {
+      condition = context.materialize(condition);
+    }
 
     if (asLogicalNoNA(context, call, condition)) {
       return call.getArguments().getElementAsSEXP(1).eval(context, rho); /* true value */

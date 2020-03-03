@@ -117,17 +117,17 @@ public class S3 {
     }
 
     // The caller to NextMethod() can change the generic
-
+    // But if *its* not a string, we just ignore it!
     String generic = dispatchTable.getGeneric();
-    if (genericArg != Null.INSTANCE) {
+    if (genericArg instanceof StringVector) {
       generic = genericArg.asString();
     }
 
     S3DispatchMetadata nextTable = new S3DispatchMetadata(dispatchTable.getGenericDefinitionEnvironment(), generic);
 
-    if (objectArg != Null.INSTANCE) {
-      throw new UnsupportedOperationException("TODO: object arg to NextMethod");
-    }
+
+    // N.B.: As far as I can tell in GNU R, providing an explicit
+    // objectArg value has NO effect on dispatch.
 
     List<String> nextClasses = nextClasses(dispatchTable);
 

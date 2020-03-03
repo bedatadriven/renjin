@@ -68,7 +68,8 @@ public class GnurPackageBuilder implements BuildContext  {
     @Override
     public File getPackageOutputDir() {
         return new File("build/namespace/" +
-            source.getJavaPackageName().replace('.', '/'));
+            source.getGroupId().replace('.', '/') + "/" +
+            source.getPackageName());
     }
 
     @Override

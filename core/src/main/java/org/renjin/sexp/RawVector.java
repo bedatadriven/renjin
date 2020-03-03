@@ -133,6 +133,11 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
   }
 
   @Override
+  public void unsafeSetLength(int length) {
+    this.values = Arrays.copyOf(this.values, length);
+  }
+
+  @Override
   public int hashCode() {
     return Arrays.hashCode(this.toByteArray());
   }

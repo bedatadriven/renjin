@@ -112,3 +112,50 @@ test.barbaz <- function() {
     assertTrue(bar.called)
     assertTrue(baz.called)
 }
+
+test.objectarg.has.no.effect <- function() {
+
+    foo     <- function(x) { cat("foo\n"); UseMethod('foo') }
+    foo.bar <- function(x) { cat("foo.bar\n"); NextMethod(.Generic, object = structure(44, class="baz")) }
+    foo.baz <- function(y) { cat("foo.baz\n"); y }
+    foo.default <- function(x) { cat("foo.default\n"); x }
+
+    bar <- structure(49, class=c("bar"))
+
+    assertThat(foo(bar), identicalTo(bar))
+}
+
+#TODO(alex): can we make NextMethod a special?
+ignore.test.objectarg.is.not.evaled <- function() {
+
+    foo     <- function(x) { cat("foo\n"); UseMethod('foo') }
+    foo.bar <- function(x) { cat("foo.bar\n"); NextMethod(.Generic, object = stop("FOO!!!!!")) }
+    foo.baz <- function(y) { cat("foo.baz\n"); y }
+    foo.default <- function(x) { cat("foo.default\n"); x }
+
+    bar <- structure(49, class=c("bar"))
+
+    assertThat(foo(bar), identicalTo(bar))
+}
+
+
+test.extra.args <- function() {
+
+    foo     <- function(x) { cat("foo\n"); UseMethod('foo') }
+    foo.bar <- function(x) { cat("foo.bar\n"); NextMethod(.Generic, x, zz = 92) }
+    foo.default <- function(x, zz = 91) { cat("foo.default\n"); zz }
+
+    bar <- structure(49, class=c("bar"))
+
+    assertThat(foo(bar), identicalTo(92))
+}
+
+test.object.as.first.arg <- function() {
+    foo <- function(x) UseMethod("foo")
+    foo.default <- function(x) x
+    foo.baz <- function(x) {x <- 92; NextMethod(x) }
+
+    xx <- structure(list(1,2,3), class = "baz")
+
+    assertThat(foo(xx), identicalTo(92))
+}

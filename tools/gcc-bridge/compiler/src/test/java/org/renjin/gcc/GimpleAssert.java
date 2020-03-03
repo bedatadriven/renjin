@@ -54,4 +54,11 @@ public class GimpleAssert {
       throw new AssertionError(String.format("Expected '%s' but result was '%s'", expected, actual));
     }
   }
+
+  public static void assertEqualShort(int actual, int expected) {
+    if(actual != expected) {
+      throw new AssertionError(String.format("Expected '%d' but result was '%d'", expected, actual));
+    }
+  }
+
 }

@@ -30,10 +30,7 @@ import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.*;
 import org.renjin.parser.RParser.StatusResult;
 import org.renjin.repackaged.guava.base.Strings;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -50,6 +47,9 @@ public class JlineRepl {
   private final Context topLevelContext;
   private final ConsoleReader reader;
   private final JlineSessionController sessionController;
+  private final Environment baseEnvironment;
+
+  private static final Symbol LAST_VALUE = Symbol.get(".Last.value");
 
   /**
    * Echo lines to standard out.
@@ -70,6 +70,7 @@ public class JlineRepl {
     this.reader = reader;
     this.sessionController = new JlineSessionController(reader);
     this.session.setSessionController(sessionController);
+    this.baseEnvironment = session.getBaseEnvironment();
     this.errorStream = new PrintStream(System.err);
   }
 
@@ -245,6 +246,8 @@ public class JlineRepl {
 
     try {
       SEXP result = topLevelContext.evaluate(new ExpressionVector(exprList), topLevelContext.getGlobalEnvironment());
+
+      baseEnvironment.setVariableUnsafe(LAST_VALUE, result);
 
       if(!session.isInvisible()) {
         topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), result.repromise()));

@@ -1,5 +1,5 @@
 #  File src/library/methods/R/refClass.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 
 ## Classes to support OOP-style classes with reference-semantics for fields
@@ -47,14 +47,12 @@ self from reference class thisClass.'
 }
 
 installClassMethod <- function(def, self, me, selfEnv, thisClass) {
-    if(!is(def, "refMethodDef")) {  #should not happen? => need warning
-        warning(sprintf("method %s from class %s was not processed into a class method until being installed.  Possible corruption of the methods in the class.",
-                         me, thisClass@className),
-                domain = NA)
-        def <- makeClassMethod(def, me, thisClass@className, "", names(thisClass@refMethods))
-        .checkFieldsInMethod(def, names(thisClass@fieldClasses))
-        ## cache the analysed method definition
+    if(is(def, "externalMethodDef") || !is(def, "refMethodDef")) {
+        ## Don't process either an external method (not needed),
+        ## or a special object in the class refMethods
+        ## environment (will cause an error).  Assign it unchanged.
         assign(me, def, envir = thisClass@refMethods)
+        return(def)
     }
     depends <- def@mayCall
     environment(def) <- selfEnv # for access to fields and methods
@@ -89,8 +87,10 @@ installClassMethod <- function(def, self, me, selfEnv, thisClass) {
     def
    }
 
+..hasCodeTools <- FALSE
 .hasCodeTools <- function() {
-    FALSE
+    # Renjin does not include codetools
+    ..hasCodeTools
 }
 
 .getGlobalFuns <- function(def) {
@@ -101,6 +101,15 @@ installClassMethod <- function(def, self, me, selfEnv, thisClass) {
 }
 
 makeClassMethod <- function(def, name, Class, superClassMethod = "", allMethods) {
+    if(identical(formalArgs(def)[[1]], ".self"))
+        def <- externalRefMethod(def)
+    if(is(def, "externalRefMethod")) { # either just created or passed in as argument
+        ## the method just passes .self and its arguments to the actual method function
+        def@name <- name
+        def@refClassName <- Class
+        def@superClassMethod <- superClassMethod
+        return(def)
+    }
     depends <- .getGlobalFuns(def)
     ## find the field methods called ...
     if("usingMethods" %in% depends) { # including those declared
@@ -144,7 +153,14 @@ envRefSetField <- function(object, field,
 .initForEnvRefClass <- function(.Object, ...) {
     Class <- class(.Object)
     classDef <- getClass(Class)
-    selfEnv <- new.env(TRUE, .NamespaceOrPackage(classDef@package))
+    objectParent <- classDef@refMethods$.objectParent
+    if(is.null(objectParent)) {
+        ## This warning would be reasonable if we required re-installing packages for R 3.3.0
+        ## warning(
+        ##     gettextf("Class definition for Class \"%s\" doesn't have a parent environment for objects defined.\n A package  may need to be re-installed", Class))
+        objectParent <- .NamespaceOrPackage(classDef@package)
+    }
+    selfEnv <- new.env(TRUE, objectParent)
     ## the parent environment will be used by field methods, to make
     ## them consistent with functions in this class's package
     .Object@.xData <- selfEnv

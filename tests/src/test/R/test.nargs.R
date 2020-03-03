@@ -34,3 +34,27 @@ g <- function(i,j=3,...) nargs()
 assertThat(g(), identicalTo(0L))
 assertThat(g(i=1), identicalTo(1L))
 assertThat(g(x=9,y=10,z=11), identicalTo(3L))
+
+
+# From MASS
+gg <- function(object, ...) {
+    margs <- function(...) nargs()
+    if(!(k <- margs(...))) return(object)
+    k
+}
+assertThat(gg(1,2,3), equalTo(2))
+
+# From examples
+
+tst <- function(a, b = 3, ...) {nargs()}
+
+assertThat(tst(), equalTo(0))
+assertThat(tst(clicketyclack), equalTo(1))  # (even non-existing)
+assertThat(tst(c1, a2, rr3), equalTo(3))
+
+foo <- function(x, y, z, w) nargs()
+
+assertThat(foo(), equalTo(0))
+assertThat(foo(, , 3), equalTo(3))
+assertThat(foo(z = 3), equalTo(1))  # even though this is the same call
+

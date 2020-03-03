@@ -21,6 +21,7 @@
 package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.sexp.*;
 
@@ -33,8 +34,8 @@ public class NamespaceFunction extends SpecialFunction {
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call) {
     checkArity(call, 2);
-    Symbol namespaceSymbol = call.getArgument(0);
-    Symbol entry = call.getArgument(1);
+    Symbol namespaceSymbol = toSymbol(call.getArgument(0));
+    Symbol entry = toSymbol(call.getArgument(1));
 
     Namespace namespace = context.getNamespaceRegistry().getNamespace(context, namespaceSymbol);
 
@@ -43,5 +44,17 @@ public class NamespaceFunction extends SpecialFunction {
     } else {
       return namespace.getExport(entry).force(context);
     }
+  }
+
+  private Symbol toSymbol(SEXP sexp) {
+    Symbol entry;
+    if(sexp instanceof Symbol) {
+      entry = (Symbol) sexp;
+    } else if(sexp instanceof Vector && sexp.length() == 1) {
+      entry = Symbol.get(((StringVector) sexp).getElementAsString(0));
+    } else {
+      throw new EvalException("cannot coerce type '" + sexp.getTypeName() + "' to vector of type 'character'");
+    }
+    return entry;
   }
 }

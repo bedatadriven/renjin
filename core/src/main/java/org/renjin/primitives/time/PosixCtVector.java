@@ -54,13 +54,14 @@ public class PosixCtVector extends TimeVector {
 
   @Override
   public ZonedDateTime getElementAsDateTime(int i) {
-    return Instant.ofEpochSecond((long) (vector.getElementAsDouble(i))).atZone(dateTimeZone);
+    return Instant.ofEpochMilli((long) (vector.getElementAsDouble(i) * 1000d)).atZone(dateTimeZone);
   }
 
   public static class Builder {
     private final DoubleArrayVector.Builder vector;
     public Builder() {
       vector = new DoubleArrayVector.Builder();
+      vector.setAttribute(Symbols.CLASS, new StringArrayVector("POSIXct", "POSIXt"));
     }
 
     public Builder setTimeZone(SEXP timeZoneAttribute) {
@@ -76,7 +77,7 @@ public class PosixCtVector extends TimeVector {
       if(dateTime == null) {
         vector.add(DoubleVector.NA);
       } else {
-        vector.add(dateTime.toInstant().getEpochSecond());
+        vector.add(dateTime.toInstant().toEpochMilli() / 1000d);
       }
       return this;
     }
@@ -94,7 +95,6 @@ public class PosixCtVector extends TimeVector {
     }
 
     public DoubleVector buildDoubleVector() {
-      vector.setAttribute(Symbols.CLASS, new StringArrayVector("POSIXct", "POSIXt"));
       return vector.build();
     }
   }

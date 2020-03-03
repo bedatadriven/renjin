@@ -1411,9 +1411,7 @@ class FormatSpec {
 
   private String printAFormat(double x) {
     int savePrecision = precision;
-    int i;
     char[] ca4, ca5;
-    boolean noDigits = false;
     if (Double.isInfinite(x)) {
       if (x == Double.POSITIVE_INFINITY) {
         if (leadingSign) {
@@ -1426,7 +1424,6 @@ class FormatSpec {
       } else {
         ca4 = "-Inf".toCharArray();
       }
-      noDigits = true;
     } else if (Double.isNaN(x)) {
       if (leadingSign) {
         ca4 = "+NaN".toCharArray();
@@ -1435,7 +1432,6 @@ class FormatSpec {
       } else {
         ca4 = "NaN".toCharArray();
       }
-      noDigits = true;
     } else {
       if (!precisionSet) {
         precision = 15;
@@ -1444,9 +1440,16 @@ class FormatSpec {
         precision = 1;
       }
 
+      boolean negative = (x < 0);
+      if(negative) {
+        x = -x;
+      }
       String hexString = "0x" + hexDouble(x, precision);
       if (conversionCharacter == 'A') {
         hexString = hexString.toUpperCase();
+      }
+      if (negative) {
+        hexString = "-" + hexString;
       }
       ca4 = hexString.toCharArray();
     }

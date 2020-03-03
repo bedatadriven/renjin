@@ -21,6 +21,7 @@ package org.renjin.sexp;
 import org.renjin.eval.Context;
 import org.renjin.eval.DispatchTable;
 import org.renjin.eval.EvalException;
+import org.renjin.pipeliner.VectorPipeliner;
 
 
 public abstract class SpecialFunction extends PrimitiveFunction {
@@ -64,7 +65,9 @@ public abstract class SpecialFunction extends PrimitiveFunction {
       context.warn(call, "the condition has length > 1 and only the first element will be used");
     }
 
-    s = context.materialize(s);
+    if(VectorPipeliner.ENABLED) {
+      s = context.materialize(s);
+    }
     
     Logical logical = s.asLogical();
     if (logical == Logical.NA) {

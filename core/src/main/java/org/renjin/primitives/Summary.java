@@ -23,6 +23,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.parser.NumericLiterals;
+import org.renjin.pipeliner.VectorPipeliner;
 import org.renjin.primitives.summary.DeferredMean;
 import org.renjin.primitives.summary.DeferredSum;
 import org.renjin.sexp.*;
@@ -660,8 +661,10 @@ public class Summary {
   @NoAttributes
   public static DoubleVector mean(Vector x) {
 
-    if(x.isDeferred() || x.length() > 100000) {
-      return new DeferredMean(x, AttributeMap.EMPTY);
+    if(VectorPipeliner.ENABLED) {
+      if (x.isDeferred() || x.length() > 100000) {
+        return new DeferredMean(x, AttributeMap.EMPTY);
+      }
     }
 
     double mean = 0;
@@ -724,11 +727,13 @@ public class Summary {
       // validate arguments and determine result type
       for(SEXP argument : arguments) {
         if(argument.length() == 0) {
-          throw new EvalException("cannot mix 0-length vectors with others");
-        } else if(argument instanceof DoubleVector) {
-          realResult = true;
-        } else if(! (argument instanceof LogicalVector || argument instanceof IntVector) ) {
-          throw new EvalException("cannot handle argument of type '%s'", argument.getTypeName());
+          resultLength = 0;
+        } else {
+          if (argument instanceof DoubleVector) {
+            realResult = true;
+          } else if (!(argument instanceof LogicalVector || argument instanceof IntVector)) {
+            throw new EvalException("cannot handle argument of type '%s'", argument.getTypeName());
+          }
         }
       }
     }

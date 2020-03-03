@@ -492,7 +492,7 @@ public class Deparse {
     }
     
     private boolean isSubset(String name) {
-      return name.startsWith("[");
+      return name.equals("[") || name.equals("[[");
     }
     
     private boolean is(String name, String[] names) {

@@ -124,8 +124,8 @@ public class RDateTimeFormats {
                   // seconds including fractional seconds.  Note that ‘%S’ ignores (and
                   // not rounds) fractional parts on output.
 
-                  // TODO: not sure how to handle fractional seconds here
                   builder.appendValue(ChronoField.SECOND_OF_MINUTE, 2, 2, SignStyle.NEVER);
+                  builder.appendFraction(ChronoField.MICRO_OF_SECOND, 0, 6, true);
                   break;
                 default:
                   throw new EvalException("%O[dHImMUVwWy] not yet implemented");

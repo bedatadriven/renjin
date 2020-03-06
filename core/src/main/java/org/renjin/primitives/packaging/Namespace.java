@@ -24,6 +24,7 @@ import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.primitives.text.regex.RE;
 import org.renjin.primitives.text.regex.REFactory;
 import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.s4.S4;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -149,16 +150,18 @@ public class Namespace {
    * to the given package environment
    *
    */
-  public void copyExportsTo(Context context, Environment packageEnv) {
+  public void copyExportsTo(Context context, Environment packageEnv, Set<Symbol> exceptions) {
     for(Symbol name : exports) {
-      if(namespaceEnvironment.isActiveBinding(name)) {
-        packageEnv.makeActiveBinding(name, namespaceEnvironment.getActiveBinding(name));
-      } else {
-        SEXP exportValue = namespaceEnvironment.findVariableUnsafe(name);
-        if(exportValue == Symbol.UNBOUND_VALUE) {
-//          context.warn(String.format("Symbol '%s' is not defined in package '%s'", name.getPrintName(), pkg.getName()));
+      if (!exceptions.contains(name)) {
+        if (namespaceEnvironment.isActiveBinding(name)) {
+          packageEnv.makeActiveBinding(name, namespaceEnvironment.getActiveBinding(name));
         } else {
-          packageEnv.setVariableUnsafe(name, exportValue);
+          SEXP exportValue = namespaceEnvironment.findVariableUnsafe(name);
+          if (exportValue == Symbol.UNBOUND_VALUE) {
+//          context.warn(String.format("Symbol '%s' is not defined in package '%s'", name.getPrintName(), pkg.getName()));
+          } else {
+            packageEnv.setVariableUnsafe(name, exportValue);
+          }
         }
       }
     }
@@ -210,7 +213,7 @@ public class Namespace {
     for (NamespaceFile.PackageImportEntry entry : file.getPackageImports()) {
       Namespace importedNamespace = registry.getNamespace(context, entry.getPackageName());
       if(entry.isAllSymbols()) {
-        importedNamespace.copyExportsTo(context, importsEnvironment);
+        importedNamespace.copyExportsTo(context, importsEnvironment, entry.getExceptions());
       } else {
         for (Symbol symbol : entry.getSymbols()) {
           SEXP export = importedNamespace.getExportIfExists(symbol);
@@ -234,16 +237,25 @@ public class Namespace {
           }
         }
 
-
-        for (String className : entry.getClasses()) {
-          Symbol symbol = org.renjin.s4.S4.classNameMetadata(className);
-          SEXP export = importedNamespace.getExportIfExists(symbol);
-          if(export == Symbol.UNBOUND_VALUE) {
-            context.warn(String.format("Class '%s' is not exported from namespace '%s'", 
-                className, 
-                importedNamespace.getName()));
-          } else {
-            importsEnvironment.setVariableUnsafe(symbol, export);
+        if(entry.getClasses().isEmpty()) {
+          // Import all S4 classes from the given package
+          for (Symbol symbol : importedNamespace.getExports()) {
+            if(symbol.getPrintName().startsWith(S4.CLASS_PREFIX)) {
+              importsEnvironment.setVariableUnsafe(symbol, importedNamespace.getExportIfExists(symbol));
+            }
+          }
+        } else {
+          // Import only the specified classes
+          for (String className : entry.getClasses()) {
+            Symbol symbol = org.renjin.s4.S4.classNameMetadata(className);
+            SEXP export = importedNamespace.getExportIfExists(symbol);
+            if (export == Symbol.UNBOUND_VALUE) {
+              context.warn(String.format("Class '%s' is not exported from namespace '%s'",
+                  className,
+                  importedNamespace.getName()));
+            } else {
+              importsEnvironment.setVariableUnsafe(symbol, export);
+            }
           }
         }
       }

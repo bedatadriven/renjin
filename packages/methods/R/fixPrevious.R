@@ -1,7 +1,7 @@
 #  File src/library/methods/R/fixPrevious.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2014 The R Core Team
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 ## fixPre1.8(names)
 ##   The objects in names should have been loaded from a version of R
@@ -27,7 +27,7 @@
 fixPre1.8 <- function(names, where = topenv(parent.frame())) {
     done <- character()
     for(what in names) {
-        objWhere <- methods:::.findAll(what, where)
+        objWhere <- .findAll(what, where)
         if(length(objWhere) == 0) {
             warning(gettextf("object %s not found",
                              sQuote(what)),

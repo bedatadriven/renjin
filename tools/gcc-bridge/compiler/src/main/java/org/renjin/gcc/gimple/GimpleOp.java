@@ -240,6 +240,9 @@ public enum GimpleOp {
     }
   },
 
+  RESULT_DECL,
+
+
   COMPONENT_REF {
     @Override
     public String format(List<GimpleExpr> operands) {
@@ -302,6 +305,8 @@ public enum GimpleOp {
     }
   },
   LROTATE_EXPR,
+
+  RROTATE_EXPR,
 
   NEGATE_EXPR {
     @Override

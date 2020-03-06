@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutorService;
 
 public class VectorPipeliner {
 
+  public static final boolean ENABLED = false;
 
   public static boolean DEBUG = "true".equals(System.getProperty("renjin.vp.debug"));
   public static int MAX_DEPTH = 25;

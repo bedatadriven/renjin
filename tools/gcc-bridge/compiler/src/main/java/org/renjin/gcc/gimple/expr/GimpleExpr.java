@@ -23,9 +23,9 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.type.GimpleType;
-import java.util.function.Predicate;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * A Gimple Expression node. 
@@ -57,7 +57,9 @@ import java.util.List;
     @Type(value = GimpleBitFieldRefExpr.class, name = "bit_field_ref"),
     @Type(value = GimpleCompoundLiteral.class, name = "compound_literal_expr"),
     @Type(value = GimplePointerPlus.class, name = "pointer_plus_expr"),
-    @Type(value = GimpleTreeList.class, name = "tree_list")
+    @Type(value = GimpleTreeList.class, name = "tree_list"),
+    @Type(value = GimpleRangeExpr.class, name = "range_expr"),
+    @Type(value = GimpleViewConvertExpr.class, name = "view_convert_expr")
     })
 public abstract class GimpleExpr {
 

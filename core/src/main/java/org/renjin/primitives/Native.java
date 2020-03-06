@@ -359,14 +359,14 @@ public class Native {
     if(methodHandle == null) {
       throw new NullPointerException("methodHandle for " + method.getName() + " is null.");
     }
-    if(methodHandle.type().parameterCount() != callArguments.length()) {
+    if(callArguments.length() > methodHandle.type().parameterCount()) {
       throw new EvalException("Expected %d arguments, found %d in call to %s",
           methodHandle.type().parameterCount(),
           callArguments.length(),
           method.getName());
     }
     MethodHandle transformedHandle = methodHandle.asSpreader(SEXP[].class, methodHandle.type().parameterCount());
-    SEXP[] arguments = toSexpArray(callArguments);
+    SEXP[] arguments = toSexpArray(callArguments, methodHandle.type().parameterCount());
     Context previousContext = CURRENT_CONTEXT.get();
     try {
       CURRENT_CONTEXT.set(context);
@@ -465,10 +465,16 @@ public class Native {
     }
   }
 
-  private static SEXP[] toSexpArray(ListVector callArguments) {
-    SEXP args[] = new SEXP[callArguments.length()];
-    for (int i = 0; i < callArguments.length(); i++) {
+  private static SEXP[] toSexpArray(ListVector callArguments, int parameterCount) {
+    SEXP args[] = new SEXP[parameterCount];
+    int i = 0;
+    while(i < callArguments.length() && i < parameterCount) {
       args[i] = callArguments.get(i);
+      i++;
+    }
+    while(i < parameterCount) {
+      args[i] = Null.INSTANCE;
+      i++;
     }
     return args;
   }

@@ -51,14 +51,17 @@ subprojects {
 
 
 ext.majorVersion = "3.5"
-if(System.getenv("BUILD_NUMBER")) {
-    ext.buildNumber = System.getenv("BUILD_NUMBER")
+def renjinVersion;
+if(System.getenv("RENJIN_RELEASE")) {
+    renjinVersion = System.getenv("RENJIN_RELEASE")
+} else if(System.getenv("BUILD_NUMBER")) {
+    renjinVersion = "3.5-beta${System.getenv("BUILD_NUMBER")}"
 } else {
-    ext.buildNumber = "dev"
+    renjinVersion = "3.5-dev"
 }
 
 allprojects {
-  project.version = "${majorVersion}-beta${buildNumber}"
+  project.version = renjinVersion
 }
 
 // Define common configuration properties and

@@ -23,6 +23,7 @@ import io.airlift.airline.*;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleParser;
+import org.renjin.gnur.api.RenjinFiles;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -106,6 +107,10 @@ public class GnurSourcesCompiler {
     compiler.setLinkClassLoader(linkClassLoader);
     compiler.addMathLibrary();
 
+    // Make sure Renjin's fopen() etc implementation override
+    // those provided in Stdlib.java
+    compiler.addReferenceClass(RenjinFiles.class);
+
     setupCompiler(compiler);
 
     if (transformGlobalVariables) {
@@ -140,6 +145,9 @@ public class GnurSourcesCompiler {
           } catch (IOException e) {
             throw new IOException("Failed to parse gimple file " + file, e);
           }
+        } else if(file.getName().endsWith("gimple.zip")) {
+          gimpleFiles.addAll(parser.parseZipFile(file));
+
         } else if(file.isDirectory()) {
           collectGimple(file, gimpleFiles);
         }

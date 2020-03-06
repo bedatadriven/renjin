@@ -534,8 +534,6 @@ public class RParser {
     this.yylexer = new RLexer(options, state, reader);
   }
   
-  
-
   private java.io.PrintStream yyDebugStream = System.err;
 
   /**

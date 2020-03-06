@@ -1,7 +1,7 @@
 #  File src/library/methods/R/zzz.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -27,6 +27,11 @@
     assign(".methodsNamespace", new.env(), envir = where)
     .Call("R_set_method_dispatch", TRUE, PACKAGE = "methods")
     cat("initializing class and method definitions ...")
+    op <- options(error = quote({ ## allow *some* debugging
+	utils::dump.frames("onLoad_init", to.file = TRUE, include.GlobalEnv=TRUE)
+	if(!interactive()) q(status = 1)
+    }))
+    on.exit(options(op))
     ## set up default prototype (uses .Call so has be at load time)
     assign(".defaultPrototype", .Call("Rf_allocS4Object", PACKAGE = "methods"), envir = where)
     assign(".SealedClasses", character(), envir = where)
@@ -118,15 +123,15 @@
     assign(".methodsNamespace", where, where)
     ## assign to baseenv also, signalling methods loaded
     assign(".methodsNamespace", where, baseenv())
-    if(Sys.getenv("R_S4_BIND") == "active")
-        methods:::bind_activation(TRUE)
+    ## if(Sys.getenv("R_S4_BIND") == "active")
+    ##     bind_activation(TRUE)
 }
 
 .onUnload <- function(libpath)
 {
     message("unloading 'methods' package ...") # see when this is called
     .isMethodsDispatchOn(FALSE)
-    methods:::bind_activation(FALSE)
+    ## bind_activation(FALSE)
     library.dynam.unload("methods", libpath)
 }
 
@@ -139,7 +144,7 @@
     if(methods:::.hasS4MetaData(.GlobalEnv)) {
         result <- try(cacheMetaData(.GlobalEnv, TRUE))
         ## still attach  methods package if global env has bad objets
-        if(is(result, "try-error"))
+        if(inherits(result, "try-error"))
           warning("apparently bad method or class metadata in saved environment;\n",
                   "move the file or remove the class/method")
     }
@@ -152,5 +157,5 @@
 ## used for .methodsIsLoaded
 .saveImage <- FALSE
 
-## want ASCII quotes, not fancy nor translated ones
-.dQ <- function (x) paste('"', x, '"', sep = "")
+## cheap dQuote(): want ASCII quotes, not fancy nor translated ones
+.dQ <- function (x) paste0('"', x, '"')

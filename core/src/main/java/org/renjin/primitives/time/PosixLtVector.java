@@ -153,22 +153,28 @@ public class PosixLtVector extends TimeVector {
     // These are all zero-based, so we can treat as an offset of the result so far
     int hourOfDay = elementAt(hours, index);
     int minuteOfHour = elementAt(minutes, index);
-    int secondOfMinute = elementAt(seconds, index);
+    double fractionalSecondOfMinute = doubleElementAt(seconds, index);
 
-    if(isNA(hourOfDay) || isNA(minuteOfHour) || isNA(secondOfMinute)) {
+    if(isNA(hourOfDay) || isNA(minuteOfHour) || DoubleVector.isNA(fractionalSecondOfMinute)) {
       return null;
     }
 
-    return localDate.atTime(hourOfDay, minuteOfHour, secondOfMinute).atZone(timeZone);
+    int secondOfMinute = (int) Math.floor(fractionalSecondOfMinute);
+    int nanoOfSecond = (int)((fractionalSecondOfMinute - secondOfMinute) * 1e9);
+
+    return localDate.atTime(hourOfDay, minuteOfHour, secondOfMinute, nanoOfSecond).atZone(timeZone);
   }
 
   private int elementAt(AtomicVector component, int index) {
     return component.getElementAsInt(index % component.length());
   }
+  private double doubleElementAt(AtomicVector component, int index) {
+    return component.getElementAsDouble(index % component.length());
+  }
 
   public static class Builder {
     private ListVector.NamedBuilder list = new ListVector.NamedBuilder(0, 9);
-    private IntArrayVector.Builder second = new IntArrayVector.Builder();
+    private DoubleArrayVector.Builder second = new DoubleArrayVector.Builder();
     private IntArrayVector.Builder minute = new IntArrayVector.Builder();
     private IntArrayVector.Builder hour = new IntArrayVector.Builder();
     private IntArrayVector.Builder dayOfMonth = new IntArrayVector.Builder();
@@ -192,7 +198,7 @@ public class PosixLtVector extends TimeVector {
         time = parsedTime.withZoneSameInstant(zone);
       }
 
-      second.add(time.getSecond());
+      second.add(time.getSecond() + fractionalSeconds(time));
       minute.add(time.getMinute());
       hour.add(time.getHour());
       dayOfMonth.add(time.getDayOfMonth());
@@ -206,6 +212,11 @@ public class PosixLtVector extends TimeVector {
       gmtOffset.add(parsedTime.getOffset().getTotalSeconds());
 
       return this;
+    }
+
+    private double fractionalSeconds(ZonedDateTime time) {
+      double nanos = time.getNano();
+      return nanos * 1e-9;
     }
 
     public void add(LocalDate localDate) {
@@ -276,14 +287,20 @@ public class PosixLtVector extends TimeVector {
       list.add(WEEKDAY_FIELD, weekday);
       list.add(DAY_OF_YEAR_FIELD, dayOfYear);
       list.add(DST_FIELD, dst);
-      list.add(GMT_OFFSET_FIELD, gmtOffset);
-      if(zone != null) {
-        list.setAttribute(Symbols.TZONE, zoneName);
+
+      if(zone == null || !zone.getId().equals("UTC")) {
+        list.add(GMT_OFFSET_FIELD, gmtOffset);
       }
+
+      // Expected Order of attributes: names, class, tzone
+      // Add placeholder for names
+      list.setAttribute(Symbols.NAMES, StringVector.EMPTY); // (placeholder to establish order)
       list.setAttribute(Symbols.CLASS, new StringArrayVector("POSIXlt", "POSIXt"));
+
+      if(zone != null) {
+          list.setAttribute(Symbols.TZONE, zoneName);
+      }
       return list.build();
     }
-
-
   }
 }

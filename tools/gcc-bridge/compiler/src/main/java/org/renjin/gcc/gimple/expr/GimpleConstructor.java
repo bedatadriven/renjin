@@ -79,6 +79,36 @@ public class GimpleConstructor extends GimpleExpr {
     return elements;
   }
 
+  /**
+   * GCC can sometimes emit "jagged" arrays that leave some elements uninitialized. So an array
+   * of length 25 could in principle only have two elements, one for the first array element,
+   * and one for the second.
+   *
+   * This method returns a list of the same length as the array, with {@code null} for elements
+   * without an initializer.
+   */
+  public List<Element> normalizeArrayElements() {
+    int index = 0;
+    List<Element> out = new ArrayList<>();
+    for (GimpleConstructor.Element element : elements) {
+
+      if (element.getField() instanceof GimpleIntegerConstant) {
+        int elementIndex = ((GimpleIntegerConstant) element.getField()).getValue().intValue();
+        if (elementIndex < index) {
+          throw new IllegalStateException("index = " + index + ", elementIndex = " + elementIndex);
+        }
+        // Some arrays have jagged initialization (looking at you, Fortran!)
+        // so we may need to skip a few elements
+        while (index < elementIndex) {
+          out.add(null);
+          index++;
+        }
+      }
+      out.add(element);
+      index++;
+    }
+    return out;
+  }
 
   public boolean isClobber() {
     return clobber;

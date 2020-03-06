@@ -46,12 +46,22 @@ class ClassPathFileObject extends AbstractFileObject  {
 
   @Override
   protected String[] doListChildren() {
-    throw new UnsupportedOperationException();
+    String[] names = null;
+    if(file.isDirectory()) {
+      File[] files = file.listFiles();
+      if(files != null) {
+        names = new String[files.length];
+        for (int i = 0; i < names.length; i++) {
+          names[i] = files[i].getName();
+        }
+      }
+    }
+    return names;
   }
 
   @Override
   protected long doGetContentSize() throws Exception {
-    throw new UnsupportedOperationException();
+    return file.length();
   }
 
   @Override

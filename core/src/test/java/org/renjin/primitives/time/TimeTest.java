@@ -83,7 +83,7 @@ public class TimeTest extends EvalTestCase {
     
     eval("t <- .Internal(strptime('2009-07-01 18:14:05', '%Y-%m-%d %H:%M:%OS', 'Europe/Amsterdam'))");
     
-    assertThat(eval("t$sec"), elementsIdenticalTo(c_i(5)));
+    assertThat(eval("t$sec"), elementsIdenticalTo(c(5)));
     assertThat(eval("t$min"), elementsIdenticalTo(c_i(14)));
     assertThat(eval("t$hour"), elementsIdenticalTo(c_i(18)));
     assertThat(eval("t$mday"), elementsIdenticalTo(c_i(1)));
@@ -135,7 +135,7 @@ public class TimeTest extends EvalTestCase {
     eval("t <- strptime('24/Aug/2014:17:57:26 +0200', '%d/%b/%Y:%H:%M:%S %z')");
 
     
-    assertThat(eval("t$sec"), elementsIdenticalTo(c_i(26)));
+    assertThat(eval("t$sec"), elementsIdenticalTo(c(26)));
     assertThat(eval("t$min"), elementsIdenticalTo(c_i(57)));
     assertThat(eval("t$hour"), elementsIdenticalTo(c_i(17)));
     assertThat(eval("t$mday"), elementsIdenticalTo(c_i(24)));
@@ -152,7 +152,7 @@ public class TimeTest extends EvalTestCase {
   @Test
   public void strptimeWithOffsetWithTzParam() {
     eval("t <- strptime('24/Aug/2014:17:57:26 +0200', '%d/%b/%Y:%H:%M:%S %z', tz = 'Pacific/Honolulu')");
-    assertThat(eval("t$sec"), elementsIdenticalTo(c_i(26)));
+    assertThat(eval("t$sec"), elementsIdenticalTo(c(26)));
     assertThat(eval("t$min"), elementsIdenticalTo(c_i(57)));
     assertThat(eval("t$hour"), elementsIdenticalTo(c_i(5)));
     assertThat(eval("t$mday"), elementsIdenticalTo(c_i(24)));
@@ -219,7 +219,7 @@ public class TimeTest extends EvalTestCase {
     assertThat(eval("attr(ct, 'tzone')"), elementsIdenticalTo(c("UTC")));
     
     eval("lt <- as.POSIXlt(ct)");
-    assertThat(eval("lt$sec"), elementsIdenticalTo(c_i(0)));
+    assertThat(eval("lt$sec"), elementsIdenticalTo(c(0)));
     assertThat(eval("lt$min"), elementsIdenticalTo(c_i(0)));
     assertThat(eval("lt$hour"), elementsIdenticalTo(c_i(0)));
     assertThat(eval("lt$mday"), elementsIdenticalTo(c_i(1)));
@@ -239,7 +239,7 @@ public class TimeTest extends EvalTestCase {
     eval("ct <- structure(1246406400L, class=c(\"POSIXct\", \"POSIXt\"), tzone = 'UTC')");
 
     eval("lt <- as.POSIXlt(ct)");
-    assertThat(eval("lt$sec"), elementsIdenticalTo(c_i(0)));
+    assertThat(eval("lt$sec"), elementsIdenticalTo(c(0)));
     assertThat(eval("lt$min"), elementsIdenticalTo(c_i(0)));
     assertThat(eval("lt$hour"), elementsIdenticalTo(c_i(0)));
     assertThat(eval("lt$mday"), elementsIdenticalTo(c_i(1)));
@@ -262,7 +262,7 @@ public class TimeTest extends EvalTestCase {
     assertThat(eval("names(unclass(lt))"), 
         elementsIdenticalTo(c("sec", "min", "hour", "mday", "mon", "year", "wday", "yday", "isdst", "gmtoff")));
 
-    assertThat(eval("lt$sec"), elementsIdenticalTo(c_i(0, 0)));
+    assertThat(eval("lt$sec"), elementsIdenticalTo(c(0, 0)));
     assertThat(eval("lt$min"), elementsIdenticalTo(c_i(0, 0)));
     assertThat(eval("lt$hour"), elementsIdenticalTo(c_i(0, 0)));
     assertThat(eval("lt$mday"), elementsIdenticalTo(c_i(15, 29)));
@@ -303,7 +303,7 @@ public class TimeTest extends EvalTestCase {
   public void strpTimeSeconds() {
 
     eval("tt <-  strptime('1978-02-16 12:30:15', format='%Y-%m-%d %H:%M:%S', tz='GMT')");
-    assertThat(eval("tt$sec"), elementsIdenticalTo(c_i(15)));
+    assertThat(eval("tt$sec"), elementsIdenticalTo(c(15)));
     assertThat(eval("tt$min"), elementsIdenticalTo(c_i(30)));
     assertThat(eval("tt$hour"), elementsIdenticalTo(c_i(12)));
     assertThat(eval("tt$mday"), elementsIdenticalTo(c_i(16)));

@@ -19,7 +19,7 @@
 package org.renjin.gcc.codegen.expr;
 
 import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.codegen.Constructors;
+import org.renjin.gcc.codegen.constructors.ConstructorFactory;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.ResourceWriter;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
@@ -37,7 +37,6 @@ import org.renjin.gcc.codegen.type.complex.ComplexExpr;
 import org.renjin.gcc.codegen.type.fun.FunPtrExpr;
 import org.renjin.gcc.codegen.type.primitive.*;
 import org.renjin.gcc.codegen.type.record.RecordExpr;
-import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.*;
@@ -83,14 +82,14 @@ public class ExprFactory {
   }
 
   public GExpr maybeCast(GExpr rhs, GimpleType lhsType, GimpleType rhsType) {
-    
+
     if(lhsType.equals(rhsType)) {
       return rhs;
     }
-    
+
     TypeStrategy leftStrategy = typeOracle.forType(lhsType);
     TypeStrategy rightStrategy = typeOracle.forType(rhsType);
-    
+
     try {
       return leftStrategy.cast(mv, rhs);
     } catch (UnsupportedCastException e) {
@@ -183,7 +182,7 @@ public class ExprFactory {
       FatPtrPair address = new FatPtrPair(
           new PrimitiveValueFunction(primitiveType),
           Expressions.newArray(constantValue.getType(), Collections.singletonList(constantValue)));
-      
+
       return primitiveType.fromStackValue(constantValue, address);
 
     } else if(expr instanceof GimpleComplexPartExpr) {
@@ -209,30 +208,24 @@ public class ExprFactory {
 
     } else if(expr instanceof GimpleCompoundLiteral) {
       return findGenerator(((GimpleCompoundLiteral) expr).getDecl());
-    
+
     } else if(expr instanceof GimpleObjectTypeRef) {
       GimpleObjectTypeRef typeRef = (GimpleObjectTypeRef) expr;
-      
+
       return findGenerator(typeRef.getExpr());
-    
+
     } else if(expr instanceof GimplePointerPlus) {
       GimplePointerPlus pointerPlus = (GimplePointerPlus) expr;
       return pointerPlus(pointerPlus.getPointer(), pointerPlus.getOffset(), pointerPlus.getType());
     }
-    
+
     throw new UnsupportedOperationException(expr + " [" + expr.getClass().getSimpleName() + "]");
   }
 
   private GExpr forConstructor(GimpleConstructor expr) {
-
-    VArrayExpr stringArray = Constructors.isStringArray(mv, resourceWriter, expr);
-    if(stringArray != null) {
-      return stringArray;
-    }
-
-    GExpr charArray = Constructors.isCharArray(mv, resourceWriter, expr);
-    if(charArray != null) {
-      return charArray;
+    GExpr constructor = ConstructorFactory.tryCreate(mv, resourceWriter, expr);
+    if(constructor != null) {
+      return constructor;
     }
 
     return typeOracle.forType(expr.getType()).constructorExpr(this, mv, resourceWriter, expr);
@@ -251,7 +244,7 @@ public class ExprFactory {
 
     }
 
-    // Assume this is a function pointer ptr expression  
+    // Assume this is a function pointer ptr expression
     FunPtrExpr expr = findGenerator(functionExpr).toFunPtr();
     return new FunPtrCallGenerator(typeOracle, functionExpr.getType().getBaseType(), expr.jexpr());
   }
@@ -274,7 +267,7 @@ public class ExprFactory {
 
     } else if(x.getType() instanceof GimpleIndirectType) {
       return comparePointers(op, x, y);
-      
+
     } else {
       throw new UnsupportedOperationException("Unsupported comparison " + op + " between types " +
           x.getType() + " and " + y.getType());
@@ -282,7 +275,7 @@ public class ExprFactory {
   }
 
   private ConditionGenerator comparePointers(GimpleOp op, GimpleExpr x, GimpleExpr y) {
-    
+
     // First see if this is a null check
     if(isNull(x) && isNull(y)) {
       switch (op) {
@@ -302,7 +295,7 @@ public class ExprFactory {
     } else if(isNull(y)) {
       return new NullCheckGenerator(op, (PtrExpr) findGenerator(x));
     }
-    
+
     // Shouldn't matter which we pointer we cast to the other, but if we have a choice,
     // cast away from a void* to a concrete pointer type
     GimpleType commonType;
@@ -487,19 +480,19 @@ public class ExprFactory {
 
   private GExpr memRef(GimpleMemRef gimpleExpr, GimpleType expectedType) {
     GimpleExpr pointer = gimpleExpr.getPointer();
-    
+
     // Case of *&x, which can be simplified to x
     if(pointer instanceof GimpleAddressOf && gimpleExpr.isOffsetZero()) {
       GimpleAddressOf addressOf = (GimpleAddressOf) pointer;
       return findGenerator(addressOf.getValue());
     }
-    
+
     GimpleIndirectType pointerType = (GimpleIndirectType) pointer.getType();
-    
+
     if(pointerType.getBaseType() instanceof GimpleVoidType) {
       // We can't dereference a null pointer, so cast the pointer first, THEN dereference
       return castThenDereference(gimpleExpr, expectedType);
-    
+
     } else {
       return dereferenceThenCast(gimpleExpr, expectedType);
     }
@@ -509,7 +502,7 @@ public class ExprFactory {
     GimpleExpr pointer = gimpleExpr.getPointer();
     GimpleIndirectType pointerType = (GimpleIndirectType) pointer.getType();
     GimpleIndirectType expectedPointerType = expectedType.pointerTo();
-    
+
     // Cast from the void pointer type to the "expected" pointer type
     PtrExpr ptrExpr = (PtrExpr) maybeCast(findGenerator(pointer), expectedPointerType, pointerType);
 
@@ -521,7 +514,7 @@ public class ExprFactory {
 
     return ptrExpr.valueOf(expectedType);
   }
-  
+
   private GExpr dereferenceThenCast(GimpleMemRef gimpleExpr, GimpleType expectedType) {
     GimpleExpr pointer = gimpleExpr.getPointer();
     PtrExpr ptrExpr = (PtrExpr) findGenerator(pointer);
@@ -530,7 +523,7 @@ public class ExprFactory {
       JExpr offsetInBytes = findPrimitiveGenerator(gimpleExpr.getOffset());
       ptrExpr =  ptrExpr.pointerPlus(mv, offsetInBytes);
     }
-    
+
     return ptrExpr.valueOf(expectedType);
   }
 
@@ -540,7 +533,7 @@ public class ExprFactory {
 
     GimpleType pointerType = pointerExpr.getType();
     GExpr result = pointer.pointerPlus(mv, offsetInBytes);
-    
+
     return maybeCast(result, expectedType, pointerType);
   }
 
@@ -549,9 +542,9 @@ public class ExprFactory {
     if(exprClass.isAssignableFrom(expr.getClass())) {
       return exprClass.cast(expr);
     } else {
-      throw new InternalCompilerException(String.format("Expected %s for expr %s, found: %s", 
-          exprClass.getSimpleName(), 
-          gimpleExpr, 
+      throw new InternalCompilerException(String.format("Expected %s for expr %s, found: %s",
+          exprClass.getSimpleName(),
+          gimpleExpr,
           expr.getClass().getName()));
     }
   }

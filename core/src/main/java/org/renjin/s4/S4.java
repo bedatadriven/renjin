@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
-public class S4 {
+public final class S4 {
 
   private static final String R_methods = "methods";
   private static final String R_package = "package";
@@ -48,9 +48,8 @@ public class S4 {
   public static final Symbol GROUP = Symbol.get("group");
 
 
-  private S4() {
-    throw new IllegalStateException("'S4' is a utility class and cannot be instantiated.");
-  }
+  private S4() {}
+
 
   /**
    * Attempts to dispatch to an S4 method based on the calling arguments.

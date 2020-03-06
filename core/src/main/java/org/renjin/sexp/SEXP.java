@@ -32,7 +32,12 @@ public interface SEXP {
    *
    * @return the number of elements in this expression.
    */
-  public int length();
+  int length();
+
+  /**
+   * Unsafely updates the length of this vector.
+   */
+  void unsafeSetLength(int length);
 
   boolean hasAttributes();
 

@@ -1,7 +1,7 @@
 #  File src/library/methods/R/NextMethod.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 callNextMethod <- function(...) {
     method <- nextMethod <-  NULL
@@ -26,17 +26,16 @@ callNextMethod <- function(...) {
     parent <- sys.parent(1)
     methodFun <- maybeMethod <- sys.function(parent)
     if(is(maybeMethod, "MethodDefinition")) {
-        callEnv     <- parent.frame(1)
-        methodEnv   <- parent.frame(1)
-        mcall       <- sys.call(sys.parent(1))
-        dotsenv     <- parent.frame(2)
+        callEnv <- methodEnv <- parent.frame(1)
+        mcall <- sys.call(parent)
+        dotsenv <- parent.frame(2)
         i <- 1L
     }
     else {
-        callEnv     <- parent.frame(1)
-        methodEnv   <- parent.frame(2)
-        mcall       <- sys.call(sys.parent(2))
-        dotsenv     <- parent.frame(3)
+        callEnv <- parent.frame(1)
+        methodEnv <- parent.frame(2)
+        mcall <- sys.call(sys.parent(2))
+        dotsenv <- parent.frame(3)
         maybeMethod <- sys.function(sys.parent(2))
         i <- 2L
     }
@@ -159,7 +158,10 @@ loadMethod <- function(method, fname, envir) method
     else {
         i <- i-1
         length(fnames) <- i
-        fnames <- c(fnames, rep("", length(call) - i))
+        cnames <- if (is.null(names(call)))
+                      rep("", length(call) - i)
+                  else utils::tail(names(call), -i)
+        fnames <- c(fnames, cnames)
     }
     names(call) <- fnames
     if(hasDrop)

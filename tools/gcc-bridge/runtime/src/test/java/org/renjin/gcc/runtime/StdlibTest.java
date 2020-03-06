@@ -21,6 +21,7 @@ package org.renjin.gcc.runtime;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -84,6 +85,16 @@ public class StdlibTest {
 
   private BytePtr cstring(String str) {
     return BytePtr.nullTerminatedString(str, StandardCharsets.UTF_8);
+  }
+
+  @Test
+  public void timeofday() {
+    IntPtr time = new IntPtr(new int[2]);
+    IntPtr timezone = new IntPtr(new int[2]);
+    Stdlib.gettimeofday(time, timezone);
+
+    System.out.println("t = " + Arrays.toString(time.array));
+
   }
 
 }

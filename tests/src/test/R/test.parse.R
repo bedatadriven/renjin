@@ -27,5 +27,11 @@ test.keepsource <- function() {
 
     y <- parse(text = "x+y\ny+z", keep.source = FALSE)
     assertTrue(is.null(attr(y, 'srcref')))
+}
+
+test.parse.language <- function() {
+
+    assertThat(parse(text=quote(x), keep.source=FALSE), identicalTo(expression(x)))
+    assertThat(parse(text=quote(cbind(ph.ecog)), keep.source=FALSE), identicalTo(expression(cbind, ph.ecog)))
 
 }

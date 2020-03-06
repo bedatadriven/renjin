@@ -34,33 +34,31 @@ public class ExamplesParser extends SexpVisitor<String> {
 
   private static final Symbol RD_TAG = Symbol.get("Rd_tag");
 
-  private StringBuilder code = new StringBuilder();
-  
+  private ExampleParser example = new ExampleParser();
+
   @Override
   public void visit(ListVector list) {
-    if(getTag(list).equals("\\examples")) {
+    String tag = getTag(list);
+    if(tag.equals("\\examples")) {
       for(SEXP element : list) {
-        element.accept(this);
+        element.accept(example);
       }
-    }
-    // Descend into nested lists
-    for(SEXP element : list) {
-      if(element instanceof ListVector) {
-        element.accept(this);
-      }
-    }
-  }
-  
-  @Override
-  public void visit(StringVector vector) {
-    if(getTag(vector).equals("RCODE")) {
-      for (String line : vector) {
-        code.append(line);
+    } else {
+
+      // Descend into nested lists
+      for (SEXP element : list) {
+        if (element instanceof ListVector) {
+          element.accept(this);
+        }
       }
     }
   }
 
-  private static String getTag(SEXP sexp) {
+  @Override
+  public void visit(StringVector vector) {
+  }
+
+  static String getTag(SEXP sexp) {
     SEXP tagObject = sexp.getAttribute(RD_TAG);
     if(tagObject instanceof StringVector && tagObject.length() == 1) {
       String tagName = ((StringVector) tagObject).getElementAsString(0);
@@ -91,7 +89,7 @@ public class ExamplesParser extends SexpVisitor<String> {
       ExamplesParser examples = new ExamplesParser();
       rd.accept(examples);
 
-      return examples.code.toString();
+      return examples.example.toString();
     } catch(Exception e) {
       System.err.println("WARNING: Failed to parse examples from " + file.getName() + ": " + e.getMessage());
       return "";

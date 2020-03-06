@@ -20,14 +20,15 @@ package org.renjin.serialization;
 
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
+import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.collect.Maps;
+import org.renjin.repackaged.guava.io.LittleEndianDataOutputStream;
 import org.renjin.serialization.Serialization.SerializationType;
 import org.renjin.sexp.*;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
+import java.nio.ByteOrder;
 import java.util.Map;
 
 import static org.renjin.serialization.SerializationFormat.*;
@@ -37,6 +38,7 @@ import static org.renjin.serialization.SerializationFormat.*;
  */
 public class RDataWriter implements AutoCloseable {
 
+  public static final int SERIALIZATION_VERSION = VERSION2;
 
   /**
    * Interfaces that allows R developers and Renjin containers to provide
@@ -56,7 +58,6 @@ public class RDataWriter implements AutoCloseable {
   
   private WriteContext context;
   private PersistenceHook hook;
-  private DataOutputStream conn;
   private StreamWriter out;
   private SerializationType serializationType;
 
@@ -66,19 +67,27 @@ public class RDataWriter implements AutoCloseable {
                      SerializationType type) {
     this.context = context;
     this.hook = hook;
-    this.conn = new DataOutputStream(out);
     this.serializationType = type;
     switch(this.serializationType) {
-      case ASCII: this.out = new AsciiWriter(this.conn); break;
-      default: this.out = new XdrWriter(this.conn); break;
+      case ASCII:
+        this.out = new AsciiWriter(out);
+        break;
+      case BINARY:
+        this.out = new BinaryWriter(out, ByteOrder.nativeOrder());
+        break;
+      case XDR:
+        this.out = new BinaryWriter(out, ByteOrder.BIG_ENDIAN);
+        break;
+      default:
+        throw new UnsupportedOperationException("Unsupported format: " + this.serializationType);
     }
   }
   
-  public RDataWriter(Context context, PersistenceHook hook, OutputStream out) throws IOException {
+  public RDataWriter(Context context, PersistenceHook hook, OutputStream out) {
     this(new SessionWriteContext(context), hook, out, SerializationType.XDR);
   }
 
-  public RDataWriter(Context context, OutputStream out, SerializationType st) throws IOException {
+  public RDataWriter(Context context, OutputStream out, SerializationType st) {
     this(new SessionWriteContext(context), null, out, st);
   }
   
@@ -112,9 +121,11 @@ public class RDataWriter implements AutoCloseable {
    */
   public void save(SEXP sexp) throws IOException {
     if(serializationType == SerializationType.ASCII) {
-      conn.writeBytes(ASCII_MAGIC_HEADER);
+      out.writeAsciiBytes(ASCII_MAGIC_HEADER);
+    } else if(serializationType == SerializationType.BINARY) {
+      out.writeAsciiBytes(BINARY_MAGIC_HEADER);
     } else {
-      conn.writeBytes(XDR_MAGIC_HEADER);
+      out.writeAsciiBytes(XDR_MAGIC_HEADER);
     }
     
     serialize(sexp);
@@ -122,12 +133,13 @@ public class RDataWriter implements AutoCloseable {
 
   public void serialize(SEXP exp) throws IOException {
     if(serializationType == SerializationType.ASCII) {
-      conn.writeByte(ASCII_FORMAT);
+      out.writeAsciiByte((char) ASCII_FORMAT);
+    } else if(serializationType == SerializationType.BINARY) {
+      out.writeAsciiByte((char)BINARY_FORMAT);
     } else {
-      conn.writeByte(XDR_FORMAT);
+      out.writeAsciiByte((char)XDR_FORMAT);
     }
-    
-    conn.writeByte('\n');
+    out.writeAsciiByte('\n');
     writeVersion();
     writeExp(exp);
   }
@@ -137,7 +149,6 @@ public class RDataWriter implements AutoCloseable {
   public void close() throws IOException {
     out.close();
   }
-
 
   private void writeVersion() throws IOException {
     out.writeInt(VERSION2);
@@ -267,7 +278,7 @@ public class RDataWriter implements AutoCloseable {
     if(serializationType == SerializationType.ASCII) {
       for(int i=0;i!=vector.length();++i) {
         if(vector.isElementNA(i)) {
-          conn.writeBytes("NA\n");
+          out.writeAsciiBytes("NA\n");
         } else {
           out.writeInt(vector.getElementAsInt(i));
         }
@@ -289,11 +300,11 @@ public class RDataWriter implements AutoCloseable {
         double d = vector.getElementAsDouble(i);
         if(!Double.isFinite(d)) {
           if(DoubleVector.isNaN(d)) {
-            conn.writeBytes("NA\n");
+            out.writeAsciiBytes("NA\n");
           } else if (d < 0) {
-            conn.writeBytes("-Inf\n");
+            out.writeAsciiBytes("-Inf\n");
           } else {
-            conn.writeBytes("Inf\n");
+            out.writeAsciiBytes("Inf\n");
           }
         } else {
           out.writeDouble(vector.getElementAsDouble(i));
@@ -343,7 +354,7 @@ public class RDataWriter implements AutoCloseable {
     if(serializationType == SerializationType.ASCII) {
       byte[] bytes = vector.toByteArray();
       for(int i=0;i!=vector.length();++i) {
-        conn.writeBytes(String.format("%02x\n", bytes[i]));
+        out.writeAsciiBytes(String.format("%02x\n", bytes[i]));
       }
     } else {
       out.writeString(vector.toByteArray());
@@ -529,20 +540,22 @@ public class RDataWriter implements AutoCloseable {
 
   private void writeAttributes(SEXP exp) throws IOException {
 
-    PairList.Builder pairList = exp.getAttributes().asPairListBuilder();
-    if(Flags.WRITE_OLD_S4_ATTRIBUTE) {
-      if (exp.getAttributes().isS4()) {
-        pairList.add(Flags.OLD_S4_BIT, LogicalVector.TRUE);
-      }
-    }
+    if(Flags.hasAttributesToWrite(exp)) {
 
-    PairList attributes = pairList.build();
+      PairList.Builder pairList = new PairList.Builder();
+      exp.getAttributes().forEach((name, value) -> {
 
-    if(attributes != Null.INSTANCE) {
-      if(!(attributes instanceof PairList.Node)) {
-        throw new AssertionError(attributes.getClass());
-      }
-      writeExp(attributes);
+        // To preserve byte-for-byte compatibility with GNU R, we must mimic
+        // the row.names hack, where row.names can be stored as c(NA_integer_, -rows)
+
+        if (name == Symbols.ROW_NAMES && RowNamesVector.isEligibleForCompactForm(value)) {
+          pairList.add(Symbols.ROW_NAMES, new IntArrayVector(IntVector.NA, -value.length()));
+        } else {
+          pairList.add(name, value);
+        }
+      });
+
+      writeExp(pairList.build());
     }
   }
 
@@ -559,7 +572,7 @@ public class RDataWriter implements AutoCloseable {
       out.writeInt(SexpType.SPECIALSXP);
     }
     out.writeInt(exp.getName().length());
-    conn.writeBytes(exp.getName());
+    out.writeAsciiBytes(exp.getName());
   }
 
   
@@ -572,28 +585,40 @@ public class RDataWriter implements AutoCloseable {
     void writeString(byte[] bytes) throws IOException;
     void writeLong(long l) throws IOException;
     void writeDouble(double d) throws IOException;
+    void writeAsciiBytes(String s) throws IOException;
+    void writeAsciiByte(char c) throws IOException;
 
     @Override
     void close() throws IOException;
+
   }
 
   private static class AsciiWriter implements StreamWriter {
-    private DataOutputStream out;
-    
-    private AsciiWriter(DataOutputStream out) {
+    private OutputStream out;
+
+    private AsciiWriter(OutputStream out) {
       this.out = out;
     }
-    
+
+    public void writeAsciiBytes(String s) throws IOException {
+      out.write(s.getBytes(Charsets.US_ASCII));
+    }
+
+    @Override
+    public void writeAsciiByte(char c) throws IOException {
+      writeAsciiBytes("" + c);
+    }
+
     public void writeInt(int v) throws IOException {
-      out.writeBytes(v + "\n");
+      writeAsciiBytes(v + "\n");
     }
     
     public void writeDouble(double d) throws IOException {
-      out.writeBytes(d + "\n");
+      writeAsciiBytes(d + "\n");
     }
     
     public void writeLong(long l) throws IOException {
-      out.writeBytes(l + "\n");
+      writeAsciiBytes(l + "\n");
     }
 
     public void writeString(byte[] bytes) throws IOException {
@@ -623,9 +648,9 @@ public class RDataWriter implements AutoCloseable {
               s = new String(new byte[]{bytes[i]});
             }
         }
-        out.writeBytes(s);
+        writeAsciiBytes(s);
       }
-      out.writeBytes("\n");
+      writeAsciiBytes("\n");
     }
 
     @Override
@@ -633,14 +658,18 @@ public class RDataWriter implements AutoCloseable {
       out.close();
     }
   }
-  
-  private static class XdrWriter implements StreamWriter {
-    private DataOutputStream out;
-      
-    private XdrWriter(DataOutputStream out) {
-      this.out = out;
+
+  private static class BinaryWriter implements StreamWriter {
+    private DataOutput out;
+
+    public BinaryWriter(OutputStream output, ByteOrder order) {
+      if(order == ByteOrder.BIG_ENDIAN) {
+        this.out = new DataOutputStream(output);
+      } else {
+        this.out = new LittleEndianDataOutputStream(output);
+      }
     }
-      
+
     public void writeInt(int v) throws IOException {
       out.writeInt(v);
     }
@@ -648,7 +677,17 @@ public class RDataWriter implements AutoCloseable {
     public void writeDouble(double d) throws IOException {
       out.writeDouble(d);
     }
-      
+
+    @Override
+    public void writeAsciiBytes(String s) throws IOException {
+      out.write(s.getBytes(Charsets.US_ASCII));
+    }
+
+    @Override
+    public void writeAsciiByte(char c) throws IOException {
+      writeAsciiBytes("" + c);
+    }
+
     public void writeLong(long l) throws IOException {
       out.writeLong(l);
     }
@@ -659,7 +698,7 @@ public class RDataWriter implements AutoCloseable {
 
     @Override
     public void close() throws IOException {
-      out.close();
+      ((Closeable)out).close();
     }
   }
 }

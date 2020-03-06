@@ -1,6 +1,9 @@
 package org.renjin.eval.vfs;
 
-import org.apache.commons.vfs2.*;
+import org.apache.commons.vfs2.Capability;
+import org.apache.commons.vfs2.FileName;
+import org.apache.commons.vfs2.FileSystem;
+import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.provider.AbstractOriginatingFileProvider;
 
 import java.util.Arrays;
@@ -17,6 +20,7 @@ public class ClassPathFileProvider2 extends AbstractOriginatingFileProvider {
       Capability.GET_LAST_MODIFIED,
       Capability.GET_TYPE,
       Capability.READ_CONTENT,
+      Capability.LIST_CHILDREN,
       Capability.URI,
       Capability.VIRTUAL));
 
@@ -27,7 +31,7 @@ public class ClassPathFileProvider2 extends AbstractOriginatingFileProvider {
   }
 
   @Override
-  protected FileSystem doCreateFileSystem(FileName rootName, FileSystemOptions fileSystemOptions) throws FileSystemException {
+  protected FileSystem doCreateFileSystem(FileName rootName, FileSystemOptions fileSystemOptions) {
     return new ClassPathFileSystem(classLoader, rootName, fileSystemOptions);
   }
 

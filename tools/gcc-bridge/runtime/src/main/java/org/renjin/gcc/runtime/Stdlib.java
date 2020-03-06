@@ -27,6 +27,7 @@ import java.lang.invoke.MethodHandle;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
@@ -813,8 +814,46 @@ public class Stdlib {
     return 0;
   }
 
+  /**
+   * Get the time as well as a timezone.  The tv argument is a struct timeval (as
+   * specified in <sys/time.h>):
+   *
+   * <pre>
+   * struct timeval {
+   *    time_t      tv_sec;     // seconds
+   *    suseconds_t tv_usec;    // microseconds
+   * }
+   * </pre>
+   *
+   * and gives the number of seconds and microseconds since the Epoch.
+   * The tz argument is a struct timezone:
+   *
+   * <pre>
+   * struct timezone {
+   *    int tz_minuteswest;     // minutes west of Greenwich
+   *    int tz_dsttime;         // type of DST correction
+   * };
+   * </pre>
+   *
+   * Apparently the tz field is no longer used. This implementation sets both field
+   * to zero f {@code tz} is not null.
+   *
+   * @param tv timeval structure to update
+   * @param tz timezone structure to update
+   * @return always zero for success
+   */
   public static int gettimeofday(Ptr tv, Ptr tz) {
-    throw new UnsupportedOperationException();
+    Instant now = Instant.now();
+    if(!tv.isNull()) {
+      tv.setInt(0, (int) now.getEpochSecond());
+      tv.setInt(4, now.getNano() / 1000);
+    }
+    if(!tz.isNull()) {
+      // Modern systems appear to set these fields to zero...
+      tv.setInt(0, 0);
+      tv.setInt(4, 0);
+    }
+    return 0;
   }
 
 

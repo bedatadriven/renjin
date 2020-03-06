@@ -21,5 +21,17 @@
 library(hamcrest)
 library(utils)
 
-assertThat(capture.output(cat(1:3)), identicalTo("1 2 3"))
+test.simple <- function() {
+    assertThat(capture.output(cat(1:3)), identicalTo("1 2 3"))
+}
 
+test.print <- function() {
+    assertThat(capture.output(print(42)), identicalTo("[1] 42"))
+}
+
+test.function.print <- function() {
+
+    x <- capture.output(args(missing))
+
+    assertThat(x[[1]], identicalTo("function (x) "))
+}

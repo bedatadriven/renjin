@@ -2,7 +2,9 @@ package org.renjin.gnur.api;
 
 import org.renjin.gcc.annotations.VarArgs;
 import org.renjin.gcc.runtime.Ptr;
+import sun.misc.Unsafe;
 
+import java.lang.reflect.Field;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -108,5 +110,23 @@ public class Linux {
 
   public static int faccessat(int dirfd, Ptr pathname, int mode, int flags) {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  /**
+   * returns the number of bytes in a memory
+   *        page, where "page" is a fixed-length block, the unit for memory
+   *        allocation and file mapping performed by mmap(2).
+   */
+  public static int getpagesize() {
+    try {
+      Field f = Unsafe.class.getDeclaredField("theUnsafe");
+      f.setAccessible(true);
+      Unsafe unsafe = (Unsafe) f.get(null);
+      return unsafe.pageSize();
+
+    } catch (Throwable caught) {
+      // Guess...
+      return 4096;
+    }
   }
 }

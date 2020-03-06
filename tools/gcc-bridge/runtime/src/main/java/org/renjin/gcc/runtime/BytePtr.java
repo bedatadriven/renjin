@@ -21,6 +21,7 @@ package org.renjin.gcc.runtime;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -28,9 +29,9 @@ import java.util.Arrays;
 import java.util.List;
 
 public class BytePtr extends AbstractPtr {
-  
+
   public static final BytePtr NULL = new BytePtr();
-  
+
   public final byte[] array;
   public final int offset;
 
@@ -38,11 +39,11 @@ public class BytePtr extends AbstractPtr {
     this.array = null;
     this.offset = 0;
   }
-  
+
   public BytePtr(byte... array) {
     this(array, 0);
   }
-  
+
   public BytePtr(byte[] array, int offset) {
     this.array = array;
     this.offset = offset;
@@ -51,18 +52,18 @@ public class BytePtr extends AbstractPtr {
   public static Ptr of(int value) {
     return NULL.pointerPlus(value);
   }
-  
+
   public byte get() {
     return array[offset];
   }
-  
+
   public void set(byte value) {
     array[offset] = value;
   }
-  
+
   public static byte[] toArray(String constant) {
     // The string literals are technically not in UTF-8 encoding:
-    // the literals that GCC emits are really just a string of bytes, 
+    // the literals that GCC emits are really just a string of bytes,
     // but during compilation we encode those byte streams as a UTF-8 string
     return constant.getBytes(StandardCharsets.UTF_8);
   }
@@ -70,15 +71,15 @@ public class BytePtr extends AbstractPtr {
   public static BytePtr asciiString(String string) {
     return new BytePtr(string.getBytes(StandardCharsets.US_ASCII), 0);
   }
-  
+
   public static BytePtr nullTerminatedString(String string, Charset charset) {
     byte[] bytes = string.getBytes(charset);
     byte[] nullTerminatedBytes = Arrays.copyOf(bytes, bytes.length+1);
     return new BytePtr(nullTerminatedBytes, 0);
   }
-  
+
   /**
-   * 
+   *
    * @return the length of the null-terminated string referenced by this pointer
    */
   public int nullTerminatedStringLength() {
@@ -93,13 +94,13 @@ public class BytePtr extends AbstractPtr {
   }
 
   /**
-   * @return the null-terminated string pointed to by this byte array as a Java String. 
-   * Asumes UTF-8 encoding. 
+   * @return the null-terminated string pointed to by this byte array as a Java String.
+   * Asumes UTF-8 encoding.
    */
   public String nullTerminatedString() {
     return new String(array, offset, nullTerminatedStringLength(), StandardCharsets.UTF_8);
   }
-  
+
   public String toString(int length) {
     return new String(array, offset, length, StandardCharsets.UTF_8);
   }
@@ -114,7 +115,7 @@ public class BytePtr extends AbstractPtr {
   }
 
   /**
-   * Copies the character c (an unsigned char) to 
+   * Copies the character c (an unsigned char) to
    * the first n characters of the string pointed to, by the argument str.
    *
    * @param str an array of doubles
@@ -129,7 +130,7 @@ public class BytePtr extends AbstractPtr {
   public static byte memset(int c) {
     return (byte) c;
   }
-  
+
   @Override
   public byte[] getArray() {
     return array;
@@ -229,42 +230,6 @@ public class BytePtr extends AbstractPtr {
     }
   }
 
-  /**
-   * Creates a pointer to an array of pointers to strings from a list of null-terminated strings.
-   */
-  public static Ptr stringArray(String string) {
-    return stringArray(string.getBytes(StandardCharsets.US_ASCII));
-  }
-
-  public static Ptr stringArrayFromResource(Class clazz, String resourceName) throws IOException {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    byte[] buffer = new byte[0x1000];
-
-    try(InputStream in = clazz.getResourceAsStream(resourceName)) {
-      while (true) {
-        int r = in.read(buffer);
-        if (r == -1) {
-          break;
-        }
-        baos.write(buffer, 0, r);
-      }
-    }
-    return stringArray(baos.toByteArray());
-  }
-
-  private static Ptr stringArray(byte[] bytes) {
-    List<Ptr> pointers = new ArrayList<>();
-    int start = 0;
-    for (int i = 0; i < bytes.length; i++) {
-      if(bytes[i] == 0) {
-        pointers.add(new BytePtr(bytes, start));
-        start = i + 1;
-      }
-    }
-
-    return new PointerPtr(pointers.toArray(new Ptr[0]));
-  }
-
   @Override
   public String toString() {
     if(array == null) {
@@ -290,4 +255,134 @@ public class BytePtr extends AbstractPtr {
       }
     }
   }
+
+  /* Resource streaming */
+
+  private static byte[] byteArrayFromResource(Class clazz, String resourceName) throws IOException {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    byte[] buffer = new byte[0x1000];
+
+    try(InputStream in = clazz.getResourceAsStream(resourceName)) {
+      while (true) {
+        int r = in.read(buffer);
+        if (r == -1) {
+          break;
+        }
+        baos.write(buffer, 0, r);
+      }
+    }
+    return baos.toByteArray();
+  }
+
+  /* Resource streaming - String arrays */
+
+  /**
+   * Creates a pointer to an array of pointers to strings from a list of null-terminated strings.
+   */
+  public static Ptr stringArray(String string) {
+    return stringArray(string.getBytes(StandardCharsets.US_ASCII));
+  }
+
+  public static Ptr stringArrayFromResource(Class clazz, String resourceName) throws IOException {
+    byte[] byteArray = byteArrayFromResource(clazz, resourceName);
+    return stringArray(byteArray);
+  }
+
+  private static Ptr stringArray(byte[] bytes) {
+    List<Ptr> pointers = new ArrayList<>();
+    int start = 0;
+    for (int i = 0; i < bytes.length; i++) {
+      if(bytes[i] == 0) {
+        pointers.add(new BytePtr(bytes, start));
+        start = i + 1;
+      }
+    }
+
+    return new PointerPtr(pointers.toArray(new Ptr[0]));
+  }
+
+  /* Resource streaming - Large numeric arrays */
+
+  public static Ptr shortArrayFromResource(Class clazz, String resourceName) throws IOException {
+    byte[] byteArray = byteArrayFromResource(clazz, resourceName);
+    ShortBuffer original = ByteBuffer.wrap(byteArray)
+        .order(ByteOrder.LITTLE_ENDIAN) /* fixed across platforms for consistency */
+        .asShortBuffer();
+    short[] shortArray = ShortBuffer.allocate(original.capacity())
+        .put(original)
+        .array();
+    return new ShortPtr(shortArray);
+  }
+
+  public static Ptr intArrayFromResource(Class clazz, String resourceName) throws IOException {
+    byte[] byteArray = byteArrayFromResource(clazz, resourceName);
+    IntBuffer original = ByteBuffer.wrap(byteArray)
+        .order(ByteOrder.LITTLE_ENDIAN) /* fixed across platforms for consistency */
+        .asIntBuffer();
+    int[] intArray = IntBuffer.allocate(original.capacity())
+        .put(original)
+        .array();
+    return new IntPtr(intArray);
+  }
+
+  public static Ptr longArrayFromResource(Class clazz, String resourceName) throws IOException {
+    byte[] byteArray = byteArrayFromResource(clazz, resourceName);
+    LongBuffer original = ByteBuffer.wrap(byteArray)
+        .order(ByteOrder.LITTLE_ENDIAN) /* fixed across platforms for consistency */
+        .asLongBuffer();
+    long[] longArray = LongBuffer.allocate(original.capacity())
+        .put(original)
+        .array();
+    return new LongPtr(longArray);
+  }
+
+  public static Ptr floatArrayFromResource(Class clazz, String resourceName) throws IOException {
+    byte[] byteArray = byteArrayFromResource(clazz, resourceName);
+    FloatBuffer original = ByteBuffer.wrap(byteArray)
+        .order(ByteOrder.LITTLE_ENDIAN) /* fixed across platforms for consistency */
+        .asFloatBuffer();
+    float[] floatArray = FloatBuffer.allocate(original.capacity())
+        .put(original)
+        .array();
+    return new FloatPtr(floatArray);
+  }
+  public static Ptr doubleArrayFromResource(Class clazz, String resourceName) throws IOException {
+    byte[] byteArray = byteArrayFromResource(clazz, resourceName);
+    DoubleBuffer original = ByteBuffer.wrap(byteArray)
+        .order(ByteOrder.LITTLE_ENDIAN) /* fixed across platforms for consistency */
+        .asDoubleBuffer();
+    double[] doubleArray = DoubleBuffer.allocate(original.capacity())
+        .put(original)
+        .array();
+    return new DoublePtr(doubleArray);
+  }
+
+
+  public static Ptr intArrayFromResource2d(Class clazz, String resourceName) throws IOException {
+    byte[] byteArray = byteArrayFromResource(clazz, resourceName);
+    ByteBuffer buffer = ByteBuffer.wrap(byteArray)
+        .order(ByteOrder.LITTLE_ENDIAN); /* fixed across platforms for consistency */
+
+    int arrayCount = buffer.getInt();
+    int elementCount = buffer.getInt();
+
+    IntBuffer offsetBuffer = buffer.slice().asIntBuffer();
+    offsetBuffer.limit(arrayCount * IntPtr.BYTES);
+
+    buffer.position(buffer.position() + (arrayCount * IntPtr.BYTES));
+    IntBuffer elementBuffer = buffer.asIntBuffer();
+    assert elementBuffer.remaining() == elementCount;
+
+    int[] array = new int[elementCount];
+    IntBuffer.wrap(array).put(elementBuffer);
+
+    Ptr[] pointers = new Ptr[arrayCount];
+    for (int i = 0; i < arrayCount; i++) {
+      int arrayStart = offsetBuffer.get();
+      pointers[i] = new IntPtr(array, arrayStart);
+    }
+
+    return new PointerPtr(pointers);
+  }
+
 }

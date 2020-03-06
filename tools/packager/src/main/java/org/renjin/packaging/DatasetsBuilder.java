@@ -171,7 +171,7 @@ public class DatasetsBuilder {
    */
   private void processRDataFile(File dataFile) throws IOException {
 
-    Session session = new SessionBuilder().withoutBasePackage().build();
+    Session session = new SessionBuilder().build();
 
     SEXP exp;
     try(RDataReader reader = new RDataReader(session.getTopLevelContext(), DatasetsBuilder.decompress(dataFile))) {

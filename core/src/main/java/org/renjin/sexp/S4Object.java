@@ -27,7 +27,12 @@ public class S4Object extends AbstractSEXP {
   public S4Object(AttributeMap attributes) {
     super(attributes);
   }
-  
+
+  @Override
+  public SEXP setAttribute(Symbol attributeName, SEXP value) {
+    return setAttributes(getAttributes().copy().setS4(true).setSlot(attributeName, value));
+  }
+
   @Override
   public String getTypeName() {
     return "S4";

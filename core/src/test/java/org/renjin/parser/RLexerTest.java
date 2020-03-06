@@ -29,7 +29,6 @@ import java.io.Reader;
 import java.io.StringReader;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.renjin.ExpMatchers.symbolNamed;
 import static org.renjin.parser.RParser.*;
@@ -44,6 +43,16 @@ public class RLexerTest {
   @Test
   public void hexInteger() {
     assertTokenSequence("0x10L", intVector(16));
+  }
+
+  @Test
+  public void ifCond() {
+    assertTokenSequence("if(1) 2", t(IF), t('('), realVector(1), t(')'), realVector(2));
+  }
+
+  @Test
+  public void ifCondWithNewline() {
+    assertTokenSequence("if\n(1) 2", t(IF), t('('), realVector(1), t(')'), realVector(2));
   }
 
   @Test

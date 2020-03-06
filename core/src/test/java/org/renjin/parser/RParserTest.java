@@ -29,12 +29,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.renjin.ExpMatchers.*;
-import org.renjin.EvalTestCase;
-
-import static org.junit.Assert.assertThat;
 
 
 public class RParserTest {
@@ -123,8 +121,15 @@ public class RParserTest {
   @Test
   public void functionWithoutArgs() throws IOException {
     FunctionCall r = (FunctionCall) parseSingle("function () { a + b }\n");
+  }
 
+  @Test
+  public void multiLineIf() throws IOException {
+    FunctionCall r = (FunctionCall) parseSingle("if\n" +
+        "(TRUE) 1\n");
 
+    assertThat(r.getFunction(), equalTo(Symbol.get("if")));
+    assertThat(r.getArgument(0), equalTo(LogicalVector.TRUE));
   }
 
   @Test

@@ -1001,6 +1001,7 @@ public class Primitives {
     f("La_solve", Lapack.class, 11);
     f("La_solve_cmplx", Lapack.class, 11);
     f("backsolve", Lapack.class, 11);
+    f("det_ge_real", Lapack.class, 11);
 
 
     f("tabulate", Base.class, 11);

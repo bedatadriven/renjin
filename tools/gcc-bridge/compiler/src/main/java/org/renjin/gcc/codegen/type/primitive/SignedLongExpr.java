@@ -124,6 +124,11 @@ public class SignedLongExpr extends AbstractIntExpr {
     return lift(Expressions.staticMethodCall(Long.class, "rotateLeft", "(JI)J", jexpr(), bits(operand)));
   }
 
+  @Override
+  public SignedLongExpr rotateRight(GExpr operand) {
+    return lift(Expressions.staticMethodCall(Long.class, "rotateRight", "(JI)J", jexpr(), bits(operand)));
+  }
+
   public IntExpr toSignedInt32() {
     return new SignedIntExpr(Expressions.l2i(jexpr()));
   }

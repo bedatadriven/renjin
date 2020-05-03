@@ -191,6 +191,12 @@ public class PtrCarryingExpr implements NumericIntExpr {
   }
 
   @Override
+  public GExpr rotateRight(GExpr operand) {
+    // Relationship to pointer is lost
+    return primitive.rotateRight(operand);
+  }
+
+  @Override
   public IntExpr toSignedInt(int precision) {
     if(precision < 32) {
       // Relationship to pointer is lost

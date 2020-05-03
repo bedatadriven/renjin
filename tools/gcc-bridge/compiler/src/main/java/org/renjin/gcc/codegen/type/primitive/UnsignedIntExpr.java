@@ -138,6 +138,11 @@ public class UnsignedIntExpr extends AbstractIntExpr {
   }
 
   @Override
+  public UnsignedIntExpr rotateRight(GExpr operand) {
+    return lift(Expressions.staticMethodCall(Integer.class, "rotateRight", "(II)I", jexpr(), bits(operand)));
+  }
+
+  @Override
   public GimplePrimitiveType getType() {
     return GimpleIntegerType.unsigned(32);
   }

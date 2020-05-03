@@ -138,6 +138,11 @@ public class ShortExpr extends AbstractIntExpr implements IntExpr {
   }
 
   @Override
+  public ShortExpr rotateRight(GExpr operand) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public GimplePrimitiveType getType() {
     return new GimpleIntegerType(16);
   }

@@ -11,7 +11,7 @@ dependencies {
 task compilePlugin(type: Exec) {
 
     def sourceFile = 'src/main/resources/org/renjin/gcc/plugin.c'
-    def gcc = 'gcc-4.7'
+    def gcc = 'gcc-4.8'
 
     inputs.file sourceFile
     outputs.file gccBridgePlugin

@@ -1,7 +1,5 @@
-# This workflow will build a Java project with Gradle
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
 
-name: Java CI with Gradle
+name: Build & Check Renjin
 
 on:
   push:
@@ -11,16 +9,10 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-16.04
-
     steps:
     - uses: actions/checkout@v2
-    - name: Set up JDK 1.8
-      uses: actions/setup-java@v1
-      with:
-        java-version: 1.8
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
+    - name: Install build dependencies
+      run: sudo apt-get install openjdk-8-jdk make gcc-4.7 gcc-4.7-plugin-dev gfortran-4.7 g++-4.7 gcc-4.7.multilib g++-4.7-multilib libz-dev
     - name: Build with Gradle
-      run: ./gradlew build
+      run: ./gradlew build check

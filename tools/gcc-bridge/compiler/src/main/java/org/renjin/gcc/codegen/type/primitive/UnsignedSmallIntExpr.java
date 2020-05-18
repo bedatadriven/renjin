@@ -151,6 +151,11 @@ public class UnsignedSmallIntExpr extends AbstractIntExpr {
   }
 
   @Override
+  public UnsignedSmallIntExpr rotateRight(GExpr operand) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public GimplePrimitiveType getType() {
     return GimpleIntegerType.unsigned(precision);
   }

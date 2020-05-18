@@ -103,6 +103,11 @@ public class BooleanExpr extends AbstractPrimitiveExpr implements IntExpr {
     throw new UnsupportedOperationException();
   }
 
+  @Override
+  public GExpr rotateRight(GExpr operand) {
+    throw new UnsupportedOperationException();
+  }
+
   public UnsignedSmallIntExpr toUnsignedByteExpr() {
     return new UnsignedSmallIntExpr(8, jexpr());
   }

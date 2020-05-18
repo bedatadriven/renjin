@@ -135,6 +135,10 @@ public class SignedByteExpr extends AbstractIntExpr implements IntExpr {
     throw new UnsupportedOperationException("TODO");
   }
 
+  @Override
+  public SignedByteExpr rotateRight(GExpr operand) {
+    throw new UnsupportedOperationException("TODO");
+  }
 
   @Override
   public GimplePrimitiveType getType() {

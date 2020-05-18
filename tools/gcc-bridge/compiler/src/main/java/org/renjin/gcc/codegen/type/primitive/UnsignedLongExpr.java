@@ -134,6 +134,11 @@ public class UnsignedLongExpr extends AbstractIntExpr {
   }
 
   @Override
+  public GExpr rotateRight(GExpr operand) {
+    return lift(Expressions.staticMethodCall(Long.class, "rotateRight", "(JI)J", jexpr(), bits(operand)));
+  }
+
+  @Override
   public IntExpr toSignedInt(int precision) {
     switch (precision) {
       case 64:

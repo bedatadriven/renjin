@@ -39,6 +39,8 @@ public interface IntExpr extends PrimitiveExpr {
 
   GExpr rotateLeft(GExpr operand);
 
+  GExpr rotateRight(GExpr operand);
+
   IntExpr toSignedInt(int precision);
 
 }

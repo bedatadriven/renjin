@@ -343,6 +343,7 @@ public class ExprFactory {
       case LSHIFT_EXPR:
       case RSHIFT_EXPR:
       case LROTATE_EXPR:
+      case RROTATE_EXPR:
         return findBinaryGenerator(op, operands);
 
       case POINTER_PLUS_EXPR:
@@ -469,6 +470,9 @@ public class ExprFactory {
 
       case LROTATE_EXPR:
         return x.toPrimitiveExpr().toIntExpr().rotateLeft(y);
+
+      case RROTATE_EXPR:
+        return x.toPrimitiveExpr().toIntExpr().rotateRight(y);
 
     }
     return null;

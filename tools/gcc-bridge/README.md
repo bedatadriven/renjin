@@ -10,7 +10,7 @@ It is composed of a few components:
    * A [GCC Plugin](gcc-plugin): a C plugin for GCC that dumps the intermediate Gimple tree to a 
      JSON file during compilation.
    * A [Gimple Compiler](compiler), which compiles the Gimple dumped by the GCC Plugin to pure JVM class files.
-   * The [Runtime)(runtime), which provide a partial mapping and/or implementation of the C Standard Library 
+   * The [Runtime](runtime), which provide a partial mapping and/or implementation of the C Standard Library 
      as well as a number of GCC builtins. 
    * A [Maven Plugin](maven-plugin) which makes it easy to compile C, C++ and Fortran sources within 
      a traditional Java project. 

@@ -1,5 +1,5 @@
 
-name: Build & Check Renjin
+name: Test
 
 on:
   push:

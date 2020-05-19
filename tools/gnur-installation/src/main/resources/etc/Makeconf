@@ -13,23 +13,23 @@ include $(R_SHARE_DIR)/make/vars.mk
 AR = ar
 BLAS_LIBS = -lblas
 C_VISIBILITY = -fvisibility=hidden
-CC = gcc-4.7 -std=gnu99
+CC = gcc-4.8 -std=gnu99
 CFLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} $(LTO)
 CPICFLAGS = -fpic
 CPPFLAGS =
-CXX = g++-4.7
+CXX = g++-4.8
 CXXCPP = $(CXX) -E
 CXXFLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} $(LTO)
 CXXPICFLAGS = -fpic
-CXX98 = g++-4.7
+CXX98 = g++-4.8
 CXX98FLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS}
 CXX98PICFLAGS = -fpic
 CXX98STD = -std=gnu++98
-CXX11 = g++-4.7
+CXX11 = g++-4.8
 CXX11FLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS}
 CXX11PICFLAGS = -fpic
 CXX11STD = -std=gnu++11
-CXX14 = g++-4.7
+CXX14 = g++-4.8
 CXX14FLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS}
 CXX14PICFLAGS = -fpic
 CXX14STD = -std=gnu++14
@@ -48,12 +48,12 @@ ECHO_N = -n
 ECHO_T = 
 ## NB, set FC before F77 as on Solaris make, setting FC sets F77
 ## FC is the compiler used for free-form Fortran, exts .f90/.f95
-FC = gfortran-4.7
+FC = gfortran-4.8
 FCFLAGS = -g ${OPT_FLAGS} $(LTO)
 ## additional libs needed when linking with $(FC), e.g. on some Oracle compilers
 FCLIBS =
 ## F77 is the compiler used for fixed-form Fortran, ext .f
-F77 = gfortran-4.7
+F77 = gfortran-4.8
 F77_VISIBILITY = -fvisibility=hidden
 F_VISIBILITY = -fvisibility=hidden
 FFLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} $(LTO)
@@ -137,7 +137,7 @@ TCLTK_LIBS = -L/usr/lib/x86_64-linux-gnu -ltcl8.6 -L/usr/lib/x86_64-linux-gnu -l
 YACC = bison -y
 
 ## legacy
-CXX1X = g++-4.7
+CXX1X = g++-4.8
 CXX1XFLAGS = ${RENJIN_FLAGS} -g
 CXX1XPICFLAGS = -fpic
 CXX1XSTD = -std=gnu++11

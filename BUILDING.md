@@ -9,13 +9,13 @@ In addition to the standard Java tools, Renjin relies on a GCC-based
 build chain to compile C/Fortran math routines to JVM byte code.
 These tools are under active development and are
 sensitive to different versions of GCC. The current version of Renjin
-requires GCC 4.7.x.
+requires GCC 4.8.x.
 
 
 Requirements
 ------------
 1. JDK 1.8 Recommended
-2. GCC 4.7
+2. GCC 4.8
 
 ### Vagrant
 
@@ -44,12 +44,12 @@ Once you have run the build through Vagrant, then you should be able to
 make iterative changes to the Java sources and debug via your IDE 
 as normal.
 
-### Ubuntu 16.04+
+### Ubuntu 18.04+
 
 You can install the required tools through the APT package manager. 
 A 64-bit architecture is required.
 
-    sudo apt-get install openjdk-8-jdk make gcc-4.7 gcc-4.7-plugin-dev gfortran-4.7 g++-4.7 gcc-4.7.multilib g++-4.7-multilib libz-dev
+    sudo apt-get install openjdk-8-jdk make gcc-4.8 gcc-4.8-plugin-dev gfortran-4.8 g++-4.8 gcc-4.8.multilib g++-4.8-multilib libz-dev
 
 Then build:
 

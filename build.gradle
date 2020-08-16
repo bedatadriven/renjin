@@ -14,7 +14,7 @@ buildscript {
   dependencies {
     classpath "gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.14.0"
     classpath "org.owasp:dependency-check-gradle:4.0.2"
-    classpath "com.netflix.nebula:gradle-ospackage-plugin:7.4.0"
+    classpath "com.netflix.nebula:gradle-ospackage-plugin:8.4.1"
   }
 }
 

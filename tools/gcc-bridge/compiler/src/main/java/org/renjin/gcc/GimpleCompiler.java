@@ -553,6 +553,9 @@ public class GimpleCompiler  {
           case "--log-dir":
             compiler.setLoggingDirectory(new File(value));
             break;
+          case "--ignore-errors":
+            compiler.setIgnoreErrors("true".equalsIgnoreCase(value));
+            break;
           default:
             throw new RuntimeException("Unknown option " + arg);
         }
@@ -565,6 +568,8 @@ public class GimpleCompiler  {
           for (File gimpleFile : input.listFiles()) {
             units.add(Gcc.parseGimple(gimpleFile));
           }
+        } else {
+          units.add(Gcc.parseGimple(input));
         }
       }
     }

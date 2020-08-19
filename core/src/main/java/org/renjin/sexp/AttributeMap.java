@@ -889,10 +889,21 @@ public class AttributeMap {
       
       return builder.build();
     }
-    
+
+    /**
+     * Checks the names vector for conformity -- if this is not an S4 object --
+     * and returns a new vector if adjustment is required. If the vector is ok,
+     * returns {@code null}.
+     */
     private StringVector validateNames(int vectorLength) {
       
       if(names == null) {
+        return null;
+      }
+
+      // S4 objects are allowed to put whatever they want in the
+      // names attribute.
+      if(s4) {
         return null;
       }
       

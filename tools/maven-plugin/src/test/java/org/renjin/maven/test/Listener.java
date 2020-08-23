@@ -30,4 +30,8 @@ class Listener implements TestListener {
   @Override
   public void done() {
   }
+
+  @Override
+  public void timeout() {
+  }
 }

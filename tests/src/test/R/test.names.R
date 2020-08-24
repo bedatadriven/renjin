@@ -60,3 +60,8 @@ test.pairlist.replace <- function() {
 
     assertThat(x, identicalTo(pairlist(x = 41, y = 42, z = 43)))
 }
+
+test.dimnames.matrix <- function() {
+    x <- matrix(1:12,nrow=3)
+    assertThat(names(x), is.null)
+}

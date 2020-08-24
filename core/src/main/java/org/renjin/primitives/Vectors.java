@@ -559,23 +559,31 @@ public class Vectors {
               haveDimNames = true;
             }
             newDimnames.add(dimNameElement);
+          } else {
+            newDimnames.add(Null.INSTANCE);
           }
         }
       }
-      
+
       AttributeMap.Builder newAttributes = x.getAttributes().copy();
 
       if(newDim.length() == 0 ||
           (newDim.length() == 1 && dim.length() > 1)) {
-        
+
         newAttributes.remove(Symbols.DIM);
         newAttributes.remove(Symbols.DIMNAMES);
-
+        if(haveDimNames) {
+          newAttributes.setNames(newDimnames.build().getElementAsSEXP(0));
+        }
       } else {
         newAttributes.setDim(newDim.build());
-        newAttributes.setDimNames(newDimnames.build());
+        if(haveDimNames) {
+          newAttributes.setDimNames(newDimnames.build());
+        } else {
+          newAttributes.setDimNames(Null.INSTANCE);
+        }
       }
-      
+
       return x.setAttributes(newAttributes);
     }
   }

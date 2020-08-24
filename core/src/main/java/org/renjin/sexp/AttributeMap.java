@@ -789,6 +789,10 @@ public class AttributeMap {
         return AttributeMap.EMPTY;
       }
 
+      if(dimNames != null && !(dimNames instanceof ListVector)) {
+        throw new IllegalStateException( "dimNames should be null or a list with size 2, found: " + dimNames);
+      }
+
       AttributeMap attributes = new AttributeMap();
       attributes.classes = classes;
       attributes.dim = dim;

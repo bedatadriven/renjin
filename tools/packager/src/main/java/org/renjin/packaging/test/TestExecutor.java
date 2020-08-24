@@ -208,12 +208,19 @@ public class TestExecutor {
 
       listener.start(TestCaseResult.ROOT_TEST_CASE);
 
-      Session session = createSession(testOutput, sourceFile.getParentFile());
-      session.getOptions().set("device", graphicsDevice(session, sourceFile));
+      Session session;
+      try {
+        session = createSession(testOutput, sourceFile.getParentFile());
+        session.getOptions().set("device", graphicsDevice(session, sourceFile));
 
-      // Examples assume that the package is already on the search path
-      if (!Strings.isNullOrEmpty(namespaceUnderTest) && isManFile(sourceFile)) {
-        loadLibrary(session, namespaceUnderTest, testOutput);
+        // Examples assume that the package is already on the search path
+        if (!Strings.isNullOrEmpty(namespaceUnderTest) && isManFile(sourceFile)) {
+          loadLibrary(session, namespaceUnderTest, testOutput);
+        }
+      } catch (Exception e) {
+        e.printStackTrace(testOutput);
+        listener.fail();
+        return;
       }
 
       UnsupportedTerminal term = new UnsupportedTerminal();

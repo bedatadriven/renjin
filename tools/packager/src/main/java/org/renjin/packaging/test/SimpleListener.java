@@ -94,7 +94,6 @@ class SimpleListener implements TestListener {
       for (TestResult failCase : failedCases) {
         writer.write(failCase + " fail\n");
       }
-      writer.flush();
     } catch (IOException e) {
       System.err.println("Failed to save test results to file " + resultFile.getAbsolutePath());
       e.printStackTrace(System.err);

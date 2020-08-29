@@ -15,7 +15,7 @@ class SimpleListener implements TestListener {
   private String executingTestName;
   private int passCount;
   private int failCount;
-  private final boolean countTimoutAsError;
+  private final boolean reportTimoutAsFailure;
 
   private final List<TestResult> failedCases = new ArrayList<>();
   private final List<TestResult> passCases = new ArrayList<>();
@@ -39,8 +39,8 @@ class SimpleListener implements TestListener {
     this(false);
   }
 
-  public SimpleListener(boolean countTimoutAsError) {
-    this.countTimoutAsError = countTimoutAsError;
+  public SimpleListener(boolean reportTimoutAsFailure) {
+    this.reportTimoutAsFailure = reportTimoutAsFailure;
   }
 
   @Override
@@ -63,8 +63,9 @@ class SimpleListener implements TestListener {
   @Override
   public void timeout() {
     System.err.println(testFile + " " + executingTestName + " timed out.");
-    if (countTimoutAsError) {
-      failCount++;
+    if (reportTimoutAsFailure) {
+      // Save the timout as a failure so we can check it with checkTests but
+      // dont increase failCount since we do not want to fail the build because of a timeout
       failedCases.add(new TestResult(testFile, executingTestName));
     }
   }

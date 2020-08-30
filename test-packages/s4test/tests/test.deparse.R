@@ -21,8 +21,14 @@ library(hamcrest)
 library(methods)
 library("org.renjin.test:s4test")
 
+test.s4 <- function() {
+    s <- new("Z")
 
-s <- new("Z")
+    assertThat(deparse(s), equalTo("<S4 object of class structure(\"Z\", package = \"s4test\")>"))
+}
 
-assertThat(deparse(s), equalTo("<S4 object of class structure(\"Z\", package = \"s4test\")>"))
 
+test.namespace.call <- function() {
+    c <- quote(tree::tree(Species ~., iris))
+    assertThat(deparse(c), identicalTo("tree::tree(Species ~ ., iris)"))
+}

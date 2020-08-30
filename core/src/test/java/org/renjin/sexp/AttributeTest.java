@@ -292,7 +292,7 @@ public class AttributeTest extends EvalTestCase {
   public void setEmptyDimNamesViaAttr() {
     eval("x <- 1:12");
     eval("dim(x) <- 3:4");
-    eval("attr(x, 'dimnames') <- NULL");
+    eval("attr(x, 'dimnames') <- list()");
 
     assertThat(eval("dimnames(x)"), identicalTo(NULL));
   }

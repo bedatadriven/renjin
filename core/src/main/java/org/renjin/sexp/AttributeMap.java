@@ -789,9 +789,8 @@ public class AttributeMap {
         return AttributeMap.EMPTY;
       }
 
-      if(dimNames != null && !(dimNames instanceof ListVector)) {
-        throw new IllegalStateException( "dimNames should be null or a list with size 2, found: " + dimNames);
-      }
+      assert (dimNames == null || dimNames instanceof ListVector) :
+        "dimNames should be absent or of type list, found: " + dimNames;
 
       AttributeMap attributes = new AttributeMap();
       attributes.classes = classes;
@@ -827,7 +826,10 @@ public class AttributeMap {
       validateDim(length);
 
       Vector validatedDimNames = validateDimNames();
-      if(validatedDimNames != null) {
+      if(validatedDimNames == Null.INSTANCE) {
+        this.dimNames = null;
+        removeList(Symbols.DIMNAMES);
+      } else if(validatedDimNames != null) {
         this.dimNames = validatedDimNames;
         updateList(Symbols.DIMNAMES, validatedDimNames);
       }

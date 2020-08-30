@@ -2822,6 +2822,7 @@ public class RdParser
           while (isdigit(text.codePointAt(text.length()-1))) {
             xxungetc(c);
             c = text.codePointAt(text.length()-1); /* pop the last letter into c */
+            text.setLength(text.length() - 1);
           }
         } else {
           if (retval == NOITEM) {

@@ -70,7 +70,7 @@ public class TestMain {
 
   public void run() throws IOException, InterruptedException {
 
-    SimpleListener listener = new SimpleListener();
+    SimpleListener listener = new SimpleListener(true);
 
     List<String> defaultPackages;
     if(this.defaultPackages == null) {
@@ -87,6 +87,7 @@ public class TestMain {
     }
 
     listener.printResults();
+    listener.saveResults(reportDir);
 
     if(listener.getFailCount() > 0) {
       System.exit(-1);

@@ -303,7 +303,7 @@ public class AttributeTest extends EvalTestCase {
     eval("dim(x) <- 3:4");
     eval("dimnames(x) <- list(letters[1:3])");
 
-    assertThat(eval("dimnames(x)"), elementsIdenticalTo(list(c("a", "b", "c"), Null.INSTANCE)));
+    assertThat(eval("dimnames(x)"), elementsIdenticalTo(list(c("a", "b", "c"), NULL)));
   }
   
   @Test
@@ -312,7 +312,7 @@ public class AttributeTest extends EvalTestCase {
     eval("dim(x) <- 3:4");
     eval("attr(x, 'dimnames') <- list(letters[1:3])");
 
-    assertThat(eval("dimnames(x)"), elementsIdenticalTo(list(c("a", "b", "c"), Null.INSTANCE)));
+    assertThat(eval("dimnames(x)"), elementsIdenticalTo(list(c("a", "b", "c"), NULL)));
   }
   
 }

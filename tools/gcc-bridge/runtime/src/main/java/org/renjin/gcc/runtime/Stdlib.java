@@ -1337,6 +1337,10 @@ public class Stdlib {
     return x < 0;
   }
 
+  public static boolean __signbitf128(double x) {
+    return x < 0;
+  }
+
   /**
    * Returns the value of an environment variable.
    */

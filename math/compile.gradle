@@ -60,7 +60,7 @@ if(fortranDir.exists()) {
                 if (sourceFile.name.endsWith('.f')) {
                     project.exec {
                         workingDir tempDir
-                        executable 'gfortran-4.7'
+                        executable 'gfortran-4.8'
                         args '-m32'
                         args '-D_GCC_BRIDGE', '-D_RENJIN'
                         args '-c'
@@ -93,7 +93,7 @@ if(cDir.exists()) {
                 if (sourceFile.name.endsWith('.c')) {
                     project.exec {
                         workingDir tempDir
-                        executable 'gcc-4.7'
+                        executable 'gcc-4.8'
                         args '-m32'
                         args '-D_GCC_BRIDGE', '-D_RENJIN'
                         args '-c'

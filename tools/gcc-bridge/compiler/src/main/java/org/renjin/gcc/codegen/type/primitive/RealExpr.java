@@ -244,7 +244,8 @@ public class RealExpr extends AbstractPrimitiveExpr implements NumericExpr {
   private JExpr jexpr(int targetPrecision) {
     if(this.getPrecision() == targetPrecision ||
         (this.getPrecision() == 64 && targetPrecision == 96) ||
-        (this.getPrecision() == 96 && targetPrecision == 64)) {
+        (this.getPrecision() == 96 && targetPrecision == 64) ||
+        (this.getPrecision() == 128 && targetPrecision == 64)) {
       return jexpr();
     } else if(this.getPrecision() == 32 && (targetPrecision == 64 || targetPrecision == 96)) {
       return Expressions.f2d(jexpr());

@@ -44,18 +44,33 @@ Once you have run the build through Vagrant, then you should be able to
 make iterative changes to the Java sources and debug via your IDE 
 as normal.
 
-### Ubuntu 18.04+
+### Ubuntu 18.04
 
 You can install the required tools through the APT package manager. 
 A 64-bit architecture is required.
 
-    sudo apt-get install openjdk-8-jdk make gcc-4.8 gcc-4.8-plugin-dev gfortran-4.8 g++-4.8 gcc-4.8.multilib g++-4.8-multilib libz-dev
+    sudo apt-get install openjdk-8-jdk make gcc-4.8 gcc-4.8-plugin-dev gfortran-4.8 g++-4.8 gcc-4.8.multilib g++-4.8-multilib libz-dev unzip
 
 Then build:
 
     ./gradlew test
 
 From the root of the project.
+
+### Ubuntu 20.04
+
+You can install some of the required tools through the APT package manager:
+
+    sudo apt-get install openjdk-8-jdk build-essential gcc-multilib libgmp-dev  libz-dev unzip
+
+Then you will need to run the following script to download and build gcc-4.8 from 
+source:
+  
+    ./build-gcc-4.8.sh
+
+Finally, run the following to install gcc-4.8:
+
+    cd gcc-4.8 && sudo make install
 
 ### Other platforms
 

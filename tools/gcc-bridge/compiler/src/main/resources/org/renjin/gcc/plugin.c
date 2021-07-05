@@ -1131,11 +1131,10 @@ static void dump_global_vars() {
   json_array_field("globalVariables");
     
   struct varpool_node *node;
-  node = varpool_first_variable();
-  for (node = varpool_first_variable (); node; node = varpool_next_variable (node))
-  {
-        dump_global_var(node->symbol.decl);
-  }
+  for (node = varpool_nodes; node; node = node->next)
+    {
+        dump_global_var(node->decl);
+    }
 
   json_end_array();
 }
@@ -1157,12 +1156,12 @@ static void dump_aliases() {
   struct cgraph_node *n;
 
   FOR_EACH_DEFINED_FUNCTION(n) {
-    if (DECL_ASSEMBLER_NAME_SET_P (n->symbol.decl)) {
+    if (DECL_ASSEMBLER_NAME_SET_P (n->decl)) {
       if(n->alias && n->thunk.alias) {
           json_start_object();
-          json_string_field("alias",  IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(n->symbol.decl)));
+          json_string_field("alias",  IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(n->decl)));
           json_string_field("definition",  IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(n->thunk.alias)));
-          json_bool_field("public", TREE_PUBLIC(n->symbol.decl));
+          json_bool_field("public", TREE_PUBLIC(n->decl));
           json_end_object();
       }
     }
@@ -1197,14 +1196,13 @@ static struct gimple_opt_pass dump_functions_pass =
     {
       GIMPLE_PASS,
       "json", 	      /* pass name */
-      OPTGROUP_NONE,  /* optinfo_flags */
       NULL,	          /* gate */
       dump_function,	/* execute */
       NULL,		        /* sub */
       NULL,		        /* next */
       0,		          /* static_pass_number */
       TV_NONE,	         /* tv_id */
-      PROP_cfg, /*| PROP_referenced_vars,*/   		/* properties_required */
+      PROP_cfg | PROP_referenced_vars,   		/* properties_required */
       0,		          /* properties_provided */
       0,		          /* properties_destroyed */
       0,		          /* todo_flags_start */

@@ -20,23 +20,23 @@ fi
 
 case "$3" in
     F77)
-        echo gfortran-4.8
+        echo gfortran-4.7
         ;;
     FC)
-        echo gfortran-4.8
+        echo gfortran-4.7
         ;;
     CC)
-        echo gcc-4.8
+        echo gcc-4.7
         ;;
 
     CPP)
-        echo cpp-4.8
+        echo cpp-4.7
         ;;
     CXX)
-        echo g++-4.8
+        echo g++-4.7
         ;;
     CXX1X)
-        echo g++-4.8
+        echo g++-4.7
         ;;
     CXX1XSTD)
         echo -std=c++11

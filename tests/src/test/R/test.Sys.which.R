@@ -25,7 +25,7 @@ if(.Platform$OS.type == "unix") {
 
     cat("This unix...\n");
 
-    assertThat(Sys.which("unzip"), identicalTo(c(unzip="/usr/bin/unzip")))
-    assertThat(Sys.which(c("unzip", "doesnotexist")), identicalTo(c(unzip="/usr/bin/unzip", doesnotexist="")))
+    assertThat(Sys.which("ls"), identicalTo(c(ls="/bin/ls")))
+    assertThat(Sys.which(c("ls", "doesnotexist")), identicalTo(c(ls="/bin/ls", doesnotexist="")))
 
 }

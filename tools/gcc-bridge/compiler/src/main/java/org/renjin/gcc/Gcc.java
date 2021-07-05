@@ -184,7 +184,7 @@ public class Gcc {
    */
   private String callGcc(List<String> arguments) throws IOException {
     List<String> command = Lists.newArrayList();
-    command.add("gcc-4.8");
+    command.add("gcc-4.7");
     command.addAll(arguments);
 
     System.err.println("EXECUTING: " + Joiner.on(" ").join(arguments));

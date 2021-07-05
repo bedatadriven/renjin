@@ -21,3 +21,5 @@ atlassian-ide-plugin.xml
 .Rproj.user
 out
 cran
+gcc-4.8
+gcc-4.7

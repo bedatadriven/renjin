@@ -57,6 +57,21 @@ Then build:
 
 From the root of the project.
 
+### Ubuntu 20.04
+
+You can install some of the required tools through the APT package manager:
+
+    sudo apt-get install openjdk-8-jdk build-essential gcc-multilib libgmp-dev libz-dev unzip
+
+Then you will need to run the following script to download, patch and build gcc-4.7 from 
+source:
+  
+    ./build-gcc-4.7.sh
+
+Finally, run the following to install gcc-4.7:
+
+    cd gcc-4.7 && sudo make install
+
 ### Other platforms
 
 For other platforms, consider using Vagrant to bootstrap your build,

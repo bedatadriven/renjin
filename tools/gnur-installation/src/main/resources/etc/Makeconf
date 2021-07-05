@@ -13,11 +13,11 @@ include $(R_SHARE_DIR)/make/vars.mk
 AR = ar
 BLAS_LIBS = -lblas
 C_VISIBILITY = -fvisibility=hidden
-CC = gcc-4.7 -std=gnu99
+CC = gcc-4.7 -std=gnu99 -mtune=generic -mno-sse
 CFLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} $(LTO)
 CPICFLAGS = -fpic
 CPPFLAGS =
-CXX = g++-4.7
+CXX = g++-4.7 -mtune=generic -mno-sse
 CXXCPP = $(CXX) -E
 CXXFLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} $(LTO)
 CXXPICFLAGS = -fpic

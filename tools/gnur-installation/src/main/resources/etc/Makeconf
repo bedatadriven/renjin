@@ -21,20 +21,20 @@ CXX = g++-4.7 -mtune=generic -mno-sse
 CXXCPP = $(CXX) -E
 CXXFLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} $(LTO)
 CXXPICFLAGS = -fpic
-CXX98 = g++-4.7
+CXX98 = g++-4.7 -mtune=generic -mno-sse
 CXX98FLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS}
 CXX98PICFLAGS = -fpic
 CXX98STD = -std=gnu++98
-CXX11 = g++-4.7
+CXX11 = g++-4.7 -mtune=generic -mno-sse
 CXX11FLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS}
 CXX11PICFLAGS = -fpic
 CXX11STD = -std=gnu++11
-CXX14 = g++-4.7
+CXX14 = g++-4.7 -mtune=generic -mno-sse
 CXX14FLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS}
 CXX14PICFLAGS = -fpic
 CXX14STD = -std=gnu++14
 CXX17 =
-CXX17FLAGS =
+CXX17FLAGS = -mtune=generic -mno-sse
 CXX17PICFLAGS =
 CXX17STD =
 CXX_VISIBILITY = -fvisibility=hidden

@@ -24,6 +24,8 @@ import org.renjin.repackaged.guava.io.Resources;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -33,12 +35,32 @@ public class ClasspathPackageLoader implements PackageLoader {
   
   private ClassLoader classLoader;
 
+  private List<String> defaultGroupIds = new ArrayList<>();
+
   public ClasspathPackageLoader() {
     this.classLoader = getClass().getClassLoader();
+    setDefaultGroupIds();
   }
   
   public ClasspathPackageLoader(ClassLoader loader) {
     this.classLoader = loader;
+    setDefaultGroupIds();
+  }
+
+  private void setDefaultGroupIds() {
+    defaultGroupIds.add("org.renjin.cran");
+    defaultGroupIds.add("org.renjin.bioconductor");
+
+    String additionalGroupProp = System.getProperty("default.package.groups", "");
+    if (additionalGroupProp.length() > 0) {
+      String[] additionalGroups = additionalGroupProp.split(",");
+      for (String group : additionalGroups) {
+        String grp = group.trim();
+        if (grp.length() > 0) {
+          defaultGroupIds.add(grp);
+        }
+      }
+    }
   }
 
   public ClassLoader getClassLoader() {
@@ -64,16 +86,13 @@ public class ClasspathPackageLoader implements PackageLoader {
       return pkg;
     }
 
-    // Otherwise try CRAN and bioconductor
-    pkg = load(new FqPackageName("org.renjin.cran", packageName));
-    if(pkg.isPresent()) {
-      return pkg;
+    // Otherwise try defaultGroupIds
+    for (String groupId : defaultGroupIds) {
+      pkg = load(new FqPackageName(groupId, packageName));
+      if(pkg.isPresent()) {
+        return pkg;
+      }
     }
-    pkg = load(new FqPackageName("org.renjin.bioconductor", packageName));
-    if(pkg.isPresent()) {
-      return pkg;
-    }
-
     return Optional.empty();
   }
 

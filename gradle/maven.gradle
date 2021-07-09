@@ -20,14 +20,10 @@ publishing {
         }
     }
 
-    if(rootProject.hasProperty('renjinDeploymentPassword')) {
+    if(System.getenv("RENJIN_RELEASE") && System.getenv("BUILD_NUMBER")) {
         repositories {
             maven {
-                url = "https://nexus.bedatadriven.com/content/repositories/renjin-release/"
-                credentials {
-                    username 'deployment'
-                    password rootProject.property("renjinDeploymentPassword")
-                }
+                url = "gcs://renjin-staging/${System.getenv("BUILD_NUMBER")}/"
             }
         }
     }

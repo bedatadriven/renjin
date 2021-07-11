@@ -40,6 +40,7 @@ public class ProvidedVarTest extends AbstractGccTest {
     compiler.setOutputDirectory(outputDir);
     compiler.setPackageName("org.renjin.gcc");
     compiler.setVerbose(true);
+    compiler.setByteCodeOptimizationDisabled(true);
     compiler.addVariable("jvm_field", ProvidedVarTest.class);
 
     compiler.compile(Collections.singletonList(unit));

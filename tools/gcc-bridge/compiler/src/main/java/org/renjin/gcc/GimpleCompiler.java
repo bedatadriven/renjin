@@ -41,6 +41,7 @@ import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.repackaged.guava.collect.Ordering;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.repackaged.guava.io.Files;
+import soot.Main;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -48,7 +49,10 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Compiles a set of {@link GimpleCompilationUnit}s to bytecode
@@ -87,10 +91,14 @@ public class GimpleCompiler  {
 
   private final List<GimpleCompilerPlugin> plugins = new ArrayList<>();
 
+  private final List<String> classesWritten = new ArrayList<>();
+
   private String trampolineClassName;
   private String recordClassPrefix = "record";
 
   private final LogManager logManager = new LogManager(System.err);
+  private String runtimeClasspath;
+  private boolean byteCodeOptimizationDisabled = false;
 
 
   public GimpleCompiler() {
@@ -144,6 +152,22 @@ public class GimpleCompiler  {
     this.outputDirectory = directory;
   }
 
+
+  public void setRuntimeClasspath(String runtimeClasspath) {
+    this.runtimeClasspath = runtimeClasspath;
+  }
+
+  public String getRuntimeClasspath() {
+    return runtimeClasspath;
+  }
+
+  public boolean isByteCodeOptimizationDisabled() {
+    return byteCodeOptimizationDisabled;
+  }
+
+  public void setByteCodeOptimizationDisabled(boolean byteCodeOptimizationDisabled) {
+    this.byteCodeOptimizationDisabled = byteCodeOptimizationDisabled;
+  }
 
   /**
    * Sets the output directory for writing java source stubs for use by the javadoc tool.
@@ -296,7 +320,10 @@ public class GimpleCompiler  {
         e.printStackTrace();
       }
     }
+
+    optimizeClassfiles();
   }
+
 
   private void writeResourcePrefix(String resourceName, byte[] bytes) throws IOException {
     writeResource(packageName.replace('.', '/') + "/" + resourceName, bytes);
@@ -494,13 +521,14 @@ public class GimpleCompiler  {
 
   private void writeClass(String internalName, byte[] classByteArray) throws IOException {
     writeResource(internalName + ".class", classByteArray);
+    classesWritten.add(internalName.replace('/', '.'));
   }
 
   private void writeResource(String resourceName, byte[] content) throws IOException {
     File classFile = new File(outputDirectory.getAbsolutePath() + File.separator + resourceName);
-    if(!classFile.getParentFile().exists()) {
+    if (!classFile.getParentFile().exists()) {
       boolean created = classFile.getParentFile().mkdirs();
-      if(!created) {
+      if (!created) {
         throw new IOException("Failed to create directory for class file: " + classFile.getParentFile());
       }
     }
@@ -529,6 +557,72 @@ public class GimpleCompiler  {
     this.globalSymbolTable.setLinkClassLoader(linkClassLoader);
   }
 
+  private void optimizeClassfiles() {
+    if(byteCodeOptimizationDisabled) {
+      return;
+    }
+    List<String> args = new ArrayList<>();
+    // Prepend the existing classpath with below
+    args.add("-pp");
+
+    // Classpath for soot analysis
+    args.add("-cp");
+    args.add(getSootClasspath());
+
+    args.add("-java-version");
+    args.add("1.8");
+
+    args.add("-debug");
+
+    // Add classes to optimize
+    args.add("-O");
+    args.addAll(classesWritten);
+
+    // Write out to build directory and overwrite existing classfiles
+    args.add("-d");
+    args.add(outputDirectory.getAbsolutePath());
+
+    try {
+      Main.v().run(args.toArray(new String[0]));
+    } catch (Throwable e) {
+      System.err.println("WARNING: Soot failed to complete.");
+      e.printStackTrace(System.err);
+    }
+
+    // When soot hits an error, it can set the interrupt flag for this
+    // thread.
+    Thread.interrupted();
+  }
+
+  private String getSootClasspath() {
+    if(runtimeClasspath != null) {
+      return runtimeClasspath + ":" + outputDirectory.getAbsolutePath();
+    } else {
+      return findClasspath();
+    }
+  }
+
+  private String findClasspath() {
+    if(!(Build.class.getClassLoader() instanceof URLClassLoader)) {
+      throw new RuntimeException("Cannot get classpath from class loader, which is " + Build.class.getClassLoader().getClass().getName());
+    }
+    List<String> paths = new ArrayList<>();
+    paths.add(outputDirectory.getAbsolutePath());
+    URLClassLoader classLoader = (URLClassLoader) Build.class.getClassLoader();
+    for (URL url : classLoader.getURLs()) {
+      if(url.getProtocol().equals("file")) {
+        File dir = new File(url.getPath());
+        if(dir.exists()) {
+          paths.add(url.getPath());
+        }
+      } else {
+        paths.add(url.toString());
+      }
+    }
+    return paths.stream().collect(Collectors.joining(":"));
+  }
+
+
   public static void main(String[] args) throws Exception {
 
     GimpleCompiler compiler = new GimpleCompiler();
@@ -546,6 +640,9 @@ public class GimpleCompiler  {
             break;
           case "--class":
             compiler.setClassName(value);
+            break;
+          case "--runtime-classpath":
+            compiler.setRuntimeClasspath(value);
             break;
           case "--output-dir":
             compiler.setOutputDirectory(new File(value));

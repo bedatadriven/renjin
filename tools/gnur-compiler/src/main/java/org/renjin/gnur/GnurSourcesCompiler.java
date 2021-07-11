@@ -62,6 +62,9 @@ public class GnurSourcesCompiler {
   @Option(name = "--logging-dir", description = "The directory to which compilation logs should be written")
   private File loggingDir;
 
+  @Option(name = "--runtime-classpath", description = "Classpath that the compiled classes will use at runtime")
+  private String runtimeClasspath;
+
   private ClassLoader linkClassLoader = getClass().getClassLoader();
 
   public void setPackageName(String packageName) {
@@ -103,6 +106,7 @@ public class GnurSourcesCompiler {
     compiler.setPackageName(packageName);
     compiler.setClassName(className);
     compiler.setVerbose(verbose);
+    compiler.setRuntimeClasspath(runtimeClasspath);
 
     compiler.setLinkClassLoader(linkClassLoader);
     compiler.addMathLibrary();

@@ -88,8 +88,6 @@ public interface BuildContext {
    */
   List<String> getDefaultPackages();
 
-  String getSootClasspath();
-
   /**
    *
    * @return a map from simple package name to its group id, for those known at build time.

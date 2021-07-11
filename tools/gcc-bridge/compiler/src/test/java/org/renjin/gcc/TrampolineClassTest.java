@@ -43,6 +43,7 @@ public class TrampolineClassTest extends AbstractGccTest {
     compiler.addMathLibrary();
     compiler.addMethod("jvm_area", JvmRect.class, "area");
     compiler.setClassName("Linked");
+    compiler.setByteCodeOptimizationDisabled(true);
     compiler.compile(units);
     
     Class<?> clazz = testClassLoader.loadClass("org.renjin.gcc.Linked");

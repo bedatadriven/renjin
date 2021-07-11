@@ -12,8 +12,7 @@ ext {
 
         guava:              "org.renjin:renjin-guava:28.0b",
         asm:                "org.renjin:renjin-asm:5.0.4b",
-        soot:               'org.renjin:renjin-soot:2.9.198',
-        airline:            'io.airlift:airline:0.8',
+        airline:            'io.airlift:airline:0.9',
         slf4j: [
             api:            'org.slf4j:slf4j-api:1.6.1',
             impl:           'org.slf4j:slf4j-jdk14:1.6.1'

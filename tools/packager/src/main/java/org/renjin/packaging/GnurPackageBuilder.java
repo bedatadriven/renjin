@@ -87,11 +87,6 @@ public class GnurPackageBuilder implements BuildContext  {
         return defaultPackages.getList();
     }
 
-    @Override
-    public String getSootClasspath() {
-        throw new UnsupportedOperationException();
-    }
-
     public void compile() throws IOException {
 
         source = new PackageSource.Builder(new File("."))

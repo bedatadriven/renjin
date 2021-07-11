@@ -129,7 +129,5 @@ task compileC(type: JavaExec) {
 
     environment 'PACKAGE', 'org.renjin.gnur'
     environment 'CFLAGS', "-std=c99 -DRENJIN -DHAVE_CONFIG_H -I${gnuHomeDir}/include"
-//    environment "GCC_BRIDGE_IGNORE_ERRORS", "TRUE"
-
 }
 

@@ -211,13 +211,8 @@ public class MavenBuildContext implements BuildContext {
     return defaultPackages;
   }
 
-  @Override
-  public String getSootClasspath() {
-    return getCompileClasspath();
-  }
 
-
-  public String getCompileClasspath() {
+    public String getCompileClasspath() {
 
     List<String> compileClasspathElements;
     try {

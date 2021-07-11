@@ -175,11 +175,6 @@ public class PackageBuild implements BuildContext {
     return Session.DEFAULT_PACKAGES;
   }
 
-  @Override
-  public String getSootClasspath() {
-    throw new UnsupportedOperationException("TODO");
-  }
-
 
   @Override
   public Map<String, String> getPackageGroupMap() {

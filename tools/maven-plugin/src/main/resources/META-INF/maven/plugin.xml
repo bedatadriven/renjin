@@ -511,12 +511,6 @@
             <version>3.0.0</version>
         </dependency>
         <dependency>
-            <groupId>org.renjin</groupId>
-            <artifactId>renjin-soot</artifactId>
-            <type>jar</type>
-            <version>2.9.198</version>
-        </dependency>
-        <dependency>
             <groupId>org.smali</groupId>
             <artifactId>dexlib2</artifactId>
             <type>jar</type>

@@ -6,6 +6,5 @@ dependencies {
     compileOnly 'org.apache.maven.plugin-tools:maven-plugin-annotations:3.4'
     compile 'org.codehaus.plexus:plexus-compiler-api:${plexusCompilerVersion}'
     compile 'org.renjin:gcc-bridge-compiler:${project.version}'
-    compile 'org.renjin:renjin-soot:2.9.198'
     testCompile libraries.junit
 }

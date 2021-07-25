@@ -1,6 +1,6 @@
 # renjin <a href='http://www.renjin.org/'><img src='http://www.renjin.org/assets/img/logo.svg' align="right" width="180"/></a>
 
-![Building](https://build.renjin.org/job/Renjin/badge/icon)
+[![Build Status](https://build.renjin.org/job/Renjin-Release/badge/icon)](https://build.renjin.org/job/Renjin-Release/)
 
 Renjin is a JVM-based interpreter for the [The R Project for Statistical
 Computing](http://www.r-project.org).

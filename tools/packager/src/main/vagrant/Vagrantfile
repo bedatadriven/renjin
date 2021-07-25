@@ -1,0 +1,24 @@
+# Vagrantfile API/syntax version
+VAGRANTFILE_API_VERSION = "2"
+
+# Override host locale variable
+ENV["LC_ALL"] = "en_US.UTF-8"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  config.vm.box = "ubuntu/xenial64"
+  config.vm.provision "file", source: "../../../gnur-installation/src/main/resources", destination: "renjin"
+  config.vm.provision "file", source: "../../../gcc-bridge/compiler/src/main/resources/org/renjin/gcc/plugin.c", destination: "plugin.c"
+
+  config.vm.provision :shell, path: "provision.sh"
+
+  config.vm.provider "virtualbox" do |v|
+    v.memory = 4096
+    v.cpus = 2
+
+    # Avoids problems when distributing the box elsewhere
+    # https://superuser.com/questions/1622167/vagrant-box-fails-trying-to-log-to-a-path-the-box-was-created-from/1622179#1622179
+    v.customize ["modifyvm", :id, "--uartmode1", "file", File.join(Dir.pwd, ".vagrant/uart1.log")]
+  end
+
+end

@@ -31,6 +31,6 @@ public class PackageMavenizeCommand extends PackageCommand {
 
     PomBuilder pomBuilder = new PomBuilder(build);
     pomBuilder.setIncludeBuild(true);
-    pomBuilder.writePomFile(new File(build.getSource().getSourceDir(), "pom.xml"));
+    pomBuilder.writePomFile(new File(build.getSource().getPackageDir(), "pom.xml"));
   }
 }

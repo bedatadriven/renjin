@@ -103,4 +103,8 @@ public interface BuildContext {
     File metaInfDir = new File(getOutputDir(), "META-INF");
     return new File(metaInfDir, "org.renjin.execute.namespace");
   }
+
+  default MakeStrategy getMakeStrategy() {
+    return MakeStrategy.LOCAL;
+  }
 }

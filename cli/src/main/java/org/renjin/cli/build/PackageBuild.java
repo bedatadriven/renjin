@@ -20,11 +20,9 @@ package org.renjin.cli.build;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.renjin.eval.Session;
-import org.renjin.packaging.BuildContext;
-import org.renjin.packaging.BuildException;
-import org.renjin.packaging.BuildLogger;
-import org.renjin.packaging.PackageSource;
+import org.renjin.packaging.*;
 import org.renjin.primitives.packaging.PackageLoader;
+import org.renjin.repackaged.guava.base.Strings;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,7 +40,7 @@ public class PackageBuild implements BuildContext {
   private final File outputDir;
   private final File packageOutputDir;
   private final File mavenMetaDir;
-
+  private final MakeStrategy makeStrategy;
 
   public PackageBuild(PackageSource source, Optional<String> renjinVersion) {
     this.buildDir = createCleanBuildDir(source.getPackageDir());
@@ -65,6 +63,12 @@ public class PackageBuild implements BuildContext {
     mkdirs(mavenMetaDir);
 
     this.dependencyResolution = new DependencyResolution(logger, source.getDescription(), renjinVersion);
+
+    if(!Strings.isNullOrEmpty(System.getenv("RENJIN_HOME"))) {
+      this.makeStrategy = MakeStrategy.LOCAL;
+    } else {
+      this.makeStrategy = MakeStrategy.VAGRANT;
+    }
   }
 
   public DependencyResolution getDependencyResolution() {
@@ -111,22 +115,22 @@ public class PackageBuild implements BuildContext {
 
   @Override
   public void setupNativeCompilation() {
-    throw new UnsupportedOperationException("TODO");
+    // NOOP
   }
 
   @Override
   public File getGccBridgePlugin() {
-    throw new UnsupportedOperationException("TODO");
+    return new File(System.getenv("GCC_BRIDGE"));
   }
 
   @Override
   public File getGnuRHomeDir() {
-    throw new UnsupportedOperationException("TODO");
+    return new File(System.getenv("RENJIN_HOME"));
   }
 
   @Override
   public File getUnpackedIncludesDir() {
-    throw new UnsupportedOperationException("TODO");
+    return new File(buildDir, "includes");
   }
 
   @Override
@@ -157,7 +161,7 @@ public class PackageBuild implements BuildContext {
 
   @Override
   public File getCompileLogDir() {
-    throw new UnsupportedOperationException("TODO");
+    return new File(buildDir, "gcc-bridge-logs");
   }
 
   @Override
@@ -175,12 +179,13 @@ public class PackageBuild implements BuildContext {
     return Session.DEFAULT_PACKAGES;
   }
 
-
   @Override
   public Map<String, String> getPackageGroupMap() {
     return dependencyResolution.getPackageGroupMap();
   }
 
-
-
+  @Override
+  public MakeStrategy getMakeStrategy() {
+    return makeStrategy;
+  }
 }

@@ -36,6 +36,13 @@
                     <description>If true, do not fail the build if compilation fails.</description>
                 </parameter>
                 <parameter>
+                    <name>make</name>
+                    <type>org.renjin.packaging.MakeStrategy</type>
+                    <required>false</required>
+                    <editable>true</editable>
+                    <description>Strategy to use for 'make'ing native sources.</description>
+                </parameter>
+                <parameter>
                     <name>project</name>
                     <type>org.apache.maven.project.MavenProject</type>
                     <required>false</required>
@@ -45,6 +52,7 @@
             </parameters>
             <configuration>
                 <ignoreFailure implementation="boolean" default-value="false">${ignore.gnur.compilation.failure}</ignoreFailure>
+                <make implementation="org.renjin.packaging.MakeStrategy" default-value="LOCAL"/>
                 <project implementation="org.apache.maven.project.MavenProject" default-value="${project}"/>
             </configuration>
         </mojo>

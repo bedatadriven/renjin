@@ -223,6 +223,10 @@ public class TestExecutor {
         return;
       }
 
+      // Set the random number generation seed to ensure that tests are deterministic
+      session.getTopLevelContext()
+              .evaluate(FunctionCall.newCall(Symbol.get("set.seed"), new IntArrayVector(1)));
+
       UnsupportedTerminal term = new UnsupportedTerminal();
       InputStream in = new ByteArrayInputStream(sourceText.getBytes(Charsets.UTF_8));
       PrintStream outputStream = new PrintStream(testOutput);

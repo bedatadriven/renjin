@@ -36,6 +36,9 @@ public class BuildBatchJobCommand extends BuildCommand {
   @Option(name = "--renjin-version", description = "The version of Renjin to include")
   public String renjinVersion = RenjinVersion.getVersionName();
 
+  @Option(name = "--ignore-gimple-errors", description = "Ignore errors compiling native sources and continue building the package")
+  public boolean ignoreGimpleErrors;
+
   @Arguments(description = "Path to package source")
   public String packageSource = ".";
 
@@ -43,7 +46,7 @@ public class BuildBatchJobCommand extends BuildCommand {
   protected void tryRun() throws Exception {
 
     PackageSource source = new PackageSource.Builder(packageSource).build();
-    PackageBuild build = new PackageBuild(source, Optional.of(renjinVersion));
+    PackageBuild build = new PackageBuild(source, Optional.of(renjinVersion), ignoreGimpleErrors);
 
     PackageBuilder builder = new PackageBuilder(build.getSource(), build);
     builder.build();

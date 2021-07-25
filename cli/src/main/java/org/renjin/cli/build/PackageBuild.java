@@ -36,15 +36,17 @@ public class PackageBuild implements BuildContext {
 
   private final File buildDir;
   private final PackageSource source;
+  private boolean ignoreGimpleErrors;
   private final DependencyResolution dependencyResolution;
   private final File outputDir;
   private final File packageOutputDir;
   private final File mavenMetaDir;
   private final MakeStrategy makeStrategy;
 
-  public PackageBuild(PackageSource source, Optional<String> renjinVersion) {
+  public PackageBuild(PackageSource source, Optional<String> renjinVersion, boolean ignoreGimpleErrors) {
     this.buildDir = createCleanBuildDir(source.getPackageDir());
     this.source = source;
+    this.ignoreGimpleErrors = ignoreGimpleErrors;
     this.outputDir = new File(buildDir, "classes");
     this.packageOutputDir = new File(
         outputDir + File.separator +
@@ -187,5 +189,10 @@ public class PackageBuild implements BuildContext {
   @Override
   public MakeStrategy getMakeStrategy() {
     return makeStrategy;
+  }
+
+  @Override
+  public boolean isIgnoreGimpleErrors() {
+    return ignoreGimpleErrors;
   }
 }

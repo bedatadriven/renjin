@@ -28,6 +28,8 @@ import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.escape.Escaper;
+import org.renjin.repackaged.guava.escape.Escapers;
 import org.renjin.repackaged.guava.io.Files;
 import org.renjin.repackaged.guava.io.LineProcessor;
 import org.renjin.repackaged.guava.io.Resources;
@@ -68,7 +70,7 @@ public class NativeSourceBuilder {
     this.transformGlobalVariables = transformGlobalVariables;
   }
 
-  public void build() throws IOException, InterruptedException {
+  public void build() throws Exception {
     if(buildContext.getMakeStrategy() == MakeStrategy.VAGRANT) {
       buildWithVagrant();
     } else {
@@ -168,9 +170,15 @@ public class NativeSourceBuilder {
     return s.toString();
   }
 
+  private static final Escaper SHELL_ESCAPER = Escapers.builder()
+          .addEscape('\'', "''")
+          .build();
+
+  private static final String SINGLE_QUOTE = "'";
+
   private String maybeQuoteShellArgument(String a) {
-    if(a.contains("=") || a.contains(" ") || a.contains("$(")) {
-      return "\"" + a + "\"";
+    if(a.contains("$") || a.contains(" ")) {
+      return SINGLE_QUOTE + SHELL_ESCAPER.escape(a) + SINGLE_QUOTE;
     } else {
       return a;
     }
@@ -324,7 +332,7 @@ public class NativeSourceBuilder {
    * Reads in the Gimple JSON files generating by the make process and compiles them to
    * Java bytecode.
    */
-  private void compileGimple() {
+  private void compileGimple() throws Exception {
 
     List<GimpleCompilationUnit> gimpleFiles = Lists.newArrayList();
     collectGimple(source.getNativeSourceDir(), gimpleFiles);
@@ -336,6 +344,7 @@ public class NativeSourceBuilder {
         Namespace.sanitizePackageNameForClassFiles(source.getPackageName()));
     compiler.setClassName(findLibraryName());
     compiler.setLoggingDirectory(buildContext.getCompileLogDir());
+    compiler.setIgnoreErrors(buildContext.isIgnoreGimpleErrors());
 
     GnurSourcesCompiler.setupCompiler(compiler);
 
@@ -343,11 +352,7 @@ public class NativeSourceBuilder {
       compiler.addPlugin(new GlobalVarPlugin(compiler.getPackageName()));
     }
 
-    try {
-      compiler.compile(gimpleFiles);
-    } catch (Exception e) {
-      throw new BuildException("Failed to compile Gimple", e);
-    }
+    compiler.compile(gimpleFiles);
   }
 
   private String findLibraryName() {

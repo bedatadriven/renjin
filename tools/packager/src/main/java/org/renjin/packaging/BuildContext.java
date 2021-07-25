@@ -107,4 +107,8 @@ public interface BuildContext {
   default MakeStrategy getMakeStrategy() {
     return MakeStrategy.LOCAL;
   }
+
+  default boolean isIgnoreGimpleErrors() {
+    return false;
+  }
 }

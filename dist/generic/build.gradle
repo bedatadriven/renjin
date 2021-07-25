@@ -49,7 +49,7 @@ task publish {
 
     doFirst {
         project.exec {
-            commandLine 'gsutil', 'cp', "$buildDir/distributions/renjin.zip", "gs://renjinci-repo/dist/renjin-${project.version}.zip"
+            commandLine 'gsutil', 'cp', "$buildDir/distributions/renjin.zip", "gs://renjin-staging/${System.env.BUILD_NUMBER}/renjin-${project.version}.zip"
         }
     }
 }

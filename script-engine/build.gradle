@@ -61,9 +61,9 @@ task publishJavadocSite {
     dependsOn 'combinedJavadoc'
     doFirst {
         project.exec {
-            commandLine 'gsutil', '-m', '-q', 'cp', '-a', 'public-read', '-r',
+            commandLine 'gsutil', '-m', '-q', 'cp', '-r',
                     "$buildDir/docs/combined/*",
-                    'gs://javadoc.renjin.org/latest/'
+                    "gs://renjin-staging/${System.env.BUILD_NUMBER}/javadoc/"
         }
     }
 }

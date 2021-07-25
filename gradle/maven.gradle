@@ -23,7 +23,7 @@ publishing {
     if(System.getenv("RENJIN_RELEASE") && System.getenv("BUILD_NUMBER")) {
         repositories {
             maven {
-                url = "gcs://renjin-staging/${System.getenv("BUILD_NUMBER")}/"
+                url = "gcs://renjin-staging/${System.env.BUILD_NUMBER}/m2/"
             }
         }
     }

@@ -150,7 +150,7 @@ public class JlineRepl {
     }
 
     reader.println("Copyright (C) 2019 The R Foundation for Statistical Computing");
-    reader.println("Copyright (C) 2019 BeDataDriven");
+    reader.println("Copyright (C) 2021 BeDataDriven");
 
     printBlasLibrary();
 

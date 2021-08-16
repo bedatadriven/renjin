@@ -302,10 +302,6 @@ public class Files {
   @Internal("Sys.which")
   public static StringVector sysWhich(@Current Context context, StringVector names) {
 
-    if(isWindows()) {
-      throw new EvalException("Sys.which() not implemented for Windows");
-    }
-
     String[] path = Strings.nullToEmpty(System.getenv("PATH")).split(File.pathSeparator);
 
     StringVector.Builder result = new StringArrayVector.Builder(0, names.length());

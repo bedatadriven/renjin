@@ -123,6 +123,11 @@ public class MixedPtr extends AbstractPtr {
 
     return BytePtr.NULL.pointerPlus(getInt(offset));
   }
+  
+  @Override
+  public final void setPointer(Ptr value) {
+    super.setPointer(value);
+  }
 
   @Override
   public final void setPointer(int offset, Ptr value) {

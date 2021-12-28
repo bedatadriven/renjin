@@ -43,7 +43,7 @@ export("?", .DollarNames, .S3methods, .romans, CRAN.packages, Rprof,
        toBibtex, toLatex, type.convert, undebugcall, unstack, untar, unzip,
        ## update.packageStatus,
        update.packages, upgrade, url.show, vi,
-       vignette, warnErrList, write.csv, write.csv2, write.socket, write.table,
+       vignette, warnErrList, win.version, write.csv, write.csv2, write.socket, write.table,
        xedit, xemacs, zip)
 
 export(txtProgressBar, getTxtProgressBar, setTxtProgressBar)

@@ -17,6 +17,9 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
-#  A character vector of length one (‘""’ when the name is not known).
+#  A character vector of the java class that is handling the LAPACK (NativeRef, NativeSystem, F2j).
 
-La_library <- function() ""
+La_library <- function() {
+  import(com.github.fommil.netlib.LAPACK)
+  return(LAPACK$getInstance()$getClass()$getName())
+}

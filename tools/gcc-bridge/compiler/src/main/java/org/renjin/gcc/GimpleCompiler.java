@@ -79,8 +79,6 @@ public class GimpleCompiler  {
 
   private boolean verbose;
 
-  // TODO: Is this the right classloader to use for java 11 or should we use Build.getClassLoader()?
-  //private ClassLoader linkClassLoader = getClass().getClassLoader();
   private ClassLoader linkClassLoader = Build.getClassLoader();
 
   private GlobalSymbolTable globalSymbolTable;

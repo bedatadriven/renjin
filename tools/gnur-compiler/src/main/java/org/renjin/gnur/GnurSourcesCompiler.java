@@ -66,7 +66,6 @@ public class GnurSourcesCompiler {
   @Option(name = "--runtime-classpath", description = "Classpath that the compiled classes will use at runtime")
   private String runtimeClasspath;
 
-  //private ClassLoader linkClassLoader = getClass().getClassLoader();
   private final ClassLoader linkClassLoader = Build.getClassLoader();
 
   public void setPackageName(String packageName) {

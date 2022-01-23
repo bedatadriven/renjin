@@ -34,7 +34,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -191,6 +190,7 @@ public class Files {
     }
 
     try {
+      // TODO: figure out a way to handle this, jrt: URI:s are new post java 8 (jigsaw)
       if (path.startsWith("jrt:")) {
         // an internal jre reference which the vfs will not be able to resolve
         System.err.println(path + " might not work");

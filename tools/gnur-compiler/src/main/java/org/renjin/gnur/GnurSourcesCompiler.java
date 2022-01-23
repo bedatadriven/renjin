@@ -20,6 +20,7 @@ package org.renjin.gnur;
 
 
 import io.airlift.airline.*;
+import org.renjin.gcc.Build;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleParser;
@@ -65,7 +66,8 @@ public class GnurSourcesCompiler {
   @Option(name = "--runtime-classpath", description = "Classpath that the compiled classes will use at runtime")
   private String runtimeClasspath;
 
-  private ClassLoader linkClassLoader = getClass().getClassLoader();
+  //private ClassLoader linkClassLoader = getClass().getClassLoader();
+  private final ClassLoader linkClassLoader = Build.getClassLoader();
 
   public void setPackageName(String packageName) {
     this.packageName = packageName;

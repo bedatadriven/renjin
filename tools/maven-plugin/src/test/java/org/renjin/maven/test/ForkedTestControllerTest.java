@@ -134,7 +134,8 @@ public class ForkedTestControllerTest extends TestCase {
   }
 
   private String getCurrentClassPath() {
-    List<String> paths = new ArrayList<String>();
+    /* No longer works in Java 11. TODO: clean this up
+    List<String> paths = new ArrayList<>();
     try {
       URLClassLoader classLoader = (URLClassLoader) getClass().getClassLoader();
       for (URL url : classLoader.getURLs()) {
@@ -145,6 +146,10 @@ public class ForkedTestControllerTest extends TestCase {
     }
     
     return Joiner.on(File.pathSeparator).join(paths);
+
+     */
+    // If this is not satisfactory, use ClassGraph similar to Build in gcc-bridge
+    return System.getProperty("java.class.path");
   }
   
   private File testFile(String name) {

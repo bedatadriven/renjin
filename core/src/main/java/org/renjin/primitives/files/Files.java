@@ -190,6 +190,11 @@ public class Files {
     }
 
     try {
+      // TODO: figure out a way to handle this, jrt: URI:s are new post java 8 (jigsaw)
+      if (path.startsWith("jrt:")) {
+        // an internal jre reference which the vfs will not be able to resolve
+        System.err.println(path + " might not work");
+      }
       return friendlyFileName(context.resolveFile(path));
     } catch(FileSystemException e) {
       if(errorIfInvalid) {
@@ -378,7 +383,7 @@ public class Files {
    * @return true if the operation succeeded for each of the files attempted.
    *  Using a missing value for a path name will always be regarded as a failure.
    *  returns false if the directory already exists
-   * @throws FileSystemException
+   * @throws FileSystemException if FileObject.createFolder failed
    */
   @Internal("dir.create")
   public static SEXP dirCreate(@Current Context context, String path, boolean showWarnings, boolean recursive, int mode) throws FileSystemException {
@@ -395,7 +400,7 @@ public class Files {
    * Checks if input directory exists.
 
    * @param context the current call Context
-   * @param paths character vectors containing file or directory paths.
+   * @param uri character vectors containing file or directory paths.
    *              Tilde expansion (see ‘path.expand’) is done.
    * @return true if the operation succeeded for each of the directory attempted.
    *  Using a missing value for a path name will always be regarded as a failure.

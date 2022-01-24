@@ -79,7 +79,7 @@ public class GimpleCompiler  {
 
   private boolean verbose;
 
-  private ClassLoader linkClassLoader = getClass().getClassLoader();
+  private ClassLoader linkClassLoader = Build.getClassLoader();
 
   private GlobalSymbolTable globalSymbolTable;
 
@@ -570,7 +570,7 @@ public class GimpleCompiler  {
     args.add(getSootClasspath());
 
     args.add("-java-version");
-    args.add("1.8");
+    args.add("11");
 
     args.add("-debug");
 
@@ -586,6 +586,7 @@ public class GimpleCompiler  {
       Main.v().run(args.toArray(new String[0]));
     } catch (Throwable e) {
       System.err.println("WARNING: Soot failed to complete.");
+      System.err.println("Soot called with args " + args);
       e.printStackTrace(System.err);
     }
 
@@ -603,12 +604,13 @@ public class GimpleCompiler  {
   }
 
   private String findClasspath() {
-    if(!(Build.class.getClassLoader() instanceof URLClassLoader)) {
-      throw new RuntimeException("Cannot get classpath from class loader, which is " + Build.class.getClassLoader().getClass().getName());
+    if(Build.getClassLoader() == null) {
+      throw new RuntimeException("Cannot get classpath from class loader, which is null");
     }
     List<String> paths = new ArrayList<>();
     paths.add(outputDirectory.getAbsolutePath());
-    URLClassLoader classLoader = (URLClassLoader) Build.class.getClassLoader();
+    URLClassLoader classLoader = Build.getClassLoader();
+    //System.out.println("GimpleCompiler Classpath is " + Arrays.asList(classLoader.getURLs()));
     for (URL url : classLoader.getURLs()) {
       if(url.getProtocol().equals("file")) {
         File dir = new File(url.getPath());
@@ -619,7 +621,7 @@ public class GimpleCompiler  {
         paths.add(url.toString());
       }
     }
-    return paths.stream().collect(Collectors.joining(":"));
+    return String.join(":", paths);
   }
 
 

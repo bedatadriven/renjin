@@ -426,13 +426,13 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
             <type>jar</type>
-            <version>1.18</version>
+            <version>1.21</version>
         </dependency>
         <dependency>
             <groupId>org.tukaani</groupId>
             <artifactId>xz</artifactId>
             <type>jar</type>
-            <version>1.8</version>
+            <version>1.9</version>
         </dependency>
         <dependency>
             <groupId>org.renjin</groupId>

@@ -32,8 +32,8 @@ dependencies {
     compile 'org.apache.commons:commons-math:2.2'
     compile 'com.github.fommil.netlib:core:1.1.2'
     compile 'org.apache.commons:commons-vfs2:2.0'
-    compile 'org.apache.commons:commons-compress:1.18'
-    compile 'org.tukaani:xz:1.8'
+    compile 'org.apache.commons:commons-compress:1.21'
+    compile 'org.tukaani:xz:1.9'
 
     compile libraries.asm
     compile libraries.guava

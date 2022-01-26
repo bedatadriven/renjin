@@ -570,13 +570,13 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <type>jar</type>
-            <version>1.7.5</version>
+            <version>1.7.35</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <type>jar</type>
-            <version>1.7.5</version>
+            <version>1.7.35</version>
         </dependency>
         <dependency>
             <groupId>org.renjin</groupId>

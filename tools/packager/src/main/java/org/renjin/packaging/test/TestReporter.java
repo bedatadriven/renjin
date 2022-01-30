@@ -82,13 +82,13 @@ public class TestReporter {
 
 
   private void printResultsBanner(PrintStream out) {
-    out.println(format("Tests run: %d, Failures: %d, Errors: %d, Skipped: %d, Time elapsed: %.3f %s",
+    out.printf("Tests run: %d, Failures: %d, Errors: %d, Skipped: %d, Time elapsed: %.3f %s%n",
         currentSuite.getResults().size(),
         currentSuite.countOutcomes(TestOutcome.FAILURE),
         currentSuite.countOutcomes(TestOutcome.ERROR),
         currentSuite.countOutcomes(TestOutcome.SKIPPED),
         currentSuite.getTime(),
-        currentSuite.hasFailures() ? " << FAILURE!" : ""));
+        currentSuite.hasFailures() ? " << FAILURE!" : "");
   }
 
   public void testCaseStarting(String name) {
@@ -105,14 +105,19 @@ public class TestReporter {
 
 
   public void timeout(long timeoutLengthMs) {
+    if (currentCase == null) {
+      System.err.println("currentCase is null, testCaseStarting was not called before timeout");
+      testCaseStarting("unknown");
+    }
+
     currentCase.setOutcome(TestOutcome.ERROR);
     currentCase.setErrorMessage("Timed out after " + timeoutLengthMs + " ms");
     if (currentCase.isRootScript()) {
-      System.err.println(format("Evaluation of %s timed out", currentSuite.getScriptFile().getName()));
+      System.err.printf("Evaluation of %s timed out%n", currentSuite.getScriptFile().getName());
     } else {
-      System.err.println(format("%s() in %s timed out",
+      System.err.printf("%s() in %s timed out%n",
           currentCase.getName(),
-          currentSuite.getScriptFile().getName()));
+          currentSuite.getScriptFile().getName());
     }
     functionComplete();
   }
@@ -130,12 +135,12 @@ public class TestReporter {
     currentCase.setErrorMessage(message);
     currentCase.setOutcome(TestOutcome.ERROR);
     if(currentCase.isRootScript()) {
-      System.err.println(format("Evaluation of %s failed",
-          currentSuite.getScriptFile().getName()));
+      System.err.printf("Evaluation of %s failed%n",
+          currentSuite.getScriptFile().getName());
     } else {
-      System.err.println(format("%s() in %s failed",
+      System.err.printf("%s() in %s failed%n",
           currentCase.getName(),
-          currentSuite.getScriptFile().getName()));
+          currentSuite.getScriptFile().getName());
     }
     functionComplete();
   }

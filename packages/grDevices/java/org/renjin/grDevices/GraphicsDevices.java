@@ -44,7 +44,7 @@ public class GraphicsDevices {
 
     String deviceClassName = Stdlib.nullTerminatedString(deviceClassPtr);
 
-    Class deviceClass;
+    Class<?> deviceClass;
     try {
       deviceClass = Class.forName(deviceClassName);
     } catch (ClassNotFoundException e) {
@@ -53,7 +53,7 @@ public class GraphicsDevices {
 
     GraphicsDevice device;
     try {
-      Constructor constructor = deviceClass.getConstructor(Session.class, ListVector.class);
+      Constructor<?> constructor = deviceClass.getConstructor(Session.class, ListVector.class);
       Session session = Native.currentContext().getSession();
       device = (GraphicsDevice) constructor.newInstance(session, deviceOptions);
     } catch (Exception e) {

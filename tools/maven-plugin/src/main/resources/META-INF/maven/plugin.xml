@@ -426,13 +426,13 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
             <type>jar</type>
-            <version>1.18</version>
+            <version>1.21</version>
         </dependency>
         <dependency>
             <groupId>org.tukaani</groupId>
             <artifactId>xz</artifactId>
             <type>jar</type>
-            <version>1.8</version>
+            <version>1.9</version>
         </dependency>
         <dependency>
             <groupId>org.renjin</groupId>
@@ -486,19 +486,19 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <type>jar</type>
-            <version>2.8.11.1</version>
+            <version>2.13.1</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
             <type>jar</type>
-            <version>2.8.0</version>
+            <version>2.13.1</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
             <type>jar</type>
-            <version>2.8.10</version>
+            <version>2.13.1</version>
         </dependency>
         <dependency>
             <groupId>io.airlift</groupId>
@@ -570,13 +570,13 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <type>jar</type>
-            <version>1.7.5</version>
+            <version>1.7.35</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <type>jar</type>
-            <version>1.7.5</version>
+            <version>1.7.35</version>
         </dependency>
         <dependency>
             <groupId>org.renjin</groupId>

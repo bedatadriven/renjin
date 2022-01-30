@@ -149,7 +149,9 @@ public class ForkedTestControllerTest extends TestCase {
   
   private File testFile(String name) {
     URL resource = Resources.getResource(name);
-    return new File(resource.getFile());
+    File file = new File(resource.getFile());
+    assertTrue(name + " does not exist", file.exists());
+    return file;
   }
   
   public void assertTestCaseSucceeded(File file, boolean expectSuccess) {

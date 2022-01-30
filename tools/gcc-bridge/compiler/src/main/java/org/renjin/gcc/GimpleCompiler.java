@@ -619,7 +619,7 @@ public class GimpleCompiler  {
         paths.add(url.toString());
       }
     }
-    return paths.stream().collect(Collectors.joining(":"));
+    return String.join(":", paths);
   }
 
 

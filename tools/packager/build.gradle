@@ -23,5 +23,29 @@ dependencies {
     compile project(':repl')
     compile project(':tools:gnur-compiler')
     compile 'org.json:json:20180130'
-    compile libraries.soot
+}
+
+task packageVagrantbox {
+
+    inputs.dir "${project.project(":tools:gnur-installation").projectDir}/src/main/resources/"
+    inputs.file "${rootProject.projectDir}/tools/gcc-bridge/compiler/src/main/resources/org/renjin/gcc/plugin.c"
+    outputs.file "${buildDir}/vagrant/package.box"
+    description "Creates and packages a VirtualBox VM that can be used to compile package native sources"
+
+    doFirst {
+        project.delete "${buildDir}/vagrant"
+        project.mkdir "${buildDir}/vagrant/.vagrant"
+        project.copy {
+            from project.file("src/main/vagrant")
+            into "build/vagrant"
+        }
+        project.exec {
+            workingDir "build/vagrant"
+            commandLine 'vagrant', 'up', '--provision'
+        }
+        project.exec {
+            workingDir "build/vagrant"
+            commandLine 'vagrant', 'package'
+        }
+    }
 }

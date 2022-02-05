@@ -69,6 +69,10 @@ public class ForkReporter implements TestListener {
     sendMessage(START_MESSAGE, testName);
   }
 
+  @Override
+  public void timeout() {
+  }
+
   private void sendMessage(String message, String... arguments) {
     System.out.println(MESSAGE_PREFIX + message + MESSAGE_PREFIX + Joiner.on(MESSAGE_PREFIX).join(arguments));
     System.out.flush();

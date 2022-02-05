@@ -54,11 +54,12 @@ public class Deparse {
     ":", 
     "==", "!=", "<", ">", "<=", ">=",
     "&", "&&", "|", "||",
-    "$"
+    "$",
+    "::", ":::"
   };
   
   public static String[] BINARY_OPS_WITHOUT_SPACE = new String[] {
-    ":", "^", "$"
+    ":", "^", "$", "::", ":::"
   };
   
   public static String[] UNARY_OPS = new String[] {

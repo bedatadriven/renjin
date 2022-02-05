@@ -55,6 +55,8 @@ public class TestExecutor {
   private int maxOutputBytes = Integer.MAX_VALUE;
   private boolean ignoreMissingDefaultPackages;
 
+  private long timeoutMillis = 0;
+
   private TestListener listener;
 
   public TestExecutor(String namespaceUnderTest, List<String> defaultPackageList,
@@ -75,21 +77,28 @@ public class TestExecutor {
     }
   }
 
+  public long getTimeoutMillis() {
+    return timeoutMillis;
+  }
+
+  public void setTimeoutMillis(long timeoutMillis) {
+    this.timeoutMillis = timeoutMillis;
+  }
 
   @VisibleForTesting
-  public void executeTest(File testFile) throws IOException {
+  public void executeTest(File testFile) throws IOException, InterruptedException {
     
     if (isManFile(testFile)) {
-      executeTestFile(testFile, ExamplesParser.parseExamples(testFile));
+      executeTestFileWithTimeout(testFile, ExamplesParser.parseExamples(testFile));
     } else {
-      executeTestFile(testFile, Files.asCharSource(testFile, Charsets.UTF_8).read());
+      executeTestFileWithTimeout(testFile, Files.asCharSource(testFile, Charsets.UTF_8).read());
     }
 
     listener.done();
   }
 
 
-  public void executeTestDir(File dir) throws IOException {
+  public void executeTestDir(File dir) throws IOException, InterruptedException {
     File[] files = dir.listFiles();
     if(files != null) {
       for (File file : files) {
@@ -157,6 +166,33 @@ public class TestExecutor {
     return false;
   }
 
+  public void executeTestFileWithTimeout(File sourceFile, String sourceText) throws IOException, InterruptedException {
+
+    Thread thread = new Thread(() -> {
+      try {
+        executeTestFile(sourceFile, sourceText);
+      } catch (IOException e) {
+        System.err.println("Exception thrown by the test runner: " + e.getMessage());
+        e.printStackTrace(System.err);
+      }
+    });
+
+    thread.start();
+    thread.join(timeoutMillis);
+
+    if(thread.isAlive()) {
+      // The thread is still running after our timeout has elapsed.
+      // Interrupt the thread, which should give the interpreter an opportunity to exit cleanly.
+      listener.timeout();
+      thread.interrupt();
+
+      // Wait for the thread to exit cleanly. Note that we don't have any recourse if the thread
+      // does not cooperate -- for example if it is stuck in an infinite loop in compiled C code
+      // that does not check R's interrupt flag.
+      thread.join();
+    }
+  }
+
   @VisibleForTesting
   public void executeTestFile(File sourceFile, String sourceText) throws IOException {
 
@@ -172,13 +208,24 @@ public class TestExecutor {
 
       listener.start(TestCaseResult.ROOT_TEST_CASE);
 
-      Session session = createSession(testOutput, sourceFile.getParentFile());
-      session.getOptions().set("device", graphicsDevice(session, sourceFile));
+      Session session;
+      try {
+        session = createSession(testOutput, sourceFile.getParentFile());
+        session.getOptions().set("device", graphicsDevice(session, sourceFile));
 
-      // Examples assume that the package is already on the search path
-      if (!Strings.isNullOrEmpty(namespaceUnderTest) && isManFile(sourceFile)) {
-        loadLibrary(session, namespaceUnderTest, testOutput);
+        // Examples assume that the package is already on the search path
+        if (!Strings.isNullOrEmpty(namespaceUnderTest) && isManFile(sourceFile)) {
+          loadLibrary(session, namespaceUnderTest, testOutput);
+        }
+      } catch (Exception e) {
+        e.printStackTrace(testOutput);
+        listener.fail();
+        return;
       }
+
+      // Set the random number generation seed to ensure that tests are deterministic
+      session.getTopLevelContext()
+              .evaluate(FunctionCall.newCall(Symbol.get("set.seed"), new IntArrayVector(1)));
 
       UnsupportedTerminal term = new UnsupportedTerminal();
       InputStream in = new ByteArrayInputStream(sourceText.getBytes(Charsets.UTF_8));

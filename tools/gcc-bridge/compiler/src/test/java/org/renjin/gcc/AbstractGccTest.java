@@ -191,6 +191,7 @@ public abstract class AbstractGccTest {
     compiler.addReferenceClass(RStubs.class);
     compiler.addReferenceClass(GimpleAssert.class);
     compiler.addMathLibrary();
+    compiler.setByteCodeOptimizationDisabled(true);
     compiler.compile(units);
   }
 

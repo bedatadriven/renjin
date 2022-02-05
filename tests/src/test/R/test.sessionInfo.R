@@ -17,11 +17,27 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
+library(hamcrest)
+
+
+# Many routines in the utils package expect the 'path' attribute
+# on package environments
+he <- as.environment("package:hamcrest")
+print(he)
+assertFalse(is.null(attr(he, "path")))
+
 library(utils)
 print(.Library)
 print(file.path(.Library, "base"))
 print(packageDescription("base"))
-#
-#si <- sessionInfo()
-#
-#print(si)
+
+si <- sessionInfo()
+
+hamcrest <- si$otherPkgs$hamcrest
+str(hamcrest)
+
+assertFalse(is.null(hamcrest))
+
+hv <- hamcrest$Version
+
+assertTrue(compareVersion('0.0.0',hv) < 0)

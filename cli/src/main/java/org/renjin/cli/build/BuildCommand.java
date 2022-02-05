@@ -18,12 +18,28 @@
  */
 package org.renjin.cli.build;
 
+import io.airlift.airline.ParseException;
+import org.renjin.packaging.GimpleCompilationException;
+
 public abstract class BuildCommand implements Runnable {
 
   @Override
   public final void run() {
     try {
       tryRun();
+    } catch (ParseException e) {
+      System.err.println("renjin: " + e.getMessage());
+      System.err.println("Try 'renjin help' for more information.");
+
+    } catch (GimpleCompilationException e) {
+      System.err.println("Gimple compilation failed. ");
+      e.printStackTrace(System.err);
+      System.err.println();
+      System.err.println("Renjin tried to compile this package's native sources (C, C++, or Fortran)");
+      System.err.println("to Java classes, but encountered a problem. See the stacktrace above for details.");
+      System.err.println();
+      System.err.println("You can run again with the --ignore-gimple-errors, but you may encounter");
+      System.err.println("errors at runtime if you try to use a function that renjin couldn't compile.");
     } catch (Exception e) {
       e.printStackTrace();
     }

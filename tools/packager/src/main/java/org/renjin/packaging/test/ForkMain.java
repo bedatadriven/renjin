@@ -78,6 +78,8 @@ public class ForkMain {
 
         executor.executeTest(new File(testFilePath));
       }
+    } catch (InterruptedException e) {
+      listener.debug("InterruptedException Caught, exiting.");
     } catch (EOFException e) {
       listener.debug("EOF Caught, exiting.");
     }

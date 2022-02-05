@@ -20,11 +20,9 @@ package org.renjin.cli.build;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.renjin.eval.Session;
-import org.renjin.packaging.BuildContext;
-import org.renjin.packaging.BuildException;
-import org.renjin.packaging.BuildLogger;
-import org.renjin.packaging.PackageSource;
+import org.renjin.packaging.*;
 import org.renjin.primitives.packaging.PackageLoader;
+import org.renjin.repackaged.guava.base.Strings;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,15 +36,17 @@ public class PackageBuild implements BuildContext {
 
   private final File buildDir;
   private final PackageSource source;
+  private boolean ignoreGimpleErrors;
   private final DependencyResolution dependencyResolution;
   private final File outputDir;
   private final File packageOutputDir;
   private final File mavenMetaDir;
+  private final MakeStrategy makeStrategy;
 
-
-  public PackageBuild(PackageSource source, Optional<String> renjinVersion) {
+  public PackageBuild(PackageSource source, Optional<String> renjinVersion, boolean ignoreGimpleErrors) {
     this.buildDir = createCleanBuildDir(source.getPackageDir());
     this.source = source;
+    this.ignoreGimpleErrors = ignoreGimpleErrors;
     this.outputDir = new File(buildDir, "classes");
     this.packageOutputDir = new File(
         outputDir + File.separator +
@@ -65,6 +65,12 @@ public class PackageBuild implements BuildContext {
     mkdirs(mavenMetaDir);
 
     this.dependencyResolution = new DependencyResolution(logger, source.getDescription(), renjinVersion);
+
+    if(!Strings.isNullOrEmpty(System.getenv("RENJIN_HOME"))) {
+      this.makeStrategy = MakeStrategy.LOCAL;
+    } else {
+      this.makeStrategy = MakeStrategy.VAGRANT;
+    }
   }
 
   public DependencyResolution getDependencyResolution() {
@@ -111,22 +117,22 @@ public class PackageBuild implements BuildContext {
 
   @Override
   public void setupNativeCompilation() {
-    throw new UnsupportedOperationException("TODO");
+    // NOOP
   }
 
   @Override
   public File getGccBridgePlugin() {
-    throw new UnsupportedOperationException("TODO");
+    return new File(System.getenv("GCC_BRIDGE"));
   }
 
   @Override
   public File getGnuRHomeDir() {
-    throw new UnsupportedOperationException("TODO");
+    return new File(System.getenv("RENJIN_HOME"));
   }
 
   @Override
   public File getUnpackedIncludesDir() {
-    throw new UnsupportedOperationException("TODO");
+    return new File(buildDir, "includes");
   }
 
   @Override
@@ -157,7 +163,7 @@ public class PackageBuild implements BuildContext {
 
   @Override
   public File getCompileLogDir() {
-    throw new UnsupportedOperationException("TODO");
+    return new File(buildDir, "gcc-bridge-logs");
   }
 
   @Override
@@ -176,16 +182,17 @@ public class PackageBuild implements BuildContext {
   }
 
   @Override
-  public String getSootClasspath() {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-
-  @Override
   public Map<String, String> getPackageGroupMap() {
     return dependencyResolution.getPackageGroupMap();
   }
 
+  @Override
+  public MakeStrategy getMakeStrategy() {
+    return makeStrategy;
+  }
 
-
+  @Override
+  public boolean isIgnoreGimpleErrors() {
+    return ignoreGimpleErrors;
+  }
 }

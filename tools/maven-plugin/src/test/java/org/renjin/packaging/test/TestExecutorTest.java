@@ -16,25 +16,52 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.maven.test;
+package org.renjin.packaging.test;
 
-import junit.framework.TestCase;
-import org.renjin.packaging.test.TestExecutor;
+import org.junit.Before;
+import org.junit.Test;
 import org.renjin.repackaged.guava.io.Files;
 import org.renjin.repackaged.guava.io.Resources;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-public class TestExecutorTest extends TestCase {
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
+public class TestExecutorTest {
+
+  private List<String> defaultPackages = Collections.emptyList();
+  private File reportDir;
+
+  @Before
+  public void setUp() throws Exception {
+    reportDir = Files.createTempDir();
+  }
+
+  @Test
   public void testThatExceptionsInTestShouldNotEscape() throws Exception {
-    File reportDir = Files.createTempDir();
-    List<String> defaultPackages = Collections.emptyList();
-    TestExecutor runner = new TestExecutor("base", defaultPackages, new Listener(), reportDir);
+    TestExecutor runner = new TestExecutor("base", defaultPackages, new SimpleListener(), reportDir);
     File testFile = new File(Resources.getResource("man/mean.Rd").getFile());
     runner.executeTest(testFile);
+  }
+
+  @Test
+  public void testsShouldTimeout() throws IOException, InterruptedException {
+
+    SimpleListener listener = new SimpleListener();
+
+    TestExecutor runner = new TestExecutor("base", defaultPackages, listener, reportDir);
+    runner.setTimeoutMillis(TimeUnit.SECONDS.toMillis(1));
+
+    File testFile = new File(Resources.getResource("man/mean.Rd").getFile());
+    String testScript = "Sys.sleep(30)\n";
+    runner.executeTestFileWithTimeout(testFile, testScript);
+
+    assertThat(listener.getFailCount(), equalTo(1));
   }
 
 }

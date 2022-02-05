@@ -28,16 +28,20 @@ import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.escape.Escaper;
+import org.renjin.repackaged.guava.escape.Escapers;
 import org.renjin.repackaged.guava.io.Files;
 import org.renjin.repackaged.guava.io.LineProcessor;
-import soot.G;
-import soot.Main;
+import org.renjin.repackaged.guava.io.Resources;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Builds the native library part of a GNU R package, using {@code make} and any
@@ -66,35 +70,127 @@ public class NativeSourceBuilder {
     this.transformGlobalVariables = transformGlobalVariables;
   }
 
-  public void build() throws IOException, InterruptedException {
-    configure();
-    make();
+  public void build() throws Exception {
+    if(buildContext.getMakeStrategy() == MakeStrategy.VAGRANT) {
+      buildWithVagrant();
+    } else {
+      configure();
+      make();
+    }
     compileGimple();
     buildContext.getLogger().info("Compilation of GNU R sources succeeded.");
-
-    try {
-      optimizeClasses();
-    } catch (Exception e) {
-      buildContext.getLogger().error("Soot optimization run failed", e);
-    }
-
-    // When soot hits an error, it can set the interrupt flag for this
-    // thread.
-    Thread.interrupted();
-
   }
 
-  private void configure() throws IOException, InterruptedException {
+  private void buildWithVagrant() throws IOException, InterruptedException {
+    writeVagrantFile();
+    writeVagrantBuildScript();
 
-    File renjinMakeVars = new File(source.getNativeSourceDir(), "Makevars.renjin");
-    if (renjinMakeVars.exists()) {
-      buildContext.getLogger().debug("Makevars.renjin exists, skipping ./configure...");
+    int exitCode = new ProcessBuilder()
+            .command("vagrant", "up")
+            .directory(source.getPackageDir())
+            .inheritIO()
+            .start()
+            .waitFor();
+
+    if(exitCode != 0) {
+      buildContext.getLogger().error("Vagrant up failed.");
     }
 
-    File configure = new File(source.getPackageDir(), "configure");
-    if(!configure.exists()) {
-      buildContext.getLogger().debug("No ./configure script found at " + configure.getAbsolutePath() +
-          ", skipping...");
+    exitCode = new ProcessBuilder()
+            .command("vagrant", "ssh", "-c", "cd package && sh compile-native.sh")
+            .directory(source.getPackageDir())
+            .inheritIO()
+            .start()
+            .waitFor();
+
+    if(exitCode != 0) {
+      buildContext.getLogger().error("Vagrant up failed.");
+    }
+  }
+
+  /**
+   * Writes a VagrantFile to the package root that can be used to compile this package's
+   * native sources into Gimple. This VagrantFile references the <a href="https://app.vagrantup.com/renjin/boxes/packager">pre-built VM published to
+   * Vagrant Cloud</a>
+   */
+  private void writeVagrantFile() throws IOException {
+    File vagrantFile = new File(source.getPackageDir(), "Vagrantfile");
+    URL resource = Resources.getResource(NativeSourceBuilder.class, "Vagrantfile.package");
+
+    Files.asByteSink(vagrantFile).write(Resources.toByteArray(resource));
+  }
+
+  /**
+   * Writes a shell script that will run inside the Virtual Machine to compile the native sources
+   * to Gimple in JSON format. The JSON files can be read by subsequent steps outside the Virtual Machine.
+   */
+  private void writeVagrantBuildScript() throws IOException {
+    File buildScript = new File(source.getPackageDir(), "compile-native.sh");
+    try(PrintWriter ps = new PrintWriter(buildScript, "UTF-8")) {
+      if(!skipConfigure()) {
+        ps.println("./configure");
+      }
+      ps.println("cd src");
+      ps.println("export R_VERSION=" + RVersion());
+      ps.println("export R_HOME=/usr/local/lib/renjin");
+      ps.println("export R_INCLUDE_DIR=/usr/local/lib/renjin/include");
+      ps.println("export R_SHARE_DIR=/usr/local/lib/renjin/share");
+      ps.println("export R_PACKAGE_NAME=" + source.getPackageName());
+      ps.println("export R_INSTALL_PACKAGE=" + source.getPackageName());
+      ps.println("export R_PACKAGE_DIR=/home/ubuntu/package");
+      ps.println("export MAKE=make");
+      ps.println("export R_UNZIPCMD=/usr/bin/unzip");
+      ps.println("export R_GZIPCMD=/usr/bin/gzip");
+      ps.println("export CLINK_CPPFLAGS=-I/home/vagrant/package/" + unpackedIncludesDirRelativeToPackage());
+
+      ps.println(makeCommandLine("/usr/local/lib/renjin", "/usr/local/lib/renjin/bridge.so")
+              .stream()
+              .map(a -> maybeQuoteShellArgument(a))
+              .collect(Collectors.joining(" ")));
+    }
+  }
+
+  private String unpackedIncludesDirRelativeToPackage() throws IOException {
+    StringBuilder s = new StringBuilder();
+    File dir = buildContext.getUnpackedIncludesDir().getCanonicalFile().getAbsoluteFile();
+    File packageDir = source.getPackageDir().getCanonicalFile().getAbsoluteFile();
+    while(!dir.equals(packageDir)) {
+      if(s.length() > 0) {
+        s.insert(0, "/");
+      }
+      s.insert(0, dir.getName());
+      dir = dir.getParentFile();
+      if(dir == null) {
+        throw new IllegalStateException(String.format(
+                "The unpackaged includes dir (%s) must be a sub-directory of the package directory (%s)",
+                buildContext.getUnpackedIncludesDir().getAbsolutePath(),
+                source.getSourceDir().getAbsolutePath()));
+      }
+    }
+    return s.toString();
+  }
+
+  private static final Escaper SHELL_ESCAPER = Escapers.builder()
+          .addEscape('\'', "''")
+          .build();
+
+  private static final String SINGLE_QUOTE = "'";
+
+  private String maybeQuoteShellArgument(String a) {
+    if(a.contains("$") || a.contains(" ")) {
+      return SINGLE_QUOTE + SHELL_ESCAPER.escape(a) + SINGLE_QUOTE;
+    } else {
+      return a;
+    }
+  }
+
+  /**
+   * Runs the configure script for the package. This is NOT run inside a
+   * virtual machine.
+   */
+  private void configure() throws IOException, InterruptedException {
+
+    if(skipConfigure()) {
       return;
     }
 
@@ -114,57 +210,24 @@ public class NativeSourceBuilder {
     }
   }
 
+  /**
+   * Returns true if the configure script can be skipped, either because it doesn't exist
+   * or because a specific Makevars.renjin is provided.
+   */
+  private boolean skipConfigure() {
+    File renjinMakeVars = new File(source.getNativeSourceDir(), "Makevars.renjin");
+    if (renjinMakeVars.exists()) {
+      buildContext.getLogger().debug("Makevars.renjin exists, skipping ./configure...");
+      return true;
+    }
+
+    File configure = new File(source.getPackageDir(), "configure");
+    return !configure.exists();
+  }
+
   private void make() throws IOException, InterruptedException {
 
-    File makeconfFile = new File(buildContext.getGnuRHomeDir().getAbsolutePath() + "/etc/Makeconf");
-    File shlibMk = new File(buildContext.getGnuRHomeDir().getAbsolutePath() + "/share/make/shlib.mk");
-
-    List<String> commandLine = Lists.newArrayList();
-    commandLine.add("make");
-
-    // Combine R's default Makefile with package-specific Makevars if present
-    File makevars = new File(source.getNativeSourceDir(), "Makevars.renjin");
-    if (!makevars.exists()) {
-      makevars =  new File(source.getNativeSourceDir(), "Makevars");
-    }
-    if (makevars.exists()) {
-      commandLine.add("-f");
-      commandLine.add(makevars.getName());
-    }
-
-    // Makeconf file
-    commandLine.add("-f");
-    commandLine.add(makeconfFile.getAbsolutePath());
-
-    commandLine.add("-f");
-    commandLine.add(shlibMk.getAbsolutePath());
-
-    commandLine.add("SHLIB='" + source.getPackageName() + ".so'");
-
-    if(!definedByMakeVars(makevars, "^OBJECTS\\s*=")) {
-      commandLine.add("OBJECTS=" + findObjectFiles());
-    }
-    commandLine.add("BRIDGE_PLUGIN=" + buildContext.getGccBridgePlugin().getAbsolutePath());
-
-    // Packages using native code can defined the C++ standard in DESCRIPTION file
-    // SystemRequirements fields or in Makevars file as CXX_STD variable. Using this
-    // information, GNU R (src/library/tools/R/install.R), overwrites the flags as
-    // defined in Makeconf. In Renjin, we check whether if the CXX11 flag is set in
-    // DESCRIPTION or Makevars and overwrite the flags that install.R would otherwise
-    // overwrite. We should add other cases from install.R ones we move to new version
-    // of gcc that supports C++14 and C++17.
-    if(definedByMakeVars(makevars, "(CXX_STD)\\W+(CXX11)") || source.isCXX11()) {
-      if(!source.isCXX11()) {
-        System.out.println("Checking wether in Makevars CXX_STD is set to CXX11... yes");
-      }
-      commandLine.add("CXX=$(CXX11) $(CXX11STD)");
-      commandLine.add("CXXFLAGS=$(CXX11FLAGS)");
-      commandLine.add("CXXPICFLAGS=$(CXX11PICFLAGS)");
-      commandLine.add("SHLIB_LDFLAGS=$(SHLIB_CXX11LDFLAGS)");
-      commandLine.add("SHLIB_LD=$(SHLIB_CXX11LD)");
-    } else {
-      System.out.println("Checking wether in Makevars CXX_STD is set to CXX11... no");
-    }
+    List<String> commandLine = makeCommandLine(buildContext.getGnuRHomeDir().getAbsolutePath(), buildContext.getGccBridgePlugin().getAbsolutePath());
 
     buildContext.getLogger().debug("Executing " + Joiner.on(" ").join(commandLine));
 
@@ -174,7 +237,7 @@ public class NativeSourceBuilder {
         .directory(source.getNativeSourceDir())
         .inheritIO();
 
-    builder.environment().put("R_VERSION", "3.2.0");
+    builder.environment().put("R_VERSION", RVersion());
     builder.environment().put("R_HOME", buildContext.getGnuRHomeDir().getAbsolutePath());
     builder.environment().put("R_INCLUDE_DIR", buildContext.getGnuRHomeDir().getAbsolutePath() + "/include");
     builder.environment().put("R_SHARE_DIR", buildContext.getGnuRHomeDir().getAbsolutePath() + "/share");
@@ -204,7 +267,72 @@ public class NativeSourceBuilder {
     }
   }
 
-  private void compileGimple() {
+  /**
+   * Returns the version of R we are pretending to be.
+   */
+  private String RVersion() {
+    return "3.5.3";
+  }
+
+  private List<String> makeCommandLine(String homeDir, String pluginPath) throws IOException {
+
+    List<String> commandLine = Lists.newArrayList();
+    commandLine.add("make");
+
+    String makeconfFile = homeDir + "/etc/Makeconf";
+    String shlibMk = homeDir + "/share/make/shlib.mk";
+
+    // Combine R's default Makefile with package-specific Makevars if present
+    File makevars = new File(source.getNativeSourceDir(), "Makevars.renjin");
+    if (!makevars.exists()) {
+      makevars =  new File(source.getNativeSourceDir(), "Makevars");
+    }
+    if (makevars.exists()) {
+      commandLine.add("-f");
+      commandLine.add(makevars.getName());
+    }
+
+    // Makeconf file
+    commandLine.add("-f");
+    commandLine.add(makeconfFile);
+
+    commandLine.add("-f");
+    commandLine.add(shlibMk);
+
+    commandLine.add("SHLIB='" + source.getPackageName() + ".so'");
+
+    if(!definedByMakeVars(makevars, "^OBJECTS\\s*=")) {
+      commandLine.add("OBJECTS=" + findObjectFiles());
+    }
+    commandLine.add("BRIDGE_PLUGIN=" + pluginPath);
+
+    // Packages using native code can defined the C++ standard in DESCRIPTION file
+    // SystemRequirements fields or in Makevars file as CXX_STD variable. Using this
+    // information, GNU R (src/library/tools/R/install.R), overwrites the flags as
+    // defined in Makeconf. In Renjin, we check whether if the CXX11 flag is set in
+    // DESCRIPTION or Makevars and overwrite the flags that install.R would otherwise
+    // overwrite. We should add other cases from install.R ones we move to new version
+    // of gcc that supports C++14 and C++17.
+    if(definedByMakeVars(makevars, "(CXX_STD)\\W+(CXX11)") || source.isCXX11()) {
+      if(!source.isCXX11()) {
+        buildContext.getLogger().debug("Checking whether in Makevars CXX_STD is set to CXX11... yes");
+      }
+      commandLine.add("CXX=$(CXX11) $(CXX11STD)");
+      commandLine.add("CXXFLAGS=$(CXX11FLAGS)");
+      commandLine.add("CXXPICFLAGS=$(CXX11PICFLAGS)");
+      commandLine.add("SHLIB_LDFLAGS=$(SHLIB_CXX11LDFLAGS)");
+      commandLine.add("SHLIB_LD=$(SHLIB_CXX11LD)");
+    } else {
+      buildContext.getLogger().debug("Checking whether in Makevars CXX_STD is set to CXX11... no");
+    }
+    return commandLine;
+  }
+
+  /**
+   * Reads in the Gimple JSON files generating by the make process and compiles them to
+   * Java bytecode.
+   */
+  private void compileGimple() throws Exception {
 
     List<GimpleCompilationUnit> gimpleFiles = Lists.newArrayList();
     collectGimple(source.getNativeSourceDir(), gimpleFiles);
@@ -216,6 +344,7 @@ public class NativeSourceBuilder {
         Namespace.sanitizePackageNameForClassFiles(source.getPackageName()));
     compiler.setClassName(findLibraryName());
     compiler.setLoggingDirectory(buildContext.getCompileLogDir());
+    compiler.setIgnoreErrors(buildContext.isIgnoreGimpleErrors());
 
     GnurSourcesCompiler.setupCompiler(compiler);
 
@@ -223,54 +352,8 @@ public class NativeSourceBuilder {
       compiler.addPlugin(new GlobalVarPlugin(compiler.getPackageName()));
     }
 
-    try {
-      compiler.compile(gimpleFiles);
-    } catch (Exception e) {
-      throw new BuildException("Failed to compile Gimple", e);
-    }
+    compiler.compile(gimpleFiles);
   }
-
-  private void optimizeClasses() {
-
-    List<String> classes = new ArrayList<>();
-    findClassfiles(buildContext.getOutputDir(), "", classes);
-
-    List<String> args = new ArrayList<>();
-    // Preprend maven's classpath
-    args.add("-pp");
-
-    // Classpath for soot analysis
-    args.add("-cp");
-    args.add(buildContext.getSootClasspath());
-
-    args.add("-asm-backend");
-    args.add("-java-version");
-    args.add("1.8");
-
-    // Add classes to optimize
-    args.add("-O");
-    args.addAll(classes);
-
-    // Write out to build directory and overwrite existing classfiles
-    args.add("-d");
-    args.add(buildContext.getOutputDir().getAbsolutePath());
-
-    G.reset();
-
-    Main.v().run(args.toArray(new String[args.size()]));
-  }
-
-
-  private void findClassfiles(File file, String packageName, List<String> classes) {
-    for (File child : file.listFiles()) {
-      if(child.isFile() && child.getName().endsWith(".class")) {
-        classes.add(packageName + Files.getNameWithoutExtension(child.getName()));
-      } else if(child.isDirectory()) {
-        findClassfiles(child, packageName + child.getName() + ".", classes);
-      }
-    }
-  }
-
 
   private String findLibraryName() {
     // Packages can rename the shared library after it's build.
@@ -296,7 +379,7 @@ public class NativeSourceBuilder {
 
     final Pattern definitionRegexp = Pattern.compile(pattern);
 
-    return Files.readLines(makevars, Charsets.UTF_8, new LineProcessor<Boolean>() {
+    return Files.asCharSource(makevars, Charsets.UTF_8).readLines(new LineProcessor<Boolean>() {
 
       private boolean defined = false;
 
@@ -353,5 +436,4 @@ public class NativeSourceBuilder {
       }
     }
   }
-
 }

@@ -107,7 +107,7 @@ public class PackageBuilder {
           context.getLogger().error("Compilation of GNU R sources failed.");
           e.printStackTrace(System.err);
         } else {
-          throw new BuildException("Compilation of GNU R sources failed", e);
+          throw new GimpleCompilationException("Compilation of GNU R sources failed", e);
         }
       }
     }

@@ -66,14 +66,23 @@ public class RdParserTest extends EvalTestCase {
     compareTree("test3.Rd", expected.get(2));
   }
 
+  @Test
+  public void infiniteLoop() throws IOException {
+
+    ListVector sexps = parseResource("starship.Rd");
+  }
+
   private void compareTree(String resourceName, SEXP expected) throws IOException {
+    ListVector result = parseResource(resourceName);
+    compareNode(resourceName, result, expected);
+  }
+
+  private ListVector parseResource(String resourceName) throws IOException {
     InputStream in = getClass().getResourceAsStream(resourceName);
     InputStreamReader reader = new InputStreamReader(in);
-    
-    RdParser parser = new RdParser();
-    ListVector result = (ListVector) parser.R_ParseRd(reader, Null.INSTANCE, false);
 
-    compareNode(resourceName, result, expected);
+    RdParser parser = new RdParser();
+    return (ListVector) parser.R_ParseRd(reader, Null.INSTANCE, false);
   }
 
   private void compareNode(String node, SEXP result, SEXP expected) {

@@ -20,6 +20,7 @@ package org.renjin.cli.build;
 
 import org.apache.maven.model.*;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.renjin.RenjinVersion;
 import org.renjin.eval.Session;
 import org.renjin.packaging.BuildException;
@@ -153,10 +154,17 @@ public class PomBuilder {
       renjinPlugin.setArtifactId("renjin-maven-plugin");
       renjinPlugin.setVersion(RenjinVersion.getVersionName());
 
+      Xpp3Dom makeStrategy = new Xpp3Dom("make");
+      makeStrategy.setValue("VAGRANT");
+
+      Xpp3Dom executionConfiguration = new Xpp3Dom("configuration");
+      executionConfiguration.addChild(makeStrategy);
+
       PluginExecution buildExecution = new PluginExecution();
       buildExecution.setId("build-package");
       buildExecution.setGoals(Collections.singletonList("gnur-compile"));
       buildExecution.setPhase("compile");
+      buildExecution.setConfiguration(executionConfiguration);
       renjinPlugin.addExecution(buildExecution);
 
       PluginExecution testExecution = new PluginExecution();

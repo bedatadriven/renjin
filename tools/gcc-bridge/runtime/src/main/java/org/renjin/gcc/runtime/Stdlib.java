@@ -1332,6 +1332,9 @@ public class Stdlib {
   public static boolean __signbitf(float x) {
     return x < 0;
   }
+  public static boolean __signbitf128(double x) {
+    return x < 0;
+  }
 
   public static boolean __signbit(double x) {
     return x < 0;

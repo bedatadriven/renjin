@@ -5,6 +5,9 @@ dependencies {
     compile libraries.guava
     compile libraries.asm
     compile 'com.fasterxml.jackson.core:jackson-databind:2.8.11.1'
+    compile('org.soot-oss:soot:4.2.1') {
+        exclude group: 'org.smali', module: 'dexlib2'
+    }
     implementation libraries.airline
 }
 

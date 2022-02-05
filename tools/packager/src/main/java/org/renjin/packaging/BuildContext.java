@@ -88,8 +88,6 @@ public interface BuildContext {
    */
   List<String> getDefaultPackages();
 
-  String getSootClasspath();
-
   /**
    *
    * @return a map from simple package name to its group id, for those known at build time.
@@ -104,5 +102,13 @@ public interface BuildContext {
   default File getExecuteNamespaceFile() {
     File metaInfDir = new File(getOutputDir(), "META-INF");
     return new File(metaInfDir, "org.renjin.execute.namespace");
+  }
+
+  default MakeStrategy getMakeStrategy() {
+    return MakeStrategy.LOCAL;
+  }
+
+  default boolean isIgnoreGimpleErrors() {
+    return false;
   }
 }

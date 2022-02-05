@@ -27,6 +27,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.renjin.packaging.MakeStrategy;
 import org.renjin.packaging.PackageBuilder;
 import org.renjin.packaging.PackageDescription;
 import org.renjin.packaging.PackageSource;
@@ -113,7 +114,7 @@ public class NamespaceMojo extends AbstractMojo {
           .setDataDir(dataDirectory)
           .build();
 
-      MavenBuildContext buildContext = new MavenBuildContext(project, pluginDependencies, getLog());
+      MavenBuildContext buildContext = new MavenBuildContext(project, MakeStrategy.LOCAL, pluginDependencies, getLog());
       buildContext.setDefaultPackages(defaultPackages);
 
       PackageBuilder builder = new PackageBuilder(source, buildContext);

@@ -79,6 +79,8 @@ public class DeparseTest extends EvalTestCase {
     assertThat(eval("deparse(quote(x[1,drop=TRUE]))"), elementsIdenticalTo(c("x[1, drop = TRUE]")));
     assertThat(eval("deparse(quote(x[[1]]))"), elementsIdenticalTo(c("x[[1]]")));
     assertThat(eval("deparse(quote(x$y))"), elementsIdenticalTo(c("x$y")));
+    assertThat(eval("deparse(quote(a::b))"), elementsIdenticalTo(c("a::b")));
+
   }
   
   @Test

@@ -55,6 +55,7 @@ public class Packages {
     Environment packageEnv = context.getGlobalEnvironment().insertAbove(new HashFrame());
     packageEnv.setAttribute(Symbols.NAME,  StringVector.valueOf("package:" + namespace.getFullyQualifiedName().getPackageName()));
     packageEnv.setAttribute(Symbols.FQNAME,  StringVector.valueOf("package:" + namespace.getFullyQualifiedName().toString()));
+    packageEnv.setAttribute(Symbol.get("path"),  StringVector.valueOf(namespace.getPackage().getPackageRootUri(context.getFileSystemManager())));
 
     // Copy in the namespace's exports
     namespace.copyExportsTo(context, packageEnv, Collections.emptySet());

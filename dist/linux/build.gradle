@@ -16,7 +16,6 @@ dependencies {
 }
 
 
-
 ospackage {
     packageName = 'renjin'
     packageDescription = 'Renjin Command Line Tool'
@@ -36,4 +35,21 @@ ospackage_application {
 buildDeb {
     release = '1'
     requires('libblas3')
+}
+
+task publishDeb {
+    dependsOn 'buildDeb'
+
+    doFirst {
+        def debFile = tasks.buildDeb.getArchiveFile().get().getAsFile();
+        project.exec {
+            commandLine 'gsutil', 'cp',
+                    debFile.absolutePath,
+                    "gs://renjin-staging/${System.env.BUILD_NUMBER}/${debFile.name}"
+        }
+    }
+}
+
+task publish {
+    dependsOn 'publishDeb'
 }

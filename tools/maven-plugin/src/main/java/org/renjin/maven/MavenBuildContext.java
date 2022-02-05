@@ -25,10 +25,7 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.renjin.gcc.Gcc;
 import org.renjin.gnur.GnurInstallation;
-import org.renjin.packaging.BuildContext;
-import org.renjin.packaging.BuildException;
-import org.renjin.packaging.BuildLogger;
-import org.renjin.packaging.DefaultPackages;
+import org.renjin.packaging.*;
 import org.renjin.primitives.packaging.ClasspathPackageLoader;
 import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -45,7 +42,8 @@ import java.util.*;
 public class MavenBuildContext implements BuildContext {
 
   private MavenProject project;
-  
+
+  private MakeStrategy makeStrategy;
   private MavenBuildLogger logger;
 
   private File buildDir;
@@ -63,8 +61,9 @@ public class MavenBuildContext implements BuildContext {
   
   private List<String> defaultPackages = Collections.emptyList();
 
-  public MavenBuildContext(MavenProject project, Collection<Artifact> pluginDependencies, Log log) throws MojoExecutionException {
+  public MavenBuildContext(MavenProject project, MakeStrategy makeStrategy, Collection<Artifact> pluginDependencies, Log log) throws MojoExecutionException {
     this.project = project;
+    this.makeStrategy = makeStrategy;
     this.logger = new MavenBuildLogger(log);
     
     this.buildDir = new File(project.getBuild().getDirectory());
@@ -165,6 +164,11 @@ public class MavenBuildContext implements BuildContext {
     return classloader;
   }
 
+  @Override
+  public MakeStrategy getMakeStrategy() {
+    return makeStrategy;
+  }
+
   private URL[] buildClassPath() throws MojoExecutionException  {
     try {
       logger.debug("Renjin Evaluation Classpath: ");
@@ -211,13 +215,8 @@ public class MavenBuildContext implements BuildContext {
     return defaultPackages;
   }
 
-  @Override
-  public String getSootClasspath() {
-    return getCompileClasspath();
-  }
 
-
-  public String getCompileClasspath() {
+    public String getCompileClasspath() {
 
     List<String> compileClasspathElements;
     try {

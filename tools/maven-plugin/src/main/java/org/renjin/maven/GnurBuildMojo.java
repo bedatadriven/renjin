@@ -26,6 +26,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.renjin.gcc.GimpleCompiler;
+import org.renjin.packaging.MakeStrategy;
 import org.renjin.packaging.PackageBuilder;
 import org.renjin.packaging.PackageSource;
 
@@ -51,6 +52,13 @@ public class GnurBuildMojo extends AbstractMojo {
   private boolean ignoreFailure;
 
 
+  /**
+   * Determines the strategy to use for compiling native sources
+   */
+  @Parameter(property = "make", defaultValue = "local")
+  private MakeStrategy make;
+
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
 
@@ -62,7 +70,7 @@ public class GnurBuildMojo extends AbstractMojo {
           .setPackageName(project.getArtifactId())
           .build();
       
-      MavenBuildContext buildContext = new MavenBuildContext(project, Collections.emptySet(), getLog());
+      MavenBuildContext buildContext = new MavenBuildContext(project, make, Collections.emptySet(), getLog());
       buildContext.setDefaultPackagesIfDependencies();
       
       PackageBuilder builder = new PackageBuilder(packageSource, buildContext);

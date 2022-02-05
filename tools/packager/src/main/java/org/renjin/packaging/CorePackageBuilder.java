@@ -198,16 +198,7 @@ public class CorePackageBuilder implements BuildContext {
     }
   }
 
-  @Override
-  public String getSootClasspath() {
-    String classpath = System.getenv("SOOT_CLASSPATH");
-    if(Strings.isNullOrEmpty(classpath)) {
-      throw new RuntimeException("SOOT_CLASSPATH is not set.");
-    }
-    return classpath;
-  }
-
-  @Override
+    @Override
   public Map<String, String> getPackageGroupMap() {
     return Collections.emptyMap();
   }

@@ -26,14 +26,12 @@ configurations {
 
 dependencies {
     gcc project(':tools:gcc-bridge:gcc-bridge-compiler')
-    gcc libraries.soot
 
     compile project(':tools:gcc-bridge:runtime')
     compile project(':math:common')
 }
 
 def compiledOutputDir = "$buildDir/gcc-bridge/classes"
-def optimizedOutputDir = "$buildDir/gcc-bridge/optimized"
 
 sourceSets {
     main {
@@ -141,40 +139,5 @@ task compileGimple(type: JavaExec) {
         if(cDir.exists()) {
             args 'build/c/gimple'
         }
-    }
-}
-
-task optimize(type: JavaExec) {
-
-    dependsOn 'compile'
-
-    inputs.dir compiledOutputDir
-    outputs.dir optimizedOutputDir
-
-    doFirst {
-
-        classpath configurations.gcc
-        main = 'soot.Main'
-
-        // Prepend maven's classpath
-        args '-pp'
-
-        // Classpath for soot analysis
-        args '-cp'
-        args configurations.compile + ":" + compiledOutputDir
-
-        args '-asm-backend'
-        args '-java-version'
-        args '1.8';
-
-//    args("-v");
-        args '-debug'
-
-        // Add classes to optimize
-        args '-O'
-
-        // Write out to build directory and overwrite existing classfiles
-        args '-d"'
-        args optimizedOutputDir
     }
 }

@@ -19,6 +19,7 @@
 package org.renjin.cli.build;
 
 import io.airlift.airline.Arguments;
+import io.airlift.airline.Option;
 import org.renjin.packaging.PackageSource;
 
 import java.io.IOException;
@@ -26,14 +27,17 @@ import java.util.Optional;
 
 public abstract class PackageCommand extends BuildCommand {
 
-  @Arguments(description = "Path to package source")
+  @Arguments(description = "Path to package sourceX2X")
   public String packageSource = ".";
+
+  @Option(name = "--ignore-gimple-errors", description = "Ignore errors compiling native sources and continue building the package")
+  public boolean ignoreGimpleErrors;
 
   protected final PackageBuild createBuildContext() throws IOException {
     PackageSource source = new PackageSource.Builder(packageSource)
         .setDefaultGroupId("org.renjin.cran")
         .build();
 
-    return new PackageBuild(source, Optional.empty());
+    return new PackageBuild(source, Optional.empty(), ignoreGimpleErrors);
   }
 }

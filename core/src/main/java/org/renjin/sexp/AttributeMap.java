@@ -789,6 +789,9 @@ public class AttributeMap {
         return AttributeMap.EMPTY;
       }
 
+      assert (dimNames == null || dimNames instanceof ListVector) :
+        "dimNames should be absent or of type list, found: " + dimNames;
+
       AttributeMap attributes = new AttributeMap();
       attributes.classes = classes;
       attributes.dim = dim;
@@ -823,7 +826,10 @@ public class AttributeMap {
       validateDim(length);
 
       Vector validatedDimNames = validateDimNames();
-      if(validatedDimNames != null) {
+      if(validatedDimNames == Null.INSTANCE) {
+        this.dimNames = null;
+        removeList(Symbols.DIMNAMES);
+      } else if(validatedDimNames != null) {
         this.dimNames = validatedDimNames;
         updateList(Symbols.DIMNAMES, validatedDimNames);
       }
@@ -889,10 +895,21 @@ public class AttributeMap {
       
       return builder.build();
     }
-    
+
+    /**
+     * Checks the names vector for conformity -- if this is not an S4 object --
+     * and returns a new vector if adjustment is required. If the vector is ok,
+     * returns {@code null}.
+     */
     private StringVector validateNames(int vectorLength) {
       
       if(names == null) {
+        return null;
+      }
+
+      // S4 objects are allowed to put whatever they want in the
+      // names attribute.
+      if(s4) {
         return null;
       }
       

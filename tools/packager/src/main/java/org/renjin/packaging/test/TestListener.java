@@ -25,14 +25,35 @@ public interface TestListener {
 
   void debug(String message);
 
+  /**
+   * Called when a new test script file starts.
+   */
   void startFile(File testFile);
 
+  /**
+   * Called when a new, individual test starts
+   */
   void start(String testName);
 
+  /**
+   * Called when a test exceeds its time limit. A call to {@code #fail} will follow if the
+   * test can be successfully interrupted.
+   */
+  void timeout();
+
+  /**
+   * Called when the currently-running test passes.
+   */
   void pass();
 
+  /**
+   * Called when the currently-running test passes.
+   */
   void fail();
 
+  /**
+   * Called when all tests in the test file have completed.
+   */
   void done();
 
 }

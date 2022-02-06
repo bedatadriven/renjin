@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.jar.JarFile;
 
@@ -40,11 +41,13 @@ class ClassPathFileSystem extends AbstractFileSystem {
 
     while(resource.hasMoreElements()) {
       URL url = resource.nextElement();
-      if (url.getProtocol().equals("file")) {
+      if ("file".equals(url.getProtocol())) {
         File file = new File(fileFromUrl(url));
         if (file.exists() && !file.isDirectory()) {
           return createFile(name, url);
         }
+      } else if ("classpath".equals(url.getProtocol())) {
+        return createFile(name, url);
       }
       urls.add(url);
     }
@@ -59,10 +62,10 @@ class ClassPathFileSystem extends AbstractFileSystem {
     Set<String> children = new HashSet<>();
 
     for (URL url : urls) {
-      if (url.getProtocol().equals("file")) {
+      if ("file".equals(url.getProtocol())) {
         File file = new File(fileFromUrl(url));
         localDirs.add(file);
-      } else if(url.getProtocol().equals("jar")) {
+      } else if("jar".equals(url.getProtocol())) {
         listJarFiles(url, children);
       } else {
         throw new UnsupportedOperationException("TODO: " + url);
@@ -94,7 +97,7 @@ class ClassPathFileSystem extends AbstractFileSystem {
             }
           });
     } else {
-      throw new UnsupportedOperationException("Todo");
+      throw new UnsupportedOperationException("TODO: cannot handle url: " + url);
     }
   }
 
@@ -108,8 +111,9 @@ class ClassPathFileSystem extends AbstractFileSystem {
 
   static String fileFromUrl(URL resource) {
     try {
-      return URLDecoder.decode(resource.getFile(), "UTF-8");
+      return URLDecoder.decode(resource.getFile(), StandardCharsets.UTF_8.name());
     } catch (UnsupportedEncodingException e) {
+      // Will never happen unless this is a customized JVM
       throw new IllegalStateException("JVM does not support UTF-8 Encoding");
     }
   }

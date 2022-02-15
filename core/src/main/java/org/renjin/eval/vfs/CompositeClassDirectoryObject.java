@@ -53,6 +53,15 @@ public class CompositeClassDirectoryObject extends AbstractFileObject {
 
   @Override
   protected InputStream doGetInputStream() {
-    throw new UnsupportedOperationException("TODO");
+    if (localDirs == null || localDirs.size() == 0) {
+      // assume this is a single resource
+      return getClass().getResourceAsStream(getName().getPath());
+    }
+    throw new UnsupportedOperationException("TODO: implement doGetInputStream for multiple content, " + this);
+  }
+
+  @Override
+  public String toString() {
+    return "CompositeClassDirectoryObject: name: " + getName() +  ", path: " + getName().getPath() + ", localDirs: " + localDirs;
   }
 }

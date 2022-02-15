@@ -21,7 +21,7 @@
 package org.renjin.grDevices;
 
 import org.apache.commons.vfs2.FileObject;
-import org.jfree.graphics2d.svg.SVGGraphics2D;
+import org.jfree.svg.SVGGraphics2D;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.repackaged.guava.base.Strings;

@@ -35,14 +35,12 @@ import java.util.List;
 public class MavenSettingsDecrypter implements SettingsDecrypter {
 
   // Copied from Maven as there was no constructor to set the security Dispatcher
-
-  private SecDispatcher securityDispatcher = new MavenSecDispatcher();
-
+  private final SecDispatcher securityDispatcher = new MavenSecDispatcher();
 
   public SettingsDecryptionResult decrypt(SettingsDecryptionRequest request) {
-    List<SettingsProblem> problems = new ArrayList<SettingsProblem>();
+    List<SettingsProblem> problems = new ArrayList<>();
 
-    List<Server> servers = new ArrayList<Server>();
+    List<Server> servers = new ArrayList<>();
 
     for (Server server : request.getServers()) {
       server = server.clone();
@@ -64,7 +62,7 @@ public class MavenSettingsDecrypter implements SettingsDecrypter {
       }
     }
 
-    List<Proxy> proxies = new ArrayList<Proxy>();
+    List<Proxy> proxies = new ArrayList<>();
 
     for (Proxy proxy : request.getProxies()) {
       proxy = proxy.clone();
@@ -97,9 +95,9 @@ public class MavenSettingsDecrypter implements SettingsDecrypter {
     private List<SettingsProblem> problems;
 
     public DefaultSettingsDecryptionResult(List<Server> servers, List<Proxy> proxies, List<SettingsProblem> problems) {
-      this.servers = (servers != null) ? servers : new ArrayList<Server>();
-      this.proxies = (proxies != null) ? proxies : new ArrayList<Proxy>();
-      this.problems = (problems != null) ? problems : new ArrayList<SettingsProblem>();
+      this.servers = (servers != null) ? servers : new ArrayList<>();
+      this.proxies = (proxies != null) ? proxies : new ArrayList<>();
+      this.problems = (problems != null) ? problems : new ArrayList<>();
     }
 
     public Server getServer() {

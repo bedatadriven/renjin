@@ -37,18 +37,25 @@ test.file.resource <- function() {
 }
 
 test.jar.resource <- function() {
-
+    print("test.jar.resource ")
 
     # in this case, the resource is part of the current build and so will resolve
     # to a file:/// URI.
-    path <- normalizePath("res:java/util/Map.class", mustWork = TRUE)
+    path <- normalizePath("res:org/renjin/sexp/AtomicVector.class", mustWork = TRUE)
+    # jar:file:///home/ubuntu/renjin/core/build/libs/core-3.5-dev.jar!/org/renjin/sexp/AtomicVector.class
+
     cat(sprintf("\npath = %s\n", path))
 
     assertTrue(grepl(path, pattern = "^jar:"))
 
     # The result of local.file() should give an identical path
     local.path <- local.file(path)
-
+    print(paste("local.path =", local.path))
     assertTrue(local.path != path)
     assertTrue(file.exists(local.path))
+
+    # TODO: figure out what to do with the below case
+    # path <- normalizePath("res:java/util/Map.class", mustWork = TRUE)
+    # This will be jrt:///java.base/java/util/Map.class which will not resolve
+
 }

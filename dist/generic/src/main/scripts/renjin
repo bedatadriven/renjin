@@ -12,23 +12,24 @@
 #
 # ----------------------------------------------------------------------------
 
-export RENJIN_HOME=$(dirname `cd $(dirname $0); pwd`)
-echo $RENJIN_HOME
+SCRIPT_DIR="$(cd $(dirname $([ -L $0 ] && readlink -f $0 || echo $0)); pwd)"
+export RENJIN_HOME=$(dirname "$SCRIPT_DIR")
+echo "$RENJIN_HOME"
 if [ -z "$JAVA_HOME" ] ; then
   if [ -r /etc/gentoo-release ] ; then
-    JAVA_HOME=`java-config --jre-home`
+    JAVA_HOME=$(java-config --jre-home)
   fi
 fi
 
 if [ -z "$JAVA_HOME" ]; then
-  javaExecutable="`which javac`"
-  if [ -n "$javaExecutable" -a ! "`expr \"$javaExecutable\" : '\([^ ]*\)'`" = "no" ]; then
+  javaExecutable="$(which javac)"
+  if [ -n "$javaExecutable" -a ! "$(expr \"$javaExecutable\" : '\([^ ]*\)')" = "no" ]; then
     # readlink(1) is not available as standard on Solaris 10.
-    readLink=`which readlink`
-    if [ ! `expr "$readLink" : '\([^ ]*\)'` = "no" ]; then
-      javaExecutable="`readlink -f \"$javaExecutable\"`"
-      javaHome="`dirname \"$javaExecutable\"`"
-      javaHome=`expr "$javaHome" : '\(.*\)/bin'`
+    readLink=$(which readlink)
+    if [ ! $(expr "$readLink" : '\([^ ]*\)') = "no" ]; then
+      javaExecutable="$(readlink -f \"$javaExecutable\")"
+      javaHome="$(dirname \"$javaExecutable\")"
+      javaHome=$(expr "$javaHome" : '\(.*\)/bin')
       JAVA_HOME="$javaHome"
       export JAVA_HOME
     fi
@@ -44,7 +45,7 @@ if [ -z "$JAVACMD" ] ; then
       JAVACMD="$JAVA_HOME/bin/java"
     fi
   else
-    JAVACMD="`which java`"
+    JAVACMD="$(which java)"
   fi
 fi
 
@@ -58,7 +59,12 @@ if [ -z "$JAVA_HOME" ] ; then
   echo "Warning: JAVA_HOME environment variable is not set."
 fi
 
+CP=$(echo $RENJIN_HOME/dependencies/*.jar | tr ' ' ':')
+if [ "$OSTYPE" = "cygwin" ]; then
+  CP=$(cygpath -pw "$CP")
+fi
+
 exec "$JAVACMD" \
-  $RENJIN_OPTS \
-  -cp $(echo $RENJIN_HOME/dependencies/*.jar | tr ' ' ':') \
-  org.renjin.cli.Main "$@"
+$RENJIN_OPTS \
+-cp "$CP" \
+org.renjin.cli.Main "$@"

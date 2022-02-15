@@ -1,10 +1,10 @@
 
 
 dependencies {
-    compile 'org.apache.maven:maven-plugin-api:2.0'
+    compile 'org.apache.maven:maven-plugin-api:3.3.9'
     compile 'org.apache.maven:maven-project:2.2.1'
-    compileOnly 'org.apache.maven.plugin-tools:maven-plugin-annotations:3.4'
-    compile 'org.codehaus.plexus:plexus-compiler-api:${plexusCompilerVersion}'
+    compileOnly 'org.apache.maven.plugin-tools:maven-plugin-annotations:3.6.4'
+    compile 'org.codehaus.plexus:plexus-compiler-api:2.9.0'
     compile 'org.renjin:gcc-bridge-compiler:${project.version}'
     testCompile libraries.junit
 }

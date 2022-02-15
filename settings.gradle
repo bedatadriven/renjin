@@ -41,6 +41,7 @@ include 'test-packages:alpha'
 include 'test-packages:thirdparty'
 include 'test-packages:s4test'
 include 'test-packages:s3test'
+include 'test-packages:defaultgroupid'
 
 include 'tests'
 

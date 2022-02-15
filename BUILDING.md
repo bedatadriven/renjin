@@ -14,7 +14,7 @@ requires GCC 4.7.x.
 
 Requirements
 ------------
-1. JDK 1.8 Recommended
+1. JDK 11 Recommended
 2. GCC 4.7
 
 ### Vagrant

@@ -78,6 +78,11 @@ sessionInfo <- function(package = NULL)
                    },
                    uname)
     }
+    # If the above failed for some reason, fall back to System properties
+    if (z$running == 0 || is.null(z$running)) {
+        import(java.lang.System)
+        z$running <- paste(System$getProperty("os.name"), System$getProperty("os.version"))
+    }
 
     if(is.null(package)){
         package <- grep("^package:", search(), value=TRUE)

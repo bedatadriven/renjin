@@ -18,10 +18,13 @@
  */
 package org.renjin.gcc;
 
+import io.github.classgraph.ClassGraph;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.repackaged.guava.base.Strings;
 
 import java.io.File;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,6 +35,12 @@ import java.util.List;
  * Renjin multi-project.
  */
 public class Build {
+
+  // In Java 11 the standard classloader is no longer a URLClassLoader, so we create something similar
+  private static final GccClassloader gccClassloader = new GccClassloader(
+      new ClassGraph().getClasspathURLs().toArray(new URL[0]),
+      Build.class.getClassLoader()
+  );
 
   public static void main(String[] args) throws Exception {
     Gcc gcc = new Gcc();
@@ -94,4 +103,7 @@ public class Build {
     return Arrays.asList(property.split("\\s+"));
   }
 
+  public static URLClassLoader getClassLoader() {
+    return gccClassloader;
+  }
 }

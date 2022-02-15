@@ -105,13 +105,12 @@ public class ForkedTestController {
   }
 
   public void executeTest(File testFile) throws Exception {
-
-    if(reporter == null) {
+    if (reporter == null) {
       reporter = new TestReporter(testReportsDirectory);
       reporter.start();
     }
 
-    if(fork == null) {
+    if (fork == null) {
       startFork();
     }
 
@@ -126,7 +125,7 @@ public class ForkedTestController {
       shutdown();
     }
 
-    if(!pollResults()) {
+    if (!pollResults()) {
       // If the test file timed out, or the forked JVM otherwise
       // barfed, then clean up our fork so that the next test file starts
       // with a fresh JVM.

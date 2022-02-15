@@ -1,0 +1,17 @@
+
+group = 'org.renjin.test'
+
+apply from: '../../gradle/package.gradle'
+
+dependencies {
+    testCompile project(':packages:hamcrest')
+}
+
+compileNamespace {
+    defaultPackages = []
+}
+
+testPackage {
+    systemProperties['default.package.groups'] = group
+    defaultPackages = []
+}

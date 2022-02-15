@@ -89,8 +89,18 @@ icuGetCollate <- function(type = c("actual", "valid"))
     stop("icuGetCollate() not supported by Renjin")
 
 extSoftVersion <- function() {
-    warning("Renjin does not support extSoftVersion()")
-    list()
+    import(com.github.fommil.netlib.BLAS)
+    c(
+      "zlib" = "",
+      "bzlib" = "",
+      "xz" = "",
+      "PCRE" = "",
+      "ICU" = "",
+      "TRE" = "",
+      "iconv" = "",
+      "readline" = "",
+      "BLAS" = BLAS$getInstance()$getClass()$getName()
+    )
 }
 
 libcurlVersion <- function() {

@@ -70,6 +70,11 @@ The resulting Java builds are fully platform-independent.
 
 See [BUILDING](BUILDING.md) for more information.
 
+## Resources
+- [Website](https://www.renjin.org/index.html)
+- Documentation: The primary source of documentation is [docs.renjin.org](http://docs.renjin.org/en/latest). There is also quite a lot of info on [Stackoverflow](http://stackoverflow.com/questions/tagged/renjin). For developer documentation see the [wiki pages](/bedatadriven/renjin/wiki)
+- [Mailling list](https://groups.google.com/g/renjin-dev). For general questions, updates, and discussing, join our mailing list on Google Groups.
+
 ## License
 
 Renjin is available under the GPLv2 (or higher) license, see [LICENSE](LICENSE.txt) for the

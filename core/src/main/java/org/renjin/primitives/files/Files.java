@@ -848,7 +848,10 @@ public class Files {
    */
   private static String friendlyFileName(FileObject file) {
     String uri = file.getName().getURI();
-    if(uri.startsWith("file://")) {
+    if(uri.startsWith("file:///")) {
+      if (isWindows()) {
+        return uri.substring("file:///".length());
+      }
       return uri.substring("file://".length());
     }
     return uri;

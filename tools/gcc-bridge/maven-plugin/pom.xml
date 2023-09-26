@@ -57,7 +57,7 @@
       <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-utils</artifactId>
       <type>jar</type>
-      <version>1.0.4</version>
+      <version>3.0.24</version>
     </dependency>
     <dependency>
       <groupId>org.renjin</groupId>
